@@ -444,5 +444,18 @@ setTimeout(()=>{
 }, totalTime);
 </script>
 
+
+<script>
+  // Registrar SW desde boot.html
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js', { scope: './' })
+      .then(reg => {
+        console.log('[Boot] SW registrado:', reg.scope);
+        // Si hay SW esperando, activarlo ya
+        if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+      })
+      .catch(err => console.log('[Boot] SW error:', err));
+  }
+</script>
 </body>
 </html>

@@ -1,8 +1,9 @@
 // Service Worker - Choque de Héroes TCG
-const CACHE_NAME = 'chh-tcg-v2';
+const CACHE_NAME = 'chh-tcg-v3';
 
 const urlsToCache = [
   './',
+  './boot.html',
   './index.html',
   './calculadora.html',
   './reglamento.html',

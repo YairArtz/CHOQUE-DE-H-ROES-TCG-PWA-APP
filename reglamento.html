@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0">
+  <meta name="theme-color" content="#03050a">
+  <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB8AAAApCAYAAADneafqAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAGcSURBVHgB7ZbBTcMwFIb/Z5cOkA2ADRokOvUEt05A2QBGgA3oBpQN2ABugDegE5ANyAblzX+SUhzHThwOXPiPlJP/2M/f/3uODcAgwD/IVDgwDf5Q">
+  <link rel="manifest" href="manifest.json">
+  <title>Reglamento — Choque de Héroes TCG</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    body {
+      font-family: 'Rajdhani', sans-serif;
+      background: #03050a;
+      color: #e0e4e8;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    
+    /* Nav bar sticky */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(3, 5, 10, 0.95);
+      border-bottom: 1px solid rgba(245, 166, 35, 0.3);
+      backdrop-filter: blur(10px);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    nav img {
+      width: 32px;
+      height: 32px;
+      filter: drop-shadow(0 0 8px rgba(245, 166, 35, 0.6));
+    }
+    
+    nav h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: #f5a623;
+      flex: 1;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .btn-menu {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      color: #f5a623;
+      background: transparent;
+      border: 1.5px solid #f5a623;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: all 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .btn-menu:active {
+      transform: scale(0.95);
+      background: rgba(245, 166, 35, 0.1);
+    }
+    
+    /* Container principal */
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px 16px 60px;
+    }
+    
+    /* Header del reglamento */
+    .header {
+      text-align: center;
+      padding: 30px 0 40px;
+      border-bottom: 2px solid rgba(245, 166, 35, 0.2);
+      margin-bottom: 30px;
+    }
+    
+    .header h2 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 28px;
+      font-weight: 900;
+      color: #f5a623;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+      text-shadow: 0 0 20px rgba(245, 166, 35, 0.5);
+    }
+    
+    .header p {
+      font-size: 16px;
+      color: #888;
+      font-weight: 500;
+    }
+    
+    /* Sistema de tabs */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 30px;
+      border-bottom: 2px solid rgba(245, 166, 35, 0.2);
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    
+    .tabs::-webkit-scrollbar {
+      display: none;
+    }
+    
+    .tab-btn {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 12px 20px;
+      background: transparent;
+      border: none;
+      color: #666;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.3s;
+      white-space: nowrap;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .tab-btn.active {
+      color: #f5a623;
+      border-bottom-color: #f5a623;
+      text-shadow: 0 0 10px rgba(245, 166, 35, 0.5);
+    }
+    
+    .tab-btn:hover:not(.active) {
+      color: #999;
+    }
+    
+    /* Contenido de tabs */
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.4s ease;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Secciones acordeón */
+    .section {
+      background: rgba(55, 10, 80, 0.15);
+      border: 1px solid rgba(204, 85, 255, 0.2);
+      border-radius: 12px;
+      margin-bottom: 16px;
+      overflow: hidden;
+      transition: all 0.3s;
+    }
+    
+    .section:hover {
+      border-color: rgba(204, 85, 255, 0.4);
+      box-shadow: 0 0 20px rgba(204, 85, 255, 0.1);
+    }
+    
+    .section-header {
+      padding: 18px 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      user-select: none;
+      background: rgba(55, 10, 80, 0.2);
+    }
+    
+    .section-header:active {
+      background: rgba(55, 10, 80, 0.35);
+    }
+    
+    .section-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: #cc55ff;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .section-icon {
+      font-size: 20px;
+      color: #cc55ff;
+      transition: transform 0.3s;
+    }
+    
+    .section.open .section-icon {
+      transform: rotate(180deg);
+    }
+    
+    .section-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease;
+    }
+    
+    .section.open .section-content {
+      max-height: 5000px;
+    }
+    
+    .section-body {
+      padding: 20px;
+      line-height: 1.7;
+      font-size: 15px;
+      color: #c0c4c8;
+    }
+    
+    .section-body h3 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: #00ff9d;
+      margin: 24px 0 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .section-body h4 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      color: #00cfff;
+      margin: 16px 0 8px;
+    }
+    
+    .section-body p {
+      margin-bottom: 14px;
+    }
+    
+    .section-body ul {
+      margin: 12px 0 12px 20px;
+    }
+    
+    .section-body li {
+      margin-bottom: 8px;
+      position: relative;
+      padding-left: 8px;
+    }
+    
+    .section-body li::marker {
+      color: #f5a623;
+    }
+    
+    .section-body strong {
+      color: #f5a623;
+      font-weight: 700;
+    }
+    
+    /* Ítem del glosario */
+    .glosario-item {
+      background: rgba(55, 10, 80, 0.1);
+      border-left: 3px solid #f5a623;
+      padding: 12px 16px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+    }
+    
+    .glosario-term {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: #f5a623;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    
+    .glosario-def {
+      font-size: 14px;
+      color: #b0b4b8;
+      line-height: 1.6;
+    }
+    
+    /* Responsive */
+    @media (max-width: 600px) {
+      .header h2 {
+        font-size: 22px;
+      }
+      
+      .section-title {
+        font-size: 14px;
+      }
+      
+      .section-body {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB8AAAApCAYAAADneafqAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAGcSURBVHgB7ZbBTcMwFIb/Z5cOkA2ADRokOvUEt05A2QBGgA3oBpQN2ABugDegE5ANyAblzX+SUhzHThwOXPiPlJP/2M/f/3uODcAgwD/IVDgwDf5Q" alt="CHH">
+  <h1>📖 Reglamento</h1>
+  <a href="index.html" class="btn-menu">← Menú</a>
+</nav>
+
+<div class="container">
+  <div class="header">
+    <h2>⚔️ Reglamento Oficial</h2>
+    <p>Domina las reglas del juego</p>
+  </div>
+  
+  <!-- Sistema de tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="reglamento">Reglamento</button>
+    <button class="tab-btn" data-tab="faq">FAQ</button>
+    <button class="tab-btn" data-tab="glosario">Glosario</button>
+  </div>
+  
+  <!-- TAB 1: REGLAMENTO -->
+  <div class="tab-content active" id="tab-reglamento">
+    
+    <div class="section open">
+      <div class="section-header">
+        <h3 class="section-title">📋 Normas de Construcción de Baraja</h3>
+        <span class="section-icon">▼</span>
+      </div>
+      <div class="section-content">
+        <div class="section-body">
+          <p>Armar una baraja y saber las reglas de un juego puede llegar a ser complicado, pero es la diferencia entre tener posibilidades de salir victorioso o quedar a disposición de tu adversario.</p>
+          <ul>
+            <li><strong>Baraja Principal (BP):</strong> Deberá constar de <strong>40 cartas exactas</strong>, no más ni menos.</li>
+            <li><strong>Baraja de Almas (BA):</strong> Deberá constar de <strong>15 cartas exactas</strong>:
+              <ul>
+                <li>3 almas de valor 1</li>
+                <li>3 almas de valor 2</li>
+                <li>3 almas de valor 3</li>
+                <li>6 restantes del valor de tu agrado</li>
+              </ul>
+            </li>
+            <li><strong>Baraja de Soporte (BS):</strong> Hasta un máximo de <strong>15 cartas</strong>.</li>
+            <li><strong>Límite por carta:</strong> Podrás usar hasta <strong>3 copias</strong> por carta (mientras la lista de cartas limitadas no diga lo contrario).</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <h3 class="section-title">🎮 Fases de un Turno</h3>
+        <span class="section-icon">▼</span>
+      </div>
+      <div class="section-content">
+        <div class="section-body">
+          <p>Choque de Héroes consta de <strong>7 fases</strong> que deberás seguir en orden:</p>
+          <h4>1. Inicio de Turno</h4>
+          <p>Esta fase indica el comienzo del turno del jugador.</p>
+          
+          <h4>2. Fase Ofrenda (desde turno 2)</h4>
+          <p>Solo se activa si tienes <strong>4 o menos almas activas</strong>. Regresa tu mano a sus barajas, revuélvelas y roba la misma cantidad desde tu baraja principal (las almas devueltas no se roban).</p>
+          
+          <h4>3. Robo de Alma</h4>
+          <p>El jugador activo roba una carta de la parte superior de su baraja de almas.</p>
+          
+          <h4>4. Robo de Turno</h4>
+          <p>El jugador activo roba una carta de la parte superior de su baraja principal. <strong>Si se termina tu baraja principal, pierdes el CHOQUE automáticamente.</strong></p>
+          
+          <h4>5. Fase de Acción</h4>
+          <p>En esta fase podrás:</p>
+          <ul>
+            <li>Activar una carta ALMA (solo una por turno)</li>
+            <li>Llamar personajes de forma normal (hasta 2 por turno)</li>
+            <li>Activar cartas APOYO, SECTOR o ARENA</li>
+            <li>Realizar llamados especiales</li>
+          </ul>
+          
+          <h4>6. Fase de Combate</h4>
+          <p>Consta de varios pasos:</p>
+          <ul>
+            <li><strong>Inicio de Combate:</strong> El jugador en turno indica el comienzo (el jugador que inicia el CHOQUE no puede declarar batalla en su primer turno)</li>
+            <li><strong>Batalla:</strong> Selecciona un personaje atacante y un objetivo (personaje rival o corazones directos)</li>
+            <li><strong>Daño:</strong> Se resuelve el ATAQUE CRUZADO (fuerza vs resistencia mutua)</li>
+            <li><strong>Término del Combate:</strong> Anuncia el final cuando no tengas más ataques</li>
+          </ul>
+          
+          <h4>7. Final de Turno</h4>
+          <p>Declara el final del turno. Si tienes más de 7 cartas en mano, envía el exceso al Mictlán. La resistencia de los personajes se restaura.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <h3 class="section-title">🃏 Tipos de Cartas</h3>
+        <span class="section-icon">▼</span>
+      </div>
+      <div class="section-content">
+        <div class="section-body">
+          <h3>ALMA</h3>
+          <p>Son la esencia del juego. Sin ellas no podrías llamar personajes al campo.</p>
+          <ul>
+            <li>Solo podrás activar <strong>una carta ALMA por turno</strong></li>
+            <li>Permanecen en las zonas de apoyo una vez activadas</li>
+            <li>Su valor es acumulable entre varias cartas</li>
+            <li>Indican hasta qué valor de personajes puedes llamar</li>
+          </ul>
+          
+          <h3>APOYO</h3>
+          <p>Se activan durante tu Fase de Acción. Existen 4 subtipos:</p>
+          <ul>
+            <li><strong>Normales:</strong> Efecto de un solo uso, se autodestruyen</li>
+            <li><strong>Continuos:</strong> Permanecen en campo mientras estén activos</li>
+            <li><strong>Equipo:</strong> Se vinculan a personajes, se destruyen si el personaje sale</li>
+            <li><strong>Uso Rápido:</strong> Activables en cualquier fase, turno propio o rival</li>
+          </ul>
+          
+          <h3>SECTOR</h3>
+          <p>Afectan a 2 zonas de personajes anexas (semi-arena). Son continuas y brindan habilidades especiales a los personajes en esas zonas.</p>
+          
+          <h3>ARENA</h3>
+          <p>Afectan todo tu campo, algunas también al rival. Solo puedes tener una activa, pero puedes reemplazarla destruyendo la anterior.</p>
+          
+          <h3>PERSONAJE</h3>
+          <p>Tus guerreros para combatir. Tienen:</p>
+          <ul>
+            <li><strong>Valor de llamado:</strong> Almas necesarias para llamarlo</li>
+            <li><strong>Corazones/Impacto:</strong> Vidas y daño directo</li>
+            <li><strong>Fuerza/Resistencia:</strong> Ataque y defensa</li>
+            <li><strong>Fatiga de llamado:</strong> No pueden atacar el turno que entran</li>
+          </ul>
+          <p>Existen personajes con y sin habilidades especiales.</p>
+          
+          <h3>AMALGAMA</h3>
+          <p>Poderosos personajes producto de la combinación de 2 o más héroes. Requieren aislar cartas específicas de tu mano. Si retornan a la mano, regresan a la Baraja de Soporte.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <h3 class="section-title">⚡ Habilidades Exclusivas</h3>
+        <span class="section-icon">▼</span>
+      </div>
+      <div class="section-content">
+        <div class="section-body">
+          <h4>ALERTA</h4>
+          <p>Este personaje no deberá descansar después de haber defendido.</p>
+          
+          <h4>ATORMENTAR</h4>
+          <p>Confina esta carta: Destruye todos los personajes en el campo con el mismo valor.</p>
+          
+          <h4>AURA</h4>
+          <p>Durante el turno de tu adversario: retorna esta carta al fondo de tu baraja y roba una carta alma.</p>
+          
+          <h4>BARBARIE</h4>
+          <p>Este personaje puede atacar una vez a cada personaje en el campo de tu adversario.</p>
+          
+          <h4>BRUTALIDAD</h4>
+          <p>Este personaje puede declarar batalla el mismo turno en que fue llamado.</p>
+          
+          <h4>CLARIVIDENCIA</h4>
+          <p>Mira las "x" cartas del tope de tu baraja principal; elige una y colócala en el tope, retorna el resto al fondo en cualquier orden.</p>
+          
+          <h4>COMANDAR</h4>
+          <p>Este personaje podrá usar a un personaje de tu otro sector para defenderlo.</p>
+          
+          <h4>COSMO</h4>
+          <p>Si robas esta carta, puedes llamarla de forma especial a tu lado del campo.</p>
+          
+          <h4>DOBLE BATALLA</h4>
+          <p>Este personaje puede chocar simultáneamente con dos personajes en el campo de tu adversario que estén en el mismo sector.</p>
+          
+          <h4>ÉLITE</h4>
+          <p>Cuando este personaje declara un ataque, puedes duplicar sus puntos de fuerza y resistencia hasta el final de ese combate.</p>
+          
+          <h4>EMBOSCADA</h4>
+          <p>Este personaje puede atacar los corazones de tu adversario directamente sin importar cuántos personajes controle.</p>
+          
+          <h4>FORTALEZA</h4>
+          <p>Este personaje no puede atacar.</p>
+          
+          <h4>GUARDA</h4>
+          <p>Este personaje puede defender a un personaje que se encuentre en otro sector.</p>
+          
+          <h4>HEROÍSMO</h4>
+          <p>Este personaje no puede ser destruido en combate.</p>
+          
+          <h4>INVULNERABLE</h4>
+          <p>Este personaje no puede ser destruido por efectos de cartas o habilidades.</p>
+          
+          <h4>MÍMICA</h4>
+          <p>Cuando este personaje es llamado de forma normal: Selecciona un personaje en tu Mictlán y confínalo; esta carta gana la habilidad de ese objetivo.</p>
+          
+          <h4>PORTAL</h4>
+          <p>Este personaje puede intercambiar de sector con otro personaje en tu lado del campo, o intercambiar a dos personajes tuyos. Si se activa durante declaración de batalla, el atacante combatirá con el personaje cambiado.</p>
+          
+          <h4>PRIMER DAÑO</h4>
+          <p>Durante el choque, este personaje puede dañar con mayor rapidez (el personaje del contrincante no podrá responder al choque).</p>
+          
+          <h4>RITO</h4>
+          <p>Durante el turno de tu adversario: retorna a tu mano una carta ALMA activa de tu lado del campo y llama de forma especial a este personaje desde tu mano.</p>
+          
+          <h4>TORTURA</h4>
+          <p>Mientras esta carta permanezca en el campo, su controlador perderá un corazón al inicio de su turno.</p>
+          
+          <h4>TOXINA</h4>
+          <p>Cuando este personaje es vencido y enviado al Mictlán: Tu adversario no podrá llamar personajes del mismo valor o menor durante su próxima Fase de Acción.</p>
+          
+          <h4>ZOMBIFICAR</h4>
+          <p>Cuando este personaje es llamado de forma normal, puedes retornar una carta ALMA activa de valor 3 o mayor al fondo de tu baraja de almas; si lo haces, llama un personaje de forma especial desde tu Mictlán de valor 5 o menor al mismo sector. El personaje llamado se considera ZOMBIFICADO (no puede atacar ni activar habilidades).</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <h3 class="section-title">⚔️ Fase de Combate Detallada</h3>
+        <span class="section-icon">▼</span>
+      </div>
+      <div class="section-content">
+        <div class="section-body">
+          <h4>Paso 1: Inicio de Combate</h4>
+          <p>El jugador en turno indica el comienzo de su batalla. El jugador que inicia el CHOQUE no puede declarar batalla en su primer turno.</p>
+          
+          <h4>Paso 2: Batalla</h4>
+          <p>Selecciona un personaje atacante y un personaje atacado. El adversario puede elegir otro personaje del mismo sector para defender. El defensor descansará el próximo turno si sobrevive.</p>
+          <p><strong>Repetición de batalla:</strong> Si una habilidad o efecto cambia el campo después de declarar batalla, puedes elegir otro objetivo, cambiar de objetivo, o dejar de atacar (se considerará que declaraste batalla).</p>
+          
+          <h4>Paso 3: Daño</h4>
+          <p><strong>ATAQUE CRUZADO:</strong> La fuerza del atacante golpea la resistencia del defensor y viceversa. Cuando la resistencia de un personaje llega a 0, este muere.</p>
+          <p><strong>Múltiples atacantes:</strong> Puedes usar más de un personaje para reducir la resistencia de un personaje enemigo.</p>
+          <p><strong>Restauración:</strong> La resistencia se restaura al terminar el turno. Si un personaje tiene más de un corazón y pierde uno, su resistencia se restaura inmediatamente.</p>
+          
+          <h4>Paso 4: Término del Combate</h4>
+          <p>Después de resolver cada choque y no tener más personajes que puedan/quieran atacar, anuncia el término del combate.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <h3 class="section-title">🎲 Reglas de Setup</h3>
+        <span class="section-icon">▼</span>
+      </div>
+      <div class="section-content">
+        <div class="section-body">
+          <ul>
+            <li>Saludo y apretón de manos al inicio del CHOQUE</li>
+            <li>Revolver barajas y partir las del rival</li>
+            <li>Colocar barajas en sus zonas correspondientes</li>
+            <li>Determinar quién inicia mediante azar (piedra-papel-tijera, moneda, dado)</li>
+            <li>El perdedor del primer CHOQUE decide quién va primero en el segundo</li>
+            <li>En caso de empate, repetir el azar</li>
+            <li>Cada jugador inicia con <strong>10 corazones</strong> y <strong>4 cartas en mano</strong></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  
+  <!-- TAB 2: FAQ -->
+  <div class="tab-content" id="tab-faq">
+    
+    <div class="section open">
+      <div class="section-header">
+        <h3 class="section-title">❓ Aclaraciones a Dudas Frecuentes</h3>
+        <span class="section-icon">▼</span>
+      </div>
+      <div class="section-content">
+        <div class="section-body">
+          <ul>
+            <li>No podrás sustituir o activar cartas en zonas previamente ocupadas (con excepción de cartas ARENA).</li>
+            
+            <li>Podrás usar monedas, dados, fichas, etc. para indicar tus corazones como jugador o los corazones de los personajes.</li>
+            
+            <li>Podrás usar micas protectoras o cubre cartas de diferentes colores para indicar tu baraja de almas y tu baraja principal (es recomendable que sean del mismo color para que tu adversario no tome ventaja).</li>
+            
+            <li>No es necesario usar un tablero si ya conoces cada zona del mismo (podrás descargarlo en la página de CHH).</li>
+            
+            <li>El tablero consta de: 4 zonas para personajes, 5 zonas para apoyos y almas, 1 zona para baraja principal, 1 para baraja de almas, 1 para baraja de soporte, 1 zona de aislamiento, 1 de confinamiento, 1 para personajes de soporte y el Mictlán.</li>
+            
+            <li>Existen <strong>6 tipos de cartas:</strong> APOYO, SECTOR, ARENA, PERSONAJE, ALMA y AMALGAMA.</li>
+            
+            <li>Solo podrás activar una carta ALMA por turno (mientras una carta no diga lo contrario).</li>
+            
+            <li>Solo podrás hacer hasta <strong>dos llamados de forma normal</strong> por turno y llamados especiales los que puedas mientras tengas espacios libres.</li>
+            
+            <li>Si la resistencia de un personaje llega a 0, perderá un corazón inmediatamente.</li>
+            
+            <li>Cada jugador inicia con <strong>4 cartas en mano</strong>. El límite de mano es <strong>7 cartas</strong>. El exceso va al Mictlán al final del turno.</li>
+            
+            <li>Podrás jugar CHOQUE ÚNICO o una serie de tres CHOQUES (Match). El ganador de 2 de 3 CHOQUES gana el Match.</li>
+            
+            <li>Cada jugador inicia con <strong>10 corazones</strong> (pueden aumentarse o disminuirse; si llegan a 0, pierdes el CHOQUE).</li>
+            
+            <li>Si tu baraja principal se termina, <strong>pierdes el CHOQUE automáticamente</strong>.</li>
+            
+            <li>Para rendirte, toca tu Mictlán y anuncia la rendición.</li>
+            
+            <li>Al finalizar el turno, si uno o varios personajes chocaron y no fueron vencidos, su resistencia se regenera. Los corazones perdidos NO se regeneran al final del turno.</li>
+            
+            <li>Si tu adversario no tiene personajes en campo, podrás <strong>atacar directamente</strong> a sus corazones. Cada personaje tiene un indicador de IMPACTO.</li>
+            
+            <li>Todos los personajes quitan un corazón de jugador al atacar directamente (según su indicador de IMPACTO).</li>
+            
+            <li>Los personajes solo podrán atacar o defender una vez por turno (atacan en tu turno, defienden en el turno rival).</li>
+            
+            <li>Cuando un personaje es llamado al campo no podrá declarar batalla ese turno (entra en DESCANSO).</li>
+            
+            <li>Si un personaje defiende a otro, no podrá declarar batalla el próximo turno (entra en DESCANSO).</li>
+            
+            <li><strong>Las cadenas se resuelven de atrás hacia adelante:</strong> la última carta que se activó resuelve primero, así hasta llegar a la primera. Una CADENA es cuando una habilidad/efecto se activa en respuesta a otra carta, fase o llamado.</li>
+            
+            <li>Si hay diferencia entre las reglas básicas y el efecto/habilidad de una carta, <strong>el efecto/habilidad de la carta tiene preferencia</strong>.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  
+  <!-- TAB 3: GLOSARIO -->
+  <div class="tab-content" id="tab-glosario">
+    
+    <div class="section open">
+      <div class="section-header">
+        <h3 class="section-title">📚 Glosario de Términos</h3>
+        <span class="section-icon">▼</span>
+      </div>
+      <div class="section-content">
+        <div class="section-body">
+          
+          <div class="glosario-item">
+            <div class="glosario-term">ACTIVAR</div>
+            <div class="glosario-def">Poner en funcionamiento la habilidad o efecto de una carta.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">AISLAR</div>
+            <div class="glosario-def">Sacar del juego una carta que se encuentra confinada.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">AL AZAR</div>
+            <div class="glosario-def">Elegir una carta sin ver o sin saber el resultado previamente.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">ALMAS</div>
+            <div class="glosario-def">Cartas de color azul. Solo podrás activar una de estas por turno.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">AMALGAMA</div>
+            <div class="glosario-def">Personaje que se vuelve líder de sector.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">ANULAR</div>
+            <div class="glosario-def">Negar una acción, en la mayoría de los casos un ataque.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">AÑADIR</div>
+            <div class="glosario-def">Agregar a tu mano una (o más) carta de tu baraja o Mictlán. Después de buscar o añadir una carta de tu baraja principal o almas, se deberán revolver.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">APOYO</div>
+            <div class="glosario-def">Cartas de color rojizo. Hay cuatro tipos: Normales, de uso rápido, continuos y de equipo.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">ARENA</div>
+            <div class="glosario-def">Cartas de color verde. Solo podrás tener una activa en su respectiva zona.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">ATACAR</div>
+            <div class="glosario-def">Elegir un personaje tuyo y un personaje de tu adversario para que choquen entre sí.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">ATAQUE CRUZADO</div>
+            <div class="glosario-def">La fuerza de un personaje golpea la resistencia de otro y este último responde golpeando con su fuerza a la resistencia del personaje atacante.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">ATAQUE DIRECTO</div>
+            <div class="glosario-def">Atacar a los corazones de tu adversario cuando no se encuentra ningún personaje de su lado del campo.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">BATALLA</div>
+            <div class="glosario-def">Un "choque" entre dos personajes.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">BARAJA</div>
+            <div class="glosario-def">Tu mazo de juego.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">CADENAS</div>
+            <div class="glosario-def">Responder con una carta o efecto/habilidad a la activación de otra carta. Las cadenas se resuelven de atrás hacia adelante (la última carta que se activó se resuelve primero). Un llamado normal o especial también se considera inicio de cadena.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">CAMPO</div>
+            <div class="glosario-def">El espacio de juego. El tablero se divide en dos campos.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">CARTA</div>
+            <div class="glosario-def">Los naipes del juego. Cinco tipos diferentes: Personajes, Apoyos, Arenas, Sectores y Almas. Solo podrás usar hasta tres copias de cada una.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">choque (minúsculas)</div>
+            <div class="glosario-def">Cuando un personaje tuyo y uno de tu adversario combaten.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">CHOQUE (MAYÚSCULAS)</div>
+            <div class="glosario-def">Una partida entre dos jugadores.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">CONFINAR</div>
+            <div class="glosario-def">Remover, exiliar, desterrar o sacar una carta del juego.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">CONTROL</div>
+            <div class="glosario-def">Cartas que se encuentren en el campo de cada jugador.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">CORAZONES</div>
+            <div class="glosario-def">Tanto personajes como jugadores tienen vidas de juego. Son muy diferentes los corazones de un personaje a los corazones de cada jugador.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">DEBILITAR</div>
+            <div class="glosario-def">Reducir por efecto o habilidad la resistencia de un personaje.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">DEFENDER</div>
+            <div class="glosario-def">Solo se pueden defender entre sí personajes en el mismo sector. Si un personaje defiende a otro, no podrá declarar batalla el próximo turno.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">DESCANSAR</div>
+            <div class="glosario-def">Cuando un personaje es llamado al campo o defiende a un personaje entra en este estado, hasta el final de ese turno.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">DESCARTAR</div>
+            <div class="glosario-def">Enviar una o más cartas de tu mano al Mictlán.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">DESTRUIR</div>
+            <div class="glosario-def">Eliminar a un (o más) personaje sin importar sus puntajes o corazones.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">DIOS</div>
+            <div class="glosario-def">Personaje de valor 9 o superior.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">EFECTO</div>
+            <div class="glosario-def">La finalidad de cada carta apoyo, arena, sector y alma.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">FUERZA</div>
+            <div class="glosario-def">El puntaje de ataque que tiene un personaje a la hora de chocar.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">HABILIDAD</div>
+            <div class="glosario-def">Lo que puede hacer un personaje. Los personajes tienen habilidades, no efectos.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">IMPACTO</div>
+            <div class="glosario-def">El puntaje de daño que tu adversario recibe por un ataque directo. Perderá corazones de jugador al número de impactos recibidos.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">MANO</div>
+            <div class="glosario-def">El conjunto de cartas que el jugador tiene en su mano.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">MICTLÁN</div>
+            <div class="glosario-def">La zona de cementerio donde van las cartas destruidas, descartadas o vencidas.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">MORIR</div>
+            <div class="glosario-def">Cuando un personaje es destruido o vencido.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">PERSONAJE</div>
+            <div class="glosario-def">En otros juegos conocidos como monstruos, criaturas, héroes, aliados, compañeros, etc.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">RESISTENCIA</div>
+            <div class="glosario-def">El puntaje de defensa de cada personaje a la hora de chocar. Si llega a 0, el personaje perderá un corazón de vida.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">RETORNAR</div>
+            <div class="glosario-def">Regresar a la mano, baraja principal o a la de almas, cartas que se encuentren en la mano, campo o Mictlán.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">REVOLVER</div>
+            <div class="glosario-def">Barajar tanto tu baraja principal como la baraja de almas.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">SECTOR</div>
+            <div class="glosario-def">Cartas de color rosa. Tu campo está dividido en dos sectores.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">VALOR DE LLAMADO</div>
+            <div class="glosario-def">El costo limitante que tiene cada personaje en su parte superior derecha.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">VENCER</div>
+            <div class="glosario-def">Matar a un personaje en combate. Cuando un personaje pierde todos sus corazones durante un choque.</div>
+          </div>
+          
+          <div class="glosario-item">
+            <div class="glosario-term">ZOMBIFICADO</div>
+            <div class="glosario-def">El personaje en este estado no podrá atacar, ni activar sus habilidades.</div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// Sistema de tabs
+const tabBtns = document.querySelectorAll('.tab-btn');
+const tabContents = document.querySelectorAll('.tab-content');
+
+tabBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const targetTab = btn.dataset.tab;
+    
+    // Remover active de todos
+    tabBtns.forEach(b => b.classList.remove('active'));
+    tabContents.forEach(c => c.classList.remove('active'));
+    
+    // Activar el seleccionado
+    btn.classList.add('active');
+    document.getElementById('tab-' + targetTab).classList.add('active');
+    
+    // Scroll suave al inicio
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+});
+
+// Sistema de acordeón
+document.addEventListener('click', (e) => {
+  const header = e.target.closest('.section-header');
+  if (!header) return;
+  
+  const section = header.parentElement;
+  section.classList.toggle('open');
+});
+</script>
+
+</body>
+</html>

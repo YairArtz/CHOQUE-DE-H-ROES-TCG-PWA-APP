@@ -322,6 +322,19 @@ footer      {animation:fadeUp .5s .4s  both;}
     <div class="footer-copy">© 2016–2026 · Todos los derechos reservados</div>
   </footer>
 
+  <script>
+    // Registrar Service Worker para PWA
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js')
+        .then(function(registration) {
+          console.log('Service Worker registrado exitosamente:', registration.scope);
+        })
+        .catch(function(error) {
+          console.log('Error al registrar Service Worker:', error);
+        });
+    }
+  </script>
+
 </div>
 </body>
 </html>

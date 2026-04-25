@@ -1,5 +1,6 @@
-// Service Worker para Choque de Héroes TCG PWA
-const CACHE_NAME = 'chh-tcg-v1';
+// Service Worker - Choque de Héroes TCG
+const CACHE_NAME = 'chh-tcg-v2';
+
 const urlsToCache = [
   './',
   './index.html',
@@ -12,52 +13,48 @@ const urlsToCache = [
   './ranking.html',
   './mapa-tiendas.html',
   './consulta-puntaje.html',
+  './manifest.json',
   './icon-192.png',
-  './icon-512.png',
-  './manifest.json'
+  './icon-512.png'
 ];
 
-// Instalación - cachea los archivos esenciales
+// INSTALL
 self.addEventListener('install', event => {
+  console.log('[SW] Install');
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(urlsToCache))
+      .then(cache => cache.addAll(urlsToCache.map(url => {
+        return new Request(url, { cache: 'reload' });
+      })))
       .then(() => self.skipWaiting())
+      .catch(err => console.log('[SW] Cache error:', err))
   );
 });
 
-// Activación - limpia cachés antiguos
+// ACTIVATE
 self.addEventListener('activate', event => {
+  console.log('[SW] Activate');
   event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    }).then(() => self.clients.claim())
+    caches.keys().then(keys =>
+      Promise.all(
+        keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
+      )
+    ).then(() => self.clients.claim())
   );
 });
 
-// Fetch - estrategia Network First (intenta red primero, luego caché)
+// FETCH - Network first, cache fallback
 self.addEventListener('fetch', event => {
+  if (event.request.method !== 'GET') return;
   event.respondWith(
     fetch(event.request)
       .then(response => {
-        // Si la respuesta es válida, clónala y guárdala en caché
         if (response && response.status === 200) {
-          const responseToCache = response.clone();
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, responseToCache);
-          });
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
         }
         return response;
       })
-      .catch(() => {
-        // Si falla la red, intenta obtener del caché
-        return caches.match(event.request);
-      })
+      .catch(() => caches.match(event.request))
   );
 });

@@ -323,16 +323,44 @@ footer      {animation:fadeUp .5s .4s  both;}
   </footer>
 
   <script>
-    // Registrar Service Worker para PWA
+    // Registrar Service Worker
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js')
-        .then(function(registration) {
-          console.log('Service Worker registrado exitosamente:', registration.scope);
-        })
-        .catch(function(error) {
-          console.log('Error al registrar Service Worker:', error);
-        });
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('./sw.js', { scope: './' })
+          .then(function(reg) {
+            console.log('[PWA] SW registrado:', reg.scope);
+            // Forzar activación inmediata si hay uno en espera
+            if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+            reg.addEventListener('updatefound', () => {
+              if (reg.installing) {
+                reg.installing.addEventListener('statechange', () => {
+                  if (reg.installing && reg.installing.state === 'installed') {
+                    if (navigator.serviceWorker.controller) {
+                      console.log('[PWA] Nueva versión disponible');
+                    }
+                  }
+                });
+              }
+            });
+          })
+          .catch(function(err) {
+            console.log('[PWA] Error SW:', err);
+          });
+      });
     }
+
+    // Capturar el prompt de instalación
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      console.log('[PWA] Listo para instalar');
+    });
+
+    window.addEventListener('appinstalled', () => {
+      console.log('[PWA] App instalada correctamente');
+      deferredPrompt = null;
+    });
   </script>
 
 </div>

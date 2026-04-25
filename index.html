@@ -232,6 +232,39 @@ header      {animation:fadeUp .5s .05s both;}
 footer      {animation:fadeUp .5s .4s  both;}
 
 ::-webkit-scrollbar{display:none}
+
+/* ─── BANNER SLIDER ─── */
+.banner-slider{
+  width:100%;max-width:480px;margin:0 auto 18px;
+  border-radius:12px;overflow:hidden;
+  position:relative;
+  box-shadow:0 0 20px rgba(0,207,255,0.25);
+  border:1.5px solid rgba(0,207,255,0.2);
+}
+.banner-track{
+  display:flex;
+  transition:transform 0.5s cubic-bezier(0.77,0,0.18,1);
+  will-change:transform;
+}
+.banner-slide{
+  min-width:100%;
+  display:block;
+}
+.banner-slide img{
+  width:100%;display:block;
+  border-radius:12px;
+}
+.banner-dots{
+  position:absolute;bottom:8px;left:50%;transform:translateX(-50%);
+  display:flex;gap:7px;
+}
+.banner-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:rgba(255,255,255,0.3);
+  border:none;padding:0;cursor:pointer;
+  transition:background 0.3s;
+}
+.banner-dot.active{background:#00cfff;box-shadow:0 0 8px #00cfff;}
 </style>
 </head>
 <body>
@@ -246,6 +279,24 @@ footer      {animation:fadeUp .5s .4s  both;}
   </header>
 
   <div class="stitle">⚔ Herramienta de Partida</div>
+  <!-- BANNER SLIDER -->
+  <div class="banner-slider" id="bannerSlider">
+    <div class="banner-track" id="bannerTrack">
+      <div class="banner-slide"><img src="Banner_1.jpg" alt="Torneo Ecom Geek"></div>
+      <div class="banner-slide"><img src="Banner_2.jpg" alt="Mini-Expansión Variantes"></div>
+      <div class="banner-slide"><img src="Banner_5.jpg" alt="Victory Road Torneo"></div>
+      <div class="banner-slide"><img src="Banner_3.jpg" alt="Registro Jugador"></div>
+      <div class="banner-slide"><img src="Banner_4.jpg" alt="Victory Road Tienda"></div>
+    </div>
+    <div class="banner-dots">
+      <button class="banner-dot active" onclick="goSlide(0)"></button>
+      <button class="banner-dot" onclick="goSlide(1)"></button>
+      <button class="banner-dot" onclick="goSlide(2)"></button>
+      <button class="banner-dot" onclick="goSlide(3)"></button>
+      <button class="banner-dot" onclick="goSlide(4)"></button>
+    </div>
+  </div>
+
   <a class="calc-card" href="calculadora.html">
     <div class="calc-icon">⚔️</div>
     <div class="calc-info">
@@ -391,5 +442,27 @@ footer      {animation:fadeUp .5s .4s  both;}
   </script>
 
 </div>
+
+<script>
+var slideIndex = 0;
+var slideCount = 5;
+var autoSlide;
+
+function goSlide(n) {
+  slideIndex = n;
+  document.getElementById('bannerTrack').style.transform = 'translateX(-' + (n * 100) + '%)';
+  document.querySelectorAll('.banner-dot').forEach(function(d,i){ d.classList.toggle('active', i===n); });
+  resetAuto();
+}
+
+function nextSlide() { goSlide((slideIndex + 1) % slideCount); }
+
+function resetAuto() {
+  clearInterval(autoSlide);
+  autoSlide = setInterval(nextSlide, 4000);
+}
+
+resetAuto();
+</script>
 </body>
 </html>

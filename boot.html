@@ -353,6 +353,46 @@ html,body{
 </div>
 
 <script>
+// ═══ SISTEMA DE SONIDO ═══
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+const ctx = new AudioCtx();
+
+function beep(freq, dur, vol=0.15, type='sine') {
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.frequency.value = freq;
+  osc.type = type;
+  gain.gain.setValueAtTime(vol, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + dur);
+  osc.start(ctx.currentTime);
+  osc.stop(ctx.currentTime + dur);
+}
+
+function dataStream() {
+  for(let i=0; i<8; i++) {
+    setTimeout(() => beep(800 + i*100, 0.08, 0.08), i*80);
+  }
+}
+
+function digitalSync() {
+  beep(400, 0.12, 0.12, 'square');
+  setTimeout(() => beep(600, 0.12, 0.12, 'square'), 120);
+  setTimeout(() => beep(800, 0.18, 0.15, 'sine'), 240);
+}
+
+function powerUp() {
+  for(let i=0; i<15; i++) {
+    setTimeout(() => beep(200 + i*40, 0.05, 0.08 + i*0.005), i*35);
+  }
+}
+
+function scanPulse() {
+  beep(600, 0.4, 0.1, 'triangle');
+  setTimeout(() => beep(550, 0.35, 0.08, 'triangle'), 200);
+}
+
 // ── Speedlines en p1 ──
 const sl = document.getElementById('sl');
 sl.style.cssText = 'position:absolute;inset:0;overflow:hidden;';
@@ -387,6 +427,7 @@ const div2= phraseWrap.querySelectorAll('.divider')[1];
 
 // 0.8s — aparece la frase
 setTimeout(()=>{
+  digitalSync(); // Sonido de sincronización
   phraseWrap.style.opacity = '1';
   p1.classList.add('show');
   div1.classList.add('show');
@@ -394,6 +435,7 @@ setTimeout(()=>{
 
 // 1.9s — subtítulo + divider inferior
 setTimeout(()=>{
+  scanPulse(); // Pulso de escaneo
   div2.classList.add('show2');
   ps.classList.add('show');
 }, 1600);
@@ -411,6 +453,7 @@ setTimeout(()=>{
     phraseWrap.style.display = 'none';
 
     // Logo entra
+    powerUp(); // Sonido de encendido
     logoWrap.style.opacity = '1';
     logoEl.style.animation = 'logoIn 1.1s cubic-bezier(0.175,0.885,0.32,1.4) forwards';
 
@@ -426,7 +469,10 @@ setTimeout(()=>{
         'ACTIVANDO NEXO',
         'LISTO ⚡'
       ];
-      steps.forEach((s,i) => setTimeout(()=> lbl.textContent = s, i*600));
+      steps.forEach((s,i) => setTimeout(()=> {
+        dataStream(); // Stream de datos
+        lbl.textContent = s;
+      }, i*600));
 
     }, 600);
 

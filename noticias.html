@@ -3,23 +3,68 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#03050a">
+  <meta name="theme-color" content="#07090f">
   <title>Noticias · Choque de Héroes TCG</title>
   <link rel="manifest" href="manifest.json">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    *, *::before, *::after { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+    }
+
+    :root {
+      --accent: #f5a623;
+      --accent-glow: rgba(245,166,35,0.10);
+      --accent-dim: rgba(245,166,35,0.25);
+      --bg: #07090f;
+      --card: rgba(12,10,5,0.97);
+      --border: #2a200a;
+      --text: #f0e6d0;
+      --muted: #8a7a5a;
+    }
+
+    html, body {
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Rajdhani', sans-serif;
       -webkit-tap-highlight-color: transparent;
+      user-select: none;
     }
 
     body {
-      font-family: 'Trebuchet MS', sans-serif;
-      background: #03050a;
-      color: #e8e6e3;
+      position: relative;
       overflow-x: hidden;
       padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    /* Diamond grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(45deg, rgba(245,166,35,0.03) 1px, transparent 1px),
+        linear-gradient(-45deg, rgba(245,166,35,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Gold radial glow */
+    body::after {
+      content: '';
+      position: fixed;
+      top: -10%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 700px;
+      height: 500px;
+      background: radial-gradient(ellipse, rgba(245,166,35,0.07) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
     }
 
     /* ═══ BARRA SUPERIOR ═══ */
@@ -27,42 +72,57 @@
       position: sticky;
       top: 0;
       z-index: 100;
-      background: linear-gradient(180deg, #0a0e16 0%, #03050a 100%);
-      border-bottom: 2px solid #1a1f2e;
-      padding: 12px 16px;
+      background: linear-gradient(180deg, rgba(7,9,15,0.98) 0%, rgba(7,9,15,0.95) 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 16px;
       display: flex;
       align-items: center;
       gap: 12px;
-      box-shadow: 0 4px 20px rgba(0,255,157,0.1);
+      backdrop-filter: blur(20px);
+    }
+
+    .top-bar::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 10%;
+      right: 10%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent-dim), transparent);
     }
 
     .back-btn {
-      background: linear-gradient(135deg, #1a1f2e, #0f1419);
-      border: 1px solid #2a3040;
-      color: #00ff9d;
+      background: rgba(245,166,35,0.08);
+      border: 1px solid var(--accent-dim);
+      color: var(--accent);
       font-size: 20px;
       width: 40px;
       height: 40px;
-      border-radius: 8px;
+      border-radius: 6px;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       text-decoration: none;
       transition: all 0.3s;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
     }
 
     .back-btn:active {
       transform: scale(0.95);
-      box-shadow: 0 0 20px rgba(0,255,157,0.4);
+      background: rgba(245,166,35,0.15);
+      box-shadow: 0 0 20px rgba(245,166,35,0.3);
     }
 
     .top-title {
       flex: 1;
-      font-size: 18px;
-      font-weight: bold;
-      color: #00ff9d;
-      text-shadow: 0 0 10px rgba(0,255,157,0.3);
+      font-size: 16px;
+      font-weight: 900;
+      color: #fff;
+      font-family: 'Orbitron', sans-serif;
+      letter-spacing: 2px;
+      text-shadow: 0 0 20px rgba(245,166,35,0.4);
     }
 
     /* ═══ CONTENEDOR PRINCIPAL ═══ */
@@ -70,23 +130,38 @@
       max-width: 480px;
       margin: 0 auto;
       padding: 20px 16px 80px;
+      position: relative;
+      z-index: 1;
     }
 
     /* ═══ ARTÍCULO DE NOTICIA ═══ */
     .news-article {
-      background: linear-gradient(135deg, #0f1419, #1a1f2e);
-      border: 2px solid #1a1f2e;
-      border-radius: 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
       overflow: hidden;
       margin-bottom: 20px;
       transition: all 0.3s;
       cursor: pointer;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 0 40px rgba(245,166,35,0.05), 0 8px 24px rgba(0,0,0,0.6);
+      position: relative;
+    }
+
+    .news-article::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 10%;
+      right: 10%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent-dim), transparent);
     }
 
     .news-article:active {
       transform: scale(0.98);
-      border-color: #00ff9d;
-      box-shadow: 0 0 20px rgba(0,255,157,0.2);
+      border-color: var(--accent);
+      box-shadow: 0 0 30px rgba(245,166,35,0.2), 0 8px 32px rgba(0,0,0,0.7);
     }
 
     .news-image {
@@ -94,65 +169,69 @@
       aspect-ratio: 16/9;
       object-fit: cover;
       display: block;
-      background: linear-gradient(135deg, #1a1f2e, #0f1419);
+      background: linear-gradient(135deg, rgba(12,10,5,0.8), rgba(42,32,10,0.4));
     }
 
     .news-content {
-      padding: 16px;
+      padding: 18px;
     }
 
     .news-date {
       display: flex;
       align-items: center;
-      gap: 6px;
-      font-size: 12px;
-      color: #6a7f9a;
-      margin-bottom: 10px;
+      gap: 8px;
+      font-size: 10px;
+      color: var(--muted);
+      margin-bottom: 12px;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 2px;
+      font-family: 'Orbitron', sans-serif;
     }
 
     .news-badge {
       display: inline-block;
       padding: 4px 10px;
-      background: linear-gradient(135deg, #00ff9d, #00cfff);
-      color: #03050a;
-      font-size: 10px;
+      background: rgba(245,166,35,0.08);
+      border: 1px solid var(--accent-dim);
+      color: var(--accent);
+      font-size: 9px;
       font-weight: bold;
-      border-radius: 12px;
+      border-radius: 4px;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 2px;
+      font-family: 'Orbitron', sans-serif;
     }
 
     .news-title {
       font-size: 20px;
-      font-weight: bold;
-      color: #00ff9d;
+      font-weight: 900;
+      color: #fff;
+      font-family: 'Orbitron', sans-serif;
+      letter-spacing: 1px;
       margin-bottom: 10px;
       line-height: 1.3;
-      text-shadow: 0 0 10px rgba(0,255,157,0.2);
+      text-shadow: 0 0 15px rgba(245,166,35,0.2);
     }
 
     .news-excerpt {
       font-size: 14px;
-      color: #9ca3af;
+      color: var(--muted);
       line-height: 1.6;
       margin-bottom: 12px;
+      font-family: 'Rajdhani', sans-serif;
     }
 
     .read-more {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      color: #00cfff;
-      font-size: 13px;
-      font-weight: 600;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
       text-decoration: none;
       transition: all 0.3s;
-    }
-
-    .read-more:hover {
-      gap: 10px;
+      font-family: 'Orbitron', sans-serif;
+      letter-spacing: 1px;
     }
 
     /* ═══ ESTADO DE CARGA ═══ */
@@ -162,14 +241,16 @@
       align-items: center;
       justify-content: center;
       padding: 60px 20px;
-      color: #6a7f9a;
+      color: var(--muted);
+      position: relative;
+      z-index: 1;
     }
 
     .loading-spinner {
       width: 40px;
       height: 40px;
-      border: 3px solid #1a1f2e;
-      border-top-color: #00ff9d;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
       border-radius: 50%;
       animation: spin 1s linear infinite;
       margin-bottom: 16px;
@@ -180,7 +261,9 @@
     }
 
     .loading-text {
-      font-size: 14px;
+      font-size: 13px;
+      font-family: 'Orbitron', sans-serif;
+      letter-spacing: 1px;
     }
 
     /* ═══ ESTADO VACÍO ═══ */
@@ -188,7 +271,9 @@
       display: none;
       text-align: center;
       padding: 60px 20px;
-      color: #6a7280;
+      color: var(--muted);
+      position: relative;
+      z-index: 1;
     }
 
     .empty-state.active {
@@ -204,14 +289,16 @@
     .empty-text {
       font-size: 16px;
       margin-bottom: 8px;
+      font-family: 'Orbitron', sans-serif;
+      letter-spacing: 1px;
     }
 
     .empty-subtext {
-      font-size: 14px;
+      font-size: 13px;
       opacity: 0.7;
     }
 
-    /* ═══ MODAL DE NOTICIA COMPLETA ═══ */
+    /* ═══ MODAL VISTA COMPLETA ═══ */
     .modal {
       display: none;
       position: fixed;
@@ -219,7 +306,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(3,5,10,0.95);
+      background: rgba(7,9,15,0.98);
       z-index: 1000;
       overflow-y: auto;
       animation: fadeIn 0.3s;
@@ -237,7 +324,7 @@
     .modal-content {
       max-width: 480px;
       margin: 0 auto;
-      background: #03050a;
+      background: var(--bg);
       min-height: 100vh;
     }
 
@@ -245,23 +332,37 @@
       position: sticky;
       top: 0;
       z-index: 10;
-      background: linear-gradient(180deg, #0a0e16 0%, #03050a 100%);
-      border-bottom: 2px solid #1a1f2e;
-      padding: 12px 16px;
+      background: linear-gradient(180deg, rgba(7,9,15,0.98) 0%, rgba(7,9,15,0.95) 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 16px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      backdrop-filter: blur(20px);
+    }
+
+    .modal-header::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 10%;
+      right: 10%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent-dim), transparent);
     }
 
     .modal-title-small {
-      font-size: 14px;
-      color: #9ca3af;
+      font-size: 12px;
+      color: var(--muted);
+      font-family: 'Orbitron', sans-serif;
+      letter-spacing: 2px;
+      text-transform: uppercase;
     }
 
     .close-btn {
-      background: rgba(26,31,46,0.8);
-      border: 2px solid #2a3040;
-      color: #00ff9d;
+      background: rgba(245,166,35,0.08);
+      border: 1px solid var(--accent-dim);
+      color: var(--accent);
       font-size: 24px;
       width: 44px;
       height: 44px;
@@ -272,11 +373,14 @@
       cursor: pointer;
       transition: all 0.3s;
       backdrop-filter: blur(10px);
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
     }
 
     .close-btn:active {
       transform: scale(0.9);
-      box-shadow: 0 0 20px rgba(0,255,157,0.4);
+      background: rgba(245,166,35,0.15);
+      box-shadow: 0 0 20px rgba(245,166,35,0.4);
     }
 
     .modal-image {
@@ -291,25 +395,32 @@
     }
 
     .modal-date {
-      color: #6a7f9a;
-      font-size: 13px;
+      color: var(--muted);
+      font-size: 11px;
       margin-bottom: 12px;
+      font-family: 'Orbitron', sans-serif;
+      letter-spacing: 2px;
+      text-transform: uppercase;
     }
 
     .modal-title {
       font-size: 26px;
-      font-weight: bold;
-      color: #00ff9d;
+      font-weight: 900;
+      color: #fff;
+      font-family: 'Orbitron', sans-serif;
+      letter-spacing: 1px;
       margin-bottom: 20px;
       line-height: 1.3;
-      text-shadow: 0 0 15px rgba(0,255,157,0.3);
+      text-shadow: 0 0 20px rgba(245,166,35,0.4);
     }
 
     .modal-text {
       font-size: 15px;
-      color: #d4d4d8;
+      color: var(--text);
       line-height: 1.8;
       margin-bottom: 20px;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 500;
     }
 
     .modal-link {
@@ -317,17 +428,22 @@
       align-items: center;
       gap: 8px;
       padding: 12px 24px;
-      background: linear-gradient(135deg, #00ff9d, #00cfff);
-      color: #03050a;
-      font-weight: bold;
+      background: linear-gradient(135deg, #f5a623, #e08c0a);
+      color: #07090f;
+      font-weight: 700;
       text-decoration: none;
-      border-radius: 12px;
+      border-radius: 8px;
       transition: all 0.3s;
-      box-shadow: 0 4px 15px rgba(0,255,157,0.3);
+      box-shadow: 0 4px 20px rgba(245,166,35,0.25);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
     }
 
     .modal-link:active {
       transform: scale(0.95);
+      box-shadow: 0 4px 30px rgba(245,166,35,0.45);
     }
   </style>
 </head>
@@ -336,7 +452,7 @@
   <!-- BARRA SUPERIOR -->
   <div class="top-bar">
     <a href="index.html" class="back-btn">←</a>
-    <div class="top-title">📰 Noticias</div>
+    <div class="top-title">📰 NOTICIAS</div>
   </div>
 
   <!-- ESTADO DE CARGA -->
@@ -390,7 +506,7 @@
     async function loadNews() {
       try {
         const response = await fetch('noticias.json');
-        const noticias = await response.json();
+        let noticias = await response.json();
 
         loading.style.display = 'none';
 
@@ -398,6 +514,13 @@
           emptyState.classList.add('active');
           return;
         }
+
+        // ORDENAR POR FECHA: Más reciente primero
+        noticias.sort((a, b) => {
+          const fechaA = new Date(a.fecha);
+          const fechaB = new Date(b.fecha);
+          return fechaB - fechaA; // Orden descendente (más reciente primero)
+        });
 
         newsContainer.style.display = 'block';
         renderNews(noticias);
@@ -422,7 +545,7 @@
           <div class="news-content">
             <div class="news-date">
               ${noticia.destacado ? '<span class="news-badge">DESTACADO</span>' : ''}
-              📅 ${noticia.fecha}
+              📅 ${noticia.fechaLegible || noticia.fecha}
             </div>
             <h2 class="news-title">${noticia.titulo}</h2>
             <p class="news-excerpt">${noticia.resumen || noticia.texto.substring(0, 150) + '...'}</p>
@@ -437,7 +560,7 @@
     function openModal(noticia) {
       document.getElementById('modalImage').src = noticia.imagen || '';
       document.getElementById('modalImage').style.display = noticia.imagen ? 'block' : 'none';
-      document.getElementById('modalDate').textContent = noticia.fecha;
+      document.getElementById('modalDate').textContent = noticia.fechaLegible || noticia.fecha;
       document.getElementById('modalTitle').textContent = noticia.titulo;
       document.getElementById('modalText').textContent = noticia.texto;
 

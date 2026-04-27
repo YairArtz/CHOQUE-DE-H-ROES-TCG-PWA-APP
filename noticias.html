@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#03050a">
+  <title>Noticias · Choque de Héroes TCG</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Trebuchet MS', sans-serif;
+      background: #03050a;
+      color: #e8e6e3;
+      overflow-x: hidden;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    /* ═══ BARRA SUPERIOR ═══ */
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: linear-gradient(180deg, #0a0e16 0%, #03050a 100%);
+      border-bottom: 2px solid #1a1f2e;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 4px 20px rgba(0,255,157,0.1);
+    }
+
+    .back-btn {
+      background: linear-gradient(135deg, #1a1f2e, #0f1419);
+      border: 1px solid #2a3040;
+      color: #00ff9d;
+      font-size: 20px;
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+
+    .back-btn:active {
+      transform: scale(0.95);
+      box-shadow: 0 0 20px rgba(0,255,157,0.4);
+    }
+
+    .top-title {
+      flex: 1;
+      font-size: 18px;
+      font-weight: bold;
+      color: #00ff9d;
+      text-shadow: 0 0 10px rgba(0,255,157,0.3);
+    }
+
+    /* ═══ CONTENEDOR PRINCIPAL ═══ */
+    .news-container {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 20px 16px 80px;
+    }
+
+    /* ═══ ARTÍCULO DE NOTICIA ═══ */
+    .news-article {
+      background: linear-gradient(135deg, #0f1419, #1a1f2e);
+      border: 2px solid #1a1f2e;
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 20px;
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+
+    .news-article:active {
+      transform: scale(0.98);
+      border-color: #00ff9d;
+      box-shadow: 0 0 20px rgba(0,255,157,0.2);
+    }
+
+    .news-image {
+      width: 100%;
+      aspect-ratio: 16/9;
+      object-fit: cover;
+      display: block;
+      background: linear-gradient(135deg, #1a1f2e, #0f1419);
+    }
+
+    .news-content {
+      padding: 16px;
+    }
+
+    .news-date {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #6a7f9a;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .news-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      background: linear-gradient(135deg, #00ff9d, #00cfff);
+      color: #03050a;
+      font-size: 10px;
+      font-weight: bold;
+      border-radius: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .news-title {
+      font-size: 20px;
+      font-weight: bold;
+      color: #00ff9d;
+      margin-bottom: 10px;
+      line-height: 1.3;
+      text-shadow: 0 0 10px rgba(0,255,157,0.2);
+    }
+
+    .news-excerpt {
+      font-size: 14px;
+      color: #9ca3af;
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+
+    .read-more {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #00cfff;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+
+    .read-more:hover {
+      gap: 10px;
+    }
+
+    /* ═══ ESTADO DE CARGA ═══ */
+    .loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 20px;
+      color: #6a7f9a;
+    }
+
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid #1a1f2e;
+      border-top-color: #00ff9d;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 16px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      font-size: 14px;
+    }
+
+    /* ═══ ESTADO VACÍO ═══ */
+    .empty-state {
+      display: none;
+      text-align: center;
+      padding: 60px 20px;
+      color: #6a7280;
+    }
+
+    .empty-state.active {
+      display: block;
+    }
+
+    .empty-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      opacity: 0.3;
+    }
+
+    .empty-text {
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+
+    .empty-subtext {
+      font-size: 14px;
+      opacity: 0.7;
+    }
+
+    /* ═══ MODAL DE NOTICIA COMPLETA ═══ */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(3,5,10,0.95);
+      z-index: 1000;
+      overflow-y: auto;
+      animation: fadeIn 0.3s;
+    }
+
+    .modal.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .modal-content {
+      max-width: 480px;
+      margin: 0 auto;
+      background: #03050a;
+      min-height: 100vh;
+    }
+
+    .modal-header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: linear-gradient(180deg, #0a0e16 0%, #03050a 100%);
+      border-bottom: 2px solid #1a1f2e;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-title-small {
+      font-size: 14px;
+      color: #9ca3af;
+    }
+
+    .close-btn {
+      background: rgba(26,31,46,0.8);
+      border: 2px solid #2a3040;
+      color: #00ff9d;
+      font-size: 24px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      backdrop-filter: blur(10px);
+    }
+
+    .close-btn:active {
+      transform: scale(0.9);
+      box-shadow: 0 0 20px rgba(0,255,157,0.4);
+    }
+
+    .modal-image {
+      width: 100%;
+      aspect-ratio: 16/9;
+      object-fit: cover;
+      display: block;
+    }
+
+    .modal-body {
+      padding: 24px 20px 60px;
+    }
+
+    .modal-date {
+      color: #6a7f9a;
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
+
+    .modal-title {
+      font-size: 26px;
+      font-weight: bold;
+      color: #00ff9d;
+      margin-bottom: 20px;
+      line-height: 1.3;
+      text-shadow: 0 0 15px rgba(0,255,157,0.3);
+    }
+
+    .modal-text {
+      font-size: 15px;
+      color: #d4d4d8;
+      line-height: 1.8;
+      margin-bottom: 20px;
+    }
+
+    .modal-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      background: linear-gradient(135deg, #00ff9d, #00cfff);
+      color: #03050a;
+      font-weight: bold;
+      text-decoration: none;
+      border-radius: 12px;
+      transition: all 0.3s;
+      box-shadow: 0 4px 15px rgba(0,255,157,0.3);
+    }
+
+    .modal-link:active {
+      transform: scale(0.95);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- BARRA SUPERIOR -->
+  <div class="top-bar">
+    <a href="index.html" class="back-btn">←</a>
+    <div class="top-title">📰 Noticias</div>
+  </div>
+
+  <!-- ESTADO DE CARGA -->
+  <div class="loading" id="loading">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Cargando noticias...</div>
+  </div>
+
+  <!-- CONTENEDOR DE NOTICIAS -->
+  <div class="news-container" id="newsContainer" style="display:none;">
+    <!-- Las noticias se cargan dinámicamente desde noticias.json -->
+  </div>
+
+  <!-- ESTADO VACÍO -->
+  <div class="empty-state" id="emptyState">
+    <div class="empty-icon">📰</div>
+    <div class="empty-text">No hay noticias disponibles</div>
+    <div class="empty-subtext">Vuelve pronto para ver las últimas novedades</div>
+  </div>
+
+  <!-- MODAL NOTICIA COMPLETA -->
+  <div class="modal" id="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title-small">Noticia</div>
+        <button class="close-btn" id="closeModal">×</button>
+      </div>
+      <img src="" alt="" class="modal-image" id="modalImage">
+      <div class="modal-body">
+        <div class="modal-date" id="modalDate"></div>
+        <h1 class="modal-title" id="modalTitle"></h1>
+        <div class="modal-text" id="modalText"></div>
+        <a href="#" class="modal-link" id="modalLink" target="_blank" style="display:none;">
+          Más información →
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ═══════════════════════════════════════════════════════
+    // CARGAR NOTICIAS DESDE JSON
+    // ═══════════════════════════════════════════════════════
+
+    const newsContainer = document.getElementById('newsContainer');
+    const loading = document.getElementById('loading');
+    const emptyState = document.getElementById('emptyState');
+    const modal = document.getElementById('modal');
+    const closeModalBtn = document.getElementById('closeModal');
+
+    async function loadNews() {
+      try {
+        const response = await fetch('noticias.json');
+        const noticias = await response.json();
+
+        loading.style.display = 'none';
+
+        if (noticias.length === 0) {
+          emptyState.classList.add('active');
+          return;
+        }
+
+        newsContainer.style.display = 'block';
+        renderNews(noticias);
+
+      } catch (error) {
+        console.error('Error cargando noticias:', error);
+        loading.style.display = 'none';
+        emptyState.classList.add('active');
+      }
+    }
+
+    function renderNews(noticias) {
+      newsContainer.innerHTML = '';
+
+      noticias.forEach(noticia => {
+        const article = document.createElement('div');
+        article.className = 'news-article';
+        article.onclick = () => openModal(noticia);
+
+        article.innerHTML = `
+          ${noticia.imagen ? `<img src="${noticia.imagen}" alt="${noticia.titulo}" class="news-image">` : ''}
+          <div class="news-content">
+            <div class="news-date">
+              ${noticia.destacado ? '<span class="news-badge">DESTACADO</span>' : ''}
+              📅 ${noticia.fecha}
+            </div>
+            <h2 class="news-title">${noticia.titulo}</h2>
+            <p class="news-excerpt">${noticia.resumen || noticia.texto.substring(0, 150) + '...'}</p>
+            <span class="read-more">Leer más →</span>
+          </div>
+        `;
+
+        newsContainer.appendChild(article);
+      });
+    }
+
+    function openModal(noticia) {
+      document.getElementById('modalImage').src = noticia.imagen || '';
+      document.getElementById('modalImage').style.display = noticia.imagen ? 'block' : 'none';
+      document.getElementById('modalDate').textContent = noticia.fecha;
+      document.getElementById('modalTitle').textContent = noticia.titulo;
+      document.getElementById('modalText').textContent = noticia.texto;
+
+      const linkElement = document.getElementById('modalLink');
+      if (noticia.link) {
+        linkElement.href = noticia.link;
+        linkElement.style.display = 'inline-flex';
+      } else {
+        linkElement.style.display = 'none';
+      }
+
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      modal.classList.remove('active');
+      document.body.style.overflow = 'auto';
+    }
+
+    closeModalBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+
+    // Cargar noticias al iniciar
+    loadNews();
+  </script>
+
+</body>
+</html>

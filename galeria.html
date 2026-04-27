@@ -459,9 +459,7 @@
 
     <!-- FILTROS DE EXPANSIÓN -->
     <div class="expansion-filters" id="expansionFilters">
-      <button class="filter-btn active" data-expansion="todas">Todas</button>
-      <button class="filter-btn" data-expansion="variantes">Variantes</button>
-      <button class="filter-btn" data-expansion="sobre_torneo_1">Sobre de Torneo 1</button>
+      <!-- Los filtros se generan dinámicamente desde el JSON -->
     </div>
   </div>
 
@@ -523,6 +521,10 @@
         const response = await fetch('cartas.json');
         allCards = await response.json();
         filteredCards = [...allCards];
+        
+        // Generar filtros dinámicamente
+        generateExpansionFilters();
+        
         renderCards();
       } catch (error) {
         console.error('Error cargando cartas:', error);
@@ -531,6 +533,38 @@
         document.querySelector('.empty-text').textContent = 'Error al cargar el catálogo';
         document.querySelector('.empty-subtext').textContent = 'Verifica que cartas.json esté en el repositorio';
       }
+    }
+
+    function generateExpansionFilters() {
+      // Extraer expansiones únicas del JSON
+      const expansions = [...new Set(allCards.map(card => card.expansion))];
+      
+      // Limpiar filtros existentes
+      expansionFilters.innerHTML = '';
+      
+      // Botón "Todas" siempre primero
+      const allBtn = document.createElement('button');
+      allBtn.className = 'filter-btn active';
+      allBtn.dataset.expansion = 'todas';
+      allBtn.textContent = 'Todas';
+      expansionFilters.appendChild(allBtn);
+      
+      // Crear botón para cada expansión encontrada
+      expansions.forEach(exp => {
+        const btn = document.createElement('button');
+        btn.className = 'filter-btn';
+        btn.dataset.expansion = exp;
+        
+        // Formatear nombre: "variantes" → "Variantes"
+        // "sobre_torneo_1" → "Sobre Torneo 1"
+        const formattedName = exp
+          .split('_')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ');
+        
+        btn.textContent = formattedName;
+        expansionFilters.appendChild(btn);
+      });
     }
 
     function renderCards() {
@@ -579,12 +613,13 @@
       document.getElementById('modalCardName').textContent = card.nombre;
       document.getElementById('modalCardType').textContent = card.tipo;
       
-      // Mostrar nombre de expansión
-      const expansionNames = {
-        'variantes': 'VARIANTES',
-        'sobre_torneo_1': 'SOBRE DE TORNEO 1'
-      };
-      document.getElementById('modalExpansionBadge').textContent = expansionNames[card.expansion] || card.expansion.toUpperCase();
+      // Formatear nombre de expansión dinámicamente
+      const formattedExpansion = card.expansion
+        .split('_')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+      
+      document.getElementById('modalExpansionBadge').textContent = formattedExpansion.toUpperCase();
       
       modal.classList.add('active');
       document.body.style.overflow = 'hidden';

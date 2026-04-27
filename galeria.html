@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#03050a">
+  <title>Galería de Cartas · Choque de Héroes TCG</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Trebuchet MS', sans-serif;
+      background: #03050a;
+      color: #e8e6e3;
+      overflow-x: hidden;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    /* ═══ BARRA SUPERIOR ═══ */
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: linear-gradient(180deg, #0a0e16 0%, #03050a 100%);
+      border-bottom: 2px solid #1a1f2e;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 4px 20px rgba(0,255,157,0.1);
+    }
+
+    .back-btn {
+      background: linear-gradient(135deg, #1a1f2e, #0f1419);
+      border: 1px solid #2a3040;
+      color: #00ff9d;
+      font-size: 20px;
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+
+    .back-btn:active {
+      transform: scale(0.95);
+      box-shadow: 0 0 20px rgba(0,255,157,0.4);
+    }
+
+    .top-title {
+      flex: 1;
+      font-size: 18px;
+      font-weight: bold;
+      color: #00ff9d;
+      text-shadow: 0 0 10px rgba(0,255,157,0.3);
+    }
+
+    /* ═══ BUSCADOR ═══ */
+    .search-section {
+      padding: 16px;
+      background: linear-gradient(180deg, #0a0e16 0%, #03050a 100%);
+    }
+
+    .search-box {
+      position: relative;
+      margin-bottom: 16px;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 18px;
+      color: #00ff9d;
+      pointer-events: none;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 14px 16px 14px 48px;
+      background: #0f1419;
+      border: 2px solid #1a1f2e;
+      border-radius: 12px;
+      color: #e8e6e3;
+      font-size: 15px;
+      font-family: 'Trebuchet MS', sans-serif;
+      transition: all 0.3s;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: #00ff9d;
+      box-shadow: 0 0 20px rgba(0,255,157,0.2);
+    }
+
+    .search-input::placeholder {
+      color: #6a7280;
+    }
+
+    /* ═══ FILTROS DE EXPANSIÓN ═══ */
+    .expansion-filters {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    .expansion-filters::-webkit-scrollbar {
+      display: none;
+    }
+
+    .filter-btn {
+      padding: 10px 20px;
+      background: #0f1419;
+      border: 2px solid #1a1f2e;
+      border-radius: 20px;
+      color: #9ca3af;
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-family: 'Trebuchet MS', sans-serif;
+    }
+
+    .filter-btn.active {
+      background: linear-gradient(135deg, #00ff9d, #00cfff);
+      border-color: #00ff9d;
+      color: #03050a;
+      box-shadow: 0 0 20px rgba(0,255,157,0.4);
+    }
+
+    .filter-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* ═══ CONTADOR DE CARTAS ═══ */
+    .card-count {
+      padding: 12px 16px;
+      color: #9ca3af;
+      font-size: 13px;
+      text-align: center;
+    }
+
+    /* ═══ GRID DE CARTAS ═══ */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      padding: 0 16px 80px 16px;
+    }
+
+    .card-item {
+      position: relative;
+      aspect-ratio: 5/7;
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      border: 2px solid #1a1f2e;
+      background: #0f1419;
+      transition: all 0.3s;
+    }
+
+    .card-item:active {
+      transform: scale(0.95);
+      border-color: #00ff9d;
+      box-shadow: 0 0 20px rgba(0,255,157,0.3);
+    }
+
+    .card-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .card-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #1a1f2e, #0f1419);
+      color: #4a5568;
+      font-size: 12px;
+      text-align: center;
+      padding: 8px;
+    }
+
+    /* ═══ MODAL VISTA AMPLIADA ═══ */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(3,5,10,0.95);
+      z-index: 1000;
+      animation: fadeIn 0.3s;
+    }
+
+    .modal.active {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .modal-header {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(180deg, rgba(3,5,10,0.9) 0%, transparent 100%);
+      z-index: 10;
+    }
+
+    .expansion-logo {
+      height: 40px;
+      width: auto;
+    }
+
+    .close-btn {
+      background: rgba(26,31,46,0.8);
+      border: 2px solid #2a3040;
+      color: #00ff9d;
+      font-size: 24px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      backdrop-filter: blur(10px);
+    }
+
+    .close-btn:active {
+      transform: scale(0.9);
+      box-shadow: 0 0 20px rgba(0,255,157,0.4);
+    }
+
+    .modal-card-container {
+      max-width: 90%;
+      max-height: 70vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes scaleIn {
+      from {
+        transform: scale(0.8);
+        opacity: 0;
+      }
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .modal-card-img {
+      width: 100%;
+      max-width: 360px;
+      border-radius: 16px;
+      border: 3px solid #00ff9d;
+      box-shadow: 0 20px 60px rgba(0,255,157,0.3), 0 0 40px rgba(0,255,157,0.2);
+    }
+
+    .modal-card-info {
+      margin-top: 24px;
+      text-align: center;
+      padding: 0 20px;
+    }
+
+    .modal-card-name {
+      font-size: 24px;
+      font-weight: bold;
+      color: #00ff9d;
+      text-shadow: 0 0 20px rgba(0,255,157,0.4);
+      margin-bottom: 8px;
+    }
+
+    .modal-card-type {
+      font-size: 16px;
+      color: #d4af37;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: 600;
+    }
+
+    /* ═══ MENSAJE VACÍO ═══ */
+    .empty-state {
+      display: none;
+      text-align: center;
+      padding: 60px 20px;
+      color: #6a7280;
+    }
+
+    .empty-state.active {
+      display: block;
+    }
+
+    .empty-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      opacity: 0.3;
+    }
+
+    .empty-text {
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+
+    .empty-subtext {
+      font-size: 14px;
+      opacity: 0.7;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- BARRA SUPERIOR -->
+  <div class="top-bar">
+    <a href="index.html" class="back-btn">←</a>
+    <div class="top-title">🃏 Galería de Cartas</div>
+  </div>
+
+  <!-- SECCIÓN DE BÚSQUEDA -->
+  <div class="search-section">
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input 
+        type="text" 
+        class="search-input" 
+        id="searchInput"
+        placeholder="Buscar carta por nombre..."
+      >
+    </div>
+
+    <!-- FILTROS DE EXPANSIÓN -->
+    <div class="expansion-filters" id="expansionFilters">
+      <button class="filter-btn active" data-expansion="todas">Todas</button>
+      <button class="filter-btn" data-expansion="base">Set Base</button>
+      <button class="filter-btn" data-expansion="xantolo">Xantolo</button>
+      <button class="filter-btn" data-expansion="aztlan">Aztlán</button>
+    </div>
+  </div>
+
+  <!-- CONTADOR -->
+  <div class="card-count" id="cardCount">
+    Mostrando 45 cartas
+  </div>
+
+  <!-- GRID DE CARTAS -->
+  <div class="cards-grid" id="cardsGrid">
+    <!-- Las cartas se cargan dinámicamente desde cartas.json -->
+  </div>
+
+  <!-- ESTADO VACÍO -->
+  <div class="empty-state" id="emptyState">
+    <div class="empty-icon">🃏</div>
+    <div class="empty-text">No se encontraron cartas</div>
+    <div class="empty-subtext">Intenta con otro término de búsqueda</div>
+  </div>
+
+  <!-- MODAL VISTA AMPLIADA -->
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <img src="" alt="Logo Expansión" class="expansion-logo" id="modalExpansionLogo">
+      <button class="close-btn" id="closeModal">×</button>
+    </div>
+    <div class="modal-card-container">
+      <img src="" alt="Carta" class="modal-card-img" id="modalCardImg">
+      <div class="modal-card-info">
+        <div class="modal-card-name" id="modalCardName"></div>
+        <div class="modal-card-type" id="modalCardType"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ═══════════════════════════════════════════════════════
+    // DATOS DE CARTAS (temporal - se reemplazará por cartas.json)
+    // ═══════════════════════════════════════════════════════
+    
+    let allCards = [
+      // Ejemplo de estructura - las 45 cartas irán aquí
+      {
+        id: "001",
+        nombre: "Koatl el Defensor",
+        tipo: "Héroe",
+        expansion: "base",
+        miniatura: "cartas/carta_001.jpg",
+        ampliada: "cartas/carta_001_full.jpg"
+      },
+      // ... más cartas
+    ];
+
+    // Por ahora, generar placeholders para demostración
+    for (let i = 1; i <= 45; i++) {
+      allCards.push({
+        id: String(i).padStart(3, '0'),
+        nombre: `Carta ${i}`,
+        tipo: i % 3 === 0 ? 'Héroe' : i % 3 === 1 ? 'Criatura' : 'Hechizo',
+        expansion: i <= 15 ? 'base' : i <= 30 ? 'xantolo' : 'aztlan',
+        miniatura: '', // Sin imagen por ahora
+        ampliada: ''
+      });
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // VARIABLES GLOBALES
+    // ═══════════════════════════════════════════════════════
+    
+    let filteredCards = [...allCards];
+    let currentExpansion = 'todas';
+
+    const cardsGrid = document.getElementById('cardsGrid');
+    const searchInput = document.getElementById('searchInput');
+    const expansionFilters = document.getElementById('expansionFilters');
+    const cardCount = document.getElementById('cardCount');
+    const emptyState = document.getElementById('emptyState');
+    const modal = document.getElementById('modal');
+    const closeModalBtn = document.getElementById('closeModal');
+
+    // ═══════════════════════════════════════════════════════
+    // FUNCIONES PRINCIPALES
+    // ═══════════════════════════════════════════════════════
+
+    function renderCards() {
+      cardsGrid.innerHTML = '';
+
+      if (filteredCards.length === 0) {
+        emptyState.classList.add('active');
+        cardsGrid.style.display = 'none';
+        cardCount.textContent = 'No se encontraron cartas';
+        return;
+      }
+
+      emptyState.classList.remove('active');
+      cardsGrid.style.display = 'grid';
+      cardCount.textContent = `Mostrando ${filteredCards.length} ${filteredCards.length === 1 ? 'carta' : 'cartas'}`;
+
+      filteredCards.forEach(card => {
+        const cardEl = document.createElement('div');
+        cardEl.className = 'card-item';
+        cardEl.onclick = () => openModal(card);
+
+        if (card.miniatura) {
+          cardEl.innerHTML = `<img src="${card.miniatura}" alt="${card.nombre}">`;
+        } else {
+          cardEl.innerHTML = `<div class="card-placeholder">${card.nombre}</div>`;
+        }
+
+        cardsGrid.appendChild(cardEl);
+      });
+    }
+
+    function filterCards() {
+      const searchTerm = searchInput.value.toLowerCase().trim();
+      
+      filteredCards = allCards.filter(card => {
+        const matchesSearch = card.nombre.toLowerCase().includes(searchTerm);
+        const matchesExpansion = currentExpansion === 'todas' || card.expansion === currentExpansion;
+        return matchesSearch && matchesExpansion;
+      });
+
+      renderCards();
+    }
+
+    function openModal(card) {
+      document.getElementById('modalCardImg').src = card.ampliada || card.miniatura || '';
+      document.getElementById('modalCardName').textContent = card.nombre;
+      document.getElementById('modalCardType').textContent = card.tipo;
+      
+      // Logo de expansión (puedes agregar diferentes logos según la expansión)
+      const logoMap = {
+        'base': 'logo_base.png',
+        'xantolo': 'logo_xantolo.png',
+        'aztlan': 'logo_aztlan.png'
+      };
+      document.getElementById('modalExpansionLogo').src = logoMap[card.expansion] || '';
+      
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      modal.classList.remove('active');
+      document.body.style.overflow = 'auto';
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // EVENT LISTENERS
+    // ═══════════════════════════════════════════════════════
+
+    searchInput.addEventListener('input', filterCards);
+
+    expansionFilters.addEventListener('click', (e) => {
+      if (e.target.classList.contains('filter-btn')) {
+        // Actualizar botón activo
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+          btn.classList.remove('active');
+        });
+        e.target.classList.add('active');
+
+        // Actualizar filtro
+        currentExpansion = e.target.dataset.expansion;
+        filterCards();
+      }
+    });
+
+    closeModalBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+
+    // ═══════════════════════════════════════════════════════
+    // INICIALIZACIÓN
+    // ═══════════════════════════════════════════════════════
+
+    renderCards();
+  </script>
+
+</body>
+</html>

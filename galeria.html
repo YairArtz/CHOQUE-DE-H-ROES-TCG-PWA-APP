@@ -406,39 +406,11 @@
 
   <script>
     // ═══════════════════════════════════════════════════════
-    // DATOS DE CARTAS (temporal - se reemplazará por cartas.json)
-    // ═══════════════════════════════════════════════════════
-    
-    let allCards = [
-      // Ejemplo de estructura - las 45 cartas irán aquí
-      {
-        id: "001",
-        nombre: "Koatl el Defensor",
-        tipo: "Héroe",
-        expansion: "base",
-        miniatura: "cartas/carta_001.jpg",
-        ampliada: "cartas/carta_001_full.jpg"
-      },
-      // ... más cartas
-    ];
-
-    // Por ahora, generar placeholders para demostración
-    for (let i = 1; i <= 45; i++) {
-      allCards.push({
-        id: String(i).padStart(3, '0'),
-        nombre: `Carta ${i}`,
-        tipo: i % 3 === 0 ? 'Héroe' : i % 3 === 1 ? 'Criatura' : 'Hechizo',
-        expansion: i <= 15 ? 'base' : i <= 30 ? 'xantolo' : 'aztlan',
-        miniatura: '', // Sin imagen por ahora
-        ampliada: ''
-      });
-    }
-
-    // ═══════════════════════════════════════════════════════
     // VARIABLES GLOBALES
     // ═══════════════════════════════════════════════════════
     
-    let filteredCards = [...allCards];
+    let allCards = [];
+    let filteredCards = [];
     let currentExpansion = 'todas';
 
     const cardsGrid = document.getElementById('cardsGrid');
@@ -452,6 +424,22 @@
     // ═══════════════════════════════════════════════════════
     // FUNCIONES PRINCIPALES
     // ═══════════════════════════════════════════════════════
+
+    async function loadCards() {
+      try {
+        const response = await fetch('cartas.json');
+        allCards = await response.json();
+        filteredCards = [...allCards];
+        renderCards();
+      } catch (error) {
+        console.error('Error cargando cartas:', error);
+        // Si falla, mostrar mensaje
+        cardCount.textContent = 'Error al cargar las cartas';
+        emptyState.classList.add('active');
+        document.querySelector('.empty-text').textContent = 'Error al cargar el catálogo';
+        document.querySelector('.empty-subtext').textContent = 'Verifica que cartas.json esté en el repositorio';
+      }
+    }
 
     function renderCards() {
       cardsGrid.innerHTML = '';
@@ -545,7 +533,8 @@
     // INICIALIZACIÓN
     // ═══════════════════════════════════════════════════════
 
-    renderCards();
+    // Cargar cartas desde JSON al iniciar
+    loadCards();
   </script>
 
 </body>

@@ -468,6 +468,11 @@
     Cargando cartas...
   </div>
 
+  <!-- DEBUG INFO (temporal) -->
+  <div style="background: rgba(245,166,35,0.1); border: 1px solid rgba(245,166,35,0.3); padding: 12px; margin: 0 16px 16px; border-radius: 6px; font-family: monospace; font-size: 11px; color: #f5a623; position: relative; z-index: 1;" id="debugInfo">
+    🔍 Cargando...
+  </div>
+
   <!-- GRID DE CARTAS -->
   <div class="cards-grid" id="cardsGrid">
     <!-- Las cartas se cargan dinámicamente desde cartas.json -->
@@ -517,17 +522,35 @@
     // ═══════════════════════════════════════════════════════
 
     async function loadCards() {
+      const debugInfo = document.getElementById('debugInfo');
       try {
+        debugInfo.textContent = '📡 Solicitando cartas.json...';
+        
         const response = await fetch('cartas.json');
+        debugInfo.textContent = `📊 Respuesta: ${response.status} - Parseando...`;
+        
         allCards = await response.json();
+        debugInfo.textContent = `✅ ${allCards.length} cartas cargadas`;
+        
         filteredCards = [...allCards];
         
         // Generar filtros dinámicamente
         generateExpansionFilters();
         
         renderCards();
+        
+        // Ocultar debug después de 3 segundos
+        setTimeout(() => {
+          debugInfo.style.display = 'none';
+        }, 3000);
+        
       } catch (error) {
         console.error('Error cargando cartas:', error);
+        debugInfo.textContent = `❌ ERROR: ${error.message}`;
+        debugInfo.style.background = 'rgba(255,77,109,0.1)';
+        debugInfo.style.borderColor = 'rgba(255,77,109,0.3)';
+        debugInfo.style.color = '#ff4d6d';
+        
         cardCount.textContent = 'ERROR AL CARGAR LAS CARTAS';
         emptyState.classList.add('active');
         document.querySelector('.empty-text').textContent = 'Error al cargar el catálogo';

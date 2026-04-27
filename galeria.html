@@ -3,23 +3,68 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#03050a">
+  <meta name="theme-color" content="#07090f">
   <title>Galería de Cartas · Choque de Héroes TCG</title>
   <link rel="manifest" href="manifest.json">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    *, *::before, *::after { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+    }
+
+    :root {
+      --accent: #f5a623;
+      --accent-glow: rgba(245,166,35,0.10);
+      --accent-dim: rgba(245,166,35,0.25);
+      --bg: #07090f;
+      --card: rgba(12,10,5,0.97);
+      --border: #2a200a;
+      --text: #f0e6d0;
+      --muted: #8a7a5a;
+    }
+
+    html, body {
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Rajdhani', sans-serif;
       -webkit-tap-highlight-color: transparent;
+      user-select: none;
     }
 
     body {
-      font-family: 'Trebuchet MS', sans-serif;
-      background: #03050a;
-      color: #e8e6e3;
+      position: relative;
       overflow-x: hidden;
       padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    /* Diamond grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(45deg, rgba(245,166,35,0.03) 1px, transparent 1px),
+        linear-gradient(-45deg, rgba(245,166,35,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Gold radial glow */
+    body::after {
+      content: '';
+      position: fixed;
+      top: -10%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 700px;
+      height: 500px;
+      background: radial-gradient(ellipse, rgba(245,166,35,0.07) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
     }
 
     /* ═══ BARRA SUPERIOR ═══ */
@@ -27,48 +72,64 @@
       position: sticky;
       top: 0;
       z-index: 100;
-      background: linear-gradient(180deg, #0a0e16 0%, #03050a 100%);
-      border-bottom: 2px solid #1a1f2e;
-      padding: 12px 16px;
+      background: linear-gradient(180deg, rgba(7,9,15,0.98) 0%, rgba(7,9,15,0.95) 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 16px;
       display: flex;
       align-items: center;
       gap: 12px;
-      box-shadow: 0 4px 20px rgba(0,255,157,0.1);
+      backdrop-filter: blur(20px);
+    }
+
+    .top-bar::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 10%;
+      right: 10%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent-dim), transparent);
     }
 
     .back-btn {
-      background: linear-gradient(135deg, #1a1f2e, #0f1419);
-      border: 1px solid #2a3040;
-      color: #00ff9d;
+      background: rgba(245,166,35,0.08);
+      border: 1px solid var(--accent-dim);
+      color: var(--accent);
       font-size: 20px;
       width: 40px;
       height: 40px;
-      border-radius: 8px;
+      border-radius: 6px;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       text-decoration: none;
       transition: all 0.3s;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
     }
 
     .back-btn:active {
       transform: scale(0.95);
-      box-shadow: 0 0 20px rgba(0,255,157,0.4);
+      background: rgba(245,166,35,0.15);
+      box-shadow: 0 0 20px rgba(245,166,35,0.3);
     }
 
     .top-title {
       flex: 1;
-      font-size: 18px;
-      font-weight: bold;
-      color: #00ff9d;
-      text-shadow: 0 0 10px rgba(0,255,157,0.3);
+      font-size: 16px;
+      font-weight: 900;
+      color: #fff;
+      font-family: 'Orbitron', sans-serif;
+      letter-spacing: 2px;
+      text-shadow: 0 0 20px rgba(245,166,35,0.4);
     }
 
     /* ═══ BUSCADOR ═══ */
     .search-section {
-      padding: 16px;
-      background: linear-gradient(180deg, #0a0e16 0%, #03050a 100%);
+      padding: 20px 16px 16px;
+      position: relative;
+      z-index: 1;
     }
 
     .search-box {
@@ -81,37 +142,38 @@
       left: 16px;
       top: 50%;
       transform: translateY(-50%);
-      font-size: 18px;
-      color: #00ff9d;
+      font-size: 16px;
+      color: var(--accent);
       pointer-events: none;
     }
 
     .search-input {
       width: 100%;
-      padding: 14px 16px 14px 48px;
-      background: #0f1419;
-      border: 2px solid #1a1f2e;
-      border-radius: 12px;
-      color: #e8e6e3;
+      padding: 13px 16px 13px 48px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
       font-size: 15px;
-      font-family: 'Trebuchet MS', sans-serif;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 500;
       transition: all 0.3s;
     }
 
     .search-input:focus {
       outline: none;
-      border-color: #00ff9d;
-      box-shadow: 0 0 20px rgba(0,255,157,0.2);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(245,166,35,0.10);
     }
 
     .search-input::placeholder {
-      color: #6a7280;
+      color: var(--muted);
     }
 
     /* ═══ FILTROS DE EXPANSIÓN ═══ */
     .expansion-filters {
       display: flex;
-      gap: 8px;
+      gap: 10px;
       overflow-x: auto;
       padding-bottom: 8px;
       scrollbar-width: none;
@@ -124,23 +186,25 @@
 
     .filter-btn {
       padding: 10px 20px;
-      background: #0f1419;
-      border: 2px solid #1a1f2e;
-      border-radius: 20px;
-      color: #9ca3af;
-      font-size: 14px;
-      font-weight: 600;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      font-family: 'Orbitron', sans-serif;
+      letter-spacing: 1.5px;
       white-space: nowrap;
       cursor: pointer;
       transition: all 0.3s;
-      font-family: 'Trebuchet MS', sans-serif;
+      text-transform: uppercase;
     }
 
     .filter-btn.active {
-      background: linear-gradient(135deg, #00ff9d, #00cfff);
-      border-color: #00ff9d;
-      color: #03050a;
-      box-shadow: 0 0 20px rgba(0,255,157,0.4);
+      background: linear-gradient(135deg, #f5a623, #e08c0a);
+      border-color: var(--accent);
+      color: #07090f;
+      box-shadow: 0 4px 20px rgba(245,166,35,0.25);
     }
 
     .filter-btn:active {
@@ -150,9 +214,13 @@
     /* ═══ CONTADOR DE CARTAS ═══ */
     .card-count {
       padding: 12px 16px;
-      color: #9ca3af;
-      font-size: 13px;
+      color: var(--muted);
+      font-size: 11px;
       text-align: center;
+      font-family: 'Orbitron', sans-serif;
+      letter-spacing: 2px;
+      position: relative;
+      z-index: 1;
     }
 
     /* ═══ GRID DE CARTAS ═══ */
@@ -161,23 +229,26 @@
       grid-template-columns: repeat(3, 1fr);
       gap: 12px;
       padding: 0 16px 80px 16px;
+      position: relative;
+      z-index: 1;
     }
 
     .card-item {
       position: relative;
       aspect-ratio: 5/7;
-      border-radius: 12px;
+      border-radius: 8px;
       overflow: hidden;
       cursor: pointer;
-      border: 2px solid #1a1f2e;
-      background: #0f1419;
+      border: 1px solid var(--border);
+      background: rgba(12,10,5,0.6);
       transition: all 0.3s;
+      backdrop-filter: blur(10px);
     }
 
     .card-item:active {
       transform: scale(0.95);
-      border-color: #00ff9d;
-      box-shadow: 0 0 20px rgba(0,255,157,0.3);
+      border-color: var(--accent);
+      box-shadow: 0 0 20px rgba(245,166,35,0.3), 0 8px 24px rgba(0,0,0,0.5);
     }
 
     .card-item img {
@@ -193,11 +264,45 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, #1a1f2e, #0f1419);
-      color: #4a5568;
-      font-size: 12px;
+      background: linear-gradient(135deg, rgba(12,10,5,0.8), rgba(42,32,10,0.4));
+      color: var(--muted);
+      font-size: 10px;
       text-align: center;
       padding: 8px;
+      font-family: 'Orbitron', sans-serif;
+      letter-spacing: 1px;
+    }
+
+    /* ═══ ESTADO VACÍO ═══ */
+    .empty-state {
+      display: none;
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+      position: relative;
+      z-index: 1;
+    }
+
+    .empty-state.active {
+      display: block;
+    }
+
+    .empty-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      opacity: 0.3;
+    }
+
+    .empty-text {
+      font-size: 16px;
+      margin-bottom: 8px;
+      font-family: 'Orbitron', sans-serif;
+      letter-spacing: 1px;
+    }
+
+    .empty-subtext {
+      font-size: 13px;
+      opacity: 0.7;
     }
 
     /* ═══ MODAL VISTA AMPLIADA ═══ */
@@ -208,7 +313,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(3,5,10,0.95);
+      background: rgba(7,9,15,0.98);
       z-index: 1000;
       animation: fadeIn 0.3s;
     }
@@ -234,19 +339,27 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: linear-gradient(180deg, rgba(3,5,10,0.9) 0%, transparent 100%);
+      background: linear-gradient(180deg, rgba(7,9,15,0.95) 0%, transparent 100%);
       z-index: 10;
+      backdrop-filter: blur(10px);
     }
 
-    .expansion-logo {
-      height: 40px;
-      width: auto;
+    .expansion-badge {
+      display: inline-block;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: var(--accent);
+      background: rgba(245,166,35,0.08);
+      border: 1px solid var(--accent-dim);
+      padding: 6px 14px;
+      border-radius: 4px;
     }
 
     .close-btn {
-      background: rgba(26,31,46,0.8);
-      border: 2px solid #2a3040;
-      color: #00ff9d;
+      background: rgba(245,166,35,0.08);
+      border: 1px solid var(--accent-dim);
+      color: var(--accent);
       font-size: 24px;
       width: 44px;
       height: 44px;
@@ -257,11 +370,14 @@
       cursor: pointer;
       transition: all 0.3s;
       backdrop-filter: blur(10px);
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
     }
 
     .close-btn:active {
       transform: scale(0.9);
-      box-shadow: 0 0 20px rgba(0,255,157,0.4);
+      background: rgba(245,166,35,0.15);
+      box-shadow: 0 0 20px rgba(245,166,35,0.4);
     }
 
     .modal-card-container {
@@ -287,9 +403,12 @@
     .modal-card-img {
       width: 100%;
       max-width: 360px;
-      border-radius: 16px;
-      border: 3px solid #00ff9d;
-      box-shadow: 0 20px 60px rgba(0,255,157,0.3), 0 0 40px rgba(0,255,157,0.2);
+      border-radius: 12px;
+      border: 2px solid var(--accent);
+      box-shadow: 
+        0 20px 60px rgba(245,166,35,0.3), 
+        0 0 40px rgba(245,166,35,0.2),
+        0 8px 32px rgba(0,0,0,0.6);
     }
 
     .modal-card-info {
@@ -300,46 +419,21 @@
 
     .modal-card-name {
       font-size: 24px;
-      font-weight: bold;
-      color: #00ff9d;
-      text-shadow: 0 0 20px rgba(0,255,157,0.4);
+      font-weight: 900;
+      color: #fff;
+      font-family: 'Orbitron', sans-serif;
+      letter-spacing: 2px;
+      text-shadow: 0 0 20px rgba(245,166,35,0.6);
       margin-bottom: 8px;
     }
 
     .modal-card-type {
-      font-size: 16px;
-      color: #d4af37;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      font-weight: 600;
-    }
-
-    /* ═══ MENSAJE VACÍO ═══ */
-    .empty-state {
-      display: none;
-      text-align: center;
-      padding: 60px 20px;
-      color: #6a7280;
-    }
-
-    .empty-state.active {
-      display: block;
-    }
-
-    .empty-icon {
-      font-size: 64px;
-      margin-bottom: 16px;
-      opacity: 0.3;
-    }
-
-    .empty-text {
-      font-size: 16px;
-      margin-bottom: 8px;
-    }
-
-    .empty-subtext {
       font-size: 14px;
-      opacity: 0.7;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      font-weight: 600;
+      font-family: 'Orbitron', sans-serif;
     }
   </style>
 </head>
@@ -348,7 +442,7 @@
   <!-- BARRA SUPERIOR -->
   <div class="top-bar">
     <a href="index.html" class="back-btn">←</a>
-    <div class="top-title">🃏 Galería de Cartas</div>
+    <div class="top-title">🃏 GALERÍA DE CARTAS</div>
   </div>
 
   <!-- SECCIÓN DE BÚSQUEDA -->
@@ -366,15 +460,14 @@
     <!-- FILTROS DE EXPANSIÓN -->
     <div class="expansion-filters" id="expansionFilters">
       <button class="filter-btn active" data-expansion="todas">Todas</button>
-      <button class="filter-btn" data-expansion="base">Set Base</button>
-      <button class="filter-btn" data-expansion="xantolo">Xantolo</button>
-      <button class="filter-btn" data-expansion="aztlan">Aztlán</button>
+      <button class="filter-btn" data-expansion="variantes">Variantes</button>
+      <button class="filter-btn" data-expansion="sobre_torneo_1">Sobre de Torneo 1</button>
     </div>
   </div>
 
   <!-- CONTADOR -->
   <div class="card-count" id="cardCount">
-    Mostrando 45 cartas
+    Cargando cartas...
   </div>
 
   <!-- GRID DE CARTAS -->
@@ -392,7 +485,7 @@
   <!-- MODAL VISTA AMPLIADA -->
   <div class="modal" id="modal">
     <div class="modal-header">
-      <img src="" alt="Logo Expansión" class="expansion-logo" id="modalExpansionLogo">
+      <span class="expansion-badge" id="modalExpansionBadge"></span>
       <button class="close-btn" id="closeModal">×</button>
     </div>
     <div class="modal-card-container">
@@ -433,8 +526,7 @@
         renderCards();
       } catch (error) {
         console.error('Error cargando cartas:', error);
-        // Si falla, mostrar mensaje
-        cardCount.textContent = 'Error al cargar las cartas';
+        cardCount.textContent = 'ERROR AL CARGAR LAS CARTAS';
         emptyState.classList.add('active');
         document.querySelector('.empty-text').textContent = 'Error al cargar el catálogo';
         document.querySelector('.empty-subtext').textContent = 'Verifica que cartas.json esté en el repositorio';
@@ -447,13 +539,13 @@
       if (filteredCards.length === 0) {
         emptyState.classList.add('active');
         cardsGrid.style.display = 'none';
-        cardCount.textContent = 'No se encontraron cartas';
+        cardCount.textContent = 'NO SE ENCONTRARON CARTAS';
         return;
       }
 
       emptyState.classList.remove('active');
       cardsGrid.style.display = 'grid';
-      cardCount.textContent = `Mostrando ${filteredCards.length} ${filteredCards.length === 1 ? 'carta' : 'cartas'}`;
+      cardCount.textContent = `MOSTRANDO ${filteredCards.length} ${filteredCards.length === 1 ? 'CARTA' : 'CARTAS'}`;
 
       filteredCards.forEach(card => {
         const cardEl = document.createElement('div');
@@ -487,13 +579,12 @@
       document.getElementById('modalCardName').textContent = card.nombre;
       document.getElementById('modalCardType').textContent = card.tipo;
       
-      // Logo de expansión (puedes agregar diferentes logos según la expansión)
-      const logoMap = {
-        'base': 'logo_base.png',
-        'xantolo': 'logo_xantolo.png',
-        'aztlan': 'logo_aztlan.png'
+      // Mostrar nombre de expansión
+      const expansionNames = {
+        'variantes': 'VARIANTES',
+        'sobre_torneo_1': 'SOBRE DE TORNEO 1'
       };
-      document.getElementById('modalExpansionLogo').src = logoMap[card.expansion] || '';
+      document.getElementById('modalExpansionBadge').textContent = expansionNames[card.expansion] || card.expansion.toUpperCase();
       
       modal.classList.add('active');
       document.body.style.overflow = 'hidden';
@@ -512,13 +603,11 @@
 
     expansionFilters.addEventListener('click', (e) => {
       if (e.target.classList.contains('filter-btn')) {
-        // Actualizar botón activo
         document.querySelectorAll('.filter-btn').forEach(btn => {
           btn.classList.remove('active');
         });
         e.target.classList.add('active');
 
-        // Actualizar filtro
         currentExpansion = e.target.dataset.expansion;
         filterCards();
       }
@@ -533,7 +622,6 @@
     // INICIALIZACIÓN
     // ═══════════════════════════════════════════════════════
 
-    // Cargar cartas desde JSON al iniciar
     loadCards();
   </script>
 

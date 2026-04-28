@@ -453,7 +453,7 @@
         type="text" 
         class="search-input" 
         id="searchInput"
-        placeholder="Buscar carta por nombre..."
+        placeholder="Buscar por nombre o tipo..."
       >
     </div>
 
@@ -623,7 +623,11 @@
       const searchTerm = searchInput.value.toLowerCase().trim();
       
       filteredCards = allCards.filter(card => {
-        const matchesSearch = card.nombre.toLowerCase().includes(searchTerm);
+        // Buscar en nombre Y en tipo
+        const matchesSearch = 
+          card.nombre.toLowerCase().includes(searchTerm) ||
+          card.tipo.toLowerCase().includes(searchTerm);
+        
         const matchesExpansion = currentExpansion === 'todas' || card.expansion === currentExpansion;
         return matchesSearch && matchesExpansion;
       });

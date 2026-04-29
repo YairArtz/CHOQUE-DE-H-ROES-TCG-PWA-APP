@@ -117,6 +117,18 @@ function applyAccentColor(color) {
       text-shadow: ${c.glow} !important;
     }
     
+    /* Sobrescribir TODOS los badges de módulos */
+    .mod-badge,
+    .c-neon .mod-badge,
+    .c-blue .mod-badge,
+    .c-gold .mod-badge,
+    .c-red .mod-badge,
+    .c-purple .mod-badge {
+      color: ${c.p} !important;
+      border: 1px solid ${c.d} !important;
+      background: ${c.dim} !important;
+    }
+    
     /* Sobrescribir colores hardcodeados comunes */
     .filter-btn.active {
       background: linear-gradient(135deg, ${c.p}, ${c.d}) !important;

@@ -1236,6 +1236,9 @@
       const allowedTypes = DECK_LIMITS[currentDeck].types;
       
       const filtered = allCards.filter(card => {
+        // Excluir banners de expansiones agotadas
+        if (card.tipo === 'BANNER') return false;
+        
         const matchesSearch = card.nombre.toLowerCase().includes(searchTerm);
         const matchesType = typeFilter === 'todas' || card.tipoJuego === typeFilter;
         const matchesDeck = allowedTypes.includes(card.tipoJuego);

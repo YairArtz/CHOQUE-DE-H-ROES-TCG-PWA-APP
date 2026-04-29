@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#07090f">
+  <title>Constructor de Barajas · Choque de Héroes TCG</title>
+  <link rel="manifest" href="manifest.json">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+    }
+
+    :root {
+      --accent: #00cfff;
+      --accent-glow: rgba(0,207,255,0.10);
+      --accent-dim: rgba(0,207,255,0.25);
+      --bg: #07090f;
+      --bg2: #0b0e18;
+      --card: rgba(12,10,5,0.97);
+      --border: #141c2a;
+      --text: #f0e6d0;
+      --muted: #6a7f9a;
+      
+      --green: #00ff9d;
+      --gold: #f5a623;
+      --purple: #cc55ff;
+      --red: #ff2244;
+    }
+
+    html, body {
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Rajdhani', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      position: relative;
+      overflow-x: hidden;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(45deg, rgba(0,207,255,0.03) 1px, transparent 1px),
+        linear-gradient(-45deg, rgba(0,207,255,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      top: -10%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 700px;
+      height: 500px;
+      background: radial-gradient(ellipse, rgba(0,207,255,0.07) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ═══ BARRA SUPERIOR ═══ */
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: linear-gradient(180deg, rgba(7,9,15,0.98) 0%, rgba(7,9,15,0.95) 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      backdrop-filter: blur(20px);
+    }
+
+    .top-bar::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 10%;
+      right: 10%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent-dim), transparent);
+    }
+
+    .back-btn {
+      background: rgba(0,207,255,0.08);
+      border: 1px solid var(--accent-dim);
+      color: var(--accent);
+      font-size: 20px;
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .back-btn:active {
+      background: var(--accent-glow);
+      transform: scale(0.95);
+    }
+
+    .top-title {
+      flex: 1;
+      font-family: 'Orbitron', monospace;
+      font-size: 16px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--accent);
+      text-shadow: 0 0 12px rgba(0,207,255,0.4);
+    }
+
+    .save-btn {
+      background: linear-gradient(135deg, var(--accent), var(--purple));
+      border: none;
+      color: #000;
+      font-family: 'Orbitron', monospace;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      padding: 10px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 0 20px rgba(0,207,255,0.3);
+    }
+
+    .save-btn:active {
+      transform: scale(0.95);
+      box-shadow: 0 0 30px rgba(0,207,255,0.5);
+    }
+
+    /* ═══ CONTENEDOR PRINCIPAL ═══ */
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 20px 16px 80px;
+    }
+
+    /* ═══ SELECTOR DE BARAJA ═══ */
+    .deck-selector {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      background: var(--bg2);
+      padding: 6px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .deck-tab {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-family: 'Orbitron', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      padding: 12px 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .deck-tab.active {
+      background: linear-gradient(135deg, var(--accent), var(--purple));
+      color: #000;
+      box-shadow: 0 0 15px rgba(0,207,255,0.3);
+    }
+
+    .deck-tab-name {
+      display: block;
+      font-size: 9px;
+      opacity: 0.7;
+      margin-top: 2px;
+    }
+
+    /* ═══ CONTADOR DE CARTAS ═══ */
+    .deck-counter {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+
+    .counter-main {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .counter-label {
+      font-family: 'Orbitron', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    .counter-value {
+      font-family: 'Orbitron', monospace;
+      font-size: 24px;
+      font-weight: 900;
+      color: var(--accent);
+      text-shadow: 0 0 12px rgba(0,207,255,0.4);
+    }
+
+    .counter-value.complete {
+      color: var(--green);
+      text-shadow: 0 0 12px rgba(0,255,157,0.4);
+    }
+
+    .counter-value.invalid {
+      color: var(--red);
+      text-shadow: 0 0 12px rgba(255,34,68,0.4);
+    }
+
+    .counter-bar {
+      width: 100%;
+      height: 6px;
+      background: rgba(0,207,255,0.1);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .counter-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--purple));
+      transition: width 0.3s;
+      box-shadow: 0 0 10px rgba(0,207,255,0.5);
+    }
+
+    .counter-bar-fill.complete {
+      background: linear-gradient(90deg, var(--green), var(--accent));
+    }
+
+    .counter-bar-fill.invalid {
+      background: linear-gradient(90deg, var(--red), var(--gold));
+    }
+
+    /* ═══ ESTADÍSTICAS POR TIPO ═══ */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .stat-item {
+      background: rgba(0,207,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .stat-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-value {
+      font-family: 'Orbitron', monospace;
+      font-size: 14px;
+      font-weight: 900;
+      color: var(--accent);
+    }
+
+    /* ═══ BUSCADOR DE CARTAS ═══ */
+    .search-section {
+      margin-bottom: 20px;
+    }
+
+    .search-box {
+      position: relative;
+      margin-bottom: 12px;
+    }
+
+    .search-input {
+      width: 100%;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      padding: 14px 16px 14px 44px;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 20px rgba(0,207,255,0.2);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 18px;
+      color: var(--muted);
+    }
+
+    /* ═══ FILTROS DE TIPO ═══ */
+    .type-filters {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding: 4px 0;
+      scrollbar-width: none;
+    }
+
+    .type-filters::-webkit-scrollbar {
+      display: none;
+    }
+
+    .type-btn {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-family: 'Orbitron', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+
+    .type-btn.active {
+      background: linear-gradient(135deg, var(--accent), var(--purple));
+      border-color: var(--accent);
+      color: #000;
+      box-shadow: 0 0 15px rgba(0,207,255,0.3);
+    }
+
+    /* ═══ GRID DE CARTAS DISPONIBLES ═══ */
+    .available-cards {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .available-cards-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .card-item {
+      background: rgba(0,207,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .card-item:active {
+      transform: scale(0.95);
+      border-color: var(--accent);
+      box-shadow: 0 0 20px rgba(0,207,255,0.3);
+    }
+
+    .card-item.disabled {
+      opacity: 0.3;
+      pointer-events: none;
+    }
+
+    .card-item-img {
+      width: 100%;
+      aspect-ratio: 2/3;
+      background: rgba(0,0,0,0.3);
+      border-radius: 6px;
+      margin-bottom: 6px;
+      object-fit: cover;
+    }
+
+    .card-item-name {
+      font-size: 9px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.2;
+      margin-bottom: 4px;
+    }
+
+    .card-item-type {
+      font-size: 8px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .card-item-count {
+      font-family: 'Orbitron', monospace;
+      font-size: 10px;
+      font-weight: 900;
+      color: var(--accent);
+      margin-top: 4px;
+    }
+
+    /* ═══ LISTA DE BARAJA ACTUAL ═══ */
+    .deck-list {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+
+    .deck-list-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .deck-list-count {
+      color: var(--accent);
+    }
+
+    .deck-item {
+      background: rgba(0,207,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .deck-item-qty {
+      font-family: 'Orbitron', monospace;
+      font-size: 16px;
+      font-weight: 900;
+      color: var(--accent);
+      width: 24px;
+      text-align: center;
+    }
+
+    .deck-item-name {
+      flex: 1;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .deck-item-type {
+      font-size: 9px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-right: 8px;
+    }
+
+    .deck-item-remove {
+      background: rgba(255,34,68,0.1);
+      border: 1px solid rgba(255,34,68,0.3);
+      color: var(--red);
+      font-size: 16px;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .deck-item-remove:active {
+      background: rgba(255,34,68,0.2);
+      transform: scale(0.9);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+      opacity: 0.3;
+    }
+
+    /* ═══ ACCIONES ═══ */
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .action-btn {
+      flex: 1;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'Orbitron', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      padding: 14px 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+    }
+
+    .action-btn:active {
+      transform: scale(0.95);
+      border-color: var(--accent);
+      box-shadow: 0 0 20px rgba(0,207,255,0.2);
+    }
+
+    .action-btn.primary {
+      background: linear-gradient(135deg, var(--accent), var(--purple));
+      border: none;
+      color: #000;
+      box-shadow: 0 0 20px rgba(0,207,255,0.3);
+    }
+
+    /* ═══ MODAL ═══ */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.9);
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      backdrop-filter: blur(10px);
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0,207,255,0.3);
+    }
+
+    .modal-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 16px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .modal-input {
+      width: 100%;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      outline: none;
+    }
+
+    .modal-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 20px rgba(0,207,255,0.2);
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .modal-btn {
+      flex: 1;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'Orbitron', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+    }
+
+    .modal-btn.primary {
+      background: linear-gradient(135deg, var(--accent), var(--purple));
+      border: none;
+      color: #000;
+    }
+
+    /* ═══ LISTA DE BARAJAS GUARDADAS ═══ */
+    .saved-decks-list {
+      max-height: 300px;
+      overflow-y: auto;
+      margin-bottom: 16px;
+    }
+
+    .saved-deck-item {
+      background: rgba(0,207,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .saved-deck-item:active {
+      background: rgba(0,207,255,0.1);
+      border-color: var(--accent);
+    }
+
+    .saved-deck-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .saved-deck-info {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .saved-deck-delete {
+      background: rgba(255,34,68,0.1);
+      border: 1px solid rgba(255,34,68,0.3);
+      color: var(--red);
+      font-size: 14px;
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .saved-deck-delete:active {
+      background: rgba(255,34,68,0.2);
+      transform: scale(0.9);
+    }
+  </style>
+</head>
+<body>
+  <!-- BARRA SUPERIOR -->
+  <div class="top-bar">
+    <button class="back-btn" onclick="window.location.href='index.html'">←</button>
+    <div class="top-title">Constructor</div>
+    <button class="save-btn" id="saveBtn">Guardar</button>
+  </div>
+
+  <!-- CONTENEDOR PRINCIPAL -->
+  <div class="container">
+    
+    <!-- SELECTOR DE BARAJA -->
+    <div class="deck-selector">
+      <button class="deck-tab active" data-deck="BP">
+        BP
+        <span class="deck-tab-name">Principal</span>
+      </button>
+      <button class="deck-tab" data-deck="BA">
+        BA
+        <span class="deck-tab-name">Almas</span>
+      </button>
+      <button class="deck-tab" data-deck="BS">
+        BS
+        <span class="deck-tab-name">Amalgamas</span>
+      </button>
+    </div>
+
+    <!-- CONTADOR -->
+    <div class="deck-counter">
+      <div class="counter-main">
+        <div class="counter-label" id="counterLabel">Baraja Principal</div>
+        <div class="counter-value" id="counterValue">0/40</div>
+      </div>
+      <div class="counter-bar">
+        <div class="counter-bar-fill" id="counterBar"></div>
+      </div>
+      
+      <!-- Estadísticas por tipo -->
+      <div class="stats-grid" id="statsGrid"></div>
+    </div>
+
+    <!-- BUSCADOR -->
+    <div class="search-section">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" class="search-input" id="searchInput" placeholder="Buscar cartas...">
+      </div>
+      
+      <!-- Filtros de tipo -->
+      <div class="type-filters" id="typeFilters"></div>
+    </div>
+
+    <!-- CARTAS DISPONIBLES -->
+    <div class="available-cards">
+      <div class="available-cards-title">Cartas Disponibles</div>
+      <div class="cards-grid" id="cardsGrid"></div>
+    </div>
+
+    <!-- LISTA DE BARAJA -->
+    <div class="deck-list">
+      <div class="deck-list-title">
+        <span>Tu Baraja</span>
+        <span class="deck-list-count" id="deckListCount">0 cartas</span>
+      </div>
+      <div id="deckListContainer">
+        <div class="empty-state">
+          <img src="1000378945.jpg" alt="Reverso CHH" style="width: 80px; height: auto; border-radius: 8px; margin-bottom: 12px; opacity: 0.6;">
+          <div>Agrega cartas para comenzar a construir tu baraja</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACCIONES -->
+    <div class="actions">
+      <button class="action-btn" id="clearBtn">Vaciar</button>
+      <button class="action-btn" id="loadBtn">Cargar</button>
+      <button class="action-btn primary" id="exportBtn">Exportar</button>
+    </div>
+
+  </div>
+
+  <!-- MODAL GUARDAR -->
+  <div class="modal" id="saveModal">
+    <div class="modal-content">
+      <div class="modal-title">Guardar Baraja</div>
+      <input type="text" class="modal-input" id="deckNameInput" placeholder="Nombre de la baraja...">
+      <div class="modal-actions">
+        <button class="modal-btn" id="cancelSaveBtn">Cancelar</button>
+        <button class="modal-btn primary" id="confirmSaveBtn">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CARGAR -->
+  <div class="modal" id="loadModal">
+    <div class="modal-content">
+      <div class="modal-title">Cargar Baraja</div>
+      <div class="saved-decks-list" id="savedDecksList"></div>
+      <div class="modal-actions">
+        <button class="modal-btn" id="cancelLoadBtn">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL EXPORTAR -->
+  <div class="modal" id="exportModal">
+    <div class="modal-content">
+      <div class="modal-title">Exportar Baraja</div>
+      <textarea class="modal-input" id="exportText" rows="10" readonly style="font-family: monospace; font-size: 12px;"></textarea>
+      <div class="modal-actions">
+        <button class="modal-btn" id="closeExportBtn">Cerrar</button>
+        <button class="modal-btn primary" id="copyExportBtn">Copiar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="settings.js"></script>
+  <script>
+    // ═══════════════════════════════════════════════════════
+    // CARGA DE CARTAS DESDE JSON
+    // ═══════════════════════════════════════════════════════
+    
+    let allCards = [];
+    
+    // Cargar cartas.json
+    fetch('cartas.json')
+      .then(res => res.json())
+      .then(data => {
+        allCards = data;
+        init();
+      })
+      .catch(err => {
+        console.error('Error cargando cartas:', err);
+        allCards = [];
+        init();
+      });
+
+    // ═══════════════════════════════════════════════════════
+    // ESTADO GLOBAL
+    // ═══════════════════════════════════════════════════════
+
+    let currentDeck = 'BP';
+    let searchTerm = '';
+    let typeFilter = 'todas';
+
+    // Estructura de baraja
+    let deckState = {
+      BP: [], // Baraja Principal (40 cartas: Personajes, Apoyos, Arenas, Sectores)
+      BA: [], // Baraja de Almas (solo Almas)
+      BS: []  // Baraja de Soporte (solo Amalgamas)
+    };
+
+    const DECK_LIMITS = {
+      BP: { min: 40, max: 40, types: ['Personaje', 'Apoyo', 'Arena', 'Sector'] },
+      BA: { min: 15, max: 15, types: ['Alma'] },
+      BS: { min: 0, max: 15, types: ['Amalgama'] }
+    };
+
+    const MAX_COPIES = 3; // Máximo de copias por carta
+
+    // ═══════════════════════════════════════════════════════
+    // ELEMENTOS DOM
+    // ═══════════════════════════════════════════════════════
+
+    const deckTabs = document.querySelectorAll('.deck-tab');
+    const searchInput = document.getElementById('searchInput');
+    const typeFilters = document.getElementById('typeFilters');
+    const cardsGrid = document.getElementById('cardsGrid');
+    const deckListContainer = document.getElementById('deckListContainer');
+    const counterLabel = document.getElementById('counterLabel');
+    const counterValue = document.getElementById('counterValue');
+    const counterBar = document.getElementById('counterBar');
+    const deckListCount = document.getElementById('deckListCount');
+    const statsGrid = document.getElementById('statsGrid');
+
+    const saveBtn = document.getElementById('saveBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const loadBtn = document.getElementById('loadBtn');
+    const exportBtn = document.getElementById('exportBtn');
+
+    const saveModal = document.getElementById('saveModal');
+    const loadModal = document.getElementById('loadModal');
+    const exportModal = document.getElementById('exportModal');
+
+    // ═══════════════════════════════════════════════════════
+    // INICIALIZACIÓN
+    // ═══════════════════════════════════════════════════════
+
+    init();
+
+    function init() {
+      // Normalizar tipos de cartas del JSON
+      allCards = allCards.map(card => {
+        let tipoNormalizado = card.tipo.toUpperCase();
+        
+        // Mapear tipos del JSON a tipos del juego
+        if (tipoNormalizado.includes('PERSONAJE') || tipoNormalizado.includes('HÉROE')) {
+          card.tipoJuego = 'Personaje';
+        } else if (tipoNormalizado.includes('AMALGAMA')) {
+          card.tipoJuego = 'Amalgama';
+        } else if (tipoNormalizado.includes('ALMA')) {
+          card.tipoJuego = 'Alma';
+        } else if (tipoNormalizado.includes('APOYO')) {
+          card.tipoJuego = 'Apoyo';
+        } else if (tipoNormalizado.includes('ARENA')) {
+          card.tipoJuego = 'Arena';
+        } else if (tipoNormalizado.includes('SECTOR')) {
+          card.tipoJuego = 'Sector';
+        } else {
+          // Tipos desconocidos se tratan como Personaje por defecto
+          card.tipoJuego = 'Personaje';
+        }
+        
+        return card;
+      });
+      
+      renderTypeFilters();
+      renderCards();
+      renderDeck();
+      updateCounter();
+      
+      // Verificar si viene carta preseleccionada desde galería
+      const urlParams = new URLSearchParams(window.location.search);
+      const preselectedId = urlParams.get('carta');
+      if (preselectedId) {
+        addCard(preselectedId);
+      }
+      
+      // Event listeners
+      deckTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          deckTabs.forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          currentDeck = tab.dataset.deck;
+          typeFilter = 'todas';
+          renderTypeFilters();
+          renderCards();
+          renderDeck();
+          updateCounter();
+        });
+      });
+
+      searchInput.addEventListener('input', (e) => {
+        searchTerm = e.target.value.toLowerCase();
+        renderCards();
+      });
+
+      saveBtn.addEventListener('click', openSaveModal);
+      clearBtn.addEventListener('click', clearDeck);
+      loadBtn.addEventListener('click', openLoadModal);
+      exportBtn.addEventListener('click', openExportModal);
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // RENDERIZADO
+    // ═══════════════════════════════════════════════════════
+
+    function renderTypeFilters() {
+      const allowedTypes = DECK_LIMITS[currentDeck].types;
+      const types = ['todas', ...allowedTypes];
+      
+      typeFilters.innerHTML = types.map(type => `
+        <button class="type-btn ${type === typeFilter ? 'active' : ''}" data-type="${type}">
+          ${type.toUpperCase()}
+        </button>
+      `).join('');
+
+      typeFilters.querySelectorAll('.type-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          typeFilter = btn.dataset.type;
+          renderTypeFilters();
+          renderCards();
+        });
+      });
+    }
+
+    function renderCards() {
+      const allowedTypes = DECK_LIMITS[currentDeck].types;
+      
+      const filtered = allCards.filter(card => {
+        const matchesSearch = card.nombre.toLowerCase().includes(searchTerm);
+        const matchesType = typeFilter === 'todas' || card.tipoJuego === typeFilter;
+        const matchesDeck = allowedTypes.includes(card.tipoJuego);
+        return matchesSearch && matchesType && matchesDeck;
+      });
+
+      if (filtered.length === 0) {
+        cardsGrid.innerHTML = `
+          <div class="empty-state" style="grid-column: 1/-1;">
+            <div class="empty-state-icon">🔍</div>
+            <div>No se encontraron cartas</div>
+          </div>
+        `;
+        return;
+      }
+
+      cardsGrid.innerHTML = filtered.map(card => {
+        const count = deckState[currentDeck].filter(c => c.id === card.id).length;
+        const maxReached = count >= MAX_COPIES || (card.limitada && count >= 1);
+        
+        return `
+          <div class="card-item ${maxReached ? 'disabled' : ''}" data-id="${card.id}">
+            <img src="${card.miniatura || ''}" alt="${card.nombre}" class="card-item-img" onerror="this.style.display='none'">
+            <div class="card-item-name">${card.nombre}</div>
+            <div class="card-item-type">${card.tipoJuego}</div>
+            <div class="card-item-count">${count}/${card.limitada ? '1' : MAX_COPIES}</div>
+          </div>
+        `;
+      }).join('');
+
+      cardsGrid.querySelectorAll('.card-item:not(.disabled)').forEach(el => {
+        el.addEventListener('click', () => {
+          const cardId = el.dataset.id;
+          addCard(cardId);
+        });
+      });
+    }
+
+    function renderDeck() {
+      const deck = deckState[currentDeck];
+      
+      if (deck.length === 0) {
+        deckListContainer.innerHTML = `
+          <div class="empty-state">
+            <img src="1000378945.jpg" alt="Reverso CHH" style="width: 80px; height: auto; border-radius: 8px; margin-bottom: 12px; opacity: 0.6;">
+            <div>Agrega cartas para comenzar a construir tu baraja</div>
+          </div>
+        `;
+        return;
+      }
+
+      // Agrupar por carta
+      const grouped = {};
+      deck.forEach(card => {
+        if (!grouped[card.id]) {
+          grouped[card.id] = { card, count: 0 };
+        }
+        grouped[card.id].count++;
+      });
+
+      deckListContainer.innerHTML = Object.values(grouped)
+        .sort((a, b) => a.card.nombre.localeCompare(b.card.nombre))
+        .map(({ card, count }) => `
+          <div class="deck-item">
+            <div class="deck-item-qty">${count}x</div>
+            <div class="deck-item-name">${card.nombre}</div>
+            <div class="deck-item-type">${card.tipoJuego}</div>
+            <button class="deck-item-remove" data-id="${card.id}">−</button>
+          </div>
+        `).join('');
+
+      deckListContainer.querySelectorAll('.deck-item-remove').forEach(btn => {
+        btn.addEventListener('click', () => {
+          removeCard(btn.dataset.id);
+        });
+      });
+    }
+
+    function updateCounter() {
+      const deck = deckState[currentDeck];
+      const limit = DECK_LIMITS[currentDeck];
+      const count = deck.length;
+      
+      // Etiqueta
+      const labels = { BP: 'Baraja Principal', BA: 'Baraja de Almas', BS: 'Baraja de Amalgamas' };
+      counterLabel.textContent = labels[currentDeck];
+      
+      // Contador
+      if (currentDeck === 'BP') {
+        counterValue.textContent = `${count}/40`;
+        counterValue.className = 'counter-value';
+        if (count === 40) counterValue.classList.add('complete');
+        if (count > 40) counterValue.classList.add('invalid');
+        
+        // Barra
+        const percent = Math.min((count / 40) * 100, 100);
+        counterBar.style.width = `${percent}%`;
+        counterBar.className = 'counter-bar-fill';
+        if (count === 40) counterBar.classList.add('complete');
+        if (count > 40) counterBar.classList.add('invalid');
+        
+      } else if (currentDeck === 'BA') {
+        counterValue.textContent = `${count}/15`;
+        counterValue.className = 'counter-value';
+        if (count === 15) counterValue.classList.add('complete');
+        if (count > 15) counterValue.classList.add('invalid');
+        
+        // Barra
+        const percent = Math.min((count / 15) * 100, 100);
+        counterBar.style.width = `${percent}%`;
+        counterBar.className = 'counter-bar-fill';
+        if (count === 15) counterBar.classList.add('complete');
+        if (count > 15) counterBar.classList.add('invalid');
+        
+      } else if (currentDeck === 'BS') {
+        counterValue.textContent = `${count}/15`;
+        counterValue.className = 'counter-value';
+        if (count <= 15) counterValue.classList.add('complete');
+        if (count > 15) counterValue.classList.add('invalid');
+        
+        // Barra
+        const percent = count > 0 ? Math.min((count / 15) * 100, 100) : 0;
+        counterBar.style.width = `${percent}%`;
+        counterBar.className = 'counter-bar-fill';
+        if (count > 0 && count <= 15) counterBar.classList.add('complete');
+        if (count > 15) counterBar.classList.add('invalid');
+      }
+      
+      // Count en lista
+      deckListCount.textContent = `${count} carta${count !== 1 ? 's' : ''}`;
+      
+      // Estadísticas por tipo
+      renderStats();
+    }
+
+    function renderStats() {
+      const deck = deckState[currentDeck];
+      const stats = {};
+      
+      deck.forEach(card => {
+        stats[card.tipoJuego] = (stats[card.tipoJuego] || 0) + 1;
+      });
+
+      if (Object.keys(stats).length === 0) {
+        statsGrid.innerHTML = '';
+        return;
+      }
+
+      statsGrid.innerHTML = Object.entries(stats)
+        .sort((a, b) => b[1] - a[1])
+        .map(([tipo, count]) => `
+          <div class="stat-item">
+            <div class="stat-label">${tipo}</div>
+            <div class="stat-value">${count}</div>
+          </div>
+        `).join('');
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // LÓGICA DE BARAJA
+    // ═══════════════════════════════════════════════════════
+
+    function addCard(cardId) {
+      const card = allCards.find(c => c.id === cardId);
+      if (!card) return;
+
+      const deck = deckState[currentDeck];
+      const limit = DECK_LIMITS[currentDeck];
+      const count = deck.filter(c => c.id === cardId).length;
+      
+      // Validaciones por baraja
+      if (currentDeck === 'BP' && deck.length >= 40) {
+        alert('La Baraja Principal ya tiene 40 cartas');
+        return;
+      }
+      
+      if (currentDeck === 'BA' && deck.length >= 15) {
+        alert('La Baraja de Almas ya tiene 15 cartas');
+        return;
+      }
+      
+      if (currentDeck === 'BS' && deck.length >= 15) {
+        alert('La Baraja de Amalgamas ya tiene el máximo de 15 cartas');
+        return;
+      }
+      
+      if (card.limitada && count >= 1) {
+        alert('Esta carta está limitada a 1 copia');
+        return;
+      }
+      
+      if (count >= MAX_COPIES) {
+        alert(`Máximo ${MAX_COPIES} copias por carta`);
+        return;
+      }
+
+      // Agregar
+      deck.push(card);
+      renderCards();
+      renderDeck();
+      updateCounter();
+    }
+
+    function removeCard(cardId) {
+      const deck = deckState[currentDeck];
+      const index = deck.findIndex(c => c.id === cardId);
+      
+      if (index !== -1) {
+        deck.splice(index, 1);
+        renderCards();
+        renderDeck();
+        updateCounter();
+      }
+    }
+
+    function clearDeck() {
+      if (!confirm('¿Vaciar la baraja actual?')) return;
+      deckState[currentDeck] = [];
+      renderCards();
+      renderDeck();
+      updateCounter();
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // PERSISTENCIA
+    // ═══════════════════════════════════════════════════════
+
+    function openSaveModal() {
+      if (currentDeck === 'BP' && deckState.BP.length !== 40) {
+        alert('La Baraja Principal debe tener exactamente 40 cartas');
+        return;
+      }
+      
+      if (currentDeck === 'BA' && deckState.BA.length !== 15) {
+        alert('La Baraja de Almas debe tener exactamente 15 cartas');
+        return;
+      }
+      
+      if (currentDeck === 'BS' && deckState.BS.length > 15) {
+        alert('La Baraja de Amalgamas no puede tener más de 15 cartas');
+        return;
+      }
+      
+      saveModal.classList.add('active');
+      document.getElementById('deckNameInput').value = '';
+      document.getElementById('deckNameInput').focus();
+    }
+
+    document.getElementById('cancelSaveBtn').addEventListener('click', () => {
+      saveModal.classList.remove('active');
+    });
+
+    document.getElementById('confirmSaveBtn').addEventListener('click', () => {
+      const name = document.getElementById('deckNameInput').value.trim();
+      if (!name) {
+        alert('Ingresa un nombre para la baraja');
+        return;
+      }
+
+      const saved = JSON.parse(localStorage.getItem('chh_decks') || '[]');
+      saved.push({
+        name,
+        date: new Date().toISOString(),
+        decks: JSON.parse(JSON.stringify(deckState))
+      });
+      
+      localStorage.setItem('chh_decks', JSON.stringify(saved));
+      saveModal.classList.remove('active');
+      alert('Baraja guardada correctamente');
+    });
+
+    function openLoadModal() {
+      const saved = JSON.parse(localStorage.getItem('chh_decks') || '[]');
+      const list = document.getElementById('savedDecksList');
+      
+      if (saved.length === 0) {
+        list.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">📁</div>
+            <div>No hay barajas guardadas</div>
+          </div>
+        `;
+      } else {
+        list.innerHTML = saved.map((deck, index) => `
+          <div class="saved-deck-item" data-index="${index}">
+            <div>
+              <div class="saved-deck-name">${deck.name}</div>
+              <div class="saved-deck-info">
+                BP: ${deck.decks.BP.length} • BA: ${deck.decks.BA.length} • BS: ${deck.decks.BS.length}
+              </div>
+            </div>
+            <button class="saved-deck-delete" data-index="${index}">🗑</button>
+          </div>
+        `).join('');
+
+        list.querySelectorAll('.saved-deck-item').forEach(el => {
+          el.addEventListener('click', (e) => {
+            if (e.target.classList.contains('saved-deck-delete')) return;
+            const index = el.dataset.index;
+            loadDeck(index);
+          });
+        });
+
+        list.querySelectorAll('.saved-deck-delete').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteDeck(btn.dataset.index);
+          });
+        });
+      }
+      
+      loadModal.classList.add('active');
+    }
+
+    document.getElementById('cancelLoadBtn').addEventListener('click', () => {
+      loadModal.classList.remove('active');
+    });
+
+    function loadDeck(index) {
+      const saved = JSON.parse(localStorage.getItem('chh_decks') || '[]');
+      const deck = saved[index];
+      
+      if (!deck) return;
+      
+      deckState = JSON.parse(JSON.stringify(deck.decks));
+      renderCards();
+      renderDeck();
+      updateCounter();
+      loadModal.classList.remove('active');
+    }
+
+    function deleteDeck(index) {
+      if (!confirm('¿Eliminar esta baraja?')) return;
+      
+      const saved = JSON.parse(localStorage.getItem('chh_decks') || '[]');
+      saved.splice(index, 1);
+      localStorage.setItem('chh_decks', JSON.stringify(saved));
+      openLoadModal();
+    }
+
+    function openExportModal() {
+      const bp = deckState.BP;
+      const ba = deckState.BA;
+      const bs = deckState.BS;
+
+      let text = '═══ CHOQUE DE HÉROES - BARAJA ═══\n\n';
+      
+      if (bp.length > 0) {
+        text += `BARAJA PRINCIPAL (${bp.length}/40)\n`;
+        text += exportDeckList(bp) + '\n';
+      }
+      
+      if (ba.length > 0) {
+        text += `BARAJA DE ALMAS (${ba.length})\n`;
+        text += exportDeckList(ba) + '\n';
+      }
+      
+      if (bs.length > 0) {
+        text += `BARAJA DE AMALGAMAS (${bs.length})\n`;
+        text += exportDeckList(bs) + '\n';
+      }
+
+      document.getElementById('exportText').value = text;
+      exportModal.classList.add('active');
+    }
+
+    function exportDeckList(deck) {
+      const grouped = {};
+      deck.forEach(card => {
+        if (!grouped[card.id]) {
+          grouped[card.id] = { card, count: 0 };
+        }
+        grouped[card.id].count++;
+      });
+
+      return Object.values(grouped)
+        .sort((a, b) => a.card.nombre.localeCompare(b.card.nombre))
+        .map(({ card, count }) => `  ${count}x ${card.nombre} [${card.tipoJuego}]`)
+        .join('\n');
+    }
+
+    document.getElementById('closeExportBtn').addEventListener('click', () => {
+      exportModal.classList.remove('active');
+    });
+
+    document.getElementById('copyExportBtn').addEventListener('click', () => {
+      const text = document.getElementById('exportText');
+      text.select();
+      document.execCommand('copy');
+      alert('Baraja copiada al portapapeles');
+    });
+  </script>
+</body>
+</html>

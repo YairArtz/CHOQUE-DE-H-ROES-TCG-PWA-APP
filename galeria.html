@@ -394,53 +394,12 @@
     }
 
     .modal-card-container {
-      position: relative;
       max-width: 90%;
       max-height: 70vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-      padding: 0 50px;
-    }
-    
-    .nav-btn {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 44px;
-      height: 44px;
-      background: rgba(7,9,15,0.9);
-      border: 1px solid var(--accent-dim);
-      color: var(--accent);
-      font-size: 24px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      z-index: 10;
-      transition: all 0.2s;
-      backdrop-filter: blur(10px);
-    }
-    
-    .nav-btn:active {
-      transform: translateY(-50%) scale(0.95);
-      background: var(--accent-glow);
-      box-shadow: 0 0 20px var(--accent-glow);
-    }
-    
-    .nav-btn.disabled {
-      opacity: 0.3;
-      pointer-events: none;
-    }
-    
-    .nav-btn.prev {
-      left: 5px;
-    }
-    
-    .nav-btn.next {
-      right: 5px;
     }
 
     @keyframes scaleIn {
@@ -488,6 +447,29 @@
       letter-spacing: 3px;
       font-weight: 600;
       font-family: 'Orbitron', sans-serif;
+    }
+    
+    .add-to-deck-btn {
+      margin-top: 20px;
+      width: 100%;
+      background: linear-gradient(135deg, var(--accent), #cc55ff);
+      border: none;
+      color: #000;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      padding: 14px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all 0.2s;
+      box-shadow: 0 0 20px rgba(245,166,35,0.3);
+    }
+    
+    .add-to-deck-btn:active {
+      transform: scale(0.95);
+      box-shadow: 0 0 30px rgba(245,166,35,0.5);
     }
   </style>
 </head>
@@ -546,12 +528,11 @@
       <button class="close-btn" id="closeModal">×</button>
     </div>
     <div class="modal-card-container">
-      <button class="nav-btn prev" id="prevBtn">‹</button>
       <img src="" alt="Carta" class="modal-card-img" id="modalCardImg">
-      <button class="nav-btn next" id="nextBtn">›</button>
       <div class="modal-card-info">
         <div class="modal-card-name" id="modalCardName"></div>
         <div class="modal-card-type" id="modalCardType"></div>
+        <button class="add-to-deck-btn" id="addToDeckBtn">+ Agregar a Baraja</button>
       </div>
     </div>
   </div>
@@ -572,45 +553,6 @@
     const emptyState = document.getElementById('emptyState');
     const modal = document.getElementById('modal');
     const closeModalBtn = document.getElementById('closeModal');
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    
-    let currentCardIndex = -1;
-
-    function openModal(card) {
-      currentCardIndex = filteredCards.indexOf(card);
-      showCard(currentCardIndex);
-      modal.classList.add('active');
-      document.body.style.overflow = 'hidden';
-    }
-    
-    function showCard(index) {
-      const card = filteredCards[index];
-      if (!card) return;
-      
-      document.getElementById('modalCardImg').src = card.ampliada || card.miniatura || '';
-      document.getElementById('modalCardName').textContent = card.nombre;
-      document.getElementById('modalCardType').textContent = card.tipo;
-      
-      const formattedExpansion = card.expansion
-        .split('_')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
-      
-      document.getElementById('modalExpansionBadge').textContent = formattedExpansion.toUpperCase();
-      
-      // Deshabilitar botones en los extremos
-      prevBtn.classList.toggle('disabled', index === 0);
-      nextBtn.classList.toggle('disabled', index === filteredCards.length - 1);
-    }
-    
-    function navigateModal(direction) {
-      const newIndex = currentCardIndex + direction;
-      if (newIndex >= 0 && newIndex < filteredCards.length) {
-        currentCardIndex = newIndex;
-        showCard(currentCardIndex);
-      }
-    }
 
     // ═══════════════════════════════════════════════════════
     // FUNCIONES PRINCIPALES
@@ -730,6 +672,29 @@
       renderCards();
     }
 
+    function openModal(card) {
+      document.getElementById('modalCardImg').src = card.ampliada || card.miniatura || '';
+      document.getElementById('modalCardName').textContent = card.nombre;
+      document.getElementById('modalCardType').textContent = card.tipo;
+      
+      // Formatear nombre de expansión dinámicamente
+      const formattedExpansion = card.expansion
+        .split('_')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+      
+      document.getElementById('modalExpansionBadge').textContent = formattedExpansion.toUpperCase();
+      
+      // Botón agregar a baraja
+      const addBtn = document.getElementById('addToDeckBtn');
+      addBtn.onclick = () => {
+        window.location.href = `constructor.html?carta=${card.id}`;
+      };
+      
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
     function closeModal() {
       modal.classList.remove('active');
       document.body.style.overflow = 'auto';
@@ -740,37 +705,6 @@
     // ═══════════════════════════════════════════════════════
 
     searchInput.addEventListener('input', filterCards);
-    
-    prevBtn.addEventListener('click', () => navigateModal(-1));
-    nextBtn.addEventListener('click', () => navigateModal(1));
-    
-    // Detección de swipe/deslizamiento
-    let touchStartX = 0;
-    let touchEndX = 0;
-    
-    modal.addEventListener('touchstart', (e) => {
-      touchStartX = e.changedTouches[0].screenX;
-    }, { passive: true });
-    
-    modal.addEventListener('touchend', (e) => {
-      touchEndX = e.changedTouches[0].screenX;
-      handleSwipe();
-    }, { passive: true });
-    
-    function handleSwipe() {
-      const swipeThreshold = 50; // Mínimo de píxeles para detectar swipe
-      const diff = touchStartX - touchEndX;
-      
-      if (Math.abs(diff) > swipeThreshold) {
-        if (diff > 0) {
-          // Swipe izquierda → siguiente
-          navigateModal(1);
-        } else {
-          // Swipe derecha → anterior
-          navigateModal(-1);
-        }
-      }
-    }
 
     expansionFilters.addEventListener('click', (e) => {
       if (e.target.classList.contains('filter-btn')) {

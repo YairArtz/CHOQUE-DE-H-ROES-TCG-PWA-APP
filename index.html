@@ -34,7 +34,7 @@
   backdrop-filter:blur(8px);z-index:50;
 }
 .settings-btn:active{
-  opacity:1;background:rgba(0,255,157,.12);
+  opacity:1;background:var(--neon-dim);
   border-color:var(--neon);box-shadow:var(--nglow);transform:scale(.94);
 }
 .settings-btn svg{width:20px;height:20px;fill:var(--muted);transition:fill .25s;}
@@ -53,9 +53,9 @@ body::after{
 body::before{
   content:'';position:fixed;inset:0;
   background:
-    radial-gradient(ellipse 70% 40% at 15% 10%,rgba(0,255,157,.05) 0%,transparent 60%),
-    radial-gradient(ellipse 70% 40% at 85% 90%,rgba(0,207,255,.05) 0%,transparent 60%),
-    radial-gradient(ellipse 50% 50% at 50% 40%,rgba(180,70,255,.04) 0%,transparent 60%);
+    radial-gradient(ellipse 70% 40% at 15% 10%,var(--neon-dim) 0%,transparent 60%),
+    radial-gradient(ellipse 70% 40% at 85% 90%,var(--blue-dim) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 50% at 50% 40%,var(--purple-dim) 0%,transparent 60%);
   pointer-events:none;
 }
 #wrap{
@@ -172,10 +172,10 @@ header::after{
 .mod-card.c-gold  {--c:var(--gold);}
 .mod-card.c-red   {--c:var(--red);}
 .mod-card.c-purple{--c:var(--purple);}
-.mod-card.c-neon:hover  {border-color:var(--neon);  box-shadow:0 0 24px rgba(0,255,157,.45), 0 0 8px rgba(0,255,157,.3) inset;}
-.mod-card.c-blue:hover  {border-color:var(--blue);  box-shadow:0 0 24px rgba(0,207,255,.45), 0 0 8px rgba(0,207,255,.3) inset;}
-.mod-card.c-gold:hover  {border-color:var(--gold);  box-shadow:0 0 24px rgba(245,166,35,.45), 0 0 8px rgba(245,166,35,.3) inset;}
-.mod-card.c-red:hover   {border-color:var(--red);   box-shadow:0 0 24px rgba(255,34,68,.45), 0 0 8px rgba(255,34,68,.3) inset;}
+.mod-card.c-neon:hover  {border-color:var(--neon);  box-shadow:var(--nglow), 0 0 8px var(--neon-dim) inset;}
+.mod-card.c-blue:hover  {border-color:var(--blue);  box-shadow:var(--bglow), 0 0 8px var(--blue-dim) inset;}
+.mod-card.c-gold:hover  {border-color:var(--gold);  box-shadow:var(--gglow), 0 0 8px var(--gold-dim) inset;}
+.mod-card.c-red:hover   {border-color:var(--red);   box-shadow:var(--rglow), 0 0 8px var(--red-dim) inset;}
 .mod-card.c-purple:hover{border-color:var(--purple);box-shadow:0 0 24px rgba(180,70,255,.45), 0 0 8px rgba(180,70,255,.3) inset;}
 
 .mod-icon{
@@ -278,7 +278,7 @@ footer      {animation:fadeUp .5s .4s  both;}
   border:none;padding:0;cursor:pointer;
   transition:background 0.3s;
 }
-.banner-dot.active{background:#00cfff;box-shadow:0 0 8px #00cfff;}
+.banner-dot.active{background:var(--blue);box-shadow:0 0 8px var(--blue);}
 </style>
 </head>
 <body>
@@ -429,12 +429,12 @@ footer      {animation:fadeUp .5s .4s  both;}
     installBtn.style.cssText = `
       display:none;
       position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
-      background:linear-gradient(135deg,#00ff9d,#00cfff);
+      background:linear-gradient(135deg,var(--neon),var(--blue));
       color:#03050a;border:none;border-radius:24px;
       padding:12px 28px;font-family:'Orbitron',monospace;
       font-size:11px;font-weight:900;letter-spacing:3px;
       cursor:pointer;z-index:9999;
-      box-shadow:0 0 20px rgba(0,255,157,0.5),0 4px 16px rgba(0,0,0,0.6);
+      box-shadow:var(--nglow),0 4px 16px rgba(0,0,0,0.6);
       animation:installPulse 2s ease infinite;
     `;
     document.body.appendChild(installBtn);
@@ -443,8 +443,8 @@ footer      {animation:fadeUp .5s .4s  both;}
     const styleEl = document.createElement('style');
     styleEl.textContent = `
       @keyframes installPulse {
-        0%,100%{box-shadow:0 0 20px rgba(0,255,157,0.5),0 4px 16px rgba(0,0,0,0.6)}
-        50%{box-shadow:0 0 35px rgba(0,255,157,0.85),0 4px 20px rgba(0,0,0,0.7)}
+        0%,100%{box-shadow:var(--nglow),0 4px 16px rgba(0,0,0,0.6)}
+        50%{box-shadow:0 0 35px var(--neon),0 4px 20px rgba(0,0,0,0.7)}
       }
     `;
     document.head.appendChild(styleEl);

@@ -743,6 +743,34 @@
     
     prevBtn.addEventListener('click', () => navigateModal(-1));
     nextBtn.addEventListener('click', () => navigateModal(1));
+    
+    // Detección de swipe/deslizamiento
+    let touchStartX = 0;
+    let touchEndX = 0;
+    
+    modal.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+    
+    modal.addEventListener('touchend', (e) => {
+      touchEndX = e.changedTouches[0].screenX;
+      handleSwipe();
+    }, { passive: true });
+    
+    function handleSwipe() {
+      const swipeThreshold = 50; // Mínimo de píxeles para detectar swipe
+      const diff = touchStartX - touchEndX;
+      
+      if (Math.abs(diff) > swipeThreshold) {
+        if (diff > 0) {
+          // Swipe izquierda → siguiente
+          navigateModal(1);
+        } else {
+          // Swipe derecha → anterior
+          navigateModal(-1);
+        }
+      }
+    }
 
     expansionFilters.addEventListener('click', (e) => {
       if (e.target.classList.contains('filter-btn')) {

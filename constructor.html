@@ -719,6 +719,105 @@
       background: rgba(255,34,68,0.2);
       transform: scale(0.9);
     }
+    
+    /* ═══ MODAL DE ALERTA PERSONALIZADO ═══ */
+    .alert-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 300;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      backdrop-filter: blur(10px);
+      animation: fadeIn 0.2s;
+    }
+    
+    .alert-overlay.active {
+      display: flex;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .alert-box {
+      background: var(--bg);
+      border: 2px solid var(--accent);
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 380px;
+      width: 100%;
+      box-shadow: 0 0 40px rgba(0,207,255,0.4), 0 20px 60px rgba(0,0,0,0.8);
+      animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+    
+    .alert-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .alert-icon {
+      font-size: 28px;
+      line-height: 1;
+    }
+    
+    .alert-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 14px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      color: var(--accent);
+      text-transform: uppercase;
+      flex: 1;
+    }
+    
+    .alert-message {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    
+    .alert-btn {
+      width: 100%;
+      background: linear-gradient(135deg, var(--accent), var(--purple));
+      border: none;
+      color: #000;
+      font-family: 'Orbitron', monospace;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      padding: 14px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all 0.2s;
+      box-shadow: 0 0 20px rgba(0,207,255,0.3);
+    }
+    
+    .alert-btn:active {
+      transform: scale(0.95);
+      box-shadow: 0 0 30px rgba(0,207,255,0.5);
+    }
   </style>
 </head>
 <body>
@@ -837,8 +936,43 @@
     </div>
   </div>
 
+  <!-- MODAL DE ALERTA PERSONALIZADO -->
+  <div class="alert-overlay" id="alertOverlay">
+    <div class="alert-box">
+      <div class="alert-header">
+        <div class="alert-icon" id="alertIcon">⚠️</div>
+        <div class="alert-title">Nexo de Héroes</div>
+      </div>
+      <div class="alert-message" id="alertMessage"></div>
+      <button class="alert-btn" id="alertBtn">Entendido</button>
+    </div>
+  </div>
+
   <script src="settings.js"></script>
   <script>
+    // ═══════════════════════════════════════════════════════
+    // SISTEMA DE ALERTAS PERSONALIZADO
+    // ═══════════════════════════════════════════════════════
+    
+    function customAlert(message, icon = '⚠️') {
+      const overlay = document.getElementById('alertOverlay');
+      const messageEl = document.getElementById('alertMessage');
+      const iconEl = document.getElementById('alertIcon');
+      const btn = document.getElementById('alertBtn');
+      
+      messageEl.textContent = message;
+      iconEl.textContent = icon;
+      overlay.classList.add('active');
+      
+      // Cerrar al hacer click en el botón
+      const closeAlert = () => {
+        overlay.classList.remove('active');
+        btn.removeEventListener('click', closeAlert);
+      };
+      
+      btn.addEventListener('click', closeAlert);
+    }
+    
     // ═══════════════════════════════════════════════════════
     // CARGA DE CARTAS DESDE JSON
     // ═══════════════════════════════════════════════════════
@@ -1217,34 +1351,34 @@
       
       // Bloquear cartas condenadas
       if (card.condenada) {
-        alert('❌ Esta carta está CONDENADA y no puede usarse en torneos oficiales');
+        customAlert('Esta carta está CONDENADA y no puede usarse en torneos oficiales', '🚫');
         return;
       }
       
       // Validaciones por baraja
       if (currentDeck === 'BP' && deck.length >= 40) {
-        alert('La Baraja Principal ya tiene 40 cartas');
+        customAlert('La Baraja Principal ya tiene 40 cartas', '📦');
         return;
       }
       
       if (currentDeck === 'BA' && deck.length >= 15) {
-        alert('La Baraja de Almas ya tiene 15 cartas');
+        customAlert('La Baraja de Almas ya tiene 15 cartas', '👻');
         return;
       }
       
       if (currentDeck === 'BS' && deck.length >= 15) {
-        alert('La Baraja de Amalgamas ya tiene el máximo de 15 cartas');
+        customAlert('La Baraja de Amalgamas ya tiene el máximo de 15 cartas', '🔮');
         return;
       }
       
       // Validar límite de copias según restricción
       if (count >= card.maxCopias) {
         if (card.maxCopias === 1) {
-          alert(`⚠️ "${card.nombre}" está LIMITADA a 1 copia (ya tienes ${count} en tu baraja)`);
+          customAlert(`"${card.nombre}" está LIMITADA a 1 copia (ya tienes ${count} en tu baraja)`, '⚠️');
         } else if (card.maxCopias === 2) {
-          alert(`⚠️ "${card.nombre}" está SEMI-LIMITADA a 2 copias (ya tienes ${count} en tu baraja)`);
+          customAlert(`"${card.nombre}" está SEMI-LIMITADA a 2 copias (ya tienes ${count} en tu baraja)`, '⚠️');
         } else {
-          alert(`Máximo ${card.maxCopias} copias de "${card.nombre}" (ya tienes ${count})`);
+          customAlert(`Máximo ${card.maxCopias} copias de "${card.nombre}" (ya tienes ${count})`, '⚠️');
         }
         return;
       }
@@ -1282,17 +1416,17 @@
 
     function openSaveModal() {
       if (currentDeck === 'BP' && deckState.BP.length !== 40) {
-        alert('La Baraja Principal debe tener exactamente 40 cartas');
+        customAlert('La Baraja Principal debe tener exactamente 40 cartas', '📦');
         return;
       }
       
       if (currentDeck === 'BA' && deckState.BA.length !== 15) {
-        alert('La Baraja de Almas debe tener exactamente 15 cartas');
+        customAlert('La Baraja de Almas debe tener exactamente 15 cartas', '👻');
         return;
       }
       
       if (currentDeck === 'BS' && deckState.BS.length > 15) {
-        alert('La Baraja de Amalgamas no puede tener más de 15 cartas');
+        customAlert('La Baraja de Amalgamas no puede tener más de 15 cartas', '🔮');
         return;
       }
       
@@ -1308,7 +1442,7 @@
     document.getElementById('confirmSaveBtn').addEventListener('click', () => {
       const name = document.getElementById('deckNameInput').value.trim();
       if (!name) {
-        alert('Ingresa un nombre para la baraja');
+        customAlert('Ingresa un nombre para la baraja', '✏️');
         return;
       }
 
@@ -1321,7 +1455,7 @@
       
       localStorage.setItem('chh_decks', JSON.stringify(saved));
       saveModal.classList.remove('active');
-      alert('Baraja guardada correctamente');
+      customAlert('Baraja guardada correctamente', '✅');
     });
 
     function openLoadModal() {
@@ -1448,7 +1582,7 @@
       const text = document.getElementById('exportText');
       text.select();
       document.execCommand('copy');
-      alert('Baraja copiada al portapapeles');
+      customAlert('Baraja copiada al portapapeles', '📋');
     });
   </script>
 </body>

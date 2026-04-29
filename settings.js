@@ -131,9 +131,9 @@ function applyAccentColor(color) {
     
     /* Sobrescribir CALCULADORA destacada */
     .calc-card {
-      background: rgba(55,10,80,.35) !important;
+      background: ${c.dim} !important;
       border-color: ${c.d} !important;
-      box-shadow: 0 0 18px ${c.dim}, inset 0 0 24px rgba(40,5,65,.3) !important;
+      box-shadow: ${c.glow}, inset 0 0 24px ${c.dim} !important;
     }
     .calc-card::before {
       background: linear-gradient(90deg, transparent, ${c.p}, transparent) !important;

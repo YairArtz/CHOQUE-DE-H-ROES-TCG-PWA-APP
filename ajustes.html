@@ -203,9 +203,9 @@ header::after{
   border:1px solid var(--border);border-radius:12px;
   padding:20px;margin-top:12px;text-align:center;
 }
-.info-card .app-icon{
-  font-size:48px;margin-bottom:12px;
-  filter:drop-shadow(0 0 12px rgba(0,255,157,.4));
+.info-card .app-logo{
+  width:70%;max-width:240px;margin:0 auto 16px;
+  filter:drop-shadow(0 0 18px rgba(0,207,255,.55)) drop-shadow(0 0 40px rgba(0,180,255,.30));
 }
 .info-card .app-name{
   font-size:14px;font-weight:900;color:#e0eeff;
@@ -351,7 +351,7 @@ footer{
     <div class="section-title">ℹ️ Información de la app</div>
 
     <div class="info-card">
-      <div class="app-icon">🃏</div>
+      <img src="Logo-HD.svg" alt="Choque de Héroes" class="app-logo">
       <div class="app-name">CHOQUE DE HÉROES TCG</div>
       <div class="app-version">Versión 1.2.0</div>
       <div class="app-desc">
@@ -362,9 +362,9 @@ footer{
 
     <!-- Redes sociales -->
     <div class="social-links">
-      <a href="https://facebook.com/choquedeheroes" target="_blank" class="social-btn">📘</a>
-      <a href="https://instagram.com/choquedeheroes" target="_blank" class="social-btn">📷</a>
-      <a href="mailto:contacto@codexcomics.mx" class="social-btn">✉️</a>
+      <a href="https://www.facebook.com/choquedheroes" target="_blank" class="social-btn">📘</a>
+      <a href="https://www.instagram.com/choquedeheroestcg/" target="_blank" class="social-btn">📷</a>
+      <a href="https://www.youtube.com/@choquedeheroestcg9035" target="_blank" class="social-btn">📺</a>
     </div>
 
     <!-- Botón restaurar valores -->
@@ -382,41 +382,26 @@ footer{
 
 </div>
 
+<!-- Sistema de ajustes compartido -->
+<script src="settings.js"></script>
+
 <script>
 // ═══════════════════════════════════════════
-// SISTEMA DE GUARDADO EN LOCALSTORAGE
+// INTERFAZ DE AJUSTES
 // ═══════════════════════════════════════════
 
-const DEFAULT_SETTINGS = {
-  theme: 'dark',
-  accentColor: 'green',
-  tournamentsNotif: true,
-  galleryView: '3col',
-  animations: true
-};
+// ═══════════════════════════════════════════
+// INTERFAZ DE AJUSTES
+// ═══════════════════════════════════════════
 
-// Cargar configuración guardada al iniciar
-function loadSettings() {
-  const saved = localStorage.getItem('chh_settings');
-  return saved ? JSON.parse(saved) : DEFAULT_SETTINGS;
-}
-
-// Guardar configuración
-function saveSettings(settings) {
-  localStorage.setItem('chh_settings', JSON.stringify(settings));
-  console.log('⚙️ Ajustes guardados:', settings);
-}
-
-// Aplicar configuración al cargar página
-function applySettings() {
+// Aplicar configuración guardada a la UI
+function applySettingsToUI() {
   const settings = loadSettings();
   
   // Aplicar tema
-  document.querySelectorAll('.option-btn').forEach(btn => {
-    if (btn.textContent.toLowerCase() === settings.theme) {
-      btn.parentElement.querySelectorAll('.option-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-    }
+  document.querySelectorAll('.option-selector')[0].querySelectorAll('.option-btn').forEach(btn => {
+    const btnTheme = btn.textContent.toLowerCase();
+    btn.classList.toggle('active', btnTheme === settings.theme);
   });
   
   // Aplicar color de acento
@@ -453,7 +438,8 @@ function setTheme(theme) {
   });
   event.target.classList.add('active');
   
-  // TODO: Aplicar tema en tiempo real
+  // ✨ APLICAR CAMBIO EN TIEMPO REAL
+  applyTheme(theme);
   console.log('🎨 Tema cambiado a:', theme);
 }
 
@@ -468,7 +454,8 @@ function setAccent(color) {
   });
   event.target.classList.add('active');
   
-  // TODO: Cambiar variables CSS en tiempo real
+  // ✨ APLICAR CAMBIO EN TIEMPO REAL
+  applyAccentColor(color);
   console.log('🌈 Color de acento:', color);
 }
 
@@ -494,6 +481,8 @@ function toggleSetting(element, setting) {
     settings.tournamentsNotif = isActive;
   } else if (setting === 'animations') {
     settings.animations = isActive;
+    // ✨ APLICAR CAMBIO EN TIEMPO REAL
+    applyAnimations(isActive);
   }
   
   saveSettings(settings);
@@ -527,7 +516,7 @@ function resetSettings() {
 // ═══════════════════════════════════════════
 
 document.addEventListener('DOMContentLoaded', () => {
-  applySettings();
+  applySettingsToUI();
   console.log('⚙️ Módulo de ajustes cargado');
 });
 </script>

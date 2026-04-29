@@ -106,6 +106,17 @@ function applyAccentColor(color) {
       --purple: ${color === 'purple' ? c.p : colors.purple.p} !important;
     }
     
+    /* Sobrescribir TODOS los nombres de módulos */
+    .mod-name,
+    .c-neon .mod-name,
+    .c-blue .mod-name,
+    .c-gold .mod-name,
+    .c-red .mod-name,
+    .c-purple .mod-name {
+      color: ${c.p} !important;
+      text-shadow: ${c.glow} !important;
+    }
+    
     /* Sobrescribir colores hardcodeados comunes */
     .filter-btn.active {
       background: linear-gradient(135deg, ${c.p}, ${c.d}) !important;

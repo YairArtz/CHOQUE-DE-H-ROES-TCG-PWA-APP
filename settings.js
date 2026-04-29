@@ -129,6 +129,32 @@ function applyAccentColor(color) {
       background: ${c.dim} !important;
     }
     
+    /* Sobrescribir CALCULADORA destacada */
+    .calc-card {
+      background: rgba(55,10,80,.35) !important;
+      border-color: ${c.d} !important;
+      box-shadow: 0 0 18px ${c.dim}, inset 0 0 24px rgba(40,5,65,.3) !important;
+    }
+    .calc-card::before {
+      background: linear-gradient(90deg, transparent, ${c.p}, transparent) !important;
+    }
+    .calc-card:hover {
+      border-color: ${c.p} !important;
+      box-shadow: ${c.glow} !important;
+    }
+    .calc-icon {
+      background: ${c.dim} !important;
+      border-color: ${c.d} !important;
+    }
+    .calc-name {
+      color: ${c.p} !important;
+      text-shadow: ${c.glow} !important;
+    }
+    .calc-arrow {
+      color: ${c.p} !important;
+      text-shadow: ${c.glow} !important;
+    }
+    
     /* Sobrescribir colores hardcodeados comunes */
     .filter-btn.active {
       background: linear-gradient(135deg, ${c.p}, ${c.d}) !important;

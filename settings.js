@@ -73,10 +73,20 @@ function applyAccentColor(color) {
 
   const accent = colorMap[color];
   if (accent) {
+    // Cambiar TODAS las variables de color de acento
     document.documentElement.style.setProperty('--neon', accent.primary);
     document.documentElement.style.setProperty('--neon-d', accent.dark);
     document.documentElement.style.setProperty('--neon-dim', accent.dim);
     document.documentElement.style.setProperty('--nglow', accent.glow);
+    
+    // También actualizar las variables con nombre específico de color (para compatibilidad)
+    const colorPrefix = color; // 'green', 'gold', 'blue', 'purple'
+    document.documentElement.style.setProperty(`--${colorPrefix}`, accent.primary);
+    document.documentElement.style.setProperty(`--${colorPrefix}-d`, accent.dark);
+    document.documentElement.style.setProperty(`--${colorPrefix}-dim`, accent.dim);
+    document.documentElement.style.setProperty(`--${colorPrefix}glow`, accent.glow);
+    
+    console.log(`✅ Color de acento aplicado: ${color}`);
   }
 }
 
@@ -97,11 +107,19 @@ function applyAnimations(enabled) {
 }
 
 function applyGalleryView(view) {
-  // Esta función será usada en galeria.html
+  // Esta función aplica la vista de galería
   const container = document.querySelector('.card-grid');
   if (container) {
+    // Remover todas las clases de columnas
     container.classList.remove('cols-2', 'cols-3', 'cols-4');
-    container.classList.add(`cols-${view.replace('col', '')}`);
+    // Agregar la clase correcta según el view
+    const colNumber = view.replace('col', '');
+    container.classList.add(`cols-${colNumber}`);
+    
+    console.log(`✅ Vista de galería aplicada: ${view}`);
+  } else {
+    // Si no estamos en la galería, guardar para cuando se cargue
+    console.log(`💾 Vista de galería guardada: ${view} (se aplicará al abrir galería)`);
   }
 }
 

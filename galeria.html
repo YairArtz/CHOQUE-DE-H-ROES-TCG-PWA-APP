@@ -471,6 +471,128 @@
       transform: scale(0.95);
       box-shadow: 0 0 30px rgba(245,166,35,0.5);
     }
+    
+    /* ═══ VISTA DE SUBMENÚ ═══ */
+    .submenu-view {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 200;
+      overflow-y: auto;
+      padding: 80px 20px 100px;
+    }
+    
+    .submenu-view.active {
+      display: block;
+    }
+    
+    .submenu-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .submenu-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      text-shadow: 0 0 15px rgba(245,166,35,0.5);
+      margin-bottom: 10px;
+    }
+    
+    .submenu-subtitle {
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+    
+    .submenu-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+    
+    .submenu-btn {
+      background: rgba(245,166,35,0.08);
+      border: 1px solid rgba(245,166,35,0.3);
+      border-radius: 12px;
+      padding: 18px 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .submenu-btn:active {
+      transform: scale(0.97);
+      background: rgba(245,166,35,0.15);
+      border-color: var(--accent);
+      box-shadow: 0 0 25px rgba(245,166,35,0.3);
+    }
+    
+    .submenu-btn-icon {
+      font-size: 32px;
+      line-height: 1;
+    }
+    
+    .submenu-btn-content {
+      flex: 1;
+    }
+    
+    .submenu-btn-name {
+      font-family: 'Orbitron', monospace;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    
+    .submenu-btn-desc {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    
+    .submenu-btn-arrow {
+      font-size: 20px;
+      color: var(--accent);
+      opacity: 0.5;
+    }
+    
+    .back-to-gallery-btn {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, var(--accent), #cc55ff);
+      border: none;
+      color: #000;
+      font-family: 'Orbitron', monospace;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      padding: 14px 28px;
+      border-radius: 10px;
+      cursor: pointer;
+      text-transform: uppercase;
+      box-shadow: 0 0 25px rgba(245,166,35,0.4);
+      transition: all 0.2s;
+      z-index: 250;
+    }
+    
+    .back-to-gallery-btn:active {
+      transform: translateX(-50%) scale(0.95);
+      box-shadow: 0 0 35px rgba(245,166,35,0.6);
+    }
   </style>
 </head>
 <body>
@@ -481,44 +603,134 @@
     <div class="top-title">🃏 GALERÍA DE CARTAS</div>
   </div>
 
-  <!-- SECCIÓN DE BÚSQUEDA -->
-  <div class="search-section">
-    <div class="search-box">
-      <span class="search-icon">🔍</span>
-      <input 
-        type="text" 
-        class="search-input" 
-        id="searchInput"
-        placeholder="Buscar por nombre o tipo..."
-      >
+  <!-- VISTA PRINCIPAL -->
+  <div id="mainGalleryView">
+    <!-- SECCIÓN DE BÚSQUEDA -->
+    <div class="search-section">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input 
+          type="text" 
+          class="search-input" 
+          id="searchInput"
+          placeholder="Buscar por nombre o tipo..."
+        >
+      </div>
+
+      <!-- FILTROS DE EXPANSIÓN -->
+      <div class="expansion-filters" id="expansionFilters">
+        <!-- Los filtros se generan dinámicamente desde el JSON -->
+      </div>
     </div>
 
-    <!-- FILTROS DE EXPANSIÓN -->
-    <div class="expansion-filters" id="expansionFilters">
-      <!-- Los filtros se generan dinámicamente desde el JSON -->
+    <!-- CONTADOR -->
+    <div class="card-count" id="cardCount">
+      Cargando cartas...
+    </div>
+
+    <!-- DEBUG INFO (temporal) -->
+    <div style="background: rgba(245,166,35,0.1); border: 1px solid rgba(245,166,35,0.3); padding: 12px; margin: 0 16px 16px; border-radius: 6px; font-family: monospace; font-size: 11px; color: #f5a623; position: relative; z-index: 1;" id="debugInfo">
+      🔍 Cargando...
+    </div>
+
+    <!-- GRID DE CARTAS -->
+    <div class="cards-grid" id="cardsGrid">
+      <!-- Las cartas se cargan dinámicamente desde cartas.json -->
+    </div>
+
+    <!-- ESTADO VACÍO -->
+    <div class="empty-state" id="emptyState">
+      <div class="empty-icon">🃏</div>
+      <div class="empty-text">No se encontraron cartas</div>
+      <div class="empty-subtext">Intenta con otro término de búsqueda</div>
     </div>
   </div>
 
-  <!-- CONTADOR -->
-  <div class="card-count" id="cardCount">
-    Cargando cartas...
+  <!-- SUBMENÚ: BARAJAS DE INICIO -->
+  <div class="submenu-view" id="barajasSubmenu">
+    <div class="submenu-header">
+      <div class="submenu-title">🎴 Barajas de Inicio</div>
+      <div class="submenu-subtitle">Selecciona una baraja preconstruida</div>
+    </div>
+    
+    <div class="submenu-grid">
+      <div class="submenu-btn" data-expansion="baraja_ninjiachi">
+        <div class="submenu-btn-icon">🥷</div>
+        <div class="submenu-btn-content">
+          <div class="submenu-btn-name">Baraja Ninjiachi</div>
+          <div class="submenu-btn-desc">23 cartas temáticas de ninjas</div>
+        </div>
+        <div class="submenu-btn-arrow">›</div>
+      </div>
+      
+      <div class="submenu-btn" data-expansion="baraja_max_kara">
+        <div class="submenu-btn-icon">🥋</div>
+        <div class="submenu-btn-content">
+          <div class="submenu-btn-name">Baraja Max-Kara</div>
+          <div class="submenu-btn-desc">27 cartas de artes marciales</div>
+        </div>
+        <div class="submenu-btn-arrow">›</div>
+      </div>
+      
+      <div class="submenu-btn" data-expansion="baraja_legion_del_mar">
+        <div class="submenu-btn-icon">⚓</div>
+        <div class="submenu-btn-content">
+          <div class="submenu-btn-name">Baraja Legión del Mar</div>
+          <div class="submenu-btn-desc">29 cartas de piratas y navegantes</div>
+        </div>
+        <div class="submenu-btn-arrow">›</div>
+      </div>
+      
+      <div class="submenu-btn" data-expansion="baraja_evolotl">
+        <div class="submenu-btn-icon">🦎</div>
+        <div class="submenu-btn-content">
+          <div class="submenu-btn-name">Baraja Evolotl</div>
+          <div class="submenu-btn-desc">23 cartas evolutivas axolotl</div>
+        </div>
+        <div class="submenu-btn-arrow">›</div>
+      </div>
+    </div>
+    
+    <button class="back-to-gallery-btn" id="backFromBarajas">← Volver a Galería</button>
   </div>
 
-  <!-- DEBUG INFO (temporal) -->
-  <div style="background: rgba(245,166,35,0.1); border: 1px solid rgba(245,166,35,0.3); padding: 12px; margin: 0 16px 16px; border-radius: 6px; font-family: monospace; font-size: 11px; color: #f5a623; position: relative; z-index: 1;" id="debugInfo">
-    🔍 Cargando...
-  </div>
-
-  <!-- GRID DE CARTAS -->
-  <div class="cards-grid" id="cardsGrid">
-    <!-- Las cartas se cargan dinámicamente desde cartas.json -->
-  </div>
-
-  <!-- ESTADO VACÍO -->
-  <div class="empty-state" id="emptyState">
-    <div class="empty-icon">🃏</div>
-    <div class="empty-text">No se encontraron cartas</div>
-    <div class="empty-subtext">Intenta con otro término de búsqueda</div>
+  <!-- SUBMENÚ: EXPANSIONES AGOTADAS -->
+  <div class="submenu-view" id="agotadasSubmenu">
+    <div class="submenu-header">
+      <div class="submenu-title">⚠️ Expansiones Agotadas</div>
+      <div class="submenu-subtitle">Colecciones fuera de circulación (2016-2020)</div>
+    </div>
+    
+    <div class="submenu-grid">
+      <div class="submenu-btn" data-expansion="heroes_del_exilio">
+        <div class="submenu-btn-icon">🔥</div>
+        <div class="submenu-btn-content">
+          <div class="submenu-btn-name">Héroes del Exilio</div>
+          <div class="submenu-btn-desc">9ª Expansión · 25 cartas</div>
+        </div>
+        <div class="submenu-btn-arrow">›</div>
+      </div>
+      
+      <div class="submenu-btn" data-expansion="control_absoluto">
+        <div class="submenu-btn-icon">💎</div>
+        <div class="submenu-btn-content">
+          <div class="submenu-btn-name">Control Absoluto</div>
+          <div class="submenu-btn-desc">8ª Expansión · 25 cartas</div>
+        </div>
+        <div class="submenu-btn-arrow">›</div>
+      </div>
+      
+      <div class="submenu-btn" data-expansion="renacer_heroico">
+        <div class="submenu-btn-icon">✨</div>
+        <div class="submenu-btn-content">
+          <div class="submenu-btn-name">Renacer Heroico</div>
+          <div class="submenu-btn-desc">7ª Expansión · 50 cartas</div>
+        </div>
+        <div class="submenu-btn-arrow">›</div>
+      </div>
+    </div>
+    
+    <button class="back-to-gallery-btn" id="backFromAgotadas">← Volver a Galería</button>
   </div>
 
   <!-- MODAL VISTA AMPLIADA -->
@@ -609,21 +821,65 @@
       allBtn.textContent = 'Todas';
       expansionFilters.appendChild(allBtn);
       
-      // Crear botón para cada expansión encontrada
+      // Definir orden específico y agrupar expansiones
+      const barajasInicio = ['baraja_ninjiachi', 'baraja_max_kara', 'baraja_legion_del_mar', 'baraja_evolotl'];
+      const agotadas = ['heroes_del_exilio', 'control_absoluto', 'renacer_heroico'];
+      const ordenEspecifico = ['variantes', 'sobre_torneo_1'];
+      
+      // Agregar primero las expansiones en orden específico
+      ordenEspecifico.forEach(exp => {
+        if (expansions.includes(exp)) {
+          const btn = document.createElement('button');
+          btn.className = 'filter-btn';
+          btn.dataset.expansion = exp;
+          
+          const formattedName = exp
+            .split('_')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+          
+          btn.textContent = formattedName;
+          expansionFilters.appendChild(btn);
+        }
+      });
+      
+      // Botón especial: Barajas de Inicio
+      if (expansions.some(e => barajasInicio.includes(e))) {
+        const barajasBtn = document.createElement('button');
+        barajasBtn.className = 'filter-btn';
+        barajasBtn.dataset.submenu = 'barajas';
+        barajasBtn.textContent = '🎴 Barajas de Inicio';
+        barajasBtn.style.background = 'linear-gradient(135deg, rgba(0,207,255,0.15), rgba(204,85,255,0.15))';
+        barajasBtn.style.borderColor = 'rgba(0,207,255,0.4)';
+        expansionFilters.appendChild(barajasBtn);
+      }
+      
+      // Botón especial: Expansiones Agotadas
+      if (expansions.some(e => agotadas.includes(e))) {
+        const agotadasBtn = document.createElement('button');
+        agotadasBtn.className = 'filter-btn';
+        agotadasBtn.dataset.submenu = 'agotadas';
+        agotadasBtn.textContent = '⚠️ Expansiones Agotadas';
+        agotadasBtn.style.background = 'linear-gradient(135deg, rgba(255,34,68,0.15), rgba(245,166,35,0.15))';
+        agotadasBtn.style.borderColor = 'rgba(255,34,68,0.4)';
+        expansionFilters.appendChild(agotadasBtn);
+      }
+      
+      // Agregar resto de expansiones (que no estén en los grupos especiales)
       expansions.forEach(exp => {
-        const btn = document.createElement('button');
-        btn.className = 'filter-btn';
-        btn.dataset.expansion = exp;
-        
-        // Formatear nombre: "variantes" → "Variantes"
-        // "sobre_torneo_1" → "Sobre Torneo 1"
-        const formattedName = exp
-          .split('_')
-          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-          .join(' ');
-        
-        btn.textContent = formattedName;
-        expansionFilters.appendChild(btn);
+        if (!ordenEspecifico.includes(exp) && !barajasInicio.includes(exp) && !agotadas.includes(exp)) {
+          const btn = document.createElement('button');
+          btn.className = 'filter-btn';
+          btn.dataset.expansion = exp;
+          
+          const formattedName = exp
+            .split('_')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+          
+          btn.textContent = formattedName;
+          expansionFilters.appendChild(btn);
+        }
       });
     }
 
@@ -706,8 +962,30 @@
 
     searchInput.addEventListener('input', filterCards);
 
+    // ═══════════════════════════════════════════════════════
+    // MANEJO DE SUBMENÚS
+    // ═══════════════════════════════════════════════════════
+    
+    const mainGalleryView = document.getElementById('mainGalleryView');
+    const barajasSubmenu = document.getElementById('barajasSubmenu');
+    const agotadasSubmenu = document.getElementById('agotadasSubmenu');
+    const backFromBarajas = document.getElementById('backFromBarajas');
+    const backFromAgotadas = document.getElementById('backFromAgotadas');
+
     expansionFilters.addEventListener('click', (e) => {
       if (e.target.classList.contains('filter-btn')) {
+        // Si es un botón de submenú
+        if (e.target.dataset.submenu === 'barajas') {
+          mainGalleryView.style.display = 'none';
+          barajasSubmenu.classList.add('active');
+          return;
+        } else if (e.target.dataset.submenu === 'agotadas') {
+          mainGalleryView.style.display = 'none';
+          agotadasSubmenu.classList.add('active');
+          return;
+        }
+        
+        // Si es un filtro normal
         document.querySelectorAll('.filter-btn').forEach(btn => {
           btn.classList.remove('active');
         });
@@ -716,6 +994,46 @@
         currentExpansion = e.target.dataset.expansion;
         filterCards();
       }
+    });
+    
+    // Seleccionar expansión desde submenús
+    barajasSubmenu.addEventListener('click', (e) => {
+      const btn = e.target.closest('.submenu-btn');
+      if (btn) {
+        const expansion = btn.dataset.expansion;
+        currentExpansion = expansion;
+        filterCards();
+        barajasSubmenu.classList.remove('active');
+        mainGalleryView.style.display = 'block';
+        
+        // Actualizar botones
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      }
+    });
+    
+    agotadasSubmenu.addEventListener('click', (e) => {
+      const btn = e.target.closest('.submenu-btn');
+      if (btn) {
+        const expansion = btn.dataset.expansion;
+        currentExpansion = expansion;
+        filterCards();
+        agotadasSubmenu.classList.remove('active');
+        mainGalleryView.style.display = 'block';
+        
+        // Actualizar botones
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      }
+    });
+    
+    // Botones de regreso
+    backFromBarajas.addEventListener('click', () => {
+      barajasSubmenu.classList.remove('active');
+      mainGalleryView.style.display = 'block';
+    });
+    
+    backFromAgotadas.addEventListener('click', () => {
+      agotadasSubmenu.classList.remove('active');
+      mainGalleryView.style.display = 'block';
     });
 
     closeModalBtn.addEventListener('click', closeModal);

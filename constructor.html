@@ -844,6 +844,18 @@
     // ═══════════════════════════════════════════════════════
     
     let allCards = [];
+    let cartasLimitadas = {};
+    
+    // Cargar cartas limitadas primero
+    fetch('cartas-limitadas.json')
+      .then(res => res.json())
+      .then(data => {
+        // Convertir array a objeto para búsqueda rápida
+        data.forEach(carta => {
+          cartasLimitadas[carta.nombre] = carta.estado;
+        });
+      })
+      .catch(err => console.error('Error cargando cartas limitadas:', err));
     
     // Cargar cartas.json
     fetch('cartas.json')
@@ -934,6 +946,19 @@
           card.tipoJuego = 'Personaje';
         }
         
+        // Aplicar restricciones desde cartas-limitadas.json
+        const estado = cartasLimitadas[card.nombre];
+        if (estado === 'limitada') {
+          card.maxCopias = 1;
+        } else if (estado === 'semi-limitada') {
+          card.maxCopias = 2;
+        } else if (estado === 'condenada') {
+          card.maxCopias = 0;
+          card.condenada = true;
+        } else {
+          card.maxCopias = 3; // Default
+        }
+        
         return card;
       });
       
@@ -1019,14 +1044,29 @@
 
       cardsGrid.innerHTML = filtered.map(card => {
         const count = deckState[currentDeck].filter(c => c.id === card.id).length;
-        const maxReached = count >= MAX_COPIES || (card.limitada && count >= 1);
+        const maxReached = count >= card.maxCopias;
+        const isCondenada = card.condenada;
+        
+        let badgeColor = '#00cfff';
+        let badgeText = `${count}/${card.maxCopias}`;
+        
+        if (isCondenada) {
+          badgeColor = '#ff2244';
+          badgeText = 'CONDENADA';
+        } else if (card.maxCopias === 1) {
+          badgeColor = '#f5a623';
+          badgeText = `${count}/1 LIMITADA`;
+        } else if (card.maxCopias === 2) {
+          badgeColor = '#cc55ff';
+          badgeText = `${count}/2 SEMI`;
+        }
         
         return `
-          <div class="card-item ${maxReached ? 'disabled' : ''}" data-id="${card.id}">
+          <div class="card-item ${maxReached || isCondenada ? 'disabled' : ''}" data-id="${card.id}">
             <img src="${card.miniatura || ''}" alt="${card.nombre}" class="card-item-img" onerror="this.style.display='none'">
             <div class="card-item-name">${card.nombre}</div>
             <div class="card-item-type">${card.tipoJuego}</div>
-            <div class="card-item-count">${count}/${card.limitada ? '1' : MAX_COPIES}</div>
+            <div class="card-item-count" style="color: ${badgeColor}">${badgeText}</div>
           </div>
         `;
       }).join('');
@@ -1171,6 +1211,12 @@
       const limit = DECK_LIMITS[currentDeck];
       const count = deck.filter(c => c.id === cardId).length;
       
+      // Bloquear cartas condenadas
+      if (card.condenada) {
+        alert('❌ Esta carta está CONDENADA y no puede usarse en torneos oficiales');
+        return;
+      }
+      
       // Validaciones por baraja
       if (currentDeck === 'BP' && deck.length >= 40) {
         alert('La Baraja Principal ya tiene 40 cartas');
@@ -1187,13 +1233,15 @@
         return;
       }
       
-      if (card.limitada && count >= 1) {
-        alert('Esta carta está limitada a 1 copia');
-        return;
-      }
-      
-      if (count >= MAX_COPIES) {
-        alert(`Máximo ${MAX_COPIES} copias por carta`);
+      // Validar límite de copias según restricción
+      if (count >= card.maxCopias) {
+        if (card.maxCopias === 1) {
+          alert('⚠️ Esta carta está LIMITADA a 1 copia');
+        } else if (card.maxCopias === 2) {
+          alert('⚠️ Esta carta está SEMI-LIMITADA a 2 copias');
+        } else {
+          alert(`Máximo ${card.maxCopias} copias por carta`);
+        }
         return;
       }
 

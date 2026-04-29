@@ -1043,7 +1043,8 @@
       }
 
       cardsGrid.innerHTML = filtered.map(card => {
-        const count = deckState[currentDeck].filter(c => c.id === card.id).length;
+        // Contar por NOMBRE en toda la baraja actual
+        const count = deckState[currentDeck].filter(c => c.nombre === card.nombre).length;
         const maxReached = count >= card.maxCopias;
         const isCondenada = card.condenada;
         
@@ -1209,7 +1210,10 @@
 
       const deck = deckState[currentDeck];
       const limit = DECK_LIMITS[currentDeck];
-      const count = deck.filter(c => c.id === cardId).length;
+      
+      // Contar copias de esta carta POR NOMBRE (no por ID) en toda la baraja
+      // Esto evita que se agreguen múltiples copias de cartas limitadas de diferentes expansiones
+      const count = deck.filter(c => c.nombre === card.nombre).length;
       
       // Bloquear cartas condenadas
       if (card.condenada) {
@@ -1236,11 +1240,11 @@
       // Validar límite de copias según restricción
       if (count >= card.maxCopias) {
         if (card.maxCopias === 1) {
-          alert('⚠️ Esta carta está LIMITADA a 1 copia');
+          alert(`⚠️ "${card.nombre}" está LIMITADA a 1 copia (ya tienes ${count} en tu baraja)`);
         } else if (card.maxCopias === 2) {
-          alert('⚠️ Esta carta está SEMI-LIMITADA a 2 copias');
+          alert(`⚠️ "${card.nombre}" está SEMI-LIMITADA a 2 copias (ya tienes ${count} en tu baraja)`);
         } else {
-          alert(`Máximo ${card.maxCopias} copias por carta`);
+          alert(`Máximo ${card.maxCopias} copias de "${card.nombre}" (ya tienes ${count})`);
         }
         return;
       }
@@ -1394,22 +1398,28 @@
       const ba = deckState.BA;
       const bs = deckState.BS;
 
-      let text = '═══ CHOQUE DE HÉROES - BARAJA ═══\n\n';
+      let text = '═══════════════════════════════════════\n';
+      text += 'CHOQUE DE HÉROES - BARAJA COMPLETA\n';
+      text += '═══════════════════════════════════════\n\n';
       
       if (bp.length > 0) {
-        text += `BARAJA PRINCIPAL (${bp.length}/40)\n`;
-        text += exportDeckList(bp) + '\n';
+        text += `━━━ BARAJA PRINCIPAL (${bp.length}/40) ━━━\n`;
+        text += exportDeckList(bp) + '\n\n';
       }
       
       if (ba.length > 0) {
-        text += `BARAJA DE ALMAS (${ba.length})\n`;
-        text += exportDeckList(ba) + '\n';
+        text += `━━━ BARAJA DE ALMAS (${ba.length}/15) ━━━\n`;
+        text += exportDeckList(ba) + '\n\n';
       }
       
       if (bs.length > 0) {
-        text += `BARAJA DE AMALGAMAS (${bs.length})\n`;
-        text += exportDeckList(bs) + '\n';
+        text += `━━━ BARAJA DE AMALGAMAS (${bs.length}) ━━━\n`;
+        text += exportDeckList(bs) + '\n\n';
       }
+      
+      const totalCards = bp.length + ba.length + bs.length;
+      text += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+      text += `TOTAL: ${totalCards} cartas (BP: ${bp.length} | BA: ${ba.length} | BS: ${bs.length})`;
 
       document.getElementById('exportText').value = text;
       exportModal.classList.add('active');

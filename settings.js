@@ -25,22 +25,48 @@ function saveSettings(settings) {
 // ─── APLICAR AJUSTES VISUALES ───────────────
 
 function applyTheme(theme) {
-  if (theme === 'light') {
-    document.documentElement.style.setProperty('--bg', '#f8f9fa');
-    document.documentElement.style.setProperty('--bg2', '#e9ecef');
-    document.documentElement.style.setProperty('--bg3', '#dee2e6');
-    document.documentElement.style.setProperty('--border', '#ced4da');
-    document.documentElement.style.setProperty('--muted', '#6c757d');
-    document.body.style.color = '#212529';
-  } else {
-    // Restaurar tema oscuro (valores originales)
-    document.documentElement.style.setProperty('--bg', '#03050a');
-    document.documentElement.style.setProperty('--bg2', '#07090f');
-    document.documentElement.style.setProperty('--bg3', '#0b0e18');
-    document.documentElement.style.setProperty('--border', '#141c2a');
-    document.documentElement.style.setProperty('--muted', '#6a7f9a');
-    document.body.style.color = '#e0eeff';
+  // Crear o actualizar el style tag para el tema
+  let styleTag = document.getElementById('chh-theme-override');
+  if (!styleTag) {
+    styleTag = document.createElement('style');
+    styleTag.id = 'chh-theme-override';
+    document.head.appendChild(styleTag);
   }
+
+  if (theme === 'light') {
+    styleTag.textContent = `
+      :root {
+        --bg: #f8f9fa !important;
+        --bg2: #e9ecef !important;
+        --bg3: #dee2e6 !important;
+        --border: #ced4da !important;
+        --muted: #6c757d !important;
+        --text: #212529 !important;
+        --card: #ffffff !important;
+      }
+      html, body {
+        background: #f8f9fa !important;
+        color: #212529 !important;
+      }
+    `;
+  } else {
+    // Tema oscuro (restaurar valores originales)
+    styleTag.textContent = `
+      :root {
+        --bg: #03050a !important;
+        --bg2: #07090f !important;
+        --bg3: #0b0e18 !important;
+        --border: #141c2a !important;
+        --muted: #6a7f9a !important;
+        --text: #e0eeff !important;
+      }
+      html, body {
+        background: #03050a !important;
+        color: #e0eeff !important;
+      }
+    `;
+  }
+  console.log(`✅ Tema aplicado: ${theme}`);
 }
 
 function applyAccentColor(color) {
@@ -72,22 +98,39 @@ function applyAccentColor(color) {
   };
 
   const accent = colorMap[color];
-  if (accent) {
-    // Cambiar TODAS las variables de color de acento
-    document.documentElement.style.setProperty('--neon', accent.primary);
-    document.documentElement.style.setProperty('--neon-d', accent.dark);
-    document.documentElement.style.setProperty('--neon-dim', accent.dim);
-    document.documentElement.style.setProperty('--nglow', accent.glow);
-    
-    // También actualizar las variables con nombre específico de color (para compatibilidad)
-    const colorPrefix = color; // 'green', 'gold', 'blue', 'purple'
-    document.documentElement.style.setProperty(`--${colorPrefix}`, accent.primary);
-    document.documentElement.style.setProperty(`--${colorPrefix}-d`, accent.dark);
-    document.documentElement.style.setProperty(`--${colorPrefix}-dim`, accent.dim);
-    document.documentElement.style.setProperty(`--${colorPrefix}glow`, accent.glow);
-    
-    console.log(`✅ Color de acento aplicado: ${color}`);
+  if (!accent) return;
+
+  // Crear o actualizar el style tag para colores de acento
+  let styleTag = document.getElementById('chh-accent-override');
+  if (!styleTag) {
+    styleTag = document.createElement('style');
+    styleTag.id = 'chh-accent-override';
+    document.head.appendChild(styleTag);
   }
+
+  // Inyectar CSS con !important para sobrescribir TODAS las páginas
+  styleTag.textContent = `
+    :root {
+      /* Variables principales de acento */
+      --neon: ${accent.primary} !important;
+      --neon-d: ${accent.dark} !important;
+      --neon-dim: ${accent.dim} !important;
+      --nglow: ${accent.glow} !important;
+      
+      /* Alias para diferentes páginas */
+      --accent: ${accent.primary} !important;
+      --accent-glow: ${accent.dim} !important;
+      --accent-dim: ${accent.dim} !important;
+      
+      /* Variables de color específicas (para compatibilidad) */
+      --green: ${color === 'green' ? accent.primary : colorMap.green.primary} !important;
+      --gold: ${color === 'gold' ? accent.primary : colorMap.gold.primary} !important;
+      --blue: ${color === 'blue' ? accent.primary : colorMap.blue.primary} !important;
+      --purple: ${color === 'purple' ? accent.primary : colorMap.purple.primary} !important;
+    }
+  `;
+  
+  console.log(`✅ Color de acento aplicado: ${color}`);
 }
 
 function applyAnimations(enabled) {

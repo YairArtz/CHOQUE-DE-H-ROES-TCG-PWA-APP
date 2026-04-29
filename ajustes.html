@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#03050a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<title>Ajustes · Choque de Héroes TCG</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#03050a; --bg2:#07090f; --bg3:#0b0e18;
+  --neon:#00ff9d; --neon-d:#007a4a; --neon-dim:rgba(0,255,157,.09);
+  --nglow:0 0 6px #00ff9d,0 0 18px rgba(0,255,157,.4);
+  --gold:#f5a623; --gold-d:#7a5210; --gold-dim:rgba(245,166,35,.1);
+  --gglow:0 0 8px #f5a623,0 0 22px rgba(245,166,35,.45);
+  --purple:#cc55ff; --purple-d:#6a1a80; --purple-dim:rgba(180,70,255,.1);
+  --pglow:0 0 8px #cc55ff,0 0 22px rgba(180,70,255,.5);
+  --blue:#00cfff; --blue-d:#005f80; --blue-dim:rgba(0,207,255,.09);
+  --bglow:0 0 6px #00cfff,0 0 18px rgba(0,207,255,.4);
+  --red:#ff2244; --red-d:#6a0011; --red-dim:rgba(255,34,68,.09);
+  --rglow:0 0 8px #ff2244,0 0 20px rgba(255,34,68,.4);
+  --muted:#6a7f9a; --border:#141c2a;
+}
+html,body{
+  min-height:100%;background:var(--bg);color:#e0eeff;
+  font-family:'Orbitron',monospace;
+  -webkit-tap-highlight-color:transparent;
+  overflow-x:hidden;
+}
+body::after{
+  content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.06) 3px,rgba(0,0,0,.06) 4px);
+  pointer-events:none;z-index:1000;
+}
+body::before{
+  content:'';position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse 70% 40% at 15% 10%,rgba(0,255,157,.05) 0%,transparent 60%),
+    radial-gradient(ellipse 70% 40% at 85% 90%,rgba(0,207,255,.05) 0%,transparent 60%);
+  pointer-events:none;
+}
+#wrap{
+  max-width:480px;margin:0 auto;
+  display:flex;flex-direction:column;
+  min-height:100dvh;padding-bottom:28px;
+}
+
+/* ─── HEADER ─── */
+header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:20px;position:relative;
+  border-bottom:1px solid var(--border);
+}
+header::after{
+  content:'';position:absolute;bottom:0;left:8%;right:8%;height:1px;
+  background:linear-gradient(90deg,transparent,var(--neon-d),transparent);
+}
+.back-btn{
+  background:linear-gradient(135deg,var(--bg3),var(--bg2));
+  border:1px solid var(--border);color:var(--neon);
+  font-size:20px;width:44px;height:44px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;text-decoration:none;transition:all .3s;
+  box-shadow:0 2px 8px rgba(0,0,0,.4);
+}
+.back-btn:active{
+  transform:scale(.92);
+  box-shadow:var(--nglow),0 2px 8px rgba(0,0,0,.4);
+}
+.header-title{
+  font-family:'Orbitron',monospace;
+  font-size:16px;font-weight:900;letter-spacing:3px;
+  text-transform:uppercase;color:var(--neon);
+  text-shadow:var(--nglow);
+}
+
+/* ─── SECCIONES ─── */
+.settings-section{
+  padding:0 16px;margin-top:24px;
+}
+.section-title{
+  font-size:10px;font-weight:700;letter-spacing:3px;
+  text-transform:uppercase;color:var(--muted);
+  margin-bottom:12px;padding-left:4px;
+  display:flex;align-items:center;gap:6px;
+}
+.section-title::before{
+  content:'';width:3px;height:12px;
+  background:linear-gradient(180deg,var(--neon),transparent);
+}
+
+/* ─── SETTING ITEM ─── */
+.setting-item{
+  background:linear-gradient(135deg,var(--bg2),var(--bg3));
+  border:1px solid var(--border);border-radius:12px;
+  padding:16px;margin-bottom:12px;
+  position:relative;overflow:hidden;
+  transition:all .3s;
+}
+.setting-item::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--neon-dim),transparent);
+}
+.setting-label{
+  font-size:13px;font-weight:700;color:#e0eeff;
+  margin-bottom:4px;display:flex;align-items:center;gap:8px;
+}
+.setting-label::before{
+  font-size:16px;
+}
+.setting-desc{
+  font-size:10px;color:var(--muted);
+  margin-bottom:12px;line-height:1.4;
+}
+
+/* ─── TOGGLE SWITCH ─── */
+.toggle-container{
+  display:flex;align-items:center;justify-content:space-between;
+}
+.toggle-switch{
+  position:relative;width:52px;height:28px;
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:14px;cursor:pointer;transition:all .3s;
+}
+.toggle-switch::after{
+  content:'';position:absolute;top:3px;left:3px;
+  width:20px;height:20px;border-radius:50%;
+  background:var(--muted);transition:all .3s;
+  box-shadow:0 2px 6px rgba(0,0,0,.4);
+}
+.toggle-switch.active{
+  background:var(--neon-d);border-color:var(--neon);
+}
+.toggle-switch.active::after{
+  left:27px;background:var(--neon);
+  box-shadow:0 0 12px rgba(0,255,157,.6);
+}
+
+/* ─── SELECTOR DE OPCIONES ─── */
+.option-selector{
+  display:flex;gap:8px;flex-wrap:wrap;
+}
+.option-btn{
+  flex:1;min-width:70px;
+  background:var(--bg);border:1px solid var(--border);
+  color:var(--muted);border-radius:8px;padding:10px 8px;
+  font-size:10px;font-weight:700;letter-spacing:1px;
+  text-transform:uppercase;cursor:pointer;
+  transition:all .3s;font-family:'Orbitron',monospace;
+}
+.option-btn:active{
+  transform:scale(.95);
+}
+.option-btn.active{
+  background:linear-gradient(135deg,var(--neon-d),var(--neon));
+  color:var(--bg);border-color:var(--neon);
+  box-shadow:var(--nglow);
+}
+
+/* Variantes de color */
+.option-btn.color-green.active{
+  background:linear-gradient(135deg,var(--neon-d),var(--neon));
+}
+.option-btn.color-gold.active{
+  background:linear-gradient(135deg,var(--gold-d),var(--gold));
+}
+.option-btn.color-blue.active{
+  background:linear-gradient(135deg,var(--blue-d),var(--blue));
+}
+.option-btn.color-purple.active{
+  background:linear-gradient(135deg,var(--purple-d),var(--purple));
+}
+
+/* ─── BOTONES DE ACCIÓN ─── */
+.action-btn{
+  width:100%;
+  background:linear-gradient(135deg,var(--bg2),var(--bg3));
+  border:1px solid var(--border);color:#e0eeff;
+  border-radius:10px;padding:14px;
+  font-family:'Orbitron',monospace;
+  font-size:11px;font-weight:700;letter-spacing:2px;
+  text-transform:uppercase;cursor:pointer;
+  transition:all .3s;margin-top:8px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.action-btn:active{
+  transform:scale(.97);
+}
+.action-btn.danger{
+  border-color:var(--red-d);color:var(--red);
+}
+.action-btn.danger:active{
+  background:var(--red-dim);
+  box-shadow:0 0 16px rgba(255,34,68,.3);
+}
+
+/* ─── INFO CARD ─── */
+.info-card{
+  background:linear-gradient(135deg,var(--bg2),var(--bg3));
+  border:1px solid var(--border);border-radius:12px;
+  padding:20px;margin-top:12px;text-align:center;
+}
+.info-card .app-icon{
+  font-size:48px;margin-bottom:12px;
+  filter:drop-shadow(0 0 12px rgba(0,255,157,.4));
+}
+.info-card .app-name{
+  font-size:14px;font-weight:900;color:#e0eeff;
+  margin-bottom:4px;letter-spacing:2px;
+}
+.info-card .app-version{
+  font-size:11px;color:var(--neon);
+  font-weight:700;margin-bottom:8px;
+}
+.info-card .app-desc{
+  font-size:9px;color:var(--muted);
+  line-height:1.5;
+}
+
+/* ─── SOCIAL LINKS ─── */
+.social-links{
+  display:flex;gap:10px;margin-top:12px;
+}
+.social-btn{
+  flex:1;background:linear-gradient(135deg,var(--bg2),var(--bg3));
+  border:1px solid var(--border);color:var(--neon);
+  border-radius:10px;padding:14px;
+  font-size:20px;cursor:pointer;
+  text-decoration:none;display:flex;
+  align-items:center;justify-content:center;
+  transition:all .3s;
+}
+.social-btn:active{
+  transform:scale(.95);
+  box-shadow:0 0 16px rgba(0,255,157,.3);
+}
+
+/* ─── FOOTER ─── */
+footer{
+  margin-top:auto;padding:24px 16px 16px;
+  text-align:center;color:var(--muted);
+  font-size:9px;letter-spacing:1px;
+}
+.footer-brand{
+  font-weight:700;margin-bottom:4px;
+}
+</style>
+</head>
+<body>
+<div id="wrap">
+
+  <!-- HEADER -->
+  <header>
+    <a href="index.html" class="back-btn">←</a>
+    <div class="header-title">⚙️ AJUSTES</div>
+    <div style="width:44px"></div>
+  </header>
+
+  <!-- SECCIÓN: APARIENCIA -->
+  <div class="settings-section">
+    <div class="section-title">🎨 Apariencia</div>
+
+    <!-- Tema -->
+    <div class="setting-item">
+      <div class="setting-label">💡 Tema visual</div>
+      <div class="setting-desc">Cambia entre modo oscuro, claro o automático</div>
+      <div class="option-selector">
+        <button class="option-btn active" onclick="setTheme('dark')">Oscuro</button>
+        <button class="option-btn" onclick="setTheme('light')">Claro</button>
+        <button class="option-btn" onclick="setTheme('auto')">Auto</button>
+      </div>
+    </div>
+
+    <!-- Color de acento -->
+    <div class="setting-item">
+      <div class="setting-label">🌈 Color de acento</div>
+      <div class="setting-desc">Personaliza el color principal de la interfaz</div>
+      <div class="option-selector">
+        <button class="option-btn color-green active" onclick="setAccent('green')">Verde</button>
+        <button class="option-btn color-gold" onclick="setAccent('gold')">Dorado</button>
+        <button class="option-btn color-blue" onclick="setAccent('blue')">Azul</button>
+        <button class="option-btn color-purple" onclick="setAccent('purple')">Morado</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SECCIÓN: NOTIFICACIONES -->
+  <div class="settings-section">
+    <div class="section-title">🔔 Notificaciones</div>
+
+    <div class="setting-item">
+      <div class="toggle-container">
+        <div>
+          <div class="setting-label">📢 Avisos de torneos</div>
+          <div class="setting-desc">Recibe notificaciones de nuevos torneos</div>
+        </div>
+        <div class="toggle-switch active" onclick="toggleSetting(this, 'tournaments')"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SECCIÓN: GALERÍA -->
+  <div class="settings-section">
+    <div class="section-title">🃏 Galería de cartas</div>
+
+    <!-- Vista de galería -->
+    <div class="setting-item">
+      <div class="setting-label">📱 Vista del grid</div>
+      <div class="setting-desc">Columnas mostradas en la galería</div>
+      <div class="option-selector">
+        <button class="option-btn" onclick="setGallery('2col')">2 Col</button>
+        <button class="option-btn active" onclick="setGallery('3col')">3 Col</button>
+        <button class="option-btn" onclick="setGallery('4col')">4 Col</button>
+      </div>
+    </div>
+
+    <!-- Animaciones -->
+    <div class="setting-item">
+      <div class="toggle-container">
+        <div>
+          <div class="setting-label">✨ Animaciones</div>
+          <div class="setting-desc">Transiciones suaves en la interfaz</div>
+        </div>
+        <div class="toggle-switch active" onclick="toggleSetting(this, 'animations')"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SECCIÓN: DATOS -->
+  <div class="settings-section">
+    <div class="section-title">💾 Datos y almacenamiento</div>
+
+    <div class="setting-item">
+      <div class="setting-label">🗑️ Borrar caché</div>
+      <div class="setting-desc">Libera espacio eliminando datos temporales</div>
+      <button class="action-btn danger" onclick="clearCache()">
+        🗑️ Limpiar caché
+      </button>
+    </div>
+
+  </div>
+
+  <!-- SECCIÓN: INFORMACIÓN -->
+  <div class="settings-section">
+    <div class="section-title">ℹ️ Información de la app</div>
+
+    <div class="info-card">
+      <div class="app-icon">🃏</div>
+      <div class="app-name">CHOQUE DE HÉROES TCG</div>
+      <div class="app-version">Versión 1.2.0</div>
+      <div class="app-desc">
+        Ecosistema completo para jugadores<br>
+        Desarrollado por Yair Artz · Codex Cómics
+      </div>
+    </div>
+
+    <!-- Redes sociales -->
+    <div class="social-links">
+      <a href="https://facebook.com/choquedeheroes" target="_blank" class="social-btn">📘</a>
+      <a href="https://instagram.com/choquedeheroes" target="_blank" class="social-btn">📷</a>
+      <a href="mailto:contacto@codexcomics.mx" class="social-btn">✉️</a>
+    </div>
+
+    <!-- Botón restaurar valores -->
+    <button class="action-btn" onclick="resetSettings()" style="margin-top:16px">
+      🔄 Restaurar valores por defecto
+    </button>
+
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-brand">Codex Cómics · Choque de Héroes TCG</div>
+    <div>© 2016–2026 · Todos los derechos reservados</div>
+  </footer>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// SISTEMA DE GUARDADO EN LOCALSTORAGE
+// ═══════════════════════════════════════════
+
+const DEFAULT_SETTINGS = {
+  theme: 'dark',
+  accentColor: 'green',
+  tournamentsNotif: true,
+  galleryView: '3col',
+  animations: true
+};
+
+// Cargar configuración guardada al iniciar
+function loadSettings() {
+  const saved = localStorage.getItem('chh_settings');
+  return saved ? JSON.parse(saved) : DEFAULT_SETTINGS;
+}
+
+// Guardar configuración
+function saveSettings(settings) {
+  localStorage.setItem('chh_settings', JSON.stringify(settings));
+  console.log('⚙️ Ajustes guardados:', settings);
+}
+
+// Aplicar configuración al cargar página
+function applySettings() {
+  const settings = loadSettings();
+  
+  // Aplicar tema
+  document.querySelectorAll('.option-btn').forEach(btn => {
+    if (btn.textContent.toLowerCase() === settings.theme) {
+      btn.parentElement.querySelectorAll('.option-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+  });
+  
+  // Aplicar color de acento
+  const colorMap = { green: 0, gold: 1, blue: 2, purple: 3 };
+  const colorBtns = document.querySelectorAll('.option-selector')[1].children;
+  Array.from(colorBtns).forEach((btn, i) => {
+    btn.classList.toggle('active', i === colorMap[settings.accentColor]);
+  });
+  
+  // Aplicar vista de galería
+  const galleryMap = { '2col': 0, '3col': 1, '4col': 2 };
+  const galleryBtns = document.querySelectorAll('.option-selector')[2].children;
+  Array.from(galleryBtns).forEach((btn, i) => {
+    btn.classList.toggle('active', i === galleryMap[settings.galleryView]);
+  });
+  
+  // Aplicar toggles
+  document.querySelectorAll('.toggle-switch')[0].classList.toggle('active', settings.tournamentsNotif);
+  document.querySelectorAll('.toggle-switch')[1].classList.toggle('active', settings.animations);
+}
+
+// ═══════════════════════════════════════════
+// FUNCIONES DE CONFIGURACIÓN
+// ═══════════════════════════════════════════
+
+function setTheme(theme) {
+  const settings = loadSettings();
+  settings.theme = theme;
+  saveSettings(settings);
+  
+  // Actualizar UI
+  event.target.parentElement.querySelectorAll('.option-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  event.target.classList.add('active');
+  
+  // TODO: Aplicar tema en tiempo real
+  console.log('🎨 Tema cambiado a:', theme);
+}
+
+function setAccent(color) {
+  const settings = loadSettings();
+  settings.accentColor = color;
+  saveSettings(settings);
+  
+  // Actualizar UI
+  event.target.parentElement.querySelectorAll('.option-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  event.target.classList.add('active');
+  
+  // TODO: Cambiar variables CSS en tiempo real
+  console.log('🌈 Color de acento:', color);
+}
+
+function setGallery(view) {
+  const settings = loadSettings();
+  settings.galleryView = view;
+  saveSettings(settings);
+  
+  // Actualizar UI
+  event.target.parentElement.querySelectorAll('.option-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  event.target.classList.add('active');
+  
+  console.log('📱 Vista de galería:', view);
+}
+
+function toggleSetting(element, setting) {
+  const isActive = element.classList.toggle('active');
+  const settings = loadSettings();
+  
+  if (setting === 'tournaments') {
+    settings.tournamentsNotif = isActive;
+  } else if (setting === 'animations') {
+    settings.animations = isActive;
+  }
+  
+  saveSettings(settings);
+  console.log(`🔔 ${setting} → ${isActive ? 'ON' : 'OFF'}`);
+}
+
+function clearCache() {
+  if (confirm('¿Seguro que quieres borrar el caché?\n\nEsto eliminará imágenes y datos temporales.')) {
+    // Limpiar caché del service worker
+    if ('caches' in window) {
+      caches.keys().then(names => {
+        names.forEach(name => caches.delete(name));
+      });
+    }
+    
+    alert('✅ Caché eliminado correctamente');
+    console.log('🗑️ Caché borrado');
+  }
+}
+
+function resetSettings() {
+  if (confirm('¿Restaurar todos los ajustes a valores por defecto?')) {
+    saveSettings(DEFAULT_SETTINGS);
+    alert('✅ Ajustes restaurados correctamente');
+    location.reload();
+  }
+}
+
+// ═══════════════════════════════════════════
+// INICIALIZACIÓN
+// ═══════════════════════════════════════════
+
+document.addEventListener('DOMContentLoaded', () => {
+  applySettings();
+  console.log('⚙️ Módulo de ajustes cargado');
+});
+</script>
+
+</body>
+</html>

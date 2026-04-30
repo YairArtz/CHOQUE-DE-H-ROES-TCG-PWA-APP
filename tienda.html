@@ -71,6 +71,8 @@
     .item-preview{aspect-ratio:1;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;font-size:3rem;background:rgba(255,255,255,.02);}
     .item-preview img{width:100%;height:100%;object-fit:cover;display:block;}
     .item-preview.theme-preview{aspect-ratio:16/9;}
+    .item-preview.fondo-preview{aspect-ratio:16/9;display:block;overflow:hidden;position:relative;background:#0b0e18;}
+    .item-preview.fondo-preview img{width:100%;height:100%;object-fit:cover;object-position:center;display:block;}
 
     /* Overlay de bloqueado */
     .item-lock{position:absolute;inset:0;background:rgba(3,5,10,.7);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;backdrop-filter:blur(2px);}
@@ -339,9 +341,9 @@ function renderItem(item, tab) {
       ${equipado ? '<div class="equipped-badge">EN USO</div>' : ''}
     </div>`;
   } else if (tab === 'fondos') {
-    previewHtml = `<div class="item-preview" style="aspect-ratio:16/9;position:relative;overflow:hidden;background:#0b0e18;">
-      <img src="${item.img}" alt="${item.nombre}" style="width:100%;height:100%;object-fit:cover;display:block;"
-           onerror="this.style.display='none';this.parentElement.innerHTML+='<span style=\"position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:2rem;opacity:.3\">🌌</span>'"/>
+    previewHtml = `<div class="item-preview fondo-preview">
+      <img src="${item.img}" alt="${item.nombre}"
+           onerror="this.style.display='none';this.insertAdjacentHTML('afterend','<span style=\"position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:2rem;opacity:.3\">🌌</span>')"/>
       ${!desbloqueado ? lockOverlay(item, puedePagar) : ''}
       ${equipado ? '<div class="equipped-badge">ACTIVO</div>' : ''}
     </div>`;
@@ -420,6 +422,26 @@ function equiparItem(itemId, tab) {
   aplicarItem(itemId, tab);
   mostrarToast('¡Aplicado!');
   renderTab(tab);
+}
+
+// ── Aplicar fondo via inyección CSS (no compite con settings.js) ──
+function aplicarFondoImagen(imgUrl) {
+  let style = document.getElementById('chh-tienda-fondo');
+  if (!style) {
+    style = document.createElement('style');
+    style.id = 'chh-tienda-fondo';
+    document.head.appendChild(style);
+  }
+  style.textContent = `
+    html, body {
+      background-image: url('${imgUrl}') !important;
+      background-size: cover !important;
+      background-position: center !important;
+      background-attachment: fixed !important;
+      background-repeat: no-repeat !important;
+    }
+    body::before { display: none !important; }
+  `;
 }
 
 // ── Inyector de color exclusivo de tienda ──
@@ -516,12 +538,11 @@ function aplicarItem(itemId, tab) {
   } else if (tab === 'fondos') {
     const item = CATALOGO.fondos.find(i => i.id === itemId);
     if (!item) return;
-    const fondoCss = `url(${item.img}) center/cover fixed`;
-    document.body.style.background = fondoCss;
+    aplicarFondoImagen(item.img);
     try {
       const s = JSON.parse(localStorage.getItem('chh_settings') || '{}');
       s.fondoId  = itemId;
-      s.fondoCss = fondoCss;
+      s.fondoImg = item.img;
       localStorage.setItem('chh_settings', JSON.stringify(s));
     } catch(e){}
   }
@@ -533,10 +554,7 @@ function aplicarItemsGuardados() {
   try {
     const s = JSON.parse(localStorage.getItem('chh_settings') || '{}');
     // Fondo
-    if (s.fondoCss) {
-      document.body.style.background = s.fondoCss;
-      document.body.style.backgroundAttachment = 'fixed';
-    }
+    if (s.fondoImg) aplicarFondoImagen(s.fondoImg);
     // Tema exclusivo de tienda (los 4 básicos ya los aplica settings.js)
     if (s.temaId) {
       const item = CATALOGO.temas.find(i => i.id === s.temaId);

@@ -204,11 +204,25 @@ function applyGalleryView(view) {
 
 // ─── APLICAR FONDO ────────────────────────────
 
-function applyFondo(fondoCss) {
-  if (!fondoCss) return;
-  document.body.style.background = fondoCss;
-  document.body.style.backgroundAttachment = 'fixed';
-  console.log('✅ Fondo aplicado');
+function applyFondo(fondoImg) {
+  if (!fondoImg) return;
+  let style = document.getElementById('chh-tienda-fondo');
+  if (!style) {
+    style = document.createElement('style');
+    style.id = 'chh-tienda-fondo';
+    document.head.appendChild(style);
+  }
+  style.textContent = `
+    html, body {
+      background-image: url('${fondoImg}') !important;
+      background-size: cover !important;
+      background-position: center !important;
+      background-attachment: fixed !important;
+      background-repeat: no-repeat !important;
+    }
+    body::before { display: none !important; }
+  `;
+  console.log('✅ Fondo aplicado:', fondoImg);
 }
 
 // ─── APLICAR TODOS LOS AJUSTES ────────────────
@@ -222,7 +236,7 @@ function applyAllSettings() {
   applyAccentColor(settings.accentColor);
   applyAnimations(settings.animations);
   applyGalleryView(settings.galleryView);
-  if (settings.fondoCss) applyFondo(settings.fondoCss);
+  if (settings.fondoImg) applyFondo(settings.fondoImg);
   // Restaurar tema exclusivo de tienda si existe
   if (settings.temaId && settings.temaHex) {
     const item = {

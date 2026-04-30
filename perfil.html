@@ -71,7 +71,8 @@
     #profile-panel{display:none;}
     .profile-header{text-align:center;margin-bottom:20px;}
     .avatar-wrap{position:relative;display:inline-block;margin-bottom:10px;}
-    .avatar-circle{width:90px;height:90px;border-radius:50%;border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:2.8rem;background:rgba(0,255,157,0.05);box-shadow:0 0 20px rgba(0,255,157,0.3);margin:0 auto;line-height:1;}
+    .avatar-circle{width:90px;height:90px;border-radius:50%;border:2px solid var(--accent);background:rgba(0,255,157,0.05);box-shadow:0 0 20px rgba(0,255,157,0.3);margin:0 auto;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:2.8rem;}
+    .avatar-circle img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;}
     .avatar-edit{position:absolute;bottom:2px;right:2px;background:var(--accent);border:none;border-radius:50%;width:24px;height:24px;font-size:.7rem;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--bg,#03050a);}
     .profile-name{font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;color:#fff;margin-bottom:2px;}
     .profile-nick{color:var(--accent);font-size:.95rem;font-weight:600;margin-bottom:2px;}
@@ -124,8 +125,9 @@
     .avatar-modal{background:var(--card);border:1px solid var(--border);border-radius:12px 12px 0 0;padding:22px 18px 36px;width:100%;max-width:460px;}
     .modal-title{font-family:'Orbitron',sans-serif;font-size:.7rem;color:var(--accent);letter-spacing:3px;text-align:center;margin-bottom:18px;}
     .avatars-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
-    .av-opt{aspect-ratio:1;background:rgba(255,255,255,0.03);border:2px solid var(--border);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;font-size:1.9rem;gap:3px;transition:border-color .2s,transform .1s;}
-    .av-lbl{font-size:.5rem;color:var(--muted);font-family:'Rajdhani',sans-serif;text-align:center;}
+    .av-opt{aspect-ratio:1;background:rgba(255,255,255,0.03);border:2px solid var(--border);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;gap:0;transition:border-color .2s,transform .1s;overflow:hidden;padding:0;}
+    .av-opt img{width:100%;flex:1;object-fit:cover;display:block;}
+    .av-lbl{font-size:.55rem;color:var(--muted);font-family:'Rajdhani',sans-serif;text-align:center;padding:3px 2px;width:100%;background:rgba(0,0,0,.3);}
     .av-opt:hover,.av-opt.selected{border-color:var(--accent);transform:scale(1.05);background:rgba(0,255,157,.05);}
     .av-opt.selected{box-shadow:0 0 10px rgba(0,255,157,.3);}
 
@@ -185,7 +187,7 @@
   <div class="card" style="margin-bottom:12px;">
     <div class="profile-header">
       <div class="avatar-wrap">
-        <div class="avatar-circle" id="avatar-display">🦸</div>
+        <div class="avatar-circle" id="avatar-display"><img src="avatares/avatar_1.jpg" alt="Avatar" onerror="this.style.display='none'"/></div>
         <button class="avatar-edit" onclick="abrirAvatarModal()">✏️</button>
       </div>
       <div class="profile-name" id="p-nombre">—</div>
@@ -253,18 +255,60 @@ const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tq
 const RANKING_URL = 'https://script.google.com/macros/s/AKfycbx1rOqnmqWhics45UF40n81V9s-W5VgmhQGtc-UNIERGjkZGN8n1mVHkk0B1VO8PYJWOQ/exec';
 
 // ══════════════════════════════════════════
-// AVATARES — reemplaza emojis por URLs de
 // imágenes tuyas cuando estén listas
 // ══════════════════════════════════════════
+// Para agregar más avatares: sube avatar_N.jpg a /avatares/ y añade una entrada aquí
 const AVATARS = [
-  {id:'av1',emoji:'🥷',label:'Ninjiachi'},
-  {id:'av2',emoji:'🥋',label:'Max-Kara'},
-  {id:'av3',emoji:'🌊',label:'Legión Mar'},
-  {id:'av4',emoji:'🦎',label:'Evolotl'},
-  {id:'av5',emoji:'🔥',label:'Héroe'},
-  {id:'av6',emoji:'⚡',label:'Campeón'},
-  {id:'av7',emoji:'🌙',label:'Mictlán'},
-  {id:'av8',emoji:'🐍',label:'Koatl'},
+  {id:'av1', src:'avatares/avatar_1.jpg', label:'Avatar 1'},
+  {id:'av2', src:'avatares/avatar_2.jpg', label:'Avatar 2'},
+  {id:'av3', src:'avatares/avatar_3.jpg', label:'Avatar 3'},
+  {id:'av4', src:'avatares/avatar_4.jpg', label:'Avatar 4'},
+  {id:'av5', src:'avatares/avatar_5.jpg', label:'Avatar 5'},
+  {id:'av6', src:'avatares/avatar_6.jpg', label:'Avatar 6'},
+  {id:'av7', src:'avatares/avatar_7.jpg', label:'Avatar 7'},
+  {id:'av8', src:'avatares/avatar_8.jpg', label:'Avatar 8'},
+  {id:'av9', src:'avatares/avatar_9.jpg', label:'Avatar 9'},
+  {id:'av10', src:'avatares/avatar_10.jpg', label:'Avatar 10'},
+  {id:'av11', src:'avatares/avatar_11.jpg', label:'Avatar 11'},
+  {id:'av12', src:'avatares/avatar_12.jpg', label:'Avatar 12'},
+  {id:'av13', src:'avatares/avatar_13.jpg', label:'Avatar 13'},
+  {id:'av14', src:'avatares/avatar_14.jpg', label:'Avatar 14'},
+  {id:'av15', src:'avatares/avatar_15.jpg', label:'Avatar 15'},
+  {id:'av16', src:'avatares/avatar_16.jpg', label:'Avatar 16'},
+  {id:'av17', src:'avatares/avatar_17.jpg', label:'Avatar 17'},
+  {id:'av18', src:'avatares/avatar_18.jpg', label:'Avatar 18'},
+  {id:'av19', src:'avatares/avatar_19.jpg', label:'Avatar 19'},
+  {id:'av20', src:'avatares/avatar_20.jpg', label:'Avatar 20'},
+  {id:'av21', src:'avatares/avatar_21.jpg', label:'Avatar 21'},
+  {id:'av22', src:'avatares/avatar_22.jpg', label:'Avatar 22'},
+  {id:'av23', src:'avatares/avatar_23.jpg', label:'Avatar 23'},
+  {id:'av24', src:'avatares/avatar_24.jpg', label:'Avatar 24'},
+  {id:'av25', src:'avatares/avatar_25.jpg', label:'Avatar 25'},
+  {id:'av26', src:'avatares/avatar_26.jpg', label:'Avatar 26'},
+  {id:'av27', src:'avatares/avatar_27.jpg', label:'Avatar 27'},
+  {id:'av28', src:'avatares/avatar_28.jpg', label:'Avatar 28'},
+  {id:'av29', src:'avatares/avatar_29.jpg', label:'Avatar 29'},
+  {id:'av30', src:'avatares/avatar_30.jpg', label:'Avatar 30'},
+  {id:'av31', src:'avatares/avatar_31.jpg', label:'Avatar 31'},
+  {id:'av32', src:'avatares/avatar_32.jpg', label:'Avatar 32'},
+  {id:'av33', src:'avatares/avatar_33.jpg', label:'Avatar 33'},
+  {id:'av34', src:'avatares/avatar_34.jpg', label:'Avatar 34'},
+  {id:'av35', src:'avatares/avatar_35.jpg', label:'Avatar 35'},
+  {id:'av36', src:'avatares/avatar_36.jpg', label:'Avatar 36'},
+  {id:'av37', src:'avatares/avatar_37.jpg', label:'Avatar 37'},
+  {id:'av38', src:'avatares/avatar_38.jpg', label:'Avatar 38'},
+  {id:'av39', src:'avatares/avatar_39.jpg', label:'Avatar 39'},
+  {id:'av40', src:'avatares/avatar_40.jpg', label:'Avatar 40'},
+  {id:'av41', src:'avatares/avatar_41.jpg', label:'Avatar 41'},
+  {id:'av42', src:'avatares/avatar_42.jpg', label:'Avatar 42'},
+  {id:'av43', src:'avatares/avatar_43.jpg', label:'Avatar 43'},
+  {id:'av44', src:'avatares/avatar_44.jpg', label:'Avatar 44'},
+  {id:'av45', src:'avatares/avatar_45.jpg', label:'Avatar 45'},
+  {id:'av46', src:'avatares/avatar_46.jpg', label:'Avatar 46'},
+  {id:'av47', src:'avatares/avatar_47.jpg', label:'Avatar 47'},
+  {id:'av48', src:'avatares/avatar_48.jpg', label:'Avatar 48'},
+  {id:'av49', src:'avatares/avatar_49.jpg', label:'Avatar 49'},
+  {id:'av50', src:'avatares/avatar_50.jpg', label:'Avatar 50'}
 ];
 
 let jugador = null;
@@ -334,7 +378,8 @@ function mostrarPerfil() {
   document.getElementById('d-fecha').textContent = formatFecha(jugador.fecha);
   const avId = localStorage.getItem(`nhAv_${jugador.id}`);
   const av = AVATARS.find(a=>a.id===avId) || AVATARS[0];
-  document.getElementById('avatar-display').textContent = av.emoji;
+  const avSrc = av ? av.src : 'avatares/avatar_1.jpg';
+  document.getElementById('avatar-display').innerHTML = `<img src="${avSrc}" alt="${av ? av.label : 'Avatar'}" onerror="this.style.display='none'"/>`;
   cargarBarajas();
   cargarRanking();
 }
@@ -463,7 +508,7 @@ function cargarBarajas() {
 // ── AVATARES ──
 function construirAvatares() {
   document.getElementById('avatars-grid').innerHTML = AVATARS.map(av=>
-    `<div class="av-opt" id="avopt_${av.id}" onclick="elegirAvatar('${av.id}','${av.emoji}')">${av.emoji}<span class="av-lbl">${av.label}</span></div>`
+    `<div class="av-opt" id="avopt_${av.id}" onclick="elegirAvatar('${av.id}')"><img src="${av.src}" alt="${av.label}" onerror="this.style.opacity='.3'"/><span class="av-lbl">${av.label}</span></div>`
   ).join('');
 }
 function abrirAvatarModal() {
@@ -473,10 +518,11 @@ function abrirAvatarModal() {
   document.getElementById('avatar-modal').classList.add('active');
 }
 function cerrarAvatarModal() { document.getElementById('avatar-modal').classList.remove('active'); }
-function elegirAvatar(avId, emoji) {
+function elegirAvatar(avId) {
   document.querySelectorAll('.av-opt').forEach(e=>e.classList.remove('selected'));
-  document.getElementById(`avopt_${avId}`).classList.add('selected');
-  document.getElementById('avatar-display').textContent = emoji;
+  document.getElementById(`avopt_${avId}`)?.classList.add('selected');
+  const av = AVATARS.find(a=>a.id===avId);
+  if (av) document.getElementById('avatar-display').innerHTML = `<img src="${av.src}" alt="${av.label}" onerror="this.style.display='none'"/>`;
   if (jugador) localStorage.setItem(`nhAv_${jugador.id}`, avId);
   setTimeout(cerrarAvatarModal, 300);
   mostrarToast('¡Avatar actualizado!');

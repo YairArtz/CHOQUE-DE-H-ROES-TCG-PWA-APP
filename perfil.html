@@ -147,6 +147,16 @@
     .badge-nombre.earned{color:var(--accent);}
     .badges-loading{color:var(--muted);font-size:.85rem;font-style:italic;padding:4px 0;}
 
+
+    /* ── MODAL BADGE DETALLE ── */
+    .badge-detail-modal{background:var(--card);border:1px solid var(--border);border-radius:12px 12px 0 0;padding:28px 20px 40px;width:100%;max-width:460px;text-align:center;}
+    .bdm-icon{font-size:3.2rem;margin-bottom:10px;line-height:1;}
+    .bdm-icon img{width:72px;height:72px;border-radius:50%;border:2px solid var(--accent);object-fit:cover;}
+    .bdm-nombre{font-family:'Orbitron',sans-serif;font-size:.85rem;font-weight:900;color:var(--accent);letter-spacing:2px;margin-bottom:8px;}
+    .bdm-condicion{color:var(--muted);font-size:.85rem;line-height:1.5;margin-bottom:20px;}
+    .bdm-estado-earned{display:inline-block;background:rgba(0,255,157,.1);border:1px solid var(--accent);color:var(--accent);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:2px;padding:5px 14px;border-radius:3px;}
+    .bdm-estado-locked{display:inline-block;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--muted);font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:2px;padding:5px 14px;border-radius:3px;}
+
     .disclaimer{text-align:center;color:#3a4460;font-size:11px;margin-top:14px;line-height:1.6;}
     .disclaimer a{color:var(--accent);text-decoration:none;}
     .disclaimer a:hover{text-decoration:underline;}
@@ -413,57 +423,59 @@ function mostrarPerfil() {
 // Los automáticos se calculan desde resultados de torneos
 // Los manuales vienen del Apps Script (columna badges del Sheet)
 const BADGES_CATALOGO = [
-  // — Torneos —
-  { id:'tor_debut',    nombre:'Debut',        tipo:'auto', emoji:'🃏', img:'badges/tor_debut.png' },
-  { id:'tor_1er',      nombre:'Campeón',       tipo:'auto', emoji:'🥇', img:'badges/tor_1er.png'   },
-  { id:'tor_2do',      nombre:'Finalista',     tipo:'auto', emoji:'🥈', img:'badges/tor_2do.png'   },
-  { id:'tor_3er',      nombre:'Semifinalista', tipo:'auto', emoji:'🥉', img:'badges/tor_3er.png'   },
-  { id:'tor_veterano', nombre:'Veterano',      tipo:'auto', emoji:'🎖️', img:'badges/tor_veterano.png' },
-  { id:'tor_racha',    nombre:'En Racha',      tipo:'auto', emoji:'🔥', img:'badges/tor_racha.png' },
-  // — Logros globales —
-  { id:'log_top10',    nombre:'Élite',         tipo:'auto', emoji:'⭐', img:'badges/log_top10.png' },
-  { id:'log_top3',     nombre:'Leyenda',       tipo:'auto', emoji:'👑', img:'badges/log_top3.png'  },
-  { id:'log_campeon',  nombre:'Rey del Nexo',  tipo:'auto', emoji:'🏆', img:'badges/log_campeon.png' },
-  { id:'log_puntos50', nombre:'Maestro',       tipo:'auto', emoji:'💎', img:'badges/log_puntos50.png' },
-  // — Eventos especiales (manuales) —
-  { id:'ev_beta',      nombre:'Beta Tester',   tipo:'manual', emoji:'🧪', img:'badges/ev_beta.png'   },
-  { id:'ev_fundador',  nombre:'Fundador',      tipo:'manual', emoji:'🌟', img:'badges/ev_fundador.png' },
-  { id:'ev_promo',     nombre:'Colaborador',   tipo:'manual', emoji:'📣', img:'badges/ev_promo.png'  },
+  // — Progresión de jugador —
+  { id:'nuevo_jugador', nombre:'Nuevo Jugador',  tipo:'auto',   emoji:'🆕', img:'badges/nuevo_jugador.png', condicion:'Registrarte como jugador oficial de Choque de Héroes.' },
+  { id:'novato',        nombre:'Novato',          tipo:'auto',   emoji:'🌱', img:'badges/novato.png',        condicion:'Participar en al menos 1 torneo.' },
+  { id:'intermedio',    nombre:'Intermedio',      tipo:'auto',   emoji:'⚔️', img:'badges/intermedio.png',    condicion:'Participar en 5 o más torneos.' },
+  { id:'experto',       nombre:'Experto',         tipo:'auto',   emoji:'🎯', img:'badges/experto.png',       condicion:'Participar en 10 o más torneos.' },
+  { id:'heroe',         nombre:'Héroe',           tipo:'auto',   emoji:'🦸', img:'badges/heroe.png',         condicion:'Participar en 15 o más torneos.' },
+  { id:'superior',      nombre:'Superior',        tipo:'auto',   emoji:'🔱', img:'badges/superior.png',      condicion:'Participar en 20 o más torneos.' },
+  { id:'leyenda',       nombre:'Leyenda',         tipo:'auto',   emoji:'🌠', img:'badges/leyenda.png',       condicion:'Participar en 30 o más torneos.' },
+  { id:'heroe_regente', nombre:'Héroe Regente',   tipo:'auto',   emoji:'👑', img:'badges/heroe_regente.png', condicion:'Participar en 50 o más torneos.' },
+  // — Ranking global —
+  { id:'rey_nexo',      nombre:'Rey del Nexo',    tipo:'auto',   emoji:'🏆', img:'badges/rey_nexo.png',      condicion:'Acumular 100 puntos en el ranking global.' },
+  { id:'maestro_nexo',  nombre:'Maestro del Nexo',tipo:'auto',   emoji:'💎', img:'badges/maestro_nexo.png',  condicion:'Acumular 200 puntos en el ranking global.' },
+  // — Resultados en torneos —
+  { id:'tor_debut',     nombre:'Debut',           tipo:'auto',   emoji:'🃏', img:'badges/tor_debut.png',     condicion:'Participar por primera vez en un torneo oficial.' },
+  { id:'tor_3er',       nombre:'Semifinalista',   tipo:'auto',   emoji:'🥉', img:'badges/tor_3er.png',       condicion:'Obtener el 3er lugar en cualquier torneo.' },
+  { id:'tor_2do',       nombre:'Finalista',       tipo:'auto',   emoji:'🥈', img:'badges/tor_2do.png',       condicion:'Obtener el 2° lugar en cualquier torneo.' },
+  { id:'tor_1er',       nombre:'Campeón',         tipo:'auto',   emoji:'🥇', img:'badges/tor_1er.png',       condicion:'Obtener el 1er lugar en cualquier torneo.' },
+  // — Especiales manuales —
+  { id:'tor_veterano',  nombre:'Veterano',        tipo:'manual', emoji:'🎖️', img:'badges/tor_veterano.png',  condicion:'Asignado por los organizadores a jugadores destacados.' },
+  { id:'ev_beta',       nombre:'Beta Tester',     tipo:'manual', emoji:'🧪', img:'badges/ev_beta.png',       condicion:'Otorgado a jugadores de la temporada beta.' },
+  { id:'ev_fundador',   nombre:'Fundador',        tipo:'manual', emoji:'🌟', img:'badges/ev_fundador.png',   condicion:'Otorgado a quienes apoyaron el lanzamiento del juego.' },
+  { id:'ev_colab',      nombre:'Colaborador',     tipo:'manual', emoji:'📣', img:'badges/ev_colab.png',      condicion:'Otorgado a jugadores que promovieron activamente el juego.' },
 ];
 
 function calcularBadgesAuto(historial, totalPts, posGlobal) {
   const ganados = new Set();
+
+  // Nuevo jugador — siempre al tener perfil
+  ganados.add('nuevo_jugador');
+
   if (!historial || !historial.length) return ganados;
 
-  // Debut — participó en al menos 1 torneo
-  ganados.add('tor_debut');
-
-  // Posiciones
+  const n = historial.length;
   const posiciones = historial.map(t => t.lugar);
-  if (posiciones.includes(1)) ganados.add('tor_1er');
-  if (posiciones.includes(2)) ganados.add('tor_2do');
+
+  // — Progresión por torneos jugados —
+  if (n >= 1)  ganados.add('novato');
+  if (n >= 5)  ganados.add('intermedio');
+  if (n >= 10) ganados.add('experto');
+  if (n >= 15) ganados.add('heroe');
+  if (n >= 20) ganados.add('superior');
+  if (n >= 30) ganados.add('leyenda');
+  if (n >= 50) ganados.add('heroe_regente');
+
+  // — Puntos ranking global —
+  if (totalPts >= 100) ganados.add('rey_nexo');
+  if (totalPts >= 200) ganados.add('maestro_nexo');
+
+  // — Resultados —
+  ganados.add('tor_debut');
   if (posiciones.includes(3)) ganados.add('tor_3er');
-
-  // Veterano — 3+ torneos
-  if (historial.length >= 3) ganados.add('tor_veterano');
-
-  // En Racha — top 3 en 2 torneos consecutivos
-  for (let i = 0; i < historial.length - 1; i++) {
-    if (historial[i].lugar <= 3 && historial[i+1].lugar <= 3) {
-      ganados.add('tor_racha');
-      break;
-    }
-  }
-
-  // Rey del Nexo — 3 primeros lugares acumulados
-  if (posiciones.filter(p => p === 1).length >= 3) ganados.add('log_campeon');
-
-  // Puntos
-  if (totalPts >= 50) ganados.add('log_puntos50');
-
-  // Ranking global
-  if (posGlobal > 0 && posGlobal <= 10) ganados.add('log_top10');
-  if (posGlobal > 0 && posGlobal <= 3)  ganados.add('log_top3');
+  if (posiciones.includes(2)) ganados.add('tor_2do');
+  if (posiciones.includes(1)) ganados.add('tor_1er');
 
   return ganados;
 }
@@ -500,11 +512,12 @@ async function cargarBadges(historial, totalPts, posGlobal) {
 
   cont.innerHTML = `<div class="badges-grid">${ordenados.map(b => {
     const earned = todosGanados.has(b.id);
+    const condEsc = b.condicion.replace(/'/g, "\'");
     const iconHtml = `<div class="badge-icon${earned ? '' : ' locked'}">
       <img src="${b.img}" alt="${b.nombre}"
            onerror="this.style.display='none';this.parentElement.textContent='${b.emoji}'"/>
     </div>`;
-    return `<div class="badge-item" title="${b.nombre}">
+    return `<div class="badge-item" onclick="abrirBadgeModal('${b.id}','${b.nombre}','${b.img}','${b.emoji}','${condEsc}',${earned})" style="cursor:pointer">
       ${iconHtml}
       <div class="badge-nombre${earned ? ' earned' : ''}">${b.nombre}</div>
     </div>`;
@@ -649,6 +662,21 @@ function abrirAvatarModal() {
   document.querySelectorAll('.av-opt').forEach(e=>e.classList.remove('selected'));
   if (actual) { const opt=document.getElementById(`avopt_${actual}`); if(opt) opt.classList.add('selected'); }
   document.getElementById('avatar-modal').classList.add('active');
+}
+
+function abrirBadgeModal(id, nombre, img, emoji, condicion, earned) {
+  const iconEl = document.getElementById('bdm-icon');
+  iconEl.innerHTML = `<img src="${img}" alt="${nombre}" onerror="this.style.display='none';this.parentElement.textContent='${emoji}'"/>`;
+  if (!earned) iconEl.querySelector('img') && (iconEl.querySelector('img').style.filter = 'grayscale(1)');
+  document.getElementById('bdm-nombre').textContent = nombre;
+  document.getElementById('bdm-condicion').textContent = condicion;
+  document.getElementById('bdm-estado').innerHTML = earned
+    ? '<div class="bdm-estado-earned">✓ DESBLOQUEADO</div>'
+    : '<div class="bdm-estado-locked">🔒 BLOQUEADO</div>';
+  document.getElementById('badge-detail-modal').classList.add('active');
+}
+function cerrarBadgeModal() {
+  document.getElementById('badge-detail-modal').classList.remove('active');
 }
 function cerrarAvatarModal() { document.getElementById('avatar-modal').classList.remove('active'); }
 function elegirAvatar(avId) {

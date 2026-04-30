@@ -239,21 +239,55 @@ function applyAllSettings() {
   if (settings.fondoImg) applyFondo(settings.fondoImg);
   // Restaurar tema exclusivo de tienda si existe
   if (settings.temaId && settings.temaHex) {
-    const item = {
-      hex: settings.temaHex, d: settings.temaD,
-      dim: settings.temaDim, glow: settings.temaGlow,
-      rainbow: settings.temaRainbow
-    };
-    // Inyectar estilos del tema de tienda
-    const css = settings.temaRainbow ? '' : `
+    const h   = settings.temaHex;
+    const d   = settings.temaD   || '#333';
+    const dim = settings.temaDim || 'rgba(0,0,0,.1)';
+    const glow= settings.temaGlow|| '0 0 6px ' + h;
+    const rainbowCss = settings.temaRainbow ? `
+      @keyframes rainbowShift {
+        0%  { --neon:#ff2244; --accent:#ff2244; }
+        17% { --neon:#ff7700; --accent:#ff7700; }
+        33% { --neon:#f5a623; --accent:#f5a623; }
+        50% { --neon:#00ff9d; --accent:#00ff9d; }
+        67% { --neon:#00cfff; --accent:#00cfff; }
+        83% { --neon:#cc55ff; --accent:#cc55ff; }
+        100%{ --neon:#ff2244; --accent:#ff2244; }
+      }
+      :root { animation: rainbowShift 4s linear infinite; }` : '';
+
+    injectStyle('chh-tienda-color', `
       :root {
-        --neon: ${settings.temaHex} !important;
-        --neon-d: ${settings.temaD} !important;
-        --neon-dim: ${settings.temaDim} !important;
-        --nglow: ${settings.temaGlow} !important;
-        --accent: ${settings.temaHex} !important;
-      }`;
-    if (css) injectStyle('chh-tienda-color', css);
+        --neon: ${h} !important; --neon-d: ${d} !important;
+        --neon-dim: ${dim} !important; --nglow: ${glow} !important;
+        --accent: ${h} !important; --accent-glow: ${dim} !important;
+      }
+      ${rainbowCss}
+      .tcg-label { color: ${h} !important; text-shadow: ${glow} !important; }
+      .stitle { color: ${h} !important; }
+      .stitle::after { background: linear-gradient(90deg, ${d}, transparent) !important; }
+      .mod-name, .c-neon .mod-name, .c-blue .mod-name,
+      .c-gold .mod-name, .c-red .mod-name, .c-purple .mod-name {
+        color: ${h} !important; text-shadow: ${glow} !important;
+      }
+      .mod-badge, .c-neon .mod-badge, .c-blue .mod-badge,
+      .c-gold .mod-badge, .c-red .mod-badge, .c-purple .mod-badge {
+        color: ${h} !important; border: 1px solid ${d} !important; background: ${dim} !important;
+      }
+      .mod-icon, .c-neon .mod-icon, .c-blue .mod-icon,
+      .c-gold .mod-icon, .c-red .mod-icon, .c-purple .mod-icon {
+        border-color: ${d} !important; background: ${dim} !important;
+      }
+      .mod-card:hover { border-color: ${h} !important; box-shadow: ${glow}, 0 0 8px ${dim} inset !important; }
+      .calc-card { background: ${dim} !important; border-color: ${d} !important; }
+      .calc-card::before { background: linear-gradient(90deg, transparent, ${h}, transparent) !important; }
+      .calc-name, .calc-arrow { color: ${h} !important; text-shadow: ${glow} !important; }
+      .nav-back  { color: ${h} !important; border-color: ${d} !important; text-shadow: ${glow} !important; }
+      .nav-title { color: ${h} !important; text-shadow: ${glow} !important; }
+      #chh-nav::after { background: linear-gradient(90deg, transparent, ${h}, transparent) !important; }
+      .banner-dot.active { background: ${h} !important; box-shadow: 0 0 8px ${h} !important; }
+      .btn { background: linear-gradient(135deg, ${h}, ${d}) !important; }
+      .filter-btn.active { background: linear-gradient(135deg, ${h}, ${d}) !important; }
+    `);
   }
   
   console.log('✅ Ajustes aplicados completamente');

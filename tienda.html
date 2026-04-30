@@ -453,55 +453,109 @@ function inyectarColorTienda(item) {
     document.head.appendChild(style);
   }
 
-  if (item.rainbow) {
-    // Efecto arco iris animado
-    style.textContent = `
-      :root {
-        --neon: ${item.hex} !important;
-        --neon-d: ${item.d} !important;
-        --neon-dim: ${item.dim} !important;
-        --nglow: ${item.glow} !important;
-        --accent: ${item.hex} !important;
-      }
-      @keyframes rainbowShift {
-        0%{--neon:#ff2244;--accent:#ff2244}
-        17%{--neon:#ff7700;--accent:#ff7700}
-        33%{--neon:#f5a623;--accent:#f5a623}
-        50%{--neon:#00ff9d;--accent:#00ff9d}
-        67%{--neon:#00cfff;--accent:#00cfff}
-        83%{--neon:#cc55ff;--accent:#cc55ff}
-        100%{--neon:#ff2244;--accent:#ff2244}
-      }
-      :root { animation: rainbowShift 4s linear infinite; }
-      .mod-name,.nav-title,.stat-val,.ranking-pos b,
-      .badge,.section-title,.btn { color: ${item.hex} !important; }
-    `;
-  } else {
-    style.textContent = `
-      :root {
-        --neon: ${item.hex} !important;
-        --neon-d: ${item.d} !important;
-        --neon-dim: ${item.dim} !important;
-        --nglow: ${item.glow} !important;
-        --accent: ${item.hex} !important;
-        --accent-glow: ${item.dim} !important;
-      }
-      .mod-name, .c-neon .mod-name, .c-blue .mod-name,
-      .c-gold .mod-name, .c-red .mod-name, .c-purple .mod-name {
-        color: ${item.hex} !important;
-        text-shadow: ${item.glow} !important;
-      }
-      .mod-badge, .c-neon .mod-badge, .c-blue .mod-badge,
-      .c-gold .mod-badge, .c-red .mod-badge, .c-purple .mod-badge {
-        color: ${item.hex} !important;
-        border: 1px solid ${item.d} !important;
-        background: ${item.dim} !important;
-      }
-      .filter-btn.active {
-        background: linear-gradient(135deg, ${item.hex}, ${item.d}) !important;
-      }
-    `;
-  }
+  const rainbowCss = item.rainbow ? `
+    @keyframes rainbowShift {
+      0%  { --neon:#ff2244; --accent:#ff2244; }
+      17% { --neon:#ff7700; --accent:#ff7700; }
+      33% { --neon:#f5a623; --accent:#f5a623; }
+      50% { --neon:#00ff9d; --accent:#00ff9d; }
+      67% { --neon:#00cfff; --accent:#00cfff; }
+      83% { --neon:#cc55ff; --accent:#cc55ff; }
+      100%{ --neon:#ff2244; --accent:#ff2244; }
+    }
+    :root { animation: rainbowShift 4s linear infinite; }` : '';
+
+  const h = item.hex, d = item.d, dim = item.dim, glow = item.glow;
+
+  style.textContent = `
+    /* ── Variables globales ── */
+    :root {
+      --neon:     ${h}   !important;
+      --neon-d:   ${d}   !important;
+      --neon-dim: ${dim} !important;
+      --nglow:    ${glow} !important;
+      --accent:   ${h}   !important;
+      --accent-glow: ${dim} !important;
+    }
+    ${rainbowCss}
+
+    /* ── Index: tcg-label, stitle ── */
+    .tcg-label { color: ${h} !important; text-shadow: ${glow} !important; }
+    .stitle     { color: ${h} !important; }
+    .stitle::after { background: linear-gradient(90deg, ${d}, transparent) !important; }
+
+    /* ── Todas las tarjetas de módulos — sin importar clase c-* ── */
+    .mod-name,
+    .c-neon .mod-name, .c-blue .mod-name, .c-gold .mod-name,
+    .c-red  .mod-name, .c-purple .mod-name {
+      color: ${h} !important;
+      text-shadow: ${glow} !important;
+    }
+    .mod-badge,
+    .c-neon .mod-badge, .c-blue .mod-badge, .c-gold .mod-badge,
+    .c-red  .mod-badge, .c-purple .mod-badge {
+      color: ${h} !important;
+      border: 1px solid ${d} !important;
+      background: ${dim} !important;
+    }
+    .mod-icon,
+    .c-neon .mod-icon, .c-blue .mod-icon, .c-gold .mod-icon,
+    .c-red  .mod-icon, .c-purple .mod-icon {
+      border-color: ${d} !important;
+      background: ${dim} !important;
+    }
+    .mod-card:hover {
+      border-color: ${h} !important;
+      box-shadow: ${glow}, 0 0 8px ${dim} inset !important;
+    }
+
+    /* ── Calculadora ── */
+    .calc-card {
+      background: ${dim} !important;
+      border-color: ${d} !important;
+      box-shadow: ${glow}, inset 0 0 24px ${dim} !important;
+    }
+    .calc-card::before {
+      background: linear-gradient(90deg, transparent, ${h}, transparent) !important;
+    }
+    .calc-name  { color: ${h} !important; text-shadow: ${glow} !important; }
+    .calc-arrow { color: ${h} !important; text-shadow: ${glow} !important; }
+    .calc-icon  { border-color: ${d} !important; background: ${dim} !important; }
+
+    /* ── Nav y botones ── */
+    .nav-back   { color: ${h} !important; border-color: ${d} !important; text-shadow: ${glow} !important; }
+    .nav-title  { color: ${h} !important; text-shadow: ${glow} !important; }
+    #chh-nav::after { background: linear-gradient(90deg, transparent, ${h}, transparent) !important; }
+    .settings-btn:active svg { fill: ${h} !important; }
+
+    /* ── Banner dots ── */
+    .banner-dot.active {
+      background: ${h} !important;
+      box-shadow: 0 0 8px ${h} !important;
+    }
+
+    /* ── Ranking badge ── */
+    .ranking-badge {
+      background: ${dim} !important;
+      border-color: ${d} !important;
+      color: ${h} !important;
+    }
+
+    /* ── Botones primarios ── */
+    .btn, .item-btn.btn-unlock, .item-btn.btn-equip {
+      background: linear-gradient(135deg, ${h}, ${d}) !important;
+    }
+    .item-btn.btn-equipped { color: ${h} !important; border-color: ${d} !important; }
+
+    /* ── Filtros galería ── */
+    .filter-btn.active {
+      background: linear-gradient(135deg, ${h}, ${d}) !important;
+      border-color: ${h} !important;
+    }
+
+    /* ── Accent general ── */
+    .accent, [style*="var(--accent)"] { color: ${h} !important; }
+  `;
 }
 
 function aplicarItem(itemId, tab) {

@@ -136,6 +136,17 @@
     #toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--accent,#00ff9d);color:var(--bg,#03050a);padding:11px 26px;border-radius:4px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;z-index:999;opacity:0;transition:opacity 0.3s,transform 0.3s;pointer-events:none;white-space:nowrap;}
     #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
+
+    /* ── BADGES ── */
+    .badges-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:4px;}
+    .badge-item{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:default;}
+    .badge-icon{width:56px;height:56px;border-radius:50%;border:2px solid var(--accent);background:rgba(0,255,157,0.06);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:1.6rem;box-shadow:0 0 12px rgba(0,255,157,0.2);}
+    .badge-icon img{width:100%;height:100%;object-fit:cover;}
+    .badge-icon.locked{border-color:var(--border);background:rgba(255,255,255,0.02);filter:grayscale(1);opacity:.3;box-shadow:none;}
+    .badge-nombre{font-size:.58rem;color:var(--muted);text-align:center;font-family:'Rajdhani',sans-serif;line-height:1.2;max-width:60px;}
+    .badge-nombre.earned{color:var(--accent);}
+    .badges-loading{color:var(--muted);font-size:.85rem;font-style:italic;padding:4px 0;}
+
     .disclaimer{text-align:center;color:#3a4460;font-size:11px;margin-top:14px;line-height:1.6;}
     .disclaimer a{color:var(--accent);text-decoration:none;}
     .disclaimer a:hover{text-decoration:underline;}
@@ -212,6 +223,12 @@
   <div class="card" style="margin-bottom:12px;">
     <div class="badge">🎯 TORNEOS JUGADOS</div>
     <div id="torneos-container"><div class="empty-msg">📋 Cargando historial...</div></div>
+  </div>
+
+  <!-- Badges / Logros -->
+  <div class="card" style="margin-bottom:12px;">
+    <div class="badge">🏅 LOGROS Y BADGES</div>
+    <div id="badges-container"><div class="badges-loading">⏳ Cargando logros...</div></div>
   </div>
 
   <!-- Mis barajas -->
@@ -387,6 +404,114 @@ function mostrarPerfil() {
   cargarRanking();
 }
 
+
+// ================================================================
+//  BADGES
+// ================================================================
+
+// Catálogo completo — automáticos + manuales
+// Los automáticos se calculan desde resultados de torneos
+// Los manuales vienen del Apps Script (columna badges del Sheet)
+const BADGES_CATALOGO = [
+  // — Torneos —
+  { id:'tor_debut',    nombre:'Debut',        tipo:'auto', emoji:'🃏', img:'badges/tor_debut.png' },
+  { id:'tor_1er',      nombre:'Campeón',       tipo:'auto', emoji:'🥇', img:'badges/tor_1er.png'   },
+  { id:'tor_2do',      nombre:'Finalista',     tipo:'auto', emoji:'🥈', img:'badges/tor_2do.png'   },
+  { id:'tor_3er',      nombre:'Semifinalista', tipo:'auto', emoji:'🥉', img:'badges/tor_3er.png'   },
+  { id:'tor_veterano', nombre:'Veterano',      tipo:'auto', emoji:'🎖️', img:'badges/tor_veterano.png' },
+  { id:'tor_racha',    nombre:'En Racha',      tipo:'auto', emoji:'🔥', img:'badges/tor_racha.png' },
+  // — Logros globales —
+  { id:'log_top10',    nombre:'Élite',         tipo:'auto', emoji:'⭐', img:'badges/log_top10.png' },
+  { id:'log_top3',     nombre:'Leyenda',       tipo:'auto', emoji:'👑', img:'badges/log_top3.png'  },
+  { id:'log_campeon',  nombre:'Rey del Nexo',  tipo:'auto', emoji:'🏆', img:'badges/log_campeon.png' },
+  { id:'log_puntos50', nombre:'Maestro',       tipo:'auto', emoji:'💎', img:'badges/log_puntos50.png' },
+  // — Eventos especiales (manuales) —
+  { id:'ev_beta',      nombre:'Beta Tester',   tipo:'manual', emoji:'🧪', img:'badges/ev_beta.png'   },
+  { id:'ev_fundador',  nombre:'Fundador',      tipo:'manual', emoji:'🌟', img:'badges/ev_fundador.png' },
+  { id:'ev_promo',     nombre:'Colaborador',   tipo:'manual', emoji:'📣', img:'badges/ev_promo.png'  },
+];
+
+function calcularBadgesAuto(historial, totalPts, posGlobal) {
+  const ganados = new Set();
+  if (!historial || !historial.length) return ganados;
+
+  // Debut — participó en al menos 1 torneo
+  ganados.add('tor_debut');
+
+  // Posiciones
+  const posiciones = historial.map(t => t.lugar);
+  if (posiciones.includes(1)) ganados.add('tor_1er');
+  if (posiciones.includes(2)) ganados.add('tor_2do');
+  if (posiciones.includes(3)) ganados.add('tor_3er');
+
+  // Veterano — 3+ torneos
+  if (historial.length >= 3) ganados.add('tor_veterano');
+
+  // En Racha — top 3 en 2 torneos consecutivos
+  for (let i = 0; i < historial.length - 1; i++) {
+    if (historial[i].lugar <= 3 && historial[i+1].lugar <= 3) {
+      ganados.add('tor_racha');
+      break;
+    }
+  }
+
+  // Rey del Nexo — 3 primeros lugares acumulados
+  if (posiciones.filter(p => p === 1).length >= 3) ganados.add('log_campeon');
+
+  // Puntos
+  if (totalPts >= 50) ganados.add('log_puntos50');
+
+  // Ranking global
+  if (posGlobal > 0 && posGlobal <= 10) ganados.add('log_top10');
+  if (posGlobal > 0 && posGlobal <= 3)  ganados.add('log_top3');
+
+  return ganados;
+}
+
+async function cargarBadges(historial, totalPts, posGlobal) {
+  const cont = document.getElementById('badges-container');
+
+  // Badges automáticos calculados localmente
+  const autoGanados = calcularBadgesAuto(historial, totalPts, posGlobal);
+
+  // Badges manuales desde Apps Script
+  let manualesGanados = new Set();
+  try {
+    const r = await fetch(`${RANKING_URL}?action=jugador_badges&id=${jugador.id}`);
+    const d = await r.json();
+    if (d.status === 'ok' && Array.isArray(d.badges_manuales)) {
+      d.badges_manuales.forEach(b => manualesGanados.add(b));
+    }
+  } catch(e) {
+    console.warn('No se pudieron cargar badges manuales:', e.message);
+  }
+
+  const todosGanados = new Set([...autoGanados, ...manualesGanados]);
+
+  // Renderizar — primero ganados, luego bloqueados
+  const ganados   = BADGES_CATALOGO.filter(b =>  todosGanados.has(b.id));
+  const bloqueados = BADGES_CATALOGO.filter(b => !todosGanados.has(b.id));
+  const ordenados  = [...ganados, ...bloqueados];
+
+  if (ganados.length === 0) {
+    cont.innerHTML = '<div class="empty-msg">🔒 Juega torneos para desbloquear logros.</div>';
+    return;
+  }
+
+  cont.innerHTML = `<div class="badges-grid">${ordenados.map(b => {
+    const earned = todosGanados.has(b.id);
+    const iconHtml = `<div class="badge-icon${earned ? '' : ' locked'}">
+      <img src="${b.img}" alt="${b.nombre}"
+           onerror="this.style.display='none';this.parentElement.textContent='${b.emoji}'"/>
+    </div>`;
+    return `<div class="badge-item" title="${b.nombre}">
+      ${iconHtml}
+      <div class="badge-nombre${earned ? ' earned' : ''}">${b.nombre}</div>
+    </div>`;
+  }).join('')}</div>
+  <div style="font-size:.7rem;color:var(--muted);margin-top:10px;text-align:right">${ganados.length}/${BADGES_CATALOGO.length} desbloqueados</div>`;
+}
+
 // ── RANKING ──
 // Puntos por posición: 1°=10, 2°=7, 3°=5, 4°=3, 5°-8°=1
 const PUNTOS_POS = { 1:8, 2:5, 3:4, 4:3, 5:2, 6:2, 7:1, 8:1 };
@@ -465,10 +590,15 @@ async function cargarRanking() {
     else document.getElementById('torneos-container').innerHTML =
       '<div class="empty-msg">📋 Sin historial de torneos aún.</div>';
 
+    // Cargar badges con los datos ya calculados
+    cargarBadges(historial, totalPts, posGlobal);
+
   } catch(e) {
     cont.innerHTML = `<div class="pending-box">⚠️ No se pudo cargar el ranking.<br><small style="font-size:.7rem;opacity:.5">${e.message}</small></div>`;
     document.getElementById('torneos-container').innerHTML =
       '<div class="empty-msg">📋 No disponible.</div>';
+    document.getElementById('badges-container').innerHTML =
+      '<div class="empty-msg">⚠️ No disponible.</div>';
   }
 }
 

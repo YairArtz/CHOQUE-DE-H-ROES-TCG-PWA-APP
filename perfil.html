@@ -489,13 +489,16 @@ async function cargarBadges(historial, totalPts, posGlobal) {
   // Badges manuales desde Apps Script
   let manualesGanados = new Set();
   try {
-    const r = await fetch(`${RANKING_URL}?action=jugador_badges&id=${jugador.id}`);
+    const url = `${RANKING_URL}?action=jugador_badges&id=${jugador.id}`;
+    console.log('[badges] fetch:', url);
+    const r = await fetch(url);
     const d = await r.json();
+    console.log('[badges] respuesta:', JSON.stringify(d));
     if (d.status === 'ok' && Array.isArray(d.badges_manuales)) {
-      d.badges_manuales.forEach(b => manualesGanados.add(b));
+      d.badges_manuales.forEach(b => manualesGanados.add(b.trim().toLowerCase()));
     }
   } catch(e) {
-    console.warn('No se pudieron cargar badges manuales:', e.message);
+    console.warn('[badges] error manuales:', e.message);
   }
 
   const todosGanados = new Set([...autoGanados, ...manualesGanados]);
@@ -510,14 +513,17 @@ async function cargarBadges(historial, totalPts, posGlobal) {
     return;
   }
 
+  // Guardar estado para que el onclick lo consulte por ID
+  window._badgesState = {};
+  ordenados.forEach(b => { window._badgesState[b.id] = { ...b, earned: todosGanados.has(b.id) }; });
+
   cont.innerHTML = `<div class="badges-grid">${ordenados.map(b => {
     const earned = todosGanados.has(b.id);
-    const condEsc = b.condicion.replace(/'/g, "\'");
     const iconHtml = `<div class="badge-icon${earned ? '' : ' locked'}">
       <img src="${b.img}" alt="${b.nombre}"
            onerror="this.style.display='none';this.parentElement.textContent='${b.emoji}'"/>
     </div>`;
-    return `<div class="badge-item" onclick="abrirBadgeModal('${b.id}','${b.nombre}','${b.img}','${b.emoji}','${condEsc}',${earned})" style="cursor:pointer">
+    return `<div class="badge-item" data-bid="${b.id}" onclick="abrirBadgeModal(this.dataset.bid)" style="cursor:pointer">
       ${iconHtml}
       <div class="badge-nombre${earned ? ' earned' : ''}">${b.nombre}</div>
     </div>`;
@@ -664,13 +670,20 @@ function abrirAvatarModal() {
   document.getElementById('avatar-modal').classList.add('active');
 }
 
-function abrirBadgeModal(id, nombre, img, emoji, condicion, earned) {
+function abrirBadgeModal(bid) {
+  const b = window._badgesState && window._badgesState[bid];
+  if (!b) return;
   const iconEl = document.getElementById('bdm-icon');
-  iconEl.innerHTML = `<img src="${img}" alt="${nombre}" onerror="this.style.display='none';this.parentElement.textContent='${emoji}'"/>`;
-  if (!earned) iconEl.querySelector('img') && (iconEl.querySelector('img').style.filter = 'grayscale(1)');
-  document.getElementById('bdm-nombre').textContent = nombre;
-  document.getElementById('bdm-condicion').textContent = condicion;
-  document.getElementById('bdm-estado').innerHTML = earned
+  iconEl.innerHTML = '';
+  const img = document.createElement('img');
+  img.src = b.img;
+  img.alt = b.nombre;
+  if (!b.earned) img.style.filter = 'grayscale(1) opacity(0.4)';
+  img.onerror = function() { this.style.display='none'; iconEl.textContent = b.emoji; };
+  iconEl.appendChild(img);
+  document.getElementById('bdm-nombre').textContent = b.nombre;
+  document.getElementById('bdm-condicion').textContent = b.condicion;
+  document.getElementById('bdm-estado').innerHTML = b.earned
     ? '<div class="bdm-estado-earned">✓ DESBLOQUEADO</div>'
     : '<div class="bdm-estado-locked">🔒 BLOQUEADO</div>';
   document.getElementById('badge-detail-modal').classList.add('active');

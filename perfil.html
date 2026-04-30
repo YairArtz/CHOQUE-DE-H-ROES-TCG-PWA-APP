@@ -264,6 +264,17 @@
 </div><!-- /container -->
 
 <!-- ════ MODAL AVATARES ════ -->
+
+<!-- Modal detalle de badge -->
+<div class="modal-overlay" id="badge-detail-modal" onclick="cerrarBadgeModal()">
+  <div class="badge-detail-modal" onclick="event.stopPropagation()">
+    <div class="bdm-icon" id="bdm-icon"></div>
+    <div class="bdm-nombre" id="bdm-nombre"></div>
+    <div class="bdm-condicion" id="bdm-condicion"></div>
+    <div id="bdm-estado"></div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="avatar-modal">
   <div class="avatar-modal">
     <div class="modal-title">ELIGE TU AVATAR</div>
@@ -486,19 +497,30 @@ async function cargarBadges(historial, totalPts, posGlobal) {
   // Badges automáticos calculados localmente
   const autoGanados = calcularBadgesAuto(historial, totalPts, posGlobal);
 
-  // Badges manuales desde Apps Script
+  // Badges manuales — leer directo del Sheet (columna 6, índice 5)
   let manualesGanados = new Set();
   try {
-    const url = `${RANKING_URL}?action=jugador_badges&id=${jugador.id}`;
-    console.log('[badges] fetch:', url);
-    const r = await fetch(url);
-    const d = await r.json();
-    console.log('[badges] respuesta:', JSON.stringify(d));
-    if (d.status === 'ok' && Array.isArray(d.badges_manuales)) {
-      d.badges_manuales.forEach(b => manualesGanados.add(b.trim().toLowerCase()));
+    const res = await fetch(SHEET_URL);
+    const txt = await res.text();
+    const json = JSON.parse(txt.substring(47).slice(0,-2));
+    const miId = jugador.id.trim().toUpperCase();
+    for (const row of json.table.rows) {
+      const c = row.c;
+      const rowId = (c[0]?.v || '').toString().trim().toUpperCase();
+      if (rowId === miId) {
+        const badgesRaw = (c[5]?.v || '').toString().trim(); // columna F = índice 5
+        if (badgesRaw) {
+          badgesRaw.split(',').forEach(b => {
+            const bid = b.trim().toLowerCase();
+            if (bid) manualesGanados.add(bid);
+          });
+        }
+        console.log('[badges] manuales encontrados:', [...manualesGanados]);
+        break;
+      }
     }
   } catch(e) {
-    console.warn('[badges] error manuales:', e.message);
+    console.warn('[badges] error leyendo Sheet:', e.message);
   }
 
   const todosGanados = new Set([...autoGanados, ...manualesGanados]);

@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mi Perfil — Nexo de Héroes</title>
+  <link rel="manifest" href="manifest.json"/>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{
+      --accent:#00ff9d;--accent-glow:rgba(0,255,157,0.08);
+      --bg:#070b14;--card:rgba(10,16,36,0.97);--border:#1a2440;
+      --text:#e8eaf6;--muted:#8892b0;--danger:#ff4d6d;
+    }
+    html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;}
+    body{display:flex;flex-direction:column;min-height:100vh;overflow-x:hidden;position:relative;}
+    body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,255,157,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,157,0.025) 1px,transparent 1px);background-size:44px 44px;pointer-events:none;z-index:0;}
+    body::after{content:'';position:fixed;top:-20%;left:50%;transform:translateX(-50%);width:700px;height:500px;background:radial-gradient(ellipse,rgba(0,255,157,0.06) 0%,transparent 70%);pointer-events:none;z-index:0;}
+
+    /* ── NAV ── */
+    #chh-nav{position:sticky;top:0;z-index:999;background:rgba(3,5,10,.96);border-bottom:1px solid #0a1520;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;align-items:center;padding:8px 14px;gap:10px;}
+    #chh-nav::after{content:'';position:absolute;bottom:0;left:5%;right:5%;height:1px;background:linear-gradient(90deg,transparent,#00ff9d,transparent);opacity:.5;}
+    .nav-back{font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:1.5px;color:#00ff9d;background:transparent;border:1px solid #007a4a;padding:6px 10px;border-radius:3px;cursor:pointer;text-decoration:none;white-space:nowrap;transition:background .15s;text-shadow:0 0 8px #00ff9d;opacity:.8;}
+    .nav-back:active{background:rgba(0,255,157,.12);opacity:1;}
+    .nav-title{font-family:'Orbitron',monospace;font-size:11px;font-weight:900;letter-spacing:2px;text-transform:uppercase;color:#00ff9d;text-shadow:0 0 8px #00ff9d;flex:1;text-align:center;line-height:1.2;}
+    .nav-spacer{width:60px;flex-shrink:0;}
+
+    /* ── CONTAINER ── */
+    .container{width:100%;max-width:460px;margin:0 auto;padding:30px 16px 50px;position:relative;z-index:1;}
+
+    /* ── CARD ── */
+    .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:36px 32px;position:relative;backdrop-filter:blur(20px);box-shadow:0 0 80px rgba(0,255,157,0.04),0 24px 48px rgba(0,0,0,0.5);animation:fadeUp 0.5s ease both;}
+    .card::before{content:'';position:absolute;top:-1px;left:10%;right:10%;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);border-radius:2px;}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+
+    .badge{display:inline-block;font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:3px;color:var(--accent);background:var(--accent-glow);border:1px solid rgba(0,255,157,0.2);padding:4px 12px;border-radius:2px;margin-bottom:12px;}
+    .card-title{font-family:'Orbitron',sans-serif;font-size:clamp(17px,4vw,22px);font-weight:900;letter-spacing:2px;color:#fff;margin-bottom:6px;}
+    .card-subtitle{color:var(--muted);font-size:14px;line-height:1.5;margin-bottom:24px;}
+    .divider{height:1px;background:linear-gradient(90deg,transparent,rgba(0,255,157,0.2),transparent);margin:20px 0;}
+
+    /* ── INPUTS ── */
+    .field{margin-bottom:18px;}
+    label{display:block;font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;}
+    input[type="text"],input[type="email"]{width:100%;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:5px;padding:12px 14px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:500;outline:none;transition:border-color 0.2s,box-shadow 0.2s;}
+    input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,255,157,0.08);}
+    .error-msg{font-family:'Orbitron',sans-serif;font-size:9px;color:var(--danger);margin-top:5px;letter-spacing:1px;display:none;}
+    .error-msg.visible{display:block;}
+
+    /* ── BUTTONS ── */
+    .btn{width:100%;background:linear-gradient(135deg,#00ff9d,#00d67e);color:#070b14;border:none;border-radius:5px;padding:14px;font-family:'Orbitron',sans-serif;font-weight:700;font-size:12px;letter-spacing:2px;cursor:pointer;margin-top:6px;transition:opacity 0.2s,transform 0.1s,box-shadow 0.2s;box-shadow:0 4px 20px rgba(0,255,157,0.2);}
+    .btn:hover{opacity:.92;box-shadow:0 4px 30px rgba(0,255,157,0.35);}
+    .btn:active{transform:scale(0.98);}
+    .btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+    .btn-secondary{width:100%;background:transparent;border:1px solid rgba(0,255,157,0.2);border-radius:5px;padding:12px;color:rgba(0,255,157,0.6);font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:2px;cursor:pointer;margin-top:12px;transition:border-color 0.2s,color 0.2s;}
+    .btn-secondary:hover{border-color:rgba(0,255,157,0.5);color:var(--accent);}
+    .btn-danger{width:100%;background:transparent;border:1px solid rgba(255,77,109,0.3);border-radius:5px;padding:12px;color:rgba(255,77,109,0.7);font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:2px;cursor:pointer;margin-top:12px;transition:border-color 0.2s,color 0.2s;}
+    .btn-danger:hover{border-color:var(--danger);color:var(--danger);}
+
+    /* ── SPINNER ── */
+    .spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(7,11,20,0.3);border-top-color:#070b14;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:6px;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+
+    /* ── PERFIL ── */
+    #profile-panel{display:none;}
+    .profile-header{text-align:center;margin-bottom:20px;}
+    .avatar-wrap{position:relative;display:inline-block;margin-bottom:10px;}
+    .avatar-circle{width:90px;height:90px;border-radius:50%;border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:2.8rem;background:rgba(0,255,157,0.05);box-shadow:0 0 20px rgba(0,255,157,0.3);margin:0 auto;line-height:1;}
+    .avatar-edit{position:absolute;bottom:2px;right:2px;background:var(--accent);border:none;border-radius:50%;width:24px;height:24px;font-size:.7rem;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#070b14;}
+    .profile-name{font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;color:#fff;margin-bottom:2px;}
+    .profile-nick{color:var(--accent);font-size:.95rem;font-weight:600;margin-bottom:2px;}
+    .profile-id-display{font-family:'Orbitron',sans-serif;font-size:.65rem;color:var(--muted);letter-spacing:3px;}
+
+    /* ── STATS ── */
+    .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border-radius:6px;overflow:hidden;margin:16px 0;}
+    .stat-box{background:rgba(10,16,36,0.97);padding:14px 8px;text-align:center;}
+    .stat-val{font-family:'Orbitron',sans-serif;font-size:1.3rem;font-weight:900;color:var(--accent);display:block;}
+    .stat-lbl{font-size:.65rem;color:var(--muted);margin-top:2px;letter-spacing:.5px;}
+
+    /* ── RANKING ── */
+    .ranking-box{background:linear-gradient(135deg,rgba(255,215,0,0.05),rgba(255,215,0,0.02));border:1px solid rgba(255,215,0,0.25);border-radius:8px;padding:16px;display:flex;align-items:center;gap:14px;}
+    .ranking-pos{font-family:'Orbitron',sans-serif;font-size:.8rem;font-weight:900;color:#ffd700;text-align:center;min-width:55px;}
+    .ranking-pos b{display:block;font-size:2rem;text-shadow:0 0 12px rgba(255,215,0,0.5);}
+    .ranking-info{flex:1;}
+    .ranking-pts{font-family:'Orbitron',sans-serif;font-size:1rem;color:#ffd700;font-weight:700;}
+    .ranking-meta{color:var(--muted);font-size:.8rem;margin-top:3px;}
+    .ranking-badge{background:rgba(255,215,0,0.12);border:1px solid rgba(255,215,0,0.3);color:#ffd700;font-size:.6rem;font-family:'Orbitron',sans-serif;letter-spacing:1px;padding:3px 8px;border-radius:3px;margin-top:5px;display:inline-block;}
+    .pending-box{color:var(--muted);font-size:.85rem;font-style:italic;padding:4px 0;}
+
+    /* ── INFO TABLE ── */
+    .info-table{width:100%;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:5px;overflow:hidden;margin:8px 0;}
+    .info-row{display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);}
+    .info-row:last-child{border-bottom:none;}
+    .info-label{font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:2px;color:var(--muted);}
+    .info-value{font-size:14px;font-weight:600;color:var(--text);text-align:right;max-width:60%;word-break:break-all;}
+
+    /* ── TORNEOS ── */
+    .torneo-item{background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:6px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;}
+    .torneo-nombre{font-weight:700;font-size:.9rem;}
+    .torneo-fecha{color:var(--muted);font-size:.75rem;margin-top:2px;}
+    .torneo-pos{font-family:'Orbitron',sans-serif;font-size:.85rem;font-weight:900;padding:5px 10px;border-radius:6px;}
+    .pos-1{background:rgba(255,215,0,.12);color:#ffd700;border:1px solid rgba(255,215,0,.3);}
+    .pos-2{background:rgba(192,192,192,.12);color:#c0c0c0;border:1px solid rgba(192,192,192,.3);}
+    .pos-3{background:rgba(205,127,50,.12);color:#cd7f32;border:1px solid rgba(205,127,50,.3);}
+    .pos-n{background:rgba(136,146,176,.08);color:var(--muted);border:1px solid var(--border);}
+    .empty-msg{text-align:center;color:var(--muted);font-size:.85rem;padding:16px 0;}
+
+    /* ── BARAJAS ── */
+    .baraja-item{background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:6px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:border-color .2s;}
+    .baraja-item:hover{border-color:var(--accent);}
+    .baraja-nombre{font-weight:700;font-size:.9rem;}
+    .baraja-meta{color:var(--muted);font-size:.75rem;margin-top:2px;}
+    .baraja-arrow{color:var(--accent);font-size:1.1rem;}
+
+    /* ── AVATARES MODAL ── */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:200;align-items:flex-end;justify-content:center;}
+    .modal-overlay.active{display:flex;}
+    .avatar-modal{background:var(--card);border:1px solid var(--border);border-radius:12px 12px 0 0;padding:22px 18px 36px;width:100%;max-width:460px;}
+    .modal-title{font-family:'Orbitron',sans-serif;font-size:.7rem;color:var(--accent);letter-spacing:3px;text-align:center;margin-bottom:18px;}
+    .avatars-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+    .av-opt{aspect-ratio:1;background:rgba(255,255,255,0.03);border:2px solid var(--border);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;font-size:1.9rem;gap:3px;transition:border-color .2s,transform .1s;}
+    .av-lbl{font-size:.5rem;color:var(--muted);font-family:'Rajdhani',sans-serif;text-align:center;}
+    .av-opt:hover,.av-opt.selected{border-color:var(--accent);transform:scale(1.05);background:rgba(0,255,157,.05);}
+    .av-opt.selected{box-shadow:0 0 10px rgba(0,255,157,.3);}
+
+    /* ── TOAST ── */
+    #toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--accent);color:#070b14;padding:11px 26px;border-radius:4px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;z-index:999;opacity:0;transition:opacity 0.3s,transform 0.3s;pointer-events:none;white-space:nowrap;}
+    #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+    .disclaimer{text-align:center;color:#3a4460;font-size:11px;margin-top:14px;line-height:1.6;}
+    .disclaimer a{color:var(--accent);text-decoration:none;}
+    .disclaimer a:hover{text-decoration:underline;}
+
+    @media(max-width:480px){.card{padding:28px 20px;}}
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="chh-nav">
+  <a class="nav-back" href="index.html">← Menú</a>
+  <div class="nav-title">👤 Mi Perfil</div>
+  <div class="nav-spacer"></div>
+</nav>
+
+<div class="container">
+
+<!-- ════ LOGIN ════ -->
+<div id="login-panel">
+  <div class="card">
+    <div class="badge">ACCESO DE JUGADOR</div>
+    <h2 class="card-title">IDENTIFÍCATE</h2>
+    <p class="card-subtitle">Ingresa tu ID de jugador para ver tus estadísticas, ranking y barajas guardadas.</p>
+    <div class="divider"></div>
+
+    <div class="field">
+      <label>ID de jugador</label>
+      <input type="text" id="input-id" placeholder="CHH-00009" maxlength="12" autocomplete="off"/>
+      <span class="error-msg" id="err-id">ID no encontrado. Verifica tu número.</span>
+    </div>
+
+    <button class="btn" id="btn-login" onclick="iniciarSesion()">ENTRAR</button>
+
+    <div id="login-loading" style="display:none;text-align:center;margin-top:16px;">
+      <div class="spinner" style="border-top-color:var(--accent);border-color:var(--border);"></div>
+      <span style="color:var(--muted);font-size:.8rem;margin-left:6px;">Buscando jugador...</span>
+    </div>
+
+    <div class="disclaimer">
+      ¿No tienes ID? <a href="registro-jugadores.html">Regístrate aquí en Nexo de Héroes</a>
+    </div>
+  </div>
+</div>
+
+<!-- ════ PERFIL ════ -->
+<div id="profile-panel">
+
+  <!-- Header perfil -->
+  <div class="card" style="margin-bottom:12px;">
+    <div class="profile-header">
+      <div class="avatar-wrap">
+        <div class="avatar-circle" id="avatar-display">🦸</div>
+        <button class="avatar-edit" onclick="abrirAvatarModal()">✏️</button>
+      </div>
+      <div class="profile-name" id="p-nombre">—</div>
+      <div class="profile-nick" id="p-nick"></div>
+      <div class="profile-id-display" id="p-id">CHH-00000</div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-box"><span class="stat-val" id="s-puntos">—</span><div class="stat-lbl">Puntos</div></div>
+      <div class="stat-box"><span class="stat-val" id="s-torneos">—</span><div class="stat-lbl">Torneos</div></div>
+      <div class="stat-box"><span class="stat-val" id="s-barajas">0</span><div class="stat-lbl">Barajas</div></div>
+    </div>
+  </div>
+
+  <!-- Ranking -->
+  <div class="card" style="margin-bottom:12px;">
+    <div class="badge">🏆 RANKING GLOBAL</div>
+    <div id="ranking-container"><div class="pending-box">⏳ Cargando ranking...</div></div>
+  </div>
+
+  <!-- Historial torneos -->
+  <div class="card" style="margin-bottom:12px;">
+    <div class="badge">🎯 TORNEOS JUGADOS</div>
+    <div id="torneos-container"><div class="empty-msg">📋 Cargando historial...</div></div>
+  </div>
+
+  <!-- Mis barajas -->
+  <div class="card" style="margin-bottom:12px;">
+    <div class="badge">🃏 MIS BARAJAS</div>
+    <div id="barajas-container"></div>
+    <button class="btn-secondary" onclick="window.location.href='constructor.html'">+ ARMAR NUEVA BARAJA</button>
+  </div>
+
+  <!-- Datos de registro -->
+  <div class="card" style="margin-bottom:12px;">
+    <div class="badge">📋 DATOS DE REGISTRO</div>
+    <div class="info-table">
+      <div class="info-row"><span class="info-label">ID</span><span class="info-value" id="d-id">—</span></div>
+      <div class="info-row"><span class="info-label">Correo</span><span class="info-value" id="d-correo" style="font-size:.8rem">—</span></div>
+      <div class="info-row"><span class="info-label">Registro</span><span class="info-value" id="d-fecha">—</span></div>
+    </div>
+  </div>
+
+  <button class="btn-danger" onclick="cerrarSesion()">⬡ CERRAR SESIÓN</button>
+</div>
+
+</div><!-- /container -->
+
+<!-- ════ MODAL AVATARES ════ -->
+<div class="modal-overlay" id="avatar-modal">
+  <div class="avatar-modal">
+    <div class="modal-title">ELIGE TU AVATAR</div>
+    <div class="avatars-grid" id="avatars-grid"></div>
+    <button class="btn-secondary" style="margin-top:0" onclick="cerrarAvatarModal()">CERRAR</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════
+// CONFIG — solo cambia estas dos líneas
+// ══════════════════════════════════════════
+const SHEET_ID = '1A3pMANjIop9IES2zseTrKImAkHPu2K56_iJJoiQzbxc';
+const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+const RANKING_URL = 'https://script.google.com/macros/s/AKfycbx1rOqnmqWhics45UF40n81V9s-W5VgmhQGtc-UNIERGjkZGN8n1mVHkk0B1VO8PYJWOQ/exec';
+
+// ══════════════════════════════════════════
+// AVATARES — reemplaza emojis por URLs de
+// imágenes tuyas cuando estén listas
+// ══════════════════════════════════════════
+const AVATARS = [
+  {id:'av1',emoji:'🥷',label:'Ninjiachi'},
+  {id:'av2',emoji:'🥋',label:'Max-Kara'},
+  {id:'av3',emoji:'🌊',label:'Legión Mar'},
+  {id:'av4',emoji:'🦎',label:'Evolotl'},
+  {id:'av5',emoji:'🔥',label:'Héroe'},
+  {id:'av6',emoji:'⚡',label:'Campeón'},
+  {id:'av7',emoji:'🌙',label:'Mictlán'},
+  {id:'av8',emoji:'🐍',label:'Koatl'},
+];
+
+let jugador = null;
+
+// ── INIT ──
+window.addEventListener('load', () => {
+  const saved = localStorage.getItem('nhSesion');
+  if (saved) {
+    try { jugador = JSON.parse(saved); mostrarPerfil(); } catch(e) { localStorage.removeItem('nhSesion'); }
+  }
+  document.getElementById('input-id').addEventListener('keypress', e => {
+    if (e.key === 'Enter') iniciarSesion();
+  });
+  construirAvatares();
+});
+
+// ── LOGIN ──
+async function iniciarSesion() {
+  const id = document.getElementById('input-id').value.trim().toUpperCase();
+  const err = document.getElementById('err-id');
+  const btn = document.getElementById('btn-login');
+  const load = document.getElementById('login-loading');
+  err.classList.remove('visible');
+  if (!id) { err.textContent='Ingresa tu ID de jugador.'; err.classList.add('visible'); return; }
+  btn.disabled=true; btn.style.display='none';
+  load.style.display='block';
+  try {
+    const j = await buscarJugador(id);
+    if (j) {
+      jugador = j;
+      localStorage.setItem('nhSesion', JSON.stringify(j));
+      mostrarPerfil();
+    } else {
+      err.textContent='ID no encontrado. Verifica tu número.';
+      err.classList.add('visible');
+      btn.disabled=false; btn.style.display='block';
+    }
+  } catch(e) {
+    err.textContent='Error de conexión. Verifica tu internet.';
+    err.classList.add('visible');
+    btn.disabled=false; btn.style.display='block';
+  } finally { load.style.display='none'; }
+}
+
+async function buscarJugador(idBuscado) {
+  const res = await fetch(SHEET_URL);
+  const txt = await res.text();
+  const json = JSON.parse(txt.substring(47).slice(0,-2));
+  for (const row of json.table.rows) {
+    const c = row.c;
+    const idCell = c[0]?.v;
+    if (idCell && idCell.toString().trim().toUpperCase() === idBuscado)
+      return { id:c[0]?.v||'', fecha:c[1]?.v||'', nombre:c[2]?.v||'', nick:c[3]?.v||'', correo:c[4]?.v||'' };
+  }
+  return null;
+}
+
+// ── MOSTRAR PERFIL ──
+function mostrarPerfil() {
+  document.getElementById('login-panel').style.display='none';
+  document.getElementById('profile-panel').style.display='block';
+  document.getElementById('p-nombre').textContent = jugador.nombre || '—';
+  document.getElementById('p-nick').textContent = jugador.nick ? `"${jugador.nick}"` : '';
+  document.getElementById('p-id').textContent = jugador.id;
+  document.getElementById('d-id').textContent = jugador.id;
+  document.getElementById('d-correo').textContent = jugador.correo || '—';
+  document.getElementById('d-fecha').textContent = formatFecha(jugador.fecha);
+  const avId = localStorage.getItem(`nhAv_${jugador.id}`);
+  const av = AVATARS.find(a=>a.id===avId) || AVATARS[0];
+  document.getElementById('avatar-display').textContent = av.emoji;
+  cargarBarajas();
+  cargarRanking();
+}
+
+// ── RANKING ──
+async function cargarRanking() {
+  const cont = document.getElementById('ranking-container');
+  cont.innerHTML = `<div class="pending-box">⏳ Cargando ranking...</div>`;
+  try {
+    const r = await fetch(`${RANKING_URL}?id=${jugador.id}`);
+    const d = await r.json();
+
+    // Compatible con múltiples formatos de respuesta del Apps Script
+    const pos   = d.posicion  ?? d.ranking   ?? d.position ?? d.pos ?? '?';
+    const pts   = d.puntos    ?? d.points    ?? d.puntaje  ?? d.score ?? 0;
+    const torns = d.torneos   ?? d.tournaments ?? d.total  ?? 0;
+    const historial = d.historial ?? d.torneos_lista ?? d.lista ?? d.data ?? [];
+
+    document.getElementById('s-puntos').textContent  = pts;
+    document.getElementById('s-torneos').textContent = torns;
+
+    const badge = pos<=3 ? `<div class="ranking-badge">🏆 TOP ${pos}</div>`
+                : pos<=10 ? `<div class="ranking-badge">⭐ TOP 10</div>` : '';
+
+    cont.innerHTML = `
+      <div class="ranking-box">
+        <div class="ranking-pos">#<b>${pos}</b></div>
+        <div class="ranking-info">
+          <div class="ranking-pts">${pts} <span style="color:var(--muted);font-size:.8rem">puntos</span></div>
+          <div class="ranking-meta">${torns} torneos jugados</div>
+          ${badge}
+        </div>
+      </div>`;
+
+    if (Array.isArray(historial) && historial.length) renderTorneos(historial);
+    else document.getElementById('torneos-container').innerHTML =
+      '<div class="empty-msg">📋 Sin historial de torneos aún.</div>';
+
+  } catch(e) {
+    // Mostrar la respuesta cruda para debug si falla
+    cont.innerHTML = `<div class="pending-box">⚠️ No se pudo cargar el ranking.<br><small style="font-size:.7rem;opacity:.5">${e.message}</small></div>`;
+    document.getElementById('torneos-container').innerHTML =
+      '<div class="empty-msg">📋 No disponible.</div>';
+  }
+}
+
+function renderTorneos(historial) {
+  const cont = document.getElementById('torneos-container');
+  if (!historial?.length) { cont.innerHTML='<div class="empty-msg">📋 Sin historial.</div>'; return; }
+  cont.innerHTML = historial.map(t => {
+    const pos = t.lugar||t.posicion||'?';
+    const cls = pos==1?'pos-1':pos==2?'pos-2':pos==3?'pos-3':'pos-n';
+    const txt = pos==1?'🥇 1°':pos==2?'🥈 2°':pos==3?'🥉 3°':`#${pos}`;
+    return `<div class="torneo-item"><div><div class="torneo-nombre">${t.nombre||'Torneo'}</div><div class="torneo-fecha">${t.fecha||''}</div></div><div class="torneo-pos ${cls}">${txt}</div></div>`;
+  }).join('');
+}
+
+// ── BARAJAS ──
+function cargarBarajas() {
+  let barajas = [];
+  try { barajas = JSON.parse(localStorage.getItem(`nhBarajas_${jugador.id}`) || '[]'); } catch(e){}
+  document.getElementById('s-barajas').textContent = barajas.length;
+  const cont = document.getElementById('barajas-container');
+  if (!barajas.length) { cont.innerHTML='<div class="empty-msg">No tienes barajas guardadas aún.</div>'; return; }
+  cont.innerHTML = barajas.map((b,i)=>`
+    <div class="baraja-item" onclick="window.location.href='constructor.html?jugador=${jugador.id}&baraja=${i}'">
+      <div><div class="baraja-nombre">${b.nombre||`Baraja #${i+1}`}</div><div class="baraja-meta">BP:${b.bp?.length||0}/40 · BA:${b.ba?.length||0}/15 · BS:${b.bs?.length||0}/15</div></div>
+      <div class="baraja-arrow">›</div>
+    </div>`).join('');
+}
+
+// ── AVATARES ──
+function construirAvatares() {
+  document.getElementById('avatars-grid').innerHTML = AVATARS.map(av=>
+    `<div class="av-opt" id="avopt_${av.id}" onclick="elegirAvatar('${av.id}','${av.emoji}')">${av.emoji}<span class="av-lbl">${av.label}</span></div>`
+  ).join('');
+}
+function abrirAvatarModal() {
+  const actual = jugador ? localStorage.getItem(`nhAv_${jugador.id}`) : null;
+  document.querySelectorAll('.av-opt').forEach(e=>e.classList.remove('selected'));
+  if (actual) { const opt=document.getElementById(`avopt_${actual}`); if(opt) opt.classList.add('selected'); }
+  document.getElementById('avatar-modal').classList.add('active');
+}
+function cerrarAvatarModal() { document.getElementById('avatar-modal').classList.remove('active'); }
+function elegirAvatar(avId, emoji) {
+  document.querySelectorAll('.av-opt').forEach(e=>e.classList.remove('selected'));
+  document.getElementById(`avopt_${avId}`).classList.add('selected');
+  document.getElementById('avatar-display').textContent = emoji;
+  if (jugador) localStorage.setItem(`nhAv_${jugador.id}`, avId);
+  setTimeout(cerrarAvatarModal, 300);
+  mostrarToast('¡Avatar actualizado!');
+}
+
+// ── CERRAR SESIÓN ──
+function cerrarSesion() {
+  localStorage.removeItem('nhSesion');
+  jugador = null;
+  document.getElementById('profile-panel').style.display='none';
+  document.getElementById('login-panel').style.display='block';
+  document.getElementById('input-id').value='';
+  document.getElementById('err-id').classList.remove('visible');
+  document.getElementById('btn-login').disabled=false;
+  document.getElementById('btn-login').style.display='block';
+}
+
+// ── UTILS ──
+function formatFecha(raw) {
+  if (!raw) return '—';
+  try {
+    if (typeof raw==='string' && raw.startsWith('Date(')) {
+      const p = raw.replace('Date(','').replace(')','').split(',');
+      return new Date(+p[0],+p[1],+p[2]).toLocaleDateString('es-MX',{year:'numeric',month:'long',day:'numeric'});
+    }
+    return new Date(raw).toLocaleDateString('es-MX',{year:'numeric',month:'long',day:'numeric'});
+  } catch(e) { return raw; }
+}
+function mostrarToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+</script>
+</body>
+</html>

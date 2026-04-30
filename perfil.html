@@ -421,6 +421,7 @@ function mostrarPerfil() {
   const av = AVATARS.find(a=>a.id===avId) || AVATARS[0];
   const avSrc = av ? av.src : 'avatares/avatar_1.jpg';
   document.getElementById('avatar-display').innerHTML = `<img src="${avSrc}" alt="${av ? av.label : 'Avatar'}" onerror="this.style.display='none'"/>`;
+  aplicarItemsGuardados();
   cargarBarajas();
   cargarRanking();
 }
@@ -551,6 +552,41 @@ async function cargarBadges(historial, totalPts, posGlobal) {
     </div>`;
   }).join('')}</div>
   <div style="font-size:.7rem;color:var(--muted);margin-top:10px;text-align:right">${ganados.length}/${BADGES_CATALOGO.length} desbloqueados</div>`;
+}
+
+
+// ── Aplicar items de tienda equipados ──
+function aplicarItemsGuardados() {
+  if (!jugador) return;
+  const PUNTOS_POS_T = { 1:8, 2:5, 3:4, 4:3, 5:2, 6:2, 7:1, 8:1 };
+  // Tema de color
+  const temaId = localStorage.getItem(`nhEquip_temas_${jugador.id}`);
+  if (temaId) {
+    const temas = {
+      tema_azul:    { acento:'#00cfff', glow:'0 0 6px #00cfff,0 0 18px rgba(0,207,255,.4)' },
+      tema_dorado:  { acento:'#f5a623', glow:'0 0 8px #f5a623,0 0 22px rgba(245,166,35,.45)' },
+      tema_purpura: { acento:'#cc55ff', glow:'0 0 8px #cc55ff,0 0 22px rgba(180,70,255,.5)' },
+      tema_rojo:    { acento:'#ff2244', glow:'0 0 8px #ff2244,0 0 20px rgba(255,34,68,.4)' },
+      tema_blanco:  { acento:'#e0eeff', glow:'0 0 6px #e0eeff,0 0 18px rgba(224,238,255,.3)' },
+    };
+    const t = temas[temaId];
+    if (t) {
+      document.documentElement.style.setProperty('--neon', t.acento);
+      document.documentElement.style.setProperty('--accent', t.acento);
+      document.documentElement.style.setProperty('--nglow', t.glow);
+    }
+  }
+  // Fondo
+  const fondoId = localStorage.getItem(`nhEquip_fondos_${jugador.id}`);
+  const fondos = {
+    bg_nebula:  'radial-gradient(ellipse at 20% 50%,#0d0020 0%,#03050a 60%)',
+    bg_forest:  'radial-gradient(ellipse at 80% 20%,#001a0d 0%,#03050a 60%)',
+    bg_lava:    'radial-gradient(ellipse at 50% 80%,#1a0500 0%,#03050a 60%)',
+    bg_ocean:   'radial-gradient(ellipse at 30% 30%,#00101a 0%,#03050a 60%)',
+    bg_void:    'radial-gradient(ellipse at 50% 50%,#0a0010 0%,#000000 100%)',
+    bg_nexo:    'url(fondos/nexo_bg.jpg) center/cover',
+  };
+  if (fondoId && fondos[fondoId]) document.body.style.background = fondos[fondoId];
 }
 
 // ── RANKING ──

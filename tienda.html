@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tienda — Nexo de Héroes</title>
+  <link rel="manifest" href="manifest.json"/>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{
+      --bg:#03050a; --bg2:#07090f; --bg3:#0b0e18;
+      --text:#e0eeff; --muted:#6a7f9a; --border:#141c2a;
+      --neon:#00ff9d; --neon-d:#007a4a; --neon-dim:rgba(0,255,157,.09);
+      --nglow:0 0 6px #00ff9d,0 0 18px rgba(0,255,157,.4);
+      --gold:#f5a623; --gold-d:#7a5210; --gold-dim:rgba(245,166,35,.1);
+      --gglow:0 0 8px #f5a623,0 0 22px rgba(245,166,35,.45);
+      --purple:#cc55ff; --purple-dim:rgba(180,70,255,.1);
+      --pglow:0 0 8px #cc55ff,0 0 22px rgba(180,70,255,.5);
+      --blue:#00cfff; --blue-dim:rgba(0,207,255,.09);
+      --bglow:0 0 6px #00cfff,0 0 18px rgba(0,207,255,.4);
+      --card:rgba(10,16,36,0.97);
+      --accent:var(--neon);
+    }
+
+    html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;}
+    body{display:flex;flex-direction:column;min-height:100vh;overflow-x:hidden;position:relative;}
+    body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,255,157,0.018) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,157,0.018) 1px,transparent 1px);background-size:44px 44px;pointer-events:none;z-index:0;}
+
+    /* ── NAV ── */
+    #chh-nav{position:sticky;top:0;z-index:999;background:rgba(3,5,10,.96);border-bottom:1px solid var(--border);backdrop-filter:blur(12px);display:flex;align-items:center;padding:8px 14px;gap:10px;}
+    #chh-nav::after{content:'';position:absolute;bottom:0;left:5%;right:5%;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.5;}
+    .nav-back{font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--gold);background:transparent;border:1px solid var(--gold-d);padding:6px 10px;border-radius:3px;cursor:pointer;text-decoration:none;white-space:nowrap;transition:background .15s;text-shadow:0 0 8px var(--gold);opacity:.8;}
+    .nav-back:active{background:rgba(245,166,35,.12);opacity:1;}
+    .nav-title{font-family:'Orbitron',monospace;font-size:11px;font-weight:900;letter-spacing:2px;text-transform:uppercase;color:var(--gold);text-shadow:var(--gglow);flex:1;text-align:center;}
+    .nav-pts{font-family:'Orbitron',monospace;font-size:9px;font-weight:700;color:var(--gold);text-align:right;white-space:nowrap;min-width:60px;}
+    .nav-pts span{display:block;font-size:14px;line-height:1;}
+
+    /* ── CONTENEDOR ── */
+    .container{width:100%;max-width:460px;margin:0 auto;padding:20px 14px 60px;position:relative;z-index:1;}
+
+    /* ── LOGIN REQUERIDO ── */
+    #login-required{display:none;text-align:center;padding:50px 20px;}
+    #login-required .lock-icon{font-size:3rem;margin-bottom:16px;}
+    #login-required p{color:var(--muted);font-size:.9rem;line-height:1.6;margin-bottom:20px;}
+    .btn-login{display:inline-block;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;color:var(--bg);background:var(--neon);padding:12px 24px;border-radius:4px;text-decoration:none;border:none;cursor:pointer;}
+
+    /* ── HEADER JUGADOR ── */
+    #jugador-header{display:none;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:18px;display:none;align-items:center;gap:14px;}
+    #jugador-header.visible{display:flex;}
+    .jh-avatar{width:48px;height:48px;border-radius:50%;border:2px solid var(--gold);overflow:hidden;flex-shrink:0;background:var(--gold-dim);display:flex;align-items:center;justify-content:center;font-size:1.4rem;}
+    .jh-avatar img{width:100%;height:100%;object-fit:cover;}
+    .jh-info{flex:1;}
+    .jh-nombre{font-weight:700;font-size:1rem;}
+    .jh-id{font-family:'Orbitron',sans-serif;font-size:.65rem;color:var(--muted);letter-spacing:1px;}
+    .jh-pts{font-family:'Orbitron',sans-serif;font-size:.7rem;color:var(--gold);text-align:right;}
+    .jh-pts b{display:block;font-size:1.4rem;text-shadow:var(--gglow);}
+
+    /* ── TABS ── */
+    .tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:18px;}
+    .tab-btn{font-family:'Orbitron',sans-serif;font-size:.6rem;font-weight:700;letter-spacing:1.5px;padding:9px 4px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all .2s;text-align:center;}
+    .tab-btn.active{border-color:var(--gold);color:var(--gold);background:var(--gold-dim);text-shadow:var(--gglow);}
+
+    /* ── GRID DE ITEMS ── */
+    .items-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+    .item-card{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;position:relative;transition:border-color .2s,transform .15s;}
+    .item-card.unlocked{border-color:var(--gold);box-shadow:0 0 12px rgba(245,166,35,.15);}
+    .item-card.equipped{border-color:var(--neon);box-shadow:0 0 14px rgba(0,255,157,.2);}
+
+    /* Preview del item */
+    .item-preview{aspect-ratio:1;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;font-size:3rem;background:rgba(255,255,255,.02);}
+    .item-preview img{width:100%;height:100%;object-fit:cover;display:block;}
+    .item-preview.theme-preview{aspect-ratio:16/9;}
+
+    /* Overlay de bloqueado */
+    .item-lock{position:absolute;inset:0;background:rgba(3,5,10,.7);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;backdrop-filter:blur(2px);}
+    .item-lock-icon{font-size:1.6rem;opacity:.7;}
+    .item-lock-pts{font-family:'Orbitron',sans-serif;font-size:.6rem;color:var(--gold);letter-spacing:1px;}
+    .item-card.unlocked .item-lock,
+    .item-card.equipped .item-lock{display:none;}
+
+    /* Badge equipado */
+    .equipped-badge{position:absolute;top:6px;right:6px;background:var(--neon);color:var(--bg);font-family:'Orbitron',sans-serif;font-size:.5rem;font-weight:900;letter-spacing:1px;padding:3px 7px;border-radius:2px;z-index:2;}
+
+    /* Info del item */
+    .item-info{padding:10px 12px 12px;}
+    .item-nombre{font-weight:700;font-size:.9rem;margin-bottom:2px;}
+    .item-tipo{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+    .item-btn{width:100%;font-family:'Orbitron',sans-serif;font-size:.55rem;font-weight:700;letter-spacing:1.5px;padding:8px;border-radius:4px;border:none;cursor:pointer;transition:opacity .2s,transform .1s;}
+    .item-btn:active{transform:scale(.97);}
+    .item-btn.btn-locked{background:rgba(255,255,255,.04);color:var(--muted);border:1px solid var(--border);cursor:default;}
+    .item-btn.btn-unlock{background:linear-gradient(135deg,var(--gold),#e8920a);color:var(--bg);}
+    .item-btn.btn-equip{background:linear-gradient(135deg,var(--neon),var(--neon-d));color:var(--bg);}
+    .item-btn.btn-equipped{background:rgba(0,255,157,.08);color:var(--neon);border:1px solid var(--neon-d);cursor:default;}
+
+    /* Pts requeridos */
+    .pts-req{font-size:.6rem;color:var(--muted);text-align:center;margin-top:5px;}
+    .pts-req.ok{color:var(--neon);}
+    .pts-req.nok{color:var(--muted);}
+
+    /* ── SECCIÓN VACÍA ── */
+    .empty-tab{text-align:center;padding:40px 20px;color:var(--muted);font-size:.85rem;}
+
+    /* ── TOAST ── */
+    #toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--gold);color:var(--bg);padding:11px 26px;border-radius:4px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;z-index:9999;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none;white-space:nowrap;}
+    #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+    @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+    .container{animation:fadeUp .4s ease both;}
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="chh-nav">
+  <a class="nav-back" href="index.html">◀ INICIO</a>
+  <div class="nav-title">🏪 TIENDA DEL HÉROE</div>
+  <div class="nav-pts" id="nav-pts">
+    <span id="nav-pts-val">—</span>
+    PTS
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- Login requerido -->
+  <div id="login-required">
+    <div class="lock-icon">🔐</div>
+    <p>Inicia sesión en tu perfil para acceder a la tienda y desbloquear recompensas con tus puntos de ranking.</p>
+    <a class="btn-login" href="perfil.html">IR A MI PERFIL</a>
+  </div>
+
+  <!-- Contenido tienda (visible si hay sesión) -->
+  <div id="tienda-content" style="display:none">
+
+    <!-- Header jugador -->
+    <div id="jugador-header">
+      <div class="jh-avatar" id="jh-avatar">🦸</div>
+      <div class="jh-info">
+        <div class="jh-nombre" id="jh-nombre">—</div>
+        <div class="jh-id" id="jh-id">—</div>
+      </div>
+      <div class="jh-pts">
+        <b id="jh-pts-val">—</b>
+        PUNTOS
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="cambiarTab('avatares',this)">👤 AVATARES</button>
+      <button class="tab-btn" onclick="cambiarTab('fondos',this)">🌌 FONDOS</button>
+      <button class="tab-btn" onclick="cambiarTab('temas',this)">🎨 TEMAS</button>
+    </div>
+
+    <!-- Grid de items -->
+    <div class="items-grid" id="items-grid"></div>
+
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ================================================================
+//  CONSTANTES
+// ================================================================
+const SHEET_ID  = '1A3pMANjIop9IES2zseTrKImAkHPu2K56_iJJoiQzbxc';
+const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+const RANKING_URL = 'https://script.google.com/macros/s/AKfycbx1rOqnmqWhics45UF40n81V9s-W5VgmhQGtc-UNIERGjkZGN8n1mVHkk0B1VO8PYJWOQ/exec';
+const PUNTOS_POS  = { 1:8, 2:5, 3:4, 4:3, 5:2, 6:2, 7:1, 8:1 };
+
+// ================================================================
+//  CATÁLOGO DE LA TIENDA
+//  pts: puntos necesarios para desbloquear
+//  Para agregar items: añade una entrada aquí y sube la imagen
+// ================================================================
+const CATALOGO = {
+  avatares: [
+    { id:'av_p1',  nombre:'Koatl Rojo',     pts:5,  img:'avatares/av_p1.jpg',  emoji:'🐍' },
+    { id:'av_p2',  nombre:'Ninjiachi Dark',  pts:8,  img:'avatares/av_p2.jpg',  emoji:'🥷' },
+    { id:'av_p3',  nombre:'Max-Kara Gold',   pts:10, img:'avatares/av_p3.jpg',  emoji:'⚡' },
+    { id:'av_p4',  nombre:'Evolotl Lunar',   pts:15, img:'avatares/av_p4.jpg',  emoji:'🦎' },
+    { id:'av_p5',  nombre:'Héroe Supremo',   pts:20, img:'avatares/av_p5.jpg',  emoji:'🦸' },
+    { id:'av_p6',  nombre:'Mictlán Rex',     pts:25, img:'avatares/av_p6.jpg',  emoji:'💀' },
+    { id:'av_p7',  nombre:'Legión Oscura',   pts:30, img:'avatares/av_p7.jpg',  emoji:'🌊' },
+    { id:'av_p8',  nombre:'Campeón Eterno',  pts:50, img:'avatares/av_p8.jpg',  emoji:'👑' },
+  ],
+  fondos: [
+    { id:'bg_nebula',  nombre:'Nebulosa',     pts:5,  css:'radial-gradient(ellipse at 20% 50%,#0d0020 0%,#03050a 60%),url(fondos/nebula.jpg)',    preview:'#0d0020' },
+    { id:'bg_forest',  nombre:'Bosque Neon',  pts:8,  css:'radial-gradient(ellipse at 80% 20%,#001a0d 0%,#03050a 60%)',                           preview:'#001a0d' },
+    { id:'bg_lava',    nombre:'Lava',         pts:12, css:'radial-gradient(ellipse at 50% 80%,#1a0500 0%,#03050a 60%)',                           preview:'#1a0500' },
+    { id:'bg_ocean',   nombre:'Océano Profundo', pts:15, css:'radial-gradient(ellipse at 30% 30%,#00101a 0%,#03050a 60%)',                        preview:'#00101a' },
+    { id:'bg_void',    nombre:'El Vacío',     pts:25, css:'radial-gradient(ellipse at 50% 50%,#0a0010 0%,#000000 100%)',                          preview:'#0a0010' },
+    { id:'bg_nexo',    nombre:'Nexo de Héroes', pts:40, css:'url(fondos/nexo_bg.jpg) center/cover',                                              preview:'#0b0818' },
+  ],
+  temas: [
+    { id:'tema_verde',  nombre:'Verde Nexo',   pts:0,  acento:'#00ff9d', glow:'0 0 6px #00ff9d,0 0 18px rgba(0,255,157,.4)',  preview:'#00ff9d' },
+    { id:'tema_azul',   nombre:'Azul Cyber',   pts:5,  acento:'#00cfff', glow:'0 0 6px #00cfff,0 0 18px rgba(0,207,255,.4)',  preview:'#00cfff' },
+    { id:'tema_dorado', nombre:'Dorado Real',  pts:10, acento:'#f5a623', glow:'0 0 8px #f5a623,0 0 22px rgba(245,166,35,.45)',preview:'#f5a623' },
+    { id:'tema_purpura',nombre:'Púrpura',      pts:15, acento:'#cc55ff', glow:'0 0 8px #cc55ff,0 0 22px rgba(180,70,255,.5)', preview:'#cc55ff' },
+    { id:'tema_rojo',   nombre:'Rojo Sangre',  pts:20, acento:'#ff2244', glow:'0 0 8px #ff2244,0 0 20px rgba(255,34,68,.4)',  preview:'#ff2244' },
+    { id:'tema_blanco', nombre:'Artic White',  pts:30, acento:'#e0eeff', glow:'0 0 6px #e0eeff,0 0 18px rgba(224,238,255,.3)',preview:'#e0eeff' },
+  ]
+};
+
+// ================================================================
+//  ESTADO
+// ================================================================
+let jugador    = null;
+let totalPts   = 0;
+let tabActual  = 'avatares';
+
+// ================================================================
+//  INIT
+// ================================================================
+window.addEventListener('load', async () => {
+  const saved = localStorage.getItem('nhSesion');
+  if (!saved) {
+    document.getElementById('login-required').style.display = 'block';
+    return;
+  }
+  try {
+    jugador = JSON.parse(saved);
+  } catch(e) {
+    document.getElementById('login-required').style.display = 'block';
+    return;
+  }
+
+  document.getElementById('tienda-content').style.display = 'block';
+  document.getElementById('login-required').style.display = 'none';
+
+  // Header jugador
+  document.getElementById('jh-nombre').textContent = jugador.nombre || jugador.nick || '—';
+  document.getElementById('jh-id').textContent = jugador.id;
+
+  // Avatar
+  const avId = localStorage.getItem(`nhAv_${jugador.id}`);
+  if (avId) {
+    const avEl = document.getElementById('jh-avatar');
+    const img = document.createElement('img');
+    img.src = `avatares/${avId.replace('av','avatar_')}.jpg`;
+    img.onerror = () => {};
+    avEl.innerHTML = '';
+    avEl.appendChild(img);
+  }
+
+  // Calcular puntos
+  await calcularPuntos();
+  renderTab(tabActual);
+});
+
+// ================================================================
+//  CALCULAR PUNTOS desde ranking
+// ================================================================
+async function calcularPuntos() {
+  try {
+    const r = await fetch(RANKING_URL);
+    const d = await r.json();
+    if (d.status !== 'ok' || !Array.isArray(d.resultados)) return;
+
+    const miId = jugador.id.trim().toUpperCase();
+    let pts = 0;
+    d.resultados.forEach(torneo => {
+      for (let i = 1; i <= 8; i++) {
+        if ((torneo[`p${i}_id`] || '').trim().toUpperCase() === miId) {
+          pts += PUNTOS_POS[i] ?? 0;
+          break;
+        }
+      }
+    });
+    totalPts = pts;
+  } catch(e) {
+    console.warn('No se pudieron cargar puntos:', e.message);
+  }
+
+  document.getElementById('nav-pts-val').textContent  = totalPts;
+  document.getElementById('jh-pts-val').textContent   = totalPts;
+}
+
+// ================================================================
+//  TABS
+// ================================================================
+function cambiarTab(tab, btn) {
+  tabActual = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTab(tab);
+}
+
+// ================================================================
+//  RENDER
+// ================================================================
+function renderTab(tab) {
+  const grid = document.getElementById('items-grid');
+  const items = CATALOGO[tab];
+  if (!items || !items.length) {
+    grid.innerHTML = '<div class="empty-tab">📦 Próximamente más items.</div>';
+    return;
+  }
+
+  grid.innerHTML = items.map(item => renderItem(item, tab)).join('');
+}
+
+function renderItem(item, tab) {
+  const desbloqueado = estaDesbloqueado(item.id);
+  const equipado     = estaEquipado(item.id, tab);
+  const puedePagar   = totalPts >= item.pts;
+
+  // Preview
+  let previewHtml = '';
+  if (tab === 'avatares') {
+    previewHtml = `<div class="item-preview">
+      <img src="${item.img}" alt="${item.nombre}" onerror="this.style.display='none';this.parentElement.innerHTML+='<span style=\\"font-size:3rem\\">${item.emoji}</span>'"/>
+      ${!desbloqueado ? lockOverlay(item, puedePagar) : ''}
+      ${equipado ? '<div class="equipped-badge">EN USO</div>' : ''}
+    </div>`;
+  } else if (tab === 'fondos') {
+    previewHtml = `<div class="item-preview" style="background:${item.preview};aspect-ratio:16/9;">
+      <span style="font-size:2rem;opacity:.4">🌌</span>
+      ${!desbloqueado ? lockOverlay(item, puedePagar) : ''}
+      ${equipado ? '<div class="equipped-badge">ACTIVO</div>' : ''}
+    </div>`;
+  } else if (tab === 'temas') {
+    previewHtml = `<div class="item-preview" style="background:#0b0e18;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;gap:6px;">
+      <div style="width:20px;height:20px;border-radius:50%;background:${item.preview};box-shadow:0 0 12px ${item.preview};"></div>
+      <div style="font-family:'Orbitron',monospace;font-size:.55rem;color:${item.preview};">NEXO</div>
+      ${!desbloqueado ? lockOverlay(item, puedePagar) : ''}
+      ${equipado ? '<div class="equipped-badge">ACTIVO</div>' : ''}
+    </div>`;
+  }
+
+  // Botón
+  let btnHtml = '';
+  if (equipado) {
+    btnHtml = `<button class="item-btn btn-equipped">✓ EN USO</button>`;
+  } else if (desbloqueado) {
+    btnHtml = `<button class="item-btn btn-equip" onclick="equiparItem('${item.id}','${tab}')">USAR</button>`;
+  } else if (puedePagar) {
+    btnHtml = `<button class="item-btn btn-unlock" onclick="desbloquearItem('${item.id}','${tab}')">🔓 DESBLOQUEAR</button>
+               <div class="pts-req ok">✓ Tienes ${totalPts} / ${item.pts} pts</div>`;
+  } else {
+    btnHtml = `<button class="item-btn btn-locked" disabled>🔒 BLOQUEADO</button>
+               <div class="pts-req nok">${totalPts} / ${item.pts} pts necesarios</div>`;
+  }
+
+  return `<div class="item-card${desbloqueado ? ' unlocked' : ''}${equipado ? ' equipped' : ''}">
+    ${previewHtml}
+    <div class="item-info">
+      <div class="item-nombre">${item.nombre}</div>
+      <div class="item-tipo">${item.pts === 0 ? 'GRATIS' : item.pts + ' PTS'}</div>
+      ${btnHtml}
+    </div>
+  </div>`;
+}
+
+function lockOverlay(item, puedePagar) {
+  return `<div class="item-lock">
+    <div class="item-lock-icon">${puedePagar ? '🔓' : '🔒'}</div>
+    <div class="item-lock-pts">${item.pts} PTS</div>
+  </div>`;
+}
+
+// ================================================================
+//  LÓGICA DE DESBLOQUEO Y EQUIP
+// ================================================================
+function keyDesbloqueados() { return `nhTienda_${jugador.id}`; }
+function keyEquipado(tab)   { return `nhEquip_${tab}_${jugador.id}`; }
+
+function getDesbloqueados() {
+  try { return JSON.parse(localStorage.getItem(keyDesbloqueados()) || '[]'); } catch(e){ return []; }
+}
+function estaDesbloqueado(itemId) {
+  if (itemId === 'tema_verde') return true; // tema verde siempre disponible
+  return getDesbloqueados().includes(itemId);
+}
+function estaEquipado(itemId, tab) {
+  return localStorage.getItem(keyEquipado(tab)) === itemId;
+}
+
+function desbloquearItem(itemId, tab) {
+  const items = CATALOGO[tab];
+  const item = items.find(i => i.id === itemId);
+  if (!item) return;
+  if (totalPts < item.pts) { mostrarToast('No tienes suficientes puntos'); return; }
+
+  const lista = getDesbloqueados();
+  if (!lista.includes(itemId)) lista.push(itemId);
+  localStorage.setItem(keyDesbloqueados(), JSON.stringify(lista));
+  mostrarToast(`¡${item.nombre} desbloqueado!`);
+  equiparItem(itemId, tab);
+}
+
+function equiparItem(itemId, tab) {
+  localStorage.setItem(keyEquipado(tab), itemId);
+  aplicarItem(itemId, tab);
+  mostrarToast('¡Aplicado!');
+  renderTab(tab);
+}
+
+function aplicarItem(itemId, tab) {
+  if (tab === 'temas') {
+    const item = CATALOGO.temas.find(i => i.id === itemId);
+    if (!item) return;
+    document.documentElement.style.setProperty('--neon', item.acento);
+    document.documentElement.style.setProperty('--accent', item.acento);
+    document.documentElement.style.setProperty('--nglow', item.glow);
+    // Guardar en settings para que persista
+    try {
+      const s = JSON.parse(localStorage.getItem('nhSettings') || '{}');
+      s.color = itemId.replace('tema_','');
+      s.colorHex = item.acento;
+      s.colorGlow = item.glow;
+      localStorage.setItem('nhSettings', JSON.stringify(s));
+    } catch(e){}
+  } else if (tab === 'fondos') {
+    const item = CATALOGO.fondos.find(i => i.id === itemId);
+    if (!item) return;
+    document.body.style.background = item.css;
+    try {
+      const s = JSON.parse(localStorage.getItem('nhSettings') || '{}');
+      s.fondo = itemId;
+      s.fondoCss = item.css;
+      localStorage.setItem('nhSettings', JSON.stringify(s));
+    } catch(e){}
+  }
+  // Para avatares: solo se aplican desde perfil.html
+}
+
+// ── Aplicar items equipados al cargar ──
+function aplicarItemsGuardados() {
+  const temaId = localStorage.getItem(keyEquipado('temas'));
+  if (temaId) aplicarItem(temaId, 'temas');
+  const fondoId = localStorage.getItem(keyEquipado('fondos'));
+  if (fondoId) aplicarItem(fondoId, 'fondos');
+}
+
+// ================================================================
+//  TOAST
+// ================================================================
+function mostrarToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+</script>
+
+<script src="settings.js"></script>
+</body>
+</html>

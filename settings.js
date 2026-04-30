@@ -201,6 +201,16 @@ function applyGalleryView(view) {
   }
 }
 
+
+// ─── APLICAR FONDO ────────────────────────────
+
+function applyFondo(fondoCss) {
+  if (!fondoCss) return;
+  document.body.style.background = fondoCss;
+  document.body.style.backgroundAttachment = 'fixed';
+  console.log('✅ Fondo aplicado');
+}
+
 // ─── APLICAR TODOS LOS AJUSTES ────────────────
 
 function applyAllSettings() {
@@ -212,6 +222,25 @@ function applyAllSettings() {
   applyAccentColor(settings.accentColor);
   applyAnimations(settings.animations);
   applyGalleryView(settings.galleryView);
+  if (settings.fondoCss) applyFondo(settings.fondoCss);
+  // Restaurar tema exclusivo de tienda si existe
+  if (settings.temaId && settings.temaHex) {
+    const item = {
+      hex: settings.temaHex, d: settings.temaD,
+      dim: settings.temaDim, glow: settings.temaGlow,
+      rainbow: settings.temaRainbow
+    };
+    // Inyectar estilos del tema de tienda
+    const css = settings.temaRainbow ? '' : `
+      :root {
+        --neon: ${settings.temaHex} !important;
+        --neon-d: ${settings.temaD} !important;
+        --neon-dim: ${settings.temaDim} !important;
+        --nglow: ${settings.temaGlow} !important;
+        --accent: ${settings.temaHex} !important;
+      }`;
+    if (css) injectStyle('chh-tienda-color', css);
+  }
   
   console.log('✅ Ajustes aplicados completamente');
 }

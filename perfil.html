@@ -122,9 +122,10 @@
     /* ── AVATARES MODAL ── */
     .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:200;align-items:flex-end;justify-content:center;}
     .modal-overlay.active{display:flex;}
-    .avatar-modal{background:var(--card);border:1px solid var(--border);border-radius:12px 12px 0 0;padding:22px 18px 36px;width:100%;max-width:460px;}
+    .avatar-modal{background:var(--card);border:1px solid var(--border);border-radius:12px 12px 0 0;padding:22px 18px 36px;width:100%;max-width:460px;max-height:75vh;display:flex;flex-direction:column;}
+    .avatars-grid-wrap{overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;padding-bottom:8px;}
     .modal-title{font-family:'Orbitron',sans-serif;font-size:.7rem;color:var(--accent);letter-spacing:3px;text-align:center;margin-bottom:18px;}
-    .avatars-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+    .avatars-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
     .av-opt{aspect-ratio:1;background:rgba(255,255,255,0.03);border:2px solid var(--border);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;gap:0;transition:border-color .2s,transform .1s;overflow:hidden;padding:0;}
     .av-opt img{width:100%;flex:1;object-fit:cover;display:block;}
     .av-lbl{font-size:.55rem;color:var(--muted);font-family:'Rajdhani',sans-serif;text-align:center;padding:3px 2px;width:100%;background:rgba(0,0,0,.3);}
@@ -239,7 +240,9 @@
 <div class="modal-overlay" id="avatar-modal">
   <div class="avatar-modal">
     <div class="modal-title">ELIGE TU AVATAR</div>
-    <div class="avatars-grid" id="avatars-grid"></div>
+    <div class="avatars-grid-wrap">
+      <div class="avatars-grid" id="avatars-grid"></div>
+    </div>
     <button class="btn-secondary" style="margin-top:0" onclick="cerrarAvatarModal()">CERRAR</button>
   </div>
 </div>

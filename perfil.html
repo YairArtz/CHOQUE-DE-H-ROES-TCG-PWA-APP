@@ -340,41 +340,84 @@ function mostrarPerfil() {
 }
 
 // ── RANKING ──
+// Puntos por posición: 1°=10, 2°=7, 3°=5, 4°=3, 5°-8°=1
+const PUNTOS_POS = { 1:8, 2:5, 3:4, 4:3, 5:2, 6:2, 7:1, 8:1 };
+
 async function cargarRanking() {
   const cont = document.getElementById('ranking-container');
   cont.innerHTML = `<div class="pending-box">⏳ Cargando ranking...</div>`;
   try {
-    const r = await fetch(`${RANKING_URL}?id=${jugador.id}`);
+    const r = await fetch(RANKING_URL);
     const d = await r.json();
 
-    // Compatible con múltiples formatos de respuesta del Apps Script
-    const pos   = d.posicion  ?? d.ranking   ?? d.position ?? d.pos ?? '?';
-    const pts   = d.puntos    ?? d.points    ?? d.puntaje  ?? d.score ?? 0;
-    const torns = d.torneos   ?? d.tournaments ?? d.total  ?? 0;
-    const historial = d.historial ?? d.torneos_lista ?? d.lista ?? d.data ?? [];
+    if (d.status !== 'ok' || !Array.isArray(d.resultados)) {
+      throw new Error('Respuesta inesperada del servidor');
+    }
 
-    document.getElementById('s-puntos').textContent  = pts;
-    document.getElementById('s-torneos').textContent = torns;
+    // ── Calcular puntos y historial del jugador actual ──
+    const miId = jugador.id.trim().toUpperCase();
+    let totalPts = 0;
+    const historial = [];
 
-    const badge = pos<=3 ? `<div class="ranking-badge">🏆 TOP ${pos}</div>`
-                : pos<=10 ? `<div class="ranking-badge">⭐ TOP 10</div>` : '';
+    d.resultados.forEach(torneo => {
+      // Buscar en qué posición quedó este jugador (p1_id … p8_id)
+      for (let i = 1; i <= 8; i++) {
+        const idCampo = torneo[`p${i}_id`]?.trim().toUpperCase();
+        if (idCampo === miId) {
+          const pts = PUNTOS_POS[i] ?? 0;
+          totalPts += pts;
+          historial.push({
+            nombre: torneo.tourname || 'Torneo',
+            fecha:  torneo.tourdate || '',
+            lugar:  i,
+            pts:    pts,
+            tienda: torneo.storeid || ''
+          });
+          break;
+        }
+      }
+    });
 
-    cont.innerHTML = `
-      <div class="ranking-box">
-        <div class="ranking-pos">#<b>${pos}</b></div>
-        <div class="ranking-info">
-          <div class="ranking-pts">${pts} <span style="color:var(--muted);font-size:.8rem">puntos</span></div>
-          <div class="ranking-meta">${torns} torneos jugados</div>
-          ${badge}
-        </div>
-      </div>`;
+    // ── Calcular posición global comparando con todos los jugadores ──
+    const puntajesPorJugador = {};
+    d.resultados.forEach(torneo => {
+      for (let i = 1; i <= 8; i++) {
+        const id = torneo[`p${i}_id`]?.trim().toUpperCase();
+        if (id) {
+          puntajesPorJugador[id] = (puntajesPorJugador[id] || 0) + (PUNTOS_POS[i] ?? 0);
+        }
+      }
+    });
+    const ranking = Object.entries(puntajesPorJugador)
+      .sort((a, b) => b[1] - a[1]);
+    const posGlobal = ranking.findIndex(([id]) => id === miId) + 1;
 
-    if (Array.isArray(historial) && historial.length) renderTorneos(historial);
+    // ── Actualizar estadísticas ──
+    document.getElementById('s-puntos').textContent  = totalPts;
+    document.getElementById('s-torneos').textContent = historial.length;
+
+    // ── Mostrar posición ──
+    const pos = posGlobal || '—';
+    const badge = posGlobal === 1 ? `<div class="ranking-badge">🏆 #1 GLOBAL</div>`
+                : posGlobal <= 3  ? `<div class="ranking-badge">🏆 TOP 3</div>`
+                : posGlobal <= 10 ? `<div class="ranking-badge">⭐ TOP 10</div>` : '';
+
+    cont.innerHTML = historial.length === 0
+      ? `<div class="pending-box">📋 Sin participaciones en torneos registrados aún.</div>`
+      : `<div class="ranking-box">
+           <div class="ranking-pos">#<b>${pos}</b></div>
+           <div class="ranking-info">
+             <div class="ranking-pts">${totalPts} <span style="color:var(--muted);font-size:.8rem">puntos</span></div>
+             <div class="ranking-meta">${historial.length} torneo${historial.length !== 1 ? 's' : ''} jugado${historial.length !== 1 ? 's' : ''}</div>
+             ${badge}
+           </div>
+         </div>`;
+
+    if (historial.length) renderTorneos(historial);
     else document.getElementById('torneos-container').innerHTML =
       '<div class="empty-msg">📋 Sin historial de torneos aún.</div>';
 
   } catch(e) {
-    // Mostrar la respuesta cruda para debug si falla
     cont.innerHTML = `<div class="pending-box">⚠️ No se pudo cargar el ranking.<br><small style="font-size:.7rem;opacity:.5">${e.message}</small></div>`;
     document.getElementById('torneos-container').innerHTML =
       '<div class="empty-msg">📋 No disponible.</div>';
@@ -384,11 +427,22 @@ async function cargarRanking() {
 function renderTorneos(historial) {
   const cont = document.getElementById('torneos-container');
   if (!historial?.length) { cont.innerHTML='<div class="empty-msg">📋 Sin historial.</div>'; return; }
-  cont.innerHTML = historial.map(t => {
-    const pos = t.lugar||t.posicion||'?';
+  // Ordenar del más reciente al más antiguo
+  const sorted = [...historial].reverse();
+  cont.innerHTML = sorted.map(t => {
+    const pos = t.lugar;
     const cls = pos==1?'pos-1':pos==2?'pos-2':pos==3?'pos-3':'pos-n';
     const txt = pos==1?'🥇 1°':pos==2?'🥈 2°':pos==3?'🥉 3°':`#${pos}`;
-    return `<div class="torneo-item"><div><div class="torneo-nombre">${t.nombre||'Torneo'}</div><div class="torneo-fecha">${t.fecha||''}</div></div><div class="torneo-pos ${cls}">${txt}</div></div>`;
+    return `<div class="torneo-item">
+      <div>
+        <div class="torneo-nombre">${t.nombre}</div>
+        <div class="torneo-fecha">${t.fecha}${t.tienda ? ' · '+t.tienda : ''}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
+        <div class="torneo-pos ${cls}">${txt}</div>
+        <div style="font-size:.72rem;color:var(--muted)">+${t.pts} pts</div>
+      </div>
+    </div>`;
   }).join('');
 }
 

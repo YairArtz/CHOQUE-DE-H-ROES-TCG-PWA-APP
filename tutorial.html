@@ -660,15 +660,29 @@
 
 <script>
 const TOTAL=9; let cur=0;
-function navigate(d){const n=cur+d;if(n<0||n>=TOTAL)return;goLesson(n)}
+function navigate(d){
+  const n=cur+d;
+  if(n<0)return;
+  if(n>=TOTAL){showModal();return;}
+  goLesson(n);
+}
 function goLesson(idx){
   document.querySelectorAll('.lesson').forEach(l=>l.classList.remove('active'));
   document.getElementById('completion').classList.remove('active');
   cur=idx;
-  if(idx>=TOTAL){showCompletion();return}
+  if(idx>=TOTAL){showModal();return}
   const l=document.getElementById('lesson-'+idx);
   if(l)l.classList.add('active');
   updateUI(); window.scrollTo({top:0,behavior:'smooth'});
+}
+function showModal(){
+  document.getElementById('modalFin').style.display='flex';
+  setTimeout(function(){var s=document.getElementById('mStar1');s.style.opacity='1';s.style.transform='scale(1)';},100);
+  setTimeout(function(){var s=document.getElementById('mStar2');s.style.opacity='1';s.style.transform='scale(1)';},300);
+  setTimeout(function(){var s=document.getElementById('mStar3');s.style.opacity='1';s.style.transform='scale(1)';},500);
+}
+function closeModal(){
+  document.getElementById('modalFin').style.display='none';
 }
 function updateUI(){
   const pct=Math.round((cur/(TOTAL-1))*100);
@@ -887,5 +901,89 @@ function resetCombat(){
 
 updateUI();
 </script>
+
+<!-- ═══════════ MODAL FINAL ═══════════ -->
+<div id="modalFin" style="display:none;position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px)">
+  <div style="
+    background:linear-gradient(160deg,#0d1018 0%,#07090f 100%);
+    border:1px solid rgba(245,166,35,0.4);
+    border-radius:20px;
+    max-width:340px;width:100%;
+    padding:32px 24px 28px;
+    text-align:center;
+    position:relative;
+    box-shadow:0 0 40px rgba(245,166,35,0.2), 0 20px 60px rgba(0,0,0,0.8);
+    animation:modalIn .4s cubic-bezier(.175,.885,.32,1.275) both;
+  ">
+    <!-- Esquinas decorativas -->
+    <div style="position:absolute;top:12px;left:12px;width:14px;height:14px;border-top:1.5px solid rgba(245,166,35,0.6);border-left:1.5px solid rgba(245,166,35,0.6)"></div>
+    <div style="position:absolute;top:12px;right:12px;width:14px;height:14px;border-top:1.5px solid rgba(245,166,35,0.6);border-right:1.5px solid rgba(245,166,35,0.6)"></div>
+    <div style="position:absolute;bottom:12px;left:12px;width:14px;height:14px;border-bottom:1.5px solid rgba(245,166,35,0.6);border-left:1.5px solid rgba(245,166,35,0.6)"></div>
+    <div style="position:absolute;bottom:12px;right:12px;width:14px;height:14px;border-bottom:1.5px solid rgba(245,166,35,0.6);border-right:1.5px solid rgba(245,166,35,0.6)"></div>
+
+    <!-- Trofeo -->
+    <div style="font-size:56px;margin-bottom:12px;filter:drop-shadow(0 0 20px rgba(245,166,35,0.8))">🏆</div>
+
+    <!-- Estrellas animadas -->
+    <div style="display:flex;justify-content:center;gap:10px;margin-bottom:16px">
+      <span id="mStar1" style="font-size:26px;opacity:0;transform:scale(0);transition:all .4s cubic-bezier(.175,.885,.32,1.275)">⭐</span>
+      <span id="mStar2" style="font-size:32px;opacity:0;transform:scale(0);transition:all .4s cubic-bezier(.175,.885,.32,1.275)">⭐</span>
+      <span id="mStar3" style="font-size:26px;opacity:0;transform:scale(0);transition:all .4s cubic-bezier(.175,.885,.32,1.275)">⭐</span>
+    </div>
+
+    <!-- Título -->
+    <div style="font-family:'Orbitron',sans-serif;font-size:18px;font-weight:900;color:#ffd166;letter-spacing:2px;margin-bottom:8px;text-shadow:0 0 20px rgba(245,166,35,0.6)">
+      ¡FELICIDADES!
+    </div>
+
+    <!-- Badge -->
+    <div style="display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;background:rgba(245,166,35,0.12);border:1px solid rgba(245,166,35,0.35);font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;color:#f5a623;letter-spacing:1.5px;margin-bottom:14px">
+      🎮 JUGADOR INICIADO
+    </div>
+
+    <!-- Mensaje -->
+    <p style="font-family:'Rajdhani',sans-serif;font-size:15px;color:#e8ecf0;line-height:1.6;margin-bottom:22px">
+      Completaste el tutorial de<br>
+      <strong style="color:#ffd166">Choque de Héroes TCG</strong>.<br>
+      Ya estás listo para tu primera partida. ¡Que gane el mejor!
+    </p>
+
+    <!-- Línea separadora -->
+    <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(245,166,35,0.4),transparent);margin-bottom:20px"></div>
+
+    <!-- Botones -->
+    <button onclick="window.location.href='index.html'" style="
+      display:block;width:100%;padding:14px;
+      border-radius:10px;border:none;cursor:pointer;
+      background:linear-gradient(135deg,#f5a623,#e8960f);
+      color:#07090f;font-family:'Orbitron',sans-serif;
+      font-size:12px;font-weight:700;letter-spacing:1.5px;
+      box-shadow:0 0 20px rgba(245,166,35,0.35);
+      margin-bottom:10px;
+      transition:all .2s;
+    " onmouseover="this.style.boxShadow='0 0 30px rgba(245,166,35,0.55)'" onmouseout="this.style.boxShadow='0 0 20px rgba(245,166,35,0.35)'">
+      ← VOLVER AL MENÚ
+    </button>
+
+    <button onclick="closeModal();restartTutorial();" style="
+      display:block;width:100%;padding:11px;
+      border-radius:10px;cursor:pointer;
+      background:transparent;
+      border:1px solid rgba(245,166,35,0.2);
+      color:#7a8290;font-family:'Orbitron',sans-serif;
+      font-size:10px;font-weight:700;letter-spacing:1px;
+      transition:all .2s;
+    " onmouseover="this.style.borderColor='rgba(245,166,35,0.5)';this.style.color='#f5a623'" onmouseout="this.style.borderColor='rgba(245,166,35,0.2)';this.style.color='#7a8290'">
+      ↺ REPETIR TUTORIAL
+    </button>
+  </div>
+</div>
+
+<style>
+@keyframes modalIn{
+  from{opacity:0;transform:scale(0.85) translateY(20px)}
+  to{opacity:1;transform:scale(1) translateY(0)}
+}
+</style>
 </body>
 </html>

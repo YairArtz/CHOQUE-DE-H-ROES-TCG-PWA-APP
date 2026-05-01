@@ -442,7 +442,7 @@ function mostrarPerfil() {
   document.getElementById('d-correo').textContent = jugador.correo || '—';
   document.getElementById('d-fecha').textContent = formatFecha(jugador.fecha);
   const avId = localStorage.getItem(`nhAv_${jugador.id}`);
-  const av = AVATARS.find(a=>a.id===avId) || AVATARS[0];
+  const av = AVATARS.find(a=>a.id===avId) || AVATARS_PREMIUM.find(a=>a.id===avId) || AVATARS[0];
   const avSrc = av ? av.src : 'avatares/avatar_1.jpg';
   document.getElementById('avatar-display').innerHTML = `<img src="${avSrc}" alt="${av ? av.label : 'Avatar'}" onerror="this.style.display='none'"/>`;
   aplicarItemsGuardados();
@@ -804,7 +804,7 @@ function cerrarAvatarModal() { document.getElementById('avatar-modal').classList
 function elegirAvatar(avId) {
   document.querySelectorAll('.av-opt').forEach(e=>e.classList.remove('selected'));
   document.getElementById(`avopt_${avId}`)?.classList.add('selected');
-  const av = AVATARS.find(a=>a.id===avId);
+  const av = AVATARS.find(a=>a.id===avId) || AVATARS_PREMIUM.find(a=>a.id===avId);
   if (av) document.getElementById('avatar-display').innerHTML = `<img src="${av.src}" alt="${av.label}" onerror="this.style.display='none'"/>`;
   if (jugador) localStorage.setItem(`nhAv_${jugador.id}`, avId);
   setTimeout(cerrarAvatarModal, 300);

@@ -88,6 +88,22 @@ function applyAccentColor(color) {
   const c = colors[color];
   if (!c) return;
 
+  // Si el usuario cambia color desde settings, limpiar tema de tienda
+  // para los 4 colores básicos (los exclusivos de tienda se conservan)
+  try {
+    const s = JSON.parse(localStorage.getItem('chh_settings') || '{}');
+    const basicos = ['green','blue','gold','purple'];
+    if (basicos.includes(color) && basicos.includes(s.temaId)) {
+      delete s.temaId; delete s.temaHex; delete s.temaD;
+      delete s.temaDim; delete s.temaGlow; delete s.temaRainbow;
+      localStorage.setItem('chh_settings', JSON.stringify(s));
+    }
+  } catch(e){}
+
+  // También limpiar el style tag de tienda para que no sobreescriba
+  const tiendaStyle = document.getElementById('chh-tienda-color');
+  if (tiendaStyle) tiendaStyle.remove();
+
   // Inyectar CSS que sobrescribe TODO
   injectStyle('chh-accent-override', `
     :root {
@@ -237,8 +253,9 @@ function applyAllSettings() {
   applyAnimations(settings.animations);
   applyGalleryView(settings.galleryView);
   if (settings.fondoImg) applyFondo(settings.fondoImg);
-  // Restaurar tema exclusivo de tienda si existe
-  if (settings.temaId && settings.temaHex) {
+  // Restaurar tema de tienda SOLO si es un color exclusivo (no los 4 básicos de settings)
+  const basicosSettings = ['green','blue','gold','purple'];
+  if (settings.temaId && settings.temaHex && !basicosSettings.includes(settings.temaId)) {
     const h   = settings.temaHex;
     const d   = settings.temaD   || '#333';
     const dim = settings.temaDim || 'rgba(0,0,0,.1)';

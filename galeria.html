@@ -986,11 +986,16 @@
       
       document.getElementById('modalExpansionBadge').textContent = formattedExpansion.toUpperCase();
       
-      // Botón agregar a baraja
+      // Botón agregar a baraja — ocultar para banners
       const addBtn = document.getElementById('addToDeckBtn');
-      addBtn.onclick = () => {
-        window.location.href = `constructor.html?carta=${card.id}`;
-      };
+      if (card.tipo === 'BANNER') {
+        addBtn.style.display = 'none';
+      } else {
+        addBtn.style.display = '';
+        addBtn.onclick = () => {
+          window.location.href = `constructor.html?carta=${card.id}`;
+        };
+      }
       
       modal.classList.add('active');
       document.body.style.overflow = 'hidden';

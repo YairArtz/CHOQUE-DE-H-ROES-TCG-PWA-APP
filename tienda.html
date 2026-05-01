@@ -375,18 +375,25 @@ function cambiarTab(tab, btn) {
 function renderTab(tab) {
   const grid = document.getElementById('items-grid');
   const items = CATALOGO[tab];
+
+  // Siempre ocultar el grid base y usar el wrapper
+  grid.style.display = 'none';
+  let wrapper = document.getElementById('items-wrapper');
+  if (!wrapper) {
+    wrapper = document.createElement('div');
+    wrapper.id = 'items-wrapper';
+    grid.parentNode.insertBefore(wrapper, grid);
+  }
+
   if (!items || !items.length) {
-    grid.innerHTML = '<div class="empty-tab">📦 Próximamente más items.</div>';
+    wrapper.innerHTML = '<div class="empty-tab">📦 Próximamente más items.</div>';
     return;
   }
 
   if (tab === 'avatares') {
-    // Separar gratuitos (50 del perfil) de premium (av_p*)
-    const premium = items.filter(i => i.id.startsWith('av_p'));
+    const premium   = items.filter(i =>  i.id.startsWith('av_p'));
     const gratuitos = items.filter(i => !i.id.startsWith('av_p'));
-
     let html = '';
-
     if (gratuitos.length) {
       html += `<div class="seccion-label">🆓 AVATARES GRATUITOS <span style="color:var(--muted);font-size:.6rem">(${gratuitos.length})</span></div>
                <div class="items-grid" style="margin-bottom:20px">${gratuitos.map(i => renderItem(i, tab)).join('')}</div>`;
@@ -395,24 +402,12 @@ function renderTab(tab) {
       html += `<div class="seccion-label" style="margin-top:8px">⭐ AVATARES PREMIUM <span style="color:var(--muted);font-size:.6rem">(${premium.length} · Puntos)</span></div>
                <div class="items-grid">${premium.map(i => renderItem(i, tab)).join('')}</div>`;
     }
-
-    grid.style.display = 'none';
-    // Usar un wrapper
-    let wrapper = document.getElementById('items-wrapper');
-    if (!wrapper) {
-      wrapper = document.createElement('div');
-      wrapper.id = 'items-wrapper';
-      grid.parentNode.insertBefore(wrapper, grid);
-    }
     wrapper.innerHTML = html;
     return;
   }
 
-  // Otras tabs — grid normal
-  let wrapper = document.getElementById('items-wrapper');
-  if (wrapper) wrapper.innerHTML = '';
-  grid.style.display = '';
-  grid.innerHTML = items.map(item => renderItem(item, tab)).join('');
+  // Fondos y temas — grid normal en wrapper
+  wrapper.innerHTML = `<div class="items-grid">${items.map(item => renderItem(item, tab)).join('')}</div>`;
 }
 
 function renderItem(item, tab) {

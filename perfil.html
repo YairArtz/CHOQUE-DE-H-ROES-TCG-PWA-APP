@@ -131,6 +131,11 @@
     .av-lbl{font-size:.55rem;color:var(--muted);font-family:'Rajdhani',sans-serif;text-align:center;padding:3px 2px;width:100%;background:rgba(0,0,0,.3);}
     .av-opt:hover,.av-opt.selected{border-color:var(--accent);transform:scale(1.05);background:rgba(0,255,157,.05);}
     .av-opt.selected{box-shadow:0 0 10px rgba(0,255,157,.3);}
+    .av-opt.locked{opacity:.55;cursor:pointer;}
+    .av-opt.locked:hover{border-color:var(--gold);transform:scale(1.03);}
+    .av-lock-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(3,5,10,.55);font-size:1.1rem;pointer-events:none;}
+    .av-seccion{grid-column:1/-1;font-family:'Orbitron',sans-serif;font-size:.6rem;font-weight:700;letter-spacing:2px;color:var(--accent);padding:10px 0 6px;border-top:1px solid var(--border);margin-top:4px;}
+    .av-seccion:first-child{border-top:none;margin-top:0;padding-top:0;}
 
     /* ── TOAST ── */
     #toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--accent,#00ff9d);color:var(--bg,#03050a);padding:11px 26px;border-radius:4px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;z-index:999;opacity:0;transition:opacity 0.3s,transform 0.3s;pointer-events:none;white-space:nowrap;}
@@ -351,6 +356,25 @@ const AVATARS = [
   {id:'av49', src:'avatares/avatar_49.jpg', label:'Avatar 49'},
   {id:'av50', src:'avatares/avatar_50.jpg', label:'Avatar 50'}
 ];
+
+// Catálogo de avatares premium (mismos que tienda)
+const AVATARS_PREMIUM = [
+  {id:'av_p1', src:'avatares/av_p1.jpg', label:'Meetorix',                   pts:5  },
+  {id:'av_p2', src:'avatares/av_p2.jpg', label:'Quetzalcoatl',               pts:8  },
+  {id:'av_p3', src:'avatares/av_p3.jpg', label:'Huitzilopochtli',            pts:10 },
+  {id:'av_p4', src:'avatares/av_p4.jpg', label:'Mictlantecuhtli',            pts:15 },
+  {id:'av_p5', src:'avatares/av_p5.jpg', label:'Katzandra',                  pts:15 },
+  {id:'av_p6', src:'avatares/av_p6.jpg', label:'Hellroth',                   pts:20 },
+  {id:'av_p7', src:'avatares/av_p7.jpg', label:'Rayah',                      pts:25 },
+  {id:'av_p8', src:'avatares/av_p8.jpg', label:'Mictlantecuhtli Primigenio', pts:30 },
+  // Para agregar más: {id:'av_p9', src:'avatares/av_p9.jpg', label:'Nombre', pts:X}
+];
+
+function getDesbloqueadosTienda() {
+  if (!jugador) return [];
+  try { return JSON.parse(localStorage.getItem(`nhTienda_${jugador.id}`) || '[]'); }
+  catch(e) { return []; }
+}
 
 let jugador = null;
 
@@ -717,9 +741,36 @@ function cargarBarajas() {
 
 // ── AVATARES ──
 function construirAvatares() {
-  document.getElementById('avatars-grid').innerHTML = AVATARS.map(av=>
-    `<div class="av-opt" id="avopt_${av.id}" onclick="elegirAvatar('${av.id}')"><img src="${av.src}" alt="${av.label}" onerror="this.style.opacity='.3'"/><span class="av-lbl">${av.label}</span></div>`
+  const desbloqueados = getDesbloqueadosTienda();
+
+  // Sección gratuitos
+  const gratuitos = AVATARS.map(av =>
+    `<div class="av-opt" id="avopt_${av.id}" onclick="elegirAvatar('${av.id}')">
+       <img src="${av.src}" alt="${av.label}" onerror="this.style.opacity='.3'"/>
+       <span class="av-lbl">${av.label}</span>
+     </div>`
   ).join('');
+
+  // Sección premium
+  const premium = AVATARS_PREMIUM.map(av => {
+    const desbloqueado = desbloqueados.includes(av.id);
+    if (desbloqueado) {
+      return `<div class="av-opt" id="avopt_${av.id}" onclick="elegirAvatar('${av.id}')">
+                <img src="${av.src}" alt="${av.label}" onerror="this.style.opacity='.3'"/>
+                <span class="av-lbl">${av.label}</span>
+              </div>`;
+    } else {
+      return `<div class="av-opt locked" onclick="window.location.href='tienda.html'" title="Desbloquear en Tienda del Héroe">
+                <img src="${av.src}" alt="${av.label}" onerror="this.style.opacity='.2'"/>
+                <div class="av-lock-overlay">🔒</div>
+                <span class="av-lbl" style="color:var(--gold)">${av.pts}pts</span>
+              </div>`;
+    }
+  }).join('');
+
+  document.getElementById('avatars-grid').innerHTML =
+    `<div class="av-seccion">🆓 GRATUITOS</div>` + gratuitos +
+    `<div class="av-seccion">⭐ PREMIUM</div>` + premium;
 }
 function abrirAvatarModal() {
   const actual = jugador ? localStorage.getItem(`nhAv_${jugador.id}`) : null;

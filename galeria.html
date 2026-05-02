@@ -981,16 +981,26 @@
     function filterCards() {
       const searchTerm = searchInput.value.toLowerCase().trim();
       
+      console.log('filterCards - currentExpansion:', currentExpansion);
+      console.log('searchTerm:', searchTerm);
+      console.log('allCards.length:', allCards.length);
+      
       filteredCards = allCards.filter(card => {
         // Buscar en nombre Y en tipo
-        const matchesSearch = 
+        const matchesSearch = searchTerm === '' || 
           card.nombre.toLowerCase().includes(searchTerm) ||
           card.tipo.toLowerCase().includes(searchTerm);
         
         const matchesExpansion = currentExpansion === 'todas' || card.expansion === currentExpansion;
+        
+        if (card.expansion === 'series_2019') {
+          console.log(`Serie 2019 - ${card.id}: search=${matchesSearch}, expansion=${matchesExpansion}, expansion actual=${card.expansion}`);
+        }
+        
         return matchesSearch && matchesExpansion;
       });
 
+      console.log('filteredCards.length después del filter:', filteredCards.length);
       renderCards();
     }
 

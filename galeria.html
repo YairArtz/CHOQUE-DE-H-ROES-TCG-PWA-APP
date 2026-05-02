@@ -821,17 +821,7 @@
         debugInfo.textContent = `📊 Parseando JSON...`;
         let cardsData = await response.json();
         
-        // Procesar las cartas para redirigir rutas de cartas_2
-        allCards = cardsData.map(card => {
-          if (card.expansion === 'azote_del_mictlan' || card.expansion === 'ancestros') {
-            return {
-              ...card,
-              miniatura: card.miniatura ? card.miniatura.replace('cartas/', 'cartas_2/') : null,
-              ampliada: card.ampliada ? card.ampliada.replace('cartas/', 'cartas_2/') : null
-            };
-          }
-          return card;
-        });
+        allCards = cardsData;
         
         debugInfo.textContent = `✅ ${allCards.length} cartas cargadas`;
         

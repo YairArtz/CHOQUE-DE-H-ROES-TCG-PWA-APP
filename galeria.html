@@ -816,14 +816,14 @@
         debugInfo.textContent = '📡 Solicitando cartas.json...';
         
         const response = await fetch('cartas.json');
-        debugInfo.textContent = `📊 Respuesta: ${response.status} - Parseando...`;
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
         
+        debugInfo.textContent = `📊 Parseando JSON...`;
         let cardsData = await response.json();
         
         // Procesar las cartas para redirigir rutas de cartas_2
         allCards = cardsData.map(card => {
-          // Si la carta pertenece a expansiones en cartas_2, cambiar ruta
-          if (card.expansion === 'azote_del_mictlan' || card.expansion === 'ancestros' || card.expansion === 'series_2019') {
+          if (card.expansion === 'azote_del_mictlan' || card.expansion === 'ancestros') {
             return {
               ...card,
               miniatura: card.miniatura ? card.miniatura.replace('cartas/', 'cartas_2/') : null,
@@ -835,11 +835,17 @@
         
         debugInfo.textContent = `✅ ${allCards.length} cartas cargadas`;
         
-        filteredCards = [...allCards];
+        // Inicializar filteredCards con todas las cartas
+        filteredCards = allCards.filter(card => {
+          const matchesSearch = true;
+          const matchesExpansion = currentExpansion === 'todas';
+          return matchesSearch && matchesExpansion;
+        });
         
         // Generar filtros dinámicamente
         generateExpansionFilters();
         
+        // Renderizar las cartas
         renderCards();
         
         // Ocultar debug después de 3 segundos

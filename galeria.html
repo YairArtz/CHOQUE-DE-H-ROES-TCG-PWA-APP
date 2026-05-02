@@ -813,7 +813,21 @@
         const response = await fetch('cartas.json');
         debugInfo.textContent = `📊 Respuesta: ${response.status} - Parseando...`;
         
-        allCards = await response.json();
+        let cardsData = await response.json();
+        
+        // Procesar las cartas para redirigir rutas de cartas_2
+        allCards = cardsData.map(card => {
+          // Si la carta pertenece a 'azote_del_mictlan' o 'ancestros', cambiar ruta
+          if (card.expansion === 'azote_del_mictlan' || card.expansion === 'ancestros') {
+            return {
+              ...card,
+              miniatura: card.miniatura ? card.miniatura.replace('cartas/', 'cartas_2/') : null,
+              ampliada: card.ampliada ? card.ampliada.replace('cartas/', 'cartas_2/') : null
+            };
+          }
+          return card;
+        });
+        
         debugInfo.textContent = `✅ ${allCards.length} cartas cargadas`;
         
         filteredCards = [...allCards];

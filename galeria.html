@@ -824,6 +824,8 @@
         allCards = cardsData;
         
         debugInfo.textContent = `✅ ${allCards.length} cartas cargadas`;
+        console.log('allCards cargadas:', allCards.length);
+        console.log('Series 2019 en allCards:', allCards.filter(c => c.expansion === 'series_2019').length);
         
         // Inicializar filteredCards con todas las cartas
         filteredCards = allCards.filter(card => {
@@ -957,6 +959,9 @@
       emptyState.classList.remove('active');
       cardsGrid.style.display = 'grid';
       cardCount.textContent = `MOSTRANDO ${filteredCards.length} ${filteredCards.length === 1 ? 'CARTA' : 'CARTAS'}`;
+
+      console.log('Renderizando:', filteredCards.length, 'cartas');
+      console.log('Primera carta:', filteredCards[0]);
 
       filteredCards.forEach(card => {
         const cardEl = document.createElement('div');

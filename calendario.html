@@ -105,12 +105,51 @@
     .detail-row:last-child { border-bottom:none; }
     .btn-inscribir {
       display:block; width:100%; margin-top:14px; padding:10px;
-      background:var(--accent); color:#fff; font-weight:700;
-      font-size:.85rem; letter-spacing:1px; border:none;
-      border-radius:8px; cursor:pointer; transition:opacity .2s;
+      background:linear-gradient(135deg,#f5a623,#d4880a);
+      color:#07090f; font-weight:900; font-family:'Orbitron',sans-serif;
+      font-size:.75rem; letter-spacing:2px; border:none;
+      border-radius:8px; cursor:pointer; transition:all .2s;
+      box-shadow:0 0 12px rgba(245,166,35,0.3);
     }
-    .btn-inscribir:hover { opacity:.85; }
-    .btn-inscribir:disabled { background:#555; cursor:not-allowed; }
+    .btn-inscribir:hover { box-shadow:0 0 20px rgba(245,166,35,0.6); transform:translateY(-1px); }
+    .btn-inscribir:disabled { background:#333; color:#666; cursor:not-allowed; box-shadow:none; transform:none; }
+
+    /* Modal inscripción */
+    .insc-overlay {
+      display:none; position:fixed; inset:0; background:rgba(0,0,0,.75);
+      z-index:999; align-items:center; justify-content:center;
+    }
+    .insc-overlay.active { display:flex; }
+    .insc-modal {
+      background:#0d1117; border:1px solid var(--gold);
+      border-radius:14px; padding:32px 28px; max-width:340px; width:90%;
+      text-align:center; box-shadow:0 0 40px rgba(245,166,35,0.25);
+      animation: fadeUp .25s ease;
+    }
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(20px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    .insc-icon { font-size:3rem; margin-bottom:12px; }
+    .insc-title {
+      font-family:'Orbitron',sans-serif; font-size:1rem;
+      font-weight:900; letter-spacing:2px; margin-bottom:8px;
+    }
+    .insc-title.ok  { color:var(--gold); }
+    .insc-title.err { color:#ff4d6d; }
+    .insc-msg { color:#ccc; font-size:.9rem; line-height:1.5; margin-bottom:20px; }
+    .insc-lugar {
+      display:inline-block; background:var(--gold-d);
+      border:1px solid var(--gold); border-radius:8px;
+      padding:8px 20px; font-family:'Orbitron',sans-serif;
+      font-size:.85rem; color:var(--gold); margin-bottom:20px;
+    }
+    .insc-btn-ok {
+      background:linear-gradient(135deg,#f5a623,#d4880a);
+      color:#07090f; font-family:'Orbitron',sans-serif;
+      font-weight:900; font-size:.75rem; letter-spacing:2px;
+      border:none; border-radius:8px; padding:10px 28px; cursor:pointer;
+    }
     .detail-label { font-family:'Orbitron',sans-serif; font-size:8px; letter-spacing:2px; color:var(--muted); }
     .detail-value { font-family:'Rajdhani',sans-serif; font-size:14px; font-weight:600; color:var(--text); }
 
@@ -249,7 +288,7 @@
     // ============================================================
     // Reemplaza con la URL de tu Apps Script API de torneos
     // ============================================================
-    const API_URL = "https://script.google.com/macros/s/AKfycbxmvdfAy1pZg8Z0tmSsNhOdU8q5VAh2oaL7aA12o3L_pGeAnFjWD0-JcuZx1QCM6NonlA/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbxQwDgsNe-toSWetc2f-xkveQcywfGwOVQvsOEySgRc2z8YZG09mB20jUjrI9qO1yo9Uw/exec";
     // ============================================================
 
     let allTorneos = [];
@@ -324,13 +363,27 @@
       renderCards(filtered);
     }
 
+    function showInscModal(ok, msg, lugar) {
+      document.getElementById('inscIcon').textContent  = ok ? '⚔️' : '⚠️';
+      document.getElementById('inscTitle').textContent = ok ? '¡INSCRIPCIÓN EXITOSA!' : 'ATENCIÓN';
+      document.getElementById('inscTitle').className   = 'insc-title ' + (ok ? 'ok' : 'err');
+      document.getElementById('inscMsg').textContent   = msg || '';
+      const lugarEl = document.getElementById('inscLugar');
+      if (ok && lugar) {
+        lugarEl.textContent = '🎯 Lugar #' + lugar + ' registrado';
+        lugarEl.style.display = 'inline-block';
+      } else {
+        lugarEl.style.display = 'none';
+      }
+      document.getElementById('inscModal').classList.add('active');
+    }
+
     async function inscribirse(storeid, tourname, tourdate) {
       const sesion = JSON.parse(localStorage.getItem('nhSesion') || 'null');
       if (!sesion || !sesion.id) {
-        alert('Debes iniciar sesión con tu ID de jugador para inscribirte.');
+        showInscModal(false, 'Debes iniciar sesión con tu ID de jugador para inscribirte.', null);
         return;
       }
-
       const params = new URLSearchParams({
         action: 'inscribir',
         jugador_id: sesion.id,
@@ -339,17 +392,16 @@
         tourname: tourname,
         tourdate: tourdate
       });
-
       try {
         const res  = await fetch(API_URL + '?' + params.toString());
         const data = await res.json();
         if (data.status === 'ok') {
-          alert('✅ ' + data.message + '\n🎯 Lugar #' + data.lugar);
+          showInscModal(true, data.message, data.lugar);
         } else {
-          alert('⚠️ ' + data.message);
+          showInscModal(false, data.message, null);
         }
       } catch(err) {
-        alert('❌ Error al conectar con el servidor.');
+        showInscModal(false, 'Error al conectar con el servidor.', null);
       }
     }
 
@@ -378,5 +430,16 @@
 
     loadTorneos();
   </script>
+  <!-- Modal inscripción -->
+  <div class="insc-overlay" id="inscModal">
+    <div class="insc-modal">
+      <div class="insc-icon" id="inscIcon"></div>
+      <div class="insc-title" id="inscTitle"></div>
+      <div class="insc-msg"  id="inscMsg"></div>
+      <div class="insc-lugar" id="inscLugar" style="display:none"></div>
+      <button class="insc-btn-ok" onclick="document.getElementById('inscModal').classList.remove('active')">ACEPTAR</button>
+    </div>
+  </div>
+
 </body>
 </html>

@@ -1528,13 +1528,31 @@
       }
 
       const saved = JSON.parse(localStorage.getItem('chh_decks') || '[]');
-      saved.push({
+      const nuevaBaraja = {
         name,
         date: new Date().toISOString(),
         decks: JSON.parse(JSON.stringify(deckState))
-      });
-      
+      };
+      saved.push(nuevaBaraja);
       localStorage.setItem('chh_decks', JSON.stringify(saved));
+
+      // Sincronizar con perfil (nhBarajas_ID)
+      try {
+        const sesion = JSON.parse(localStorage.getItem('nhSesion') || 'null');
+        if (sesion && sesion.id) {
+          const key = `nhBarajas_${sesion.id}`;
+          const perfilBarajas = JSON.parse(localStorage.getItem(key) || '[]');
+          perfilBarajas.push({
+            nombre: name,
+            fecha:  nuevaBaraja.date,
+            bp: deckState.BP || [],
+            ba: deckState.BA || [],
+            bs: deckState.BS || []
+          });
+          localStorage.setItem(key, JSON.stringify(perfilBarajas));
+        }
+      } catch(e) {}
+
       saveModal.classList.remove('active');
       customAlert('Baraja guardada correctamente', '✅');
     });

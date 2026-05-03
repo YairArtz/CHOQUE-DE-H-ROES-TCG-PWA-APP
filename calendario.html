@@ -103,6 +103,14 @@
     .detail-row { display:flex; justify-content:space-between; align-items:center;
       padding:4px 0; border-bottom:1px solid #160e02; }
     .detail-row:last-child { border-bottom:none; }
+    .btn-inscribir {
+      display:block; width:100%; margin-top:14px; padding:10px;
+      background:var(--accent); color:#fff; font-weight:700;
+      font-size:.85rem; letter-spacing:1px; border:none;
+      border-radius:8px; cursor:pointer; transition:opacity .2s;
+    }
+    .btn-inscribir:hover { opacity:.85; }
+    .btn-inscribir:disabled { background:#555; cursor:not-allowed; }
     .detail-label { font-family:'Orbitron',sans-serif; font-size:8px; letter-spacing:2px; color:var(--muted); }
     .detail-value { font-family:'Rajdhani',sans-serif; font-size:14px; font-weight:600; color:var(--text); }
 
@@ -295,6 +303,9 @@
                 <span class="detail-value" style="font-size:13px;color:var(--gold);">🏅 ${t.prize}</span>
               </div>
             </div>
+            <button class="btn-inscribir" onclick="inscribirse('${t.storeid}','${t.tourname}','${t.date}')">
+              ⚔️ INSCRIBIRME
+            </button>
           </div>
         </div>
       `).join("");
@@ -311,6 +322,35 @@
         return matchSearch && matchFormat;
       });
       renderCards(filtered);
+    }
+
+    async function inscribirse(storeid, tourname, tourdate) {
+      const sesion = JSON.parse(localStorage.getItem('nhSesion') || 'null');
+      if (!sesion || !sesion.id) {
+        alert('Debes iniciar sesión con tu ID de jugador para inscribirte.');
+        return;
+      }
+
+      const params = new URLSearchParams({
+        action: 'inscribir',
+        jugador_id: sesion.id,
+        jugador_nombre: sesion.nombre || sesion.id,
+        storeid: storeid,
+        tourname: tourname,
+        tourdate: tourdate
+      });
+
+      try {
+        const res  = await fetch(API_URL + '?' + params.toString());
+        const data = await res.json();
+        if (data.status === 'ok') {
+          alert('✅ ' + data.message + '\n🎯 Lugar #' + data.lugar);
+        } else {
+          alert('⚠️ ' + data.message);
+        }
+      } catch(err) {
+        alert('❌ Error al conectar con el servidor.');
+      }
     }
 
     async function loadTorneos() {

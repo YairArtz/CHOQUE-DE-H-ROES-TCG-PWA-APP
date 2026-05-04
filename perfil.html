@@ -628,7 +628,7 @@ const BADGES_CATALOGO = [
   { id:'ev_colab',      nombre:'Colaborador',     tipo:'manual', emoji:'📣', img:'badges/ev_colab.png',      condicion:'Otorgado a jugadores que promovieron activamente el juego.' },
 ];
 
-function calcularBadgesAuto(historial, totalPts, posGlobal) {
+function calcularBadgesAuto(historial, totalPts, posGlobal, jugadorId) {
   const ganados = new Set();
 
   // Nuevo jugador — siempre al tener perfil
@@ -654,7 +654,11 @@ function calcularBadgesAuto(historial, totalPts, posGlobal) {
   if (n >= 5)  ganados.add('asistencia');
 
   // — Barajas —
-  const barajas = JSON.parse(localStorage.getItem(`nhBarajas_${jugador?.id}`) || '[]');
+  // Leer barajas — buscar tanto en nhBarajas_ como en chh_decks
+  const keyBarajas = jugadorId ? `nhBarajas_${jugadorId}` : null;
+  const barajasNH  = keyBarajas ? JSON.parse(localStorage.getItem(keyBarajas) || '[]') : [];
+  const barajasCHH = JSON.parse(localStorage.getItem('chh_decks') || '[]');
+  const barajas    = barajasNH.length >= barajasCHH.length ? barajasNH : barajasCHH;
   if (barajas.length >= 1)  ganados.add('minimalista');
   if (barajas.length >= 5)  ganados.add('arquitecto');
   if (barajas.length > 10)  ganados.add('coleccionista');
@@ -696,7 +700,7 @@ async function cargarBadges(historial, totalPts, posGlobal) {
   const cont = document.getElementById('badges-container');
 
   // Badges automáticos calculados localmente
-  const autoGanados = calcularBadgesAuto(historial, totalPts, posGlobal);
+  const autoGanados = calcularBadgesAuto(historial, totalPts, posGlobal, jugador?.id);
 
   // Badges manuales — leer directo del Sheet (columna 6, índice 5)
   let manualesGanados = new Set();

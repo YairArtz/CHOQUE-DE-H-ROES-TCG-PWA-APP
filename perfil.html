@@ -1166,7 +1166,7 @@ function actualizarShareStats(pts, torneos, pos, wins, losses) {
   _shareStats = { pts, torneos, pos, wins, losses };
 }
 
-async function compartirPerfil() {
+function compartirPerfil() {
   const overlay = document.getElementById('shareOverlay');
   if (!overlay) return;
   overlay.classList.add('active');
@@ -1242,21 +1242,21 @@ async function generarTarjeta() {
     bg_void:    ['#0a0010','#000000'],
   };
 
-  if (fondoId === 'bg_nexo') {
-    // Fondo imagen
-    await new Promise(res => {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = () => {
-        ctx.save();
-        rRect(ctx, 0, 0, W, H, 16); ctx.clip();
-        ctx.drawImage(img, 0, 0, W, H);
-        ctx.restore();
-        res();
-      };
-      img.onerror = () => res();
-      img.src = 'fondos/nexo_bg.jpg';
-    });
+  // Cargar textura de fondo CHH
+  await new Promise(res => {
+    const bg_tex = new Image();
+    bg_tex.onload = () => {
+      ctx.save();
+      rRect(ctx, 0, 0, W, H, 16); ctx.clip();
+      ctx.drawImage(bg_tex, 0, 0, W, H);
+      ctx.restore();
+      res();
+    };
+    bg_tex.onerror = () => res();
+    bg_tex.src = 'REVERSO_2021.jpg';
+  });
+
+  if (false) {
   } else if (fondoId && fondosMap[fondoId]) {
     const [c1, c2] = fondosMap[fondoId];
     const bgG = ctx.createRadialGradient(W*.3, H*.3, 0, W*.5, H*.5, W*.9);

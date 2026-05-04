@@ -119,17 +119,7 @@
       border-radius:6px; padding:10px 14px; margin-bottom:6px; }
     .insc-list-item .insc-nombre { font-weight:700; font-size:.9rem; }
     .insc-list-item .insc-meta { font-size:.75rem; color:var(--muted); margin-top:2px; }
-    .torneo-section { margin-bottom:10px; border:1px solid var(--border); border-radius:8px; overflow:hidden; }
-    .torneo-section-header {
-      display:flex; justify-content:space-between; align-items:center;
-      padding:10px 14px; cursor:pointer; background:rgba(245,166,35,.05);
-      transition:background .2s;
-    }
-    .torneo-section-header:hover { background:rgba(245,166,35,.1); }
-    .torneo-section-header .ts-arrow { transition:transform .2s; font-size:.8rem; color:var(--gold); }
-    .torneo-section-header.open .ts-arrow { transform:rotate(180deg); }
-    .torneo-section-body { display:none; padding:8px 14px 12px; }
-    .torneo-section-body.open { display:block; }
+    .torneo-section { margin-bottom:14px; }
     .torneo-section-title { font-family:'Orbitron',sans-serif; font-size:.72rem;
       letter-spacing:2px; color:var(--gold); margin-bottom:8px; }
 
@@ -217,7 +207,7 @@
   <div class="card">
     <div class="badge">ACCESO DE JUGADOR</div>
     <h2 class="card-title">IDENTIFÍCATE</h2>
-    <p class="card-subtitle">¿Eres jugador o tienda oficial? Ingresa tu ID y accede a tu universo CHH — estadísticas, ranking, barajas y más.</p>
+    <p class="card-subtitle">Ingresa tu ID de jugador para ver tus estadísticas, ranking y barajas guardadas.</p>
     <div class="divider"></div>
 
     <div class="field">
@@ -749,48 +739,111 @@ function mostrarPanelTienda() {
   cargarTorneosOrganizados();
 }
 
-function toggleTorneoSection(uid) {
-  const hdr  = document.getElementById('hdr_'  + uid);
-  const body = document.getElementById('body_' + uid);
-  hdr.classList.toggle('open');
-  body.classList.toggle('open');
-}
-
 async function cargarTorneosOrganizados() {
   const cont = document.getElementById('tienda-torneos-container');
+  cont.innerHTML = '<div class="empty-msg">⏳ Cargando torneos...</div>';
   try {
-    // Torneos organizados desde resultados
-    const resR = await fetch(RANKING_URL);
+    // Un solo fetch con todo
+    const res  = await fetch(`${TORNEOS_URL}?action=torneos_tienda&storeid=${encodeURIComponent(tienda.id)}`);
+    const data = await res.json();
+
+    if (data.status !== 'ok') throw new Error(data.message);
+
+    const torneos    = data.torneos    || [];
+    const inscritos  = data.inscritos  || {};
+
+    // También traer resultados (top 8) del RANKING_URL
+    const resR  = await fetch(RANKING_URL);
     const dataR = await resR.json();
-    const misTorneos = (dataR.resultados || []).filter(t =>
+    const resultados = (dataR.resultados || []).filter(t =>
       (t.storeid || '').toUpperCase() === tienda.id.toUpperCase()
     );
 
-    // Inscripciones a esos torneos
-    const resI = await fetch(`${TORNEOS_URL}?action=mis_inscripciones&jugador_id=ALL_STORE&storeid=${encodeURIComponent(tienda.id)}`);
+    // Unir torneos publicados + torneos con resultados (sin duplicar)
+    const tournesConResultado = new Set(resultados.map(t => t.tourname));
+    const todosLosTorneos = [
+      ...torneos,
+      ...resultados.filter(t => !torneos.find(p => p.tourname === t.tourname))
+        .map(t => ({ tourname: t.tourname, date: t.tourdate, conResultados: true }))
+    ];
 
-    if (!misTorneos.length) {
-      cont.innerHTML = '<div class="empty-msg">📋 Sin torneos organizados registrados aún.</div>';
+    if (!todosLosTorneos.length) {
+      cont.innerHTML = '<div class="empty-msg">📋 Sin torneos registrados aún.</div>';
       return;
     }
 
-    cont.innerHTML = misTorneos.map(t => {
-      const participantes = [];
-      for (let i = 1; i <= 8; i++) {
-        if (t[`p${i}_nombre`] || t[`p${i}_name`]) {
-          participantes.push(`${i}° ${t[`p${i}_nombre`] || t[`p${i}_name`]}`);
+    cont.innerHTML = todosLosTorneos.map((t, idx) => {
+      const uid         = 'ts_' + idx;
+      const tieneRes    = tournesConResultado.has(t.tourname);
+      const resultado   = resultados.find(r => r.tourname === t.tourname);
+      const inscrList   = inscritos[t.tourname] || [];
+
+      // Top 8 si hay resultados
+      let participantesHTML = '';
+      if (tieneRes && resultado) {
+        const top8 = [];
+        for (let i = 1; i <= 8; i++) {
+          const nombre = resultado[`p${i}_name`] || resultado[`p${i}_nombre`] || '';
+          const id     = resultado[`p${i}_id`] || '';
+          if (nombre) top8.push({ pos: i, nombre, id });
+        }
+        if (top8.length) {
+          participantesHTML += `<div style="font-family:'Orbitron',sans-serif;font-size:.65rem;letter-spacing:2px;color:var(--gold);margin:8px 0 4px;">🏆 RESULTADOS FINALES</div>`;
+          participantesHTML += top8.map(p => {
+            const med = p.pos==1?'🥇':p.pos==2?'🥈':p.pos==3?'🥉':`#${p.pos}`;
+            return `<div class="insc-list-item">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div><div class="insc-nombre">${p.nombre}</div><div class="insc-meta">${p.id}</div></div>
+                <div style="font-family:'Orbitron',sans-serif;font-size:.8rem;color:var(--gold);">${med}</div>
+              </div>
+            </div>`;
+          }).join('');
         }
       }
+
+      // Inscritos
+      if (inscrList.length) {
+        participantesHTML += `<div style="font-family:'Orbitron',sans-serif;font-size:.65rem;letter-spacing:2px;color:var(--muted);margin:10px 0 4px;">📋 INSCRITOS (${inscrList.length}${t.slots ? '/'+t.slots : ''})</div>`;
+        participantesHTML += inscrList.map((p, i) =>
+          `<div class="insc-list-item">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div><div class="insc-nombre">${p.jugador_nombre || p.jugador_id}</div><div class="insc-meta">${p.jugador_id} · ${p.fecha_insc}</div></div>
+              <div style="font-size:.75rem;color:var(--muted);">#${i+1}</div>
+            </div>
+          </div>`
+        ).join('');
+      }
+
+      if (!participantesHTML) {
+        participantesHTML = '<div class="empty-msg" style="font-size:.8rem;padding:8px 0;">Sin inscritos ni resultados aún.</div>';
+      }
+
+      const etiqueta = tieneRes
+        ? `<span style="background:rgba(245,166,35,.15);color:var(--gold);font-size:.65rem;padding:2px 8px;border-radius:4px;font-family:'Orbitron',sans-serif;">FINALIZADO</span>`
+        : `<span style="background:rgba(0,200,100,.1);color:#00c864;font-size:.65rem;padding:2px 8px;border-radius:4px;font-family:'Orbitron',sans-serif;">EN CURSO</span>`;
+
+      const totalInscritos = inscrList.length;
+      const slots = t.slots || '—';
+
       return `<div class="torneo-section">
-        <div class="torneo-section-title">🏆 ${t.tourname} — ${t.tourdate}</div>
-        ${participantes.length
-          ? participantes.map(p => `<div class="insc-list-item"><div class="insc-nombre">${p}</div></div>`).join('')
-          : '<div class="empty-msg" style="font-size:.8rem">Sin resultados cargados.</div>'
-        }
+        <div class="torneo-section-header" id="hdr_${uid}" onclick="toggleTorneoSection('${uid}')">
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
+              <div class="torneo-section-title" style="margin:0;font-size:.72rem;">🏆 ${t.tourname}</div>
+              ${etiqueta}
+            </div>
+            <div style="font-size:.7rem;color:var(--muted);">${t.date||t.tourdate||''} · ${totalInscritos} inscritos · Cupo: ${slots}</div>
+          </div>
+          <span class="ts-arrow">▼</span>
+        </div>
+        <div class="torneo-section-body" id="body_${uid}">
+          ${participantesHTML}
+        </div>
       </div>`;
     }).join('');
+
   } catch(e) {
-    cont.innerHTML = '<div class="empty-msg">⚠️ Error cargando torneos.</div>';
+    cont.innerHTML = `<div class="empty-msg">⚠️ Error: ${e.message}</div>`;
   }
 }
 

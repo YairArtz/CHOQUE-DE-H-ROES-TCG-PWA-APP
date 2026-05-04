@@ -1,135 +1,150 @@
 // ================================================================
-//  CHOQUE DE HÉROES TCG — Service Worker v5
+//  CHOQUE DE HÉROES TCG — Service Worker v6
+//  Con notificaciones locales de noticias y torneos
 // ================================================================
-const CACHE_NAME    = 'chh-tcg-v5';
-const CACHE_DYNAMIC = 'chh-dynamic-v5';
+const CACHE_NAME    = 'chh-tcg-v6';
+const CACHE_DYNAMIC = 'chh-dynamic-v6';
 
-// Archivos core — se cachean en install (offline garantizado)
 const CACHE_CORE = [
-  './',
-  './boot.html',
-  './index.html',
-  './calculadora.html',
-  './perfil.html',
-  './calendario.html',
-  './constructor.html',
-  './torneo-director.html',
-  './manifest.json',
-  './icon-192.png',
-  './icon-512.png',
-  './settings.js'
+  './', './boot.html', './index.html', './calculadora.html',
+  './perfil.html', './calendario.html', './constructor.html',
+  './torneo-director.html', './noticias.html',
+  './manifest.json', './icon-192.png', './icon-512.png',
+  './settings.js', './noticias.json'
 ];
 
-// Orígenes externos que NUNCA se cachean (APIs en vivo)
-const NO_CACHE_ORIGINS = [
-  'script.google.com',
-  'docs.google.com',
-  'fonts.googleapis.com',
-  'fonts.gstatic.com'
-];
+const NO_CACHE_ORIGINS = ['script.google.com','docs.google.com','fonts.googleapis.com','fonts.gstatic.com'];
 
-// ── INSTALL ──────────────────────────────────────────────────────
 self.addEventListener('install', event => {
-  console.log('[SW v5] Install');
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(
-        CACHE_CORE.map(url => new Request(url, { cache: 'reload' }))
-      ))
-      .catch(err => console.warn('[SW] Cache parcial en install:', err))
+      .then(cache => cache.addAll(CACHE_CORE.map(url => new Request(url, { cache: 'reload' }))))
+      .catch(err => console.warn('[SW] Cache parcial:', err))
   );
 });
 
-// ── ACTIVATE ─────────────────────────────────────────────────────
 self.addEventListener('activate', event => {
-  console.log('[SW v5] Activate');
   event.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(
-        keys
-          .filter(k => k !== CACHE_NAME && k !== CACHE_DYNAMIC)
-          .map(k => { console.log('[SW] Borrando:', k); return caches.delete(k); })
-      ))
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME && k !== CACHE_DYNAMIC).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
 
-// ── MESSAGE ───────────────────────────────────────────────────────
 self.addEventListener('message', event => {
-  if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
+  if (!event.data) return;
+  if (event.data.type === 'SKIP_WAITING') self.skipWaiting();
+  if (event.data.type === 'CHECK_UPDATES') checkUpdates();
 });
 
-// ── FETCH ─────────────────────────────────────────────────────────
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
-
   const url = new URL(event.request.url);
-
-  // APIs externas — solo red, nunca cache
   if (NO_CACHE_ORIGINS.some(o => url.hostname.includes(o))) return;
-
-  // Solo manejar mismo origen
   if (url.origin !== self.location.origin) return;
-
-  // Archivos HTML y JS core — Cache first, red como fallback
-  const isCoreFile = CACHE_CORE.some(f => url.pathname.endsWith(f.replace('./', '/')));
-  if (isCoreFile) {
-    event.respondWith(cacheFirst(event.request));
-    return;
-  }
-
-  // Assets (imágenes, CSS, fuentes locales) — Cache first con actualización en background
-  if (/\.(jpg|jpeg|png|gif|webp|svg|css|woff2?|ttf)$/i.test(url.pathname)) {
-    event.respondWith(staleWhileRevalidate(event.request));
-    return;
-  }
-
-  // Todo lo demás — Network first, cache como fallback
-  event.respondWith(networkFirst(event.request));
+  const isCore = CACHE_CORE.some(f => url.pathname.endsWith(f.replace('./','/')) || url.pathname === '/');
+  if (isCore) event.respondWith(cacheFirst(event.request));
+  else if (/\.(jpg|jpeg|png|gif|webp|svg|css|woff2?|ttf)$/i.test(url.pathname)) event.respondWith(staleWhileRevalidate(event.request));
+  else event.respondWith(networkFirst(event.request));
 });
 
-// ── ESTRATEGIAS ───────────────────────────────────────────────────
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  const url = event.notification.data?.url || './';
+  event.waitUntil(
+    clients.matchAll({ type:'window', includeUncontrolled:true }).then(list => {
+      for (const c of list) { if ('focus' in c) { c.focus(); c.postMessage({ type:'NAVIGATE', url }); return; } }
+      return clients.openWindow(url);
+    })
+  );
+});
 
-// Cache first: sirve desde cache, si no hay va a red y cachea
-async function cacheFirst(request) {
-  const cached = await caches.match(request);
-  if (cached) return cached;
-  try {
-    const response = await fetch(request);
-    if (response?.status === 200) {
-      const cache = await caches.open(CACHE_NAME);
-      cache.put(request, response.clone());
-    }
-    return response;
-  } catch {
-    return new Response('<h1>Sin conexión</h1><p>Esta página no está disponible offline.</p>',
-      { headers: { 'Content-Type': 'text/html' } });
+async function checkUpdates() {
+  if (Notification.permission !== 'granted') return;
+  try { await checkNoticias(); } catch(e) {}
+  try { await checkTorneos(); } catch(e) {}
+}
+
+async function checkNoticias() {
+  const res = await fetch('./noticias.json?_t=' + Date.now());
+  if (!res.ok) return;
+  const noticias = await res.json();
+  const db    = await openDB();
+  const visto = await dbGet(db, 'last_noticia') || '';
+  const primera = noticias[0];
+  if (!primera || primera.titulo === visto) return;
+  await dbSet(db, 'last_noticia', primera.titulo);
+  await self.registration.showNotification('📰 Nueva noticia CHH', {
+    body:    primera.titulo + '\n' + primera.resumen,
+    icon:    './icon-192.png',
+    badge:   './icon-192.png',
+    tag:     'noticia',
+    data:    { url: './noticias.html' },
+    vibrate: [200, 100, 200]
+  });
+}
+
+async function checkTorneos() {
+  const API = 'https://script.google.com/macros/s/AKfycbxQwDgsNe-toSWetc2f-xkveQcywfGwOVQvsOEySgRc2z8YZG09mB20jUjrI9qO1yo9Uw/exec';
+  const res  = await fetch(API + '?_t=' + Date.now());
+  if (!res.ok) return;
+  const data = await res.json();
+  const torneos = data.torneos || [];
+  if (!torneos.length) return;
+  const db       = await openDB();
+  const vistoStr = await dbGet(db, 'last_torneos') || '[]';
+  const vistos   = JSON.parse(vistoStr);
+  const nuevos   = torneos.filter(t => !vistos.includes(t.storeid + '_' + t.tourname));
+  if (!nuevos.length) return;
+  await dbSet(db, 'last_torneos', JSON.stringify(torneos.map(t => t.storeid + '_' + t.tourname)));
+  for (const t of nuevos.slice(0, 2)) {
+    const lugar = [t.ciudad, t.estado].filter(Boolean).join(', ');
+    await self.registration.showNotification('⚔️ Nuevo Torneo CHH', {
+      body:    t.tourname + (lugar ? ' · ' + lugar : '') + '\n📅 ' + (t.date||'') + (t.time ? '  ' + t.time : ''),
+      icon:    './icon-192.png',
+      badge:   './icon-192.png',
+      tag:     'torneo-' + t.tourname,
+      data:    { url: './calendario.html' },
+      vibrate: [200, 100, 200]
+    });
   }
 }
 
-// Stale while revalidate: sirve cache inmediato, actualiza en background
-async function staleWhileRevalidate(request) {
-  const cache  = await caches.open(CACHE_DYNAMIC);
-  const cached = await cache.match(request);
-  const fetchPromise = fetch(request).then(response => {
-    if (response?.status === 200) cache.put(request, response.clone());
-    return response;
-  }).catch(() => null);
-  return cached || await fetchPromise;
+// IndexedDB helpers
+function openDB() {
+  return new Promise((res, rej) => {
+    const r = indexedDB.open('chh-sw-db', 1);
+    r.onupgradeneeded = e => e.target.result.createObjectStore('kv');
+    r.onsuccess = e => res(e.target.result);
+    r.onerror   = e => rej(e.target.error);
+  });
+}
+function dbGet(db, key) {
+  return new Promise((res, rej) => {
+    const r = db.transaction('kv','readonly').objectStore('kv').get(key);
+    r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+  });
+}
+function dbSet(db, key, val) {
+  return new Promise((res, rej) => {
+    const r = db.transaction('kv','readwrite').objectStore('kv').put(val, key);
+    r.onsuccess = () => res(); r.onerror = () => rej(r.error);
+  });
 }
 
-// Network first: intenta red, fallback a cache
-async function networkFirst(request) {
-  try {
-    const response = await fetch(request);
-    if (response?.status === 200) {
-      const cache = await caches.open(CACHE_DYNAMIC);
-      cache.put(request, response.clone());
-    }
-    return response;
-  } catch {
-    const cached = await caches.match(request);
-    return cached || new Response('Sin conexión', { status: 503 });
-  }
+// Cache strategies
+async function cacheFirst(req) {
+  const c = await caches.match(req); if (c) return c;
+  try { const r = await fetch(req); if (r?.status===200) (await caches.open(CACHE_NAME)).put(req,r.clone()); return r; }
+  catch { return new Response('<h1>Sin conexión</h1>',{headers:{'Content-Type':'text/html'}}); }
+}
+async function staleWhileRevalidate(req) {
+  const cache=await caches.open(CACHE_DYNAMIC), c=await cache.match(req);
+  const fp=fetch(req).then(r=>{if(r?.status===200)cache.put(req,r.clone());return r;}).catch(()=>null);
+  return c||await fp;
+}
+async function networkFirst(req) {
+  try { const r=await fetch(req); if(r?.status===200)(await caches.open(CACHE_DYNAMIC)).put(req,r.clone()); return r; }
+  catch { return await caches.match(req)||new Response('Sin conexión',{status:503}); }
 }

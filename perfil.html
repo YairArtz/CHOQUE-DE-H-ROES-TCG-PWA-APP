@@ -234,6 +234,12 @@
     <div id="ranking-container"><div class="pending-box">⏳ Cargando ranking...</div></div>
   </div>
 
+  <!-- Inscripciones pendientes -->
+  <div class="card" style="margin-bottom:12px;">
+    <div class="badge">📅 INSCRIPCIONES PENDIENTES</div>
+    <div id="inscripciones-container"><div class="empty-msg">📋 Cargando...</div></div>
+  </div>
+
   <!-- Historial torneos -->
   <div class="card" style="margin-bottom:12px;">
     <div class="badge">🎯 TORNEOS JUGADOS</div>
@@ -299,6 +305,7 @@
 const SHEET_ID = '1A3pMANjIop9IES2zseTrKImAkHPu2K56_iJJoiQzbxc';
 const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
 const RANKING_URL = 'https://script.google.com/macros/s/AKfycbx1rOqnmqWhics45UF40n81V9s-W5VgmhQGtc-UNIERGjkZGN8n1mVHkk0B1VO8PYJWOQ/exec';
+const TORNEOS_URL  = 'https://script.google.com/macros/s/AKfycbxQwDgsNe-toSWetc2f-xkveQcywfGwOVQvsOEySgRc2z8YZG09mB20jUjrI9qO1yo9Uw/exec';
 
 // ══════════════════════════════════════════
 // imágenes tuyas cuando estén listas
@@ -448,6 +455,7 @@ function mostrarPerfil() {
   aplicarItemsGuardados();
   cargarBarajas();
   cargarRanking();
+  cargarInscripciones();
 }
 
 
@@ -611,6 +619,33 @@ function aplicarItemsGuardados() {
     bg_nexo:    'url(fondos/nexo_bg.jpg) center/cover',
   };
   if (fondoId && fondos[fondoId]) document.body.style.background = fondos[fondoId];
+}
+
+async function cargarInscripciones() {
+  const cont = document.getElementById('inscripciones-container');
+  if (!jugador) return;
+  try {
+    const res  = await fetch(`${TORNEOS_URL}?action=mis_inscripciones&jugador_id=${encodeURIComponent(jugador.id)}`);
+    const data = await res.json();
+    if (data.status !== 'ok' || !Array.isArray(data.inscripciones) || !data.inscripciones.length) {
+      cont.innerHTML = '<div class="empty-msg">📋 Sin inscripciones pendientes.</div>';
+      return;
+    }
+    cont.innerHTML = data.inscripciones.map(t => {
+      const fecha = t.tourdate || '';
+      return `<div class="torneo-item">
+        <div>
+          <div class="torneo-nombre">${t.tourname}</div>
+          <div class="torneo-fecha">${fecha}${t.storeid ? ' · '+t.storeid : ''}</div>
+        </div>
+        <div class="torneo-pos" style="background:rgba(245,166,35,.12);color:var(--gold);font-size:.75rem;padding:4px 10px;border-radius:6px;">
+          ⏳ PENDIENTE
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    cont.innerHTML = '<div class="empty-msg">⚠️ No se pudieron cargar inscripciones.</div>';
+  }
 }
 
 // ── RANKING ──

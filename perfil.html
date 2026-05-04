@@ -630,15 +630,15 @@ const BADGES_CATALOGO = [
 
 function calcularBadgesAuto(historial, totalPts, posGlobal) {
   const ganados = new Set();
-
-  // Nuevo jugador — siempre al tener perfil
   ganados.add('nuevo_jugador');
+  // barajas — siempre calcular
+  try {
+    const bq = JSON.parse(localStorage.getItem('chh_decks') || '[]');
+    if (bq.length >= 1)  ganados.add('minimalista');
+    if (bq.length >= 5)  ganados.add('arquitecto');
+    if (bq.length > 10)  ganados.add('coleccionista');
+  } catch(e) {}
 
-  // — Barajas — se calculan siempre, independiente de torneos —
-  const barajas = JSON.parse(localStorage.getItem('chh_decks') || '[]');
-  if (barajas.length >= 1)  ganados.add('minimalista');
-  if (barajas.length >= 5)  ganados.add('arquitecto');
-  if (barajas.length > 10)  ganados.add('coleccionista');
 
   // — Aniversario — 16 de Marzo —
   const hoyFecha = new Date();
@@ -706,6 +706,7 @@ async function cargarBadges(historial, totalPts, posGlobal) {
     const res = await fetch(SHEET_URL);
     const txt = await res.text();
     const json = JSON.parse(txt.slice(txt.indexOf('({')+1, txt.lastIndexOf(')')));
+    if (!jugador?.id) throw new Error("no jugador");
     const miId = jugador.id.trim().toUpperCase();
     for (const row of json.table.rows) {
       const c = row.c;
@@ -1010,6 +1011,7 @@ async function cargarRanking() {
     }
 
     // ── Calcular puntos y historial del jugador actual ──
+    if (!jugador?.id) throw new Error("no jugador");
     const miId = jugador.id.trim().toUpperCase();
     let totalPts = 0;
     const historial = [];

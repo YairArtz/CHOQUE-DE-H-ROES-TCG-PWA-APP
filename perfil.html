@@ -1111,117 +1111,268 @@ function cerrarShare() {
 async function generarTarjeta() {
   const canvas = document.getElementById('shareCanvas');
   const ctx = canvas.getContext('2d');
-  const W = 360, H = 560;
-  canvas.width = W; canvas.height = H;
+  const W = 380, H = 620;
+  canvas.width = W * 2; canvas.height = H * 2;
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+  ctx.scale(2, 2);
 
-  // Fondo
-  const bg = ctx.createLinearGradient(0,0,0,H);
-  bg.addColorStop(0,'#03050a'); bg.addColorStop(1,'#060d1a');
-  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+  // ── FONDO base ──
+  ctx.fillStyle = '#020408';
+  ctx.fillRect(0, 0, W, H);
 
-  // Borde
-  ctx.strokeStyle = 'rgba(0,255,157,0.25)'; ctx.lineWidth = 1;
-  rRect(ctx,1,1,W-2,H-2,12); ctx.stroke();
+  // Gradiente radial ambiental
+  const glow = ctx.createRadialGradient(W/2, H*0.35, 0, W/2, H*0.35, 280);
+  glow.addColorStop(0,   'rgba(0,255,157,0.07)');
+  glow.addColorStop(0.5, 'rgba(0,80,255,0.04)');
+  glow.addColorStop(1,   'rgba(0,0,0,0)');
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, W, H);
 
-  // Línea top
-  const lg = ctx.createLinearGradient(40,0,W-40,0);
-  lg.addColorStop(0,'transparent'); lg.addColorStop(.5,'#00ff9d'); lg.addColorStop(1,'transparent');
-  ctx.strokeStyle = lg; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(40,12); ctx.lineTo(W-40,12); ctx.stroke();
-
-  // Título
-  ctx.font = '700 9px monospace'; ctx.fillStyle = 'rgba(0,255,157,0.5)';
-  ctx.textAlign = 'center'; ctx.fillText('CHOQUE DE HÉROES TCG', W/2, 30);
-
-  // Avatar
-  const avEl = document.querySelector('#avatar-display img');
-  const avY = 46, avR = 44;
-  ctx.save();
-  ctx.beginPath(); ctx.arc(W/2, avY+avR, avR, 0, Math.PI*2); ctx.clip();
-  if (avEl && avEl.complete && avEl.naturalWidth > 0) {
-    try { ctx.drawImage(avEl, W/2-avR, avY, avR*2, avR*2); } catch(e) {
-      ctx.fillStyle='#0d1f3c'; ctx.fillRect(W/2-avR,avY,avR*2,avR*2);
+  // Grid de puntos decorativos
+  ctx.fillStyle = 'rgba(0,255,157,0.06)';
+  for (let x = 12; x < W; x += 18) {
+    for (let y = 12; y < H; y += 18) {
+      ctx.beginPath(); ctx.arc(x, y, 0.8, 0, Math.PI*2); ctx.fill();
     }
-  } else { ctx.fillStyle='#0d1f3c'; ctx.fillRect(W/2-avR,avY,avR*2,avR*2); }
-  ctx.restore();
-  ctx.strokeStyle='#00ff9d'; ctx.lineWidth=2;
-  ctx.beginPath(); ctx.arc(W/2,avY+avR,avR+3,0,Math.PI*2); ctx.stroke();
-
-  // Nombre / nick / id
-  const nombre = jugador?.nombre||'—';
-  const nick   = jugador?.nick||'';
-  const id     = jugador?.id||'';
-  const yN = avY+avR*2+22;
-  ctx.font='900 17px monospace'; ctx.fillStyle='#fff'; ctx.textAlign='center';
-  ctx.fillText(nombre.toUpperCase(), W/2, yN);
-  if (nick) { ctx.font='500 12px sans-serif'; ctx.fillStyle='rgba(0,255,157,.7)'; ctx.fillText('"'+nick+'"', W/2, yN+17); }
-  ctx.font='700 9px monospace'; ctx.fillStyle='rgba(100,140,180,.8)';
-  ctx.fillText(id, W/2, yN+(nick?35:17));
-
-  const dy1 = yN+(nick?52:34);
-  divider(ctx,W,dy1);
-
-  // Stats
-  const sY = dy1+18;
-  const stats = [
-    {l:'PUNTOS',  v: String(_shareStats.pts   || document.getElementById('s-puntos').textContent  || '0')},
-    {l:'TORNEOS', v: String(_shareStats.torneos|| document.getElementById('s-torneos').textContent || '0')},
-    {l:'RANKING', v: _shareStats.pos ? '#'+_shareStats.pos : '—'}
-  ];
-  const cw = W/3;
-  stats.forEach((s,i) => {
-    const cx = cw*i+cw/2;
-    ctx.fillStyle='rgba(0,255,157,0.04)';
-    rRect(ctx,cw*i+8,sY-4,cw-16,52,6); ctx.fill();
-    ctx.strokeStyle='rgba(0,255,157,0.12)'; ctx.lineWidth=1; ctx.stroke();
-    ctx.font='900 20px monospace'; ctx.fillStyle='#ffd700'; ctx.textAlign='center';
-    ctx.fillText(s.v, cx, sY+24);
-    ctx.font='700 7px monospace'; ctx.fillStyle='rgba(100,140,180,.7)';
-    ctx.fillText(s.l, cx, sY+38);
-  });
-
-  // W/L
-  const ry = sY+62;
-  ctx.font='700 10px monospace'; ctx.fillStyle='rgba(100,140,180,.6)'; ctx.textAlign='center';
-  ctx.fillText((_shareStats.wins||0)+'W  ·  '+(_shareStats.losses||0)+'L', W/2, ry);
-  divider(ctx,W,ry+14);
-
-  // Badges
-  const by = ry+30;
-  ctx.font='700 7px monospace'; ctx.fillStyle='rgba(0,255,157,.5)'; ctx.textAlign='center';
-  ctx.fillText('LOGROS', W/2, by);
-  const bEls = document.querySelectorAll('#badges-container .badge-item');
-  const emojis = [];
-  bEls.forEach(el => {
-    const em = el.querySelector('.badge-emoji,.badge-icon');
-    if (em && !el.classList.contains('locked')) emojis.push(em.textContent.trim());
-  });
-  if (emojis.length) {
-    const max = Math.min(emojis.length,8);
-    const bs=30, gap=6, tot=max*bs+(max-1)*gap;
-    const sx=(W-tot)/2;
-    for (let i=0;i<max;i++) {
-      const bx=sx+i*(bs+gap);
-      ctx.fillStyle='rgba(245,166,35,.1)';
-      rRect(ctx,bx,by+8,bs,bs,5); ctx.fill();
-      ctx.strokeStyle='rgba(245,166,35,.25)'; ctx.lineWidth=1; ctx.stroke();
-      ctx.font='16px serif'; ctx.textAlign='center';
-      ctx.fillText(emojis[i], bx+bs/2, by+8+bs*.7);
-    }
-    if (emojis.length>8) {
-      ctx.font='700 8px monospace'; ctx.fillStyle='rgba(100,140,180,.6)'; ctx.textAlign='center';
-      ctx.fillText('+'+( emojis.length-8)+' más', W/2, by+8+bs+14);
-    }
-  } else {
-    ctx.font='500 11px sans-serif'; ctx.fillStyle='rgba(100,140,180,.4)'; ctx.textAlign='center';
-    ctx.fillText('Sin logros aún', W/2, by+28);
   }
 
-  // Footer
-  divider(ctx,W,H-34);
-  ctx.font='700 7px monospace'; ctx.fillStyle='rgba(0,255,157,.3)'; ctx.textAlign='center';
-  ctx.fillText('CHOQUE DE HÉROES TCG', W/2, H-16);
+  // ── BORDE exterior con glow ──
+  ctx.shadowColor   = '#00ff9d';
+  ctx.shadowBlur    = 18;
+  ctx.strokeStyle   = 'rgba(0,255,157,0.6)';
+  ctx.lineWidth     = 1.5;
+  rRect(ctx, 2, 2, W-4, H-4, 14); ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // Borde interior sutil
+  ctx.strokeStyle = 'rgba(0,255,157,0.12)';
+  ctx.lineWidth   = 1;
+  rRect(ctx, 6, 6, W-12, H-12, 11); ctx.stroke();
+
+  // ── FRANJA SUPERIOR ──
+  const topGrad = ctx.createLinearGradient(0, 0, W, 0);
+  topGrad.addColorStop(0,   'rgba(0,255,157,0.0)');
+  topGrad.addColorStop(0.3, 'rgba(0,255,157,0.12)');
+  topGrad.addColorStop(0.7, 'rgba(0,100,255,0.08)');
+  topGrad.addColorStop(1,   'rgba(0,255,157,0.0)');
+  ctx.fillStyle = topGrad;
+  ctx.fillRect(0, 0, W, 48);
+
+  // Línea superior neon
+  const lineTop = ctx.createLinearGradient(0, 0, W, 0);
+  lineTop.addColorStop(0,   'transparent');
+  lineTop.addColorStop(0.2, '#00ff9d');
+  lineTop.addColorStop(0.8, '#0064ff');
+  lineTop.addColorStop(1,   'transparent');
+  ctx.strokeStyle = lineTop; ctx.lineWidth = 2;
+  ctx.shadowColor = '#00ff9d'; ctx.shadowBlur = 8;
+  ctx.beginPath(); ctx.moveTo(0, 2); ctx.lineTo(W, 2); ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // Logo CHH
+  ctx.font = '900 10px monospace';
+  ctx.fillStyle = '#00ff9d';
+  ctx.textAlign = 'center';
+  ctx.shadowColor = '#00ff9d'; ctx.shadowBlur = 6;
+  ctx.fillText('⚔  CHOQUE DE HÉROES TCG  ⚔', W/2, 28);
+  ctx.shadowBlur = 0;
+  ctx.font = '700 7px monospace';
+  ctx.fillStyle = 'rgba(0,255,157,0.4)';
+  ctx.fillText('TARJETA DE JUGADOR', W/2, 42);
+
+  // ── AVATAR con efectos ──
+  const avCX = W/2, avCY = 118, avR = 52;
+
+  // Anillo exterior pulsante (doble)
+  ctx.strokeStyle = 'rgba(0,255,157,0.15)'; ctx.lineWidth = 8;
+  ctx.beginPath(); ctx.arc(avCX, avCY, avR+14, 0, Math.PI*2); ctx.stroke();
+  ctx.strokeStyle = 'rgba(0,255,157,0.3)'; ctx.lineWidth = 2;
+  ctx.shadowColor = '#00ff9d'; ctx.shadowBlur = 12;
+  ctx.beginPath(); ctx.arc(avCX, avCY, avR+7, 0, Math.PI*2); ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // Clip avatar
+  ctx.save();
+  ctx.beginPath(); ctx.arc(avCX, avCY, avR, 0, Math.PI*2); ctx.clip();
+  const avEl = document.querySelector('#avatar-display img');
+  if (avEl && avEl.complete && avEl.naturalWidth > 0) {
+    try { ctx.drawImage(avEl, avCX-avR, avCY-avR, avR*2, avR*2); }
+    catch(e) { ctx.fillStyle='#0d1f3c'; ctx.fillRect(avCX-avR,avCY-avR,avR*2,avR*2); }
+  } else {
+    ctx.fillStyle = '#0d1f3c';
+    ctx.fillRect(avCX-avR, avCY-avR, avR*2, avR*2);
+    ctx.font = '40px serif'; ctx.textAlign = 'center';
+    ctx.fillStyle = '#00ff9d';
+    ctx.fillText('⚔', avCX, avCY+14);
+  }
+  ctx.restore();
+
+  // Anillo interior brillante
+  ctx.strokeStyle = '#00ff9d'; ctx.lineWidth = 2.5;
+  ctx.shadowColor = '#00ff9d'; ctx.shadowBlur = 14;
+  ctx.beginPath(); ctx.arc(avCX, avCY, avR+1, 0, Math.PI*2); ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // ── NOMBRE / NICK / ID ──
+  const nombre = (jugador?.nombre || '—').toUpperCase();
+  const nick   = jugador?.nick || '';
+  const id     = jugador?.id   || '';
+
+  ctx.textAlign = 'center';
+  ctx.font = '900 20px monospace';
+  ctx.fillStyle = '#ffffff';
+  ctx.shadowColor = 'rgba(255,255,255,0.3)'; ctx.shadowBlur = 6;
+  ctx.fillText(nombre, W/2, 200);
+  ctx.shadowBlur = 0;
+
+  if (nick) {
+    ctx.font = '600 13px sans-serif';
+    ctx.fillStyle = 'rgba(0,255,157,0.8)';
+    ctx.fillText('"' + nick + '"', W/2, 218);
+  }
+  ctx.font = '700 9px monospace';
+  ctx.fillStyle = 'rgba(100,160,220,0.7)';
+  ctx.fillText(id, W/2, nick ? 234 : 218);
+
+  // ── SEPARADOR ──
+  neonLine(ctx, W, nick ? 245 : 229);
+
+  // ── STATS CAJAS ──
+  const sY = nick ? 260 : 244;
+  const stats = [
+    { l:'PUNTOS',  v: String(_shareStats.pts    || document.getElementById('s-puntos').textContent  || '0'), color:'#ffd700' },
+    { l:'TORNEOS', v: String(_shareStats.torneos || document.getElementById('s-torneos').textContent || '0'), color:'#00ff9d' },
+    { l:'RANKING', v: _shareStats.pos ? '#'+_shareStats.pos : '—', color:'#ff6aff' }
+  ];
+  const cw = (W - 48) / 3;
+  stats.forEach((s, i) => {
+    const cx = 16 + cw*i + cw/2;
+    const bx = 16 + cw*i + 2;
+    // Caja con gradiente
+    const bg = ctx.createLinearGradient(bx, sY-6, bx, sY+54);
+    bg.addColorStop(0, 'rgba(255,255,255,0.04)');
+    bg.addColorStop(1, 'rgba(255,255,255,0.01)');
+    ctx.fillStyle = bg;
+    rRect(ctx, bx, sY-6, cw-4, 56, 8); ctx.fill();
+    ctx.strokeStyle = s.color.replace(')', ',0.3)').replace('rgb','rgba').replace('#','rgba(').replace('rgba(','rgba(');
+    // Borde color
+    ctx.strokeStyle = s.color + '44';
+    ctx.lineWidth = 1;
+    rRect(ctx, bx, sY-6, cw-4, 56, 8); ctx.stroke();
+    // Valor
+    ctx.font = '900 24px monospace';
+    ctx.fillStyle = s.color;
+    ctx.shadowColor = s.color; ctx.shadowBlur = 10;
+    ctx.textAlign = 'center';
+    ctx.fillText(s.v, cx, sY+26);
+    ctx.shadowBlur = 0;
+    // Label
+    ctx.font = '700 7px monospace';
+    ctx.fillStyle = 'rgba(150,180,220,0.65)';
+    ctx.fillText(s.l, cx, sY+44);
+  });
+
+  // W/L record
+  const ry = sY + 70;
+  const w  = _shareStats.wins   || 0;
+  const l  = _shareStats.losses || 0;
+  ctx.font = '700 10px monospace'; ctx.textAlign = 'center';
+  ctx.fillStyle = '#00ff9d'; ctx.shadowColor = '#00ff9d'; ctx.shadowBlur = 4;
+  ctx.fillText(w + 'W', W/2 - 30, ry);
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = 'rgba(150,180,220,0.4)';
+  ctx.fillText('·', W/2, ry);
+  ctx.fillStyle = '#ff4d6d'; ctx.shadowColor = '#ff4d6d'; ctx.shadowBlur = 4;
+  ctx.fillText(l + 'L', W/2 + 30, ry);
+  ctx.shadowBlur = 0;
+
+  neonLine(ctx, W, ry + 14);
+
+  // ── BADGES DESBLOQUEADOS ──
+  const by = ry + 30;
+  ctx.font = '700 8px monospace';
+  ctx.fillStyle = 'rgba(0,255,157,0.5)';
+  ctx.textAlign = 'center';
+  ctx.fillText('LOGROS DESBLOQUEADOS', W/2, by);
+
+  // Solo badges SIN clase .locked en el icono
+  const bEls = document.querySelectorAll('#badges-container .badge-item');
+  const earned = [];
+  bEls.forEach(el => {
+    const icon = el.querySelector('.badge-icon');
+    const nom  = el.querySelector('.badge-nombre');
+    if (icon && !icon.classList.contains('locked')) {
+      const emoji = icon.textContent.trim() || icon.querySelector('img')?.alt || '⭐';
+      const name  = nom?.textContent?.trim() || '';
+      earned.push({ emoji, name });
+    }
+  });
+
+  if (earned.length) {
+    const maxShow = Math.min(earned.length, 9);
+    const cols    = Math.min(maxShow, 5);
+    const bs = 36, gap = 8;
+    const totalW  = cols * bs + (cols-1) * gap;
+    const startX  = (W - totalW) / 2;
+    for (let i = 0; i < maxShow; i++) {
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      const bx  = startX + col*(bs+gap);
+      const byy = by + 12 + row*(bs+gap);
+      // Caja glow
+      ctx.fillStyle = 'rgba(245,166,35,0.08)';
+      rRect(ctx, bx, byy, bs, bs, 7); ctx.fill();
+      ctx.strokeStyle = 'rgba(245,166,35,0.4)'; ctx.lineWidth = 1;
+      ctx.shadowColor = '#f5a623'; ctx.shadowBlur = 6;
+      rRect(ctx, bx, byy, bs, bs, 7); ctx.stroke();
+      ctx.shadowBlur = 0;
+      // Emoji
+      ctx.font = '20px serif'; ctx.textAlign = 'center';
+      ctx.fillText(earned[i].emoji, bx + bs/2, byy + bs*0.68);
+    }
+    if (earned.length > 9) {
+      ctx.font = '700 8px monospace';
+      ctx.fillStyle = 'rgba(150,180,220,0.5)';
+      ctx.textAlign = 'center';
+      ctx.fillText('+' + (earned.length-9) + ' logros más', W/2, by + 12 + Math.ceil(maxShow/cols)*(bs+gap) + 4);
+    }
+  } else {
+    ctx.font = '500 11px sans-serif';
+    ctx.fillStyle = 'rgba(100,140,180,0.35)';
+    ctx.textAlign = 'center';
+    ctx.fillText('Sin logros desbloqueados aún', W/2, by + 32);
+  }
+
+  // ── FOOTER ──
+  neonLine(ctx, W, H-38);
+  const footGrad = ctx.createLinearGradient(0, H-36, W, H-36);
+  footGrad.addColorStop(0,   '#00ff9d');
+  footGrad.addColorStop(0.5, '#0064ff');
+  footGrad.addColorStop(1,   '#ff00ff');
+  ctx.font = '700 8px monospace';
+  ctx.fillStyle = footGrad;
+  ctx.textAlign = 'center';
+  ctx.shadowColor = '#00ff9d'; ctx.shadowBlur = 6;
+  ctx.fillText('CHOQUE DE HÉROES TCG', W/2, H-20);
+  ctx.shadowBlur = 0;
+  ctx.font = '600 7px monospace';
+  ctx.fillStyle = 'rgba(0,255,157,0.25)';
+  ctx.fillText('nexo.choquedeheroestcg.com', W/2, H-8);
 }
+
+function neonLine(ctx, W, y) {
+  const g = ctx.createLinearGradient(0, y, W, y);
+  g.addColorStop(0,    'transparent');
+  g.addColorStop(0.15, 'rgba(0,255,157,0.6)');
+  g.addColorStop(0.85, 'rgba(0,100,255,0.4)');
+  g.addColorStop(1,    'transparent');
+  ctx.strokeStyle = g; ctx.lineWidth = 1;
+  ctx.shadowColor = '#00ff9d'; ctx.shadowBlur = 4;
+  ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+  ctx.shadowBlur = 0;
+}
+
 
 function descargarTarjeta() {
   const canvas = document.getElementById('shareCanvas');

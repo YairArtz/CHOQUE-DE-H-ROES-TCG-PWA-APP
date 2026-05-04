@@ -12,11 +12,11 @@
       /* Fallback — settings.js sobreescribe estas variables */
       --accent: var(--neon, #00ff9d);
       --accent-glow: rgba(0,255,157,0.08);
-      --bg: var(--bg, #03050a);
+      --bg: #03050a;
       --card: rgba(10,16,36,0.97);
-      --border: var(--border, #141c2a);
-      --text: var(--text, #e0eeff);
-      --muted: var(--muted, #6a7f9a);
+      --border: #141c2a;
+      --text: #e0eeff;
+      --muted: #6a7f9a;
       --danger: #ff2244;
     }
     html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;}
@@ -1466,6 +1466,34 @@ function neonLine(ctx, W, y) {
   ctx.shadowColor='#00ff9d'; ctx.shadowBlur=4;
   ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke();
   ctx.shadowBlur=0;
+}
+
+function descargarTarjeta() {
+  const canvas = document.getElementById('shareCanvas');
+  const link = document.createElement('a');
+  link.download = 'CHH_' + (jugador?.id || 'perfil') + '.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+function rRect(ctx, x, y, w, h, r) {
+  ctx.beginPath(); ctx.moveTo(x+r, y);
+  ctx.lineTo(x+w-r, y); ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+  ctx.lineTo(x+w, y+h-r); ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+  ctx.lineTo(x+r, y+h); ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+  ctx.lineTo(x, y+r); ctx.quadraticCurveTo(x, y, x+r, y);
+  ctx.closePath();
+}
+
+function cerrarSesion() {
+  localStorage.removeItem('nhSesion');
+  jugador = null;
+  tienda  = null;
+  document.getElementById('profile-panel').style.display = 'none';
+  document.getElementById('tienda-panel').style.display  = 'none';
+  document.getElementById('login-panel').style.display   = 'block';
+  document.getElementById('btn-login').disabled = false;
+  document.getElementById('btn-login').style.display = 'block';
 }
 </script>
 </body>

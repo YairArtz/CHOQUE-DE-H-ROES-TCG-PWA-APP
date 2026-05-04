@@ -645,7 +645,7 @@ function calcularBadgesAuto(historial, totalPts, posGlobal) {
   if (hoyFecha.getMonth() === 2 && hoyFecha.getDate() === 16) ganados.add('aniversario');
 
   // — Fundador Veterano —
-  const numIdV = parseInt((jugadorId || '').replace(/\D/g,''));
+  const numIdV = parseInt((jugador?.id || '').replace(/\D/g,''));
   if (!isNaN(numIdV) && numIdV > 0 && numIdV < 100) ganados.add('fundador_vet');
 
   if (!historial || !historial.length) return ganados;
@@ -700,17 +700,17 @@ async function cargarBadges(historial, totalPts, posGlobal) {
   // Badges automáticos calculados localmente
   const autoGanados = calcularBadgesAuto(historial, totalPts, posGlobal);
 
-  // Badges manuales — con timeout para no bloquear
+  // Badges manuales — leer directo del Sheet (columna 6, índice 5)
   let manualesGanados = new Set();
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 4000);
-    const res = await fetch(SHEET_URL, { signal: controller.signal });
-    clearTimeout(timeout);
-    const txt = await res.text();
+    const ctrl = new AbortController();
+    const tid  = setTimeout(() => ctrl.abort(), 5000);
+    const res  = await fetch(SHEET_URL, { signal: ctrl.signal });
+    clearTimeout(tid);
+    const txt  = await res.text();
     const json = JSON.parse(txt.slice(txt.indexOf('({')+1, txt.lastIndexOf(')')));
-    if (jugador?.id) {
-      const miId = jugador.id.trim().toUpperCase();
+    const miId = (jugador?.id || '').trim().toUpperCase();
+    if (miId) {
       for (const row of json.table.rows) {
         const c = row.c;
         const rowId = (c[0]?.v || '').toString().trim().toUpperCase();
@@ -724,6 +724,7 @@ async function cargarBadges(historial, totalPts, posGlobal) {
   } catch(e) {
     console.warn('[badges] manuales no disponibles:', e.message);
   }
+
   const todosGanados = new Set([...autoGanados, ...manualesGanados]);
 
   // Renderizar — primero ganados, luego bloqueados

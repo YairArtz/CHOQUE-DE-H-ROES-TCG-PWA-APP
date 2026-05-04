@@ -599,6 +599,28 @@ const BADGES_CATALOGO = [
   { id:'tor_3er',       nombre:'Semifinalista',   tipo:'auto',   emoji:'🥉', img:'badges/tor_3er.png',       condicion:'Obtener el 3er lugar en cualquier torneo.' },
   { id:'tor_2do',       nombre:'Finalista',       tipo:'auto',   emoji:'🥈', img:'badges/tor_2do.png',       condicion:'Obtener el 2° lugar en cualquier torneo.' },
   { id:'tor_1er',       nombre:'Campeón',         tipo:'auto',   emoji:'🥇', img:'badges/tor_1er.png',       condicion:'Obtener el 1er lugar en cualquier torneo.' },
+  // — Racha y consistencia —
+  { id:'hat_trick',     nombre:'Hat Trick',       tipo:'auto',   emoji:'🎩', img:'badges/hat_trick.png',     condicion:'Ganar 3 torneos en total.' },
+  { id:'en_forma',      nombre:'En Forma',        tipo:'auto',   emoji:'🔥', img:'badges/en_forma.png',      condicion:'Ganar 5 torneos en total.' },
+  { id:'veterano_guerra',nombre:'Veterano de Guerra',tipo:'auto', emoji:'⚔️', img:'badges/veterano_guerra.png',condicion:'Participar en 25 o más torneos.' },
+  { id:'asistencia',    nombre:'Asistencia Perfecta',tipo:'auto', emoji:'📅', img:'badges/asistencia.png',    condicion:'Participar en 5 o más torneos distintos.' },
+  // — Construcción de barajas —
+  { id:'minimalista',   nombre:'Minimalista',     tipo:'auto',   emoji:'🃏', img:'badges/minimalista.png',   condicion:'Guardar al menos 1 baraja en el constructor.' },
+  { id:'coleccionista', nombre:'Coleccionista',   tipo:'auto',   emoji:'📚', img:'badges/coleccionista.png', condicion:'Tener más de 10 barajas guardadas.' },
+  { id:'arquitecto',    nombre:'Arquitecto',      tipo:'auto',   emoji:'🏗️', img:'badges/arquitecto.png',    condicion:'Guardar 5 o más barajas distintas.' },
+  // — Ranking y competencia —
+  { id:'top10',         nombre:'Clasificado',     tipo:'auto',   emoji:'📊', img:'badges/top10.png',         condicion:'Entrar al Top 10 del ranking global.' },
+  { id:'campeon_temp',  nombre:'Campeón Temporada',tipo:'manual', emoji:'🏅', img:'badges/campeon_temp.png',  condicion:'Mayor puntaje al cierre de una temporada oficial.' },
+  { id:'verdugo',       nombre:'Verdugo',         tipo:'manual', emoji:'💀', img:'badges/verdugo.png',       condicion:'Eliminar al jugador #1 del ranking en torneo oficial.' },
+  { id:'invicto',       nombre:'Invicto',         tipo:'manual', emoji:'🛡️', img:'badges/invicto.png',       condicion:'Terminar un torneo sin perder ninguna partida.' },
+  { id:'remontada',     nombre:'Remontada',       tipo:'manual', emoji:'⚡', img:'badges/remontada.png',     condicion:'Ganar un torneo después de perder en la primera ronda.' },
+  // — Comunidad —
+  { id:'embajador',     nombre:'Embajador',       tipo:'manual', emoji:'🏪', img:'badges/embajador.png',     condicion:'Registrarse desde una tienda oficial asociada.' },
+  { id:'madrugador',    nombre:'Madrugador',      tipo:'auto',   emoji:'⏰', img:'badges/madrugador.png',    condicion:'Ser el primer jugador en inscribirse a un torneo.' },
+  // — Especiales / secretos —
+  { id:'aniversario',   nombre:'Aniversario',     tipo:'auto',   emoji:'🎂', img:'badges/aniversario.png',   condicion:'Iniciar sesión el 16 de Marzo, aniversario del juego.' },
+  { id:'fundador_vet',  nombre:'Fundador Veterano',tipo:'manual', emoji:'🔑', img:'badges/fundador_vet.png',  condicion:'Tener un ID con número menor a CHH-00100.' },
+  { id:'decimo_aniv',   nombre:'10° Aniversario', tipo:'manual', emoji:'🎊', img:'badges/decimo_aniv.png',   condicion:'Jugador activo durante el 10° Aniversario CHH 2026.' },
   // — Especiales manuales —
   { id:'tor_veterano',  nombre:'Veterano',        tipo:'manual', emoji:'🎖️', img:'badges/tor_veterano.png',  condicion:'Asignado por los organizadores a jugadores destacados.' },
   { id:'ev_beta',       nombre:'Beta Tester',     tipo:'manual', emoji:'🧪', img:'badges/ev_beta.png',       condicion:'Otorgado a jugadores de la temporada beta.' },
@@ -625,6 +647,37 @@ function calcularBadgesAuto(historial, totalPts, posGlobal) {
   if (n >= 20) ganados.add('superior');
   if (n >= 30) ganados.add('leyenda');
   if (n >= 50) ganados.add('heroe_regente');
+
+
+  // — Racha y consistencia —
+  if (n >= 25) ganados.add('veterano_guerra');
+  if (n >= 5)  ganados.add('asistencia');
+
+  // — Barajas —
+  const barajas = JSON.parse(localStorage.getItem(`nhBarajas_${jugador?.id}`) || '[]');
+  if (barajas.length >= 1)  ganados.add('minimalista');
+  if (barajas.length >= 5)  ganados.add('arquitecto');
+  if (barajas.length > 10)  ganados.add('coleccionista');
+
+  // — Torneos ganados —
+  const victorias = posiciones.filter(p => p === 1).length;
+  if (victorias >= 3) ganados.add('hat_trick');
+  if (victorias >= 5) ganados.add('en_forma');
+
+  // — Ranking top 10 —
+  if (posGlobal && posGlobal <= 10) ganados.add('top10');
+
+  // — Madrugador — primer inscrito a cualquier torneo (lugar === '1') —
+  // Se calcula si en historial hay un lugar #1 de inscripción
+  // (por ahora lo dejamos como manual hasta tener ese dato)
+
+  // — Aniversario — 16 de Marzo —
+  const hoy = new Date();
+  if (hoy.getMonth() === 2 && hoy.getDate() === 16) ganados.add('aniversario');
+
+  // — Fundador Veterano — ID menor a 100 —
+  const numId = parseInt((jugador?.id || '').replace(/\D/g,''));
+  if (!isNaN(numId) && numId < 100) ganados.add('fundador_vet');
 
   // — Puntos ranking global —
   if (totalPts >= 100) ganados.add('rey_nexo');

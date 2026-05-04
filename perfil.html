@@ -101,6 +101,28 @@
     .info-label{font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:2px;color:var(--muted);}
     .info-value{font-size:14px;font-weight:600;color:var(--text);text-align:right;max-width:60%;word-break:break-all;}
 
+
+    /* ── PANEL TIENDA ── */
+    #tienda-panel { display:none; }
+    .tienda-avatar-wrap { position:relative; width:90px; height:90px; margin:0 auto 14px; }
+    .tienda-avatar-wrap img { width:90px; height:90px; border-radius:50%; object-fit:cover; border:2px solid var(--gold); }
+    .tienda-avatar-edit {
+      position:absolute; bottom:0; right:0; background:var(--gold); color:#000;
+      border:none; border-radius:50%; width:26px; height:26px; font-size:.8rem;
+      cursor:pointer; display:flex; align-items:center; justify-content:center;
+    }
+    .tienda-stat { background:rgba(255,255,255,.03); border:1px solid var(--border);
+      border-radius:8px; padding:10px 14px; margin-bottom:8px; }
+    .tienda-stat-label { font-size:.7rem; letter-spacing:2px; color:var(--muted); font-family:'Orbitron',sans-serif; }
+    .tienda-stat-val { font-size:1rem; font-weight:700; margin-top:2px; }
+    .insc-list-item { background:rgba(255,255,255,.02); border:1px solid var(--border);
+      border-radius:6px; padding:10px 14px; margin-bottom:6px; }
+    .insc-list-item .insc-nombre { font-weight:700; font-size:.9rem; }
+    .insc-list-item .insc-meta { font-size:.75rem; color:var(--muted); margin-top:2px; }
+    .torneo-section { margin-bottom:14px; }
+    .torneo-section-title { font-family:'Orbitron',sans-serif; font-size:.72rem;
+      letter-spacing:2px; color:var(--gold); margin-bottom:8px; }
+
     /* ── TORNEOS ── */
     .torneo-item{background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:6px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;}
     .torneo-nombre{font-weight:700;font-size:.9rem;}
@@ -306,6 +328,8 @@ const SHEET_ID = '1A3pMANjIop9IES2zseTrKImAkHPu2K56_iJJoiQzbxc';
 const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
 const RANKING_URL = 'https://script.google.com/macros/s/AKfycbx1rOqnmqWhics45UF40n81V9s-W5VgmhQGtc-UNIERGjkZGN8n1mVHkk0B1VO8PYJWOQ/exec';
 const TORNEOS_URL  = 'https://script.google.com/macros/s/AKfycbxQwDgsNe-toSWetc2f-xkveQcywfGwOVQvsOEySgRc2z8YZG09mB20jUjrI9qO1yo9Uw/exec';
+const SHEET_TIENDAS_ID  = '1ZtJhnXtTbttIf57gqfx81UtrG28hkWHjVaom218479o';
+const SHEET_TIENDAS_URL = `https://docs.google.com/spreadsheets/d/${SHEET_TIENDAS_ID}/gviz/tq?tqx=out:json&sheet=ID%20TIENDA`;
 
 // ══════════════════════════════════════════
 // imágenes tuyas cuando estén listas
@@ -389,7 +413,11 @@ let jugador = null;
 window.addEventListener('load', () => {
   const saved = localStorage.getItem('nhSesion');
   if (saved) {
-    try { jugador = JSON.parse(saved); mostrarPerfil(); } catch(e) { localStorage.removeItem('nhSesion'); }
+    try {
+      const s = JSON.parse(saved);
+      if (s.tipo === 'tienda') { tienda = s; mostrarPanelTienda(); }
+      else { jugador = s; mostrarPerfil(); }
+    } catch(e) { localStorage.removeItem('nhSesion'); }
   }
   document.getElementById('input-id').addEventListener('keypress', e => {
     if (e.key === 'Enter') iniciarSesion();
@@ -408,15 +436,29 @@ async function iniciarSesion() {
   btn.disabled=true; btn.style.display='none';
   load.style.display='block';
   try {
-    const j = await buscarJugador(id);
-    if (j) {
-      jugador = j;
-      localStorage.setItem('nhSesion', JSON.stringify(j));
-      mostrarPerfil();
+    // Detectar si es tienda (CHTOF-) o jugador (CHH-)
+    if (id.startsWith('CHTOF-')) {
+      const t = await buscarTienda(id);
+      if (t) {
+        tienda = t;
+        localStorage.setItem('nhSesion', JSON.stringify({ tipo: 'tienda', ...t }));
+        mostrarPanelTienda();
+      } else {
+        err.textContent='ID de tienda no encontrado.';
+        err.classList.add('visible');
+        btn.disabled=false; btn.style.display='block';
+      }
     } else {
-      err.textContent='ID no encontrado. Verifica tu número.';
-      err.classList.add('visible');
-      btn.disabled=false; btn.style.display='block';
+      const j = await buscarJugador(id);
+      if (j) {
+        jugador = j;
+        localStorage.setItem('nhSesion', JSON.stringify(j));
+        mostrarPerfil();
+      } else {
+        err.textContent='ID no encontrado. Verifica tu número.';
+        err.classList.add('visible');
+        btn.disabled=false; btn.style.display='block';
+      }
     }
   } catch(e) {
     err.textContent='Error de conexión. Verifica tu internet.';
@@ -648,6 +690,105 @@ async function cargarInscripciones() {
   }
 }
 
+
+// ================================================================
+//  PANEL TIENDA
+// ================================================================
+let tienda = null;
+
+async function buscarTienda(idBuscado) {
+  const res  = await fetch(SHEET_TIENDAS_URL);
+  const txt  = await res.text();
+  const json = JSON.parse(txt.substring(47).slice(0,-2));
+  for (const row of json.table.rows) {
+    const c = row.c;
+    const idCell = (c[0]?.v || '').toString().trim().toUpperCase();
+    if (idCell === idBuscado)
+      return {
+        id:        c[0]?.v || '',
+        fecha:     c[1]?.v || '',
+        nombre:    c[2]?.v || '',
+        ciudad:    c[3]?.v || '',
+        estado:    c[4]?.v || '',
+        encargado: c[5]?.v || '',
+        correo:    c[6]?.v || '',
+        telefono:  c[7]?.v || '',
+        redes:     c[8]?.v || ''
+      };
+  }
+  return null;
+}
+
+function mostrarPanelTienda() {
+  document.getElementById('login-panel').style.display    = 'none';
+  document.getElementById('profile-panel').style.display  = 'none';
+  document.getElementById('tienda-panel').style.display   = 'block';
+
+  document.getElementById('tienda-id-badge').textContent  = tienda.id;
+  document.getElementById('tienda-nombre').textContent    = tienda.nombre    || '—';
+  document.getElementById('tienda-ciudad').textContent    = [tienda.ciudad, tienda.estado].filter(Boolean).join(', ') || '—';
+  document.getElementById('tienda-encargado').textContent = tienda.encargado || '—';
+  document.getElementById('tienda-correo').textContent    = tienda.correo    || '—';
+  document.getElementById('tienda-telefono').textContent  = tienda.telefono  || '—';
+  document.getElementById('tienda-redes').textContent     = tienda.redes     || '—';
+
+  // Avatar guardado
+  const avatarGuardado = localStorage.getItem(`nhAvTienda_${tienda.id}`);
+  if (avatarGuardado) document.getElementById('tienda-avatar-img').src = avatarGuardado;
+
+  cargarTorneosOrganizados();
+}
+
+async function cargarTorneosOrganizados() {
+  const cont = document.getElementById('tienda-torneos-container');
+  try {
+    // Torneos organizados desde resultados
+    const resR = await fetch(RANKING_URL);
+    const dataR = await resR.json();
+    const misTorneos = (dataR.resultados || []).filter(t =>
+      (t.storeid || '').toUpperCase() === tienda.id.toUpperCase()
+    );
+
+    // Inscripciones a esos torneos
+    const resI = await fetch(`${TORNEOS_URL}?action=mis_inscripciones&jugador_id=ALL_STORE&storeid=${encodeURIComponent(tienda.id)}`);
+
+    if (!misTorneos.length) {
+      cont.innerHTML = '<div class="empty-msg">📋 Sin torneos organizados registrados aún.</div>';
+      return;
+    }
+
+    cont.innerHTML = misTorneos.map(t => {
+      const participantes = [];
+      for (let i = 1; i <= 8; i++) {
+        if (t[`p${i}_nombre`] || t[`p${i}_name`]) {
+          participantes.push(`${i}° ${t[`p${i}_nombre`] || t[`p${i}_name`]}`);
+        }
+      }
+      return `<div class="torneo-section">
+        <div class="torneo-section-title">🏆 ${t.tourname} — ${t.tourdate}</div>
+        ${participantes.length
+          ? participantes.map(p => `<div class="insc-list-item"><div class="insc-nombre">${p}</div></div>`).join('')
+          : '<div class="empty-msg" style="font-size:.8rem">Sin resultados cargados.</div>'
+        }
+      </div>`;
+    }).join('');
+  } catch(e) {
+    cont.innerHTML = '<div class="empty-msg">⚠️ Error cargando torneos.</div>';
+  }
+}
+
+function subirAvatarTienda(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const base64 = e.target.result;
+    localStorage.setItem(`nhAvTienda_${tienda.id}`, base64);
+    document.getElementById('tienda-avatar-img').src = base64;
+  };
+  reader.readAsDataURL(file);
+}
+
 // ── RANKING ──
 // Puntos por posición: 1°=10, 2°=7, 3°=5, 4°=3, 5°-8°=1
 const PUNTOS_POS = { 1:8, 2:5, 3:4, 4:3, 5:2, 6:2, 7:1, 8:1 };
@@ -851,6 +992,7 @@ function cerrarSesion() {
   localStorage.removeItem('nhSesion');
   jugador = null;
   document.getElementById('profile-panel').style.display='none';
+  document.getElementById('tienda-panel').style.display='none';
   document.getElementById('login-panel').style.display='block';
   document.getElementById('input-id').value='';
   document.getElementById('err-id').classList.remove('visible');
@@ -877,5 +1019,35 @@ function mostrarToast(msg) {
 }
 </script>
 <script src="settings.js"></script>
+<!-- ════ PANEL TIENDA ════ -->
+<div id="tienda-panel">
+
+  <div class="card" style="margin-bottom:12px;text-align:center;">
+    <div class="tienda-avatar-wrap">
+      <img id="tienda-avatar-img" src="avatares/avatar_1.jpg" alt="Avatar tienda"/>
+      <button class="tienda-avatar-edit" onclick="document.getElementById('tienda-avatar-input').click()">✏️</button>
+      <input type="file" id="tienda-avatar-input" accept="image/*" style="display:none" onchange="subirAvatarTienda(event)"/>
+    </div>
+    <div class="badge" style="margin-bottom:4px;" id="tienda-id-badge">—</div>
+    <h2 class="card-title" id="tienda-nombre">—</h2>
+    <p class="card-subtitle" id="tienda-ciudad">—</p>
+  </div>
+
+  <div class="card" style="margin-bottom:12px;">
+    <div class="badge">📋 DATOS DE LA TIENDA</div>
+    <div class="tienda-stat"><div class="tienda-stat-label">ENCARGADO</div><div class="tienda-stat-val" id="tienda-encargado">—</div></div>
+    <div class="tienda-stat"><div class="tienda-stat-label">CORREO</div><div class="tienda-stat-val" id="tienda-correo">—</div></div>
+    <div class="tienda-stat"><div class="tienda-stat-label">TELÉFONO</div><div class="tienda-stat-val" id="tienda-telefono">—</div></div>
+    <div class="tienda-stat"><div class="tienda-stat-label">REDES / WEB</div><div class="tienda-stat-val" id="tienda-redes">—</div></div>
+  </div>
+
+  <div class="card" style="margin-bottom:12px;">
+    <div class="badge">🏆 TORNEOS ORGANIZADOS</div>
+    <div id="tienda-torneos-container"><div class="empty-msg">📋 Cargando...</div></div>
+  </div>
+
+  <button class="btn" style="background:#1a0a0a;border:1px solid #ff4d6d;color:#ff4d6d;margin-top:8px;" onclick="cerrarSesion()">CERRAR SESIÓN</button>
+</div>
+
 </body>
 </html>

@@ -992,6 +992,12 @@ function subirAvatarTienda(event) {
 // Puntos por posición: 1°=10, 2°=7, 3°=5, 4°=3, 5°-8°=1
 const PUNTOS_POS = { 1:8, 2:5, 3:4, 4:3, 5:2, 6:2, 7:1, 8:1 };
 
+// Stats para compartir perfil — definidos aquí para estar disponibles globalmente
+let _shareStats = { pts:0, torneos:0, pos:0, wins:0, losses:0 };
+function actualizarShareStats(pts, torneos, pos, wins, losses) {
+  _shareStats = { pts, torneos, pos, wins, losses };
+}
+
 async function cargarRanking() {
   const cont = document.getElementById('ranking-container');
   cont.innerHTML = `<div class="pending-box">⏳ Cargando ranking...</div>`;
@@ -1275,12 +1281,6 @@ function mostrarToast(msg) {
 
 <script>
 // ── COMPARTIR PERFIL ──
-let _shareStats = { pts:0, torneos:0, pos:0, wins:0, losses:0 };
-
-function actualizarShareStats(pts, torneos, pos, wins, losses) {
-  _shareStats = { pts, torneos, pos, wins, losses };
-}
-
 async function compartirPerfil() {
   const overlay = document.getElementById('shareOverlay');
   if (!overlay) return;

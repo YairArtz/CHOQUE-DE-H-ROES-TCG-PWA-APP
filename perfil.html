@@ -1170,7 +1170,7 @@ function compartirPerfil() {
   const overlay = document.getElementById('shareOverlay');
   if (!overlay) return;
   overlay.classList.add('active');
-  generarTarjeta();
+  await generarTarjeta();
 }
 
 function cerrarShare() {
@@ -1230,15 +1230,52 @@ async function generarTarjeta() {
     img.src = 'icon-192.png';
   });
 
-  // Fondo
+  // Fondo — leer fondo activo del jugador
   ctx.fillStyle='#010306'; ctx.fillRect(0,0,W,H);
-  const bg=ctx.createLinearGradient(0,0,W,H);
-  bg.addColorStop(0,'#030a12'); bg.addColorStop(1,'#02030a');
-  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+
+  const fondoId = localStorage.getItem('nhEquip_fondos_' + (jugador?.id||''));
+  const fondosMap = {
+    bg_nebula:  ['#0d0020','#03050a'],
+    bg_forest:  ['#001a0d','#03050a'],
+    bg_lava:    ['#1a0500','#03050a'],
+    bg_ocean:   ['#00101a','#03050a'],
+    bg_void:    ['#0a0010','#000000'],
+  };
+
+  if (fondoId === 'bg_nexo') {
+    // Fondo imagen
+    await new Promise(res => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        ctx.save();
+        rRect(ctx, 0, 0, W, H, 16); ctx.clip();
+        ctx.drawImage(img, 0, 0, W, H);
+        ctx.restore();
+        res();
+      };
+      img.onerror = () => res();
+      img.src = 'fondos/nexo_bg.jpg';
+    });
+  } else if (fondoId && fondosMap[fondoId]) {
+    const [c1, c2] = fondosMap[fondoId];
+    const bgG = ctx.createRadialGradient(W*.3, H*.3, 0, W*.5, H*.5, W*.9);
+    bgG.addColorStop(0, c1); bgG.addColorStop(1, c2);
+    ctx.fillStyle = bgG; ctx.fillRect(0,0,W,H);
+  } else {
+    const bg=ctx.createLinearGradient(0,0,W,H);
+    bg.addColorStop(0,'#030a12'); bg.addColorStop(1,'#02030a');
+    ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+  }
+
+  // Capa oscura para legibilidad del texto
+  ctx.fillStyle='rgba(0,0,0,0.52)'; ctx.fillRect(0,0,W,H);
+
+  // Resplandor ambiental
   const glow=ctx.createRadialGradient(W/2,H*.4,0,W/2,H*.4,240);
-  glow.addColorStop(0,'rgba(0,200,120,.08)'); glow.addColorStop(1,'rgba(0,0,0,0)');
+  glow.addColorStop(0,'rgba(0,200,120,.06)'); glow.addColorStop(1,'rgba(0,0,0,0)');
   ctx.fillStyle=glow; ctx.fillRect(0,0,W,H);
-  ctx.fillStyle='rgba(0,255,157,.05)';
+  ctx.fillStyle='rgba(0,255,157,.04)';
   for(let x=14;x<W;x+=20) for(let y=14;y<H;y+=20){ctx.beginPath();ctx.arc(x,y,.7,0,Math.PI*2);ctx.fill();}
 
   // Marco

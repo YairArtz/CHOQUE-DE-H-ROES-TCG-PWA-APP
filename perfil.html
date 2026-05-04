@@ -634,6 +634,20 @@ function calcularBadgesAuto(historial, totalPts, posGlobal) {
   // Nuevo jugador — siempre al tener perfil
   ganados.add('nuevo_jugador');
 
+  // — Barajas — se calculan siempre, independiente de torneos —
+  const barajas = JSON.parse(localStorage.getItem('chh_decks') || '[]');
+  if (barajas.length >= 1)  ganados.add('minimalista');
+  if (barajas.length >= 5)  ganados.add('arquitecto');
+  if (barajas.length > 10)  ganados.add('coleccionista');
+
+  // — Aniversario — 16 de Marzo —
+  const hoyFecha = new Date();
+  if (hoyFecha.getMonth() === 2 && hoyFecha.getDate() === 16) ganados.add('aniversario');
+
+  // — Fundador Veterano —
+  const numIdV = parseInt((jugadorId || '').replace(/\D/g,''));
+  if (!isNaN(numIdV) && numIdV > 0 && numIdV < 100) ganados.add('fundador_vet');
+
   if (!historial || !historial.length) return ganados;
 
   const n = historial.length;
@@ -653,11 +667,6 @@ function calcularBadgesAuto(historial, totalPts, posGlobal) {
   if (n >= 25) ganados.add('veterano_guerra');
   if (n >= 5)  ganados.add('asistencia');
 
-  // — Barajas —
-  const barajas = JSON.parse(localStorage.getItem(`nhBarajas_${jugador?.id}`) || '[]');
-  if (barajas.length >= 1)  ganados.add('minimalista');
-  if (barajas.length >= 5)  ganados.add('arquitecto');
-  if (barajas.length > 10)  ganados.add('coleccionista');
 
   // — Torneos ganados —
   const victorias = posiciones.filter(p => p === 1).length;
@@ -671,13 +680,6 @@ function calcularBadgesAuto(historial, totalPts, posGlobal) {
   // Se calcula si en historial hay un lugar #1 de inscripción
   // (por ahora lo dejamos como manual hasta tener ese dato)
 
-  // — Aniversario — 16 de Marzo —
-  const hoy = new Date();
-  if (hoy.getMonth() === 2 && hoy.getDate() === 16) ganados.add('aniversario');
-
-  // — Fundador Veterano — ID menor a 100 —
-  const numId = parseInt((jugador?.id || '').replace(/\D/g,''));
-  if (!isNaN(numId) && numId < 100) ganados.add('fundador_vet');
 
   // — Puntos ranking global —
   if (totalPts >= 100) ganados.add('rey_nexo');

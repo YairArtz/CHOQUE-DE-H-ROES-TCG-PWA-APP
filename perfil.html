@@ -1270,11 +1270,11 @@ async function generarTarjeta() {
     ctx.beginPath(); ctx.arc(30+ls/2,38,ls/2+1,0,Math.PI*2); ctx.stroke(); ctx.shadowBlur=0;
   }
 
-  ctx.textAlign='center'; ctx.font='900 11px monospace';
+  ctx.textAlign='center'; ctx.font='900 13px monospace';
   ctx.fillStyle='#00ff9d'; ctx.shadowColor='#00ff9d'; ctx.shadowBlur=8;
-  ctx.fillText('CHOQUE DE HÉROES TCG', W/2+10, 32); ctx.shadowBlur=0;
-  ctx.font='700 7px monospace'; ctx.fillStyle='rgba(0,255,157,.45)';
-  ctx.fillText('TARJETA DE JUGADOR', W/2+10, 48);
+  ctx.fillText('CARTA ID DE JUGADOR', W/2+10, 33); ctx.shadowBlur=0;
+  ctx.font='700 8px monospace'; ctx.fillStyle='rgba(0,255,157,.55)';
+  ctx.fillText('CHOQUE DE HÉROES TCG', W/2+10, 48);
 
   // Avatar
   const avCX=W/2, avCY=148, avR=58;
@@ -1307,12 +1307,19 @@ async function generarTarjeta() {
   // Nombre
   const nombre=(jugador?.nombre||'—').toUpperCase();
   const nick=jugador?.nick||'', id=jugador?.id||'';
-  ctx.textAlign='center'; ctx.font='900 19px monospace'; ctx.fillStyle='#fff';
-  ctx.shadowColor='rgba(255,255,255,.25)'; ctx.shadowBlur=8;
-  ctx.fillText(nombre,W/2,228); ctx.shadowBlur=0;
-  if(nick){ctx.font='600 12px sans-serif'; ctx.fillStyle='rgba(0,255,157,.85)';
-    ctx.shadowColor='#00ff9d'; ctx.shadowBlur=4; ctx.fillText('"'+nick+'"',W/2,246); ctx.shadowBlur=0;}
-  const idY=nick?264:248, idW=130;
+  ctx.textAlign='center';
+  if(nick){
+    ctx.font='900 22px monospace'; ctx.fillStyle='#00ff9d';
+    ctx.shadowColor='#00ff9d'; ctx.shadowBlur=10;
+    ctx.fillText(nick.toUpperCase(),W/2,226); ctx.shadowBlur=0;
+    ctx.font='600 12px sans-serif'; ctx.fillStyle='rgba(200,220,255,.7)';
+    ctx.fillText(nombre,W/2,244);
+  } else {
+    ctx.font='900 19px monospace'; ctx.fillStyle='#fff';
+    ctx.shadowColor='rgba(255,255,255,.25)'; ctx.shadowBlur=8;
+    ctx.fillText(nombre,W/2,232); ctx.shadowBlur=0;
+  }
+  const idY=nick?262:250, idW=130;
   ctx.fillStyle='rgba(0,255,157,.08)'; rRect(ctx,W/2-idW/2,idY-13,idW,18,4); ctx.fill();
   ctx.strokeStyle='rgba(0,255,157,.3)'; ctx.lineWidth=1; rRect(ctx,W/2-idW/2,idY-13,idW,18,4); ctx.stroke();
   ctx.font='700 9px monospace'; ctx.fillStyle='rgba(0,255,157,.7)'; ctx.textAlign='center'; ctx.fillText(id,W/2,idY);
@@ -1370,7 +1377,7 @@ async function generarTarjeta() {
       ctx.fillStyle='rgba(245,166,35,.08)'; rRect(ctx,bx,byy,bs,bs,7); ctx.fill();
       ctx.strokeStyle='rgba(245,166,35,.5)'; ctx.lineWidth=1;
       ctx.shadowColor='#f5a623'; ctx.shadowBlur=5; rRect(ctx,bx,byy,bs,bs,7); ctx.stroke(); ctx.shadowBlur=0;
-      if(earned[i].img){try{ctx.drawImage(earned[i].img,bx+3,byy+3,bs-6,bs-6);}catch(e){}}
+      if(earned[i].img){try{ctx.save();ctx.filter='none';ctx.globalAlpha=1;ctx.drawImage(earned[i].img,bx+3,byy+3,bs-6,bs-6);ctx.restore();}catch(e){}}
       else{ctx.font='18px serif'; ctx.textAlign='center'; ctx.fillText(earned[i].emoji,bx+bs/2,byy+bs*.68);}
     }
     if(earned.length>10){ctx.font='700 8px monospace'; ctx.fillStyle='rgba(150,180,220,.4)'; ctx.textAlign='center';
@@ -1385,11 +1392,13 @@ async function generarTarjeta() {
   const ftG=ctx.createLinearGradient(0,ftY,W,ftY);
   ftG.addColorStop(0,'rgba(0,0,0,0)'); ftG.addColorStop(.5,'rgba(0,255,157,.06)'); ftG.addColorStop(1,'rgba(0,0,0,0)');
   ctx.fillStyle=ftG; ctx.fillRect(12,ftY,W-24,H-ftY-12);
-  if(logoImg){ctx.globalAlpha=.6; ctx.drawImage(logoImg,W/2-11,ftY+4,22,22); ctx.globalAlpha=1;}
-  ctx.font='700 7px monospace'; ctx.fillStyle='rgba(0,255,157,.5)'; ctx.textAlign='center';
-  ctx.shadowColor='#00ff9d'; ctx.shadowBlur=4; ctx.fillText('CHOQUE DE HÉROES TCG',W/2,ftY+34); ctx.shadowBlur=0;
-  ctx.font='600 6px monospace'; ctx.fillStyle='rgba(150,180,220,.35)';
-  ctx.fillText('CODEX CÓMICS  2016–2026',W/2,ftY+46);
+  const lsz=26, lx=18, ly=ftY+6;
+  if(logoImg){ctx.globalAlpha=.85; ctx.drawImage(logoImg,lx,ly,lsz,lsz); ctx.globalAlpha=1;}
+  const tx=lx+lsz+8;
+  ctx.textAlign='left'; ctx.font='700 8px monospace'; ctx.fillStyle='rgba(0,255,157,.6)';
+  ctx.shadowColor='#00ff9d'; ctx.shadowBlur=4; ctx.fillText('CHOQUE DE HÉROES TCG',tx,ftY+18); ctx.shadowBlur=0;
+  ctx.font='600 6px monospace'; ctx.fillStyle='rgba(150,180,220,.4)';
+  ctx.fillText('CODEX CÓMICS  2016–2026',tx,ftY+30);
 
   // Esquinas
   [[16,16],[W-16,16],[16,H-16],[W-16,H-16]].forEach(([cx,cy])=>{

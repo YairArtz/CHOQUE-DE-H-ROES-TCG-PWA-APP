@@ -628,7 +628,7 @@ const BADGES_CATALOGO = [
   { id:'ev_colab',      nombre:'Colaborador',     tipo:'manual', emoji:'📣', img:'badges/ev_colab.png',      condicion:'Otorgado a jugadores que promovieron activamente el juego.' },
 ];
 
-function calcularBadgesAuto(historial, totalPts, posGlobal, jugadorId) {
+function calcularBadgesAuto(historial, totalPts, posGlobal) {
   const ganados = new Set();
 
   // Nuevo jugador — siempre al tener perfil
@@ -654,11 +654,7 @@ function calcularBadgesAuto(historial, totalPts, posGlobal, jugadorId) {
   if (n >= 5)  ganados.add('asistencia');
 
   // — Barajas —
-  // Leer barajas — buscar tanto en nhBarajas_ como en chh_decks
-  const keyBarajas = jugadorId ? `nhBarajas_${jugadorId}` : null;
-  const barajasNH  = keyBarajas ? JSON.parse(localStorage.getItem(keyBarajas) || '[]') : [];
-  const barajasCHH = JSON.parse(localStorage.getItem('chh_decks') || '[]');
-  const barajas    = barajasNH.length >= barajasCHH.length ? barajasNH : barajasCHH;
+  const barajas = JSON.parse(localStorage.getItem(`nhBarajas_${jugador?.id}`) || '[]');
   if (barajas.length >= 1)  ganados.add('minimalista');
   if (barajas.length >= 5)  ganados.add('arquitecto');
   if (barajas.length > 10)  ganados.add('coleccionista');
@@ -700,7 +696,7 @@ async function cargarBadges(historial, totalPts, posGlobal) {
   const cont = document.getElementById('badges-container');
 
   // Badges automáticos calculados localmente
-  const autoGanados = calcularBadgesAuto(historial, totalPts, posGlobal, jugador?.id);
+  const autoGanados = calcularBadgesAuto(historial, totalPts, posGlobal);
 
   // Badges manuales — leer directo del Sheet (columna 6, índice 5)
   let manualesGanados = new Set();
@@ -1108,7 +1104,7 @@ function renderTorneos(historial) {
 // ── BARAJAS ──
 function cargarBarajas() {
   let barajas = [];
-  try { barajas = JSON.parse(localStorage.getItem(`nhBarajas_${jugador.id}`) || '[]'); } catch(e){}
+  try { barajas = JSON.parse(localStorage.getItem('chh_decks') || '[]'); } catch(e){}
   document.getElementById('s-barajas').textContent = barajas.length;
   const cont = document.getElementById('barajas-container');
   if (!barajas.length) { cont.innerHTML='<div class="empty-msg">No tienes barajas guardadas aún.</div>'; return; }

@@ -119,7 +119,17 @@
       border-radius:6px; padding:10px 14px; margin-bottom:6px; }
     .insc-list-item .insc-nombre { font-weight:700; font-size:.9rem; }
     .insc-list-item .insc-meta { font-size:.75rem; color:var(--muted); margin-top:2px; }
-    .torneo-section { margin-bottom:14px; }
+    .torneo-section { margin-bottom:10px; border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+    .torneo-section-header {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:10px 14px; cursor:pointer; background:rgba(245,166,35,.05);
+      transition:background .2s;
+    }
+    .torneo-section-header:hover { background:rgba(245,166,35,.1); }
+    .torneo-section-header .ts-arrow { transition:transform .2s; font-size:.8rem; color:var(--gold); }
+    .torneo-section-header.open .ts-arrow { transform:rotate(180deg); }
+    .torneo-section-body { display:none; padding:8px 14px 12px; }
+    .torneo-section-body.open { display:block; }
     .torneo-section-title { font-family:'Orbitron',sans-serif; font-size:.72rem;
       letter-spacing:2px; color:var(--gold); margin-bottom:8px; }
 
@@ -207,7 +217,7 @@
   <div class="card">
     <div class="badge">ACCESO DE JUGADOR</div>
     <h2 class="card-title">IDENTIFÍCATE</h2>
-    <p class="card-subtitle">Ingresa tu ID de jugador para ver tus estadísticas, ranking y barajas guardadas.</p>
+    <p class="card-subtitle">¿Eres jugador o tienda oficial? Ingresa tu ID y accede a tu universo CHH — estadísticas, ranking, barajas y más.</p>
     <div class="divider"></div>
 
     <div class="field">
@@ -737,6 +747,13 @@ function mostrarPanelTienda() {
   if (avatarGuardado) document.getElementById('tienda-avatar-img').src = avatarGuardado;
 
   cargarTorneosOrganizados();
+}
+
+function toggleTorneoSection(uid) {
+  const hdr  = document.getElementById('hdr_'  + uid);
+  const body = document.getElementById('body_' + uid);
+  hdr.classList.toggle('open');
+  body.classList.toggle('open');
 }
 
 async function cargarTorneosOrganizados() {

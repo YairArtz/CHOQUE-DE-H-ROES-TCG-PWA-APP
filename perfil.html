@@ -630,15 +630,15 @@ const BADGES_CATALOGO = [
 
 function calcularBadgesAuto(historial, totalPts, posGlobal) {
   const ganados = new Set();
-  ganados.add('nuevo_jugador');
-  // barajas — siempre calcular
-  try {
-    const bq = JSON.parse(localStorage.getItem('chh_decks') || '[]');
-    if (bq.length >= 1)  ganados.add('minimalista');
-    if (bq.length >= 5)  ganados.add('arquitecto');
-    if (bq.length > 10)  ganados.add('coleccionista');
-  } catch(e) {}
 
+  // Nuevo jugador — siempre al tener perfil
+  ganados.add('nuevo_jugador');
+
+  // — Barajas — se calculan siempre, independiente de torneos —
+  const barajas = JSON.parse(localStorage.getItem('chh_decks') || '[]');
+  if (barajas.length >= 1)  ganados.add('minimalista');
+  if (barajas.length >= 5)  ganados.add('arquitecto');
+  if (barajas.length > 10)  ganados.add('coleccionista');
 
   // — Aniversario — 16 de Marzo —
   const hoyFecha = new Date();
@@ -700,33 +700,30 @@ async function cargarBadges(historial, totalPts, posGlobal) {
   // Badges automáticos calculados localmente
   const autoGanados = calcularBadgesAuto(historial, totalPts, posGlobal);
 
-  // Badges manuales — leer directo del Sheet (columna 6, índice 5)
+  // Badges manuales — con timeout para no bloquear
   let manualesGanados = new Set();
   try {
-    const res = await fetch(SHEET_URL);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 4000);
+    const res = await fetch(SHEET_URL, { signal: controller.signal });
+    clearTimeout(timeout);
     const txt = await res.text();
     const json = JSON.parse(txt.slice(txt.indexOf('({')+1, txt.lastIndexOf(')')));
-    if (!jugador?.id) throw new Error("no jugador");
-    const miId = jugador.id.trim().toUpperCase();
-    for (const row of json.table.rows) {
-      const c = row.c;
-      const rowId = (c[0]?.v || '').toString().trim().toUpperCase();
-      if (rowId === miId) {
-        const badgesRaw = (c[5]?.v || '').toString().trim(); // columna F = índice 5
-        if (badgesRaw) {
-          badgesRaw.split(',').forEach(b => {
-            const bid = b.trim().toLowerCase();
-            if (bid) manualesGanados.add(bid);
-          });
+    if (jugador?.id) {
+      const miId = jugador.id.trim().toUpperCase();
+      for (const row of json.table.rows) {
+        const c = row.c;
+        const rowId = (c[0]?.v || '').toString().trim().toUpperCase();
+        if (rowId === miId) {
+          const badgesRaw = (c[5]?.v || '').toString().trim();
+          if (badgesRaw) badgesRaw.split(',').forEach(b => { const bid=b.trim().toLowerCase(); if(bid) manualesGanados.add(bid); });
+          break;
         }
-        console.log('[badges] manuales encontrados:', [...manualesGanados]);
-        break;
       }
     }
   } catch(e) {
-    console.warn('[badges] error leyendo Sheet:', e.message);
+    console.warn('[badges] manuales no disponibles:', e.message);
   }
-
   const todosGanados = new Set([...autoGanados, ...manualesGanados]);
 
   // Renderizar — primero ganados, luego bloqueados
@@ -1011,7 +1008,6 @@ async function cargarRanking() {
     }
 
     // ── Calcular puntos y historial del jugador actual ──
-    if (!jugador?.id) throw new Error("no jugador");
     const miId = jugador.id.trim().toUpperCase();
     let totalPts = 0;
     const historial = [];

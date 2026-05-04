@@ -1073,12 +1073,12 @@ async function cargarRanking() {
     actualizarShareStats(totalPts, historial.length, posGlobal, wins, losses);
 
   } catch(e) {
-    cont.innerHTML = `<div class="pending-box">⚠️ No se pudo cargar el ranking.<br><small style="font-size:.7rem;opacity:.5">${e.message}</small></div>`;
+    cargarBadges([], 0, 0);
+    cont.innerHTML = '<div class="pending-box">📊 No estás en el ranking global aún.<br><small style="font-size:.7rem;opacity:.5">Participa en torneos oficiales para aparecer.</small></div>';
     document.getElementById('torneos-container').innerHTML =
-      '<div class="empty-msg">📋 No disponible.</div>';
-    document.getElementById('badges-container').innerHTML =
-      '<div class="empty-msg">⚠️ No disponible.</div>';
+      '<div class="empty-msg">📋 Sin historial de torneos aún.</div>';
   }
+}
 }
 
 function renderTorneos(historial) {

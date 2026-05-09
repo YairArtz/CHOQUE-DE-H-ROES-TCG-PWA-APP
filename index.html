@@ -153,22 +153,22 @@ header::after{
 }
 .calc-arrow{font-size:22px;color:var(--purple);text-shadow:var(--pglow);opacity:.8;}
 
-/* ─── LISTA DE MÓDULOS (compacta) ─── */
+/* ─── LISTA DE MÓDULOS (compacta tipo calc) ─── */
 .mod-grid{
   display:flex;flex-direction:column;
   gap:6px;padding:0 14px;
 }
 .mod-card{
   background:var(--bg3);border:1px solid var(--border);
-  border-radius:10px;padding:11px 14px;
+  border-radius:10px;padding:10px 14px;
   cursor:pointer;text-decoration:none;color:inherit;
-  display:flex;flex-direction:row;align-items:center;gap:12px;
+  display:flex;align-items:center;gap:12px;
   position:relative;overflow:hidden;
   transition:border-color .2s,box-shadow .2s,transform .15s;
 }
 .mod-card::before{
   content:'';position:absolute;top:0;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,transparent,var(--c,var(--neon)),transparent);opacity:.5;
+  background:linear-gradient(90deg,transparent,var(--c,var(--neon)),transparent);opacity:.45;
 }
 .mod-card:active{transform:scale(.97);}
 .mod-card.c-neon  {--c:var(--neon);}
@@ -176,14 +176,14 @@ header::after{
 .mod-card.c-gold  {--c:var(--gold);}
 .mod-card.c-red   {--c:var(--red);}
 .mod-card.c-purple{--c:var(--purple);}
-.mod-card.c-neon:hover  {border-color:var(--neon);  box-shadow:var(--nglow), 0 0 8px var(--neon-dim) inset;}
-.mod-card.c-blue:hover  {border-color:var(--blue);  box-shadow:var(--bglow), 0 0 8px var(--blue-dim) inset;}
-.mod-card.c-gold:hover  {border-color:var(--gold);  box-shadow:var(--gglow), 0 0 8px var(--gold-dim) inset;}
-.mod-card.c-red:hover   {border-color:var(--red);   box-shadow:var(--rglow), 0 0 8px var(--red-dim) inset;}
-.mod-card.c-purple:hover{border-color:var(--purple);box-shadow:0 0 24px rgba(180,70,255,.45), 0 0 8px rgba(180,70,255,.3) inset;}
+.mod-card.c-neon:hover  {border-color:var(--neon);  box-shadow:var(--nglow), 0 0 6px var(--neon-dim) inset;}
+.mod-card.c-blue:hover  {border-color:var(--blue);  box-shadow:var(--bglow), 0 0 6px var(--blue-dim) inset;}
+.mod-card.c-gold:hover  {border-color:var(--gold);  box-shadow:var(--gglow), 0 0 6px var(--gold-dim) inset;}
+.mod-card.c-red:hover   {border-color:var(--red);   box-shadow:var(--rglow), 0 0 6px var(--red-dim) inset;}
+.mod-card.c-purple:hover{border-color:var(--purple);box-shadow:0 0 20px rgba(180,70,255,.4), 0 0 6px rgba(180,70,255,.25) inset;}
 
 .mod-icon{
-  width:34px;height:34px;border-radius:8px;border:1px solid;flex-shrink:0;
+  width:36px;height:36px;border-radius:8px;border:1px solid;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;font-size:17px;
 }
 .c-neon   .mod-icon{border-color:var(--neon-d);  background:var(--neon-dim);}
@@ -192,17 +192,24 @@ header::after{
 .c-red    .mod-icon{border-color:var(--red-d);   background:var(--red-dim);}
 .c-purple .mod-icon{border-color:var(--purple-d);background:var(--purple-dim);}
 
+.mod-info{flex:1;min-width:0;}
+
 .mod-name{
   font-family:'Orbitron',monospace;
   font-size:11px;font-weight:900;letter-spacing:1px;
   text-transform:uppercase;line-height:1.3;
-  flex:1;
 }
 .c-neon   .mod-name{color:var(--neon);  text-shadow:var(--nglow);}
 .c-blue   .mod-name{color:var(--blue);  text-shadow:var(--bglow);}
 .c-gold   .mod-name{color:var(--gold);  text-shadow:var(--gglow);}
 .c-red    .mod-name{color:var(--red);   text-shadow:var(--rglow);}
 .c-purple .mod-name{color:var(--purple);text-shadow:var(--pglow);}
+
+.mod-desc{
+  font-size:10px;font-weight:400;color:var(--muted);
+  letter-spacing:.3px;line-height:1.4;margin-top:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
 
 .mod-arrow{
   font-size:18px;opacity:.5;color:var(--c,var(--muted));flex-shrink:0;
@@ -290,6 +297,9 @@ footer      {animation:fadeUp .5s .4s  both;}
     .c-neon .mod-name, .c-blue .mod-name, .c-gold .mod-name,
     .c-red  .mod-name, .c-purple .mod-name {
       text-shadow: 0 0 20px rgba(0,0,0,1), 0 2px 8px rgba(0,0,0,1) !important;
+    }
+    .mod-desc {
+      text-shadow: 0 1px 4px rgba(0,0,0,.8) !important;
     }
 
     /* Tarjetas — fondo semitransparente para aislar del fondo */
@@ -448,91 +458,146 @@ footer      {animation:fadeUp .5s .4s  both;}
 
     <a class="mod-card c-gold" href="perfil.html">
       <div class="mod-icon">👤</div>
-      <div class="mod-name">Mi Perfil</div>
+      <div class="mod-info">
+        <div class="mod-name">Mi Perfil</div>
+        <div class="mod-desc">Consulta tu ranking y barajas</div>
+      </div>
       <div class="mod-arrow">›</div>
     </a>
 
     <a class="mod-card c-neon" href="registro-jugadores.html">
       <div class="mod-icon">🪪</div>
-      <div class="mod-name">Registro de Jugadores</div>
+      <div class="mod-info">
+        <div class="mod-name">Registro de Jugadores</div>
+        <div class="mod-desc">Obtén tu ID oficial CHH-XXXXX</div>
+      </div>
       <div class="mod-arrow">›</div>
     </a>
 
     <a class="mod-card c-blue" href="consulta-puntaje.html">
       <div class="mod-icon">🔍</div>
-      <div class="mod-name">Consulta tu Puntaje</div>
-      <div class="mod-arrow">›</div>
-    </a>
-
-    <a class="mod-card c-gold" href="calendario.html">
-      <div class="mod-icon">📅</div>
-      <div class="mod-name">Calendario de Torneos</div>
+      <div class="mod-info">
+        <div class="mod-name">Consulta tu Puntaje</div>
+        <div class="mod-desc">Busca tu ID y estadísticas</div>
+      </div>
       <div class="mod-arrow">›</div>
     </a>
 
     <a class="mod-card c-red" href="ranking.html">
       <div class="mod-icon">🏆</div>
-      <div class="mod-name">Ranking Global</div>
-      <div class="mod-arrow">›</div>
-    </a>
-
-    <a class="mod-card c-purple" href="registro-tiendas.html">
-      <div class="mod-icon">🏪</div>
-      <div class="mod-name">Tiendas Oficiales</div>
-      <div class="mod-arrow">›</div>
-    </a>
-
-    <a class="mod-card c-blue" href="mapa-tiendas.html">
-      <div class="mod-icon">🗺️</div>
-      <div class="mod-name">Mapa de Tiendas</div>
-      <div class="mod-arrow">›</div>
-    </a>
-
-    <a class="mod-card c-neon" href="publicar-torneo.html">
-      <div class="mod-icon">📋</div>
-      <div class="mod-name">Publicar Torneo</div>
-      <div class="mod-arrow">›</div>
-    </a>
-
-    <a class="mod-card c-gold" href="reglamento.html">
-      <div class="mod-icon">📖</div>
-      <div class="mod-name">Reglamento</div>
+      <div class="mod-info">
+        <div class="mod-name">Ranking Global</div>
+        <div class="mod-desc">Top jugadores por temporada</div>
+      </div>
       <div class="mod-arrow">›</div>
     </a>
 
     <a class="mod-card c-purple" href="galeria.html">
       <div class="mod-icon">🃏</div>
-      <div class="mod-name">Galería de Cartas</div>
+      <div class="mod-info">
+        <div class="mod-name">Galería de Cartas</div>
+        <div class="mod-desc">Explora el catálogo completo</div>
+      </div>
       <div class="mod-arrow">›</div>
     </a>
 
     <a class="mod-card c-neon" href="constructor.html">
       <div class="mod-icon">🏗️</div>
-      <div class="mod-name">Constructor de Barajas</div>
+      <div class="mod-info">
+        <div class="mod-name">Constructor de Barajas</div>
+        <div class="mod-desc">Arma y guarda tus barajas</div>
+      </div>
       <div class="mod-arrow">›</div>
     </a>
 
-    <a class="mod-card c-blue" href="noticias.html">
-      <div class="mod-icon">📰</div>
-      <div class="mod-name">Noticias</div>
-      <div class="mod-arrow">›</div>
-    </a>
-
-    <a class="mod-card c-purple" href="tienda.html">
-      <div class="mod-icon">🏪</div>
-      <div class="mod-name">Tienda del Héroe</div>
+    <a class="mod-card c-gold" href="reglamento.html">
+      <div class="mod-icon">📖</div>
+      <div class="mod-info">
+        <div class="mod-name">Reglamento</div>
+        <div class="mod-desc">Reglas oficiales del juego</div>
+      </div>
       <div class="mod-arrow">›</div>
     </a>
 
     <a class="mod-card c-neon" href="tutorial.html">
       <div class="mod-icon">🎮</div>
-      <div class="mod-name">Aprende a Jugar</div>
+      <div class="mod-info">
+        <div class="mod-name">Aprende a Jugar</div>
+        <div class="mod-desc">Tutorial interactivo paso a paso</div>
+      </div>
+      <div class="mod-arrow">›</div>
+    </a>
+
+  </div>
+
+  <div class="stitle">🏪 TIENDAS Y TORNEOS</div>
+  <div class="mod-grid">
+
+    <a class="mod-card c-purple" href="registro-tiendas.html">
+      <div class="mod-icon">🏪</div>
+      <div class="mod-info">
+        <div class="mod-name">Tiendas Oficiales</div>
+        <div class="mod-desc">Registro de nueva tienda</div>
+      </div>
+      <div class="mod-arrow">›</div>
+    </a>
+
+    <a class="mod-card c-blue" href="mapa-tiendas.html">
+      <div class="mod-icon">🗺️</div>
+      <div class="mod-info">
+        <div class="mod-name">Mapa de Tiendas</div>
+        <div class="mod-desc">Encuentra tu tienda más cercana</div>
+      </div>
+      <div class="mod-arrow">›</div>
+    </a>
+
+    <a class="mod-card c-gold" href="calendario.html">
+      <div class="mod-icon">📅</div>
+      <div class="mod-info">
+        <div class="mod-name">Calendario de Torneos</div>
+        <div class="mod-desc">Próximos eventos oficiales</div>
+      </div>
+      <div class="mod-arrow">›</div>
+    </a>
+
+    <a class="mod-card c-neon" href="publicar-torneo.html">
+      <div class="mod-icon">📋</div>
+      <div class="mod-info">
+        <div class="mod-name">Publicar Torneo</div>
+        <div class="mod-desc">Registra tu evento oficial</div>
+      </div>
+      <div class="mod-arrow">›</div>
+    </a>
+
+  </div>
+
+  <div class="stitle">📡 CONTENIDO</div>
+  <div class="mod-grid">
+
+    <a class="mod-card c-blue" href="noticias.html">
+      <div class="mod-icon">📰</div>
+      <div class="mod-info">
+        <div class="mod-name">Noticias</div>
+        <div class="mod-desc">Últimas novedades del juego</div>
+      </div>
       <div class="mod-arrow">›</div>
     </a>
 
     <a class="mod-card c-red" href="videos.html">
       <div class="mod-icon">🎬</div>
-      <div class="mod-name">Videos</div>
+      <div class="mod-info">
+        <div class="mod-name">Videos</div>
+        <div class="mod-desc">Tutoriales, torneos y más</div>
+      </div>
+      <div class="mod-arrow">›</div>
+    </a>
+
+    <a class="mod-card c-purple" href="tienda.html">
+      <div class="mod-icon">🏪</div>
+      <div class="mod-info">
+        <div class="mod-name">Tienda del Héroe</div>
+        <div class="mod-desc">Desbloquea avatares, fondos y temas</div>
+      </div>
       <div class="mod-arrow">›</div>
     </a>
 

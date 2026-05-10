@@ -563,20 +563,39 @@ renderAll();
 </div>
 <script>
 // ═══════════════════════════════════════════════════════
-// MINI-PLAYER — Pistas desde musica_choque/
-// Edita MP_TRACKS con los nombres reales de tus archivos
+// MINI-PLAYER — Soundtrack de Batalla
+//
+// Archivos: pista_1.mp3 ... pista_20.mp3
+// en la carpeta musica_choque/
+//
+// Solo edita TÍTULO y DURACIÓN. Título vacío = oculta.
 // ═══════════════════════════════════════════════════════
-const MP_BASE = 'musica_choque/';
-const MP_TRACKS = [
-  { file:'tema_principal.mp3',      title:'Tema Principal',        dur:'3:24' },
-  { file:'batalla_epica.mp3',       title:'Batalla Épica',         dur:'4:12' },
-  { file:'invocacion_heroe.mp3',    title:'Invocación del Héroe',  dur:'2:48' },
-  { file:'turno_estrategico.mp3',   title:'Turno Estratégico',     dur:'3:55' },
-  { file:'victoria.mp3',            title:'Victoria',              dur:'1:30' },
-  { file:'derrota_honrosa.mp3',     title:'Derrota Honrosa',       dur:'2:10' },
-  { file:'seleccion_baraja.mp3',    title:'Selección de Baraja',   dur:'3:00' },
-  { file:'boss_final.mp3',          title:'Enfrentamiento Final',  dur:'5:20' },
+const MP_CARPETA = 'musica_choque/';
+const MP_PISTAS = [
+    { t: 'Tema Principal',               d: '3:24' },  // pista_1
+    { t: 'Batalla Épica',                d: '4:12' },  // pista_2
+    { t: 'Invocación del Héroe',         d: '2:48' },  // pista_3
+    { t: 'Turno Estratégico',            d: '3:55' },  // pista_4
+    { t: 'Victoria',                     d: '1:30' },  // pista_5
+    { t: 'Derrota Honrosa',              d: '2:10' },  // pista_6
+    { t: 'Selección de Baraja',          d: '3:00' },  // pista_7
+    { t: 'Enfrentamiento Final',         d: '5:20' },  // pista_8
+    { t: '', d: '' },  // pista_9
+    { t: '', d: '' },  // pista_10
+    { t: '', d: '' },  // pista_11
+    { t: '', d: '' },  // pista_12
+    { t: '', d: '' },  // pista_13
+    { t: '', d: '' },  // pista_14
+    { t: '', d: '' },  // pista_15
+    { t: '', d: '' },  // pista_16
+    { t: '', d: '' },  // pista_17
+    { t: '', d: '' },  // pista_18
+    { t: '', d: '' },  // pista_19
+    { t: '', d: '' },  // pista_20
 ];
+const MP_TRACKS = MP_PISTAS
+  .map((p,i)=>({file:'pista_'+(i+1)+'.mp3',title:p.t,dur:p.d,slot:i+1}))
+  .filter(p=>p.title.trim()!=='');
 
 let mpIdx=-1,mpOn=false,mpLoop=true;
 const mpAudio=new Audio();
@@ -584,7 +603,7 @@ const mpAudio=new Audio();
 function mpRender(){
   document.getElementById('mp-tracks').innerHTML=MP_TRACKS.map((t,i)=>
     '<div class="mp-track'+(i===mpIdx?' mp-active':'')+'" onclick="mpSelect('+i+')">'+
-    '<div class="mp-track-num">'+String(i+1).padStart(2,'0')+'</div>'+
+    '<div class="mp-track-num">'+String(t.slot).padStart(2,'0')+'</div>'+
     '<div class="mp-track-name">'+t.title+'</div>'+
     '<div class="mp-track-dur">'+t.dur+'</div></div>'
   ).join('');
@@ -593,7 +612,7 @@ function mpRender(){
 function mpSelect(i){
   mpIdx=i;
   const t=MP_TRACKS[i];
-  mpAudio.src=MP_BASE+t.file;
+  mpAudio.src=MP_CARPETA+t.file;
   mpAudio.loop=mpLoop;
   mpAudio.play().then(()=>{mpOn=true;mpUI();}).catch(()=>{mpOn=false;mpUI();});
   document.getElementById('mp-now-name').textContent=t.title;

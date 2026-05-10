@@ -316,53 +316,72 @@ footer p{font-family:'Rajdhani',sans-serif;font-size:12px;color:var(--border);le
 
 <script>
 // ════════════════════════════════════════════════════════════════
-// CONFIGURACIÓN — Edita esta sección con tus pistas
-// ════════════════════════════════════════════════════════════════
 //
-// BASE_URL: Ruta a tu carpeta "musica_choque" en GitHub Pages.
-//           Ejemplo: "https://tuusuario.github.io/tu-repo/musica_choque/"
+//   🎵  CONFIGURACIÓN DEL SOUNDTRACK  🎵
 //
-// TRACKS: Lista de pistas. Cada una necesita:
-//   - file:     Nombre del archivo MP3 dentro de musica_choque/
-//   - title:    Nombre de la pista
-//   - artist:   Compositor o crédito (opcional)
-//   - duration: Duración en formato "M:SS" (se muestra antes de cargar)
+//   Los archivos de audio van en la carpeta "musica_choque/"
+//   con nombres genéricos numerados:
+//
+//     pista_1.mp3, pista_2.mp3, pista_3.mp3 ... pista_20.mp3
+//
+//   Solo edita el TÍTULO, ARTISTA y DURACIÓN de cada pista.
+//   Las pistas con título vacío ('') se ocultan del reproductor.
+//
 // ════════════════════════════════════════════════════════════════
 
-const BASE_URL = 'musica_choque/';
+const CARPETA = 'musica_choque/';
 
-const TRACKS = [
-  { file: 'tema_principal.mp3',      title: 'Tema Principal',               artist: 'Choque de Héroes OST', duration: '3:24' },
-  { file: 'batalla_epica.mp3',       title: 'Batalla Épica',                artist: 'Choque de Héroes OST', duration: '4:12' },
-  { file: 'invocacion_heroe.mp3',    title: 'Invocación del Héroe',         artist: 'Choque de Héroes OST', duration: '2:48' },
-  { file: 'turno_estrategico.mp3',   title: 'Turno Estratégico',            artist: 'Choque de Héroes OST', duration: '3:55' },
-  { file: 'victoria.mp3',            title: 'Victoria',                     artist: 'Choque de Héroes OST', duration: '1:30' },
-  { file: 'derrota_honrosa.mp3',     title: 'Derrota Honrosa',              artist: 'Choque de Héroes OST', duration: '2:10' },
-  { file: 'seleccion_baraja.mp3',    title: 'Selección de Baraja',          artist: 'Choque de Héroes OST', duration: '3:00' },
-  { file: 'boss_final.mp3',          title: 'Enfrentamiento Final',         artist: 'Choque de Héroes OST', duration: '5:20' },
+const PISTAS = [
+// ┌─────┬──────────────────────────────┬────────────────────────────┬──────────┐
+// │  #  │  TÍTULO                      │  ARTISTA                   │ DURACIÓN │
+// ├─────┼──────────────────────────────┼────────────────────────────┼──────────┤
+     { t: 'Tema Principal',               a: 'Choque de Héroes OST',   d: '3:24' },  // ← pista_1.mp3
+     { t: 'Batalla Épica',                a: 'Choque de Héroes OST',   d: '4:12' },  // ← pista_2.mp3
+     { t: 'Invocación del Héroe',         a: 'Choque de Héroes OST',   d: '2:48' },  // ← pista_3.mp3
+     { t: 'Turno Estratégico',            a: 'Choque de Héroes OST',   d: '3:55' },  // ← pista_4.mp3
+     { t: 'Victoria',                     a: 'Choque de Héroes OST',   d: '1:30' },  // ← pista_5.mp3
+     { t: 'Derrota Honrosa',              a: 'Choque de Héroes OST',   d: '2:10' },  // ← pista_6.mp3
+     { t: 'Selección de Baraja',          a: 'Choque de Héroes OST',   d: '3:00' },  // ← pista_7.mp3
+     { t: 'Enfrentamiento Final',         a: 'Choque de Héroes OST',   d: '5:20' },  // ← pista_8.mp3
+     { t: '',                             a: '',                        d: ''     },  // ← pista_9.mp3
+     { t: '',                             a: '',                        d: ''     },  // ← pista_10.mp3
+     { t: '',                             a: '',                        d: ''     },  // ← pista_11.mp3
+     { t: '',                             a: '',                        d: ''     },  // ← pista_12.mp3
+     { t: '',                             a: '',                        d: ''     },  // ← pista_13.mp3
+     { t: '',                             a: '',                        d: ''     },  // ← pista_14.mp3
+     { t: '',                             a: '',                        d: ''     },  // ← pista_15.mp3
+     { t: '',                             a: '',                        d: ''     },  // ← pista_16.mp3
+     { t: '',                             a: '',                        d: ''     },  // ← pista_17.mp3
+     { t: '',                             a: '',                        d: ''     },  // ← pista_18.mp3
+     { t: '',                             a: '',                        d: ''     },  // ← pista_19.mp3
+     { t: '',                             a: '',                        d: ''     },  // ← pista_20.mp3
+// └─────┴──────────────────────────────┴────────────────────────────┴──────────┘
 ];
 
 // ════════════════════════════════════════════════════════════════
-// ENGINE — No necesitas editar debajo de esta línea
+// ⚙️  ENGINE — No necesitas editar nada debajo de esta línea
 // ════════════════════════════════════════════════════════════════
+
+// Construir lista de pistas activas (solo las que tienen título)
+const TRACKS = PISTAS
+  .map((p, i) => ({ file: 'pista_' + (i + 1) + '.mp3', title: p.t, artist: p.a, duration: p.d, slot: i + 1 }))
+  .filter(p => p.title.trim() !== '');
 
 let currentIndex = -1;
 let isPlaying = false;
-let isLooping = true; // loop por defecto ON
+let isLooping = true;
 const audio = new Audio();
 audio.preload = 'metadata';
 
-// ─── Render track list ───
 function renderTracks() {
   const container = document.getElementById('track-list');
   if (!TRACKS.length) {
-    container.innerHTML = `<div class="state-box"><div class="sb-icon">📭</div><p>SIN PISTAS</p><p class="sb-sub">Agrega pistas al array TRACKS en el código.</p></div>`;
+    container.innerHTML = '<div class="state-box"><div class="sb-icon">🎵</div><p>SIN PISTAS</p><p class="sb-sub">Edita los títulos en el array PISTAS para activar pistas.</p></div>';
     return;
   }
-
   container.innerHTML = TRACKS.map((t, i) => `
     <div class="track-item" id="track-${i}" onclick="selectTrack(${i})">
-      <div class="track-num">${String(i + 1).padStart(2, '0')}</div>
+      <div class="track-num">${String(t.slot).padStart(2, '0')}</div>
       <div class="track-play-icon">
         <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
       </div>
@@ -375,91 +394,56 @@ function renderTracks() {
   `).join('');
 }
 
-// ─── Select & play ───
 function selectTrack(index) {
   if (index < 0 || index >= TRACKS.length) return;
-
-  // Deselect previous
   document.querySelectorAll('.track-item').forEach(el => el.classList.remove('active'));
-
   currentIndex = index;
   const track = TRACKS[currentIndex];
-
-  // Highlight
-  const el = document.getElementById(`track-${currentIndex}`);
+  const el = document.getElementById('track-' + currentIndex);
   if (el) el.classList.add('active');
-
-  // Update play icon in track list
   document.querySelectorAll('.track-play-icon svg').forEach(svg => {
     svg.innerHTML = '<path d="M8 5v14l11-7z"/>';
   });
-
-  // Load & play
-  audio.src = BASE_URL + track.file;
+  audio.src = CARPETA + track.file;
   audio.loop = isLooping;
-  audio.play().then(() => {
-    isPlaying = true;
-    updatePlayUI();
-    showPlayer();
-  }).catch(() => {
-    // Autoplay blocked
-    isPlaying = false;
-    updatePlayUI();
-    showPlayer();
-  });
-
-  // Player bar info
+  audio.play().then(() => { isPlaying = true; updatePlayUI(); showPlayer(); })
+    .catch(() => { isPlaying = false; updatePlayUI(); showPlayer(); });
   document.getElementById('p-name').textContent = track.title;
 }
 
 function togglePlay() {
   if (currentIndex < 0) { selectTrack(0); return; }
-  if (isPlaying) {
-    audio.pause();
-    isPlaying = false;
-  } else {
-    audio.play().catch(() => {});
-    isPlaying = true;
-  }
+  if (isPlaying) { audio.pause(); isPlaying = false; }
+  else { audio.play().catch(() => {}); isPlaying = true; }
   updatePlayUI();
 }
 
 function nextTrack() {
-  if (TRACKS.length === 0) return;
-  const next = (currentIndex + 1) % TRACKS.length;
-  selectTrack(next);
+  if (!TRACKS.length) return;
+  selectTrack((currentIndex + 1) % TRACKS.length);
 }
 
 function prevTrack() {
-  if (TRACKS.length === 0) return;
-  // If more than 3s in, restart; otherwise previous
-  if (audio.currentTime > 3) {
-    audio.currentTime = 0;
-    return;
-  }
-  const prev = (currentIndex - 1 + TRACKS.length) % TRACKS.length;
-  selectTrack(prev);
+  if (!TRACKS.length) return;
+  if (audio.currentTime > 3) { audio.currentTime = 0; return; }
+  selectTrack((currentIndex - 1 + TRACKS.length) % TRACKS.length);
 }
 
 function toggleLoop() {
   isLooping = !isLooping;
   audio.loop = isLooping;
-  const btn = document.getElementById('btn-loop');
-  btn.classList.toggle('loop-active', isLooping);
+  document.getElementById('btn-loop').classList.toggle('loop-active', isLooping);
 }
 
-// ─── UI updates ───
 function updatePlayUI() {
   const icon = document.getElementById('play-icon');
   const viz = document.getElementById('visualizer');
-
   if (isPlaying) {
     icon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
     viz.classList.add('playing');
-    // Update track list icon
     if (currentIndex >= 0) {
-      const trackIcon = document.querySelector(`#track-${currentIndex} .track-play-icon svg`);
-      if (trackIcon) trackIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+      const ti = document.querySelector('#track-' + currentIndex + ' .track-play-icon svg');
+      if (ti) ti.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
     }
   } else {
     icon.innerHTML = '<path d="M8 5v14l11-7z"/>';
@@ -473,38 +457,26 @@ function showPlayer() {
 
 function formatTime(s) {
   if (isNaN(s)) return '0:00';
-  const m = Math.floor(s / 60);
-  const sec = Math.floor(s % 60);
-  return `${m}:${String(sec).padStart(2, '0')}`;
+  return Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
 }
 
-// ─── Progress bar ───
 audio.addEventListener('timeupdate', () => {
   if (!audio.duration) return;
-  const pct = (audio.currentTime / audio.duration) * 100;
-  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-fill').style.width = (audio.currentTime / audio.duration * 100) + '%';
   document.getElementById('p-current').textContent = formatTime(audio.currentTime);
   document.getElementById('p-total').textContent = formatTime(audio.duration);
 });
 
-audio.addEventListener('ended', () => {
-  if (!isLooping) {
-    nextTrack();
-  }
-});
+audio.addEventListener('ended', () => { if (!isLooping) nextTrack(); });
 
-// Click on progress bar to seek
 document.getElementById('progress-wrap').addEventListener('click', (e) => {
   if (!audio.duration) return;
   const rect = e.currentTarget.getBoundingClientRect();
-  const pct = (e.clientX - rect.left) / rect.width;
-  audio.currentTime = pct * audio.duration;
+  audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
 });
 
-// ─── Init ───
 window.addEventListener('DOMContentLoaded', () => {
   renderTracks();
-  // Set loop active by default
   document.getElementById('btn-loop').classList.add('loop-active');
 });
 </script>

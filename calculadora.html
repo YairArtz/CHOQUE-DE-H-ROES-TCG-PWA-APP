@@ -225,6 +225,112 @@ body::after{
 @keyframes fsi{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 @keyframes bigpop{from{opacity:0;transform:scale(.25)}to{opacity:1;transform:scale(1)}}
 ::-webkit-scrollbar{display:none}
+/* ═══ MINI-PLAYER FLOTANTE ═══ */
+.mp-toggle{
+  position:fixed;bottom:max(env(safe-area-inset-bottom,12px),12px);right:12px;z-index:100;
+  width:40px;height:40px;border-radius:50%;border:1px solid rgba(180,70,255,.4);
+  background:rgba(3,5,10,.92);backdrop-filter:blur(10px);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:18px;
+  box-shadow:0 0 16px rgba(180,70,255,.2);
+  transition:transform .15s,box-shadow .15s;
+}
+.mp-toggle:active{transform:scale(.88);}
+.mp-toggle.playing{animation:mp-pulse 2s ease-in-out infinite;}
+@keyframes mp-pulse{
+  0%,100%{box-shadow:0 0 16px rgba(180,70,255,.2)}
+  50%{box-shadow:0 0 26px rgba(180,70,255,.5)}
+}
+
+.mp-panel{
+  position:fixed;bottom:60px;right:10px;z-index:101;
+  width:260px;max-height:370px;
+  background:rgba(3,5,10,.96);border:1px solid rgba(180,70,255,.25);
+  border-radius:10px;overflow:hidden;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  box-shadow:0 6px 30px rgba(0,0,0,.6),0 0 20px rgba(180,70,255,.08);
+  display:none;flex-direction:column;
+}
+.mp-panel.open{display:flex;}
+.mp-panel::before{
+  content:'';position:absolute;top:0;left:8%;right:8%;height:1px;
+  background:linear-gradient(90deg,transparent,var(--purple),transparent);opacity:.4;
+}
+
+.mp-header{
+  padding:8px 12px;display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid rgba(20,28,42,.7);
+}
+.mp-header-title{
+  font-family:'Orbitron',monospace;font-size:8px;font-weight:700;
+  letter-spacing:2px;color:var(--purple);text-transform:uppercase;
+  text-shadow:0 0 6px rgba(180,70,255,.25);
+}
+.mp-close{
+  width:20px;height:20px;border-radius:3px;border:none;cursor:pointer;
+  background:rgba(255,34,68,.08);color:var(--red);
+  font-family:'Orbitron',monospace;font-size:8px;
+  display:flex;align-items:center;justify-content:center;
+}
+
+.mp-now{
+  padding:8px 12px;display:flex;align-items:center;gap:8px;
+  background:rgba(40,5,65,.15);
+}
+.mp-viz{display:flex;align-items:flex-end;gap:2px;height:12px;}
+.mp-viz .vb{width:2px;border-radius:1px;background:var(--purple);opacity:.5;animation:none;}
+.mp-viz.on .vb{animation:mpvb .5s ease-in-out infinite alternate;}
+.mp-viz .vb:nth-child(1){height:4px;animation-delay:0s}
+.mp-viz .vb:nth-child(2){height:9px;animation-delay:.12s}
+.mp-viz .vb:nth-child(3){height:6px;animation-delay:.24s}
+.mp-viz .vb:nth-child(4){height:11px;animation-delay:.08s}
+@keyframes mpvb{0%{height:3px}100%{height:12px}}
+
+.mp-now-info{flex:1;min-width:0;}
+.mp-now-name{
+  font-family:'Orbitron',monospace;font-size:9px;font-weight:700;
+  color:var(--purple);letter-spacing:.4px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  text-shadow:0 0 6px rgba(180,70,255,.2);
+}
+.mp-now-time{font-size:8px;color:var(--muted);margin-top:1px;font-family:'Orbitron',monospace;letter-spacing:.4px;}
+
+.mp-progress{width:100%;height:3px;background:rgba(180,70,255,.06);cursor:pointer;}
+.mp-progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--purple),var(--blue));transition:width .15s linear;}
+
+.mp-controls{display:flex;align-items:center;justify-content:center;gap:3px;padding:6px 10px;}
+.mp-btn{
+  width:26px;height:26px;border-radius:50%;border:none;cursor:pointer;
+  background:transparent;display:flex;align-items:center;justify-content:center;
+}
+.mp-btn svg{width:12px;height:12px;fill:var(--muted);transition:fill .15s;}
+.mp-btn:active svg{fill:#e0eeff;}
+.mp-btn:active{transform:scale(.88);}
+.mp-btn.mp-play{width:30px;height:30px;background:rgba(180,70,255,.08);border:1px solid rgba(180,70,255,.25);}
+.mp-btn.mp-play svg{fill:var(--purple);width:14px;height:14px;}
+.mp-btn.mp-loop-on svg{fill:var(--neon);}
+.mp-btn.mp-loop-on{background:var(--neon-dim);}
+
+.mp-tracks{max-height:180px;overflow-y:auto;border-top:1px solid rgba(20,28,42,.7);}
+.mp-tracks::-webkit-scrollbar{width:2px;}
+.mp-tracks::-webkit-scrollbar-thumb{background:rgba(180,70,255,.15);border-radius:1px;}
+
+.mp-track{
+  display:flex;align-items:center;gap:6px;
+  padding:6px 12px;cursor:pointer;
+  transition:background .12s;border-bottom:1px solid rgba(20,28,42,.3);
+}
+.mp-track:active{background:rgba(180,70,255,.05);}
+.mp-track.mp-active{background:rgba(40,5,65,.25);}
+.mp-track-num{font-family:'Orbitron',monospace;font-size:7px;color:var(--muted);width:14px;text-align:center;}
+.mp-track.mp-active .mp-track-num{color:var(--purple);}
+.mp-track-name{
+  font-family:'Orbitron',monospace;font-size:8px;font-weight:700;
+  color:#e0eeff;letter-spacing:.2px;flex:1;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.mp-track.mp-active .mp-track-name{color:var(--purple);}
+.mp-track-dur{font-family:'Orbitron',monospace;font-size:7px;color:var(--muted);letter-spacing:.4px;}
 </style>
 </head>
 <body>
@@ -419,6 +525,128 @@ renderAll();
 
 <!-- Sistema de ajustes -->
 <script src="settings.js"></script>
+
+<!-- ═══ MINI-PLAYER SOUNDTRACK DE BATALLA ═══ -->
+<div class="mp-toggle" id="mp-toggle" onclick="mpTogglePanel()">🎵</div>
+<div class="mp-panel" id="mp-panel">
+  <div class="mp-header">
+    <div class="mp-header-title">🎵 Soundtrack</div>
+    <button class="mp-close" onclick="mpTogglePanel()">✕</button>
+  </div>
+  <div class="mp-now">
+    <div class="mp-viz" id="mp-viz">
+      <div class="vb"></div><div class="vb"></div><div class="vb"></div><div class="vb"></div>
+    </div>
+    <div class="mp-now-info">
+      <div class="mp-now-name" id="mp-now-name">Selecciona una pista</div>
+      <div class="mp-now-time"><span id="mp-cur">0:00</span> / <span id="mp-tot">0:00</span></div>
+    </div>
+  </div>
+  <div class="mp-progress" id="mp-progress" onclick="mpSeek(event)">
+    <div class="mp-progress-fill" id="mp-prog-fill"></div>
+  </div>
+  <div class="mp-controls">
+    <button class="mp-btn" onclick="mpPrev()">
+      <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+    </button>
+    <button class="mp-btn mp-play" id="mp-play-btn" onclick="mpTogglePlay()">
+      <svg viewBox="0 0 24 24" id="mp-play-icon"><path d="M8 5v14l11-7z"/></svg>
+    </button>
+    <button class="mp-btn" onclick="mpNext()">
+      <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zm2 0V6l6.5 6L8 18zM16 6v12h2V6h-2z"/></svg>
+    </button>
+    <button class="mp-btn mp-loop-on" id="mp-loop-btn" onclick="mpToggleLoop()">
+      <svg viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
+    </button>
+  </div>
+  <div class="mp-tracks" id="mp-tracks"></div>
+</div>
+<script>
+// ═══════════════════════════════════════════════════════
+// MINI-PLAYER — Pistas desde musica_choque/
+// Edita MP_TRACKS con los nombres reales de tus archivos
+// ═══════════════════════════════════════════════════════
+const MP_BASE = 'musica_choque/';
+const MP_TRACKS = [
+  { file:'tema_principal.mp3',      title:'Tema Principal',        dur:'3:24' },
+  { file:'batalla_epica.mp3',       title:'Batalla Épica',         dur:'4:12' },
+  { file:'invocacion_heroe.mp3',    title:'Invocación del Héroe',  dur:'2:48' },
+  { file:'turno_estrategico.mp3',   title:'Turno Estratégico',     dur:'3:55' },
+  { file:'victoria.mp3',            title:'Victoria',              dur:'1:30' },
+  { file:'derrota_honrosa.mp3',     title:'Derrota Honrosa',       dur:'2:10' },
+  { file:'seleccion_baraja.mp3',    title:'Selección de Baraja',   dur:'3:00' },
+  { file:'boss_final.mp3',          title:'Enfrentamiento Final',  dur:'5:20' },
+];
+
+let mpIdx=-1,mpOn=false,mpLoop=true;
+const mpAudio=new Audio();
+
+function mpRender(){
+  document.getElementById('mp-tracks').innerHTML=MP_TRACKS.map((t,i)=>
+    '<div class="mp-track'+(i===mpIdx?' mp-active':'')+'" onclick="mpSelect('+i+')">'+
+    '<div class="mp-track-num">'+String(i+1).padStart(2,'0')+'</div>'+
+    '<div class="mp-track-name">'+t.title+'</div>'+
+    '<div class="mp-track-dur">'+t.dur+'</div></div>'
+  ).join('');
+}
+
+function mpSelect(i){
+  mpIdx=i;
+  const t=MP_TRACKS[i];
+  mpAudio.src=MP_BASE+t.file;
+  mpAudio.loop=mpLoop;
+  mpAudio.play().then(()=>{mpOn=true;mpUI();}).catch(()=>{mpOn=false;mpUI();});
+  document.getElementById('mp-now-name').textContent=t.title;
+  mpRender();
+}
+
+function mpTogglePlay(){
+  if(mpIdx<0){mpSelect(0);return;}
+  if(mpOn){mpAudio.pause();mpOn=false;}
+  else{mpAudio.play().catch(()=>{});mpOn=true;}
+  mpUI();
+}
+
+function mpNext(){if(!MP_TRACKS.length)return;mpSelect((mpIdx+1)%MP_TRACKS.length);}
+function mpPrev(){
+  if(!MP_TRACKS.length)return;
+  if(mpAudio.currentTime>3){mpAudio.currentTime=0;return;}
+  mpSelect((mpIdx-1+MP_TRACKS.length)%MP_TRACKS.length);
+}
+function mpToggleLoop(){
+  mpLoop=!mpLoop;mpAudio.loop=mpLoop;
+  document.getElementById('mp-loop-btn').classList.toggle('mp-loop-on',mpLoop);
+}
+
+function mpUI(){
+  const icon=document.getElementById('mp-play-icon');
+  const viz=document.getElementById('mp-viz');
+  const tog=document.getElementById('mp-toggle');
+  if(mpOn){
+    icon.innerHTML='<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+    viz.classList.add('on');tog.classList.add('playing');
+  }else{
+    icon.innerHTML='<path d="M8 5v14l11-7z"/>';
+    viz.classList.remove('on');tog.classList.remove('playing');
+  }
+}
+
+function mpTogglePanel(){document.getElementById('mp-panel').classList.toggle('open');}
+function mpFmt(s){if(isNaN(s))return'0:00';return Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');}
+function mpSeek(e){
+  if(!mpAudio.duration)return;
+  const r=e.currentTarget.getBoundingClientRect();
+  mpAudio.currentTime=((e.clientX-r.left)/r.width)*mpAudio.duration;
+}
+mpAudio.addEventListener('timeupdate',()=>{
+  if(!mpAudio.duration)return;
+  document.getElementById('mp-prog-fill').style.width=(mpAudio.currentTime/mpAudio.duration*100)+'%';
+  document.getElementById('mp-cur').textContent=mpFmt(mpAudio.currentTime);
+  document.getElementById('mp-tot').textContent=mpFmt(mpAudio.duration);
+});
+mpAudio.addEventListener('ended',()=>{if(!mpLoop)mpNext();});
+mpRender();
+</script>
 
 </body>
 </html>

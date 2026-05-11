@@ -383,12 +383,7 @@ const NEW_DAYS     = 7;
 const PAGE_SIZE    = 12;
 const AUTO_REFRESH = 300;
 
-// ─── CORS PROXIES (cadena de fallback) ──────────────────────────
-const PROXIES = [
-  url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-  url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
-  url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
-];
+// ─── CORS PROXIES — cada uno tiene su formato propio ────────────
 
 // ─── ESTADO ──────────────────────────────────────────────────────
 let allVideos    = [];
@@ -404,52 +399,116 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 // ─── FETCH CON PROXIES ──────────────────────────────────────────
-async function fetchViaProxies(url, timeout = 10000) {
-  for (const mkProxy of PROXIES) {
+async function fetchViaProxies(url, timeout = 12000) {
+  const log = [];
+
+  // Lista de intentos: nombre, URL, tipo de respuesta esperada
+  const attempts = [
+    { name: 'rss2json',      url: `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}&count=50`,  type: 'json' },
+    { name: 'allorigins-get', url: `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,                     type: 'allorigins' },
+    { name: 'allorigins-raw', url: `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,                     type: 'text' },
+    { name: 'corsproxy-new',  url: `https://corsproxy.io/?url=${encodeURIComponent(url)}`,                              type: 'text' },
+    { name: 'corsproxy-old',  url: `https://corsproxy.io/?${encodeURIComponent(url)}`,                                  type: 'text' },
+    { name: 'cors-lol',       url: `https://api.cors.lol/?url=${encodeURIComponent(url)}`,                              type: 'text' },
+    { name: 'codetabs',       url: `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,                type: 'text' },
+  ];
+
+  for (const a of attempts) {
     try {
-      const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), timeout);
-      const res = await fetch(mkProxy(url), { signal: ctrl.signal });
-      clearTimeout(timer);
-      if (res.ok) {
+      const res = await fetchWithTimeout(a.url, timeout);
+      if (!res.ok) { log.push(`${a.name}: HTTP ${res.status}`); continue; }
+
+      if (a.type === 'json') {
+        const json = await res.json();
+        if (json.status === 'ok' && json.items) {
+          log.push(`${a.name}: OK ✓`);
+          console.log('Feed cargado via', a.name, log);
+          return JSON.stringify(json);
+        }
+        log.push(`${a.name}: status=${json.status||'?'}, items=${json.items?.length||0}`);
+
+      } else if (a.type === 'allorigins') {
+        const data = await res.json();
+        const c = data.contents || '';
+        if (c.length > 100) {
+          // Intentar parsear como XML
+          const parser = new DOMParser();
+          const xml = parser.parseFromString(c, 'text/xml');
+          if (!xml.querySelector('parsererror') && xml.querySelectorAll('entry').length) {
+            log.push(`${a.name}: OK ✓ (${xml.querySelectorAll('entry').length} entries)`);
+            console.log('Feed cargado via', a.name, log);
+            return c;
+          }
+          log.push(`${a.name}: contenido no es feed válido (${c.length} chars)`);
+        } else {
+          log.push(`${a.name}: respuesta muy corta (${c.length} chars)`);
+        }
+
+      } else { // text
         const text = await res.text();
-        if (text && text.length > 100) return text;
+        if (text.length > 100) {
+          const parser = new DOMParser();
+          const xml = parser.parseFromString(text, 'text/xml');
+          if (!xml.querySelector('parsererror') && xml.querySelectorAll('entry').length) {
+            log.push(`${a.name}: OK ✓ (${xml.querySelectorAll('entry').length} entries)`);
+            console.log('Feed cargado via', a.name, log);
+            return text;
+          }
+          log.push(`${a.name}: no es feed válido (${text.substring(0,80)}…)`);
+        } else {
+          log.push(`${a.name}: respuesta muy corta (${text.length} chars)`);
+        }
       }
-    } catch(e) { /* siguiente proxy */ }
+    } catch(e) { log.push(`${a.name}: ${e.message}`); }
   }
-  // Último intento: rss2json.com (JSON, sin api_key)
-  try {
-    const r2j = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}&count=50`;
-    const res = await fetch(r2j);
-    if (res.ok) {
-      const json = await res.json();
-      if (json.status === 'ok') return JSON.stringify(json);
-    }
-  } catch(e) { /* falló también */ }
-  throw new Error('No se pudo conectar. Revisa tu conexión a internet.');
+
+  console.error('Todos los proxies fallaron:', log);
+  throw new Error('No se pudo conectar al feed.\n' + log.join('\n'));
+}
+
+function fetchWithTimeout(url, ms) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
+  return fetch(url, { signal: ctrl.signal }).finally(() => clearTimeout(timer));
 }
 
 // ─── AVATAR DEL CANAL ───────────────────────────────────────────
 async function loadChannelAvatar() {
-  try {
-    const html = await fetchViaProxies(CHANNEL_URL, 12000);
-    // Buscar og:image o avatar en el HTML
-    let avatarUrl = '';
-    const ogMatch = html.match(/<meta\s+property="og:image"\s+content="([^"]+)"/i)
-                 || html.match(/<meta\s+content="([^"]+)"\s+property="og:image"/i);
-    if (ogMatch) {
-      avatarUrl = ogMatch[1];
-    } else {
-      // Buscar patrón yt3.googleusercontent.com en el HTML
-      const ytMatch = html.match(/(https:\/\/yt3\.googleusercontent\.com\/[^"'\s]+)/);
-      if (ytMatch) avatarUrl = ytMatch[1];
-    }
-    if (avatarUrl) {
-      const img = document.getElementById('ch-avatar-img');
-      img.src = avatarUrl;
-      img.onload = () => { img.style.display = 'block'; img.nextElementSibling.style.display = 'none'; };
-    }
-  } catch(e) { /* Fallback: se queda con las iniciales "CH" */ }
+  const proxyUrls = [
+    `https://api.allorigins.win/get?url=${encodeURIComponent(CHANNEL_URL)}`,
+    `https://api.cors.lol/?url=${encodeURIComponent(CHANNEL_URL)}`,
+    `https://corsproxy.io/?url=${encodeURIComponent(CHANNEL_URL)}`,
+  ];
+  for (const pUrl of proxyUrls) {
+    try {
+      const res = await fetchWithTimeout(pUrl, 12000);
+      if (!res.ok) continue;
+      let html;
+      // allorigins /get devuelve JSON con .contents
+      if (pUrl.includes('allorigins')) {
+        const data = await res.json();
+        html = data.contents || '';
+      } else {
+        html = await res.text();
+      }
+      if (!html || html.length < 200) continue;
+      let avatarUrl = '';
+      const ogMatch = html.match(/<meta\s+property="og:image"\s+content="([^"]+)"/i)
+                   || html.match(/<meta\s+content="([^"]+)"\s+property="og:image"/i);
+      if (ogMatch) {
+        avatarUrl = ogMatch[1];
+      } else {
+        const ytMatch = html.match(/(https:\/\/yt3\.googleusercontent\.com\/[^"'\s]+)/);
+        if (ytMatch) avatarUrl = ytMatch[1];
+      }
+      if (avatarUrl) {
+        const img = document.getElementById('ch-avatar-img');
+        img.src = avatarUrl;
+        img.onload = () => { img.style.display = 'block'; img.nextElementSibling.style.display = 'none'; };
+        return;
+      }
+    } catch(e) { /* siguiente proxy */ }
+  }
 }
 
 // ─── CARGA PRINCIPAL ─────────────────────────────────────────────
@@ -714,10 +773,16 @@ function showLoading() {
 }
 
 function showError(msg) {
+  const parts = msg.split('\n');
+  const title = parts[0];
+  const details = parts.slice(1).filter(l => l.trim()).map(l =>
+    `<div style="font-family:monospace;font-size:9px;color:#ff6b6b;text-align:left;padding:1px 16px;word-break:break-all;">${l}</div>`
+  ).join('');
   document.getElementById('content-area').innerHTML = `<div class="state-box">
     <div class="sb-icon">⚠️</div>
     <p>ERROR AL CARGAR</p>
-    <p class="sb-sub">${msg}</p>
+    <p class="sb-sub">${title}</p>
+    <div style="margin:10px auto;max-width:380px;">${details}</div>
     <p class="sb-sub" style="margin-top:12px;">Intenta actualizar o visita el canal directamente.</p>
     <button class="refresh-btn" onclick="refresh()" style="margin:16px auto 0;display:block;">⟳ REINTENTAR</button>
   </div>`;

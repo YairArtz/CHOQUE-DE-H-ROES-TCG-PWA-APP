@@ -293,8 +293,13 @@
   <div class="modal-overlay" id="modal" onclick="closeModal(event)">
     <div class="modal-box" id="modal-box">
       <button class="modal-close" onclick="closeModal()">✕ CERRAR</button>
-      <div class="video-iframe-wrap">
-        <iframe id="modal-iframe" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      <div class="video-iframe-wrap" id="modal-thumb-wrap" style="cursor:pointer;">
+        <img id="modal-thumb" src="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"/>
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.45);">
+          <div class="play-btn-circle" style="width:72px;height:72px;box-shadow:0 0 30px rgba(255,0,0,.6);">
+            <svg viewBox="0 0 24 24" style="width:32px;height:32px;fill:#fff;margin-left:4px;"><path d="M8 5v14l11-7z"/></svg>
+          </div>
+        </div>
       </div>
       <div class="modal-info">
         <div class="modal-title" id="modal-title"></div>
@@ -304,7 +309,7 @@
         </div>
         <div class="modal-desc" id="modal-desc"></div>
         <a class="modal-yt-btn" id="modal-yt-link" href="#" target="_blank" rel="noopener">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="#fff"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V9.5a8.27 8.27 0 0 0 4.84 1.55V7.6a4.85 4.85 0 0 1-1.07-.91z"/></svg>
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="#fff"><path d="M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
           VER EN YOUTUBE
         </a>
       </div>
@@ -328,7 +333,7 @@
 
     <!-- CANAL INFO -->
     <div class="channel-card" id="channel-card">
-      <div class="ch-avatar">CH</div>
+      <div class="ch-avatar" id="ch-avatar-wrap"><img id="ch-avatar-img" src="" alt="CH" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:none;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><span style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-family:'Orbitron',sans-serif;font-size:20px;font-weight:900;color:#fff;">CH</span></div>
       <div class="ch-info">
         <div class="ch-name">CHOQUE DE HEROES TCG</div>
         <div class="ch-handle">@choquedeheroestcg9035</div>
@@ -371,97 +376,144 @@
 <script>
 // ─── CONFIG ──────────────────────────────────────────────────────
 const CHANNEL_ID   = 'UCPW3FGg-uxF-dheu1qg9adg';
-const RSS_URL      = `https://api.rss2json.com/v1/api.json?rss_url=https://www.youtube.com/feeds/videos.xml?channel_id=${CHANNEL_ID}&api_key=&count=50`;
-const NEW_DAYS     = 7;    // badge "NUEVO" si tiene menos de N días
-const PAGE_SIZE    = 12;   // videos por página
-const AUTO_REFRESH = 300;  // segundos entre auto-refresh (5 min)
+const CHANNEL_HANDLE = '@choquedeheroestcg9035';
+const FEED_URL     = `https://www.youtube.com/feeds/videos.xml?channel_id=${CHANNEL_ID}`;
+const CHANNEL_URL  = `https://www.youtube.com/${CHANNEL_HANDLE}`;
+const NEW_DAYS     = 7;
+const PAGE_SIZE    = 12;
+const AUTO_REFRESH = 300;
+
+// ─── CORS PROXIES (cadena de fallback) ──────────────────────────
+const PROXIES = [
+  url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+  url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+];
 
 // ─── ESTADO ──────────────────────────────────────────────────────
-let allVideos   = [];
-let filtered    = [];
-let displayed   = 0;
+let allVideos    = [];
+let filtered     = [];
+let displayed    = 0;
 let activeFilter = 'all';
-
-
-
 
 // ─── INIT ────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
   loadVideos();
+  loadChannelAvatar();
   setInterval(refresh, AUTO_REFRESH * 1000);
 });
 
+// ─── FETCH CON PROXIES ──────────────────────────────────────────
+async function fetchViaProxies(url, timeout = 10000) {
+  for (const mkProxy of PROXIES) {
+    try {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), timeout);
+      const res = await fetch(mkProxy(url), { signal: ctrl.signal });
+      clearTimeout(timer);
+      if (res.ok) {
+        const text = await res.text();
+        if (text && text.length > 100) return text;
+      }
+    } catch(e) { /* siguiente proxy */ }
+  }
+  // Último intento: rss2json.com (JSON, sin api_key)
+  try {
+    const r2j = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}&count=50`;
+    const res = await fetch(r2j);
+    if (res.ok) {
+      const json = await res.json();
+      if (json.status === 'ok') return JSON.stringify(json);
+    }
+  } catch(e) { /* falló también */ }
+  throw new Error('No se pudo conectar. Revisa tu conexión a internet.');
+}
+
+// ─── AVATAR DEL CANAL ───────────────────────────────────────────
+async function loadChannelAvatar() {
+  try {
+    const html = await fetchViaProxies(CHANNEL_URL, 12000);
+    // Buscar og:image o avatar en el HTML
+    let avatarUrl = '';
+    const ogMatch = html.match(/<meta\s+property="og:image"\s+content="([^"]+)"/i)
+                 || html.match(/<meta\s+content="([^"]+)"\s+property="og:image"/i);
+    if (ogMatch) {
+      avatarUrl = ogMatch[1];
+    } else {
+      // Buscar patrón yt3.googleusercontent.com en el HTML
+      const ytMatch = html.match(/(https:\/\/yt3\.googleusercontent\.com\/[^"'\s]+)/);
+      if (ytMatch) avatarUrl = ytMatch[1];
+    }
+    if (avatarUrl) {
+      const img = document.getElementById('ch-avatar-img');
+      img.src = avatarUrl;
+      img.onload = () => { img.style.display = 'block'; img.nextElementSibling.style.display = 'none'; };
+    }
+  } catch(e) { /* Fallback: se queda con las iniciales "CH" */ }
+}
 
 // ─── CARGA PRINCIPAL ─────────────────────────────────────────────
-async function loadVideos(append = false) {
-  if(!append) {
-    allVideos = []; displayed = 0;
-    showLoading();
-  }
+async function loadVideos() {
+  allVideos = [];
+  displayed = 0;
+  showLoading();
 
   try {
-  try {
-      await loadViaRSS();
+    const raw = await fetchViaProxies(FEED_URL);
+
+    // ¿Es JSON de rss2json?
+    if (raw.trim().startsWith('{')) {
+      const data = JSON.parse(raw);
+      if (data.status === 'ok' && data.items) {
+        allVideos = data.items.map(item => ({
+          id:          extractVideoId(item.link),
+          title:       item.title,
+          description: item.description || '',
+          thumbnail:   item.thumbnail || item.enclosure?.link || '',
+          publishedAt: item.pubDate,
+          views:       null,
+          duration:    null,
+          isLive:      false,
+        }));
+        finishLoad();
+        return;
+      }
     }
+
+    // Es XML — parsear como Atom feed
+    const parser = new DOMParser();
+    const xml = parser.parseFromString(raw, 'text/xml');
+    const parseErr = xml.querySelector('parsererror');
+    if (parseErr) throw new Error('Feed XML inválido');
+
+    const entries = Array.from(xml.querySelectorAll('entry'));
+    if (!entries.length) throw new Error('El feed no devolvió videos');
+
+    // Namespace para media:group
+    allVideos = entries.map(e => {
+      const videoId = e.querySelector('videoId')?.textContent
+                   || (e.querySelector('id')?.textContent || '').replace('yt:video:', '');
+      const title   = e.querySelector('title')?.textContent || '';
+      const pubDate = e.querySelector('published')?.textContent || '';
+      const desc    = e.querySelector('group description')?.textContent
+                   || e.querySelector('description')?.textContent || '';
+      const thumb   = e.querySelector('group thumbnail')?.getAttribute('url')
+                   || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+      const views   = e.querySelector('group community statistics')?.getAttribute('views')
+                   || e.querySelector('statistics')?.getAttribute('views') || null;
+
+      return {
+        id: videoId, title, description: desc, thumbnail: thumb,
+        publishedAt: pubDate, views, duration: null, isLive: false,
+      };
+    });
+
+    updateChannelStats(entries.length);
+    finishLoad();
   } catch(err) {
     showError(err.message);
   }
 }
-
-// ─── CARGA POR RSS (sin API key) ─────────────────────────────────
-async function loadViaRSS() {
-  const res = await fetch(RSS_URL);
-  if(!res.ok) throw new Error('No se pudo conectar al feed RSS');
-  const data = await res.json();
-
-  if(data.status !== 'ok') {
-    // Fallback: parsear RSS directo con proxy CORS
-    await loadViaRSSFallback();
-    return;
-  }
-
-  allVideos = data.items.map(item => ({
-    id:          extractVideoId(item.link),
-    title:       item.title,
-    description: item.description || '',
-    thumbnail:   item.thumbnail || item.enclosure?.link || '',
-    publishedAt: item.pubDate,
-    views:       null,
-    duration:    null,
-    isLive:      false,
-  }));
-
-  finishLoad();
-}
-
-// ─── FALLBACK RSS directo via allorigins ─────────────────────────
-async function loadViaRSSFallback() {
-  const feedUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${CHANNEL_ID}`;
-  const proxy   = `https://api.allorigins.win/get?url=${encodeURIComponent(feedUrl)}`;
-  const res = await fetch(proxy);
-  if(!res.ok) throw new Error('No se pudo cargar el feed');
-  const data = await res.json();
-  const parser = new DOMParser();
-  const xml = parser.parseFromString(data.contents, 'text/xml');
-  const entries = Array.from(xml.querySelectorAll('entry'));
-
-  allVideos = entries.map(e => ({
-    id:          e.querySelector('videoId')?.textContent || '',
-    title:       e.querySelector('title')?.textContent   || '',
-    description: e.querySelector('description')?.textContent || '',
-    thumbnail:   e.querySelector('thumbnail')?.getAttribute('url') || `https://i.ytimg.com/vi/${e.querySelector('videoId')?.textContent}/hqdefault.jpg`,
-    publishedAt: e.querySelector('published')?.textContent || '',
-    views:       e.querySelector('statistics')?.getAttribute('views') || null,
-    duration:    null,
-    isLive:      false,
-  }));
-
-  // stats del canal desde el primer entry
-  updateChannelStats(entries.length, null, null);
-  finishLoad();
-}
-
-
 
 // ─── HELPERS ─────────────────────────────────────────────────────
 function extractVideoId(url) {
@@ -470,48 +522,45 @@ function extractVideoId(url) {
 }
 
 function isNew(dateStr) {
-  const d = new Date(dateStr);
-  const diff = (Date.now() - d.getTime()) / (1000 * 60 * 60 * 24);
-  return diff <= NEW_DAYS;
+  return (Date.now() - new Date(dateStr).getTime()) / 864e5 <= NEW_DAYS;
 }
 
 function formatDate(dateStr) {
-  const d = new Date(dateStr);
-  return d.toLocaleDateString('es-MX', { year:'numeric', month:'short', day:'numeric' });
+  return new Date(dateStr).toLocaleDateString('es-MX', { year:'numeric', month:'short', day:'numeric' });
 }
 
 function formatViews(n) {
-  if(!n) return '';
+  if (!n) return '';
   const num = parseInt(n);
-  if(num >= 1000000) return (num/1000000).toFixed(1) + 'M vistas';
-  if(num >= 1000)    return (num/1000).toFixed(1) + 'K vistas';
+  if (num >= 1e6) return (num/1e6).toFixed(1) + 'M vistas';
+  if (num >= 1e3) return (num/1e3).toFixed(1) + 'K vistas';
   return num + ' vistas';
 }
 
 function formatDuration(iso) {
-  if(!iso) return '';
+  if (!iso) return '';
   const m = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
-  if(!m) return '';
+  if (!m) return '';
   const h = parseInt(m[1]||0), min = parseInt(m[2]||0), s = parseInt(m[3]||0);
-  if(h) return `${h}:${String(min).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  if (h) return `${h}:${String(min).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
   return `${min}:${String(s).padStart(2,'0')}`;
 }
 
 function formatCount(n) {
-  if(!n) return '—';
+  if (!n) return '—';
   const num = parseInt(n);
-  if(num >= 1000000) return (num/1000000).toFixed(1) + 'M';
-  if(num >= 1000)    return Math.round(num/1000) + 'K';
+  if (num >= 1e6) return (num/1e6).toFixed(1) + 'M';
+  if (num >= 1e3) return Math.round(num/1e3) + 'K';
   return num.toString();
 }
 
-function updateChannelStats(videos, subs, views) {
+function updateChannelStats(videos) {
   document.getElementById('stat-videos').textContent = formatCount(videos);
-
 }
 
 // ─── RENDER ──────────────────────────────────────────────────────
 function finishLoad() {
+  buildVideoMap();
   filtered = applyActiveFilter(allVideos);
   displayed = Math.min(PAGE_SIZE, filtered.length);
   renderGrid(filtered.slice(0, displayed));
@@ -531,10 +580,9 @@ function applyActiveFilter(vids) {
 
 function renderGrid(videos) {
   const area = document.getElementById('content-area');
-  if(!videos.length) {
+  if (!videos.length) {
     area.innerHTML = `<div class="state-box">
-      <div class="sb-icon">📭</div>
-      <p>SIN VIDEOS</p>
+      <div class="sb-icon">📭</div><p>SIN VIDEOS</p>
       <p class="sb-sub">No se encontraron videos con ese criterio.</p>
     </div>`;
     return;
@@ -548,14 +596,12 @@ function videoCard(v) {
   const dur     = formatDuration(v.duration);
   const views   = formatViews(v.views);
   const date    = formatDate(v.publishedAt);
-  const titleEsc = v.title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-  const descEsc  = (v.description||'').replace(/'/g, "\\'").replace(/"/g, '&quot;').slice(0,300);
 
-  return `<div class="video-card${novedad?' new-video':''}" onclick="openVideo('${v.id}','${titleEsc}','${date}','${views}','${descEsc}')">
+  return `<div class="video-card${novedad?' new-video':''}" data-vid="${v.id}">
     ${novedad ? '<div class="new-badge">NUEVO</div>' : ''}
     ${v.isLive ? '<div class="live-badge">EN VIVO</div>' : ''}
     <div class="thumb-wrap">
-      <img src="${thumb}" alt="${titleEsc}" loading="lazy" onerror="this.src='https://i.ytimg.com/vi/${v.id}/hqdefault.jpg'"/>
+      <img src="${thumb}" alt="" loading="lazy" onerror="this.src='https://i.ytimg.com/vi/${v.id}/hqdefault.jpg'"/>
       <div class="play-overlay">
         <div class="play-btn-circle">
           <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
@@ -574,14 +620,11 @@ function videoCard(v) {
 }
 
 function updateCounter() {
-  const el = document.getElementById('vid-counter');
-  el.innerHTML = `Mostrando <span>${displayed}</span> de <span>${filtered.length}</span> videos`;
+  document.getElementById('vid-counter').innerHTML = `Mostrando <span>${displayed}</span> de <span>${filtered.length}</span> videos`;
 }
 
 function updateLoadMore() {
-  const btn = document.getElementById('load-more-btn');
-  const hasMore = displayed < filtered.length;
-  btn.style.display = hasMore ? 'block' : 'none';
+  document.getElementById('load-more-btn').style.display = displayed < filtered.length ? 'block' : 'none';
 }
 
 // ─── FILTROS Y BÚSQUEDA ──────────────────────────────────────────
@@ -601,12 +644,11 @@ function filterVideos() {
 }
 
 // ─── CARGAR MÁS ──────────────────────────────────────────────────
-async function loadMore() {
-  if(displayed < filtered.length) {
-    displayed = Math.min(displayed + PAGE_SIZE, filtered.length);
-    renderGrid(filtered.slice(0, displayed));
-    updateCounter(); updateLoadMore(); return;
-  }
+function loadMore() {
+  displayed = Math.min(displayed + PAGE_SIZE, filtered.length);
+  renderGrid(filtered.slice(0, displayed));
+  updateCounter();
+  updateLoadMore();
 }
 
 // ─── REFRESH ─────────────────────────────────────────────────────
@@ -617,26 +659,49 @@ async function refresh() {
   btn.classList.remove('spinning'); btn.textContent = '⟳ ACTUALIZAR';
 }
 
+// ─── VIDEO DATA MAP (evita strings inline en onclick) ────────────
+const videoMap = {};
+
+function buildVideoMap() {
+  allVideos.forEach(v => { videoMap[v.id] = v; });
+}
+
+// Event delegation — click en cualquier video-card
+document.addEventListener('click', e => {
+  const card = e.target.closest('.video-card[data-vid]');
+  if (!card) return;
+  const vid = card.getAttribute('data-vid');
+  if (vid) openVideo(vid);
+});
+
 // ─── PLAYER ──────────────────────────────────────────────────────
-function openVideo(id, title, date, views, desc) {
-  document.getElementById('modal-iframe').src = `https://www.youtube.com/embed/${id}?autoplay=1&rel=0`;
-  document.getElementById('modal-title').textContent    = decodeStr(title);
-  document.getElementById('modal-date').textContent     = '📅 ' + date;
-  document.getElementById('modal-views').textContent    = views ? '👁 ' + views : '';
-  document.getElementById('modal-desc').textContent     = decodeStr(desc);
-  document.getElementById('modal-yt-link').href         = `https://www.youtube.com/watch?v=${id}`;
+function openVideo(id) {
+  const v = videoMap[id];
+  const ytLink = `https://www.youtube.com/watch?v=${id}`;
+  if (!v) { window.open(ytLink, '_blank'); return; }
+
+  const thumb = v.thumbnail || `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+
+  document.getElementById('modal-thumb').src         = thumb;
+  document.getElementById('modal-thumb-wrap').onclick = () => { window.open(ytLink, '_blank'); };
+  document.getElementById('modal-title').textContent = v.title;
+  document.getElementById('modal-date').textContent  = '📅 ' + formatDate(v.publishedAt);
+  document.getElementById('modal-views').textContent = v.views ? '👁 ' + formatViews(v.views) : '';
+  document.getElementById('modal-desc').textContent  = (v.description || '').slice(0, 300);
+  document.getElementById('modal-yt-link').href      = ytLink;
   document.getElementById('modal').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
 
+function showIframeFallback() { /* ya no se usa */ }
+
 function closeModal(evt) {
-  if(evt && evt.target !== document.getElementById('modal') && !evt.target.closest('.modal-close')) return;
+  if (evt && evt.target !== document.getElementById('modal') && !evt.target.closest('.modal-close')) return;
   document.getElementById('modal').classList.remove('open');
-  document.getElementById('modal-iframe').src = '';
   document.body.style.overflow = '';
 }
 
-document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal({target:document.getElementById('modal')}); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal({target:document.getElementById('modal')}); });
 
 // ─── UI STATES ───────────────────────────────────────────────────
 function showLoading() {
@@ -654,6 +719,7 @@ function showError(msg) {
     <p>ERROR AL CARGAR</p>
     <p class="sb-sub">${msg}</p>
     <p class="sb-sub" style="margin-top:12px;">Intenta actualizar o visita el canal directamente.</p>
+    <button class="refresh-btn" onclick="refresh()" style="margin:16px auto 0;display:block;">⟳ REINTENTAR</button>
   </div>`;
 }
 

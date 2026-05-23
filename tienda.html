@@ -500,7 +500,7 @@ window.addEventListener('load', async () => {
 
   document.getElementById('jugador-header').classList.add('visible');
   await calcularPuntos();
-  cargarSaldoHP();
+  await cargarSaldoHP();
   aplicarItemsGuardados();
 });
 
@@ -587,7 +587,7 @@ async function cargarPacks() {
     }
     grid.innerHTML = d.packs.map(p => {
       const puede = hpSaldo >= p.costo;
-      return `<div class="pack-card" onclick="${puede ? `iniciarApertura('${p.pack_id}')` : ''}">
+      return `<div class="pack-card" onclick="iniciarApertura('${p.pack_id}', ${p.costo})">
         <div class="pack-img"><img src="${SOBRES_IMG_BASE}${p.pack_id}.png" alt="${p.pack_id}" onerror="this.style.display='none';this.parentElement.textContent='📦'"/></div>
         <div class="pack-info">
           <div class="pack-name">${p.pack_id.replace(/_/g,' ').toUpperCase()}</div>
@@ -607,8 +607,9 @@ async function cargarPacks() {
 // ════════════════════════════════════════════
 let abriendo = false;
 
-function iniciarApertura(packid) {
+function iniciarApertura(packid, costo) {
   if (abriendo) return;
+  if (hpSaldo < costo) { mostrarToast('Saldo insuficiente: ' + hpSaldo + ' / ' + costo + ' HP'); return; }
   sobreActual = packid;
   const overlay = document.getElementById('sobre-overlay');
   const stage = document.getElementById('sobre-stage');

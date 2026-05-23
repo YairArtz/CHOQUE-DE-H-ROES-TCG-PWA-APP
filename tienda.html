@@ -563,8 +563,9 @@ async function cargarSaldoHP() {
       document.getElementById('hp-menu-val').textContent = d.saldo;
       document.getElementById('hp-saldo-val').textContent = d.saldo;
       const ds = d.desglose;
-      document.getElementById('hp-desglose').textContent =
-        `Ranking: ${ds.hp_ranking} · Torneos: ${ds.hp_torneos} · Badges: ${ds.hp_badges}`;
+      const parts = [`Ranking: ${ds.hp_ranking}`, `Torneos: ${ds.hp_torneos}`, `Badges: ${ds.hp_badges}`];
+      if (ds.hp_bonus) parts.push(`Bonus: ${ds.hp_bonus}`);
+      document.getElementById('hp-desglose').textContent = parts.join(' · ');
     } else {
       throw new Error(d.message || 'status: ' + d.status);
     }

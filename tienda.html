@@ -162,7 +162,7 @@
     .sobre-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:2000;align-items:center;justify-content:center;flex-direction:column;gap:20px;}
     .sobre-overlay.active{display:flex;}
 
-    .sobre-stage{position:relative;width:200px;height:280px;perspective:800px;}
+    .sobre-stage{position:relative;width:280px;height:392px;perspective:800px;}
     .sobre-pack{width:100%;height:100%;border-radius:12px;background:linear-gradient(135deg,#1a1428,#0d1f3c);border:2px solid var(--gold);box-shadow:0 0 40px rgba(245,166,35,.2);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .3s;}
     .sobre-pack:hover{transform:scale(1.03);}
     .sobre-pack img{width:90%;height:90%;object-fit:contain;}
@@ -184,19 +184,19 @@
     .sobre-half{position:absolute;top:0;width:50%;height:100%;overflow:hidden;opacity:0;pointer-events:none;}
     .sobre-half-left{left:0;border-radius:12px 0 0 12px;}
     .sobre-half-right{right:0;border-radius:0 12px 12px 0;}
-    .sobre-half-inner{width:200px;height:280px;border-radius:12px;background:linear-gradient(135deg,#1a1428,#0d1f3c);border:2px solid var(--gold);}
-    .sobre-half-right .sobre-half-inner{margin-left:-100px;}
+    .sobre-half-inner{width:280px;height:392px;border-radius:12px;background:linear-gradient(135deg,#1a1428,#0d1f3c);border:2px solid var(--gold);}
+    .sobre-half-right .sobre-half-inner{margin-left:-140px;}
     .sobre-stage.split .sobre-half{opacity:1;}
     .sobre-stage.split .sobre-half-left{animation:splitLeft .5s ease-out forwards;}
     .sobre-stage.split .sobre-half-right{animation:splitRight .5s ease-out forwards;}
 
-    @keyframes splitLeft{0%{transform:translateX(0) rotate(0)}100%{transform:translateX(-60px) rotate(-8deg);opacity:0}}
-    @keyframes splitRight{0%{transform:translateX(0) rotate(0)}100%{transform:translateX(60px) rotate(8deg);opacity:0}}
+    @keyframes splitLeft{0%{transform:translateX(0) rotate(0)}100%{transform:translateX(-80px) rotate(-10deg);opacity:0}}
+    @keyframes splitRight{0%{transform:translateX(0) rotate(0)}100%{transform:translateX(80px) rotate(10deg);opacity:0}}
 
     /* Reveal de cartas */
     .reveal-cards{display:flex;gap:16px;opacity:0;transform:translateY(30px);transition:opacity .4s,transform .4s;}
     .reveal-cards.show{opacity:1;transform:translateY(0);}
-    .reveal-card{width:140px;background:var(--card);border:2px solid var(--border);border-radius:10px;overflow:hidden;text-align:center;position:relative;}
+    .reveal-card{width:160px;background:var(--card);border:2px solid var(--border);border-radius:10px;overflow:hidden;text-align:center;position:relative;}
     .reveal-card.foil{border-color:var(--gold);box-shadow:0 0 20px rgba(245,166,35,.3);}
     .reveal-card .rc-img{width:100%;aspect-ratio:2/3;background:rgba(255,255,255,.02);display:flex;align-items:center;justify-content:center;overflow:hidden;}
     .reveal-card .rc-img img{width:100%;height:100%;object-fit:cover;}
@@ -350,6 +350,9 @@
     <button class="sec-back" style="margin:14px auto 0;justify-content:center" onclick="cerrarHistorial()">CERRAR</button>
   </div>
 </div>
+
+<audio id="sfx-slash" preload="auto" src="hero_pesos/sounds/slash.mp3"></audio>
+<audio id="sfx-reveal" preload="auto" src="hero_pesos/sounds/reveal.mp3"></audio>
 
 <div id="toast"></div>
 
@@ -630,6 +633,19 @@ function iniciarApertura(packid, costo) {
   overlay.classList.add('active');
 }
 
+// Ruta base de imágenes de cartas (ajustar según tu repo)
+const CARTAS_IMG_BASE = 'cartas/';
+
+// Helper para reproducir sonido
+function playSfx(id) {
+  try {
+    const a = document.getElementById(id);
+    if (!a) return;
+    a.currentTime = 0;
+    a.play().catch(() => {});
+  } catch(e) {}
+}
+
 async function cortarSobre() {
   if (abriendo) return;
   abriendo = true;
@@ -638,7 +654,8 @@ async function cortarSobre() {
   const hint = document.getElementById('sobre-hint');
   hint.style.display = 'none';
 
-  // Fase 1: Corte
+  // Fase 1: Corte + sonido
+  playSfx('sfx-slash');
   stage.classList.add('cutting');
 
   // Esperar animación de corte
@@ -670,12 +687,12 @@ async function cortarSobre() {
 
   await _wait(600);
 
-  // Fase 3: Revelar cartas
+  // Fase 3: Revelar cartas + sonido
+  playSfx('sfx-reveal');
   const reveal = document.getElementById('reveal-cards');
-  const cardsBaseUrl = 'cartas/'; // ajustar según tu estructura
   reveal.innerHTML = cartas.map(c => `
     <div class="reveal-card ${c.rareza}">
-      <div class="rc-img"><img src="${cardsBaseUrl}${c.imagen}" alt="${c.nombre}" onerror="this.style.display='none';this.parentElement.textContent='🃏'"/></div>
+      <div class="rc-img"><img src="${CARTAS_IMG_BASE}${c.imagen}" alt="${c.nombre}" onerror="this.style.display='none';this.parentElement.textContent='🃏'"/></div>
       <div class="rc-name">${c.nombre}</div>
       <div class="rc-rarity ${c.rareza}">${c.rareza === 'foil' ? '⭐ FOIL' : 'COMÚN'}</div>
     </div>

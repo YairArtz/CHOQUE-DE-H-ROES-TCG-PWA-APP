@@ -159,17 +159,17 @@
     /* ══════════════════════════════════════════
        ANIMACIÓN DE APERTURA
     ══════════════════════════════════════════ */
-    .sobre-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:2000;align-items:center;justify-content:center;flex-direction:column;gap:20px;}
+    .sobre-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:2000;align-items:center;justify-content:center;flex-direction:column;gap:16px;}
     .sobre-overlay.active{display:flex;}
 
-    .sobre-stage{position:relative;width:280px;height:392px;perspective:800px;}
-    .sobre-pack{width:100%;height:100%;border-radius:12px;background:linear-gradient(135deg,#1a1428,#0d1f3c);border:2px solid var(--gold);box-shadow:0 0 40px rgba(245,166,35,.2);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .3s;}
+    .sobre-stage{position:relative;width:72vw;max-width:320px;aspect-ratio:5/7;perspective:800px;}
+    .sobre-pack{width:100%;height:100%;border-radius:14px;background:linear-gradient(135deg,#1a1428,#0d1f3c);border:2px solid var(--gold);box-shadow:0 0 60px rgba(245,166,35,.25),0 0 120px rgba(245,166,35,.08);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .3s;}
     .sobre-pack:hover{transform:scale(1.03);}
-    .sobre-pack img{width:90%;height:90%;object-fit:contain;}
-    .sobre-pack .sobre-text{position:absolute;bottom:14px;font-family:'Orbitron',sans-serif;font-size:.6rem;font-weight:700;letter-spacing:2px;color:var(--gold);text-shadow:var(--gglow);opacity:.8;}
-    .sobre-pack .sobre-shine{position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);transform:skewX(-20deg);pointer-events:none;}
+    .sobre-pack img{width:92%;height:92%;object-fit:contain;}
+    .sobre-pack .sobre-text{position:absolute;bottom:16px;font-family:'Orbitron',sans-serif;font-size:.65rem;font-weight:700;letter-spacing:2px;color:var(--gold);text-shadow:var(--gglow);opacity:.8;}
+    .sobre-pack .sobre-shine{position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.1),transparent);transform:skewX(-20deg);pointer-events:none;}
 
-    /* Animación de corte */
+    /* Corte */
     .sobre-stage.cutting .sobre-pack{animation:sobreShake .4s ease;}
     .sobre-slash{position:absolute;top:0;left:50%;width:4px;height:100%;background:linear-gradient(180deg,transparent 0%,rgba(255,255,255,.9) 20%,#f5a623 50%,rgba(255,255,255,.9) 80%,transparent 100%);transform:translateX(-50%) scaleY(0);transform-origin:top;z-index:10;pointer-events:none;box-shadow:0 0 20px var(--gold),0 0 40px var(--gold);}
     .sobre-stage.cutting .sobre-slash{animation:slashDown .5s .15s ease-out forwards;}
@@ -182,30 +182,37 @@
     /* Split */
     .sobre-stage.split .sobre-pack{opacity:0;pointer-events:none;}
     .sobre-half{position:absolute;top:0;width:50%;height:100%;overflow:hidden;opacity:0;pointer-events:none;}
-    .sobre-half-left{left:0;border-radius:12px 0 0 12px;}
-    .sobre-half-right{right:0;border-radius:0 12px 12px 0;}
-    .sobre-half-inner{width:280px;height:392px;border-radius:12px;background:linear-gradient(135deg,#1a1428,#0d1f3c);border:2px solid var(--gold);}
-    .sobre-half-right .sobre-half-inner{margin-left:-140px;}
+    .sobre-half-left{left:0;border-radius:14px 0 0 14px;}
+    .sobre-half-right{right:0;border-radius:0 14px 14px 0;}
+    .sobre-half-inner{width:72vw;max-width:320px;aspect-ratio:5/7;border-radius:14px;background:linear-gradient(135deg,#1a1428,#0d1f3c);border:2px solid var(--gold);}
+    .sobre-half-right .sobre-half-inner{margin-left:-50%;}
     .sobre-stage.split .sobre-half{opacity:1;}
     .sobre-stage.split .sobre-half-left{animation:splitLeft .5s ease-out forwards;}
     .sobre-stage.split .sobre-half-right{animation:splitRight .5s ease-out forwards;}
 
-    @keyframes splitLeft{0%{transform:translateX(0) rotate(0)}100%{transform:translateX(-80px) rotate(-10deg);opacity:0}}
-    @keyframes splitRight{0%{transform:translateX(0) rotate(0)}100%{transform:translateX(80px) rotate(10deg);opacity:0}}
+    @keyframes splitLeft{0%{transform:translateX(0) rotate(0)}100%{transform:translateX(-90px) rotate(-12deg);opacity:0}}
+    @keyframes splitRight{0%{transform:translateX(0) rotate(0)}100%{transform:translateX(90px) rotate(12deg);opacity:0}}
 
-    /* Reveal de cartas */
-    .reveal-cards{display:flex;gap:16px;opacity:0;transform:translateY(30px);transition:opacity .4s,transform .4s;}
-    .reveal-cards.show{opacity:1;transform:translateY(0);}
-    .reveal-card{width:160px;background:var(--card);border:2px solid var(--border);border-radius:10px;overflow:hidden;text-align:center;position:relative;}
-    .reveal-card.foil{border-color:var(--gold);box-shadow:0 0 20px rgba(245,166,35,.3);}
-    .reveal-card .rc-img{width:100%;aspect-ratio:2/3;background:rgba(255,255,255,.02);display:flex;align-items:center;justify-content:center;overflow:hidden;}
+    /* Reveal — cartas apiladas */
+    .reveal-cards{position:relative;width:64vw;max-width:280px;aspect-ratio:5/7;opacity:0;transform:scale(.85);transition:opacity .4s,transform .4s;}
+    .reveal-cards.show{opacity:1;transform:scale(1);}
+    .reveal-card{position:absolute;inset:0;background:var(--card);border:2px solid var(--border);border-radius:12px;overflow:hidden;text-align:center;cursor:pointer;transition:transform .4s ease,opacity .3s;display:flex;flex-direction:column;}
+    .reveal-card.foil{border-color:var(--gold);box-shadow:0 0 24px rgba(245,166,35,.3);}
+    .reveal-card .rc-img{flex:1;background:rgba(255,255,255,.02);display:flex;align-items:center;justify-content:center;overflow:hidden;}
     .reveal-card .rc-img img{width:100%;height:100%;object-fit:cover;}
-    .reveal-card .rc-name{font-family:'Orbitron',sans-serif;font-size:.6rem;font-weight:700;padding:8px 6px;letter-spacing:1px;color:var(--text);}
-    .reveal-card .rc-rarity{font-size:.5rem;letter-spacing:2px;padding:0 6px 8px;}
+    .reveal-card .rc-name{font-family:'Orbitron',sans-serif;font-size:.7rem;font-weight:700;padding:10px 8px 4px;letter-spacing:1px;color:var(--text);}
+    .reveal-card .rc-rarity{font-size:.55rem;letter-spacing:2px;padding:2px 8px 12px;}
     .reveal-card .rc-rarity.comun{color:var(--muted);}
     .reveal-card .rc-rarity.foil{color:var(--gold);text-shadow:var(--gglow);}
     .reveal-card.foil::after{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:conic-gradient(from 0deg,transparent,rgba(245,166,35,.08),transparent,rgba(245,166,35,.05),transparent);animation:foilSpin 3s linear infinite;pointer-events:none;}
     @keyframes foilSpin{to{transform:rotate(360deg)}}
+
+    /* Carta de atrás (segunda) ligeramente visible */
+    .reveal-card.card-back{transform:scale(.95) translateY(8px);z-index:1;}
+    .reveal-card.card-front{z-index:2;}
+    .reveal-card.card-front.dismissed{transform:translateX(120%) rotate(15deg);opacity:0;pointer-events:none;}
+
+    .reveal-hint{font-family:'Orbitron',sans-serif;font-size:.5rem;color:var(--muted);letter-spacing:2px;text-align:center;margin-top:8px;animation:pulse 1.5s ease infinite;}
 
     .sobre-close{margin-top:10px;font-family:'Orbitron',sans-serif;font-size:.6rem;font-weight:700;letter-spacing:2px;color:var(--muted);background:none;border:1px solid var(--border);padding:10px 24px;border-radius:5px;cursor:pointer;}
     .sobre-close:hover{border-color:var(--gold);color:var(--gold);}
@@ -688,28 +695,74 @@ async function cortarSobre() {
 
   await _wait(600);
 
-  // Fase 3: Revelar cartas + sonido
+  // Fase 3: Revelar cartas apiladas + sonido
   playSfx('sfx-reveal');
   const reveal = document.getElementById('reveal-cards');
-  reveal.innerHTML = cartas.map(c => `
-    <div class="reveal-card ${c.rareza}">
-      <div class="rc-img"><img src="${CARTAS_IMG_BASE}${c.imagen}" alt="${c.nombre}" onerror="this.style.display='none';this.parentElement.textContent='🃏'"/></div>
-      <div class="rc-name">${c.nombre}</div>
-      <div class="rc-rarity ${c.rareza}">${c.rareza === 'foil' ? '⭐ FOIL' : 'COMÚN'}</div>
+
+  // Carta 1 (común) adelante, Carta 2 (foil) atrás
+  const c1 = cartas[0];
+  const c2 = cartas[1];
+
+  reveal.innerHTML = `
+    <div class="reveal-card card-back ${c2.rareza}" id="rc-back">
+      <div class="rc-img"><img src="${CARTAS_IMG_BASE}${c2.imagen}" alt="${c2.nombre}" onerror="this.style.display='none';this.parentElement.textContent='🃏'"/></div>
+      <div class="rc-name">${c2.nombre}</div>
+      <div class="rc-rarity ${c2.rareza}">${c2.rareza === 'foil' ? '⭐ FOIL' : 'COMÚN'}</div>
     </div>
-  `).join('');
+    <div class="reveal-card card-front ${c1.rareza}" id="rc-front" onclick="descartarPrimera()">
+      <div class="rc-img"><img src="${CARTAS_IMG_BASE}${c1.imagen}" alt="${c1.nombre}" onerror="this.style.display='none';this.parentElement.textContent='🃏'"/></div>
+      <div class="rc-name">${c1.nombre}</div>
+      <div class="rc-rarity ${c1.rareza}">${c1.rareza === 'foil' ? '⭐ FOIL' : 'COMÚN'}</div>
+    </div>
+  `;
+
+  // Ocultar stage del sobre
+  document.getElementById('sobre-stage').style.display = 'none';
 
   await _wait(100);
   reveal.classList.add('show');
 
-  document.getElementById('sobre-close').style.display = '';
+  // Hint para tocar
+  hint.textContent = 'TOCA LA CARTA';
+  hint.style.display = '';
+
   abriendo = false;
+}
+
+function descartarPrimera() {
+  const front = document.getElementById('rc-front');
+  const hint = document.getElementById('sobre-hint');
+  if (!front || front.classList.contains('dismissed')) return;
+
+  front.classList.add('dismissed');
+  playSfx('sfx-reveal');
+
+  // La carta de atrás sube a primer plano
+  const back = document.getElementById('rc-back');
+  if (back) {
+    setTimeout(() => {
+      back.classList.remove('card-back');
+      back.style.transform = 'scale(1) translateY(0)';
+      back.style.zIndex = '3';
+    }, 300);
+  }
+
+  // Mostrar botón cerrar
+  setTimeout(() => {
+    hint.style.display = 'none';
+    document.getElementById('sobre-close').style.display = '';
+  }, 500);
 }
 
 function cerrarSobre() {
   abriendo = false;
   document.getElementById('sobre-overlay').classList.remove('active');
-  document.getElementById('sobre-stage').className = 'sobre-stage';
+  const stage = document.getElementById('sobre-stage');
+  stage.className = 'sobre-stage';
+  stage.style.display = '';
+  document.getElementById('reveal-cards').className = 'reveal-cards';
+  document.getElementById('reveal-cards').innerHTML = '';
+  document.getElementById('sobre-hint').textContent = 'TOCA EL SOBRE';
   // Recargar packs y saldo
   cargarSaldoHP();
   cargarPacks();

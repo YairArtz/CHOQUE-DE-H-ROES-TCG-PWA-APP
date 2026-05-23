@@ -363,7 +363,7 @@ const RANKING_URL = 'https://script.google.com/macros/s/AKfycbx1rOqnmqWhics45UF4
 const PUNTOS_POS  = { 1:8, 2:5, 3:4, 4:3, 5:2, 6:2, 7:1, 8:1 };
 
 // ══ HERO PESOS — pon aquí tu URL desplegada ══
-const HERO_PESOS_URL = 'PEGA_AQUI_TU_URL_DE_APPS_SCRIPT';
+const HERO_PESOS_URL = 'https://script.google.com/macros/s/AKfycbxV7Igjpphrt_lv61Df23EUJFqeuN8tVVSF2-C9sAxUjjffAB5pRbA9oG8_KelQndZS/exec';
 
 // Ruta de imágenes de sobres en GitHub
 const SOBRES_IMG_BASE = 'hero_pesos/sobres/';
@@ -549,8 +549,12 @@ function volverMenu() {
 // ════════════════════════════════════════════
 async function cargarSaldoHP() {
   try {
-    const r = await fetch(`${HERO_PESOS_URL}?action=saldo&playerid=${encodeURIComponent(jugador.id)}`);
-    const d = await r.json();
+    const url = `${HERO_PESOS_URL}?action=saldo&playerid=${encodeURIComponent(jugador.id)}`;
+    const r = await fetch(url);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const txt = await r.text();
+    let d;
+    try { d = JSON.parse(txt); } catch(pe) { throw new Error('Respuesta no JSON: ' + txt.substring(0, 100)); }
     if (d.status === 'ok') {
       hpSaldo = d.saldo;
       document.getElementById('hp-menu-val').textContent = d.saldo;
@@ -558,11 +562,14 @@ async function cargarSaldoHP() {
       const ds = d.desglose;
       document.getElementById('hp-desglose').textContent =
         `Ranking: ${ds.hp_ranking} · Torneos: ${ds.hp_torneos} · Badges: ${ds.hp_badges}`;
+    } else {
+      throw new Error(d.message || 'status: ' + d.status);
     }
   } catch(e) {
+    console.error('HP Error:', e);
     document.getElementById('hp-menu-val').textContent = '?';
     document.getElementById('hp-saldo-val').textContent = '?';
-    document.getElementById('hp-desglose').textContent = 'Error al cargar saldo';
+    document.getElementById('hp-desglose').textContent = '⚠️ ' + e.message;
   }
 }
 

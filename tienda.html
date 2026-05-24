@@ -213,8 +213,8 @@
     @keyframes foilSpin{to{transform:rotate(360deg)}}
 
     /* Carta de atrás (segunda) ligeramente visible */
-    .reveal-card.card-back{position:relative;transform:scale(.95);z-index:1;max-height:60vh;}
-    .reveal-card.card-front{position:absolute;top:0;left:0;z-index:2;}
+    .reveal-card.card-back{position:absolute;top:0;left:0;transform:scale(.93);z-index:1;max-height:60vh;}
+    .reveal-card.card-front{position:absolute;top:0;left:0;z-index:2;max-height:60vh;}
     .reveal-card.card-front.dismissed{transform:translateX(120%) rotate(15deg);opacity:0;pointer-events:none;}
 
     .reveal-hint{font-family:'Orbitron',sans-serif;font-size:.5rem;color:var(--muted);letter-spacing:2px;text-align:center;margin-top:8px;animation:pulse 1.5s ease infinite;}
@@ -724,6 +724,19 @@ async function cortarSobre() {
   // Ocultar stage del sobre
   document.getElementById('sobre-stage').style.display = 'none';
 
+  // Esperar a que la imagen cargue para fijar altura del contenedor
+  const frontImg = document.querySelector('#rc-front .rc-img img');
+  if (frontImg) {
+    const setHeight = () => {
+      const h = document.getElementById('rc-front').offsetHeight;
+      if (h > 0) reveal.style.height = h + 'px';
+    };
+    if (frontImg.complete) setHeight();
+    else frontImg.onload = setHeight;
+    // Fallback
+    setTimeout(setHeight, 500);
+  }
+
   await _wait(100);
   reveal.classList.add('show');
 
@@ -742,12 +755,11 @@ function descartarPrimera() {
   front.classList.add('dismissed');
   playSfx('sfx-reveal');
 
-  // La carta de atrás sube a primer plano
+  // La carta de atrás sube a primer plano sin cambiar tamaño del contenedor
   const back = document.getElementById('rc-back');
   if (back) {
     setTimeout(() => {
-      back.classList.remove('card-back');
-      back.style.transform = 'scale(1) translateY(0)';
+      back.style.transform = 'scale(1)';
       back.style.zIndex = '3';
     }, 300);
   }

@@ -56,7 +56,7 @@
     .jh-pts b{display:block;font-size:1.4rem;text-shadow:var(--gglow);}
 
     /* ── CATEGORÍAS (reemplazan tabs) ── */
-    .cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+    .cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;margin-bottom:14px;}
     .cat-card{position:relative;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 14px;text-align:center;cursor:pointer;overflow:hidden;transition:border-color .2s,transform .12s,box-shadow .2s;}
     .cat-card:active{transform:scale(.97);}
     .cat-card::before{content:'';position:absolute;top:-1px;left:15%;right:15%;height:2px;border-radius:2px;transition:background .3s;}
@@ -158,13 +158,13 @@
     .pack-btn:disabled{opacity:.4;cursor:not-allowed;}
 
     .historial-link{text-align:center;margin-top:14px;}
-    .historial-link button{background:none;border:1px solid var(--border);color:var(--muted);font-family:'Orbitron',sans-serif;font-size:.55rem;letter-spacing:2px;padding:8px 18px;border-radius:5px;cursor:pointer;transition:all .2s;}
-    .historial-link button:hover{border-color:var(--gold);color:var(--gold);}
+    .historial-link button{background:rgba(10,16,36,.85);border:1px solid rgba(245,166,35,.3);color:var(--gold);font-family:'Orbitron',sans-serif;font-size:.55rem;letter-spacing:2px;padding:10px 20px;border-radius:5px;cursor:pointer;transition:all .2s;text-shadow:0 0 8px rgba(245,166,35,.4),0 1px 3px rgba(0,0,0,.6);box-shadow:0 2px 8px rgba(0,0,0,.4);}
+    .historial-link button:hover{border-color:var(--gold);background:rgba(245,166,35,.1);}
 
     /* ══════════════════════════════════════════
        ANIMACIÓN DE APERTURA
     ══════════════════════════════════════════ */
-    .sobre-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:2000;align-items:center;justify-content:center;flex-direction:column;gap:16px;}
+    .sobre-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:2000;align-items:center;justify-content:center;flex-direction:column;gap:12px;padding:20px 0;}
     .sobre-overlay.active{display:flex;}
 
     .sobre-stage{position:relative;width:72vw;max-width:320px;aspect-ratio:5/7;perspective:800px;}
@@ -199,12 +199,12 @@
     @keyframes splitRight{0%{transform:translateX(0) rotate(0)}100%{transform:translateX(90px) rotate(12deg);opacity:0}}
 
     /* Reveal — cartas apiladas */
-    .reveal-cards{position:relative;width:64vw;max-width:280px;height:auto;aspect-ratio:auto;opacity:0;transform:scale(.85);transition:opacity .4s,transform .4s;}
+    .reveal-cards{position:relative;width:64vw;max-width:280px;max-height:60vh;opacity:0;transform:scale(.85);transition:opacity .4s,transform .4s;}
     .reveal-cards.show{opacity:1;transform:scale(1);}
-    .reveal-card{position:absolute;top:0;left:0;width:100%;background:var(--card);border:2px solid var(--border);border-radius:12px;overflow:hidden;text-align:center;cursor:pointer;transition:transform .4s ease,opacity .3s;display:flex;flex-direction:column;}
+    .reveal-card{position:absolute;top:0;left:0;width:100%;max-height:60vh;background:var(--card);border:2px solid var(--border);border-radius:12px;overflow:hidden;text-align:center;cursor:pointer;transition:transform .4s ease,opacity .3s;display:flex;flex-direction:column;}
     .reveal-card.foil{border-color:var(--gold);box-shadow:0 0 24px rgba(245,166,35,.3);}
-    .reveal-card .rc-img{width:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;}
-    .reveal-card .rc-img img{width:100%;height:auto;display:block;}
+    .reveal-card .rc-img{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+    .reveal-card .rc-img img{width:100%;height:100%;object-fit:contain;}
     .reveal-card .rc-name{font-family:'Orbitron',sans-serif;font-size:.7rem;font-weight:700;padding:10px 8px 4px;letter-spacing:1px;color:var(--text);text-shadow:0 1px 4px rgba(0,0,0,.7);}
     .reveal-card .rc-rarity{font-size:.55rem;letter-spacing:2px;padding:2px 8px 12px;}
     .reveal-card .rc-rarity.comun{color:var(--muted);text-shadow:0 1px 3px rgba(0,0,0,.6);}
@@ -213,7 +213,7 @@
     @keyframes foilSpin{to{transform:rotate(360deg)}}
 
     /* Carta de atrás (segunda) ligeramente visible */
-    .reveal-card.card-back{position:relative;transform:scale(.95) translateY(0);z-index:1;}
+    .reveal-card.card-back{position:relative;transform:scale(.95);z-index:1;max-height:60vh;}
     .reveal-card.card-front{position:absolute;top:0;left:0;z-index:2;}
     .reveal-card.card-front.dismissed{transform:translateX(120%) rotate(15deg);opacity:0;pointer-events:none;}
 
@@ -222,7 +222,7 @@
     .sobre-close{margin-top:10px;font-family:'Orbitron',sans-serif;font-size:.6rem;font-weight:700;letter-spacing:2px;color:var(--muted);background:none;border:1px solid var(--border);padding:10px 24px;border-radius:5px;cursor:pointer;text-shadow:0 1px 3px rgba(0,0,0,.5);}
     .sobre-close:hover{border-color:var(--gold);color:var(--gold);}
 
-    .sobre-tap-hint{font-family:'Orbitron',sans-serif;font-size:.55rem;color:var(--muted);letter-spacing:2px;animation:pulse 1.5s ease infinite;text-shadow:0 1px 4px rgba(0,0,0,.6);}
+    .sobre-tap-hint{font-family:'Orbitron',sans-serif;font-size:.85rem;color:var(--gold);letter-spacing:3px;animation:pulse 1.5s ease infinite;text-shadow:0 0 10px rgba(245,166,35,.5),0 2px 6px rgba(0,0,0,.8);margin-top:4px;}
     @keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
 
     /* Historial modal */
@@ -343,13 +343,13 @@
     <div class="sobre-pack" id="sobre-pack" onclick="cortarSobre()">
       <div class="sobre-shine"></div>
       <img id="sobre-pack-img" src="" alt="Sobre"/>
-      <div class="sobre-text">TOCA PARA ABRIR</div>
+      <div class="sobre-text" style="display:none"></div>
     </div>
     <div class="sobre-slash"></div>
     <div class="sobre-half sobre-half-left"><div class="sobre-half-inner"></div></div>
     <div class="sobre-half sobre-half-right"><div class="sobre-half-inner"></div></div>
   </div>
-  <div class="sobre-tap-hint" id="sobre-hint">TOCA EL SOBRE</div>
+  <div class="sobre-tap-hint" id="sobre-hint">⚡ TOCA PARA ABRIR ⚡</div>
   <div class="reveal-cards" id="reveal-cards"></div>
   <button class="sobre-close" id="sobre-close" style="display:none" onclick="cerrarSobre()">CONTINUAR</button>
 </div>
@@ -378,7 +378,7 @@ const RANKING_URL = 'https://script.google.com/macros/s/AKfycbx1rOqnmqWhics45UF4
 const PUNTOS_POS  = { 1:8, 2:5, 3:4, 4:3, 5:2, 6:2, 7:1, 8:1 };
 
 // ══ HERO PESOS — pon aquí tu URL desplegada ══
-const HERO_PESOS_URL = 'https://script.google.com/macros/s/AKfycbzKEFCdCdw5W9iiLGLXB3sNOVZGjxLNmhOVcRLUmUuKf_c0YVnv_i2rZNWZL3BjChSE/exec';
+const HERO_PESOS_URL = 'https://script.google.com/macros/s/AKfycbxV7Igjpphrt_lv61Df23EUJFqeuN8tVVSF2-C9sAxUjjffAB5pRbA9oG8_KelQndZS/exec';
 
 // Ruta de imágenes de sobres en GitHub
 const SOBRES_IMG_BASE = 'hero_pesos/sobres/';
@@ -728,7 +728,7 @@ async function cortarSobre() {
   reveal.classList.add('show');
 
   // Hint para tocar
-  hint.textContent = 'TOCA LA CARTA';
+  hint.textContent = '⚡ TOCA LA CARTA ⚡';
   hint.style.display = '';
 
   abriendo = false;
@@ -767,7 +767,7 @@ function cerrarSobre() {
   stage.style.display = '';
   document.getElementById('reveal-cards').className = 'reveal-cards';
   document.getElementById('reveal-cards').innerHTML = '';
-  document.getElementById('sobre-hint').textContent = 'TOCA EL SOBRE';
+  document.getElementById('sobre-hint').textContent = '⚡ TOCA PARA ABRIR ⚡';
   // Recargar packs y saldo
   cargarSaldoHP();
   cargarPacks();

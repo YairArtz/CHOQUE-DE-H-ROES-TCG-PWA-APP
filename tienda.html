@@ -212,10 +212,8 @@
     .reveal-card.foil::after{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:conic-gradient(from 0deg,transparent,rgba(245,166,35,.08),transparent,rgba(245,166,35,.05),transparent);animation:foilSpin 3s linear infinite;pointer-events:none;}
     @keyframes foilSpin{to{transform:rotate(360deg)}}
 
-    /* Carta de atrás (segunda) ligeramente visible */
-    .reveal-card.card-back{position:absolute;top:0;left:0;transform:scale(.93);z-index:1;max-height:60vh;}
-    .reveal-card.card-front{position:absolute;top:0;left:0;z-index:2;max-height:60vh;}
-    .reveal-card.card-front.dismissed{transform:translateX(120%) rotate(15deg);opacity:0;pointer-events:none;}
+    /* Cartas apiladas — generic */
+    .reveal-card.rc-stacked{position:absolute;top:0;left:0;width:100%;max-height:60vh;transition:transform .3s ease;}
 
     .reveal-hint{font-family:'Orbitron',sans-serif;font-size:.5rem;color:var(--muted);letter-spacing:2px;text-align:center;margin-top:8px;animation:pulse 1.5s ease infinite;}
 
@@ -603,11 +601,12 @@ async function cargarPacks() {
     }
     grid.innerHTML = d.packs.map(p => {
       const puede = hpSaldo >= p.costo;
+      const desc = p.descripcion || `${p.cartas_por_sobre} cartas`;
       return `<div class="pack-card" onclick="iniciarApertura('${p.pack_id}', ${p.costo})">
-        <div class="pack-img"><img src="${SOBRES_IMG_BASE}${p.pack_id}.png" alt="${p.pack_id}" onerror="this.style.display='none';this.parentElement.textContent='📦'"/></div>
+        <div class="pack-img"><img src="${SOBRES_IMG_BASE}${p.imagen || p.pack_id + '.png'}" alt="${p.pack_id}" onerror="this.style.display='none';this.parentElement.textContent='📦'"/></div>
         <div class="pack-info">
-          <div class="pack-name">${p.pack_id.replace(/_/g,' ').toUpperCase()}</div>
-          <div class="pack-detail">2 cartas · 1 común + 1 foil</div>
+          <div class="pack-name">${p.nombre || p.pack_id.replace(/_/g,' ').toUpperCase()}</div>
+          <div class="pack-detail">${desc}</div>
           <div class="pack-price">💰 ${p.costo} HP</div>
         </div>
         <button class="pack-btn" ${!puede ? 'disabled' : ''}>${puede ? 'ABRIR' : '🔒'}</button>
@@ -619,37 +618,59 @@ async function cargarPacks() {
 }
 
 // ════════════════════════════════════════════
-//  ANIMACIÓN DE APERTURA
+//  ANIMACIÓN DE APERTURA (v2 — múltiples cartas)
 // ════════════════════════════════════════════
 let abriendo = false;
+let cartasReveladas = [];
+let cartaActual = 0;
+
+// Colores por rareza
+const RAREZA_COLOR = {
+  comun: 'var(--muted)',
+  poco_comun: '#4fc3f7',
+  rara: '#ab47bc',
+  foil: 'var(--gold)',
+  foil_poco_comun: '#ff7043',
+  secreta: '#e040fb'
+};
+
+const RAREZA_BORDER = {
+  comun: 'var(--border)',
+  poco_comun: 'rgba(79,195,247,.5)',
+  rara: 'rgba(171,71,188,.5)',
+  foil: 'var(--gold)',
+  foil_poco_comun: 'rgba(255,112,67,.5)',
+  secreta: '#e040fb'
+};
 
 function iniciarApertura(packid, costo) {
   if (abriendo) return;
   if (hpSaldo < costo) { mostrarToast('Saldo insuficiente: ' + hpSaldo + ' / ' + costo + ' HP'); return; }
   sobreActual = packid;
+  cartasReveladas = [];
+  cartaActual = 0;
+
   const overlay = document.getElementById('sobre-overlay');
   const stage = document.getElementById('sobre-stage');
   const hint = document.getElementById('sobre-hint');
   const reveal = document.getElementById('reveal-cards');
   const closeBtn = document.getElementById('sobre-close');
 
-  // Reset
   stage.className = 'sobre-stage';
+  stage.style.display = '';
   reveal.className = 'reveal-cards';
   reveal.innerHTML = '';
+  reveal.style.height = '';
   closeBtn.style.display = 'none';
+  hint.textContent = '⚡ TOCA PARA ABRIR ⚡';
   hint.style.display = '';
 
-  // Pack image
   document.getElementById('sobre-pack-img').src = `${SOBRES_IMG_BASE}${packid}.png`;
-
   overlay.classList.add('active');
 }
 
-// Ruta base de imágenes de cartas (ajustar según tu repo)
 const CARTAS_IMG_BASE = 'cartas/';
 
-// Helper para reproducir sonido
 function playSfx(id) {
   try {
     const a = document.getElementById(id);
@@ -667,15 +688,11 @@ async function cortarSobre() {
   const hint = document.getElementById('sobre-hint');
   hint.style.display = 'none';
 
-  // Fase 1: Corte + sonido
   playSfx('sfx-slash');
   stage.classList.add('cutting');
-
-  // Esperar animación de corte
   await _wait(700);
 
-  // Llamar API para comprar
-  let cartas = null;
+  // Llamar API
   try {
     const r = await fetch(`${HERO_PESOS_URL}?action=comprar_sobre&playerid=${encodeURIComponent(jugador.id)}&packid=${encodeURIComponent(sobreActual)}`);
     const d = await r.json();
@@ -684,7 +701,7 @@ async function cortarSobre() {
       cerrarSobre();
       return;
     }
-    cartas = d.cartas;
+    cartasReveladas = d.cartas;
     hpSaldo = d.saldo_nuevo;
     document.getElementById('hp-menu-val').textContent = d.saldo_nuevo;
     document.getElementById('hp-saldo-val').textContent = d.saldo_nuevo;
@@ -694,93 +711,112 @@ async function cortarSobre() {
     return;
   }
 
-  // Fase 2: Split
+  // Split
   stage.classList.remove('cutting');
   stage.classList.add('split');
-
   await _wait(600);
 
-  // Fase 3: Revelar cartas apiladas + sonido
+  // Ocultar sobre
+  stage.style.display = 'none';
+
+  // Renderizar todas las cartas apiladas
   playSfx('sfx-reveal');
   const reveal = document.getElementById('reveal-cards');
+  const total = cartasReveladas.length;
 
-  // Carta 1 (común) adelante, Carta 2 (foil) atrás
-  const c1 = cartas[0];
-  const c2 = cartas[1];
+  // Cartas de atrás a adelante (la primera es la de arriba)
+  let html = '';
+  for (let i = total - 1; i >= 0; i--) {
+    const c = cartasReveladas[i];
+    const color = RAREZA_COLOR[c.rareza] || 'var(--muted)';
+    const border = RAREZA_BORDER[c.rareza] || 'var(--border)';
+    const label = c.rareza_label || c.rareza;
+    const isTop = (i === 0);
+    const scale = isTop ? 1 : 0.93;
+    const zIdx = total - i;
 
-  reveal.innerHTML = `
-    <div class="reveal-card card-back ${c2.rareza}" id="rc-back">
-      <div class="rc-img"><img src="${CARTAS_IMG_BASE}${c2.imagen}" alt="${c2.nombre}" onerror="this.style.display='none';this.parentElement.textContent='🃏'"/></div>
-      <div class="rc-name">${c2.nombre}</div>
-      <div class="rc-rarity ${c2.rareza}">${c2.rareza === 'foil' ? '⭐ FOIL' : 'COMÚN'}</div>
-    </div>
-    <div class="reveal-card card-front ${c1.rareza}" id="rc-front" onclick="descartarPrimera()">
-      <div class="rc-img"><img src="${CARTAS_IMG_BASE}${c1.imagen}" alt="${c1.nombre}" onerror="this.style.display='none';this.parentElement.textContent='🃏'"/></div>
-      <div class="rc-name">${c1.nombre}</div>
-      <div class="rc-rarity ${c1.rareza}">${c1.rareza === 'foil' ? '⭐ FOIL' : 'COMÚN'}</div>
-    </div>
-  `;
+    html += `<div class="reveal-card rc-stacked" id="rc-${i}" data-idx="${i}"
+      style="z-index:${zIdx};transform:scale(${scale});border-color:${border};"
+      ${isTop ? 'onclick="avanzarCarta()"' : ''}>
+      <div class="rc-img"><img src="${CARTAS_IMG_BASE}${c.imagen}" alt="${c.nombre}" onerror="this.style.display='none';this.parentElement.textContent='🃏'"/></div>
+      <div class="rc-name">${c.nombre}</div>
+      <div class="rc-rarity" style="color:${color};text-shadow:0 0 8px ${color}55;">${label.toUpperCase()}</div>
+    </div>`;
+  }
+  reveal.innerHTML = html;
 
-  // Ocultar stage del sobre
-  document.getElementById('sobre-stage').style.display = 'none';
-
-  // Esperar a que la imagen cargue para fijar altura del contenedor
-  const frontImg = document.querySelector('#rc-front .rc-img img');
-  if (frontImg) {
-    const setHeight = () => {
-      const h = document.getElementById('rc-front').offsetHeight;
+  // Fijar altura del contenedor
+  const topCard = document.getElementById('rc-0');
+  if (topCard) {
+    const firstImg = topCard.querySelector('.rc-img img');
+    const setH = () => {
+      const h = topCard.offsetHeight;
       if (h > 0) reveal.style.height = h + 'px';
     };
-    if (frontImg.complete) setHeight();
-    else frontImg.onload = setHeight;
-    // Fallback
-    setTimeout(setHeight, 500);
+    if (firstImg && !firstImg.complete) firstImg.onload = setH;
+    else setTimeout(setH, 100);
+    setTimeout(setH, 500);
   }
 
   await _wait(100);
   reveal.classList.add('show');
 
-  // Hint para tocar
-  hint.textContent = '⚡ TOCA LA CARTA ⚡';
+  cartaActual = 0;
+  hint.textContent = `⚡ TOCA LA CARTA ⚡  (1/${total})`;
   hint.style.display = '';
 
   abriendo = false;
 }
 
-function descartarPrimera() {
-  const front = document.getElementById('rc-front');
-  const hint = document.getElementById('sobre-hint');
-  if (!front || front.classList.contains('dismissed')) return;
+function avanzarCarta() {
+  const total = cartasReveladas.length;
+  const current = document.getElementById('rc-' + cartaActual);
+  if (!current) return;
 
-  front.classList.add('dismissed');
+  // Descartar carta actual
+  current.style.transition = 'transform .4s ease, opacity .3s';
+  current.style.transform = 'translateX(120%) rotate(15deg)';
+  current.style.opacity = '0';
+  current.style.pointerEvents = 'none';
+  current.removeAttribute('onclick');
+
   playSfx('sfx-reveal');
+  cartaActual++;
 
-  // La carta de atrás sube a primer plano sin cambiar tamaño del contenedor
-  const back = document.getElementById('rc-back');
-  if (back) {
+  if (cartaActual < total) {
+    // Mostrar siguiente carta
+    const next = document.getElementById('rc-' + cartaActual);
+    if (next) {
+      setTimeout(() => {
+        next.style.transform = 'scale(1)';
+        next.style.zIndex = total + 1;
+        next.setAttribute('onclick', 'avanzarCarta()');
+      }, 300);
+    }
+    const hint = document.getElementById('sobre-hint');
+    hint.textContent = `⚡ TOCA LA CARTA ⚡  (${cartaActual + 1}/${total})`;
+  } else {
+    // Última carta descartada — mostrar CONTINUAR
     setTimeout(() => {
-      back.style.transform = 'scale(1)';
-      back.style.zIndex = '3';
-    }, 300);
+      document.getElementById('sobre-hint').style.display = 'none';
+      document.getElementById('sobre-close').style.display = '';
+    }, 400);
   }
-
-  // Mostrar botón cerrar
-  setTimeout(() => {
-    hint.style.display = 'none';
-    document.getElementById('sobre-close').style.display = '';
-  }, 500);
 }
 
 function cerrarSobre() {
   abriendo = false;
+  cartasReveladas = [];
+  cartaActual = 0;
   document.getElementById('sobre-overlay').classList.remove('active');
   const stage = document.getElementById('sobre-stage');
   stage.className = 'sobre-stage';
   stage.style.display = '';
-  document.getElementById('reveal-cards').className = 'reveal-cards';
-  document.getElementById('reveal-cards').innerHTML = '';
+  const reveal = document.getElementById('reveal-cards');
+  reveal.className = 'reveal-cards';
+  reveal.innerHTML = '';
+  reveal.style.height = '';
   document.getElementById('sobre-hint').textContent = '⚡ TOCA PARA ABRIR ⚡';
-  // Recargar packs y saldo
   cargarSaldoHP();
   cargarPacks();
 }
@@ -805,9 +841,11 @@ async function abrirHistorial() {
       const tag = h.entregado === 'si'
         ? '<span class="hist-tag entregado">ENTREGADO</span>'
         : '<span class="hist-tag pendiente">PENDIENTE</span>';
+      const cartas = Array.isArray(h.cartas) ? h.cartas : [];
+      const nombres = cartas.map(c => c.nombre).join(' · ') || '—';
       return `<div class="hist-item">
         <div class="hist-date">${fecha}</div>
-        <div class="hist-cards">${h.carta1.nombre} + ${h.carta2.nombre}</div>
+        <div class="hist-cards">${nombres}</div>
         ${tag}
       </div>`;
     }).join('');

@@ -726,7 +726,12 @@ async function cargarPacks() {
       grid.innerHTML = '<div class="empty-tab">📦 No hay sobres disponibles por el momento.</div>';
       return;
     }
-    grid.innerHTML = d.packs.map(p => {
+    const sobres = d.packs.filter(p => (p.tipo || 'sobre') === 'sobre');
+    if (!sobres.length) {
+      grid.innerHTML = '<div class="empty-tab">📦 No hay sobres disponibles por el momento.</div>';
+      return;
+    }
+    grid.innerHTML = sobres.map(p => {
       const puede = hpSaldo >= p.costo;
       const desc = p.descripcion || `${p.cartas_por_sobre} cartas`;
       return `<div class="pack-card" onclick="iniciarApertura('${p.pack_id}', ${p.costo})">

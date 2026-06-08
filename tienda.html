@@ -301,6 +301,17 @@
     .cr-btn{font-family:'Orbitron',sans-serif;font-size:.6rem;font-weight:700;letter-spacing:2px;padding:12px 28px;border-radius:5px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--muted);cursor:pointer;margin-top:4px;animation:fadeUp .4s .6s both;transition:all .2s;}
     .cr-btn:hover{border-color:var(--gold);color:var(--gold);}
 
+    /* QR Canjear */
+    .qr-resultado-ok{background:rgba(0,255,157,.07);border:1px solid rgba(0,255,157,.3);border-radius:10px;padding:18px;text-align:center;}
+    .qr-resultado-ok .qr-ico{font-size:2.4rem;margin-bottom:6px;}
+    .qr-resultado-ok .qr-hp{font-family:'Orbitron',sans-serif;font-size:1.4rem;font-weight:900;color:#00ff9d;text-shadow:0 0 12px rgba(0,255,157,.4);}
+    .qr-resultado-ok .qr-desc{font-size:.8rem;color:var(--muted);margin-top:4px;}
+    .qr-resultado-err{background:rgba(255,60,60,.07);border:1px solid rgba(255,60,60,.25);border-radius:10px;padding:14px;text-align:center;font-size:.82rem;color:#ff6060;}
+    .qr-canje-item{background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:6px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+    .qr-canje-codigo{font-family:'Orbitron',sans-serif;font-size:.55rem;color:var(--muted);letter-spacing:1px;}
+    .qr-canje-hp{font-family:'Orbitron',sans-serif;font-size:.75rem;font-weight:900;color:#00ff9d;}
+    .qr-canje-fecha{font-size:.68rem;color:var(--muted);margin-top:2px;}
+
     /* Historial modal */
     .hist-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:1500;align-items:flex-end;justify-content:center;}
     .hist-overlay.active{display:flex;}
@@ -378,6 +389,13 @@
           <div class="cat-name">CARTAS</div>
           <div class="cat-desc">Compra cartas sueltas con HP</div>
         </div>
+        <div class="cat-card" onclick="abrirSeccion('canjear')" style="--cat-color:#00ff9d;--cat-dim:rgba(0,255,157,.1);grid-column:1/-1;display:flex;align-items:center;gap:16px;text-align:left;">
+          <div class="cat-icon" style="font-size:1.8rem;min-width:48px;text-align:center;">📷</div>
+          <div>
+            <div class="cat-name">CANJEAR QR</div>
+            <div class="cat-desc">Escanea un código QR para ganar Hero Pesos</div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -436,6 +454,47 @@
         <button class="filtro-btn" data-rareza="secreta" onclick="setFiltroRareza(this)">SECRETA</button>
       </div>
       <div class="cartas-grid" id="cartas-grid"><div class="cartas-vacio">⏳ Cargando catálogo...</div></div>
+    </div>
+
+    <!-- ═══ SECCIÓN CANJEAR QR ═══ -->
+    <div id="sec-canjear" class="section-panel">
+      <button class="sec-back" onclick="volverMenu()">◀ TIENDA</button>
+      <div class="hp-balance" style="background-image:url('hero_pesos/banner_hp.jpg')">
+        <div class="hp-coin"><img src="hero_pesos/hp_coin.png" alt="HP" onerror="this.style.display='none';this.parentElement.textContent='💰'"/></div>
+        <div class="hp-info">
+          <div class="hp-label">HERO PESOS</div>
+          <div class="hp-amount" id="hp-qr-val">—</div>
+          <div class="hp-sub">Saldo disponible</div>
+        </div>
+      </div>
+
+      <div id="qr-scanner-wrap" style="display:none;margin-bottom:16px;">
+        <video id="qr-video" style="width:100%;border-radius:10px;border:2px solid var(--gold);background:#000;max-height:260px;object-fit:cover;display:block;"></video>
+        <div style="text-align:center;margin-top:8px;">
+          <button onclick="detenerScanner()" style="font-family:'Orbitron',sans-serif;font-size:.55rem;font-weight:700;letter-spacing:1.5px;padding:8px 20px;border-radius:4px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--muted);cursor:pointer;">⛔ CANCELAR</button>
+        </div>
+      </div>
+
+      <div class="seccion-label" style="margin-bottom:10px;">🔑 CÓDIGO QR</div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <input id="qr-codigo-input" type="text" placeholder="Código del QR..."
+          style="flex:1;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:6px;padding:10px 12px;font-family:'Rajdhani',sans-serif;font-size:.9rem;color:var(--text);outline:none;transition:border-color .2s;text-transform:uppercase;"
+          onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'"
+          onkeydown="if(event.key==='Enter')canjearCodigo()" oninput="this.value=this.value.toUpperCase()"/>
+        <button onclick="canjearCodigo()"
+          style="font-family:'Orbitron',sans-serif;font-size:.55rem;font-weight:900;letter-spacing:1.5px;padding:10px 16px;border-radius:6px;border:none;background:linear-gradient(135deg,var(--gold),#d4880a);color:#000;cursor:pointer;white-space:nowrap;">
+          CANJEAR
+        </button>
+      </div>
+      <button onclick="iniciarScanner()"
+        style="font-family:'Orbitron',sans-serif;font-size:.55rem;font-weight:700;letter-spacing:1.5px;padding:10px 24px;border-radius:6px;border:1px solid var(--gold);background:rgba(245,166,35,.08);color:var(--gold);cursor:pointer;width:100%;margin-bottom:16px;">
+        📷 ESCANEAR QR CON CÁMARA
+      </button>
+
+      <div id="qr-resultado" style="display:none;margin-bottom:16px;"></div>
+
+      <div class="seccion-label" style="margin-bottom:10px;">🕓 MIS CANJES</div>
+      <div id="qr-historial"><div class="empty-tab">⏳ Cargando...</div></div>
     </div>
 
   </div>
@@ -697,9 +756,11 @@ function abrirSeccion(sec) {
   else if (sec === 'fondos') { renderItems('fondos'); }
   else if (sec === 'temas') { renderItems('temas'); }
   else if (sec === 'cartas') { cargarCatalogoCartas(); }
+  else if (sec === 'canjear') { abrirCanjear(); }
 }
 
 function volverMenu() {
+  detenerScanner();
   document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
   document.getElementById('cat-menu').style.display = '';
 }
@@ -1345,6 +1406,146 @@ function mostrarToast(msg) {
 function formatFecha(f) {
   if (!f) return '—';
   try { return new Date(f).toLocaleDateString('es-MX'); } catch(e) { return f; }
+}
+
+// ════════════════════════════════════════════
+//  CANJEAR QR
+// ════════════════════════════════════════════
+let qrStream = null;
+let qrScannerActive = false;
+
+async function abrirCanjear() {
+  // Sincronizar saldo
+  if (document.getElementById('hp-qr-val'))
+    document.getElementById('hp-qr-val').textContent = hpSaldo;
+  // Limpiar resultado anterior
+  const res = document.getElementById('qr-resultado');
+  res.style.display = 'none';
+  res.innerHTML = '';
+  document.getElementById('qr-codigo-input').value = '';
+  // Cargar historial de canjes
+  cargarHistorialQR();
+}
+
+async function canjearCodigo() {
+  const input = document.getElementById('qr-codigo-input');
+  const codigo = input.value.trim().toUpperCase();
+  if (!codigo) { mostrarToast('Ingresa un código'); return; }
+
+  const res = document.getElementById('qr-resultado');
+  res.style.display = 'block';
+  res.innerHTML = '<div style="text-align:center;padding:14px;color:var(--muted);font-size:.8rem;">⏳ Validando código...</div>';
+
+  try {
+    const url = `${HERO_PESOS_URL}?action=canjear_qr&playerid=${encodeURIComponent(jugador.id)}&codigo=${encodeURIComponent(codigo)}`;
+    const r = await fetch(url);
+    const d = await r.json();
+
+    if (d.status === 'ok') {
+      hpSaldo = d.saldo_nuevo;
+      document.getElementById('hp-menu-val').textContent  = d.saldo_nuevo;
+      document.getElementById('hp-saldo-val').textContent = d.saldo_nuevo;
+      document.getElementById('hp-qr-val').textContent    = d.saldo_nuevo;
+      if (document.getElementById('hp-cartas-val'))
+        document.getElementById('hp-cartas-val').textContent = d.saldo_nuevo;
+
+      res.innerHTML = `<div class="qr-resultado-ok">
+        <div class="qr-ico">🎉</div>
+        <div class="qr-hp">+${d.hp_ganados} HP</div>
+        <div class="qr-desc">${d.descripcion || codigo}</div>
+      </div>`;
+      input.value = '';
+      detenerScanner();
+      cargarHistorialQR();
+    } else {
+      res.innerHTML = `<div class="qr-resultado-err">⚠️ ${d.message || 'Código inválido o ya canjeado'}</div>`;
+    }
+  } catch(e) {
+    res.innerHTML = `<div class="qr-resultado-err">⚠️ Error de conexión. Intenta de nuevo.</div>`;
+  }
+}
+
+async function cargarHistorialQR() {
+  const wrap = document.getElementById('qr-historial');
+  wrap.innerHTML = '<div class="empty-tab">⏳ Cargando...</div>';
+  try {
+    const url = `${HERO_PESOS_URL}?action=historial_qr&playerid=${encodeURIComponent(jugador.id)}`;
+    const r = await fetch(url);
+    const d = await r.json();
+    if (!d.canjes || !d.canjes.length) {
+      wrap.innerHTML = '<div class="empty-tab">Sin canjes registrados.</div>';
+      return;
+    }
+    wrap.innerHTML = d.canjes.map(c => `
+      <div class="qr-canje-item">
+        <div>
+          <div class="qr-canje-codigo">${c.codigo}</div>
+          <div class="qr-canje-fecha">${formatFecha(c.fecha)} · ${c.descripcion || ''}</div>
+        </div>
+        <div class="qr-canje-hp">+${c.hp} HP</div>
+      </div>`).join('');
+  } catch(e) {
+    wrap.innerHTML = '<div class="empty-tab">⚠️ No se pudo cargar el historial.</div>';
+  }
+}
+
+// Escáner QR con cámara usando jsQR
+async function iniciarScanner() {
+  const wrap = document.getElementById('qr-scanner-wrap');
+  const video = document.getElementById('qr-video');
+
+  // Cargar jsQR dinámicamente si no está cargado
+  if (!window.jsQR) {
+    try {
+      await new Promise((res, rej) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js';
+        s.onload = res; s.onerror = rej;
+        document.head.appendChild(s);
+      });
+    } catch(e) {
+      mostrarToast('No se pudo cargar el escáner'); return;
+    }
+  }
+
+  try {
+    qrStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    video.srcObject = qrStream;
+    video.setAttribute('playsinline', true);
+    await video.play();
+    wrap.style.display = 'block';
+    qrScannerActive = true;
+    scanLoop();
+  } catch(e) {
+    mostrarToast('Sin acceso a la cámara');
+  }
+}
+
+function scanLoop() {
+  if (!qrScannerActive) return;
+  const video = document.getElementById('qr-video');
+  if (video.readyState === video.HAVE_ENOUGH_DATA) {
+    const canvas = document.createElement('canvas');
+    canvas.width  = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const code = jsQR(imageData.data, imageData.width, imageData.height);
+    if (code && code.data) {
+      document.getElementById('qr-codigo-input').value = code.data.trim().toUpperCase();
+      detenerScanner();
+      canjearCodigo();
+      return;
+    }
+  }
+  requestAnimationFrame(scanLoop);
+}
+
+function detenerScanner() {
+  qrScannerActive = false;
+  if (qrStream) { qrStream.getTracks().forEach(t => t.stop()); qrStream = null; }
+  document.getElementById('qr-scanner-wrap').style.display = 'none';
 }
 </script>
 <script src="settings.js"></script>

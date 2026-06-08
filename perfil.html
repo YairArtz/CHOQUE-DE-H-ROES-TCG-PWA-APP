@@ -856,6 +856,12 @@ async function cargarInscripciones() {
       cont.innerHTML = '<div class="empty-msg">📋 Sin inscripciones pendientes.</div>';
       return;
     }
+    // Si el total de inscripciones supera lo que reportó el ranking (Top 8 only), corregir el stat
+    const totalInsc = data.inscripciones.length;
+    const sTorneos  = document.getElementById('s-torneos');
+    if (sTorneos && totalInsc > parseInt(sTorneos.textContent || '0', 10)) {
+      sTorneos.textContent = totalInsc;
+    }
     cont.innerHTML = data.inscripciones.map(t => {
       const fecha = t.tourdate || '';
       return `<div class="torneo-item">

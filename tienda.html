@@ -606,6 +606,27 @@ const CATALOGO = {
 };
 
 // ════════════════════════════════════════════
+//  RAREZA — constantes compartidas
+// ════════════════════════════════════════════
+const RAREZA_LABEL_ES = {
+  comun:          'Común',
+  poco_comun:     'Poco Común',
+  rara:           'Rara',
+  foil:           'Foil',
+  foil_poco_comun:'Foil P. Común',
+  secreta:        '⭐ Secreta'
+};
+
+const RAREZA_COLOR_CR = {
+  comun:          { color: '#6a7f9a', bg: 'rgba(106,127,154,.15)' },
+  poco_comun:     { color: '#4fc3f7', bg: 'rgba(79,195,247,.15)' },
+  rara:           { color: '#ab47bc', bg: 'rgba(171,71,188,.15)' },
+  foil:           { color: '#f5a623', bg: 'rgba(245,166,35,.15)' },
+  foil_poco_comun:{ color: '#ff7043', bg: 'rgba(255,112,67,.15)' },
+  secreta:        { color: '#e040fb', bg: 'rgba(224,64,251,.2)' }
+};
+
+// ════════════════════════════════════════════
 //  ESTADO
 // ════════════════════════════════════════════
 let jugador   = null;
@@ -726,14 +747,35 @@ async function cargarPacks() {
       grid.innerHTML = '<div class="empty-tab">📦 No hay sobres disponibles por el momento.</div>';
       return;
     }
-    const sobres = d.packs.filter(p => (p.tipo || 'sobre') === 'sobre');
-    if (!sobres.length) {
+    if (d.status !== 'ok' || !d.packs.length) {
       grid.innerHTML = '<div class="empty-tab">📦 No hay sobres disponibles por el momento.</div>';
       return;
     }
-    grid.innerHTML = sobres.map(p => {
+    grid.innerHTML = d.packs.map(p => {
       const puede = hpSaldo >= p.costo;
-      const desc = p.descripcion || `${p.cartas_por_sobre} cartas`;
+      const tipo  = (p.tipo || 'sobre');
+      const desc  = p.descripcion || `${p.cartas_por_sobre} cartas`;
+
+      // Cartas sueltas: imagen directa de la carta, acción comprarCartaSuelta
+      if (tipo === 'carta') {
+        const rareza = desc.toLowerCase().trim();
+        const cr     = RAREZA_COLOR_CR[rareza] || RAREZA_COLOR_CR.comun;
+        const label  = RAREZA_LABEL_ES[rareza] || rareza;
+        const img    = p.imagen ? (p.imagen.includes('/') ? p.imagen : `cartas/${p.imagen}`) : '';
+        return `<div class="pack-card" onclick="comprarCartaSuelta('${p.pack_id}','${p.nombre.replace(/'/g,"\\'")}','${img}','${rareza}',${p.costo})">
+          <div class="pack-img" style="border-color:${cr.color}55;background:rgba(0,0,0,.4)">
+            <img src="${img}" alt="${p.nombre}" style="object-fit:cover;border-radius:4px" onerror="this.style.display='none';this.parentElement.innerHTML='🃏'"/>
+          </div>
+          <div class="pack-info">
+            <div class="pack-name">${p.nombre}</div>
+            <div class="pack-detail" style="color:${cr.color}">${label}</div>
+            <div class="pack-price">💰 ${p.costo} HP</div>
+          </div>
+          <button class="pack-btn" ${!puede ? 'disabled' : ''} style="${puede ? '' : 'opacity:.4'}">${puede ? 'COMPRAR' : '🔒'}</button>
+        </div>`;
+      }
+
+      // Sobres normales: imagen del sobre, acción iniciarApertura
       return `<div class="pack-card" onclick="iniciarApertura('${p.pack_id}', ${p.costo})">
         <div class="pack-img"><img src="${SOBRES_IMG_BASE}${p.imagen || p.pack_id + '.png'}" alt="${p.pack_id}" onerror="this.style.display='none';this.parentElement.textContent='📦'"/></div>
         <div class="pack-info">
@@ -962,24 +1004,6 @@ function _wait(ms) { return new Promise(r => setTimeout(r, ms)); }
 // ════════════════════════════════════════════
 let catalogoCartas = [];
 let filtroRarezaActual = 'todas';
-
-const RAREZA_LABEL_ES = {
-  comun:          'Común',
-  poco_comun:     'Poco Común',
-  rara:           'Rara',
-  foil:           'Foil',
-  foil_poco_comun:'Foil P. Común',
-  secreta:        '⭐ Secreta'
-};
-
-const RAREZA_COLOR_CR = {
-  comun:          { color: '#6a7f9a', bg: 'rgba(106,127,154,.15)' },
-  poco_comun:     { color: '#4fc3f7', bg: 'rgba(79,195,247,.15)' },
-  rara:           { color: '#ab47bc', bg: 'rgba(171,71,188,.15)' },
-  foil:           { color: '#f5a623', bg: 'rgba(245,166,35,.15)' },
-  foil_poco_comun:{ color: '#ff7043', bg: 'rgba(255,112,67,.15)' },
-  secreta:        { color: '#e040fb', bg: 'rgba(224,64,251,.2)' }
-};
 
 // La rareza viene en el campo "descripcion" del pack (columna E de Packs_Config)
 // La imagen viene en el campo "imagen" del pack (columna D) — ruta directa a la carta

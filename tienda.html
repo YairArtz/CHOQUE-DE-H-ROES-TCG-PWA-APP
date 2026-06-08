@@ -1491,10 +1491,20 @@ async function cargarHistorialQR() {
 
 // Escáner QR con cámara usando jsQR
 async function iniciarScanner() {
-  const wrap = document.getElementById('qr-scanner-wrap');
+  const wrap  = document.getElementById('qr-scanner-wrap');
   const video = document.getElementById('qr-video');
 
-  // Cargar jsQR dinámicamente si no está cargado
+  // Verificar HTTPS
+  if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+    mostrarToast('La cámara requiere HTTPS'); return;
+  }
+
+  // Verificar soporte del navegador
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    mostrarToast('Tu navegador no soporta cámara — usa el código manual'); return;
+  }
+
+  // Cargar jsQR dinámicamente
   if (!window.jsQR) {
     try {
       await new Promise((res, rej) => {
@@ -1504,21 +1514,41 @@ async function iniciarScanner() {
         document.head.appendChild(s);
       });
     } catch(e) {
-      mostrarToast('No se pudo cargar el escáner'); return;
+      mostrarToast('Error cargando escáner — usa el código manual'); return;
     }
   }
 
+  // Intentar cámara trasera, fallback a cualquier cámara disponible
+  let stream = null;
   try {
-    qrStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-    video.srcObject = qrStream;
-    video.setAttribute('playsinline', true);
-    await video.play();
-    wrap.style.display = 'block';
-    qrScannerActive = true;
-    scanLoop();
-  } catch(e) {
-    mostrarToast('Sin acceso a la cámara');
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' } }
+    });
+  } catch(e1) {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    } catch(e2) {
+      if (e2.name === 'NotAllowedError' || e2.name === 'PermissionDeniedError') {
+        mostrarToast('Permiso denegado — activa la cámara en ajustes del sistema');
+      } else if (e2.name === 'NotFoundError') {
+        mostrarToast('No se encontró cámara en este dispositivo');
+      } else {
+        mostrarToast('No se pudo abrir la cámara (' + e2.name + ')');
+      }
+      return;
+    }
   }
+
+  qrStream = stream;
+  video.srcObject = stream;
+  video.setAttribute('playsinline', true);
+  video.setAttribute('muted', true);
+  try { await video.play(); } catch(e) {
+    mostrarToast('Error iniciando video — usa el código manual'); return;
+  }
+  wrap.style.display = 'block';
+  qrScannerActive = true;
+  requestAnimationFrame(scanLoop);
 }
 
 function scanLoop() {

@@ -1070,16 +1070,17 @@ async function comprarCartaSuelta(packid, nombre, imgPath, rareza, precio) {
   }
 
   // Fallback local si el backend no devuelve la carta (no debería pasar)
-  const carta = cartaData || { nombre, imagen: imgPath.replace('cartas/',''), rareza };
+  const carta = cartaData || { nombre, imagen: imgPath, rareza };
   mostrarCartaReveal(carta, precio);
-  // Recargar catálogo fresco (por si cambió el saldo y hay botones a actualizar)
-  await cargarCatalogoCartas();
 }
 
 function mostrarCartaReveal(carta, precioGastado) {
   const cr = RAREZA_COLOR_CR[carta.rareza] || RAREZA_COLOR_CR.comun;
   const label = RAREZA_LABEL_ES[carta.rareza] || carta.rareza;
-  const imgSrc = carta.imagen ? `cartas/${carta.imagen}` : (carta.img || '');
+  // imagen puede venir como "cartas/koatl.jpg" (ruta completa) o solo "koatl.jpg"
+  const imgSrc = carta.imagen
+    ? (carta.imagen.startsWith('cartas/') || carta.imagen.startsWith('http') ? carta.imagen : `cartas/${carta.imagen}`)
+    : (carta.img || '');
 
   document.getElementById('cr-nombre').textContent = carta.nombre;
   document.getElementById('cr-img').src = imgSrc;
@@ -1101,6 +1102,7 @@ function mostrarCartaReveal(carta, precioGastado) {
 
 function cerrarCartaReveal() {
   document.getElementById('carta-reveal-overlay').classList.remove('active');
+  cargarCatalogoCartas();
 }
 
 // ════════════════════════════════════════════

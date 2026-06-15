@@ -682,15 +682,29 @@ const BADGES_CATALOGO = [
   { id:'ev_beta',       nombre:'Beta Tester',     tipo:'manual', emoji:'🧪', img:'badges/ev_beta.png',       condicion:'Otorgado a jugadores de la temporada beta.' },
   { id:'ev_fundador',   nombre:'Fundador',        tipo:'manual', emoji:'🌟', img:'badges/ev_fundador.png',   condicion:'Otorgado a quienes apoyaron el lanzamiento del juego.' },
   { id:'ev_colab',      nombre:'Colaborador',     tipo:'manual', emoji:'📣', img:'badges/ev_colab.png',      condicion:'Otorgado a jugadores que promovieron activamente el juego.' },
+  // — Colección digital —
+  { id:'col_primer_sobre',  nombre:'Primer Sobre',       tipo:'auto', emoji:'🎴', img:'badges/col_primer_sobre.png',  condicion:'Abrir tu primer sobre digital en Nexo de Héroes.' },
+  { id:'col_5_sobres',      nombre:'Abridor',            tipo:'auto', emoji:'📦', img:'badges/col_5_sobres.png',      condicion:'Abrir 5 sobres digitales.' },
+  { id:'col_20_sobres',     nombre:'Bóveda del Nexo',    tipo:'auto', emoji:'🏛️', img:'badges/col_20_sobres.png',     condicion:'Abrir 20 sobres digitales.' },
+  { id:'col_carta_secreta', nombre:'Toque Secreto',      tipo:'auto', emoji:'✨', img:'badges/col_carta_secreta.png', condicion:'Obtener al menos 1 carta Secreta en un sobre digital.' },
+  { id:'col_carta_foil_pc', nombre:'Más allá del Foil',  tipo:'auto', emoji:'🌟', img:'badges/col_carta_foil_pc.png', condicion:'Obtener al menos 1 carta Foil Poco Común en un sobre digital.' },
+  // — Hero Pesos —
+  { id:'hp_primer_tesoro',  nombre:'Primer Tesoro',      tipo:'auto', emoji:'💰', img:'badges/hp_primer_tesoro.png',  condicion:'Acumular al menos 10 Hero Pesos.' },
+  { id:'hp_reserva',        nombre:'Reserva Héroe',      tipo:'auto', emoji:'🏦', img:'badges/hp_reserva.png',        condicion:'Acumular 50 Hero Pesos o más.' },
+  { id:'hp_millonario',     nombre:'Millonario del Nexo',tipo:'auto', emoji:'👑', img:'badges/hp_millonario.png',     condicion:'Acumular 200 Hero Pesos o más.' },
+  { id:'hp_primera_compra', nombre:'Primera Compra',     tipo:'auto', emoji:'🛒', img:'badges/hp_primera_compra.png', condicion:'Gastar Hero Pesos por primera vez en la tienda.' },
+  // — Códigos QR —
+  { id:'qr_escaner',        nombre:'Escáner',            tipo:'auto', emoji:'📲', img:'badges/qr_escaner.png',        condicion:'Canjear tu primer código QR de Hero Pesos.' },
+  { id:'qr_cazador',        nombre:'Cazador de Códigos', tipo:'auto', emoji:'🔍', img:'badges/qr_cazador.png',        condicion:'Canjear 3 o más códigos QR.' },
 ];
 
-function calcularBadgesAuto(historial, totalPts, posGlobal) {
+function calcularBadgesAuto(historial, totalPts, posGlobal, datosHP) {
   const ganados = new Set();
 
   // Nuevo jugador — siempre al tener perfil
   ganados.add('nuevo_jugador');
 
-  // — Barajas — se calculan siempre, independiente de torneos —
+  // — Barajas —
   const barajas = JSON.parse(localStorage.getItem('chh_decks') || '[]');
   if (barajas.length >= 1)  ganados.add('minimalista');
   if (barajas.length >= 5)  ganados.add('arquitecto');
@@ -704,6 +718,33 @@ function calcularBadgesAuto(historial, totalPts, posGlobal) {
   const numIdV = parseInt((jugador?.id || '').replace(/\D/g,''));
   if (!isNaN(numIdV) && numIdV > 0 && numIdV < 100) ganados.add('fundador_vet');
 
+  // — Colección digital —
+  if (datosHP) {
+    const sobresAbiertos = datosHP.historialSobres || [];
+    const totalSobres = sobresAbiertos.length;
+    if (totalSobres >= 1)  ganados.add('col_primer_sobre');
+    if (totalSobres >= 5)  ganados.add('col_5_sobres');
+    if (totalSobres >= 20) ganados.add('col_20_sobres');
+
+    // Revisar rarezas obtenidas
+    const todasCartas = sobresAbiertos.flatMap(s => s.cartas || []);
+    if (todasCartas.some(c => (c.rareza || '').toLowerCase() === 'secreta'))       ganados.add('col_carta_secreta');
+    if (todasCartas.some(c => (c.rareza || '').toLowerCase() === 'foil_poco_comun')) ganados.add('col_carta_foil_pc');
+
+    // — Hero Pesos —
+    const totalGanado  = datosHP.desglose?.total_ganado  || 0;
+    const totalGastado = datosHP.desglose?.total_gastado || 0;
+    if (totalGanado >= 10)  ganados.add('hp_primer_tesoro');
+    if (totalGanado >= 50)  ganados.add('hp_reserva');
+    if (totalGanado >= 200) ganados.add('hp_millonario');
+    if (totalGastado > 0)   ganados.add('hp_primera_compra');
+
+    // — Códigos QR —
+    const totalQR = datosHP.historialQR?.length || 0;
+    if (totalQR >= 1) ganados.add('qr_escaner');
+    if (totalQR >= 3) ganados.add('qr_cazador');
+  }
+
   if (!historial || !historial.length) return ganados;
 
   const n = historial.length;
@@ -715,14 +756,10 @@ function calcularBadgesAuto(historial, totalPts, posGlobal) {
   if (n >= 10) ganados.add('experto');
   if (n >= 15) ganados.add('heroe');
   if (n >= 20) ganados.add('superior');
+  if (n >= 25) ganados.add('veterano_guerra');
   if (n >= 30) ganados.add('leyenda');
   if (n >= 50) ganados.add('heroe_regente');
-
-
-  // — Racha y consistencia —
-  if (n >= 25) ganados.add('veterano_guerra');
   if (n >= 5)  ganados.add('asistencia');
-
 
   // — Torneos ganados —
   const victorias = posiciones.filter(p => p === 1).length;
@@ -731,11 +768,6 @@ function calcularBadgesAuto(historial, totalPts, posGlobal) {
 
   // — Ranking top 10 —
   if (posGlobal && posGlobal <= 10) ganados.add('top10');
-
-  // — Madrugador — primer inscrito a cualquier torneo (lugar === '1') —
-  // Se calcula si en historial hay un lugar #1 de inscripción
-  // (por ahora lo dejamos como manual hasta tener ese dato)
-
 
   // — Puntos ranking global —
   if (totalPts >= 100) ganados.add('rey_nexo');
@@ -752,11 +784,31 @@ function calcularBadgesAuto(historial, totalPts, posGlobal) {
 
 async function cargarBadges(historial, totalPts, posGlobal) {
   const cont = document.getElementById('badges-container');
+  const HP_URL = 'https://script.google.com/macros/s/AKfycbwSrBH7yJiyTlPabzJ_WiXQDWPe7RpATmuTTWAe3uVRy6wuGh15QpuOMzSiZVixJK_S/exec';
 
-  // Badges automáticos calculados localmente
-  const autoGanados = calcularBadgesAuto(historial, totalPts, posGlobal);
+  // Traer datos de HP, historial de sobres y QR en paralelo
+  let datosHP = null;
+  try {
+    const pid = encodeURIComponent(jugador.id);
+    const [resSaldo, resHistorial, resQR] = await Promise.all([
+      fetch(`${HP_URL}?action=saldo&playerid=${pid}`),
+      fetch(`${HP_URL}?action=historial&playerid=${pid}`),
+      fetch(`${HP_URL}?action=historial_qr&playerid=${pid}`)
+    ]);
+    const [saldo, hist, qr] = await Promise.all([resSaldo.json(), resHistorial.json(), resQR.json()]);
+    datosHP = {
+      desglose:       saldo.desglose     || {},
+      historialSobres: hist.historial    || [],
+      historialQR:    qr.canjes          || []
+    };
+  } catch(e) {
+    console.warn('[badges] datos HP no disponibles:', e.message);
+  }
 
-  // Badges manuales — leer directo del Sheet (columna 6, índice 5)
+  // Badges automáticos
+  const autoGanados = calcularBadgesAuto(historial, totalPts, posGlobal, datosHP);
+
+  // Badges manuales — Sheet de jugadores columna 6
   let manualesGanados = new Set();
   try {
     const ctrl = new AbortController();
@@ -784,7 +836,7 @@ async function cargarBadges(historial, totalPts, posGlobal) {
   const todosGanados = new Set([...autoGanados, ...manualesGanados]);
 
   // Renderizar — primero ganados, luego bloqueados
-  const ganados   = BADGES_CATALOGO.filter(b =>  todosGanados.has(b.id));
+  const ganados    = BADGES_CATALOGO.filter(b =>  todosGanados.has(b.id));
   const bloqueados = BADGES_CATALOGO.filter(b => !todosGanados.has(b.id));
   const ordenados  = [...ganados, ...bloqueados];
 
@@ -793,7 +845,6 @@ async function cargarBadges(historial, totalPts, posGlobal) {
     return;
   }
 
-  // Guardar estado para que el onclick lo consulte por ID
   window._badgesState = {};
   ordenados.forEach(b => { window._badgesState[b.id] = { ...b, earned: todosGanados.has(b.id) }; });
 

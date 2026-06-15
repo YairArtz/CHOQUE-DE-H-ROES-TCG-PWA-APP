@@ -224,6 +224,36 @@
     .disclaimer a{color:var(--accent);text-decoration:none;}
     .disclaimer a:hover{text-decoration:underline;}
 
+    /* ── NIVEL DE JUGADOR ── */
+    .nivel-wrap{display:flex;align-items:center;gap:10px;margin:10px 0 4px;}
+    .nivel-badge{font-family:'Orbitron',sans-serif;font-size:.65rem;font-weight:900;letter-spacing:2px;padding:4px 10px;border-radius:4px;background:linear-gradient(135deg,rgba(0,255,157,.15),rgba(0,255,157,.05));border:1px solid rgba(0,255,157,.3);color:var(--accent);white-space:nowrap;}
+    .nivel-info{flex:1;}
+    .nivel-nombre{font-family:'Orbitron',sans-serif;font-size:.7rem;font-weight:700;color:#fff;margin-bottom:4px;}
+    .nivel-barra-wrap{height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;}
+    .nivel-barra{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),#00c875);transition:width .6s ease;}
+    .nivel-meta{font-size:.62rem;color:var(--muted);margin-top:3px;}
+    /* ── HISTORIAL HP ── */
+    .hp-hist-item{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--border);}
+    .hp-hist-item:last-child{border-bottom:none;}
+    .hp-hist-concepto{font-size:.8rem;color:var(--text);}
+    .hp-hist-sub{font-size:.65rem;color:var(--muted);margin-top:1px;}
+    .hp-hist-monto{font-family:'Orbitron',sans-serif;font-size:.8rem;font-weight:700;}
+    .hp-hist-monto.ganado{color:#00ff9d;}
+    .hp-hist-monto.gastado{color:#ff4d6d;}
+    .hp-desglose{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;}
+    .hp-ds-box{background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:6px;padding:8px 10px;text-align:center;}
+    .hp-ds-val{font-family:'Orbitron',sans-serif;font-size:.9rem;font-weight:900;color:var(--accent);display:block;}
+    .hp-ds-lbl{font-size:.58rem;color:var(--muted);margin-top:1px;letter-spacing:.5px;}
+    /* ── TOAST LOGRO NUEVO ── */
+    #logro-toast{position:fixed;top:70px;left:50%;transform:translateX(-50%) translateY(-20px);z-index:9997;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none;width:90%;max-width:340px;}
+    #logro-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+    .logro-toast-inner{background:linear-gradient(135deg,rgba(3,8,20,.98),rgba(6,14,30,.98));border:1px solid rgba(0,255,157,.4);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 0 30px rgba(0,255,157,.15);}
+    .logro-toast-icon{width:42px;height:42px;border-radius:50%;border:2px solid var(--accent);background:rgba(0,255,157,.08);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;}
+    .logro-toast-body{flex:1;min-width:0;}
+    .logro-toast-tag{font-family:'Orbitron',sans-serif;font-size:.55rem;letter-spacing:2px;color:var(--accent);margin-bottom:2px;}
+    .logro-toast-nombre{font-family:'Orbitron',sans-serif;font-size:.75rem;font-weight:900;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .logro-toast-cond{font-size:.7rem;color:var(--muted);margin-top:1px;}
+
     @media(max-width:480px){.card{padding:28px 20px;}}
   
     .btn-share{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:11px;margin-top:10px;background:linear-gradient(135deg,#0a1628,#0d1f3c);border:1px solid rgba(0,255,157,.3);border-radius:7px;font-family:'Orbitron',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:2px;color:var(--accent);cursor:pointer;transition:all .2s;}
@@ -299,6 +329,7 @@
 
 <!-- Banner notificaciones in-app -->
 <div id="chh-notif-container"></div>
+<div id="logro-toast"><div class="logro-toast-inner"><div class="logro-toast-icon" id="logro-toast-icon">🏅</div><div class="logro-toast-body"><div class="logro-toast-tag">🔓 LOGRO DESBLOQUEADO</div><div class="logro-toast-nombre" id="logro-toast-nombre"></div><div class="logro-toast-cond" id="logro-toast-cond"></div></div></div></div>
 <body>
 
 <!-- NAV -->
@@ -356,6 +387,7 @@
       <div class="stat-box"><span class="stat-val" id="s-torneos">—</span><div class="stat-lbl">Torneos</div></div>
       <div class="stat-box"><span class="stat-val" id="s-barajas">0</span><div class="stat-lbl">Barajas</div></div>
     </div>
+    <div id="nivel-container"></div>
   </div>
 
   <!-- Ranking -->
@@ -380,6 +412,12 @@
   <div class="card" style="margin-bottom:12px;">
     <div class="badge">🏅 LOGROS Y BADGES</div>
     <div id="badges-container"><div class="badges-loading">⏳ Cargando logros...</div></div>
+  </div>
+
+  <!-- Hero Pesos Historial -->
+  <div class="card" style="margin-bottom:12px;">
+    <div class="badge">💰 HERO PESOS</div>
+    <div id="hp-container"><div class="empty-msg">⏳ Cargando Hero Pesos...</div></div>
   </div>
 
   <!-- Mis barajas -->
@@ -782,6 +820,142 @@ function calcularBadgesAuto(historial, totalPts, posGlobal, datosHP) {
   return ganados;
 }
 
+// ── SISTEMA DE NIVELES ──
+const NIVELES = [
+  { nivel:1,  nombre:'Recluta',        min:0,   max:4   },
+  { nivel:2,  nombre:'Aspirante',      min:5,   max:9   },
+  { nivel:3,  nombre:'Combatiente',    min:10,  max:19  },
+  { nivel:4,  nombre:'Guerrero',       min:20,  max:34  },
+  { nivel:5,  nombre:'Campeón',        min:35,  max:54  },
+  { nivel:6,  nombre:'Élite',          min:55,  max:79  },
+  { nivel:7,  nombre:'Maestro',        min:80,  max:109 },
+  { nivel:8,  nombre:'Gran Maestro',   min:110, max:149 },
+  { nivel:9,  nombre:'Leyenda',        min:150, max:199 },
+  { nivel:10, nombre:'Héroe del Nexo', min:200, max:Infinity }
+];
+
+function calcularNivel(totalBadges) {
+  return NIVELES.find(n => totalBadges >= n.min && totalBadges <= n.max) || NIVELES[0];
+}
+
+function renderNivel(totalBadgesGanados) {
+  const cont = document.getElementById('nivel-container');
+  if (!cont) return;
+  const actual   = calcularNivel(totalBadgesGanados);
+  const siguiente = NIVELES.find(n => n.nivel === actual.nivel + 1);
+  const progreso  = siguiente
+    ? Math.min(100, Math.round(((totalBadgesGanados - actual.min) / (actual.max - actual.min + 1)) * 100))
+    : 100;
+  const falta = siguiente ? (actual.max + 1 - totalBadgesGanados) : 0;
+
+  cont.innerHTML = `
+    <div class="nivel-wrap">
+      <div class="nivel-badge">NV ${actual.nivel}</div>
+      <div class="nivel-info">
+        <div class="nivel-nombre">${actual.nombre}</div>
+        <div class="nivel-barra-wrap"><div class="nivel-barra" style="width:${progreso}%"></div></div>
+        <div class="nivel-meta">${totalBadgesGanados} logros desbloqueados${siguiente ? ` · Faltan ${falta} para ${siguiente.nombre}` : ' · ¡Nivel máximo!'}</div>
+      </div>
+    </div>`;
+}
+
+// ── TOAST DE LOGRO NUEVO ──
+const _logroQueue = [];
+let _logroShowing = false;
+
+function mostrarLogroToast(badge) {
+  _logroQueue.push(badge);
+  if (!_logroShowing) _nextLogro();
+}
+
+function _nextLogro() {
+  if (!_logroQueue.length) { _logroShowing = false; return; }
+  _logroShowing = true;
+  const b = _logroQueue.shift();
+  document.getElementById('logro-toast-icon').textContent = b.emoji;
+  document.getElementById('logro-toast-nombre').textContent = b.nombre;
+  document.getElementById('logro-toast-cond').textContent = b.condicion;
+  const el = document.getElementById('logro-toast');
+  el.classList.add('show');
+  setTimeout(() => {
+    el.classList.remove('show');
+    setTimeout(() => { _logroShowing = false; _nextLogro(); }, 350);
+  }, 3000);
+}
+
+function verificarLogrosNuevos(todosGanados) {
+  const KEY = `nhBadges_${jugador.id}`;
+  const previos = new Set(JSON.parse(localStorage.getItem(KEY) || '[]'));
+  const nuevos  = [...todosGanados].filter(id => !previos.has(id));
+  // Guardar estado actual
+  localStorage.setItem(KEY, JSON.stringify([...todosGanados]));
+  // Mostrar toasts con delay entre ellos
+  if (nuevos.length) {
+    nuevos.forEach((id, i) => {
+      const b = BADGES_CATALOGO.find(x => x.id === id);
+      if (b) setTimeout(() => mostrarLogroToast(b), i * 3500);
+    });
+  }
+}
+
+// ── HISTORIAL HP ──
+async function cargarHistorialHP(datosHP) {
+  const cont = document.getElementById('hp-container');
+  if (!cont) return;
+
+  if (!datosHP) {
+    cont.innerHTML = '<div class="empty-msg">⚠️ No se pudo cargar.</div>';
+    return;
+  }
+
+  const d  = datosHP.desglose || {};
+  const saldo = (d.total_ganado || 0) - (d.total_gastado || 0);
+
+  // Desglose de fuentes
+  const desglose = [
+    { lbl:'Por Ranking',  val: d.hp_ranking   || 0 },
+    { lbl:'Por Torneos',  val: d.hp_torneos   || 0 },
+    { lbl:'Por Logros',   val: d.hp_badges    || 0 },
+    { lbl:'Bonos / QR',   val: d.hp_bonus     || 0 },
+  ];
+
+  // Historial de gastos (sobres abiertos)
+  const gastos = (datosHP.historialSobres || []).slice().reverse().slice(0, 8);
+  const canjes = (datosHP.historialQR || []).slice(0, 5);
+
+  cont.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <span style="font-family:'Orbitron',sans-serif;font-size:.65rem;color:var(--muted);letter-spacing:2px;">SALDO ACTUAL</span>
+      <span style="font-family:'Orbitron',sans-serif;font-size:1.2rem;font-weight:900;color:#f5a623;">⬡ ${saldo} HP</span>
+    </div>
+    <div class="hp-desglose">
+      ${desglose.map(x => `<div class="hp-ds-box"><span class="hp-ds-val">${x.val}</span><div class="hp-ds-lbl">${x.lbl}</div></div>`).join('')}
+    </div>
+    ${gastos.length ? `
+      <div style="font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:2px;color:var(--muted);margin:8px 0 4px;">ÚLTIMAS COMPRAS</div>
+      <div style="background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:6px;overflow:hidden;">
+        ${gastos.map(g => {
+          const fecha = typeof g.fecha === 'string' ? g.fecha.slice(0,10) : '';
+          const cartas = (g.cartas||[]).map(c=>c.nombre).join(', ') || g.pack;
+          return `<div class="hp-hist-item">
+            <div><div class="hp-hist-concepto">${g.pack}</div><div class="hp-hist-sub">${fecha} · ${cartas}</div></div>
+            <div class="hp-hist-monto gastado">-HP</div>
+          </div>`;
+        }).join('')}
+      </div>` : ''}
+    ${canjes.length ? `
+      <div style="font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:2px;color:var(--muted);margin:10px 0 4px;">CÓDIGOS QR CANJEADOS</div>
+      <div style="background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:6px;overflow:hidden;">
+        ${canjes.map(q => {
+          const fecha = typeof q.fecha === 'string' ? q.fecha.slice(0,10) : '';
+          return `<div class="hp-hist-item">
+            <div><div class="hp-hist-concepto">${q.descripcion || q.codigo}</div><div class="hp-hist-sub">${fecha}</div></div>
+            <div class="hp-hist-monto ganado">+${q.hp} HP</div>
+          </div>`;
+        }).join('')}
+      </div>` : ''}`;
+}
+
 async function cargarBadges(historial, totalPts, posGlobal) {
   const cont = document.getElementById('badges-container');
   const HP_URL = 'https://script.google.com/macros/s/AKfycbwSrBH7yJiyTlPabzJ_WiXQDWPe7RpATmuTTWAe3uVRy6wuGh15QpuOMzSiZVixJK_S/exec';
@@ -797,13 +971,16 @@ async function cargarBadges(historial, totalPts, posGlobal) {
     ]);
     const [saldo, hist, qr] = await Promise.all([resSaldo.json(), resHistorial.json(), resQR.json()]);
     datosHP = {
-      desglose:       saldo.desglose     || {},
-      historialSobres: hist.historial    || [],
-      historialQR:    qr.canjes          || []
+      desglose:        saldo.desglose  || {},
+      historialSobres: hist.historial  || [],
+      historialQR:     qr.canjes       || []
     };
   } catch(e) {
     console.warn('[badges] datos HP no disponibles:', e.message);
   }
+
+  // Cargar historial HP
+  cargarHistorialHP(datosHP);
 
   // Badges automáticos
   const autoGanados = calcularBadgesAuto(historial, totalPts, posGlobal, datosHP);
@@ -835,6 +1012,12 @@ async function cargarBadges(historial, totalPts, posGlobal) {
 
   const todosGanados = new Set([...autoGanados, ...manualesGanados]);
 
+  // Nivel de jugador
+  renderNivel(todosGanados.size);
+
+  // Notificar logros nuevos
+  verificarLogrosNuevos(todosGanados);
+
   // Renderizar — primero ganados, luego bloqueados
   const ganados    = BADGES_CATALOGO.filter(b =>  todosGanados.has(b.id));
   const bloqueados = BADGES_CATALOGO.filter(b => !todosGanados.has(b.id));
@@ -848,7 +1031,30 @@ async function cargarBadges(historial, totalPts, posGlobal) {
   window._badgesState = {};
   ordenados.forEach(b => { window._badgesState[b.id] = { ...b, earned: todosGanados.has(b.id) }; });
 
-  cont.innerHTML = `<div class="badges-grid">${ordenados.map(b => {
+  // Siguiente badge a desbloquear (barra de progreso por categoría de torneos)
+  const torneosJugados = historial?.length || 0;
+  const progresionTorneos = [
+    { id:'novato', req:1 }, { id:'intermedio', req:5 }, { id:'experto', req:10 },
+    { id:'heroe', req:15 }, { id:'superior', req:20 }, { id:'veterano_guerra', req:25 },
+    { id:'leyenda', req:30 }, { id:'heroe_regente', req:50 }
+  ];
+  const sigBadge = progresionTorneos.find(p => !todosGanados.has(p.id));
+  const progBarraHTML = sigBadge ? (() => {
+    const prevReq = progresionTorneos[progresionTorneos.indexOf(sigBadge) - 1]?.req || 0;
+    const pct = Math.min(100, Math.round(((torneosJugados - prevReq) / (sigBadge.req - prevReq)) * 100));
+    const b   = BADGES_CATALOGO.find(x => x.id === sigBadge.id);
+    const falta = sigBadge.req - torneosJugados;
+    return `<div style="margin-bottom:12px;background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:6px;padding:10px 12px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <span style="font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1px;color:var(--muted);">PRÓXIMO LOGRO</span>
+        <span style="font-size:.75rem;color:var(--accent);">${b?.emoji || '🏅'} ${b?.nombre || sigBadge.id}</span>
+      </div>
+      <div class="nivel-barra-wrap"><div class="nivel-barra" style="width:${pct}%"></div></div>
+      <div style="font-size:.62rem;color:var(--muted);margin-top:4px;">Faltan ${falta} torneo${falta!==1?'s':''} · ${torneosJugados}/${sigBadge.req}</div>
+    </div>`;
+  })() : '';
+
+  cont.innerHTML = `${progBarraHTML}<div class="badges-grid">${ordenados.map(b => {
     const earned = todosGanados.has(b.id);
     const iconHtml = `<div class="badge-icon${earned ? '' : ' locked'}">
       <img src="${b.img}" alt="${b.nombre}"

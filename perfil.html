@@ -1628,7 +1628,7 @@ function mostrarToast(msg) {
 <!-- Modal compartir -->
 <div class="share-overlay" id="shareOverlay">
   <div class="share-canvas-wrap">
-    <canvas id="shareCanvas" width="380" height="640"></canvas>
+    <canvas id="shareCanvas" width="380" height="680"></canvas>
   </div>
   <div class="share-actions">
     <button class="share-btn-act share-btn-dl" onclick="descargarTarjeta()">⬇ DESCARGAR</button>
@@ -1688,232 +1688,265 @@ function avatarFallback(ctx, cx, cy, r) {
 
 async function generarTarjeta() {
   const canvas = document.getElementById('shareCanvas');
-  const ctx = canvas.getContext('2d');
-  const W=380, H=640;
+  const ctx    = canvas.getContext('2d');
+  const W=380, H=680;
   canvas.width=W*2; canvas.height=H*2;
   canvas.style.width=W+'px'; canvas.style.height=H+'px';
   ctx.scale(2,2);
 
-  // Cargar logo
+  // ── Cargar logo ──
   const logoImg = await new Promise(res => {
-    const img = new Image();
-    img.onload = () => res(img);
-    img.onerror = () => res(null);
-    img.src = 'icon-192.png';
+    const img=new Image(); img.onload=()=>res(img); img.onerror=()=>res(null); img.src='icon-192.png';
   });
 
-  // Fondo — leer fondo activo del jugador
+  // ── Fondo base ──
   ctx.fillStyle='#010306'; ctx.fillRect(0,0,W,H);
-
-  const fondoId = localStorage.getItem('nhEquip_fondos_' + (jugador?.id||''));
+  const fondoId   = localStorage.getItem('nhEquip_fondos_'+(jugador?.id||''));
   const fondosMap = {
-    bg_nebula:  ['#0d0020','#03050a'],
-    bg_forest:  ['#001a0d','#03050a'],
-    bg_lava:    ['#1a0500','#03050a'],
-    bg_ocean:   ['#00101a','#03050a'],
-    bg_void:    ['#0a0010','#000000'],
+    bg_nebula:['#0d0020','#03050a'], bg_forest:['#001a0d','#03050a'],
+    bg_lava:['#1a0500','#03050a'],   bg_ocean:['#00101a','#03050a'], bg_void:['#0a0010','#000000'],
   };
-
-  // Cargar textura de fondo CHH
   await new Promise(res => {
-    const bg_tex = new Image();
-    bg_tex.onload = () => {
-      ctx.save();
-      rRect(ctx, 0, 0, W, H, 16); ctx.clip();
-      ctx.drawImage(bg_tex, 0, 0, W, H);
-      ctx.restore();
-      res();
-    };
-    bg_tex.onerror = () => res();
-    bg_tex.src = 'REVERSO_2021.jpg';
+    const bg_tex=new Image();
+    bg_tex.onload=()=>{ ctx.save(); rRect(ctx,0,0,W,H,16); ctx.clip(); ctx.drawImage(bg_tex,0,0,W,H); ctx.restore(); res(); };
+    bg_tex.onerror=()=>res(); bg_tex.src='REVERSO_2021.jpg';
   });
-
-  if (false) {
-  } else if (fondoId && fondosMap[fondoId]) {
-    const [c1, c2] = fondosMap[fondoId];
-    const bgG = ctx.createRadialGradient(W*.3, H*.3, 0, W*.5, H*.5, W*.9);
-    bgG.addColorStop(0, c1); bgG.addColorStop(1, c2);
-    ctx.fillStyle = bgG; ctx.fillRect(0,0,W,H);
+  if (fondoId && fondosMap[fondoId]) {
+    const [c1,c2]=fondosMap[fondoId];
+    const bgG=ctx.createRadialGradient(W*.3,H*.3,0,W*.5,H*.5,W*.9);
+    bgG.addColorStop(0,c1); bgG.addColorStop(1,c2);
+    ctx.fillStyle=bgG; ctx.fillRect(0,0,W,H);
   } else {
     const bg=ctx.createLinearGradient(0,0,W,H);
     bg.addColorStop(0,'#030a12'); bg.addColorStop(1,'#02030a');
     ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
   }
+  ctx.fillStyle='rgba(0,0,0,0.56)'; ctx.fillRect(0,0,W,H);
 
-  // Capa oscura para legibilidad del texto
-  ctx.fillStyle='rgba(0,0,0,0.52)'; ctx.fillRect(0,0,W,H);
-
-  // Resplandor ambiental
-  const glow=ctx.createRadialGradient(W/2,H*.4,0,W/2,H*.4,240);
-  glow.addColorStop(0,'rgba(0,200,120,.06)'); glow.addColorStop(1,'rgba(0,0,0,0)');
+  // Resplandor + grid de puntos
+  const glow=ctx.createRadialGradient(W/2,H*.35,0,W/2,H*.35,220);
+  glow.addColorStop(0,'rgba(0,200,120,.07)'); glow.addColorStop(1,'rgba(0,0,0,0)');
   ctx.fillStyle=glow; ctx.fillRect(0,0,W,H);
-  ctx.fillStyle='rgba(0,255,157,.04)';
-  for(let x=14;x<W;x+=20) for(let y=14;y<H;y+=20){ctx.beginPath();ctx.arc(x,y,.7,0,Math.PI*2);ctx.fill();}
+  ctx.fillStyle='rgba(0,255,157,.035)';
+  for(let x=16;x<W;x+=22) for(let y=16;y<H;y+=22){ctx.beginPath();ctx.arc(x,y,.65,0,Math.PI*2);ctx.fill();}
 
-  // Marco
-  ctx.shadowColor='rgba(0,255,157,.5)'; ctx.shadowBlur=22;
+  // ── Marco triple ──
+  ctx.shadowColor='rgba(0,255,157,.55)'; ctx.shadowBlur=24;
   ctx.strokeStyle='#00ff9d'; ctx.lineWidth=2;
-  rRect(ctx,3,3,W-6,H-6,16); ctx.stroke(); ctx.shadowBlur=0;
-  ctx.strokeStyle='rgba(245,166,35,.5)'; ctx.lineWidth=1;
-  rRect(ctx,8,8,W-16,H-16,13); ctx.stroke();
-  ctx.strokeStyle='rgba(0,255,157,.12)'; ctx.lineWidth=1;
-  rRect(ctx,12,12,W-24,H-24,10); ctx.stroke();
+  rRect(ctx,3,3,W-6,H-6,18); ctx.stroke(); ctx.shadowBlur=0;
+  ctx.strokeStyle='rgba(245,166,35,.55)'; ctx.lineWidth=1;
+  rRect(ctx,8,8,W-16,H-16,14); ctx.stroke();
+  ctx.strokeStyle='rgba(0,255,157,.1)'; ctx.lineWidth=1;
+  rRect(ctx,13,13,W-26,H-26,11); ctx.stroke();
 
-  // Header
+  // Esquinas decorativas
+  [[16,16],[W-16,16],[16,H-16],[W-16,H-16]].forEach(([cx,cy])=>{
+    ctx.fillStyle='rgba(0,255,157,.5)'; ctx.shadowColor='#00ff9d'; ctx.shadowBlur=6;
+    ctx.beginPath(); ctx.arc(cx,cy,3,0,Math.PI*2); ctx.fill(); ctx.shadowBlur=0;
+  });
+
+  // ── HEADER ──
   const hG=ctx.createLinearGradient(0,0,W,0);
-  hG.addColorStop(0,'rgba(0,255,157,0)'); hG.addColorStop(.3,'rgba(0,255,157,.18)');
-  hG.addColorStop(.7,'rgba(0,80,255,.12)'); hG.addColorStop(1,'rgba(0,255,157,0)');
-  ctx.fillStyle=hG; rRect(ctx,12,12,W-24,52,10); ctx.fill();
+  hG.addColorStop(0,'rgba(0,255,157,0)'); hG.addColorStop(.3,'rgba(0,255,157,.2)');
+  hG.addColorStop(.7,'rgba(0,80,255,.14)'); hG.addColorStop(1,'rgba(0,255,157,0)');
+  ctx.fillStyle=hG; rRect(ctx,13,13,W-26,56,11); ctx.fill();
+
   const lT=ctx.createLinearGradient(20,0,W-20,0);
   lT.addColorStop(0,'transparent'); lT.addColorStop(.15,'#00ff9d');
   lT.addColorStop(.85,'#0055ff'); lT.addColorStop(1,'transparent');
   ctx.strokeStyle=lT; ctx.lineWidth=2; ctx.shadowColor='#00ff9d'; ctx.shadowBlur=8;
-  ctx.beginPath(); ctx.moveTo(20,13); ctx.lineTo(W-20,13); ctx.stroke(); ctx.shadowBlur=0;
+  ctx.beginPath(); ctx.moveTo(20,14); ctx.lineTo(W-20,14); ctx.stroke(); ctx.shadowBlur=0;
 
   if(logoImg){
-    const ls=38;
-    ctx.save(); ctx.beginPath(); ctx.arc(30+ls/2,38,ls/2,0,Math.PI*2); ctx.clip();
-    ctx.drawImage(logoImg,30,38-ls/2,ls,ls); ctx.restore();
-    ctx.strokeStyle='rgba(0,255,157,.6)'; ctx.lineWidth=1.5;
-    ctx.shadowColor='#00ff9d'; ctx.shadowBlur=6;
-    ctx.beginPath(); ctx.arc(30+ls/2,38,ls/2+1,0,Math.PI*2); ctx.stroke(); ctx.shadowBlur=0;
+    const ls=36; ctx.save(); ctx.beginPath(); ctx.arc(32+ls/2,40,ls/2,0,Math.PI*2); ctx.clip();
+    ctx.drawImage(logoImg,32,40-ls/2,ls,ls); ctx.restore();
+    ctx.strokeStyle='rgba(0,255,157,.5)'; ctx.lineWidth=1.5; ctx.shadowColor='#00ff9d'; ctx.shadowBlur=5;
+    ctx.beginPath(); ctx.arc(32+ls/2,40,ls/2+1,0,Math.PI*2); ctx.stroke(); ctx.shadowBlur=0;
   }
-
   ctx.textAlign='center'; ctx.font='900 13px monospace';
   ctx.fillStyle='#00ff9d'; ctx.shadowColor='#00ff9d'; ctx.shadowBlur=8;
-  ctx.fillText('CARTA ID DE JUGADOR', W/2+10, 33); ctx.shadowBlur=0;
-  ctx.font='700 8px monospace'; ctx.fillStyle='rgba(0,255,157,.55)';
-  ctx.fillText('CHOQUE DE HÉROES TCG', W/2+10, 48);
+  ctx.fillText('CARTA ID DE JUGADOR',W/2+10,34); ctx.shadowBlur=0;
+  ctx.font='700 7.5px monospace'; ctx.fillStyle='rgba(0,255,157,.5)';
+  ctx.fillText('CHOQUE DE HÉROES TCG · NEXO DE HÉROES',W/2+10,50);
 
-  // Avatar
-  const avCX=W/2, avCY=148, avR=58;
-  const avG=ctx.createRadialGradient(avCX,avCY+avR,0,avCX,avCY,avR*2.2);
-  avG.addColorStop(0,'rgba(0,255,157,.18)'); avG.addColorStop(1,'rgba(0,0,0,0)');
-  ctx.fillStyle=avG; ctx.fillRect(avCX-100,avCY-80,200,200);
-  ctx.strokeStyle='rgba(245,166,35,.2)'; ctx.lineWidth=10;
-  ctx.beginPath(); ctx.arc(avCX,avCY,avR+18,0,Math.PI*2); ctx.stroke();
-  ctx.strokeStyle='rgba(0,255,157,.25)'; ctx.lineWidth=3;
-  ctx.shadowColor='#00ff9d'; ctx.shadowBlur=10;
-  ctx.beginPath(); ctx.arc(avCX,avCY,avR+9,0,Math.PI*2); ctx.stroke(); ctx.shadowBlur=0;
-  [0,90,180,270].forEach(deg => {
+  // ── AVATAR ──
+  const avCX=W/2, avCY=145, avR=54;
+  // Halo exterior dorado
+  ctx.strokeStyle='rgba(245,166,35,.18)'; ctx.lineWidth=12;
+  ctx.beginPath(); ctx.arc(avCX,avCY,avR+20,0,Math.PI*2); ctx.stroke();
+  // Anillo neon
+  ctx.strokeStyle='rgba(0,255,157,.3)'; ctx.lineWidth=2.5;
+  ctx.shadowColor='#00ff9d'; ctx.shadowBlur=12;
+  ctx.beginPath(); ctx.arc(avCX,avCY,avR+8,0,Math.PI*2); ctx.stroke(); ctx.shadowBlur=0;
+  // Marcadores cardinales
+  [0,60,120,180,240,300].forEach(deg=>{
     const rad=(deg-90)*Math.PI/180;
-    ctx.strokeStyle='#f5a623'; ctx.lineWidth=2;
-    ctx.shadowColor='#f5a623'; ctx.shadowBlur=6;
+    ctx.strokeStyle='#f5a623'; ctx.lineWidth=1.5; ctx.shadowColor='#f5a623'; ctx.shadowBlur=5;
     ctx.beginPath();
-    ctx.moveTo(avCX+Math.cos(rad)*(avR+14),avCY+Math.sin(rad)*(avR+14));
-    ctx.lineTo(avCX+Math.cos(rad)*(avR+22),avCY+Math.sin(rad)*(avR+22));
+    ctx.moveTo(avCX+Math.cos(rad)*(avR+12),avCY+Math.sin(rad)*(avR+12));
+    ctx.lineTo(avCX+Math.cos(rad)*(avR+19),avCY+Math.sin(rad)*(avR+19));
     ctx.stroke(); ctx.shadowBlur=0;
   });
+  // Foto
   ctx.save(); ctx.beginPath(); ctx.arc(avCX,avCY,avR,0,Math.PI*2); ctx.clip();
   const avEl=document.querySelector('#avatar-display img');
   if(avEl&&avEl.complete&&avEl.naturalWidth>0){try{ctx.drawImage(avEl,avCX-avR,avCY-avR,avR*2,avR*2);}catch(e){avatarFallback(ctx,avCX,avCY,avR);}}
   else{avatarFallback(ctx,avCX,avCY,avR);}
   ctx.restore();
-  ctx.strokeStyle='#00ff9d'; ctx.lineWidth=2.5;
-  ctx.shadowColor='#00ff9d'; ctx.shadowBlur=14;
+  ctx.strokeStyle='#00ff9d'; ctx.lineWidth=2.5; ctx.shadowColor='#00ff9d'; ctx.shadowBlur=14;
   ctx.beginPath(); ctx.arc(avCX,avCY,avR+1,0,Math.PI*2); ctx.stroke(); ctx.shadowBlur=0;
 
-  // Nombre
+  // ── NOMBRE + ID ──
   const nombre=(jugador?.nombre||'—').toUpperCase();
   const nick=jugador?.nick||'', id=jugador?.id||'';
   ctx.textAlign='center';
   if(nick){
-    ctx.font='900 22px monospace'; ctx.fillStyle='#00ff9d';
-    ctx.shadowColor='#00ff9d'; ctx.shadowBlur=10;
-    ctx.fillText(nick.toUpperCase(),W/2,226); ctx.shadowBlur=0;
-    ctx.font='600 12px sans-serif'; ctx.fillStyle='rgba(200,220,255,.7)';
-    ctx.fillText(nombre,W/2,244);
+    ctx.font='900 20px monospace'; ctx.fillStyle='#00ff9d'; ctx.shadowColor='#00ff9d'; ctx.shadowBlur=10;
+    ctx.fillText(nick.toUpperCase(),W/2,220); ctx.shadowBlur=0;
+    ctx.font='600 11px sans-serif'; ctx.fillStyle='rgba(200,220,255,.65)';
+    ctx.fillText(nombre,W/2,236);
   } else {
-    ctx.font='900 19px monospace'; ctx.fillStyle='#fff';
-    ctx.shadowColor='rgba(255,255,255,.25)'; ctx.shadowBlur=8;
-    ctx.fillText(nombre,W/2,232); ctx.shadowBlur=0;
+    ctx.font='900 17px monospace'; ctx.fillStyle='#fff'; ctx.shadowColor='rgba(255,255,255,.2)'; ctx.shadowBlur=8;
+    ctx.fillText(nombre,W/2,226); ctx.shadowBlur=0;
   }
-  const idY=nick?262:250, idW=130;
-  ctx.fillStyle='rgba(0,255,157,.08)'; rRect(ctx,W/2-idW/2,idY-13,idW,18,4); ctx.fill();
-  ctx.strokeStyle='rgba(0,255,157,.3)'; ctx.lineWidth=1; rRect(ctx,W/2-idW/2,idY-13,idW,18,4); ctx.stroke();
-  ctx.font='700 9px monospace'; ctx.fillStyle='rgba(0,255,157,.7)'; ctx.textAlign='center'; ctx.fillText(id,W/2,idY);
+  const idY=nick?252:242, idW=136;
+  ctx.fillStyle='rgba(0,255,157,.07)'; rRect(ctx,W/2-idW/2,idY-13,idW,18,4); ctx.fill();
+  ctx.strokeStyle='rgba(0,255,157,.35)'; ctx.lineWidth=1; rRect(ctx,W/2-idW/2,idY-13,idW,18,4); ctx.stroke();
+  ctx.font='700 9px monospace'; ctx.fillStyle='rgba(0,255,157,.8)'; ctx.fillText(id,W/2,idY);
 
-  neonLine(ctx,W,idY+16);
+  neonLine(ctx,W,idY+14);
 
-  // Stats
-  const sY=idY+30;
-  const stats=[
-    {l:'PUNTOS',  v:String(_shareStats.pts    ||document.getElementById('s-puntos').textContent ||'0'),col:'#ffd700'},
-    {l:'TORNEOS', v:String(_shareStats.torneos||document.getElementById('s-torneos').textContent||'0'),col:'#00ff9d'},
-    {l:'RANKING', v:_shareStats.pos?'#'+_shareStats.pos:'—',col:'#cc55ff'}
+  // ── NIVEL ──
+  const nivelY=idY+26;
+  const totalBadgesGanados = document.querySelectorAll('#badges-container .badge-icon:not(.locked)').length;
+  const nivelActual = calcularNivel(totalBadgesGanados);
+  const nivelSig    = NIVELES.find(n=>n.nivel===nivelActual.nivel+1);
+  const nivelPct    = nivelSig ? Math.min(100,Math.round(((totalBadgesGanados-nivelActual.min)/(nivelActual.max-nivelActual.min+1))*100)) : 100;
+
+  // Fondo de nivel
+  const nvBg=ctx.createLinearGradient(16,nivelY,W-16,nivelY);
+  nvBg.addColorStop(0,'rgba(0,255,157,.04)'); nvBg.addColorStop(.5,'rgba(0,255,157,.1)'); nvBg.addColorStop(1,'rgba(0,255,157,.04)');
+  ctx.fillStyle=nvBg; rRect(ctx,16,nivelY,W-32,36,8); ctx.fill();
+  ctx.strokeStyle='rgba(0,255,157,.2)'; ctx.lineWidth=1; rRect(ctx,16,nivelY,W-32,36,8); ctx.stroke();
+
+  // Badge de nivel
+  const nvLblW=52;
+  ctx.fillStyle='rgba(0,255,157,.15)'; rRect(ctx,22,nivelY+6,nvLblW,24,5); ctx.fill();
+  ctx.strokeStyle='rgba(0,255,157,.5)'; ctx.lineWidth=1; rRect(ctx,22,nivelY+6,nvLblW,24,5); ctx.stroke();
+  ctx.font='900 8px monospace'; ctx.fillStyle='#00ff9d'; ctx.textAlign='center';
+  ctx.shadowColor='#00ff9d'; ctx.shadowBlur=4;
+  ctx.fillText('NV '+nivelActual.nivel,22+nvLblW/2,nivelY+16); ctx.shadowBlur=0;
+  ctx.font='700 6.5px monospace'; ctx.fillStyle='rgba(0,255,157,.6)';
+  ctx.fillText(nivelActual.nombre.toUpperCase(),22+nvLblW/2,nivelY+27);
+
+  // Barra de progreso nivel
+  const barX=82, barW=W-32-82-10, barY=nivelY+10, barH=6;
+  ctx.fillStyle='rgba(255,255,255,.06)'; rRect(ctx,barX,barY,barW,barH,3); ctx.fill();
+  const barFill=ctx.createLinearGradient(barX,0,barX+barW,0);
+  barFill.addColorStop(0,'#00ff9d'); barFill.addColorStop(1,'#00c875');
+  ctx.fillStyle=barFill; rRect(ctx,barX,barY,barW*(nivelPct/100),barH,3); ctx.fill();
+  ctx.font='600 6px monospace'; ctx.fillStyle='rgba(160,200,160,.5)'; ctx.textAlign='left';
+  ctx.fillText(totalBadgesGanados+' logros'+(nivelSig?' · faltan '+(nivelActual.max+1-totalBadgesGanados)+' para '+nivelSig.nombre:''),barX,nivelY+30);
+
+  neonLine(ctx,W,nivelY+42);
+
+  // ── STATS 4 COLUMNAS ──
+  const sY=nivelY+54;
+  const hp = (() => {
+    const el=document.getElementById('hp-container');
+    const m=el?.textContent?.match(/(\d+)\s*HP/);
+    return m?m[1]:'—';
+  })();
+  const stats4=[
+    {l:'PUNTOS',   v:String(_shareStats.pts||document.getElementById('s-puntos').textContent||'0'), col:'#ffd700'},
+    {l:'HERO PESOS',v:'⬡'+hp,                                                                       col:'#f5a623'},
+    {l:'TORNEOS',  v:String(_shareStats.torneos||document.getElementById('s-torneos').textContent||'0'), col:'#00ff9d'},
+    {l:'VICTORIAS',v:String(_shareStats.wins||0),                                                   col:'#cc55ff'},
   ];
-  const cw=(W-48)/3;
-  stats.forEach((s,i)=>{
-    const cx=16+cw*i+cw/2, bx=16+cw*i+2;
-    const bg2=ctx.createLinearGradient(bx,sY,bx,sY+58);
+  const cw=(W-36)/4;
+  stats4.forEach((s,i)=>{
+    const cx=18+cw*i+cw/2, bx=18+cw*i+2;
+    const bg2=ctx.createLinearGradient(bx,sY,bx,sY+54);
     bg2.addColorStop(0,'rgba(255,255,255,.04)'); bg2.addColorStop(1,'rgba(0,0,0,.2)');
-    ctx.fillStyle=bg2; rRect(ctx,bx,sY-2,cw-4,58,8); ctx.fill();
+    ctx.fillStyle=bg2; rRect(ctx,bx,sY-2,cw-4,54,7); ctx.fill();
     ctx.strokeStyle=s.col+'55'; ctx.lineWidth=1;
-    ctx.shadowColor=s.col; ctx.shadowBlur=6; rRect(ctx,bx,sY-2,cw-4,58,8); ctx.stroke(); ctx.shadowBlur=0;
-    ctx.font='900 22px monospace'; ctx.fillStyle=s.col;
-    ctx.shadowColor=s.col; ctx.shadowBlur=10; ctx.textAlign='center'; ctx.fillText(s.v,cx,sY+30); ctx.shadowBlur=0;
-    ctx.font='700 7px monospace'; ctx.fillStyle='rgba(160,190,230,.6)'; ctx.fillText(s.l,cx,sY+46);
+    ctx.shadowColor=s.col; ctx.shadowBlur=5; rRect(ctx,bx,sY-2,cw-4,54,7); ctx.stroke(); ctx.shadowBlur=0;
+    ctx.font='900 '+(s.v.length>4?'14':'18')+'px monospace'; ctx.fillStyle=s.col;
+    ctx.shadowColor=s.col; ctx.shadowBlur=8; ctx.textAlign='center'; ctx.fillText(s.v,cx,sY+27); ctx.shadowBlur=0;
+    ctx.font='600 6px monospace'; ctx.fillStyle='rgba(160,190,230,.55)'; ctx.fillText(s.l,cx,sY+43);
   });
 
-  const ry=sY+72;
+  // W / L
+  const ry=sY+66;
   const ww=_shareStats.wins||0, ll=_shareStats.losses||0;
-  ctx.font='800 11px monospace'; ctx.textAlign='center';
-  ctx.fillStyle='#00ff9d'; ctx.shadowColor='#00ff9d'; ctx.shadowBlur=6; ctx.fillText(ww+'W',W/2-34,ry); ctx.shadowBlur=0;
-  ctx.fillStyle='rgba(150,180,220,.35)'; ctx.fillText('—',W/2,ry);
-  ctx.fillStyle='#ff4d6d'; ctx.shadowColor='#ff4d6d'; ctx.shadowBlur=6; ctx.fillText(ll+'L',W/2+34,ry); ctx.shadowBlur=0;
+  ctx.font='800 10px monospace'; ctx.textAlign='center';
+  ctx.fillStyle='#00ff9d'; ctx.shadowColor='#00ff9d'; ctx.shadowBlur=5; ctx.fillText(ww+'W',W/2-30,ry); ctx.shadowBlur=0;
+  ctx.fillStyle='rgba(150,180,220,.3)'; ctx.fillText('·',W/2,ry);
+  ctx.fillStyle='#ff4d6d'; ctx.shadowColor='#ff4d6d'; ctx.shadowBlur=5; ctx.fillText(ll+'L',W/2+30,ry); ctx.shadowBlur=0;
 
-  neonLine(ctx,W,ry+14);
+  neonLine(ctx,W,ry+12);
 
-  // Badges
-  const by=ry+28;
-  ctx.font='700 7px monospace'; ctx.fillStyle='rgba(245,166,35,.6)'; ctx.textAlign='center';
-  ctx.fillText('★  LOGROS DESBLOQUEADOS  ★',W/2,by);
+  // ── LOGRO DESTACADO ──
+  const logy=ry+24;
+  ctx.font='700 7px monospace'; ctx.fillStyle='rgba(245,166,35,.65)'; ctx.textAlign='center';
+  ctx.fillText('⭐  LOGRO DESTACADO  ⭐',W/2,logy);
+
   const bEls=document.querySelectorAll('#badges-container .badge-item');
-  const earned=[];
+  const earnedBadges=[];
   bEls.forEach(el=>{
     const icon=el.querySelector('.badge-icon');
     if(icon&&!icon.classList.contains('locked')){
       const img=icon.querySelector('img');
-      earned.push({emoji:img?null:(icon.textContent.trim()||'⭐'),img:img||null});
+      earnedBadges.push({emoji:img?null:(icon.textContent.trim()||'⭐'),img:img||null});
     }
   });
-  if(earned.length){
-    const max=Math.min(earned.length,10), cols=Math.min(max,5), bs=34, gap=7;
-    const tot=cols*bs+(cols-1)*gap, sx=(W-tot)/2;
-    for(let i=0;i<max;i++){
-      const col=i%cols, row=Math.floor(i/cols);
-      const bx=sx+col*(bs+gap), byy=by+10+row*(bs+gap);
-      ctx.fillStyle='rgba(245,166,35,.08)'; rRect(ctx,bx,byy,bs,bs,7); ctx.fill();
-      ctx.strokeStyle='rgba(245,166,35,.5)'; ctx.lineWidth=1;
-      ctx.shadowColor='#f5a623'; ctx.shadowBlur=5; rRect(ctx,bx,byy,bs,bs,7); ctx.stroke(); ctx.shadowBlur=0;
-      if(earned[i].img){try{ctx.save();ctx.filter='none';ctx.globalAlpha=1;ctx.drawImage(earned[i].img,bx+3,byy+3,bs-6,bs-6);ctx.restore();}catch(e){}}
-      else{ctx.font='18px serif'; ctx.textAlign='center'; ctx.fillText(earned[i].emoji,bx+bs/2,byy+bs*.68);}
+
+  // Mostrar el último logro desbloqueado grande + los anteriores pequeños
+  if(earnedBadges.length){
+    // Logro principal (último)
+    const main=earnedBadges[earnedBadges.length-1];
+    const mainS=56, mainX=W/2-mainS/2, mainY=logy+8;
+    ctx.fillStyle='rgba(245,166,35,.1)'; rRect(ctx,mainX,mainY,mainS,mainS,10); ctx.fill();
+    ctx.strokeStyle='#f5a623'; ctx.lineWidth=1.5; ctx.shadowColor='#f5a623'; ctx.shadowBlur=8;
+    rRect(ctx,mainX,mainY,mainS,mainS,10); ctx.stroke(); ctx.shadowBlur=0;
+    if(main.img){try{ctx.save();ctx.globalAlpha=1;ctx.drawImage(main.img,mainX+4,mainY+4,mainS-8,mainS-8);ctx.restore();}catch(e){}}
+    else{ctx.font='28px serif'; ctx.textAlign='center'; ctx.fillText(main.emoji,W/2,mainY+mainS*.72);}
+
+    // Resto de logros pequeños (máx 8, en fila)
+    const rest=earnedBadges.slice(0,-1);
+    const maxR=Math.min(rest.length,8), bs=26, gap=6;
+    const tot=maxR*bs+(maxR-1)*gap, sx=(W-tot)/2;
+    const rowY=mainY+mainS+8;
+    for(let i=0;i<maxR;i++){
+      const bx=sx+i*(bs+gap);
+      ctx.fillStyle='rgba(245,166,35,.07)'; rRect(ctx,bx,rowY,bs,bs,5); ctx.fill();
+      ctx.strokeStyle='rgba(245,166,35,.4)'; ctx.lineWidth=1; rRect(ctx,bx,rowY,bs,bs,5); ctx.stroke();
+      if(rest[i].img){try{ctx.save();ctx.globalAlpha=1;ctx.drawImage(rest[i].img,bx+2,rowY+2,bs-4,bs-4);ctx.restore();}catch(e){}}
+      else{ctx.font='13px serif'; ctx.textAlign='center'; ctx.fillText(rest[i].emoji,bx+bs/2,rowY+bs*.72);}
     }
-    if(earned.length>10){ctx.font='700 8px monospace'; ctx.fillStyle='rgba(150,180,220,.4)'; ctx.textAlign='center';
-      const rows=Math.ceil(max/cols); ctx.fillText('+'+(earned.length-10)+' más',W/2,by+10+rows*(bs+gap)+4);}
+    if(earnedBadges.length>9){
+      ctx.font='700 7px monospace'; ctx.fillStyle='rgba(150,180,220,.4)'; ctx.textAlign='center';
+      ctx.fillText('+'+(earnedBadges.length-9)+' más',W/2,rowY+bs+10);
+    }
   } else {
-    ctx.font='500 10px sans-serif'; ctx.fillStyle='rgba(100,140,180,.3)'; ctx.textAlign='center';
-    ctx.fillText('Sin logros desbloqueados aún',W/2,by+32);
+    ctx.font='500 9px sans-serif'; ctx.fillStyle='rgba(100,140,180,.3)'; ctx.textAlign='center';
+    ctx.fillText('Sin logros desbloqueados aún',W/2,logy+40);
   }
 
-  // Footer
-  const ftY=H-42; neonLine(ctx,W,ftY);
+  // ── FOOTER ──
+  const ftY=H-40; neonLine(ctx,W,ftY);
   const ftG=ctx.createLinearGradient(0,ftY,W,ftY);
-  ftG.addColorStop(0,'rgba(0,0,0,0)'); ftG.addColorStop(.5,'rgba(0,255,157,.06)'); ftG.addColorStop(1,'rgba(0,0,0,0)');
-  ctx.fillStyle=ftG; ctx.fillRect(12,ftY,W-24,H-ftY-12);
-  const lsz=26, lx=18, ly=ftY+6;
+  ftG.addColorStop(0,'rgba(0,0,0,0)'); ftG.addColorStop(.5,'rgba(0,255,157,.05)'); ftG.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=ftG; ctx.fillRect(13,ftY,W-26,H-ftY-13);
+  const lsz=24, lx=20, ly=ftY+7;
   if(logoImg){ctx.globalAlpha=.85; ctx.drawImage(logoImg,lx,ly,lsz,lsz); ctx.globalAlpha=1;}
-  const tx=lx+lsz+8;
-  ctx.textAlign='left'; ctx.font='700 8px monospace'; ctx.fillStyle='rgba(0,255,157,.6)';
-  ctx.shadowColor='#00ff9d'; ctx.shadowBlur=4; ctx.fillText('CHOQUE DE HÉROES TCG',tx,ftY+18); ctx.shadowBlur=0;
-  ctx.font='600 6px monospace'; ctx.fillStyle='rgba(150,180,220,.4)';
-  ctx.fillText('CODEX CÓMICS  2016–2026',tx,ftY+30);
-
-  // Esquinas
-  [[16,16],[W-16,16],[16,H-16],[W-16,H-16]].forEach(([cx,cy])=>{
-    ctx.fillStyle='rgba(0,255,157,.4)'; ctx.shadowColor='#00ff9d'; ctx.shadowBlur=4;
-    ctx.beginPath(); ctx.arc(cx,cy,2.5,0,Math.PI*2); ctx.fill(); ctx.shadowBlur=0;
-  });
+  ctx.textAlign='left'; ctx.font='700 7.5px monospace'; ctx.fillStyle='rgba(0,255,157,.6)';
+  ctx.shadowColor='#00ff9d'; ctx.shadowBlur=4; ctx.fillText('CHOQUE DE HÉROES TCG',lx+lsz+8,ftY+17); ctx.shadowBlur=0;
+  ctx.font='600 6px monospace'; ctx.fillStyle='rgba(150,180,220,.35)';
+  ctx.fillText('CODEX CÓMICS  2016–2026',lx+lsz+8,ftY+29);
+  // URL a la derecha
+  ctx.textAlign='right'; ctx.font='600 6px monospace'; ctx.fillStyle='rgba(0,255,157,.35)';
+  ctx.fillText('nexo-de-heroes.web.app',W-20,ftY+23);
 }
 </script>
 

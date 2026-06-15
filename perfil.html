@@ -864,17 +864,25 @@ async function cargarInscripciones() {
     }
 
     // Construir set de torneos con resultado para este jugador
-    // Columnas: Fecha Inscripción[0], ID Jugador[1], ID Tienda[2], Torneo[3], Fecha Torneo[4], Nombre Jugador[5], # Lugar[6]
+    // Estructura real: Fecha[0], ID Tienda[1], Torneo/Fecha[2], 1°Nombre[3], 1°ID[4], 2°Nombre[5], 2°ID[6],
+    //                  3°Nombre[7], 3°ID[8], 4°Nombre[9], 4°ID[10], 5°Nombre[11], 5°ID[12],
+    //                  6°Nombre[13], 6°ID[14], 7°Nombre[15], 7°ID[16], 8°Nombre[17], 8°ID[18],
+    //                  9°Nombre[19], 9°ID[20]
+    const ID_COLS = [5, 7, 9, 11, 13, 15, 17, 19, 21]; // columnas de IDs: 1°ID=c[5], 2°ID=c[7], etc.
     const conResultado = new Set();
     try {
       const txt = await resRes.text();
       const json = JSON.parse(txt.slice(txt.indexOf('({')+1, txt.lastIndexOf(')')));
       for (const row of (json.table?.rows || [])) {
         const c = row.c;
-        const idJugador = (c[1]?.v || '').toString().trim().toUpperCase();
-        const torneo    = (c[3]?.v || '').toString().trim();
-        const lugar     = c[6]?.v;
-        if (idJugador === jugador.id.toUpperCase() && lugar !== null && lugar !== undefined && lugar !== '') {
+        const torneo = (c[2]?.v || '').toString().trim();
+        if (!torneo) continue;
+        // Revisar si el ID del jugador aparece en cualquier columna de IDs
+        const jugadorEnTorneo = ID_COLS.some(i => {
+          const val = (c[i]?.v || '').toString().trim().toUpperCase();
+          return val === jugador.id.toUpperCase();
+        });
+        if (jugadorEnTorneo) {
           conResultado.add(torneo.toLowerCase());
         }
       }

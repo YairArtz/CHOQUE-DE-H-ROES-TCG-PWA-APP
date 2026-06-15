@@ -850,28 +850,55 @@ async function cargarInscripciones() {
   const cont = document.getElementById('inscripciones-container');
   if (!jugador) return;
   try {
-    const res  = await fetch(`${TORNEOS_URL}?action=mis_inscripciones&jugador_id=${encodeURIComponent(jugador.id)}`);
-    const data = await res.json();
+    // Fetch inscripciones y resultados en paralelo
+    const RESULTADOS_URL = `https://docs.google.com/spreadsheets/d/1cZ_cf7-y0ugtoI5Obr2lCxUrYwVLHGE8QKiInMSVwTA/gviz/tq?tqx=out:json&sheet=Resultados`;
+    const [resInsc, resRes] = await Promise.all([
+      fetch(`${TORNEOS_URL}?action=mis_inscripciones&jugador_id=${encodeURIComponent(jugador.id)}`),
+      fetch(RESULTADOS_URL + '&_t=' + Date.now())
+    ]);
+
+    const data = await resInsc.json();
     if (data.status !== 'ok' || !Array.isArray(data.inscripciones) || !data.inscripciones.length) {
-      cont.innerHTML = '<div class="empty-msg">📋 Sin inscripciones pendientes.</div>';
+      cont.innerHTML = '<div class="empty-msg">📋 Sin inscripciones registradas.</div>';
       return;
     }
-    // Si el total de inscripciones supera lo que reportó el ranking (Top 8 only), corregir el stat
+
+    // Construir set de torneos con resultado para este jugador
+    // Columnas: Fecha Inscripción[0], ID Jugador[1], ID Tienda[2], Torneo[3], Fecha Torneo[4], Nombre Jugador[5], # Lugar[6]
+    const conResultado = new Set();
+    try {
+      const txt = await resRes.text();
+      const json = JSON.parse(txt.slice(txt.indexOf('({')+1, txt.lastIndexOf(')')));
+      for (const row of (json.table?.rows || [])) {
+        const c = row.c;
+        const idJugador = (c[1]?.v || '').toString().trim().toUpperCase();
+        const torneo    = (c[3]?.v || '').toString().trim();
+        const lugar     = c[6]?.v;
+        if (idJugador === jugador.id.toUpperCase() && lugar !== null && lugar !== undefined && lugar !== '') {
+          conResultado.add(torneo.toLowerCase());
+        }
+      }
+    } catch(e) { /* Si falla el sheet de resultados, mostramos todo como pendiente */ }
+
+    // Corregir stat de torneos si hace falta
     const totalInsc = data.inscripciones.length;
     const sTorneos  = document.getElementById('s-torneos');
     if (sTorneos && totalInsc > parseInt(sTorneos.textContent || '0', 10)) {
       sTorneos.textContent = totalInsc;
     }
+
     cont.innerHTML = data.inscripciones.map(t => {
-      const fecha = t.tourdate || '';
+      const fecha       = t.tourdate || '';
+      const completado  = conResultado.has((t.tourname || '').toLowerCase());
+      const badgeHtml   = completado
+        ? `<div class="torneo-pos" style="background:rgba(0,255,157,.08);color:var(--accent);font-size:.75rem;padding:4px 10px;border-radius:6px;">✅ COMPLETADO</div>`
+        : `<div class="torneo-pos" style="background:rgba(245,166,35,.12);color:var(--gold);font-size:.75rem;padding:4px 10px;border-radius:6px;">⏳ PENDIENTE</div>`;
       return `<div class="torneo-item">
         <div>
           <div class="torneo-nombre">${t.tourname}</div>
           <div class="torneo-fecha">${fecha}${t.storeid ? ' · '+t.storeid : ''}</div>
         </div>
-        <div class="torneo-pos" style="background:rgba(245,166,35,.12);color:var(--gold);font-size:.75rem;padding:4px 10px;border-radius:6px;">
-          ⏳ PENDIENTE
-        </div>
+        ${badgeHtml}
       </div>`;
     }).join('');
   } catch(e) {

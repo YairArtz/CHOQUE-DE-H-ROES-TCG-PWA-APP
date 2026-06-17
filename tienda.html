@@ -389,6 +389,12 @@
           <div class="cat-name">CARTAS</div>
           <div class="cat-desc">Compra cartas sueltas con HP</div>
         </div>
+        <div class="cat-card" onclick="abrirSeccion('musica')" style="--cat-color:#cc55ff;--cat-dim:rgba(180,70,255,.1)">
+          <div class="cat-icon">🎵</div>
+          <div class="cat-name">MÚSICA</div>
+          <div class="cat-desc">Desbloquea pistas con puntos de liga</div>
+        </div>
+
         <div class="cat-card" onclick="abrirSeccion('canjear')" style="--cat-color:#00ff9d;--cat-dim:rgba(0,255,157,.1);grid-column:1/-1;display:flex;align-items:center;gap:16px;text-align:left;">
           <div class="cat-icon" style="font-size:1.8rem;min-width:48px;text-align:center;">📷</div>
           <div>
@@ -500,6 +506,19 @@
   </div>
 </div>
 
+  <!-- ═══ SECCIÓN MÚSICA ═══ -->
+  <div id="sec-musica" class="section-panel">
+    <button class="sec-back" onclick="volverMenu()">◀ TIENDA</button>
+    <div class="stitle">🎵 MÚSICA</div>
+    <p style="font-size:.8rem;color:var(--muted);margin-bottom:16px;line-height:1.5;">
+      Las pistas 1–10 están disponibles para todos. Las adicionales se desbloquean con puntos de liga.
+    </p>
+    <div id="musica-pts-bar" style="font-family:'Orbitron',sans-serif;font-size:.75rem;color:var(--gold);margin-bottom:16px;text-align:right;">
+      Tus puntos: <b id="musica-pts-val">—</b>
+    </div>
+    <div id="musica-grid"></div>
+  </div>
+
 <!-- Overlay apertura de sobre -->
 <div class="sobre-overlay" id="sobre-overlay">
   <div class="sobre-stage" id="sobre-stage">
@@ -569,6 +588,25 @@ const SOBRES_IMG_BASE = 'hero_pesos/sobres/';
 //  CATÁLOGO (sin cambios)
 // ════════════════════════════════════════════
 const CATALOGO = {
+  musica: [
+    // Pistas 1-10: gratis (pts:0), siempre desbloqueadas
+    {id:'pista_1',  nombre:'Choque de Héroes',            pts:0,   slot:1,  file:'pista_1.mp3',  dur:'2:17'},
+    {id:'pista_2',  nombre:'Kilimanjaro',                 pts:0,   slot:2,  file:'pista_2.mp3',  dur:'2:08'},
+    {id:'pista_3',  nombre:'L.A.B. Metalúrgico',          pts:0,   slot:3,  file:'pista_3.mp3',  dur:'2:23'},
+    {id:'pista_4',  nombre:'Legión del Mar',              pts:0,   slot:4,  file:'pista_4.mp3',  dur:'4:00'},
+    {id:'pista_5',  nombre:'Encantadoras de Shalem',      pts:0,   slot:5,  file:'pista_5.mp3',  dur:'2:19'},
+    {id:'pista_6',  nombre:'EX-Pada Reencarnada',         pts:0,   slot:6,  file:'pista_6.mp3',  dur:'2:38'},
+    {id:'pista_7',  nombre:'Max-Kara',                    pts:0,   slot:7,  file:'pista_7.mp3',  dur:'2:58'},
+    {id:'pista_8',  nombre:'Mictlán, tierra de Muertos',  pts:0,   slot:8,  file:'pista_8.mp3',  dur:'2:37'},
+    {id:'pista_9',  nombre:'Archivos de Nexotlan',        pts:0,   slot:9,  file:'pista_9.mp3',  dur:'2:58'},
+    {id:'pista_10', nombre:'Vellond, el Gran Regente',    pts:0,   slot:10, file:'pista_10.mp3', dur:'3:03'},
+    // Pistas 11+: requieren puntos de liga
+    {id:'pista_11', nombre:'Pista 11',                    pts:50,  slot:11, file:'pista_11.mp3', dur:'0:00'},
+    {id:'pista_12', nombre:'Pista 12',                    pts:50,  slot:12, file:'pista_12.mp3', dur:'0:00'},
+    {id:'pista_13', nombre:'Pista 13',                    pts:100, slot:13, file:'pista_13.mp3', dur:'0:00'},
+    {id:'pista_14', nombre:'Pista 14',                    pts:100, slot:14, file:'pista_14.mp3', dur:'0:00'},
+    {id:'pista_15', nombre:'Pista 15',                    pts:150, slot:15, file:'pista_15.mp3', dur:'0:00'},
+  ],
   avatares: [
     {id:'av1', nombre:'Avatar 1', pts:0, img:'avatares/avatar_1.jpg', emoji:'👤'},
     {id:'av2', nombre:'Avatar 2', pts:0, img:'avatares/avatar_2.jpg', emoji:'👤'},
@@ -757,6 +795,7 @@ function abrirSeccion(sec) {
   else if (sec === 'temas') { renderItems('temas'); }
   else if (sec === 'cartas') { cargarCatalogoCartas(); }
   else if (sec === 'canjear') { abrirCanjear(); }
+  else if (sec === 'musica') { renderMusica(); }
 }
 
 function volverMenu() {
@@ -1566,6 +1605,71 @@ function detenerScanner() {
   if (qrStream) { qrStream.getTracks().forEach(t => t.stop()); qrStream = null; }
   document.getElementById('qr-scanner-wrap').style.display = 'none';
 }
+
+// ════════════════════════════════════════════
+//  MÚSICA — Desbloqueo por puntos de liga
+// ════════════════════════════════════════════
+const MP_CARPETA = 'musica_choque/';
+
+function keyMusicaDesbloqueada() {
+  return jugador?.id ? `nhMusica_${jugador.id}` : null;
+}
+function getMusicaDesbloqueada() {
+  const key = keyMusicaDesbloqueada();
+  if (!key) return [];
+  try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) { return []; }
+}
+function pistaBloqueada(pista) {
+  if (pista.pts === 0) return false; // gratis
+  return !getMusicaDesbloqueada().includes(pista.id);
+}
+
+function renderMusica() {
+  const grid = document.getElementById('musica-grid');
+  if (!grid) return;
+  const desbloqueadas = getMusicaDesbloqueada();
+
+  grid.innerHTML = CATALOGO.musica.map(p => {
+    const libre = p.pts === 0;
+    const tengo = libre || desbloqueadas.includes(p.id);
+    const puedo = !tengo && totalPts >= p.pts;
+
+    const estado = tengo
+      ? `<div style="color:var(--neon);font-size:.7rem;font-family:'Orbitron',sans-serif;">✓ DESBLOQUEADA</div>`
+      : puedo
+        ? `<button class="item-btn btn-unlock" onclick="desbloquearMusica('${p.id}')">🔓 ${p.pts} PTS</button>`
+        : `<button class="item-btn btn-locked" disabled>🔒 ${p.pts} PTS</button>
+           <div style="font-size:.65rem;color:var(--muted);margin-top:4px;">${totalPts} / ${p.pts} pts</div>`;
+
+    return `<div class="item-card${tengo ? ' unlocked' : ''}" style="display:flex;align-items:center;gap:12px;padding:12px;margin-bottom:8px;border-radius:8px;background:var(--card);border:1px solid var(--border);">
+      <div style="width:40px;height:40px;border-radius:50%;background:${tengo ? 'rgba(180,70,255,.2)' : 'rgba(255,255,255,.04)'};border:1px solid ${tengo ? 'var(--purple)' : 'var(--border)'};display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;">
+        ${tengo ? '🎵' : '🔒'}
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:700;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.nombre}</div>
+        <div style="font-size:.7rem;color:var(--muted);">Pista ${p.slot} · ${p.dur}</div>
+      </div>
+      <div style="flex-shrink:0;text-align:right;">${estado}</div>
+    </div>`;
+  }).join('');
+}
+
+function desbloquearMusica(pistaId) {
+  const pista = CATALOGO.musica.find(p => p.id === pistaId);
+  if (!pista) return;
+  if (totalPts < pista.pts) { mostrarToast('No tienes suficientes puntos de liga'); return; }
+  const key = keyMusicaDesbloqueada();
+  if (!key) { mostrarToast('Inicia sesión primero'); return; }
+  const lista = getMusicaDesbloqueada();
+  if (!lista.includes(pistaId)) lista.push(pistaId);
+  localStorage.setItem(key, JSON.stringify(lista));
+  mostrarToast(`¡"${pista.nombre}" desbloqueada!`);
+  renderMusica();
+  // Actualizar mini-player en calculadora si está abierta en otra pestaña
+  localStorage.setItem('nhMusica_updated', Date.now().toString());
+}
+
+// abrirSeccion integrado directamente en la función principal
 </script>
 <script src="settings.js"></script>
 </body>

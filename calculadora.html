@@ -565,25 +565,24 @@ renderAll();
 // ═══════════════════════════════════════════════════════
 // MINI-PLAYER — Soundtrack de Batalla
 // ═══════════════════════════════════════════════════════
-const MP_CARPETA = 'musica_choque/';
+let MP_CARPETA = 'musica_choque/';
+let MP_CATALOGO = [];
+let MP_TRACKS = [];
+let mpIdx=-1, mpOn=false, mpLoop=true;
+const mpAudio=new Audio();
 
-const MP_CATALOGO = [
-  {id:'pista_1',  t:'Choque de Héroes',           d:'2:17', pts:0  },
-  {id:'pista_2',  t:'Kilimanjaro',                d:'2:08', pts:0  },
-  {id:'pista_3',  t:'L.A.B. Metalúrgico',         d:'2:23', pts:0  },
-  {id:'pista_4',  t:'Legión del Mar',             d:'4:00', pts:0  },
-  {id:'pista_5',  t:'Encantadoras de Shalem',     d:'2:19', pts:0  },
-  {id:'pista_6',  t:'EX-Pada Reencarnada',        d:'2:38', pts:0  },
-  {id:'pista_7',  t:'Max-Kara',                   d:'2:58', pts:0  },
-  {id:'pista_8',  t:'Mictlán, tierra de Muertos', d:'2:37', pts:0  },
-  {id:'pista_9',  t:'Archivos de Nexotlan',       d:'2:58', pts:0  },
-  {id:'pista_10', t:'Vellond, el Gran Regente',   d:'3:03', pts:0  },
-  {id:'pista_11', t:'Titan de Nexotlan',          d:'0:00', pts:0 },
-  {id:'pista_12', t:'Pista 12',                   d:'0:00', pts:50 },
-  {id:'pista_13', t:'Pista 13',                   d:'0:00', pts:100},
-  {id:'pista_14', t:'Pista 14',                   d:'0:00', pts:100},
-  {id:'pista_15', t:'Pista 15',                   d:'0:00', pts:150},
-];
+async function mpInit(){
+  try {
+    const res = await fetch('musica_config.json?v=' + Date.now());
+    const cfg = await res.json();
+    MP_CARPETA = cfg.carpeta || 'musica_choque/';
+    MP_CATALOGO = cfg.pistas || [];
+  } catch(e) {
+    console.warn('musica_config.json no encontrado, usando lista vacía');
+  }
+  MP_TRACKS = mpBuildTracks();
+  mpRender();
+}
 
 function mpGetDesbloqueadas(){
   try{
@@ -596,61 +595,11 @@ function mpGetDesbloqueadas(){
 function mpBuildTracks(){
   const d=mpGetDesbloqueadas();
   return MP_CATALOGO.map((p,i)=>({
-    id:p.id, file:p.id+'.mp3', title:p.t, dur:p.d,
+    id:p.id, file:p.id+'.mp3', title:p.titulo, dur:p.duracion,
     slot:i+1, pts:p.pts,
     libre: p.pts===0 || d.includes(p.id)
   }));
 }
-
-let MP_TRACKS = mpBuildTracks();
-let mpIdx=-1, mpOn=false, mpLoop=true;
-const mpAudio=new Audio();
-
-// Solo las libres participan en prev/next
-function mpFreeTracks(){ return MP_TRACKS.filter(t=>t.libre); }
-function mpFreeIdx(i){ return mpFreeTracks().findIndex(t=>t.id===MP_TRACKS[i]?.id); }
-
-function mpRender(){
-  const tracks = document.getElementById('mp-tracks');
-  tracks.innerHTML = '';
-  MP_TRACKS.forEach(function(t, i){
-    const div = document.createElement('div');
-    div.className = 'mp-track' + (i === mpIdx ? ' mp-active' : '');
-    if(!t.libre){
-      div.style.opacity = '0.45';
-      div.style.cursor = 'default';
-      div.addEventListener('click', function(){ mpToastBloqueada(t.title, t.pts); });
-    } else {
-      div.addEventListener('click', function(){ mpSelect(i); });
-    }
-    div.innerHTML =
-      '<div class="mp-track-num"' + (!t.libre ? ' style="color:var(--muted)"' : '') + '>' + String(t.slot).padStart(2,'0') + '</div>' +
-      '<div class="mp-track-name"' + (!t.libre ? ' style="color:var(--muted)"' : '') + '>' + (!t.libre ? '🔒 ' : '') + t.title + '</div>' +
-      '<div class="mp-track-dur">' + (t.libre ? t.dur : t.pts + 'pts') + '</div>';
-    tracks.appendChild(div);
-  });
-}
-
-function mpToastBloqueada(title, pts){
-  const old = document.getElementById('mp-toast-lock');
-  if(old) old.remove();
-  const el = document.createElement('div');
-  el.id = 'mp-toast-lock';
-  el.textContent = '🔒 ' + title + ' · ' + pts + ' pts de liga · Desbloquea en Tienda';
-  el.style.cssText = 'position:fixed;bottom:130px;left:50%;transform:translateX(-50%);background:rgba(10,16,36,.97);border:1px solid rgba(180,70,255,.4);color:#e0eeff;font-family:Orbitron,monospace;font-size:9px;letter-spacing:.8px;padding:10px 14px;border-radius:8px;z-index:9999;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis;';
-  document.body.appendChild(el);
-  setTimeout(function(){ el.remove(); }, 2800);
-}
-
-function mpSelect(i){
-  if(!MP_TRACKS[i]?.libre) return;
-  mpIdx=i;
-  const t=MP_TRACKS[i];
-  mpAudio.src=MP_CARPETA+t.file;
-  mpAudio.loop=mpLoop;
-  mpAudio.play().then(()=>{mpOn=true;mpUI();}).catch(()=>{mpOn=false;mpUI();});
-  document.getElementById('mp-now-name').textContent=t.title;
-  mpRender();
 }
 
 function mpTogglePlay(){
@@ -723,7 +672,7 @@ window.addEventListener('storage',(e)=>{
   }
 });
 
-mpRender();
+mpInit();
 </script>
 
 </body>

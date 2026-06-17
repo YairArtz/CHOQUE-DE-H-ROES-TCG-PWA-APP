@@ -394,7 +394,11 @@
           <div class="cat-name">MÚSICA</div>
           <div class="cat-desc">Desbloquea pistas con puntos de liga</div>
         </div>
-
+        <div class="cat-card" onclick="abrirSeccion('musica')" style="--cat-color:#cc55ff;--cat-dim:rgba(180,70,255,.1)">
+          <div class="cat-icon">🎵</div>
+          <div class="cat-name">MÚSICA</div>
+          <div class="cat-desc">Desbloquea pistas con puntos de liga</div>
+        </div>
         <div class="cat-card" onclick="abrirSeccion('canjear')" style="--cat-color:#00ff9d;--cat-dim:rgba(0,255,157,.1);grid-column:1/-1;display:flex;align-items:center;gap:16px;text-align:left;">
           <div class="cat-icon" style="font-size:1.8rem;min-width:48px;text-align:center;">📷</div>
           <div>
@@ -588,26 +592,8 @@ const SOBRES_IMG_BASE = 'hero_pesos/sobres/';
 //  CATÁLOGO (sin cambios)
 // ════════════════════════════════════════════
 const CATALOGO = {
-  musica: [
-    // Pistas 1-10: gratis (pts:0), siempre desbloqueadas
-    {id:'pista_1',  nombre:'Choque de Héroes',            pts:0,   slot:1,  file:'pista_1.mp3',  dur:'2:17'},
-    {id:'pista_2',  nombre:'Kilimanjaro',                 pts:0,   slot:2,  file:'pista_2.mp3',  dur:'2:08'},
-    {id:'pista_3',  nombre:'L.A.B. Metalúrgico',          pts:0,   slot:3,  file:'pista_3.mp3',  dur:'2:23'},
-    {id:'pista_4',  nombre:'Legión del Mar',              pts:0,   slot:4,  file:'pista_4.mp3',  dur:'4:00'},
-    {id:'pista_5',  nombre:'Encantadoras de Shalem',      pts:0,   slot:5,  file:'pista_5.mp3',  dur:'2:19'},
-    {id:'pista_6',  nombre:'EX-Pada Reencarnada',         pts:0,   slot:6,  file:'pista_6.mp3',  dur:'2:38'},
-    {id:'pista_7',  nombre:'Max-Kara',                    pts:0,   slot:7,  file:'pista_7.mp3',  dur:'2:58'},
-    {id:'pista_8',  nombre:'Mictlán, tierra de Muertos',  pts:0,   slot:8,  file:'pista_8.mp3',  dur:'2:37'},
-    {id:'pista_9',  nombre:'Archivos de Nexotlan',        pts:0,   slot:9,  file:'pista_9.mp3',  dur:'2:58'},
-    {id:'pista_10', nombre:'Vellond, el Gran Regente',    pts:0,   slot:10, file:'pista_10.mp3', dur:'3:03'},
-    // Pistas 11+: requieren puntos de liga
-    {id:'pista_11', nombre:'Pista 11',                    pts:50,  slot:11, file:'pista_11.mp3', dur:'0:00'},
-    {id:'pista_12', nombre:'Pista 12',                    pts:50,  slot:12, file:'pista_12.mp3', dur:'0:00'},
-    {id:'pista_13', nombre:'Pista 13',                    pts:100, slot:13, file:'pista_13.mp3', dur:'0:00'},
-    {id:'pista_14', nombre:'Pista 14',                    pts:100, slot:14, file:'pista_14.mp3', dur:'0:00'},
-    {id:'pista_15', nombre:'Pista 15',                    pts:150, slot:15, file:'pista_15.mp3', dur:'0:00'},
-  ],
-  avatares: [
+  musica: [], // cargado desde musica_config.json
+  avatares:  avatares: [
     {id:'av1', nombre:'Avatar 1', pts:0, img:'avatares/avatar_1.jpg', emoji:'👤'},
     {id:'av2', nombre:'Avatar 2', pts:0, img:'avatares/avatar_2.jpg', emoji:'👤'},
     {id:'av3', nombre:'Avatar 3', pts:0, img:'avatares/avatar_3.jpg', emoji:'👤'},
@@ -763,6 +749,25 @@ window.addEventListener('load', async () => {
 // ════════════════════════════════════════════
 //  PUNTOS RANKING
 // ════════════════════════════════════════════
+
+// ════════════════════════════════════════════
+//  MÚSICA — Cargar catálogo desde JSON
+// ════════════════════════════════════════════
+async function cargarCatalogoMusica() {
+  try {
+    const res = await fetch('musica_config.json?v=' + Date.now());
+    const cfg = await res.json();
+    CATALOGO.musica = (cfg.pistas || []).map(p => ({
+      id: p.id, nombre: p.titulo, pts: p.pts,
+      slot: cfg.pistas.indexOf(p) + 1,
+      file: p.id + '.mp3', dur: p.duracion
+    }));
+  } catch(e) {
+    console.warn('musica_config.json no disponible');
+  }
+}
+
+
 async function calcularPuntos() {
   try {
     const r = await fetch(RANKING_URL);
@@ -795,7 +800,6 @@ function abrirSeccion(sec) {
   else if (sec === 'temas') { renderItems('temas'); }
   else if (sec === 'cartas') { cargarCatalogoCartas(); }
   else if (sec === 'canjear') { abrirCanjear(); }
-  else if (sec === 'musica') { renderMusica(); }
 }
 
 function volverMenu() {
@@ -1669,7 +1673,16 @@ function desbloquearMusica(pistaId) {
   localStorage.setItem('nhMusica_updated', Date.now().toString());
 }
 
-// abrirSeccion integrado directamente en la función principal
+// Hookear abrirSeccion para cargar música
+const _origAbrirSeccion = abrirSeccion;
+abrirSeccion = function(tab) {
+  _origAbrirSeccion(tab);
+  if (tab === 'musica') {
+    const el = document.getElementById('musica-pts-val');
+    if (el) el.textContent = totalPts ?? '—';
+    renderMusica();
+  }
+};
 </script>
 <script src="settings.js"></script>
 </body>

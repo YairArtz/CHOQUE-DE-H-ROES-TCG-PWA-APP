@@ -329,35 +329,23 @@ footer p{font-family:'Rajdhani',sans-serif;font-size:12px;color:var(--border);le
 //
 // ════════════════════════════════════════════════════════════════
 
-const CARPETA = 'musica_choque/';
+let CARPETA = 'musica_choque/';
+let CATALOGO_DATA = [];
+let TRACKS = [];
 
-// ════════════════════════════════════════════════════════════════
-//  CATÁLOGO COMPLETO — sincronizado con tienda.html
-//  pts:0 = gratis para todos | pts>0 = requiere puntos de liga
-// ════════════════════════════════════════════════════════════════
-const CATALOGO = [
-  {id:'pista_1',  t:'Choque de Héroes',            a:'Choque de Héroes OST', d:'2:17', pts:0},
-  {id:'pista_2',  t:'Kilimanjaro',                 a:'Choque de Héroes OST', d:'2:08', pts:0},
-  {id:'pista_3',  t:'L.A.B Metalúrgico',           a:'Choque de Héroes OST', d:'2:23', pts:0},
-  {id:'pista_4',  t:'Legión del Mar',              a:'Choque de Héroes OST', d:'4:00', pts:0},
-  {id:'pista_5',  t:'Encantadoras de Shalem',      a:'Choque de Héroes OST', d:'2:19', pts:0},
-  {id:'pista_6',  t:'EX-Pada Reencarnada',         a:'Choque de Héroes OST', d:'2:38', pts:0},
-  {id:'pista_7',  t:'Max-Kara',                    a:'Choque de Héroes OST', d:'2:58', pts:0},
-  {id:'pista_8',  t:'Mictlán, tierra de Muertos',  a:'Choque de Héroes OST', d:'2:37', pts:0},
-  {id:'pista_9',  t:'Archivos de Nexotlan',        a:'Choque de Héroes OST', d:'2:58', pts:0},
-  {id:'pista_10', t:'Vellond, El Gran Regente',    a:'Choque de Héroes OST', d:'3:03', pts:0},
-  {id:'pista_11', t:'Titan de Nexotlan',           a:'Choque de Héroes OST', d:'2:25', pts:0},
-  {id:'pista_12', t:'Pista 12',                    a:'Choque de Héroes OST', d:'0:00', pts:50},
-  {id:'pista_13', t:'Pista 13',                    a:'Choque de Héroes OST', d:'0:00', pts:100},
-  {id:'pista_14', t:'Pista 14',                    a:'Choque de Héroes OST', d:'0:00', pts:100},
-  {id:'pista_15', t:'Pista 15',                    a:'Choque de Héroes OST', d:'0:00', pts:150},
-];
+async function cargarCatalogo(){
+  try {
+    const res = await fetch('musica_config.json?v=' + Date.now());
+    const cfg = await res.json();
+    CARPETA = cfg.carpeta || 'musica_choque/';
+    CATALOGO_DATA = cfg.pistas || [];
+  } catch(e) {
+    console.warn('musica_config.json no disponible');
+  }
+  TRACKS = buildTracks();
+  renderTracks();
+}
 
-// ════════════════════════════════════════════════════════════════
-// ⚙️  ENGINE
-// ════════════════════════════════════════════════════════════════
-
-// Leer jugador y pistas desbloqueadas desde localStorage
 function getJugador() {
   try { return JSON.parse(localStorage.getItem('nhJugador') || 'null'); } catch(e) { return null; }
 }
@@ -366,25 +354,20 @@ function getDesbloqueadas(jugadorId) {
   try { return JSON.parse(localStorage.getItem('nhMusica_' + jugadorId) || '[]'); } catch(e) { return []; }
 }
 
-// Construir lista de pistas disponibles para el jugador actual
 function buildTracks() {
   const jugador = getJugador();
   const desbloqueadas = getDesbloqueadas(jugador?.id);
-  return CATALOGO
-    .filter(p => p.t.trim() !== '')
-    .map((p, i) => ({
-      id: p.id,
-      file: p.id + '.mp3',
-      title: p.t,
-      artist: p.a,
-      duration: p.d,
-      slot: i + 1,
-      pts: p.pts,
-      desbloqueada: p.pts === 0 || desbloqueadas.includes(p.id)
-    }));
+  return CATALOGO_DATA.map((p, i) => ({
+    id: p.id,
+    file: p.id + '.mp3',
+    title: p.titulo,
+    artist: p.artista,
+    duration: p.duracion,
+    slot: i + 1,
+    pts: p.pts,
+    desbloqueada: p.pts === 0 || desbloqueadas.includes(p.id)
+  }));
 }
-
-let TRACKS = buildTracks();
 
 let currentIndex = -1;
 let isPlaying = false;
@@ -395,34 +378,22 @@ audio.preload = 'metadata';
 function renderTracks() {
   const container = document.getElementById('track-list');
   if (!TRACKS.length) {
-    container.innerHTML = '<div class="state-box"><div class="sb-icon">🎵</div><p>SIN PISTAS</p></div>';
+    container.innerHTML = '<div class="state-box"><div class="sb-icon">🎵</div><p>SIN PISTAS</p><p class="sb-sub">Edita los títulos en el array PISTAS para activar pistas.</p></div>';
     return;
   }
-  container.innerHTML = TRACKS.map((t, i) => {
-    const libre = t.desbloqueada;
-    return `
-    <div class="track-item${!libre ? ' track-locked' : ''}" id="track-${i}" onclick="${libre ? 'selectTrack(' + i + ')' : 'mostrarBloqueada(' + i + ')'}">
-      <div class="track-num" style="${!libre ? 'color:var(--muted);opacity:.5' : ''}">${String(t.slot).padStart(2, '0')}</div>
-      <div class="track-play-icon" style="${!libre ? 'opacity:.4' : ''}">
-        <svg viewBox="0 0 24 24"><path d="${libre ? 'M8 5v14l11-7z' : 'M12 1C8.7 1 6 3.7 6 7v1H4v15h16V8h-2V7c0-3.3-2.7-6-6-6zm0 2c2.2 0 4 1.8 4 4v1H8V7c0-2.2 1.8-4 4-4zm0 9c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2z'}"/></svg>
+  container.innerHTML = TRACKS.map((t, i) => `
+    <div class="track-item" id="track-${i}" onclick="selectTrack(${i})">
+      <div class="track-num">${String(t.slot).padStart(2, '0')}</div>
+      <div class="track-play-icon">
+        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
       </div>
       <div class="track-info">
-        <div class="track-name" style="${!libre ? 'color:var(--muted);opacity:.6' : ''}">${t.title}</div>
-        <div class="track-artist">${libre ? (t.artist || '') : '🔒 ' + t.pts + ' pts de liga'}</div>
+        <div class="track-name">${t.title}</div>
+        <div class="track-artist">${t.artist || ''}</div>
       </div>
-      <div class="track-duration" style="${!libre ? 'opacity:.3' : ''}">${libre ? (t.duration || '--:--') : '—'}</div>
-    </div>`;
-  }).join('');
-}
-
-function mostrarBloqueada(i) {
-  const t = TRACKS[i];
-  // Toast o aviso
-  const toast = document.createElement('div');
-  toast.textContent = `🔒 "${t.title}" requiere ${t.pts} pts de liga — desbloquéala en la Tienda`;
-  toast.style.cssText = 'position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:rgba(10,16,36,.97);border:1px solid var(--purple-d);color:var(--text);font-family:Orbitron,sans-serif;font-size:10px;letter-spacing:1px;padding:12px 18px;border-radius:8px;z-index:9999;white-space:nowrap;max-width:90vw;text-align:center;box-shadow:0 0 20px rgba(180,70,255,.3);';
-  document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 3000);
+      <div class="track-duration">${t.duration || '--:--'}</div>
+    </div>
+  `).join('');
 }
 
 function selectTrack(index) {
@@ -507,23 +478,8 @@ document.getElementById('progress-wrap').addEventListener('click', (e) => {
 });
 
 window.addEventListener('DOMContentLoaded', () => {
-  renderTracks();
+  cargarCatalogo();
   document.getElementById('btn-loop').classList.add('loop-active');
-});
-
-// Recargar pistas si se desbloqueó algo desde tienda
-window.addEventListener('storage', (e) => {
-  if (e.key === 'nhMusica_updated') {
-    const prevIdx = currentIndex;
-    TRACKS = buildTracks();
-    currentIndex = Math.min(prevIdx, TRACKS.length - 1);
-    renderTracks();
-    if (currentIndex >= 0) {
-      document.querySelectorAll('.track-item').forEach(el => el.classList.remove('active'));
-      const el = document.getElementById('track-' + currentIndex);
-      if (el) el.classList.add('active');
-    }
-  }
 });
 </script>
 </body>

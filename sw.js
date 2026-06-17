@@ -11,7 +11,7 @@ const CACHE_CORE = [
   './torneo-director.html', './noticias.html',
   './intro.html', './intro_config.json',
   './manifest.json', './icon-192.png', './icon-512.png',
-  './settings.js', './noticias.json'
+  './settings.js', './noticias.json','./musica_config.json'
 ];
 
 const NO_CACHE_ORIGINS = ['script.google.com','docs.google.com','fonts.googleapis.com','fonts.gstatic.com'];

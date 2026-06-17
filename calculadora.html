@@ -619,15 +619,25 @@ function mpToastBloqueada(title, pts){
   setTimeout(function(){ el.remove(); }, 2800);
 }
 
-async function mpInit(){
-  try {
-    const res = await fetch('musica_config.json?v=' + Date.now());
-    const cfg = await res.json();
-    MP_CARPETA = cfg.carpeta || 'musica_choque/';
-    MP_CATALOGO = cfg.pistas || [];
-  } catch(e) {
-    console.warn('musica_config.json no encontrado, usando lista vacía');
-  }
+function mpInit(){
+  MP_CARPETA = 'musica_choque/';
+  MP_CATALOGO = [
+    {id:'pista_1',  titulo:'Choque de Héroes',           duracion:'2:17', pts:0  },
+    {id:'pista_2',  titulo:'Kilimanjaro',                duracion:'2:08', pts:0  },
+    {id:'pista_3',  titulo:'L.A.B. Metalúrgico',         duracion:'2:23', pts:0  },
+    {id:'pista_4',  titulo:'Legión del Mar',             duracion:'4:00', pts:0  },
+    {id:'pista_5',  titulo:'Encantadoras de Shalem',     duracion:'2:19', pts:0  },
+    {id:'pista_6',  titulo:'EX-Pada Reencarnada',        duracion:'2:38', pts:0  },
+    {id:'pista_7',  titulo:'Max-Kara',                   duracion:'2:58', pts:0  },
+    {id:'pista_8',  titulo:'Mictlán, tierra de Muertos', duracion:'2:37', pts:0  },
+    {id:'pista_9',  titulo:'Archivos de Nexotlan',       duracion:'2:58', pts:0  },
+    {id:'pista_10', titulo:'Vellond, el Gran Regente',   duracion:'3:03', pts:0  },
+    {id:'pista_11', titulo:'Pista 11',                   duracion:'0:00', pts:50 },
+    {id:'pista_12', titulo:'Pista 12',                   duracion:'0:00', pts:50 },
+    {id:'pista_13', titulo:'Pista 13',                   duracion:'0:00', pts:100},
+    {id:'pista_14', titulo:'Pista 14',                   duracion:'0:00', pts:100},
+    {id:'pista_15', titulo:'Pista 15',                   duracion:'0:00', pts:150},
+  ];
   MP_TRACKS = mpBuildTracks();
   mpRender();
 }

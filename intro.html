@@ -33,7 +33,9 @@
       rgba(0,0,0,0.15) 60%,
       rgba(0,0,0,0.75) 100%);
     transition: opacity 0.4s ease;
+    pointer-events: none;
   }
+  /* Desactiva el overlay cuando hay imagen pantalla-completa */
   body.modo-pantalla-completa #fondo::after {
     opacity: 0;
   }
@@ -44,10 +46,6 @@
     bottom: 190px;
     left: 0; right: 0;
     height: calc(100vh - 190px);
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    gap: 0;
     pointer-events: none;
   }
 
@@ -57,12 +55,12 @@
     display: flex;
     align-items: flex-end;
     justify-content: center;
-    transition: opacity 0.4s ease, filter 0.4s ease, transform 0.4s ease;
+    transition: opacity 0.4s ease, filter 0.4s ease;
   }
 
-  .personaje-slot.izquierda  { left: -2%;  transform-origin: bottom left; }
-  .personaje-slot.centro     { left: 50%; transform: translateX(-50%); transform-origin: bottom center; }
-  .personaje-slot.derecha    { right: -2%; transform-origin: bottom right; }
+  .personaje-slot.izquierda   { left: -2%; transform-origin: bottom left; }
+  .personaje-slot.centro      { left: 50%; transform: translateX(-50%); transform-origin: bottom center; }
+  .personaje-slot.derecha     { right: -2%; transform-origin: bottom right; }
 
   .personaje-slot img {
     max-height: calc(100vh - 200px);
@@ -72,31 +70,38 @@
     filter: drop-shadow(0 8px 32px rgba(0,0,0,0.7));
   }
 
+  /* Personaje inactivo */
+  .personaje-slot.inactivo {
+    filter: brightness(0.5) saturate(0.5);
+    opacity: 0.8;
+  }
+
   /* ── PANTALLA COMPLETA ── */
   .personaje-slot.pantalla-completa {
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    width: 100% !important;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
     transform: none !important;
+    filter: none !important;
+    opacity: 1 !important;
   }
   .personaje-slot.pantalla-completa img {
-    width: 100% !important;
-    height: calc(100vh - 200px) !important;
-    max-width: 100% !important;
-    max-height: none !important;
-    object-fit: cover !important;
-    object-position: center center !important;
+    width: 100%;
+    height: calc(100vh - 190px);
+    max-width: 100%;
+    max-height: none;
+    object-fit: cover;
+    object-position: center center;
     filter: none !important;
   }
-
-  /* Personaje inactivo (no está hablando) */
-  .personaje-slot.inactivo {
-    filter: brightness(0.55) saturate(0.6);
-    opacity: 0.85;
+  /* Inactivo nunca oscurece pantalla-completa */
+  .personaje-slot.pantalla-completa.inactivo {
+    filter: none !important;
+    opacity: 1 !important;
   }
 
-  /* Animaciones de entrada */
+  /* ── ANIMACIONES DE ENTRADA ── */
   @keyframes entradaAbajo {
     from { opacity: 0; transform: translateY(60px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -113,11 +118,10 @@
     from { opacity: 0; }
     to   { opacity: 1; }
   }
-
-  .entrada-deslizar-abajo    { animation: entradaAbajo     0.5s cubic-bezier(.22,1,.36,1) forwards; }
-  .entrada-deslizar-derecha  { animation: entradaDerecha   0.5s cubic-bezier(.22,1,.36,1) forwards; }
-  .entrada-deslizar-izquierda{ animation: entradaIzquierda 0.5s cubic-bezier(.22,1,.36,1) forwards; }
-  .entrada-fade              { animation: entradaFade      0.5s ease forwards; }
+  .entrada-deslizar-abajo     { animation: entradaAbajo     0.5s cubic-bezier(.22,1,.36,1) forwards; }
+  .entrada-deslizar-derecha   { animation: entradaDerecha   0.5s cubic-bezier(.22,1,.36,1) forwards; }
+  .entrada-deslizar-izquierda { animation: entradaIzquierda 0.5s cubic-bezier(.22,1,.36,1) forwards; }
+  .entrada-fade               { animation: entradaFade      0.5s ease forwards; }
 
   /* ── CAJA DE DIÁLOGO ── */
   #dialogo-box {
@@ -127,11 +131,11 @@
     background: rgba(5, 5, 20, 0.92);
     border-top: 2px solid rgba(80, 160, 255, 0.5);
     backdrop-filter: blur(12px);
-    padding: 0 20px 20px;
+    padding: 0 20px 16px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    cursor: pointer;
+    gap: 6px;
+    overflow: hidden;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
   }
@@ -155,14 +159,14 @@
 
   #texto-dialogo {
     color: #e8eaf6;
-    font-size: 1.05rem;
-    line-height: 1.6;
-    height: 90px; overflow-y: auto;
+    font-size: 1.0rem;
+    line-height: 1.55;
+    flex: 1;
+    overflow: hidden;
     padding: 0 4px;
     position: relative;
   }
 
-  /* Cursor parpadeante al terminar de escribir */
   #texto-dialogo.completo::after {
     content: '';
     display: inline-block;
@@ -177,7 +181,6 @@
     0%, 100% { opacity: 1; } 50% { opacity: 0; }
   }
 
-  /* Flecha avanzar */
   #flecha-avanzar {
     align-self: flex-end;
     color: #4a9eff;
@@ -208,12 +211,12 @@
     cursor: pointer;
     backdrop-filter: blur(8px);
     z-index: 100;
-    transition: background 0.2s, color 0.2s;
+    transition: background 0.2s;
     display: none;
   }
   #btn-omitir:active { background: rgba(255,255,255,0.25); }
 
-  /* ── TRANSICIÓN SALIDA ── */
+  /* ── FADE OUT ── */
   #fade-out {
     position: fixed;
     inset: 0;
@@ -225,7 +228,7 @@
   }
   #fade-out.activo { opacity: 1; }
 
-  /* ── PANTALLA CARGA ── */
+  /* ── LOADER ── */
   #loader {
     position: fixed;
     inset: 0;
@@ -276,98 +279,69 @@
 
 <button id="btn-omitir">Omitir ✕</button>
 <div id="fade-out"></div>
-
 <audio id="musica-bg" loop></audio>
 
 <script>
-// ══════════════════════════════════════════════════════════
-//  NEXO DE HÉROES — Motor de Intro
-//  Lee intro_config.json y reproduce la secuencia de diálogo
-// ══════════════════════════════════════════════════════════
-
-const DESTINO = 'index.html'; // página principal
+const DESTINO = 'index.html';
 let config = null;
 let paso = 0;
 let escribiendo = false;
 let textoCompleto = '';
 let intervaloEscritura = null;
-let VELOCIDAD_ESCRITURA = 30; // ms por carácter
+const VELOCIDAD_ESCRITURA = 30;
 
 const elFondo      = document.getElementById('fondo');
 const elEscenario  = document.getElementById('escenario');
 const elNombre     = document.getElementById('nombre-hablante');
 const elTexto      = document.getElementById('texto-dialogo');
 const elFlecha     = document.getElementById('flecha-avanzar');
-const elDialogoBox = document.getElementById('dialogo-box');
 const elOmitir     = document.getElementById('btn-omitir');
 const elFadeOut    = document.getElementById('fade-out');
 const elLoader     = document.getElementById('loader');
 const elMusica     = document.getElementById('musica-bg');
 
-// ── Inicialización ──────────────────────────────────────
+// ── Init ────────────────────────────────────────────────
 async function init() {
   try {
     const res = await fetch('intro_config.json?v=' + Date.now());
     config = await res.json();
   } catch (e) {
-    console.error('No se pudo cargar intro_config.json', e);
-    irAlMenu();
-    return;
+    irAlMenu(); return;
   }
-
   const { escena } = config;
-
-  // Fondo
   elFondo.style.backgroundImage = `url('${escena.fondo}')`;
-
-  // Música
   if (escena.musica) {
     elMusica.src = escena.musica;
     elMusica.volume = escena.volumen ?? 0.6;
     elMusica.play().catch(() => {});
   }
-
-  // Botón omitir
   if (escena.omitible !== false) {
     elOmitir.style.display = 'block';
     elOmitir.addEventListener('click', terminarIntro);
   }
-
-  // Ocultar loader y arrancar
   elLoader.classList.add('oculto');
-  setTimeout(() => {
-    elLoader.style.display = 'none';
-    mostrarPaso(0);
-  }, 500);
+  setTimeout(() => { elLoader.style.display = 'none'; mostrarPaso(0); }, 500);
 }
 
-// ── Mostrar un paso de la secuencia ────────────────────
+// ── Mostrar paso ────────────────────────────────────────
 function mostrarPaso(idx) {
-  if (idx >= config.secuencia.length) {
-    terminarIntro();
-    return;
-  }
-
+  if (idx >= config.secuencia.length) { terminarIntro(); return; }
   paso = idx;
   const step = config.secuencia[idx];
-
-  // Actualizar escenario de personajes
   actualizarPersonajes(step.personajes, step.dialogo?.hablante);
-
-  // Mostrar diálogo
   if (step.dialogo) {
     elNombre.textContent = step.dialogo.hablante || '';
     escribirTexto(step.dialogo.texto || '');
   }
 }
 
-// ── Sistema de personajes ───────────────────────────────
-let personajesActuales = {}; // id → elemento DOM
+// ── Personajes ──────────────────────────────────────────
+let personajesActuales = {};
 
 function actualizarPersonajes(nuevos, hablante) {
   const idsNuevos = new Set(nuevos.map(p => p.id));
 
-  // Remover personajes que ya no están
+  // Eliminar los que ya no están
   for (const [id, el] of Object.entries(personajesActuales)) {
     if (!idsNuevos.has(id)) {
       el.style.opacity = '0';
@@ -376,59 +350,76 @@ function actualizarPersonajes(nuevos, hablante) {
     }
   }
 
-  // Agregar o actualizar personajes
+  // Crear o actualizar
   nuevos.forEach(p => {
     let slot = personajesActuales[p.id];
     const esNuevo = !slot;
-
     if (esNuevo) {
       slot = document.createElement('div');
-      slot.className = `personaje-slot ${p.posicion}`;
       slot.dataset.id = p.id;
+      slot.dataset.nombre = p.nombre;
       const img = document.createElement('img');
-      img.src = p.imagen;
       img.alt = p.nombre;
       slot.appendChild(img);
       elEscenario.appendChild(slot);
       personajesActuales[p.id] = slot;
+    }
+    // Clase y src siempre actualizados
+    slot.className = `personaje-slot ${p.posicion}`;
+    slot.querySelector('img').src = p.imagen;
 
-      // Animación de entrada
+    // Escala
+    if (p.escala && p.escala !== 1.0) {
+      slot.querySelector('img').style.transform = `scale(${p.escala})`;
+      slot.querySelector('img').style.transformOrigin = 'bottom center';
+    }
+
+    // Animación solo al crear
+    if (esNuevo) {
       const clase = entradaClase(p.entrada);
       if (clase) {
         slot.classList.add(clase);
         setTimeout(() => slot.classList.remove(clase), 600);
       }
-    } else {
-      // Actualizar posición si cambió
-      slot.className = `personaje-slot ${p.posicion}`;
-    }
-
-    // Escala
-    if (p.escala) {
-      slot.querySelector('img').style.transform = `scale(${p.escala})`;
-      slot.querySelector('img').style.transformOrigin = 'bottom center';
-    }
-
-    // Resaltar hablante
-    if (hablante && p.nombre === hablante) {
-      slot.classList.remove('inactivo');
-    } else if (hablante) {
-      slot.classList.add('inactivo');
     }
   });
+
+  // Ordenar DOM y aplicar activo/inactivo
+  // Primero los inactivos (quedan debajo), luego el hablante (queda encima)
+  nuevos.forEach(p => {
+    const slot = personajesActuales[p.id];
+    if (!slot) return;
+    const esHablante = hablante && p.nombre === hablante;
+    if (!esHablante && p.posicion !== 'pantalla-completa') {
+      slot.classList.add('inactivo');
+      elEscenario.insertBefore(slot, elEscenario.firstChild);
+    }
+  });
+  nuevos.forEach(p => {
+    const slot = personajesActuales[p.id];
+    if (!slot) return;
+    const esHablante = hablante && p.nombre === hablante;
+    if (esHablante || p.posicion === 'pantalla-completa') {
+      slot.classList.remove('inactivo');
+      elEscenario.appendChild(slot); // al final = encima
+    }
+  });
+
+  // Toggle overlay oscuro del fondo
+  const hayPantallaCompleta = nuevos.some(p => p.posicion === 'pantalla-completa');
+  document.body.classList.toggle('modo-pantalla-completa', hayPantallaCompleta);
 }
 
 function entradaClase(tipo) {
-  const mapa = {
+  return {
     'deslizar-abajo':     'entrada-deslizar-abajo',
     'deslizar-derecha':   'entrada-deslizar-derecha',
     'deslizar-izquierda': 'entrada-deslizar-izquierda',
     'fade':               'entrada-fade',
-  };
-  return mapa[tipo] || null;
+  }[tipo] || null;
 }
 
-// ── Efecto máquina de escribir ──────────────────────────
+// ── Escritura ───────────────────────────────────────────
 function escribirTexto(texto) {
   clearInterval(intervaloEscritura);
   elTexto.classList.remove('completo');
@@ -437,10 +428,8 @@ function escribirTexto(texto) {
   textoCompleto = texto;
   let i = 0;
   elTexto.textContent = '';
-
   intervaloEscritura = setInterval(() => {
-    elTexto.textContent += texto[i];
-    i++;
+    elTexto.textContent += texto[i++];
     if (i >= texto.length) {
       clearInterval(intervaloEscritura);
       escribiendo = false;
@@ -450,10 +439,9 @@ function escribirTexto(texto) {
   }, VELOCIDAD_ESCRITURA);
 }
 
-// ── Avanzar al siguiente paso ───────────────────────────
+// ── Avanzar ─────────────────────────────────────────────
 function avanzar() {
   if (escribiendo) {
-    // Mostrar texto completo inmediatamente
     clearInterval(intervaloEscritura);
     escribiendo = false;
     elTexto.textContent = textoCompleto;
@@ -464,15 +452,20 @@ function avanzar() {
   mostrarPaso(paso + 1);
 }
 
-// Tap / click en la caja de diálogo
-elDialogoBox.addEventListener('click', avanzar);
-elDialogoBox.addEventListener('touchend', (e) => { e.preventDefault(); avanzar(); });
+// Tap en toda la pantalla excepto botón omitir
+document.addEventListener('click', (e) => {
+  if (elOmitir.contains(e.target)) return;
+  avanzar();
+});
+document.addEventListener('touchend', (e) => {
+  if (elOmitir.contains(e.target)) return;
+  e.preventDefault();
+  avanzar();
+}, { passive: false });
 
-// ── Finalizar y redirigir ───────────────────────────────
+// ── Terminar ────────────────────────────────────────────
 function terminarIntro() {
   elFadeOut.classList.add('activo');
-
-  // Fade out de la música
   const fadeMusica = setInterval(() => {
     if (elMusica.volume > 0.05) {
       elMusica.volume = Math.max(0, elMusica.volume - 0.05);
@@ -481,7 +474,6 @@ function terminarIntro() {
       clearInterval(fadeMusica);
     }
   }, 80);
-
   setTimeout(() => {
     localStorage.setItem('nexo_intro_vista', '1');
     window.location.href = DESTINO;
@@ -493,7 +485,6 @@ function irAlMenu() {
   window.location.href = DESTINO;
 }
 
-// ── Arrancar ────────────────────────────────────────────
 init();
 </script>
 </body>

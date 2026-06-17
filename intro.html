@@ -32,6 +32,10 @@
       rgba(0,0,0,0.05) 0%,
       rgba(0,0,0,0.15) 60%,
       rgba(0,0,0,0.75) 100%);
+    transition: opacity 0.4s ease;
+  }
+  body.modo-pantalla-completa #fondo::after {
+    opacity: 0;
   }
 
   /* ── ESCENARIO DE PERSONAJES ── */
@@ -66,6 +70,24 @@
     object-fit: contain;
     display: block;
     filter: drop-shadow(0 8px 32px rgba(0,0,0,0.7));
+  }
+
+  /* ── PANTALLA COMPLETA ── */
+  .personaje-slot.pantalla-completa {
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    transform: none !important;
+  }
+  .personaje-slot.pantalla-completa img {
+    width: 100% !important;
+    height: calc(100vh - 200px) !important;
+    max-width: 100% !important;
+    max-height: none !important;
+    object-fit: cover !important;
+    object-position: center center !important;
+    filter: none !important;
   }
 
   /* Personaje inactivo (no está hablando) */
@@ -377,6 +399,7 @@ function actualizarPersonajes(nuevos, hablante) {
         setTimeout(() => slot.classList.remove(clase), 600);
       }
     } else {
+      // Actualizar posición si cambió
       slot.className = `personaje-slot ${p.posicion}`;
     }
 
@@ -385,30 +408,14 @@ function actualizarPersonajes(nuevos, hablante) {
       slot.querySelector('img').style.transform = `scale(${p.escala})`;
       slot.querySelector('img').style.transformOrigin = 'bottom center';
     }
-  });
 
-  // Ordenar DOM: primero inactivos, luego hablante — garantiza que el activo quede encima
-  nuevos.forEach(p => {
-    const slot = personajesActuales[p.id];
-    if (!slot) return;
-    const esHablante = hablante && p.nombre === hablante;
-    if (esHablante) {
+    // Resaltar hablante
+    if (hablante && p.nombre === hablante) {
       slot.classList.remove('inactivo');
-    } else {
+    } else if (hablante) {
       slot.classList.add('inactivo');
-      // Inactivos van primero en el DOM (quedan debajo)
-      elEscenario.insertBefore(slot, elEscenario.firstChild);
     }
   });
-  // Hablante va al final del DOM (queda encima)
-  const hablanteDef = nuevos.find(p => p.nombre === hablante);
-  if (hablanteDef && personajesActuales[hablanteDef.id]) {
-    elEscenario.appendChild(personajesActuales[hablanteDef.id]);
-  }
-
-  // Ocultar overlay si hay imagen pantalla-completa
-  const hayPantallaCompleta = nuevos.some(p => p.posicion === 'pantalla-completa');
-  document.body.classList.toggle('modo-pantalla-completa', hayPantallaCompleta);
 }
 
 function entradaClase(tipo) {

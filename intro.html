@@ -72,10 +72,6 @@
   .personaje-slot.inactivo {
     filter: brightness(0.55) saturate(0.6);
     opacity: 0.85;
-    z-index: 1;
-  }
-  .personaje-slot:not(.inactivo) {
-    z-index: 2;
   }
 
   /* Animaciones de entrada */
@@ -385,19 +381,21 @@ function actualizarPersonajes(nuevos, hablante) {
       slot.className = `personaje-slot ${p.posicion}`;
     }
 
-    // Escala aplicada al slot para respetar posición inferior
-    if (p.escala && p.escala !== 1.0) {
-      slot.style.transform = slot.className.includes('centro')
-        ? `translateX(-50%) scale(${p.escala})`
-        : `scale(${p.escala})`;
-      slot.style.transformOrigin = 'bottom center';
+    // Escala
+    if (p.escala) {
+      slot.querySelector('img').style.transform = `scale(${p.escala})`;
+      slot.querySelector('img').style.transformOrigin = 'bottom center';
     }
 
-    // Resaltar hablante
+    // Resaltar hablante — z-index directo para garantizar orden
     if (hablante && p.nombre === hablante) {
       slot.classList.remove('inactivo');
+      slot.style.zIndex = '10';
+      // Mover al final del DOM para que quede encima visualmente
+      elEscenario.appendChild(slot);
     } else if (hablante) {
       slot.classList.add('inactivo');
+      slot.style.zIndex = '1';
     }
   });
 }

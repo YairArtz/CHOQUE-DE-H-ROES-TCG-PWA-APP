@@ -611,31 +611,35 @@ function mpFreeTracks(){ return MP_TRACKS.filter(t=>t.libre); }
 function mpFreeIdx(i){ return mpFreeTracks().findIndex(t=>t.id===MP_TRACKS[i]?.id); }
 
 function mpRender(){
-  document.getElementById('mp-tracks').innerHTML=MP_TRACKS.map((t,i)=>{
-    const activo = i===mpIdx;
-    if(t.libre){
-      return '<div class="mp-track'+(activo?' mp-active':'')+'" onclick="mpSelect('+i+')">'+
-        '<div class="mp-track-num">'+String(t.slot).padStart(2,'0')+'</div>'+
-        '<div class="mp-track-name">'+t.title+'</div>'+
-        '<div class="mp-track-dur">'+t.dur+'</div></div>';
+  const tracks = document.getElementById('mp-tracks');
+  tracks.innerHTML = '';
+  MP_TRACKS.forEach(function(t, i){
+    const div = document.createElement('div');
+    div.className = 'mp-track' + (i === mpIdx ? ' mp-active' : '');
+    if(!t.libre){
+      div.style.opacity = '0.45';
+      div.style.cursor = 'default';
+      div.addEventListener('click', function(){ mpToastBloqueada(t.title, t.pts); });
     } else {
-      return '<div class="mp-track" style="opacity:.45;cursor:default" onclick="mpToastBloqueada(''+t.title.replace(/'/g,"\'")+"',"+t.pts+')">'+
-        '<div class="mp-track-num" style="color:var(--muted)">'+String(t.slot).padStart(2,'0')+'</div>'+
-        '<div class="mp-track-name" style="color:var(--muted)">🔒 '+t.title+'</div>'+
-        '<div class="mp-track-dur">'+t.pts+'pts</div></div>';
+      div.addEventListener('click', function(){ mpSelect(i); });
     }
-  }).join('');
+    div.innerHTML =
+      '<div class="mp-track-num"' + (!t.libre ? ' style="color:var(--muted)"' : '') + '>' + String(t.slot).padStart(2,'0') + '</div>' +
+      '<div class="mp-track-name"' + (!t.libre ? ' style="color:var(--muted)"' : '') + '>' + (!t.libre ? '🔒 ' : '') + t.title + '</div>' +
+      '<div class="mp-track-dur">' + (t.libre ? t.dur : t.pts + 'pts') + '</div>';
+    tracks.appendChild(div);
+  });
 }
 
 function mpToastBloqueada(title, pts){
-  const old=document.getElementById('mp-toast-lock');
+  const old = document.getElementById('mp-toast-lock');
   if(old) old.remove();
-  const el=document.createElement('div');
-  el.id='mp-toast-lock';
-  el.textContent='🔒 '+title+' · '+pts+' pts de liga · Desbloquea en Tienda';
-  el.style.cssText='position:fixed;bottom:130px;left:50%;transform:translateX(-50%);background:rgba(10,16,36,.97);border:1px solid rgba(180,70,255,.4);color:#e0eeff;font-family:Orbitron,monospace;font-size:9px;letter-spacing:.8px;padding:10px 14px;border-radius:8px;z-index:9999;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis;';
+  const el = document.createElement('div');
+  el.id = 'mp-toast-lock';
+  el.textContent = '🔒 ' + title + ' · ' + pts + ' pts de liga · Desbloquea en Tienda';
+  el.style.cssText = 'position:fixed;bottom:130px;left:50%;transform:translateX(-50%);background:rgba(10,16,36,.97);border:1px solid rgba(180,70,255,.4);color:#e0eeff;font-family:Orbitron,monospace;font-size:9px;letter-spacing:.8px;padding:10px 14px;border-radius:8px;z-index:9999;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis;';
   document.body.appendChild(el);
-  setTimeout(()=>el.remove(),2800);
+  setTimeout(function(){ el.remove(); }, 2800);
 }
 
 function mpSelect(i){

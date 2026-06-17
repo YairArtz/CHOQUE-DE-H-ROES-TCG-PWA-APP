@@ -571,6 +571,54 @@ let MP_TRACKS = [];
 let mpIdx=-1, mpOn=false, mpLoop=true;
 const mpAudio=new Audio();
 
+
+function mpFreeTracks(){ return MP_TRACKS.filter(t=>t.libre); }
+function mpFreeIdx(i){ return mpFreeTracks().findIndex(t=>t.id===MP_TRACKS[i]?.id); }
+
+function mpRender(){
+  const tracks = document.getElementById('mp-tracks');
+  if(!tracks) return;
+  tracks.innerHTML = '';
+  MP_TRACKS.forEach(function(t, i){
+    const div = document.createElement('div');
+    div.className = 'mp-track' + (i === mpIdx ? ' mp-active' : '');
+    if(!t.libre){
+      div.style.opacity = '0.45';
+      div.style.cursor = 'default';
+      div.addEventListener('click', function(){ mpToastBloqueada(t.title, t.pts); });
+    } else {
+      div.addEventListener('click', function(){ mpSelect(i); });
+    }
+    div.innerHTML =
+      '<div class="mp-track-num"' + (!t.libre?' style="color:var(--muted)"':'') + '>' + String(t.slot).padStart(2,'0') + '</div>' +
+      '<div class="mp-track-name"' + (!t.libre?' style="color:var(--muted)"':'') + '>' + (!t.libre?'🔒 ':'') + t.title + '</div>' +
+      '<div class="mp-track-dur">' + (t.libre ? t.dur : t.pts+'pts') + '</div>';
+    tracks.appendChild(div);
+  });
+}
+
+function mpSelect(i){
+  if(!MP_TRACKS[i]?.libre) return;
+  mpIdx=i;
+  const t=MP_TRACKS[i];
+  mpAudio.src=MP_CARPETA+t.file;
+  mpAudio.loop=mpLoop;
+  mpAudio.play().then(()=>{mpOn=true;mpUI();}).catch(()=>{mpOn=false;mpUI();});
+  document.getElementById('mp-now-name').textContent=t.title;
+  mpRender();
+}
+
+function mpToastBloqueada(title, pts){
+  const old=document.getElementById('mp-toast-lock');
+  if(old) old.remove();
+  const el=document.createElement('div');
+  el.id='mp-toast-lock';
+  el.textContent='🔒 '+title+' · '+pts+' pts de liga · Desbloquea en Tienda';
+  el.style.cssText='position:fixed;bottom:130px;left:50%;transform:translateX(-50%);background:rgba(10,16,36,.97);border:1px solid rgba(180,70,255,.4);color:#e0eeff;font-family:Orbitron,monospace;font-size:9px;letter-spacing:.8px;padding:10px 14px;border-radius:8px;z-index:9999;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis;';
+  document.body.appendChild(el);
+  setTimeout(function(){ el.remove(); }, 2800);
+}
+
 async function mpInit(){
   try {
     const res = await fetch('musica_config.json?v=' + Date.now());

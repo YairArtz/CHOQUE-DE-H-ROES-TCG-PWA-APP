@@ -394,11 +394,7 @@
           <div class="cat-name">MÚSICA</div>
           <div class="cat-desc">Desbloquea pistas con puntos de liga</div>
         </div>
-        <div class="cat-card" onclick="abrirSeccion('musica')" style="--cat-color:#cc55ff;--cat-dim:rgba(180,70,255,.1)">
-          <div class="cat-icon">🎵</div>
-          <div class="cat-name">MÚSICA</div>
-          <div class="cat-desc">Desbloquea pistas con puntos de liga</div>
-        </div>
+
         <div class="cat-card" onclick="abrirSeccion('canjear')" style="--cat-color:#00ff9d;--cat-dim:rgba(0,255,157,.1);grid-column:1/-1;display:flex;align-items:center;gap:16px;text-align:left;">
           <div class="cat-icon" style="font-size:1.8rem;min-width:48px;text-align:center;">📷</div>
           <div>
@@ -800,6 +796,13 @@ function abrirSeccion(sec) {
   else if (sec === 'temas') { renderItems('temas'); }
   else if (sec === 'cartas') { cargarCatalogoCartas(); }
   else if (sec === 'canjear') { abrirCanjear(); }
+  else if (sec === 'musica') {
+    if (!CATALOGO.musica.length) {
+      cargarCatalogoMusica().then(() => renderMusica());
+    } else {
+      renderMusica();
+    }
+  }
 }
 
 function volverMenu() {

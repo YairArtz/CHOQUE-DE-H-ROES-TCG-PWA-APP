@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Nexo de Héroes — Intro</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    background: #000;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    touch-action: manipulation;
+  }
+
+  /* ── FONDO ── */
+  #fondo {
+    position: fixed;
+    inset: 0;
+    background-size: cover;
+    background-position: center top;
+    background-repeat: no-repeat;
+    transition: opacity 0.6s ease;
+  }
+  #fondo::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom,
+      rgba(0,0,0,0.05) 0%,
+      rgba(0,0,0,0.15) 60%,
+      rgba(0,0,0,0.75) 100%);
+  }
+
+  /* ── ESCENARIO DE PERSONAJES ── */
+  #escenario {
+    position: fixed;
+    bottom: 200px;
+    left: 0; right: 0;
+    height: calc(100vh - 200px);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 0;
+    pointer-events: none;
+  }
+
+  .personaje-slot {
+    position: absolute;
+    bottom: 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    transition: opacity 0.4s ease, filter 0.4s ease, transform 0.4s ease;
+  }
+
+  .personaje-slot.izquierda  { left: -2%;  transform-origin: bottom left; }
+  .personaje-slot.centro     { left: 50%; transform: translateX(-50%); transform-origin: bottom center; }
+  .personaje-slot.derecha    { right: -2%; transform-origin: bottom right; }
+
+  .personaje-slot img {
+    max-height: calc(100vh - 220px);
+    max-width: 55vw;
+    object-fit: contain;
+    display: block;
+    filter: drop-shadow(0 8px 32px rgba(0,0,0,0.7));
+  }
+
+  /* Personaje inactivo (no está hablando) */
+  .personaje-slot.inactivo {
+    filter: brightness(0.55) saturate(0.6);
+    opacity: 0.85;
+  }
+
+  /* Animaciones de entrada */
+  @keyframes entradaAbajo {
+    from { opacity: 0; transform: translateY(60px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes entradaDerecha {
+    from { opacity: 0; transform: translateX(80px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes entradaIzquierda {
+    from { opacity: 0; transform: translateX(-80px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes entradaFade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  .entrada-deslizar-abajo    { animation: entradaAbajo     0.5s cubic-bezier(.22,1,.36,1) forwards; }
+  .entrada-deslizar-derecha  { animation: entradaDerecha   0.5s cubic-bezier(.22,1,.36,1) forwards; }
+  .entrada-deslizar-izquierda{ animation: entradaIzquierda 0.5s cubic-bezier(.22,1,.36,1) forwards; }
+  .entrada-fade              { animation: entradaFade      0.5s ease forwards; }
+
+  /* ── CAJA DE DIÁLOGO ── */
+  #dialogo-box {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    min-height: 180px;
+    background: rgba(5, 5, 20, 0.92);
+    border-top: 2px solid rgba(80, 160, 255, 0.5);
+    backdrop-filter: blur(12px);
+    padding: 0 20px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  #nombre-hablante {
+    display: inline-block;
+    background: linear-gradient(90deg, #1a6fc4, #0d3d6e);
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 6px 18px;
+    border-radius: 0 0 10px 10px;
+    margin-bottom: 2px;
+    align-self: flex-start;
+    box-shadow: 0 2px 12px rgba(30,100,220,0.4);
+    min-width: 100px;
+    text-align: center;
+  }
+
+  #texto-dialogo {
+    color: #e8eaf6;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    min-height: 70px;
+    padding: 0 4px;
+    position: relative;
+  }
+
+  /* Cursor parpadeante al terminar de escribir */
+  #texto-dialogo.completo::after {
+    content: '';
+    display: inline-block;
+    width: 8px; height: 16px;
+    background: #4a9eff;
+    margin-left: 4px;
+    vertical-align: middle;
+    animation: parpadeo 0.8s step-end infinite;
+    border-radius: 2px;
+  }
+  @keyframes parpadeo {
+    0%, 100% { opacity: 1; } 50% { opacity: 0; }
+  }
+
+  /* Flecha avanzar */
+  #flecha-avanzar {
+    align-self: flex-end;
+    color: #4a9eff;
+    font-size: 1.4rem;
+    opacity: 0;
+    transition: opacity 0.3s;
+    animation: rebote 0.8s ease-in-out infinite alternate;
+    padding-right: 4px;
+  }
+  #flecha-avanzar.visible { opacity: 1; }
+  @keyframes rebote {
+    from { transform: translateX(0); }
+    to   { transform: translateX(6px); }
+  }
+
+  /* ── BOTÓN OMITIR ── */
+  #btn-omitir {
+    position: fixed;
+    top: 18px; right: 18px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.25);
+    color: rgba(255,255,255,0.75);
+    font-size: 0.8rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    z-index: 100;
+    transition: background 0.2s, color 0.2s;
+    display: none;
+  }
+  #btn-omitir:active { background: rgba(255,255,255,0.25); }
+
+  /* ── TRANSICIÓN SALIDA ── */
+  #fade-out {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.7s ease;
+    z-index: 200;
+  }
+  #fade-out.activo { opacity: 1; }
+
+  /* ── PANTALLA CARGA ── */
+  #loader {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 300;
+    flex-direction: column;
+    gap: 16px;
+    transition: opacity 0.5s;
+  }
+  #loader.oculto { opacity: 0; pointer-events: none; }
+  .loader-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #4a9eff;
+    display: inline-block;
+    animation: pulso 1.2s ease-in-out infinite;
+  }
+  .loader-dot:nth-child(2) { animation-delay: 0.2s; background: #7c4dff; }
+  .loader-dot:nth-child(3) { animation-delay: 0.4s; background: #00bcd4; }
+  @keyframes pulso {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+  #loader-dots { display: flex; gap: 8px; }
+</style>
+</head>
+<body>
+
+<div id="loader">
+  <div id="loader-dots">
+    <span class="loader-dot"></span>
+    <span class="loader-dot"></span>
+    <span class="loader-dot"></span>
+  </div>
+</div>
+
+<div id="fondo"></div>
+<div id="escenario"></div>
+
+<div id="dialogo-box">
+  <div id="nombre-hablante"></div>
+  <div id="texto-dialogo"></div>
+  <div id="flecha-avanzar">▶</div>
+</div>
+
+<button id="btn-omitir">Omitir ✕</button>
+<div id="fade-out"></div>
+
+<audio id="musica-bg" loop></audio>
+
+<script>
+// ══════════════════════════════════════════════════════════
+//  NEXO DE HÉROES — Motor de Intro
+//  Lee intro_config.json y reproduce la secuencia de diálogo
+// ══════════════════════════════════════════════════════════
+
+const DESTINO = 'index.html'; // página principal
+let config = null;
+let paso = 0;
+let escribiendo = false;
+let textoCompleto = '';
+let intervaloEscritura = null;
+let VELOCIDAD_ESCRITURA = 30; // ms por carácter
+
+const elFondo      = document.getElementById('fondo');
+const elEscenario  = document.getElementById('escenario');
+const elNombre     = document.getElementById('nombre-hablante');
+const elTexto      = document.getElementById('texto-dialogo');
+const elFlecha     = document.getElementById('flecha-avanzar');
+const elDialogoBox = document.getElementById('dialogo-box');
+const elOmitir     = document.getElementById('btn-omitir');
+const elFadeOut    = document.getElementById('fade-out');
+const elLoader     = document.getElementById('loader');
+const elMusica     = document.getElementById('musica-bg');
+
+// ── Inicialización ──────────────────────────────────────
+async function init() {
+  try {
+    const res = await fetch('intro_config.json?v=' + Date.now());
+    config = await res.json();
+  } catch (e) {
+    console.error('No se pudo cargar intro_config.json', e);
+    irAlMenu();
+    return;
+  }
+
+  const { escena } = config;
+
+  // Fondo
+  elFondo.style.backgroundImage = `url('${escena.fondo}')`;
+
+  // Música
+  if (escena.musica) {
+    elMusica.src = escena.musica;
+    elMusica.volume = escena.volumen ?? 0.6;
+    elMusica.play().catch(() => {});
+  }
+
+  // Botón omitir
+  if (escena.omitible !== false) {
+    elOmitir.style.display = 'block';
+    elOmitir.addEventListener('click', terminarIntro);
+  }
+
+  // Ocultar loader y arrancar
+  elLoader.classList.add('oculto');
+  setTimeout(() => {
+    elLoader.style.display = 'none';
+    mostrarPaso(0);
+  }, 500);
+}
+
+// ── Mostrar un paso de la secuencia ────────────────────
+function mostrarPaso(idx) {
+  if (idx >= config.secuencia.length) {
+    terminarIntro();
+    return;
+  }
+
+  paso = idx;
+  const step = config.secuencia[idx];
+
+  // Actualizar escenario de personajes
+  actualizarPersonajes(step.personajes, step.dialogo?.hablante);
+
+  // Mostrar diálogo
+  if (step.dialogo) {
+    elNombre.textContent = step.dialogo.hablante || '';
+    escribirTexto(step.dialogo.texto || '');
+  }
+}
+
+// ── Sistema de personajes ───────────────────────────────
+let personajesActuales = {}; // id → elemento DOM
+
+function actualizarPersonajes(nuevos, hablante) {
+  const idsNuevos = new Set(nuevos.map(p => p.id));
+
+  // Remover personajes que ya no están
+  for (const [id, el] of Object.entries(personajesActuales)) {
+    if (!idsNuevos.has(id)) {
+      el.style.opacity = '0';
+      setTimeout(() => el.remove(), 400);
+      delete personajesActuales[id];
+    }
+  }
+
+  // Agregar o actualizar personajes
+  nuevos.forEach(p => {
+    let slot = personajesActuales[p.id];
+    const esNuevo = !slot;
+
+    if (esNuevo) {
+      slot = document.createElement('div');
+      slot.className = `personaje-slot ${p.posicion}`;
+      slot.dataset.id = p.id;
+      const img = document.createElement('img');
+      img.src = p.imagen;
+      img.alt = p.nombre;
+      slot.appendChild(img);
+      elEscenario.appendChild(slot);
+      personajesActuales[p.id] = slot;
+
+      // Animación de entrada
+      const clase = entradaClase(p.entrada);
+      if (clase) {
+        slot.classList.add(clase);
+        setTimeout(() => slot.classList.remove(clase), 600);
+      }
+    } else {
+      // Actualizar posición si cambió
+      slot.className = `personaje-slot ${p.posicion}`;
+    }
+
+    // Escala
+    if (p.escala) {
+      slot.querySelector('img').style.transform = `scale(${p.escala})`;
+      slot.querySelector('img').style.transformOrigin = 'bottom center';
+    }
+
+    // Resaltar hablante
+    if (hablante && p.nombre === hablante) {
+      slot.classList.remove('inactivo');
+    } else if (hablante) {
+      slot.classList.add('inactivo');
+    }
+  });
+}
+
+function entradaClase(tipo) {
+  const mapa = {
+    'deslizar-abajo':     'entrada-deslizar-abajo',
+    'deslizar-derecha':   'entrada-deslizar-derecha',
+    'deslizar-izquierda': 'entrada-deslizar-izquierda',
+    'fade':               'entrada-fade',
+  };
+  return mapa[tipo] || null;
+}
+
+// ── Efecto máquina de escribir ──────────────────────────
+function escribirTexto(texto) {
+  clearInterval(intervaloEscritura);
+  elTexto.classList.remove('completo');
+  elFlecha.classList.remove('visible');
+  escribiendo = true;
+  textoCompleto = texto;
+  let i = 0;
+  elTexto.textContent = '';
+
+  intervaloEscritura = setInterval(() => {
+    elTexto.textContent += texto[i];
+    i++;
+    if (i >= texto.length) {
+      clearInterval(intervaloEscritura);
+      escribiendo = false;
+      elTexto.classList.add('completo');
+      elFlecha.classList.add('visible');
+    }
+  }, VELOCIDAD_ESCRITURA);
+}
+
+// ── Avanzar al siguiente paso ───────────────────────────
+function avanzar() {
+  if (escribiendo) {
+    // Mostrar texto completo inmediatamente
+    clearInterval(intervaloEscritura);
+    escribiendo = false;
+    elTexto.textContent = textoCompleto;
+    elTexto.classList.add('completo');
+    elFlecha.classList.add('visible');
+    return;
+  }
+  mostrarPaso(paso + 1);
+}
+
+// Tap / click en la caja de diálogo
+elDialogoBox.addEventListener('click', avanzar);
+elDialogoBox.addEventListener('touchend', (e) => { e.preventDefault(); avanzar(); });
+
+// ── Finalizar y redirigir ───────────────────────────────
+function terminarIntro() {
+  elFadeOut.classList.add('activo');
+
+  // Fade out de la música
+  const fadeMusica = setInterval(() => {
+    if (elMusica.volume > 0.05) {
+      elMusica.volume = Math.max(0, elMusica.volume - 0.05);
+    } else {
+      elMusica.pause();
+      clearInterval(fadeMusica);
+    }
+  }, 80);
+
+  setTimeout(() => {
+    localStorage.setItem('nexo_intro_vista', '1');
+    window.location.href = DESTINO;
+  }, 800);
+}
+
+function irAlMenu() {
+  localStorage.setItem('nexo_intro_vista', '1');
+  window.location.href = DESTINO;
+}
+
+// ── Arrancar ────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>

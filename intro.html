@@ -60,22 +60,6 @@
   .personaje-slot.centro     { left: 50%; transform: translateX(-50%); transform-origin: bottom center; }
   .personaje-slot.derecha    { right: -2%; transform-origin: bottom right; }
 
-  /* Imagen que ocupa todo el espacio sobre la caja de diálogo */
-  .personaje-slot.pantalla-completa {
-    left: 0; right: 0; bottom: 0;
-    width: 100%;
-    transform: none;
-  }
-  .personaje-slot.pantalla-completa img {
-    width: 100%;
-    height: calc(100vh - 200px);
-    max-width: 100%;
-    max-height: none;
-    object-fit: cover;
-    object-position: center top;
-    filter: none;
-  }
-
   .personaje-slot img {
     max-height: calc(100vh - 200px);
     max-width: 88vw;
@@ -88,6 +72,10 @@
   .personaje-slot.inactivo {
     filter: brightness(0.55) saturate(0.6);
     opacity: 0.85;
+    z-index: 1;
+  }
+  .personaje-slot:not(.inactivo) {
+    z-index: 2;
   }
 
   /* Animaciones de entrada */
@@ -397,10 +385,12 @@ function actualizarPersonajes(nuevos, hablante) {
       slot.className = `personaje-slot ${p.posicion}`;
     }
 
-    // Escala
-    if (p.escala) {
-      slot.querySelector('img').style.transform = `scale(${p.escala})`;
-      slot.querySelector('img').style.transformOrigin = 'bottom center';
+    // Escala aplicada al slot para respetar posición inferior
+    if (p.escala && p.escala !== 1.0) {
+      slot.style.transform = slot.className.includes('centro')
+        ? `translateX(-50%) scale(${p.escala})`
+        : `scale(${p.escala})`;
+      slot.style.transformOrigin = 'bottom center';
     }
 
     // Resaltar hablante

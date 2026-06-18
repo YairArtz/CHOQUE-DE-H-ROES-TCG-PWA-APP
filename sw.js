@@ -2,17 +2,16 @@
 //  CHOQUE DE HÉROES TCG — Service Worker v6
 //  Con notificaciones locales de noticias y torneos
 // ================================================================
-const CACHE_NAME    = 'chh-tcg-v8';
-const CACHE_DYNAMIC = 'chh-dynamic-v8';
+const CACHE_NAME    = 'chh-tcg-v9';
+const CACHE_DYNAMIC = 'chh-dynamic-v9';
 
 const CACHE_CORE = [
   './', './boot.html', './index.html', './calculadora.html',
   './perfil.html', './calendario.html', './constructor.html',
-  './torneo-director.html', './noticias.html', './tienda.html',
-  './musica.html', './ajustes.html',
-  './intro.html', './intro_config.json', './musica_config.json',
+  './torneo-director.html', './noticias.html',
+  './intro.html', './intro_config.json',
   './manifest.json', './icon-192.png', './icon-512.png',
-  './settings.js', './noticias.json',
+  './settings.js', './noticias.json', 
 ];
 
 const NO_CACHE_ORIGINS = ['script.google.com','docs.google.com','fonts.googleapis.com','fonts.gstatic.com'];
@@ -46,7 +45,10 @@ self.addEventListener('fetch', event => {
   if (NO_CACHE_ORIGINS.some(o => url.hostname.includes(o))) return;
   if (url.origin !== self.location.origin) return;
   const isCore = CACHE_CORE.some(f => url.pathname.endsWith(f.replace('./','/')) || url.pathname === '/');
-  if (isCore) event.respondWith(cacheFirst(event.request));
+  // Archivos HTML y JSON siempre networkFirst para recibir actualizaciones
+  const isHtmlOrJson = /\.(html|json)$/i.test(url.pathname) || url.pathname === '/';
+  if (isHtmlOrJson) event.respondWith(networkFirst(event.request));
+  else if (isCore) event.respondWith(cacheFirst(event.request));
   else if (/\.(jpg|jpeg|png|gif|webp|svg|css|woff2?|ttf)$/i.test(url.pathname)) event.respondWith(staleWhileRevalidate(event.request));
   else event.respondWith(networkFirst(event.request));
 });

@@ -625,13 +625,36 @@ footer      {animation:fadeUp .5s .4s  both;}
   </footer>
 
   <script>
-    // ── Registrar Service Worker ──
+    // ── Registrar Service Worker con auto-update ──
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
         navigator.serviceWorker.register('./sw.js', { scope: './' })
           .then(function(reg) {
             console.log('[PWA] SW registrado:', reg.scope);
-            if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+
+            // Activar inmediatamente si hay uno esperando
+            function activarSW(worker) {
+              worker.postMessage({ type: 'SKIP_WAITING' });
+            }
+            if (reg.waiting) { activarSW(reg.waiting); }
+
+            // Detectar nuevo SW cuando llega después
+            reg.addEventListener('updatefound', function() {
+              var nuevo = reg.installing;
+              nuevo.addEventListener('statechange', function() {
+                if (nuevo.state === 'installed' && navigator.serviceWorker.controller) {
+                  activarSW(nuevo);
+                }
+              });
+            });
+
+            // Cuando el SW nuevo toma control, recargar la página
+            navigator.serviceWorker.addEventListener('controllerchange', function() {
+              window.location.reload();
+            });
+
+            // Verificar actualizaciones cada vez que abre la app
+            reg.update();
           })
           .catch(function(err) { console.log('[PWA] SW error:', err); });
       });

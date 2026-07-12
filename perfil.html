@@ -734,6 +734,38 @@ const BADGES_CATALOGO = [
   // — Códigos QR —
   { id:'qr_escaner',        nombre:'Escáner',            tipo:'auto', emoji:'📲', img:'badges/qr_escaner.png',        condicion:'Canjear tu primer código QR de Hero Pesos.' },
   { id:'qr_cazador',        nombre:'Cazador de Códigos', tipo:'auto', emoji:'🔍', img:'badges/qr_cazador.png',        condicion:'Canjear 3 o más códigos QR.' },
+  { id:'qr_10',             nombre:'Rastreador',         tipo:'auto', emoji:'🎯', img:'badges/qr_10.png',             condicion:'Canjear 10 o más códigos QR.' },
+  { id:'qr_25',             nombre:'Maestro del QR',     tipo:'auto', emoji:'🛰️', img:'badges/qr_25.png',             condicion:'Canjear 25 o más códigos QR.' },
+  // — Tienda / Estilo —
+  { id:'estilista',         nombre:'Estilista',          tipo:'auto', emoji:'🎨', img:'badges/estilista.png',         condicion:'Equipar por primera vez un tema de color.' },
+  { id:'coleccionista_temas',nombre:'Coleccionista de Estilo',tipo:'auto',emoji:'🖌️',img:'badges/coleccionista_temas.png',condicion:'Comprar 3 o más temas de color.' },
+  { id:'avatar_premium',    nombre:'Avatar Legendario',  tipo:'auto', emoji:'🗿', img:'badges/avatar_premium.png',    condicion:'Equipar un avatar premium de la tienda.' },
+  // — Ranking extendido —
+  { id:'top5',              nombre:'Top 5',              tipo:'auto', emoji:'🏵️', img:'badges/top5.png',              condicion:'Entrar al Top 5 del ranking global.' },
+  { id:'top3',              nombre:'Podio Global',       tipo:'auto', emoji:'🎖️', img:'badges/top3.png',              condicion:'Entrar al Top 3 del ranking global.' },
+  { id:'puntos_500',        nombre:'Quinientos',         tipo:'auto', emoji:'⭐', img:'badges/puntos_500.png',        condicion:'Acumular 500 puntos en el ranking global.' },
+  { id:'puntos_1000',       nombre:'Mil Puntos',         tipo:'auto', emoji:'💫', img:'badges/puntos_1000.png',       condicion:'Acumular 1000 puntos en el ranking global.' },
+  // — Torneos extendidos —
+  { id:'nomada',            nombre:'Nómada',             tipo:'auto', emoji:'🧭', img:'badges/nomada.png',            condicion:'Participar en torneos de 3 tiendas distintas.' },
+  { id:'top8_finalista',    nombre:'Cuarto de Final',    tipo:'auto', emoji:'🎗️', img:'badges/top8_finalista.png',    condicion:'Terminar entre los lugares 4 y 8 en un torneo.' },
+  // — Colección extendida —
+  { id:'col_50_sobres',     nombre:'Cazador de Sobres',  tipo:'auto', emoji:'📮', img:'badges/col_50_sobres.png',     condicion:'Abrir 50 sobres digitales.' },
+  { id:'col_100_sobres',    nombre:'Guardián del Nexo',  tipo:'auto', emoji:'🏯', img:'badges/col_100_sobres.png',    condicion:'Abrir 100 sobres digitales.' },
+  { id:'foil_maestro',      nombre:'Maestro Foil',       tipo:'auto', emoji:'💠', img:'badges/foil_maestro.png',      condicion:'Obtener 5 o más cartas Foil en total.' },
+  { id:'secreto_maestro',   nombre:'Guardián de Secretos',tipo:'auto',emoji:'🗝️', img:'badges/secreto_maestro.png',   condicion:'Obtener 3 o más cartas Secretas en total.' },
+  // — Hero Pesos extendido —
+  { id:'hp_500',            nombre:'Magnate',            tipo:'auto', emoji:'💵', img:'badges/hp_500.png',            condicion:'Acumular 500 Hero Pesos en total ganados.' },
+  { id:'hp_1000',           nombre:'Tesorero del Nexo',  tipo:'auto', emoji:'💎', img:'badges/hp_1000.png',           condicion:'Acumular 1000 Hero Pesos en total ganados.' },
+  { id:'gastador',          nombre:'Gastador',           tipo:'auto', emoji:'🛍️', img:'badges/gastador.png',          condicion:'Gastar 100 Hero Pesos o más en la tienda.' },
+  { id:'ahorrador',         nombre:'Ahorrador',          tipo:'auto', emoji:'🐷', img:'badges/ahorrador.png',         condicion:'Mantener un saldo activo de 200 HP o más.' },
+  // — Barajas extendidas —
+  { id:'duelista_exp',      nombre:'Duelista Experimentado',tipo:'auto',emoji:'🗂️',img:'badges/duelista_exp.png',    condicion:'Guardar 15 o más barajas distintas.' },
+  { id:'constructor_pro',   nombre:'Constructor Pro',    tipo:'auto', emoji:'🏛️', img:'badges/constructor_pro.png',   condicion:'Guardar 20 o más barajas distintas.' },
+  // — Fechas especiales —
+  { id:'grito',             nombre:'Grito de Independencia',tipo:'auto',emoji:'🇲🇽',img:'badges/grito.png',           condicion:'Iniciar sesión el 15 o 16 de Septiembre.' },
+  { id:'dia_muertos',       nombre:'Día de Muertos',     tipo:'auto', emoji:'💀', img:'badges/dia_muertos.png',       condicion:'Iniciar sesión el 1 o 2 de Noviembre.' },
+  { id:'navidad',           nombre:'Espíritu Navideño',  tipo:'auto', emoji:'🎄', img:'badges/navidad.png',           condicion:'Iniciar sesión el 24 o 25 de Diciembre.' },
+  { id:'ano_nuevo',         nombre:'Año Nuevo del Nexo', tipo:'auto', emoji:'🎆', img:'badges/ano_nuevo.png',         condicion:'Iniciar sesión el 31 de Diciembre o 1 de Enero.' },
 ];
 
 function calcularBadgesAuto(historial, totalPts, posGlobal, datosHP) {
@@ -747,40 +779,78 @@ function calcularBadgesAuto(historial, totalPts, posGlobal, datosHP) {
   if (barajas.length >= 1)  ganados.add('minimalista');
   if (barajas.length >= 5)  ganados.add('arquitecto');
   if (barajas.length > 10)  ganados.add('coleccionista');
+  if (barajas.length >= 15) ganados.add('duelista_exp');
+  if (barajas.length >= 20) ganados.add('constructor_pro');
 
-  // — Aniversario — 16 de Marzo —
+  // — Fechas especiales —
   const hoyFecha = new Date();
-  if (hoyFecha.getMonth() === 2 && hoyFecha.getDate() === 16) ganados.add('aniversario');
+  const mes = hoyFecha.getMonth(); // 0-based
+  const dia = hoyFecha.getDate();
+  // Aniversario — 16 de Marzo
+  if (mes === 2 && dia === 16) ganados.add('aniversario');
+  // Grito — 15 o 16 de Septiembre
+  if (mes === 8 && (dia === 15 || dia === 16)) ganados.add('grito');
+  // Día de Muertos — 1 o 2 de Noviembre
+  if (mes === 10 && (dia === 1 || dia === 2)) ganados.add('dia_muertos');
+  // Navidad — 24 o 25 de Diciembre
+  if (mes === 11 && (dia === 24 || dia === 25)) ganados.add('navidad');
+  // Año Nuevo — 31 de Diciembre o 1 de Enero
+  if ((mes === 11 && dia === 31) || (mes === 0 && dia === 1)) ganados.add('ano_nuevo');
 
   // — Fundador Veterano —
   const numIdV = parseInt((jugador?.id || '').replace(/\D/g,''));
   if (!isNaN(numIdV) && numIdV > 0 && numIdV < 100) ganados.add('fundador_vet');
 
+  // — Tienda: temas, avatares premium —
+  try {
+    const desbloqueados = JSON.parse(localStorage.getItem(`nhTienda_${jugador.id}`) || '[]');
+    const temasComprados = desbloqueados.filter(x => (x || '').startsWith('tema_')).length;
+    if (temasComprados >= 3) ganados.add('coleccionista_temas');
+  } catch(e) {}
+  const temaEquipado = localStorage.getItem(`nhEquip_temas_${jugador.id}`);
+  if (temaEquipado) ganados.add('estilista');
+  const avEquipado = localStorage.getItem(`nhAv_${jugador.id}`) || '';
+  if (avEquipado.startsWith('av_p')) ganados.add('avatar_premium');
+
   // — Colección digital —
   if (datosHP) {
     const sobresAbiertos = datosHP.historialSobres || [];
     const totalSobres = sobresAbiertos.length;
-    if (totalSobres >= 1)  ganados.add('col_primer_sobre');
-    if (totalSobres >= 5)  ganados.add('col_5_sobres');
-    if (totalSobres >= 20) ganados.add('col_20_sobres');
+    if (totalSobres >= 1)   ganados.add('col_primer_sobre');
+    if (totalSobres >= 5)   ganados.add('col_5_sobres');
+    if (totalSobres >= 20)  ganados.add('col_20_sobres');
+    if (totalSobres >= 50)  ganados.add('col_50_sobres');
+    if (totalSobres >= 100) ganados.add('col_100_sobres');
 
     // Revisar rarezas obtenidas
     const todasCartas = sobresAbiertos.flatMap(s => s.cartas || []);
     if (todasCartas.some(c => (c.rareza || '').toLowerCase() === 'secreta'))       ganados.add('col_carta_secreta');
     if (todasCartas.some(c => (c.rareza || '').toLowerCase() === 'foil_poco_comun')) ganados.add('col_carta_foil_pc');
+    // Conteos extendidos
+    const totalSecretas = todasCartas.filter(c => (c.rareza || '').toLowerCase() === 'secreta').length;
+    const totalFoils    = todasCartas.filter(c => (c.rareza || '').toLowerCase().includes('foil')).length;
+    if (totalSecretas >= 3) ganados.add('secreto_maestro');
+    if (totalFoils    >= 5) ganados.add('foil_maestro');
 
     // — Hero Pesos —
     const totalGanado  = datosHP.desglose?.total_ganado  || 0;
     const totalGastado = datosHP.desglose?.total_gastado || 0;
-    if (totalGanado >= 10)  ganados.add('hp_primer_tesoro');
-    if (totalGanado >= 50)  ganados.add('hp_reserva');
-    if (totalGanado >= 200) ganados.add('hp_millonario');
-    if (totalGastado > 0)   ganados.add('hp_primera_compra');
+    const saldoActual  = totalGanado - totalGastado;
+    if (totalGanado >= 10)   ganados.add('hp_primer_tesoro');
+    if (totalGanado >= 50)   ganados.add('hp_reserva');
+    if (totalGanado >= 200)  ganados.add('hp_millonario');
+    if (totalGanado >= 500)  ganados.add('hp_500');
+    if (totalGanado >= 1000) ganados.add('hp_1000');
+    if (totalGastado > 0)    ganados.add('hp_primera_compra');
+    if (totalGastado >= 100) ganados.add('gastador');
+    if (saldoActual  >= 200) ganados.add('ahorrador');
 
     // — Códigos QR —
     const totalQR = datosHP.historialQR?.length || 0;
-    if (totalQR >= 1) ganados.add('qr_escaner');
-    if (totalQR >= 3) ganados.add('qr_cazador');
+    if (totalQR >= 1)  ganados.add('qr_escaner');
+    if (totalQR >= 3)  ganados.add('qr_cazador');
+    if (totalQR >= 10) ganados.add('qr_10');
+    if (totalQR >= 25) ganados.add('qr_25');
   }
 
   if (!historial || !historial.length) return ganados;
@@ -804,18 +874,28 @@ function calcularBadgesAuto(historial, totalPts, posGlobal, datosHP) {
   if (victorias >= 3) ganados.add('hat_trick');
   if (victorias >= 5) ganados.add('en_forma');
 
-  // — Ranking top 10 —
+  // — Ranking top —
   if (posGlobal && posGlobal <= 10) ganados.add('top10');
+  if (posGlobal && posGlobal <= 5)  ganados.add('top5');
+  if (posGlobal && posGlobal <= 3)  ganados.add('top3');
 
   // — Puntos ranking global —
-  if (totalPts >= 100) ganados.add('rey_nexo');
-  if (totalPts >= 200) ganados.add('maestro_nexo');
+  if (totalPts >= 100)  ganados.add('rey_nexo');
+  if (totalPts >= 200)  ganados.add('maestro_nexo');
+  if (totalPts >= 500)  ganados.add('puntos_500');
+  if (totalPts >= 1000) ganados.add('puntos_1000');
 
   // — Resultados —
   ganados.add('tor_debut');
   if (posiciones.includes(3)) ganados.add('tor_3er');
   if (posiciones.includes(2)) ganados.add('tor_2do');
   if (posiciones.includes(1)) ganados.add('tor_1er');
+  // Top 8 (lugares 4-8)
+  if (posiciones.some(p => p >= 4 && p <= 8)) ganados.add('top8_finalista');
+
+  // — Nómada — tiendas distintas —
+  const tiendasDistintas = new Set(historial.map(t => (t.storeid || '').toUpperCase()).filter(Boolean));
+  if (tiendasDistintas.size >= 3) ganados.add('nomada');
 
   return ganados;
 }

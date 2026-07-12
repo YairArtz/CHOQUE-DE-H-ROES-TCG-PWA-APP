@@ -152,8 +152,50 @@
     .pos-n{background:rgba(136,146,176,.08);color:var(--muted);border:1px solid var(--border);}
     .empty-msg{text-align:center;color:var(--muted);font-size:.85rem;padding:16px 0;}
 
-    /* ── COLECCIÓN ── */
-    .coleccion-filtros{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+    /* ── DASHBOARD SUPERIOR ── */
+    .dashboard-hero{background:linear-gradient(135deg,rgba(0,255,157,.06),rgba(0,207,255,.06));border:1px solid rgba(0,255,157,.2);border-radius:10px;padding:12px 14px;margin-bottom:12px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+    .dh-cell{text-align:center;padding:6px 4px;border-radius:6px;background:rgba(0,0,0,.25);}
+    .dh-val{font-family:'Orbitron',sans-serif;font-size:.9rem;font-weight:900;color:var(--accent);letter-spacing:1px;line-height:1;}
+    .dh-lbl{font-family:'Orbitron',sans-serif;font-size:.52rem;letter-spacing:1.5px;color:var(--muted);margin-top:4px;text-transform:uppercase;}
+    .dh-cell.hp .dh-val{color:#f5a623;}
+    .dh-cell.pos .dh-val{color:#4fc3f7;}
+    .dh-cell.logro .dh-val{color:#e040fb;font-size:.7rem;}
+
+    /* ── TIMELINE DE NIVELES ── */
+    .nivel-timeline{display:flex;align-items:center;gap:2px;margin:10px 0 6px;padding:0 4px;}
+    .nl-node{flex:1;height:6px;background:rgba(255,255,255,.05);border-radius:3px;position:relative;transition:background .3s;}
+    .nl-node.completado{background:linear-gradient(90deg,var(--accent),#00c875);box-shadow:0 0 6px rgba(0,255,157,.5);}
+    .nl-node.actual{background:linear-gradient(90deg,var(--accent),rgba(0,255,157,.3));animation:nlPulse 1.5s ease infinite;}
+    @keyframes nlPulse{0%,100%{box-shadow:0 0 4px rgba(0,255,157,.3)}50%{box-shadow:0 0 10px rgba(0,255,157,.8)}}
+    .nl-labels{display:flex;justify-content:space-between;font-family:'Orbitron',sans-serif;font-size:.55rem;color:var(--muted);letter-spacing:1px;margin-top:4px;padding:0 4px;}
+    .nl-labels span.actual{color:var(--accent);}
+
+    /* ── ESTADÍSTICAS AVANZADAS ── */
+    .stats-avanzadas{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px;}
+    .sa-item{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:6px;padding:8px 10px;}
+    .sa-lbl{font-family:'Orbitron',sans-serif;font-size:.55rem;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;}
+    .sa-val{font-size:.85rem;font-weight:700;color:var(--text);margin-top:2px;}
+    .sa-val.small{font-size:.75rem;}
+
+    /* ── FILTRO DE AÑO ── */
+    .year-filter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+    .yf-btn{font-family:'Orbitron',sans-serif;font-size:.55rem;letter-spacing:1px;padding:4px 10px;border-radius:3px;background:transparent;border:1px solid var(--border);color:var(--muted);cursor:pointer;transition:all .15s;}
+    .yf-btn.active{background:rgba(0,255,157,.1);border-color:var(--accent);color:var(--accent);}
+
+    /* ── VER MÁS TORNEOS ── */
+    .torneos-vermas{width:100%;background:rgba(0,255,157,.04);border:1px dashed rgba(0,255,157,.3);color:var(--accent);font-family:'Orbitron',sans-serif;font-size:.65rem;letter-spacing:1.5px;padding:10px;border-radius:6px;cursor:pointer;margin-top:6px;transition:background .15s;}
+    .torneos-vermas:hover{background:rgba(0,255,157,.08);}
+
+    /* ── PROGRESO DE COLECCIÓN ── */
+    .col-progreso{background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:6px;padding:10px 12px;margin-bottom:12px;}
+    .col-prog-title{font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:2px;color:var(--muted);margin-bottom:8px;}
+    .col-prog-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:.7rem;}
+    .col-prog-row:last-child{margin-bottom:0;}
+    .col-prog-lbl{width:75px;font-family:'Orbitron',sans-serif;font-size:.55rem;letter-spacing:1px;color:var(--muted);text-transform:uppercase;}
+    .col-prog-bar-wrap{flex:1;height:6px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden;}
+    .col-prog-bar{height:100%;border-radius:3px;transition:width .5s;}
+    .col-prog-count{font-family:'Orbitron',sans-serif;font-size:.6rem;color:var(--text);min-width:42px;text-align:right;}
+
     .col-filtro{font-family:'Orbitron',sans-serif;font-size:.55rem;letter-spacing:1px;padding:4px 10px;border-radius:3px;background:transparent;border:1px solid var(--border);color:var(--muted);cursor:pointer;transition:all .15s;}
     .col-filtro.active{background:rgba(0,255,157,.1);border-color:var(--accent);color:var(--accent);}
     .coleccion-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
@@ -406,7 +448,11 @@
       <div class="stat-box"><span class="stat-val" id="s-barajas">0</span><div class="stat-lbl">Barajas</div></div>
     </div>
     <div id="nivel-container"></div>
+    <div id="stats-avanzadas-container"></div>
   </div>
+
+  <!-- Dashboard rápido -->
+  <div id="dashboard-hero-container"></div>
 
   <!-- Ranking -->
   <div class="card" style="margin-bottom:12px;">
@@ -936,6 +982,14 @@ function calcularNivel(totalBadges) {
   return NIVELES.find(n => totalBadges >= n.min && totalBadges <= n.max) || NIVELES[0];
 }
 
+// ── DATOS AGREGADOS PARA DASHBOARD ──
+window._perfilData = {
+  nivel: null, nivelNombre: '', proximoLogro: null,
+  saldoHP: 0, ultimaPos: null, ultimoTorneo: null,
+  posGlobal: 0, historial: [], winRate: 0, mejorRacha: 0,
+  tiendaFav: '', rarezaFav: '', totalSobres: 0
+};
+
 function renderNivel(totalBadgesGanados) {
   const cont = document.getElementById('nivel-container');
   if (!cont) return;
@@ -946,6 +1000,17 @@ function renderNivel(totalBadgesGanados) {
     : 100;
   const falta = siguiente ? (actual.max + 1 - totalBadgesGanados) : 0;
 
+  // Timeline de niveles
+  const timelineNodes = NIVELES.map(n => {
+    let cls = '';
+    if (n.nivel < actual.nivel) cls = 'completado';
+    else if (n.nivel === actual.nivel) cls = 'actual';
+    return `<div class="nl-node ${cls}" title="NV ${n.nivel} · ${n.nombre}"></div>`;
+  }).join('');
+  const timelineLabels = NIVELES.map(n =>
+    `<span class="${n.nivel===actual.nivel?'actual':''}">${n.nivel}</span>`
+  ).join('');
+
   cont.innerHTML = `
     <div class="nivel-wrap">
       <div class="nivel-badge">NV ${actual.nivel}</div>
@@ -954,7 +1019,77 @@ function renderNivel(totalBadgesGanados) {
         <div class="nivel-barra-wrap"><div class="nivel-barra" style="width:${progreso}%"></div></div>
         <div class="nivel-meta">${totalBadgesGanados} logros desbloqueados${siguiente ? ` · Faltan ${falta} para ${siguiente.nombre}` : ' · ¡Nivel máximo!'}</div>
       </div>
-    </div>`;
+    </div>
+    <div class="nivel-timeline">${timelineNodes}</div>
+    <div class="nl-labels">${timelineLabels}</div>`;
+
+  // Guardar para dashboard
+  window._perfilData.nivel = actual.nivel;
+  window._perfilData.nivelNombre = actual.nombre;
+  renderDashboard();
+}
+
+// ── DASHBOARD RÁPIDO ──
+function renderDashboard() {
+  const cont = document.getElementById('dashboard-hero-container');
+  if (!cont) return;
+  const d = window._perfilData;
+  if (!d.nivel && !d.saldoHP && !d.ultimaPos) return; // esperar a que haya algo
+
+  const nivelTxt = d.nivel ? `NV${d.nivel}` : '—';
+  const hpTxt    = d.saldoHP != null ? `${d.saldoHP}` : '—';
+  const posTxt   = d.ultimaPos ? (d.ultimaPos===1?'🥇':d.ultimaPos===2?'🥈':d.ultimaPos===3?'🥉':`#${d.ultimaPos}`) : '—';
+  const logroTxt = d.proximoLogro ? d.proximoLogro : '—';
+
+  cont.innerHTML = `<div class="dashboard-hero">
+    <div class="dh-cell"><div class="dh-val">${nivelTxt}</div><div class="dh-lbl">Nivel</div></div>
+    <div class="dh-cell hp"><div class="dh-val">${hpTxt}</div><div class="dh-lbl">Hero Pesos</div></div>
+    <div class="dh-cell pos"><div class="dh-val">${posTxt}</div><div class="dh-lbl">Último</div></div>
+    <div class="dh-cell logro"><div class="dh-val" title="${logroTxt}">${logroTxt.length>10?logroTxt.slice(0,10)+'…':logroTxt}</div><div class="dh-lbl">Próx. logro</div></div>
+  </div>`;
+}
+
+// ── ESTADÍSTICAS AVANZADAS ──
+function renderStatsAvanzadas() {
+  const cont = document.getElementById('stats-avanzadas-container');
+  if (!cont) return;
+  const d = window._perfilData;
+  const hist = d.historial || [];
+  if (!hist.length) { cont.innerHTML = ''; return; }
+
+  // Win rate = % top 3
+  const podios = hist.filter(t => t.lugar <= 3).length;
+  const winRate = Math.round((podios / hist.length) * 100);
+
+  // Mejor racha de torneos con puntos (lugar <= 8, todos dan pts)
+  const sortedByDate = [...hist].sort((a,b) => {
+    const da = new Date(a.fecha).getTime() || 0;
+    const db = new Date(b.fecha).getTime() || 0;
+    return da - db;
+  });
+  let racha = 0, mejorRacha = 0;
+  sortedByDate.forEach(t => {
+    if (t.pts > 0) { racha++; if (racha>mejorRacha) mejorRacha = racha; }
+    else racha = 0;
+  });
+
+  // Tienda favorita
+  const conteoTiendas = {};
+  hist.forEach(t => { if (t.tienda) conteoTiendas[t.tienda] = (conteoTiendas[t.tienda]||0)+1; });
+  const tiendaFav = Object.entries(conteoTiendas).sort((a,b)=>b[1]-a[1])[0];
+  const tiendaFavTxt = tiendaFav ? `${tiendaFav[0]} (${tiendaFav[1]})` : '—';
+
+  // Guardar y renderizar
+  d.winRate = winRate;
+  d.mejorRacha = mejorRacha;
+  d.tiendaFav = tiendaFavTxt;
+
+  cont.innerHTML = `<div class="stats-avanzadas">
+    <div class="sa-item"><div class="sa-lbl">Win Rate (top 3)</div><div class="sa-val">${winRate}%</div></div>
+    <div class="sa-item"><div class="sa-lbl">Mejor Racha</div><div class="sa-val">${mejorRacha} torneo${mejorRacha!==1?'s':''}</div></div>
+    <div class="sa-item"><div class="sa-lbl">Tienda Favorita</div><div class="sa-val small">${tiendaFavTxt}</div></div>
+    <div class="sa-item"><div class="sa-lbl">Posición Global</div><div class="sa-val">${d.posGlobal? '#'+d.posGlobal : '—'}</div></div>
+  </div>`;
 }
 
 // ── TOAST DE LOGRO NUEVO ──
@@ -1008,6 +1143,8 @@ async function cargarHistorialHP(datosHP) {
 
   const d  = datosHP.desglose || {};
   const saldo = (d.total_ganado || 0) - (d.total_gastado || 0);
+  window._perfilData.saldoHP = saldo;
+  renderDashboard();
 
   // Desglose de fuentes
   const desglose = [
@@ -1137,6 +1274,16 @@ async function cargarBadges(historial, totalPts, posGlobal) {
     { id:'leyenda', req:30 }, { id:'heroe_regente', req:50 }
   ];
   const sigBadge = progresionTorneos.find(p => !todosGanados.has(p.id));
+  // Guardar en dashboard
+  if (sigBadge) {
+    const bSig = BADGES_CATALOGO.find(x => x.id === sigBadge.id);
+    window._perfilData.proximoLogro = bSig?.nombre || sigBadge.id;
+  } else {
+    // Buscar cualquier badge no ganado tipo auto como fallback
+    const otro = BADGES_CATALOGO.find(b => b.tipo==='auto' && !todosGanados.has(b.id));
+    window._perfilData.proximoLogro = otro?.nombre || '¡Todos!';
+  }
+  renderDashboard();
   const progBarraHTML = sigBadge ? (() => {
     const prevReq = progresionTorneos[progresionTorneos.indexOf(sigBadge) - 1]?.req || 0;
     const pct = Math.min(100, Math.round(((torneosJugados - prevReq) / (sigBadge.req - prevReq)) * 100));
@@ -1551,6 +1698,7 @@ async function cargarRanking() {
     const ranking = Object.entries(puntajesPorJugador)
       .sort((a, b) => b[1] - a[1]);
     const posGlobal = ranking.findIndex(([id]) => id === miId) + 1;
+    window._perfilData.posGlobal = posGlobal;
 
     // ── Actualizar estadísticas ──
     document.getElementById('s-puntos').textContent  = totalPts;
@@ -1591,12 +1739,69 @@ async function cargarRanking() {
   }
 }
 
+// Estado global del historial (para filtro por año y "ver más")
+window._historialState = { anio: 'todos', mostrarTodos: false, todos: [] };
+
 function renderTorneos(historial) {
   const cont = document.getElementById('torneos-container');
   if (!historial?.length) { cont.innerHTML='<div class="empty-msg">📋 Sin historial.</div>'; return; }
+
+  window._historialState.todos = historial;
+
+  // Actualizar datos para dashboard
+  const sortedForLast = [...historial].sort((a,b)=> {
+    const da = new Date(a.fecha).getTime()||0, db = new Date(b.fecha).getTime()||0;
+    return db - da;
+  });
+  const ultimo = sortedForLast[0];
+  window._perfilData.historial = historial;
+  window._perfilData.ultimaPos = ultimo?.lugar || null;
+  window._perfilData.ultimoTorneo = ultimo?.nombre || '';
+  renderDashboard();
+  renderStatsAvanzadas();
+
+  _renderTorneosFiltrados();
+}
+
+function _renderTorneosFiltrados() {
+  const cont = document.getElementById('torneos-container');
+  const st = window._historialState;
+  const historial = st.todos;
+
+  // Años disponibles
+  const anios = [...new Set(historial.map(t => {
+    const y = new Date(t.fecha).getFullYear();
+    return isNaN(y) ? null : y;
+  }).filter(Boolean))].sort((a,b)=>b-a);
+
+  // Filtrar por año
+  const filtrados = st.anio === 'todos'
+    ? historial
+    : historial.filter(t => new Date(t.fecha).getFullYear() == st.anio);
+
   // Ordenar del más reciente al más antiguo
-  const sorted = [...historial].reverse();
-  cont.innerHTML = sorted.map(t => {
+  const sorted = [...filtrados].sort((a,b) => {
+    const da = new Date(a.fecha).getTime()||0, db = new Date(b.fecha).getTime()||0;
+    return db - da;
+  });
+
+  // Filtro UI
+  const filtroHTML = anios.length > 1 ? `<div class="year-filter">
+    <button class="yf-btn ${st.anio==='todos'?'active':''}" onclick="filtrarAnioHistorial('todos')">TODOS</button>
+    ${anios.map(y => `<button class="yf-btn ${st.anio==y?'active':''}" onclick="filtrarAnioHistorial('${y}')">${y}</button>`).join('')}
+  </div>` : '';
+
+  if (!sorted.length) {
+    cont.innerHTML = filtroHTML + '<div class="empty-msg">Sin torneos en este período.</div>';
+    return;
+  }
+
+  // Mostrar solo 3 si no está expandido y hay más de 5
+  const LIMITE = 3;
+  const hayMas = sorted.length > 5 && !st.mostrarTodos;
+  const visibles = hayMas ? sorted.slice(0, LIMITE) : sorted;
+
+  const itemsHTML = visibles.map(t => {
     const pos = t.lugar;
     const cls = pos==1?'pos-1':pos==2?'pos-2':pos==3?'pos-3':'pos-n';
     const txt = pos==1?'🥇 1°':pos==2?'🥈 2°':pos==3?'🥉 3°':`#${pos}`;
@@ -1611,6 +1816,26 @@ function renderTorneos(historial) {
       </div>
     </div>`;
   }).join('');
+
+  const btnVerMas = hayMas
+    ? `<button class="torneos-vermas" onclick="expandirHistorial()">▼ Ver ${sorted.length - LIMITE} torneos más</button>`
+    : (sorted.length > 5 && st.mostrarTodos ? `<button class="torneos-vermas" onclick="colapsarHistorial()">▲ Mostrar menos</button>` : '');
+
+  cont.innerHTML = filtroHTML + itemsHTML + btnVerMas;
+}
+
+function filtrarAnioHistorial(anio) {
+  window._historialState.anio = anio;
+  window._historialState.mostrarTodos = false;
+  _renderTorneosFiltrados();
+}
+function expandirHistorial() {
+  window._historialState.mostrarTodos = true;
+  _renderTorneosFiltrados();
+}
+function colapsarHistorial() {
+  window._historialState.mostrarTodos = false;
+  _renderTorneosFiltrados();
 }
 
 // ── BARAJAS ──
@@ -2160,6 +2385,24 @@ function renderColeccion() {
     <div class="col-stat"><span class="col-stat-val">${rarezasPresentes.length}</span><div class="col-stat-lbl">RAREZAS</div></div>
   </div>`;
 
+  // Barras de progreso por rareza (usa el total de cartas únicas del catálogo si está disponible)
+  const totalCatalogo = window._totalCartasCatalogo || {};
+  const progresoHTML = rarezasPresentes.length ? `<div class="col-progreso">
+    <div class="col-prog-title">PROGRESO POR RAREZA</div>
+    ${ordenR.filter(r => rarezasPresentes.includes(r)).map(r => {
+      const tengo = coleccionData.filter(c => c.rareza === r).length;
+      const total = totalCatalogo[r] || tengo;
+      const pct = total > 0 ? Math.min(100, Math.round((tengo/total)*100)) : 0;
+      const color = RAREZA_COLOR_COL[r] || 'var(--accent)';
+      const label = RAREZA_LABEL_COL[r] || r;
+      return `<div class="col-prog-row">
+        <div class="col-prog-lbl">${label}</div>
+        <div class="col-prog-bar-wrap"><div class="col-prog-bar" style="width:${pct}%;background:${color};"></div></div>
+        <div class="col-prog-count">${tengo}${total>tengo?'/'+total:''}</div>
+      </div>`;
+    }).join('')}
+  </div>` : '';
+
   const filtrosHTML = `<div class="coleccion-filtros">
     <button class="col-filtro ${coleccionFiltro==='todas'?'active':''}" onclick="filtrarColeccion('todas')">TODAS (${coleccionData.length})</button>
     ${rarezasPresentes.map(r => {
@@ -2190,7 +2433,7 @@ function renderColeccion() {
         </div>`;
       }).join('')}</div>`;
 
-  cont.innerHTML = statsHTML + filtrosHTML + gridHTML;
+  cont.innerHTML = statsHTML + progresoHTML + filtrosHTML + gridHTML;
 }
 
 function filtrarColeccion(rareza) {

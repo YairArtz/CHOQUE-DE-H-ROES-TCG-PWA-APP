@@ -516,6 +516,15 @@ footer      {animation:fadeUp .5s .4s  both;}
       <div class="mod-arrow">›</div>
     </a>
 
+    <a class="mod-card c-purple" href="academia.html">
+      <div class="mod-icon">📚</div>
+      <div class="mod-info">
+        <div class="mod-name">Academia Heroica</div>
+        <div class="mod-desc">Barajas y estrategias compartidas</div>
+      </div>
+      <div class="mod-arrow">›</div>
+    </a>
+
     <a class="mod-card c-gold" href="reglamento.html">
       <div class="mod-icon">📖</div>
       <div class="mod-info">
@@ -761,8 +770,8 @@ function _nextNotif() {
   const { tipo, titulo, texto, url } = _notifQueue.shift();
 
   const isGold = tipo === 'torneo';
-  const emoji  = tipo === 'noticia' ? '📰' : tipo === 'torneo' ? '⚔️' : tipo === 'resultado' ? '🏆' : '🔔';
-  const tag    = tipo === 'noticia' ? 'NUEVA NOTICIA' : tipo === 'torneo' ? 'NUEVO TORNEO' : tipo === 'resultado' ? 'RESULTADOS' : 'AVISO';
+  const emoji  = tipo === 'noticia' ? '📰' : tipo === 'torneo' ? '⚔️' : tipo === 'resultado' ? '🏆' : tipo === 'academia' ? '📚' : '🔔';
+  const tag    = tipo === 'noticia' ? 'NUEVA NOTICIA' : tipo === 'torneo' ? 'NUEVO TORNEO' : tipo === 'resultado' ? 'RESULTADOS' : tipo === 'academia' ? 'ACADEMIA HEROICA' : 'AVISO';
 
   const el = document.createElement('div');
   el.className = 'chh-notif';
@@ -795,6 +804,21 @@ function _dismissNotif(el) {
 async function chhCheckNovedades() {
   try { await _checkNoticiasBanner(); } catch(e) {}
   try { await _checkTorneosBanner(); } catch(e) {}
+  try { await _checkAcademiaBanner(); } catch(e) {}
+}
+
+const ACADEMIA_URL_NOTIF = 'https://script.google.com/macros/s/AKfycbxC8MztvNoOUGya3uVNIlOCFrGEWZeAfyu0Qho7KpBchuJKzpFkPyUPMqY3vimwA3Wi/exec';
+
+async function _checkAcademiaBanner() {
+  const res = await fetch(ACADEMIA_URL_NOTIF + '?action=novedad&_t=' + Date.now());
+  if (!res.ok) return;
+  const data = await res.json();
+  if (data.status !== 'ok' || !data.baraja) return;
+  const b = data.baraja;
+  const visto = localStorage.getItem('chh_last_academia');
+  if (b.id === visto) return;
+  localStorage.setItem('chh_last_academia', b.id);
+  chhNotif('academia', b.titulo, `Baraja compartida por ${b.autor_nombre}`, './academia.html?baraja=' + encodeURIComponent(b.id));
 }
 
 async function _checkNoticiasBanner() {

@@ -1237,6 +1237,13 @@ async function cargarBadges(historial, totalPts, posGlobal) {
         if (rowId === miId) {
           const badgesRaw = (c[5]?.v || '').toString().trim();
           if (badgesRaw) badgesRaw.split(',').forEach(b => { const bid=b.trim().toLowerCase(); if(bid) manualesGanados.add(bid); });
+          // Detectar si es admin de Academia Heroica (columna I = índice 8)
+          const esAdminAca = String(c[8]?.v || '').trim();
+          if (esAdminAca === '1' || esAdminAca.toLowerCase() === 'true') {
+            localStorage.setItem('nhAdminAcademia_' + miId, '1');
+          } else {
+            localStorage.removeItem('nhAdminAcademia_' + miId);
+          }
           break;
         }
       }
@@ -1850,6 +1857,14 @@ function cargarBarajas() {
       <div><div class="baraja-nombre">${b.nombre||`Baraja #${i+1}`}</div><div class="baraja-meta">BP:${b.bp?.length||0}/40 · BA:${b.ba?.length||0}/15 · BS:${b.bs?.length||0}/15</div></div>
       <div class="baraja-arrow">›</div>
     </div>`).join('');
+
+  // Aviso para admins de Academia Heroica
+  const esAdminAca = localStorage.getItem('nhAdminAcademia_' + jugador.id) === '1';
+  if (esAdminAca) {
+    cont.innerHTML += `<div style="margin-top:10px;padding:10px 12px;background:rgba(180,70,255,.06);border:1px dashed rgba(180,70,255,.3);border-radius:6px;text-align:center;font-size:.75rem;color:#cc55ff;font-family:'Orbitron',sans-serif;letter-spacing:1px;">
+      🛡️ ADMIN · Comparte tus barajas desde el constructor
+    </div>`;
+  }
 }
 
 // ── AVATARES ──

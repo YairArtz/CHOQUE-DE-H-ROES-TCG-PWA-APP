@@ -933,6 +933,9 @@
       <button class="action-btn primary" id="exportBtn">Exportar</button>
     </div>
 
+    <!-- ACADEMIA — solo visible para admins -->
+    <button class="action-btn academia-btn" id="shareAcademiaBtn" style="display:none;width:100%;margin-top:8px;background:linear-gradient(135deg,#cc55ff,#8033cc);color:#000;border:none;">📚 COMPARTIR EN ACADEMIA</button>
+
   </div>
 
   <!-- MODAL GUARDAR -->
@@ -966,6 +969,26 @@
       <div class="modal-actions">
         <button class="modal-btn" id="closeExportBtn">Cerrar</button>
         <button class="modal-btn primary" id="copyExportBtn">Copiar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL COMPARTIR EN ACADEMIA -->
+  <div class="modal" id="shareAcademiaModal">
+    <div class="modal-content" style="max-height:90vh;overflow-y:auto;">
+      <div class="modal-title" style="color:#cc55ff;">📚 Compartir en Academia Heroica</div>
+      <input type="text" class="modal-input" id="share-titulo" placeholder="Título de la baraja..." maxlength="60" style="margin-bottom:10px;">
+      <textarea class="modal-input" id="share-descripcion" placeholder="Descripción y estrategia — ¿cómo se juega, qué la hace única, tips...?" maxlength="500" style="min-height:100px;resize:vertical;margin-bottom:10px;"></textarea>
+      <input type="text" class="modal-input" id="share-arquetipo" placeholder="Arquetipo (separar con coma si es mixto)" maxlength="80" style="margin-bottom:10px;">
+      <select class="modal-input" id="share-dificultad" style="margin-bottom:10px;">
+        <option value="principiante">🟢 Principiante</option>
+        <option value="intermedio" selected>🔵 Intermedio</option>
+        <option value="avanzado">🔴 Avanzado</option>
+        <option value="experto">🟣 Experto</option>
+      </select>
+      <div class="modal-actions">
+        <button class="modal-btn" id="cancelShareAcademiaBtn">Cancelar</button>
+        <button class="modal-btn primary" id="confirmShareAcademiaBtn" style="background:linear-gradient(135deg,#cc55ff,#8033cc);">Publicar</button>
       </div>
     </div>
   </div>
@@ -1053,6 +1076,32 @@
     // CARGA DE CARTAS DESDE JSON
     // ═══════════════════════════════════════════════════════
     
+    // ═══════════════════════════════════════════════════════
+    // ACADEMIA HEROICA — Configuración y detección de admin
+    // ═══════════════════════════════════════════════════════
+    const ACADEMIA_URL = 'https://script.google.com/macros/s/AKfycbxC8MztvNoOUGya3uVNIlOCFrGEWZeAfyu0Qho7KpBchuJKzpFkPyUPMqY3vimwA3Wi/exec';
+
+    let jugadorActual = null;
+    let esAdminAcademia = false;
+
+    try {
+      const _s = JSON.parse(localStorage.getItem('nhSesion') || 'null');
+      if (_s && _s.tipo !== 'tienda') jugadorActual = _s;
+    } catch(e) {}
+
+    if (jugadorActual) {
+      fetch(`${ACADEMIA_URL}?action=es_admin&player_id=${encodeURIComponent(jugadorActual.id)}`)
+        .then(r => r.json())
+        .then(d => {
+          esAdminAcademia = d.es_admin === true;
+          if (esAdminAcademia) {
+            const btn = document.getElementById('shareAcademiaBtn');
+            if (btn) btn.style.display = 'block';
+          }
+        })
+        .catch(() => {});
+    }
+
     let allCards = [];
     let cartasLimitadas = {};
     
@@ -1668,6 +1717,81 @@
       text.select();
       document.execCommand('copy');
       customAlert('Baraja copiada al portapapeles', '📋');
+    });
+
+    // ═══════════════════════════════════════════════════════
+    // COMPARTIR EN ACADEMIA HEROICA
+    // ═══════════════════════════════════════════════════════
+    const shareAcademiaModal = document.getElementById('shareAcademiaModal');
+
+    document.getElementById('shareAcademiaBtn').addEventListener('click', () => {
+      if (!jugadorActual) { customAlert('Debes iniciar sesión primero', '🔒'); return; }
+      if (!esAdminAcademia) { customAlert('Solo los admins pueden compartir barajas', '🛡️'); return; }
+
+      if (deckState.BP.length !== 40) {
+        customAlert('La Baraja Principal debe tener 40 cartas para compartir', '📦');
+        return;
+      }
+      if (deckState.BA.length !== 15) {
+        customAlert('La Baraja de Almas debe tener 15 cartas para compartir', '👻');
+        return;
+      }
+
+      shareAcademiaModal.classList.add('active');
+    });
+
+    document.getElementById('cancelShareAcademiaBtn').addEventListener('click', () => {
+      shareAcademiaModal.classList.remove('active');
+    });
+
+    document.getElementById('confirmShareAcademiaBtn').addEventListener('click', async () => {
+      const titulo = document.getElementById('share-titulo').value.trim();
+      const descripcion = document.getElementById('share-descripcion').value.trim();
+      const arquetipo = document.getElementById('share-arquetipo').value.trim();
+      const dificultad = document.getElementById('share-dificultad').value;
+
+      if (!titulo) { customAlert('Falta el título de la baraja', '✏️'); return; }
+      if (!descripcion) { customAlert('Falta la descripción / estrategia', '📝'); return; }
+
+      // Convertir baraja a formato compacto {id, cant}
+      const compactar = (arr) => {
+        const conteo = {};
+        arr.forEach(c => { conteo[c.id] = (conteo[c.id] || 0) + 1; });
+        return Object.entries(conteo).map(([id, cant]) => ({ id, cant }));
+      };
+
+      const bp_json = JSON.stringify(compactar(deckState.BP));
+      const ba_json = JSON.stringify(compactar(deckState.BA));
+      const bs_json = JSON.stringify(compactar(deckState.BS));
+
+      const body = new URLSearchParams({
+        action: 'publicar',
+        autor_id: jugadorActual.id,
+        titulo, descripcion, arquetipo, dificultad,
+        bp_json, ba_json, bs_json
+      });
+
+      const btn = document.getElementById('confirmShareAcademiaBtn');
+      btn.disabled = true;
+      const originalText = btn.textContent;
+      btn.textContent = '⏳ Publicando...';
+
+      try {
+        const res = await fetch(ACADEMIA_URL, { method: 'POST', body });
+        const data = await res.json();
+        if (data.status !== 'ok') throw new Error(data.message);
+        customAlert('¡Baraja publicada en Academia Heroica!', '📚');
+        shareAcademiaModal.classList.remove('active');
+        document.getElementById('share-titulo').value = '';
+        document.getElementById('share-descripcion').value = '';
+        document.getElementById('share-arquetipo').value = '';
+        document.getElementById('share-dificultad').value = 'intermedio';
+      } catch(e) {
+        customAlert('Error: ' + e.message, '⚠️');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+      }
     });
   </script>
 </body>

@@ -122,6 +122,24 @@
     .torneo-section { margin-bottom:14px; }
     .torneo-section-title { font-family:'Orbitron',sans-serif; font-size:.72rem;
       letter-spacing:2px; color:var(--gold); margin-bottom:8px; }
+    /* — Header/body colapsable de torneo individual — */
+    .torneo-section-header{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:border-color .15s,background .15s;}
+    .torneo-section-header:hover{border-color:rgba(0,255,157,.3);}
+    .torneo-section-header .ts-arrow{font-size:.75rem;color:var(--muted);transition:transform .2s;}
+    .torneo-section-header.open{border-radius:8px 8px 0 0;background:rgba(0,255,157,.04);border-color:rgba(0,255,157,.25);}
+    .torneo-section-header.open .ts-arrow{transform:rotate(180deg);color:var(--accent);}
+    .torneo-section-body{max-height:0;overflow:hidden;transition:max-height .3s ease;border:0 solid var(--border);border-radius:0 0 8px 8px;background:rgba(255,255,255,.01);}
+    .torneo-section-body.open{max-height:4000px;padding:12px 14px;border-width:0 1px 1px 1px;border-color:rgba(0,255,157,.25);}
+    /* — Grupos: En curso / Finalizados — */
+    .torneo-group{margin-bottom:16px;}
+    .torneo-group-header{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-radius:8px;cursor:pointer;font-family:'Orbitron',sans-serif;font-size:.7rem;letter-spacing:2px;text-transform:uppercase;transition:background .15s;user-select:none;}
+    .torneo-group-header.activos{background:rgba(0,200,100,.08);border:1px solid rgba(0,200,100,.3);color:#00c864;}
+    .torneo-group-header.finalizados{background:rgba(245,166,35,.08);border:1px solid rgba(245,166,35,.3);color:var(--gold);}
+    .torneo-group-header .tg-arrow{font-size:.7rem;transition:transform .2s;}
+    .torneo-group-header.open .tg-arrow{transform:rotate(180deg);}
+    .torneo-group-count{background:rgba(0,0,0,.35);padding:2px 8px;border-radius:10px;font-size:.62rem;margin-left:8px;}
+    .torneo-group-body{max-height:0;overflow:hidden;transition:max-height .35s ease;}
+    .torneo-group-body.open{max-height:20000px;padding-top:10px;}
 
     /* ── TORNEOS ── */
     .torneo-item{background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:6px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;}
@@ -1350,8 +1368,18 @@ async function cargarTorneosOrganizados() {
       return;
     }
 
+    // Ordenar por fecha descendente (más reciente primero)
+    const parseFecha = (t) => {
+      const f = t.date || t.tourdate || '';
+      const d = new Date(f);
+      return isNaN(d.getTime()) ? 0 : d.getTime();
+    };
+    todosLosTorneos.sort((a, b) => parseFecha(b) - parseFecha(a));
+
     window._torneoData = [];
-    cont.innerHTML = todosLosTorneos.map((t, idx) => {
+
+    // Generar HTML de un torneo individual
+    const renderTorneo = (t, idx) => {
       const uid        = 'ts_' + idx;
       const tieneRes   = tournesConResultado.has(t.tourname);
       const resultado  = resultados.find(r => r.tourname === t.tourname);
@@ -1408,10 +1436,50 @@ async function cargarTorneosOrganizados() {
           </button>
         </div>
       </div>`;
-    }).join('');
+    };
+
+    // Separar en dos grupos
+    const activos     = [];
+    const finalizados = [];
+    todosLosTorneos.forEach((t, idx) => {
+      const html = renderTorneo(t, idx);
+      if (tournesConResultado.has(t.tourname)) finalizados.push(html);
+      else activos.push(html);
+    });
+
+    const grupoActivosHTML = activos.length ? `
+      <div class="torneo-group">
+        <div class="torneo-group-header activos open" onclick="toggleTorneoGrupo('activos')">
+          <span>🟢 En curso / Próximos <span class="torneo-group-count">${activos.length}</span></span>
+          <span class="tg-arrow">▼</span>
+        </div>
+        <div class="torneo-group-body open" id="grp_activos">
+          ${activos.join('')}
+        </div>
+      </div>` : '';
+
+    const grupoFinalizadosHTML = finalizados.length ? `
+      <div class="torneo-group">
+        <div class="torneo-group-header finalizados" onclick="toggleTorneoGrupo('finalizados')">
+          <span>🏆 Finalizados <span class="torneo-group-count">${finalizados.length}</span></span>
+          <span class="tg-arrow">▼</span>
+        </div>
+        <div class="torneo-group-body" id="grp_finalizados">
+          ${finalizados.join('')}
+        </div>
+      </div>` : '';
+
+    cont.innerHTML = grupoActivosHTML + grupoFinalizadosHTML;
   } catch(e) {
     cont.innerHTML = `<div class="empty-msg">⚠️ Error: ${e.message}</div>`;
   }
+}
+
+function toggleTorneoGrupo(id) {
+  const body = document.getElementById('grp_' + id);
+  const hdr  = body?.previousElementSibling;
+  if (body) body.classList.toggle('open');
+  if (hdr)  hdr.classList.toggle('open');
 }
 function subirAvatarTienda(event) {
   const file = event.target.files[0];

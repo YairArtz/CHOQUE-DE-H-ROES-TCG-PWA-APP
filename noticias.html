@@ -493,6 +493,12 @@
   </div>
 
   <script>
+    // ── Flag de tracking para badges (v3) ──
+    try {
+      const s = JSON.parse(localStorage.getItem('chh_secciones_visitadas') || '[]');
+      if (!s.includes('noticias')) { s.push('noticias'); localStorage.setItem('chh_secciones_visitadas', JSON.stringify(s)); }
+    } catch(e) {}
+
     // ═══════════════════════════════════════════════════════
     // CARGAR NOTICIAS DESDE JSON
     // ═══════════════════════════════════════════════════════

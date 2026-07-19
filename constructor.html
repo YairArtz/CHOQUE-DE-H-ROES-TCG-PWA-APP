@@ -1011,6 +1011,12 @@
 
   <script src="settings.js"></script>
   <script>
+    // ── Flag de tracking para badges (v3) ──
+    try {
+      const s = JSON.parse(localStorage.getItem('chh_secciones_visitadas') || '[]');
+      if (!s.includes('constructor')) { s.push('constructor'); localStorage.setItem('chh_secciones_visitadas', JSON.stringify(s)); }
+    } catch(e) {}
+
     // ═══════════════════════════════════════════════════════
     // SISTEMA DE ALERTAS Y CONFIRMACIONES PERSONALIZADO
     // ═══════════════════════════════════════════════════════

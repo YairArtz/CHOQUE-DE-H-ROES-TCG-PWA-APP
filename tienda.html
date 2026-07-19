@@ -570,6 +570,12 @@
 <div id="toast"></div>
 
 <script>
+// ── Flag de tracking para badges (v3) ──
+try {
+  const s = JSON.parse(localStorage.getItem('chh_secciones_visitadas') || '[]');
+  if (!s.includes('tienda')) { s.push('tienda'); localStorage.setItem('chh_secciones_visitadas', JSON.stringify(s)); }
+} catch(e) {}
+
 // ════════════════════════════════════════════
 //  CONFIG
 // ════════════════════════════════════════════

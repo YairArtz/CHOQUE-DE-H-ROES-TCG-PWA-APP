@@ -285,6 +285,12 @@
   </footer>
 
   <script>
+    // ── Flag de tracking para badges (v3) ──
+    try {
+      const s = JSON.parse(localStorage.getItem('chh_secciones_visitadas') || '[]');
+      if (!s.includes('calendario')) { s.push('calendario'); localStorage.setItem('chh_secciones_visitadas', JSON.stringify(s)); }
+    } catch(e) {}
+
     // ============================================================
     // Reemplaza con la URL de tu Apps Script API de torneos
     // ============================================================

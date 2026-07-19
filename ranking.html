@@ -46,11 +46,30 @@
       gap:12px; margin-bottom:28px; flex-wrap:wrap; }
     .podium-player { text-align:center; position:relative; }
     .podium-card { background:var(--card); border:1px solid var(--border); border-radius:8px;
-      padding:16px 20px; min-width:140px; transition:transform 0.2s; }
+      padding:14px 16px; min-width:120px; transition:transform 0.2s; }
     .podium-card:hover { transform:translateY(-4px); }
-    .podium-1 .podium-card { border-color:rgba(255,215,0,0.4); box-shadow:0 0 30px rgba(255,215,0,0.1); }
-    .podium-2 .podium-card { border-color:rgba(192,192,192,0.3); }
-    .podium-3 .podium-card { border-color:rgba(205,127,50,0.3); }
+
+    /* Jerarquía visual: 1° > 2° > 3° */
+    .podium-1 .podium-card {
+      border-color:rgba(255,215,0,0.5);
+      box-shadow:0 0 30px rgba(255,215,0,0.15);
+      padding:22px 26px;
+      min-width:170px;
+      transform:translateY(-8px);
+    }
+    .podium-1 .podium-card:hover { transform:translateY(-12px); }
+    .podium-1 .podium-medal { font-size:44px; }
+    .podium-1 .podium-name  { font-size:14px; }
+    .podium-1 .podium-pts   { font-size:24px; }
+
+    .podium-2 .podium-card { border-color:rgba(192,192,192,0.35); min-width:130px; padding:16px 18px; }
+    .podium-2 .podium-medal { font-size:34px; }
+
+    .podium-3 .podium-card { border-color:rgba(205,127,50,0.3); min-width:110px; padding:12px 14px; }
+    .podium-3 .podium-medal { font-size:28px; }
+    .podium-3 .podium-name  { font-size:11px; }
+    .podium-3 .podium-pts   { font-size:16px; }
+
     .podium-medal { font-size:32px; display:block; margin-bottom:6px; }
     .podium-pos { font-family:'Orbitron',sans-serif; font-size:9px; letter-spacing:2px; color:var(--muted); margin-bottom:4px; }
     .podium-name { font-family:'Orbitron',sans-serif; font-size:12px; font-weight:700;
@@ -59,9 +78,9 @@
     .podium-pts { font-family:'Orbitron',sans-serif; font-size:18px; font-weight:900; color:var(--gold); }
     .podium-pts-label { font-family:'Orbitron',sans-serif; font-size:8px; color:var(--muted); letter-spacing:1px; }
     .podium-base { height:6px; border-radius:0 0 4px 4px; margin-top:8px; }
-    .podium-1 .podium-base { background:linear-gradient(90deg,transparent,#FFD700,transparent); height:8px; }
-    .podium-2 .podium-base { background:linear-gradient(90deg,transparent,#C0C0C0,transparent); }
-    .podium-3 .podium-base { background:linear-gradient(90deg,transparent,#CD7F32,transparent); }
+    .podium-1 .podium-base { background:linear-gradient(90deg,transparent,#FFD700,transparent); height:12px; }
+    .podium-2 .podium-base { background:linear-gradient(90deg,transparent,#C0C0C0,transparent); height:8px; }
+    .podium-3 .podium-base { background:linear-gradient(90deg,transparent,#CD7F32,transparent); height:5px; }
 
     /* RANKING TABLE */
     .rank-card { background:var(--card); border:1px solid var(--border); border-radius:10px;
@@ -223,6 +242,12 @@
   <footer><p>&copy; Codex Cómics 2016–2026 · Todos los derechos reservados</p></footer>
 
   <script>
+    // ── Flag de tracking para badges (v3) ──
+    try {
+      const s = JSON.parse(localStorage.getItem('chh_secciones_visitadas') || '[]');
+      if (!s.includes('ranking')) { s.push('ranking'); localStorage.setItem('chh_secciones_visitadas', JSON.stringify(s)); }
+    } catch(e) {}
+
     // ============================================================
     const API_URL = "https://script.google.com/macros/s/AKfycbx1rOqnmqWhics45UF40n81V9s-W5VgmhQGtc-UNIERGjkZGN8n1mVHkk0B1VO8PYJWOQ/exec";
     // ============================================================

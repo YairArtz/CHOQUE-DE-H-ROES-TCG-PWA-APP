@@ -480,6 +480,12 @@
 <div class="toast" id="toast">✓ Copiado al portapapeles</div>
 
 <script>
+// ── Flag de tracking para badges (v3) ──
+try {
+  const s = JSON.parse(localStorage.getItem('chh_secciones_visitadas') || '[]');
+  if (!s.includes('videos')) { s.push('videos'); localStorage.setItem('chh_secciones_visitadas', JSON.stringify(s)); }
+} catch(e) {}
+
 // ============================================================
 //  CARGA DE VIDEOS
 // ============================================================
@@ -613,6 +619,16 @@ document.getElementById('filters').addEventListener('click', e => {
   if (!btn) return;
   currentFilter = btn.dataset.cat;
   render();
+});
+
+// Contador de videos abiertos (badge Videoteca)
+document.getElementById('content').addEventListener('click', e => {
+  if (e.target.closest('.video-card')) {
+    try {
+      const n = parseInt(localStorage.getItem('chh_videos_abiertos') || '0');
+      localStorage.setItem('chh_videos_abiertos', String(n + 1));
+    } catch(err) {}
+  }
 });
 
 // ============================================================

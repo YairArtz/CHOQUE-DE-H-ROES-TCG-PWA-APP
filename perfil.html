@@ -641,6 +641,12 @@ let jugador = null;
 
 // ── INIT ──
 window.addEventListener('load', () => {
+  // Registrar visita a "perfil" para el badge Curioso del Nexo
+  try {
+    const s = JSON.parse(localStorage.getItem('chh_secciones_visitadas') || '[]');
+    if (!s.includes('perfil')) { s.push('perfil'); localStorage.setItem('chh_secciones_visitadas', JSON.stringify(s)); }
+  } catch(e) {}
+
   const saved = localStorage.getItem('nhSesion');
   if (saved) {
     try {
@@ -830,6 +836,73 @@ const BADGES_CATALOGO = [
   { id:'dia_muertos',       nombre:'Día de Muertos',     tipo:'auto', emoji:'💀', img:'badges/dia_muertos.png',       condicion:'Iniciar sesión el 1 o 2 de Noviembre.' },
   { id:'navidad',           nombre:'Espíritu Navideño',  tipo:'auto', emoji:'🎄', img:'badges/navidad.png',           condicion:'Iniciar sesión el 24 o 25 de Diciembre.' },
   { id:'ano_nuevo',         nombre:'Año Nuevo del Nexo', tipo:'auto', emoji:'🎆', img:'badges/ano_nuevo.png',         condicion:'Iniciar sesión el 31 de Diciembre o 1 de Enero.' },
+
+  // ═══════════ v3 — NUEVOS BADGES (49) ═══════════
+
+  // — Reclutamiento —
+  { id:'reclutador',        nombre:'Reclutador',           tipo:'manual', emoji:'🎯', img:'badges/reclutador.png',        condicion:'Traer 1 jugador nuevo registrado al Nexo.' },
+  { id:'mentor_iniciados',  nombre:'Mentor de Iniciados',  tipo:'manual', emoji:'🧭', img:'badges/mentor_iniciados.png',  condicion:'Referir 3 jugadores nuevos al juego.' },
+  { id:'constructor_comu',  nombre:'Constructor de Comunidad', tipo:'manual', emoji:'🏘️', img:'badges/constructor_comu.png',  condicion:'Referir 5 jugadores nuevos al juego.' },
+  { id:'padrino_nexo',      nombre:'Padrino del Nexo',     tipo:'manual', emoji:'🎩', img:'badges/padrino_nexo.png',      condicion:'Referir 10 jugadores nuevos al juego.' },
+  { id:'ala_novatos',       nombre:'Ala de Novatos',       tipo:'manual', emoji:'🪶', img:'badges/ala_novatos.png',       condicion:'Traer 3 jugadores nuevos al mismo torneo.' },
+
+  // — Enseñanza —
+  { id:'sensei',            nombre:'Sensei',               tipo:'manual', emoji:'🎓', img:'badges/sensei.png',            condicion:'Enseñar a jugar a un jugador nuevo.' },
+  { id:'escuela_nexo',      nombre:'Escuela del Nexo',     tipo:'manual', emoji:'🏫', img:'badges/escuela_nexo.png',      condicion:'Enseñar a jugar a 5 jugadores nuevos.' },
+  { id:'guardian_reglas',   nombre:'Guardián del Reglamento', tipo:'manual', emoji:'⚖️', img:'badges/guardian_reglas.png', condicion:'Resolver dudas de reglas en eventos oficiales.' },
+  { id:'demostrador',       nombre:'Demostrador Oficial',  tipo:'manual', emoji:'📢', img:'badges/demostrador.png',       condicion:'Correr una demostración en tienda o convención.' },
+  { id:'voz_codex',         nombre:'Voz del Codex',        tipo:'manual', emoji:'🎙️', img:'badges/voz_codex.png',         condicion:'Producir un tutorial publicado o compartido por Codex Studio.' },
+
+  // — Asistencia sostenida —
+  { id:'fiel_devoto',       nombre:'Fiel Devoto',          tipo:'auto',   emoji:'🕊️', img:'badges/fiel_devoto.png',       condicion:'Participar en 3 torneos dentro de un mismo período de 90 días.' },
+  { id:'maratonista',       nombre:'Maratonista',          tipo:'auto',   emoji:'🏃', img:'badges/maratonista.png',       condicion:'Participar en 2 torneos el mismo fin de semana.' },
+  { id:'cadena_mensual',    nombre:'Cadena Mensual',       tipo:'auto',   emoji:'📆', img:'badges/cadena_mensual.png',    condicion:'Participar en 3 torneos durante un mismo mes calendario.' },
+  { id:'ronda_completa',    nombre:'Ronda Completa',       tipo:'manual', emoji:'🎯', img:'badges/ronda_completa.png',    condicion:'Asistir a todos los torneos oficiales de una temporada.' },
+  { id:'peregrino',         nombre:'Peregrino',            tipo:'manual', emoji:'🗺️', img:'badges/peregrino.png',         condicion:'Viajar fuera de tu estado para participar en un torneo.' },
+  { id:'espectador_leal',   nombre:'Espectador Leal',      tipo:'manual', emoji:'👀', img:'badges/espectador_leal.png',   condicion:'Asistir a un evento oficial como apoyo sin competir.' },
+  { id:'fin_del_camino',    nombre:'Fin del Camino',       tipo:'manual', emoji:'🏁', img:'badges/fin_del_camino.png',    condicion:'Participar en el torneo de cierre de temporada.' },
+
+  // — Contenido y difusión —
+  { id:'cronista',          nombre:'Cronista',             tipo:'manual', emoji:'📝', img:'badges/cronista.png',          condicion:'Publicar un reporte o guía escrita del juego en redes.' },
+  { id:'streamer_nexo',     nombre:'Streamer del Nexo',    tipo:'manual', emoji:'📹', img:'badges/streamer_nexo.png',     condicion:'Transmitir una partida oficial en vivo.' },
+  { id:'fanartista',        nombre:'Fanartista',           tipo:'manual', emoji:'🎨', img:'badges/fanartista.png',        condicion:'Crear y publicar fanart de una carta o personaje.' },
+  { id:'testimonio_viral',  nombre:'Testimonio Viral',     tipo:'manual', emoji:'📈', img:'badges/testimonio_viral.png',  condicion:'Video sobre Choque de Héroes con 500 o más vistas.' },
+
+  // — Arquetipos —
+  { id:'arq_koatl',         nombre:'Legado Mesoamericano', tipo:'manual', emoji:'🐍', img:'badges/arq_koatl.png',         condicion:'Ganar un torneo con baraja Koatl el Defensor.' },
+  { id:'arq_cristal',       nombre:'Cristal Prismático',   tipo:'manual', emoji:'💎', img:'badges/arq_cristal.png',       condicion:'Ganar un torneo con baraja Dragón de Cristal.' },
+  { id:'arq_evolotl',       nombre:'Evolución Ancestral',  tipo:'manual', emoji:'🦎', img:'badges/arq_evolotl.png',       condicion:'Ganar un torneo con baraja Évolotl.' },
+  { id:'arq_metalurg',      nombre:'Forja del Metal',      tipo:'manual', emoji:'⚙️', img:'badges/arq_metalurg.png',      condicion:'Ganar un torneo con baraja Metalúrgico.' },
+  { id:'arq_invitados',     nombre:'Legión Invitada',      tipo:'manual', emoji:'🎭', img:'badges/arq_invitados.png',     condicion:'Ganar un torneo con baraja Héroes Invitados.' },
+  { id:'arq_maxkara',       nombre:'Golpe de Max-Kara',    tipo:'manual', emoji:'🥊', img:'badges/arq_maxkara.png',       condicion:'Ganar un torneo con baraja Max-Kara.' },
+  { id:'arq_ninjiachi',     nombre:'Sombra Ninjiachi',     tipo:'manual', emoji:'🥷', img:'badges/arq_ninjiachi.png',     condicion:'Ganar un torneo con baraja Ninjiachi.' },
+  { id:'arq_caballero',     nombre:'Código del Caballero', tipo:'manual', emoji:'🛡️', img:'badges/arq_caballero.png',     condicion:'Ganar un torneo con baraja Caballero.' },
+  { id:'arq_defensor',      nombre:'Muralla del Defensor', tipo:'manual', emoji:'🏰', img:'badges/arq_defensor.png',      condicion:'Ganar un torneo con baraja Defensor.' },
+  { id:'arq_envokateotl',   nombre:'Culto Envokateotl',    tipo:'manual', emoji:'🌟', img:'badges/arq_envokateotl.png',   condicion:'Ganar un torneo con baraja Dioses Envokateotl.' },
+  { id:'arq_fuego',         nombre:'Llama Heredera',       tipo:'manual', emoji:'🔥', img:'badges/arq_fuego.png',         condicion:'Ganar un torneo con baraja Herederos del Fuego.' },
+  { id:'arq_mar',           nombre:'Terror del Mar',       tipo:'manual', emoji:'🌊', img:'badges/arq_mar.png',           condicion:'Ganar un torneo con baraja Legión del Mar.' },
+  { id:'arq_encantadora',   nombre:'Voz Encantadora',      tipo:'manual', emoji:'🌙', img:'badges/arq_encantadora.png',   condicion:'Ganar un torneo con baraja Encantadora.' },
+  { id:'arq_garduna',       nombre:'Devorador',            tipo:'manual', emoji:'👹', img:'badges/arq_garduna.png',       condicion:'Ganar un torneo con baraja Hermandad de la Garduña.' },
+  { id:'arq_tuneles',       nombre:'Almas Perdidas',       tipo:'manual', emoji:'🕯️', img:'badges/arq_tuneles.png',       condicion:'Ganar un torneo con baraja Los Túneles Perdidos.' },
+  { id:'arq_purista',       nombre:'Purista',              tipo:'manual', emoji:'☯️', img:'badges/arq_purista.png',       condicion:'Ganar un torneo con baraja mono-arquetipo.' },
+
+  // — Modo Crisis —
+  { id:'crisis_vigilante',  nombre:'Vigilante del Umbral', tipo:'manual', emoji:'🌀', img:'badges/crisis_vigilante.png',  condicion:'Completar Modo Crisis por primera vez.' },
+  { id:'crisis_coloso',     nombre:'Coloso Vencido',       tipo:'manual', emoji:'⛰️', img:'badges/crisis_coloso.png',     condicion:'Derrotar a El Coloso del Umbral en Modo Crisis.' },
+  { id:'crisis_vigilia',    nombre:'La Vigilia Eterna',    tipo:'manual', emoji:'🌌', img:'badges/crisis_vigilia.png',    condicion:'Completar Modo Crisis con 4 jugadores.' },
+
+  // — Uso de la app —
+  { id:'curioso_nexo',      nombre:'Curioso del Nexo',     tipo:'auto',   emoji:'🧿', img:'badges/curioso_nexo.png',      condicion:'Visitar todas las secciones principales de la app.' },
+  { id:'sabio_banlist',     nombre:'Sabio de la Banlist',  tipo:'auto',   emoji:'📖', img:'badges/sabio_banlist.png',     condicion:'Consultar la lista de cartas limitadas 5 veces.' },
+  { id:'historiador',       nombre:'Historiador',          tipo:'auto',   emoji:'📜', img:'badges/historiador.png',       condicion:'Consultar el archivo histórico de banlists antiguas.' },
+  { id:'estratega',         nombre:'Estratega',            tipo:'auto',   emoji:'♟️', img:'badges/estratega.png',         condicion:'Guardar una baraja y consultar el reglamento en la misma sesión.' },
+  { id:'videoteca',         nombre:'Videoteca',            tipo:'auto',   emoji:'🎬', img:'badges/videoteca.png',         condicion:'Abrir 10 videos desde el módulo Videos.' },
+
+  // — Rol dentro de la comunidad —
+  { id:'buen_deportista',   nombre:'Buen Deportista',      tipo:'manual', emoji:'🤝', img:'badges/buen_deportista.png',   condicion:'Recibir mención de fair play por un juez oficial.' },
+  { id:'arbitro',           nombre:'Árbitro Certificado',  tipo:'manual', emoji:'🧑‍⚖️', img:'badges/arbitro.png',           condicion:'Actuar como juez en un torneo oficial.' },
+  { id:'organizador',       nombre:'Organizador Local',    tipo:'manual', emoji:'🎪', img:'badges/organizador.png',       condicion:'Organizar un torneo local reconocido por Codex Studio.' },
+  { id:'anfitrion',         nombre:'Anfitrión',            tipo:'manual', emoji:'🏠', img:'badges/anfitrion.png',         condicion:'Prestar tu espacio para un evento oficial de Choque de Héroes.' },
 ];
 
 function calcularBadgesAuto(historial, totalPts, posGlobal, datosHP) {
@@ -960,6 +1033,75 @@ function calcularBadgesAuto(historial, totalPts, posGlobal, datosHP) {
   // — Nómada — tiendas distintas —
   const tiendasDistintas = new Set(historial.map(t => (t.storeid || '').toUpperCase()).filter(Boolean));
   if (tiendasDistintas.size >= 3) ganados.add('nomada');
+
+  // ══════════ v3 — DETECCIÓN DE BADGES NUEVOS ══════════
+
+  // ── Uso de la app (flags de localStorage seteados por otras páginas) ──
+  try {
+    // Curioso del Nexo — visitar todas las secciones principales
+    const seccionesVisitadas = JSON.parse(localStorage.getItem('chh_secciones_visitadas') || '[]');
+    const seccionesRequeridas = ['index','calculadora','reglamento','constructor','perfil','tienda','videos','ranking','calendario','noticias'];
+    if (seccionesRequeridas.every(s => seccionesVisitadas.includes(s))) ganados.add('curioso_nexo');
+
+    // Sabio de la Banlist — contador de consultas
+    const consultasBanlist = parseInt(localStorage.getItem('chh_consultas_banlist') || '0');
+    if (consultasBanlist >= 5) ganados.add('sabio_banlist');
+
+    // Historiador — flag al consultar archivo Marzo 2026
+    if (localStorage.getItem('chh_visto_archivo_banlist') === '1') ganados.add('historiador');
+
+    // Estratega — guardó baraja Y consultó reglamento
+    const barajasHay = JSON.parse(localStorage.getItem('chh_decks') || '[]').length > 0;
+    const consultoReglamento = localStorage.getItem('chh_consulto_reglamento') === '1';
+    if (barajasHay && consultoReglamento) ganados.add('estratega');
+
+    // Videoteca — contador de clicks en cards de video
+    const videosVistos = parseInt(localStorage.getItem('chh_videos_abiertos') || '0');
+    if (videosVistos >= 10) ganados.add('videoteca');
+  } catch(e) {}
+
+  // ── Asistencia sostenida (basada en fechas del historial) ──
+  if (historial && historial.length >= 2) {
+    const fechas = historial
+      .map(t => {
+        const raw = t.fecha || t.date || t.timestamp || '';
+        const d = new Date(raw);
+        return isNaN(d.getTime()) ? null : d;
+      })
+      .filter(Boolean)
+      .sort((a, b) => a - b);
+
+    if (fechas.length >= 2) {
+      // Maratonista — 2 torneos el mismo fin de semana
+      for (let i = 0; i < fechas.length - 1; i++) {
+        const diffDias = (fechas[i + 1] - fechas[i]) / (1000 * 60 * 60 * 24);
+        if (diffDias <= 2) {
+          const dowA = fechas[i].getDay(), dowB = fechas[i + 1].getDay();
+          if ((dowA === 6 && dowB === 0) || (dowA === 5 && dowB === 6) ||
+              (dowA === 0 && dowB === 6) || (dowA === 6 && dowB === 6)) {
+            ganados.add('maratonista');
+            break;
+          }
+        }
+      }
+
+      // Cadena Mensual — 3 torneos en un mismo mes calendario
+      const conteoMeses = {};
+      fechas.forEach(f => {
+        const clave = f.getFullYear() + '-' + f.getMonth();
+        conteoMeses[clave] = (conteoMeses[clave] || 0) + 1;
+      });
+      if (Object.values(conteoMeses).some(c => c >= 3)) ganados.add('cadena_mensual');
+
+      // Fiel Devoto — 3 torneos dentro de una ventana móvil de 90 días
+      if (fechas.length >= 3) {
+        for (let i = 0; i <= fechas.length - 3; i++) {
+          const rango = (fechas[i + 2] - fechas[i]) / (1000 * 60 * 60 * 24);
+          if (rango <= 90) { ganados.add('fiel_devoto'); break; }
+        }
+      }
+    }
+  }
 
   return ganados;
 }

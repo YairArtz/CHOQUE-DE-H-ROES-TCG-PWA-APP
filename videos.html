@@ -3,801 +3,694 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Choque de Héroes en YouTube</title>
+  <meta name="theme-color" content="#03050a">
+  <link rel="icon" type="image/png" href="icon-192.png">
+  <title>Videos — Choque de Héroes TCG</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --accent: #f5a623; --accent-glow: rgba(245,166,35,.10); --accent-dim: rgba(245,166,35,.25);
-      --bg: #07090f; --card: rgba(12,10,5,.97); --border: #2a200a;
-      --text: #f0e6d0; --muted: #8a7a5a; --danger: #ff4d6d; --yt: #ff0000;
+      --accent: #f5a623;
+      --accent-glow: rgba(245,166,35,.15);
+      --accent-dim: rgba(245,166,35,.3);
+      --bg: #07090f;
+      --card: rgba(12,10,5,.97);
+      --border: #2a200a;
+      --text: #f0e6d0;
+      --muted: #8a7a5a;
+      --danger: #ff4d6d;
+      --yt: #ff0000;
     }
 
-    html, body { min-height: 100%; background: var(--bg); color: var(--text); font-family: 'Rajdhani', sans-serif; }
-    body { display: flex; flex-direction: column; align-items: center; padding: 0 0 40px; position: relative; overflow-x: hidden; }
+    html, body {
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Rajdhani', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 0 60px;
+      position: relative;
+      overflow-x: hidden;
+    }
 
     body::before {
       content: ''; position: fixed; inset: 0;
-      background-image: linear-gradient(45deg, rgba(245,166,35,.03) 1px, transparent 1px),
-                        linear-gradient(-45deg, rgba(245,166,35,.03) 1px, transparent 1px);
+      background-image:
+        linear-gradient(45deg, rgba(245,166,35,.03) 1px, transparent 1px),
+        linear-gradient(-45deg, rgba(245,166,35,.03) 1px, transparent 1px);
       background-size: 40px 40px; pointer-events: none; z-index: 0;
-    }
-    body::after {
-      content: ''; position: fixed; top: -10%; left: 50%; transform: translateX(-50%);
-      width: 700px; height: 500px;
-      background: radial-gradient(ellipse, rgba(245,166,35,.06) 0%, transparent 70%);
-      pointer-events: none; z-index: 0;
     }
 
     /* NAV */
-    #chh-nav {
-      position: sticky; top: 0; z-index: 999; width: 100%;
-      background: rgba(3,5,10,.96); border-bottom: 1px solid #0a1520;
-      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-      display: flex; align-items: center; padding: 8px 14px; gap: 10px;
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(3,5,10,.95);
+      border-bottom: 1px solid rgba(245,166,35,.3);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      padding: 12px 16px;
+      display: flex; align-items: center; gap: 12px;
+      width: 100%;
     }
-    #chh-nav::after {
-      content: ''; position: absolute; bottom: 0; left: 5%; right: 5%; height: 1px;
-      background: linear-gradient(90deg, transparent, var(--accent), transparent); opacity: .4;
+    nav img { width: 32px; height: 32px; filter: drop-shadow(0 0 8px rgba(245,166,35,.6)); }
+    nav h1 {
+      font-family: 'Orbitron', sans-serif; font-size: 16px; font-weight: 700;
+      color: var(--accent); flex: 1; text-transform: uppercase; letter-spacing: 1px;
     }
-    .nav-back {
-      font-family: 'Orbitron', sans-serif; font-size: 9px; font-weight: 700;
-      letter-spacing: 1.5px; color: var(--accent); background: transparent;
-      border: 1px solid rgba(245,166,35,.3); padding: 6px 10px; border-radius: 3px;
-      cursor: pointer; text-decoration: none; white-space: nowrap;
-      transition: background .15s; text-shadow: 0 0 8px var(--accent); opacity: .8;
+    .btn-menu {
+      font-family: 'Orbitron', sans-serif; font-size: 12px; font-weight: 700;
+      color: var(--accent); background: transparent;
+      border: 1.5px solid var(--accent); padding: 6px 14px; border-radius: 6px;
+      cursor: pointer; text-decoration: none;
+      transition: all .2s; text-transform: uppercase; letter-spacing: .5px;
     }
-    .nav-back:active { background: rgba(245,166,35,.12); opacity: 1; }
-    .nav-logo { width: 32px; height: 32px; object-fit: contain; flex-shrink: 0; filter: drop-shadow(0 0 6px rgba(245,166,35,.5)); }
-    .nav-title {
-      font-family: 'Orbitron', sans-serif; font-size: 11px; font-weight: 900;
-      letter-spacing: 2px; text-transform: uppercase; color: var(--accent);
-      text-shadow: 0 0 8px var(--accent); flex: 1; text-align: center; line-height: 1.2;
-    }
-    .nav-spacer { width: 60px; flex-shrink: 0; }
+    .btn-menu:active { transform: scale(.95); background: rgba(245,166,35,.1); }
 
-    .wrap { width: 100%; max-width: 1100px; padding: 0 16px; position: relative; z-index: 1; }
+    /* CONTAINER */
+    .container {
+      width: 100%; max-width: 1100px;
+      padding: 20px 16px 0;
+      position: relative; z-index: 1;
+    }
 
     /* HEADER */
     .page-header {
-      text-align: center; padding: 36px 0 28px;
-    }
-    .yt-logo-row {
-      display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 14px;
-    }
-    .yt-icon {
-      width: 52px; height: 52px; background: var(--yt);
-      border-radius: 12px; display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 0 30px rgba(255,0,0,.4);
-    }
-    .yt-icon svg { width: 28px; height: 28px; fill: #fff; }
-    .page-title {
-      font-family: 'Orbitron', sans-serif; font-size: clamp(16px,4vw,28px);
-      font-weight: 900; letter-spacing: 3px; color: #fff;
-      text-shadow: 0 0 30px rgba(245,166,35,.3);
-    }
-    .page-title span { color: var(--yt); text-shadow: 0 0 20px rgba(255,0,0,.5); }
-    .channel-link {
-      display: inline-flex; align-items: center; gap: 6px; margin-top: 10px;
-      font-family: 'Orbitron', sans-serif; font-size: 9px; letter-spacing: 2px;
-      color: var(--muted); text-decoration: none; border: 1px solid var(--border);
-      padding: 5px 14px; border-radius: 3px; transition: border-color .2s, color .2s;
-    }
-    .channel-link:hover { border-color: var(--yt); color: var(--yt); }
-
-    /* CANAL INFO */
-    .channel-card {
-      background: var(--card); border: 1px solid var(--border); border-radius: 10px;
-      padding: 20px 24px; margin-bottom: 24px; position: relative;
-      display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
-      box-shadow: 0 0 60px rgba(245,166,35,.04);
-    }
-    .channel-card::before {
-      content: ''; position: absolute; top: -1px; left: 8%; right: 8%; height: 2px;
-      background: linear-gradient(90deg, transparent, var(--yt), transparent); opacity: .6;
-    }
-    .ch-avatar {
-      width: 64px; height: 64px; border-radius: 50%; background: var(--yt);
-      display: flex; align-items: center; justify-content: center;
-      font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 900; color: #fff;
-      flex-shrink: 0; box-shadow: 0 0 20px rgba(255,0,0,.3);
-    }
-    .ch-info { flex: 1; min-width: 160px; }
-    .ch-name { font-family: 'Orbitron', sans-serif; font-size: 15px; font-weight: 900; color: #fff; margin-bottom: 4px; letter-spacing: 1px; }
-    .ch-handle { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
-    .ch-stats { display: flex; gap: 20px; flex-wrap: wrap; }
-    .ch-stat { text-align: center; }
-    .ch-stat .val { font-family: 'Orbitron', sans-serif; font-size: 14px; font-weight: 700; color: var(--accent); }
-    .ch-stat .lbl { font-family: 'Orbitron', sans-serif; font-size: 8px; letter-spacing: 2px; color: var(--muted); margin-top: 2px; }
-    .btn-subscribe {
-      background: var(--yt); color: #fff; border: none; border-radius: 5px;
-      padding: 10px 20px; font-family: 'Orbitron', sans-serif; font-size: 10px;
-      font-weight: 700; letter-spacing: 2px; cursor: pointer; text-decoration: none;
-      display: inline-flex; align-items: center; gap: 6px;
-      box-shadow: 0 4px 20px rgba(255,0,0,.25); transition: box-shadow .2s, opacity .2s;
-    }
-    .btn-subscribe:hover { box-shadow: 0 4px 30px rgba(255,0,0,.45); opacity: .9; }
-
-    /* CONTROLES */
-    .controls-row {
-      display: flex; gap: 10px; margin-bottom: 20px; align-items: center; flex-wrap: wrap;
-    }
-    .filter-btn {
-      font-family: 'Orbitron', sans-serif; font-size: 9px; letter-spacing: 2px;
-      padding: 7px 14px; border-radius: 3px; cursor: pointer;
-      border: 1px solid var(--border); background: transparent; color: var(--muted);
-      transition: .2s; white-space: nowrap;
-    }
-    .filter-btn.active { background: var(--accent-glow); color: var(--accent); border-color: var(--accent-dim); }
-    .filter-btn:hover:not(.active) { border-color: var(--accent-dim); color: var(--text); }
-    .search-input {
-      flex: 1; min-width: 180px; background: rgba(255,255,255,.03); border: 1px solid var(--border);
-      border-radius: 5px; padding: 8px 14px; color: var(--text);
-      font-family: 'Rajdhani', sans-serif; font-size: 14px; outline: none;
-      transition: border-color .2s;
-    }
-    .search-input:focus { border-color: var(--accent-dim); }
-    .refresh-btn {
-      font-family: 'Orbitron', sans-serif; font-size: 9px; letter-spacing: 2px;
-      padding: 7px 14px; border-radius: 3px; cursor: pointer;
-      border: 1px solid var(--accent-dim); background: var(--accent-glow);
-      color: var(--accent); transition: .2s; white-space: nowrap;
-    }
-    .refresh-btn:hover { border-color: var(--accent); }
-    .refresh-btn.spinning { animation: spin .8s linear infinite; pointer-events: none; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* PLAYER MODAL */
-    .modal-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,.88);
-      z-index: 1000; display: none; align-items: center; justify-content: center;
-      padding: 16px;
-    }
-    .modal-overlay.open { display: flex; }
-    .modal-box {
-      background: var(--card); border: 1px solid var(--border); border-radius: 10px;
-      width: 100%; max-width: 900px; position: relative; overflow: hidden;
-      box-shadow: 0 0 80px rgba(245,166,35,.1);
-    }
-    .modal-box::before {
-      content: ''; position: absolute; top: 0; left: 8%; right: 8%; height: 2px;
-      background: linear-gradient(90deg, transparent, var(--yt), transparent);
-    }
-    .modal-close {
-      position: absolute; top: 12px; right: 14px; background: rgba(255,77,109,.15);
-      border: 1px solid rgba(255,77,109,.3); border-radius: 3px; padding: 4px 10px;
-      color: var(--danger); cursor: pointer; font-family: 'Orbitron', sans-serif;
-      font-size: 10px; letter-spacing: 1px; z-index: 2;
-    }
-    .modal-close:hover { background: rgba(255,77,109,.3); }
-    .video-iframe-wrap {
-      position: relative; padding-top: 56.25%; background: #000;
-    }
-    .video-iframe-wrap iframe {
-      position: absolute; inset: 0; width: 100%; height: 100%; border: none;
-    }
-    .modal-info { padding: 18px 20px 20px; }
-    .modal-title { font-family: 'Orbitron', sans-serif; font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 6px; line-height: 1.4; }
-    .modal-meta { font-size: 12px; color: var(--muted); display: flex; gap: 16px; flex-wrap: wrap; }
-    .modal-meta span { display: flex; align-items: center; gap: 4px; }
-    .modal-desc { font-size: 13px; color: rgba(240,230,208,.7); margin-top: 10px; line-height: 1.6; max-height: 80px; overflow-y: auto; }
-    .modal-yt-btn {
-      display: inline-flex; align-items: center; gap: 6px; margin-top: 14px;
-      background: var(--yt); color: #fff; text-decoration: none; padding: 8px 18px;
-      border-radius: 5px; font-family: 'Orbitron', sans-serif; font-size: 9px;
-      letter-spacing: 2px; font-weight: 700;
-    }
-
-    /* VIDEO GRID */
-    .video-grid {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px;
+      text-align: center;
+      padding: 24px 0 24px;
+      border-bottom: 2px solid rgba(245,166,35,.2);
       margin-bottom: 24px;
     }
+    .page-header h2 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 26px; font-weight: 900; color: var(--accent);
+      text-transform: uppercase; letter-spacing: 2px;
+      margin-bottom: 8px;
+      text-shadow: 0 0 20px rgba(245,166,35,.5);
+    }
+    .page-header p { font-size: 15px; color: var(--muted); font-weight: 500; }
+
+    /* CANAL OFICIAL */
+    .canal-oficial {
+      display: flex; align-items: center; gap: 12px;
+      background: linear-gradient(135deg, rgba(255,0,0,.08), rgba(245,166,35,.05));
+      border: 1px solid rgba(255,0,0,.3);
+      border-radius: 10px; padding: 12px 16px;
+      margin-bottom: 20px; text-decoration: none; color: var(--text);
+      transition: all .2s;
+    }
+    .canal-oficial:active { transform: scale(.98); }
+    .canal-oficial .yt-icon {
+      width: 40px; height: 28px; background: var(--yt); border-radius: 6px;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .canal-oficial .yt-icon svg { width: 20px; height: 20px; fill: #fff; }
+    .canal-oficial .info { flex: 1; min-width: 0; }
+    .canal-oficial .info .label {
+      font-family: 'Orbitron', sans-serif; font-size: 10px;
+      color: var(--muted); text-transform: uppercase; letter-spacing: 1px;
+    }
+    .canal-oficial .info .handle {
+      font-family: 'Orbitron', sans-serif; font-size: 14px; font-weight: 700;
+      color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .canal-oficial .arrow { color: var(--accent); font-size: 20px; }
+
+    /* TOOLBAR */
+    .toolbar {
+      display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;
+    }
+    .search-input {
+      flex: 1; min-width: 180px;
+      background: rgba(20,15,5,.6);
+      border: 1.5px solid var(--border);
+      color: var(--text);
+      padding: 10px 14px; border-radius: 8px;
+      font-family: 'Rajdhani', sans-serif; font-size: 15px;
+    }
+    .search-input:focus { outline: none; border-color: var(--accent); }
+    .search-input::placeholder { color: var(--muted); }
+
+    .btn-sugerir {
+      font-family: 'Orbitron', sans-serif; font-size: 11px; font-weight: 700;
+      background: linear-gradient(135deg, var(--accent), #ff8800);
+      color: #000; border: none;
+      padding: 10px 16px; border-radius: 8px; cursor: pointer;
+      text-transform: uppercase; letter-spacing: .5px;
+      white-space: nowrap; transition: transform .15s;
+    }
+    .btn-sugerir:active { transform: scale(.95); }
+
+    /* FILTROS */
+    .filters {
+      display: flex; gap: 6px; margin-bottom: 20px;
+      overflow-x: auto; -webkit-overflow-scrolling: touch;
+      scrollbar-width: none; padding-bottom: 4px;
+    }
+    .filters::-webkit-scrollbar { display: none; }
+    .filter-btn {
+      font-family: 'Orbitron', sans-serif; font-size: 11px; font-weight: 700;
+      background: transparent; border: 1.5px solid var(--border);
+      color: var(--muted); padding: 8px 14px; border-radius: 20px;
+      cursor: pointer; text-transform: uppercase; letter-spacing: .5px;
+      white-space: nowrap; transition: all .2s;
+    }
+    .filter-btn.active {
+      background: rgba(245,166,35,.15);
+      border-color: var(--accent); color: var(--accent);
+      text-shadow: 0 0 8px rgba(245,166,35,.5);
+    }
+    .filter-btn .count {
+      display: inline-block; margin-left: 6px;
+      background: rgba(245,166,35,.2); color: var(--accent);
+      padding: 1px 6px; border-radius: 10px; font-size: 10px;
+    }
+
+    /* GRID */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
     .video-card {
-      background: var(--card); border: 1px solid var(--border); border-radius: 8px;
-      overflow: hidden; cursor: pointer; transition: border-color .2s, transform .15s;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform .2s, border-color .2s;
+      text-decoration: none;
+      color: var(--text);
+      display: flex; flex-direction: column;
+    }
+    .video-card:active { transform: scale(.98); }
+    .video-card:hover { border-color: var(--accent-dim); }
+
+    .thumb {
       position: relative;
+      width: 100%; aspect-ratio: 16/9;
+      background: #000;
+      overflow: hidden;
     }
-    .video-card:hover { border-color: var(--accent-dim); transform: translateY(-2px); }
-    .video-card.new-video { border-color: rgba(255,0,0,.4); }
-    .new-badge {
-      position: absolute; top: 10px; left: 10px; background: var(--yt);
-      color: #fff; font-family: 'Orbitron', sans-serif; font-size: 8px;
-      letter-spacing: 2px; padding: 3px 8px; border-radius: 2px; z-index: 1;
-      box-shadow: 0 2px 10px rgba(255,0,0,.4);
+    .thumb img {
+      width: 100%; height: 100%; object-fit: cover;
+      transition: transform .3s;
+      display: block;
     }
-    .thumb-wrap { position: relative; padding-top: 56.25%; background: #111; overflow: hidden; }
-    .thumb-wrap img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .3s; }
-    .video-card:hover .thumb-wrap img { transform: scale(1.03); }
+    .video-card:hover .thumb img { transform: scale(1.05); }
+
     .play-overlay {
-      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-      background: rgba(0,0,0,.3); opacity: 0; transition: opacity .2s;
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0,0,0,.25);
+      opacity: 0; transition: opacity .2s;
     }
     .video-card:hover .play-overlay { opacity: 1; }
-    .play-btn-circle {
-      width: 52px; height: 52px; background: rgba(255,0,0,.9); border-radius: 50%;
+    .play-btn {
+      width: 60px; height: 42px;
+      background: var(--yt); border-radius: 12px;
       display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,.5);
     }
-    .play-btn-circle svg { width: 22px; height: 22px; fill: #fff; margin-left: 3px; }
-    .duration-badge {
-      position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,.8);
-      color: #fff; font-family: 'Orbitron', sans-serif; font-size: 9px;
-      padding: 2px 6px; border-radius: 3px;
+    .play-btn svg { width: 24px; height: 24px; fill: #fff; margin-left: 3px; }
+
+    .badge-cat {
+      position: absolute; top: 8px; left: 8px;
+      background: rgba(0,0,0,.75);
+      color: var(--accent);
+      font-family: 'Orbitron', sans-serif; font-size: 9px; font-weight: 700;
+      padding: 4px 8px; border-radius: 4px;
+      text-transform: uppercase; letter-spacing: .5px;
+      border: 1px solid var(--accent-dim);
     }
-    .vc-body { padding: 12px 14px 14px; }
-    .vc-title {
-      font-family: 'Orbitron', sans-serif; font-size: 11px; font-weight: 700;
-      color: #fff; letter-spacing: .5px; line-height: 1.4; margin-bottom: 8px;
-      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    .badge-oficial {
+      position: absolute; top: 8px; right: 8px;
+      background: var(--yt); color: #fff;
+      font-family: 'Orbitron', sans-serif; font-size: 9px; font-weight: 700;
+      padding: 4px 8px; border-radius: 4px;
+      text-transform: uppercase; letter-spacing: .5px;
     }
-    .vc-meta { display: flex; justify-content: space-between; align-items: center; }
-    .vc-date { font-family: 'Orbitron', sans-serif; font-size: 8px; letter-spacing: 1px; color: var(--muted); }
-    .vc-views { font-family: 'Orbitron', sans-serif; font-size: 8px; letter-spacing: 1px; color: var(--muted); }
 
-    /* LIVE BADGE */
-    .live-badge {
-      position: absolute; top: 10px; right: 10px; background: var(--yt);
-      color: #fff; font-family: 'Orbitron', sans-serif; font-size: 8px;
-      letter-spacing: 2px; padding: 3px 8px; border-radius: 2px; z-index: 1;
-      animation: blink 1.2s infinite;
+    .card-body { padding: 12px 14px 14px; flex: 1; display: flex; flex-direction: column; }
+    .card-title {
+      font-size: 15px; font-weight: 600; color: var(--text);
+      line-height: 1.35; margin-bottom: 6px;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden;
     }
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.5} }
-
-    /* LOADING / EMPTY / ERROR */
-    .state-box {
-      text-align: center; padding: 60px 20px; color: var(--muted);
+    .card-meta {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 13px; color: var(--muted); margin-top: auto;
     }
-    .state-box .sb-icon { font-size: 48px; margin-bottom: 14px; }
-    .state-box p { font-family: 'Orbitron', sans-serif; font-size: 10px; letter-spacing: 3px; }
-    .state-box p.sb-sub { font-size: 11px; color: var(--muted); margin-top: 8px; letter-spacing: 1px; font-family: 'Rajdhani', sans-serif; }
-    .loader { display: inline-block; width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; margin-bottom: 16px; }
-
-    /* COUNTER */
-    .vid-counter { font-family: 'Orbitron', sans-serif; font-size: 9px; letter-spacing: 2px; color: var(--muted); margin-bottom: 14px; }
-    .vid-counter span { color: var(--accent); }
-
-    /* LAST UPDATED */
-    .last-updated { text-align: center; font-family: 'Orbitron', sans-serif; font-size: 8px; letter-spacing: 2px; color: var(--border); margin-top: 10px; }
-
-    /* LOAD MORE */
-    .load-more-btn {
-      display: block; width: 100%; max-width: 300px; margin: 0 auto 20px;
-      background: transparent; border: 1px solid var(--accent-dim); border-radius: 5px;
-      padding: 12px; font-family: 'Orbitron', sans-serif; font-size: 10px;
-      letter-spacing: 2px; color: var(--accent); cursor: pointer; transition: .2s;
+    .card-meta .autor {
+      color: var(--accent); font-weight: 600;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
-    .load-more-btn:hover { background: var(--accent-glow); border-color: var(--accent); }
 
-    footer { position: relative; z-index: 1; text-align: center; padding: 10px 0; }
-    footer p { font-family: 'Rajdhani', sans-serif; font-size: 12px; color: #1e1508; letter-spacing: 1px; }
+    /* EMPTY STATE */
+    .empty-state {
+      text-align: center; padding: 60px 20px;
+      color: var(--muted);
+    }
+    .empty-state .icon { font-size: 48px; margin-bottom: 16px; opacity: .5; }
+    .empty-state h3 {
+      font-family: 'Orbitron', sans-serif; font-size: 18px;
+      color: var(--accent); margin-bottom: 8px;
+    }
 
-    @media(max-width:480px) {
-      .channel-card { flex-direction: column; text-align: center; }
-      .ch-stats { justify-content: center; }
-      .video-grid { grid-template-columns: 1fr; }
-      .controls-row { flex-direction: column; align-items: stretch; }
+    /* LOADING */
+    .loading { text-align: center; padding: 40px; color: var(--muted); }
+    .loading .spinner {
+      width: 32px; height: 32px; margin: 0 auto 16px;
+      border: 3px solid var(--border); border-top-color: var(--accent);
+      border-radius: 50%; animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* MODAL SUGERIR */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,.85); backdrop-filter: blur(8px);
+      display: none; align-items: flex-start; justify-content: center;
+      padding: 20px; overflow-y: auto;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--card); border: 1px solid var(--accent-dim);
+      border-radius: 12px; padding: 20px;
+      width: 100%; max-width: 500px;
+      margin-top: 40px; margin-bottom: 40px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.8);
+    }
+    .modal h3 {
+      font-family: 'Orbitron', sans-serif; font-size: 18px;
+      color: var(--accent); margin-bottom: 6px;
+      text-transform: uppercase; letter-spacing: 1px;
+    }
+    .modal .subtitle { color: var(--muted); font-size: 14px; margin-bottom: 18px; }
+
+    .form-group { margin-bottom: 14px; }
+    .form-group label {
+      display: block; font-family: 'Orbitron', sans-serif; font-size: 10px;
+      font-weight: 700; color: var(--muted); margin-bottom: 6px;
+      text-transform: uppercase; letter-spacing: 1px;
+    }
+    .form-group input, .form-group select {
+      width: 100%;
+      background: rgba(20,15,5,.6);
+      border: 1.5px solid var(--border);
+      color: var(--text);
+      padding: 10px 12px; border-radius: 6px;
+      font-family: 'Rajdhani', sans-serif; font-size: 15px;
+    }
+    .form-group input:focus, .form-group select:focus {
+      outline: none; border-color: var(--accent);
+    }
+
+    .preview-box {
+      background: rgba(20,15,5,.4);
+      border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px;
+      margin-bottom: 14px; display: none;
+    }
+    .preview-box.show { display: block; }
+    .preview-box img {
+      width: 100%; aspect-ratio: 16/9; object-fit: cover;
+      border-radius: 6px; background: #000;
+    }
+    .preview-box .id-info {
+      font-family: 'Orbitron', sans-serif; font-size: 11px;
+      color: var(--muted); margin-top: 8px; word-break: break-all;
+    }
+    .preview-box .id-info strong { color: var(--accent); }
+
+    .modal-actions {
+      display: flex; gap: 8px; margin-top: 18px;
+    }
+    .btn-primary, .btn-secondary {
+      flex: 1;
+      font-family: 'Orbitron', sans-serif; font-size: 12px; font-weight: 700;
+      padding: 12px; border-radius: 8px; cursor: pointer;
+      text-transform: uppercase; letter-spacing: .5px;
+      border: none; transition: transform .15s;
+    }
+    .btn-primary { background: var(--accent); color: #000; }
+    .btn-secondary { background: transparent; border: 1.5px solid var(--muted); color: var(--muted); }
+    .btn-primary:active, .btn-secondary:active { transform: scale(.95); }
+
+    .output-json {
+      background: #000; border: 1px solid var(--accent-dim);
+      border-radius: 6px; padding: 12px;
+      font-family: 'Courier New', monospace; font-size: 12px;
+      color: var(--accent); margin-top: 12px;
+      white-space: pre-wrap; word-break: break-all;
+      display: none; max-height: 200px; overflow-y: auto;
+    }
+    .output-json.show { display: block; }
+
+    .instructions {
+      background: rgba(245,166,35,.05);
+      border-left: 3px solid var(--accent);
+      padding: 10px 12px; margin-top: 12px;
+      font-size: 13px; color: var(--muted); border-radius: 4px;
+      display: none;
+    }
+    .instructions.show { display: block; }
+    .instructions strong { color: var(--accent); }
+
+    /* TOAST */
+    .toast {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      background: var(--accent); color: #000;
+      font-family: 'Orbitron', sans-serif; font-size: 12px; font-weight: 700;
+      padding: 12px 20px; border-radius: 8px;
+      text-transform: uppercase; letter-spacing: .5px;
+      opacity: 0; pointer-events: none; transition: opacity .2s;
+      z-index: 300; box-shadow: 0 10px 30px rgba(0,0,0,.5);
+    }
+    .toast.show { opacity: 1; }
+
+    @media (max-width: 480px) {
+      .grid { grid-template-columns: 1fr; }
+      .page-header h2 { font-size: 22px; }
     }
   </style>
 </head>
 <body>
 
-  <!-- NAV -->
-  <nav id="chh-nav">
-    <a class="nav-back" href="index.html">← Menú</a>
-    <div class="nav-title">YouTube</div>
-    <div class="nav-spacer"></div>
-  </nav>
+<nav>
+  <img src="icon-192.png" alt="CHH">
+  <h1>▶ Videos</h1>
+  <a href="index.html" class="btn-menu">← Menú</a>
+</nav>
 
-  <!-- PLAYER MODAL -->
-  <div class="modal-overlay" id="modal" onclick="closeModal(event)">
-    <div class="modal-box" id="modal-box">
-      <button class="modal-close" onclick="closeModal()">✕ CERRAR</button>
-      <div class="video-iframe-wrap" id="modal-thumb-wrap" style="cursor:pointer;">
-        <img id="modal-thumb" src="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"/>
-        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.45);">
-          <div class="play-btn-circle" style="width:72px;height:72px;box-shadow:0 0 30px rgba(255,0,0,.6);">
-            <svg viewBox="0 0 24 24" style="width:32px;height:32px;fill:#fff;margin-left:4px;"><path d="M8 5v14l11-7z"/></svg>
-          </div>
-        </div>
-      </div>
-      <div class="modal-info">
-        <div class="modal-title" id="modal-title"></div>
-        <div class="modal-meta">
-          <span id="modal-date">📅</span>
-          <span id="modal-views">👁</span>
-        </div>
-        <div class="modal-desc" id="modal-desc"></div>
-        <a class="modal-yt-btn" id="modal-yt-link" href="#" target="_blank" rel="noopener">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="#fff"><path d="M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
-          VER EN YOUTUBE
-        </a>
-      </div>
-    </div>
+<div class="container">
+  <div class="page-header">
+    <h2>📺 Videos de la Comunidad</h2>
+    <p>Gameplay, tutoriales y contenido de fans</p>
   </div>
 
-  <div class="wrap">
-
-    <!-- HEADER -->
-    <div class="page-header">
-      <div class="yt-logo-row">
-        <div class="yt-icon">
-          <svg viewBox="0 0 24 24"><path d="M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
-        </div>
-        <div class="page-title">CHOQUE DE HÉROES <span>EN YOUTUBE</span></div>
-      </div>
-      <a class="channel-link" href="https://www.youtube.com/@choquedeheroestcg9035" target="_blank" rel="noopener">
-        ▶ @choquedeheroestcg9035
-      </a>
+  <a class="canal-oficial" href="https://www.youtube.com/@choquedeheroestcg9035" target="_blank" rel="noopener">
+    <div class="yt-icon">
+      <svg viewBox="0 0 24 24"><path d="M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
     </div>
-
-    <!-- CANAL INFO -->
-    <div class="channel-card" id="channel-card">
-      <div class="ch-avatar" id="ch-avatar-wrap"><img id="ch-avatar-img" src="" alt="CH" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:none;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><span style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-family:'Orbitron',sans-serif;font-size:20px;font-weight:900;color:#fff;">CH</span></div>
-      <div class="ch-info">
-        <div class="ch-name">CHOQUE DE HEROES TCG</div>
-        <div class="ch-handle">@choquedeheroestcg9035</div>
-        <div class="ch-stats">
-          <div class="ch-stat"><div class="val" id="stat-videos">—</div><div class="lbl">VIDEOS</div></div>
-        </div>
-      </div>
-      <a class="btn-subscribe" href="https://www.youtube.com/@choquedeheroestcg9035?sub_confirmation=1" target="_blank" rel="noopener">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="#fff"><path d="M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
-        SUSCRIBIRSE
-      </a>
-    </div><!-- CONTROLES -->
-    <div class="controls-row">
-      <input type="text" class="search-input" id="search-q" placeholder="🔍  Buscar videos…" oninput="filterVideos()"/>
-      <button class="filter-btn active" onclick="setFilter('all',this)">TODOS</button>
-      <button class="filter-btn" onclick="setFilter('new',this)">NUEVOS 🔴</button>
-      <button class="refresh-btn" id="refresh-btn" onclick="refresh()">⟳ ACTUALIZAR</button>
+    <div class="info">
+      <div class="label">Canal Oficial</div>
+      <div class="handle">@choquedeheroestcg9035</div>
     </div>
+    <div class="arrow">›</div>
+  </a>
 
-    <!-- CONTADOR -->
-    <div class="vid-counter" id="vid-counter"></div>
-
-    <!-- CONTENIDO -->
-    <div id="content-area">
-      <div class="state-box">
-        <div class="loader"></div>
-        <p>CARGANDO VIDEOS</p>
-        <p class="sb-sub">Conectando con YouTube…</p>
-      </div>
-    </div>
-
-    <button class="load-more-btn" id="load-more-btn" style="display:none" onclick="loadMore()">CARGAR MÁS VIDEOS</button>
-
-    <div class="last-updated" id="last-updated"></div>
-
+  <div class="toolbar">
+    <input type="text" class="search-input" id="searchInput" placeholder="🔍 Buscar por título o autor...">
+    <button class="btn-sugerir" id="btnSugerir">＋ Sugerir Video</button>
   </div>
 
-  <footer><p>&copy; Codex Cómics 2016–2026 · Todos los derechos reservados</p></footer>
+  <div class="filters" id="filters">
+    <button class="filter-btn active" data-cat="todos">Todos <span class="count" id="count-todos">0</span></button>
+  </div>
+
+  <div id="content">
+    <div class="loading">
+      <div class="spinner"></div>
+      Cargando videos...
+    </div>
+  </div>
+</div>
+
+<!-- MODAL SUGERIR VIDEO -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3>＋ Sugerir Video</h3>
+    <p class="subtitle">Pega la URL del video de YouTube. Se genera una entrada lista para agregar al archivo <strong style="color:var(--accent)">videos.json</strong>.</p>
+
+    <div class="form-group">
+      <label>URL del video</label>
+      <input type="url" id="inputUrl" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off">
+    </div>
+
+    <div class="preview-box" id="previewBox">
+      <img id="previewThumb" src="" alt="Preview">
+      <div class="id-info">ID del video: <strong id="previewId">—</strong></div>
+    </div>
+
+    <div class="form-group">
+      <label>Título del video</label>
+      <input type="text" id="inputTitulo" placeholder="Ej: Gameplay Ornamentum vs Encantadoras">
+    </div>
+
+    <div class="form-group">
+      <label>Autor / Canal</label>
+      <input type="text" id="inputAutor" placeholder="Ej: Codex Studio">
+    </div>
+
+    <div class="form-group">
+      <label>Categoría</label>
+      <select id="inputCategoria">
+        <option value="Oficial">Oficial (Codex Studio)</option>
+        <option value="Gameplay">Gameplay</option>
+        <option value="Tutorial">Tutorial</option>
+        <option value="Reseña">Reseña / Análisis</option>
+        <option value="Comunidad">Comunidad / Fans</option>
+        <option value="Torneo">Torneo</option>
+      </select>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-secondary" id="btnCancelar">Cancelar</button>
+      <button class="btn-primary" id="btnGenerar">Generar JSON</button>
+    </div>
+
+    <div class="output-json" id="outputJson"></div>
+    <div class="instructions" id="instructions">
+      <strong>Siguientes pasos:</strong><br>
+      1. Toca la caja arriba para copiar el fragmento.<br>
+      2. Abre <strong>videos.json</strong> en tu repositorio de GitHub.<br>
+      3. Pega el fragmento dentro del array <code>"videos"</code> (agrega una coma si no es el primer elemento).<br>
+      4. Confirma los cambios (commit) — el nuevo video aparecerá tras recargar.
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">✓ Copiado al portapapeles</div>
 
 <script>
-// ─── CONFIG ──────────────────────────────────────────────────────
-const CHANNEL_ID   = 'UCPW3FGg-uxF-dheu1qg9adg';
-const CHANNEL_HANDLE = '@choquedeheroestcg9035';
-const FEED_URL     = `https://www.youtube.com/feeds/videos.xml?channel_id=${CHANNEL_ID}`;
-const CHANNEL_URL  = `https://www.youtube.com/${CHANNEL_HANDLE}`;
-const NEW_DAYS     = 7;
-const PAGE_SIZE    = 12;
-const AUTO_REFRESH = 300;
+// ============================================================
+//  CARGA DE VIDEOS
+// ============================================================
+let allVideos = [];
+let currentFilter = 'todos';
+let currentSearch = '';
 
-// ─── CORS PROXIES — cada uno tiene su formato propio ────────────
-
-// ─── ESTADO ──────────────────────────────────────────────────────
-let allVideos    = [];
-let filtered     = [];
-let displayed    = 0;
-let activeFilter = 'all';
-
-// ─── INIT ────────────────────────────────────────────────────────
-window.addEventListener('DOMContentLoaded', () => {
-  loadVideos();
-  loadChannelAvatar();
-  setInterval(refresh, AUTO_REFRESH * 1000);
-});
-
-// ─── FETCH CON PROXIES ──────────────────────────────────────────
-async function fetchViaProxies(url, timeout = 12000) {
-  const log = [];
-
-  // Lista de intentos: nombre, URL, tipo de respuesta esperada
-  const attempts = [
-    { name: 'rss2json',      url: `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}&count=50`,  type: 'json' },
-    { name: 'allorigins-get', url: `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,                     type: 'allorigins' },
-    { name: 'allorigins-raw', url: `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,                     type: 'text' },
-    { name: 'corsproxy-new',  url: `https://corsproxy.io/?url=${encodeURIComponent(url)}`,                              type: 'text' },
-    { name: 'corsproxy-old',  url: `https://corsproxy.io/?${encodeURIComponent(url)}`,                                  type: 'text' },
-    { name: 'cors-lol',       url: `https://api.cors.lol/?url=${encodeURIComponent(url)}`,                              type: 'text' },
-    { name: 'codetabs',       url: `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,                type: 'text' },
-  ];
-
-  for (const a of attempts) {
-    try {
-      const res = await fetchWithTimeout(a.url, timeout);
-      if (!res.ok) { log.push(`${a.name}: HTTP ${res.status}`); continue; }
-
-      if (a.type === 'json') {
-        const json = await res.json();
-        if (json.status === 'ok' && json.items) {
-          log.push(`${a.name}: OK ✓`);
-          console.log('Feed cargado via', a.name, log);
-          return JSON.stringify(json);
-        }
-        log.push(`${a.name}: status=${json.status||'?'}, items=${json.items?.length||0}`);
-
-      } else if (a.type === 'allorigins') {
-        const data = await res.json();
-        const c = data.contents || '';
-        if (c.length > 100) {
-          // Intentar parsear como XML
-          const parser = new DOMParser();
-          const xml = parser.parseFromString(c, 'text/xml');
-          if (!xml.querySelector('parsererror') && xml.querySelectorAll('entry').length) {
-            log.push(`${a.name}: OK ✓ (${xml.querySelectorAll('entry').length} entries)`);
-            console.log('Feed cargado via', a.name, log);
-            return c;
-          }
-          log.push(`${a.name}: contenido no es feed válido (${c.length} chars)`);
-        } else {
-          log.push(`${a.name}: respuesta muy corta (${c.length} chars)`);
-        }
-
-      } else { // text
-        const text = await res.text();
-        if (text.length > 100) {
-          const parser = new DOMParser();
-          const xml = parser.parseFromString(text, 'text/xml');
-          if (!xml.querySelector('parsererror') && xml.querySelectorAll('entry').length) {
-            log.push(`${a.name}: OK ✓ (${xml.querySelectorAll('entry').length} entries)`);
-            console.log('Feed cargado via', a.name, log);
-            return text;
-          }
-          log.push(`${a.name}: no es feed válido (${text.substring(0,80)}…)`);
-        } else {
-          log.push(`${a.name}: respuesta muy corta (${text.length} chars)`);
-        }
-      }
-    } catch(e) { log.push(`${a.name}: ${e.message}`); }
-  }
-
-  console.error('Todos los proxies fallaron:', log);
-  throw new Error('No se pudo conectar al feed.\n' + log.join('\n'));
-}
-
-function fetchWithTimeout(url, ms) {
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), ms);
-  return fetch(url, { signal: ctrl.signal }).finally(() => clearTimeout(timer));
-}
-
-// ─── AVATAR DEL CANAL ───────────────────────────────────────────
-async function loadChannelAvatar() {
-  const proxyUrls = [
-    `https://api.allorigins.win/get?url=${encodeURIComponent(CHANNEL_URL)}`,
-    `https://api.cors.lol/?url=${encodeURIComponent(CHANNEL_URL)}`,
-    `https://corsproxy.io/?url=${encodeURIComponent(CHANNEL_URL)}`,
-  ];
-  for (const pUrl of proxyUrls) {
-    try {
-      const res = await fetchWithTimeout(pUrl, 12000);
-      if (!res.ok) continue;
-      let html;
-      // allorigins /get devuelve JSON con .contents
-      if (pUrl.includes('allorigins')) {
-        const data = await res.json();
-        html = data.contents || '';
-      } else {
-        html = await res.text();
-      }
-      if (!html || html.length < 200) continue;
-      let avatarUrl = '';
-      const ogMatch = html.match(/<meta\s+property="og:image"\s+content="([^"]+)"/i)
-                   || html.match(/<meta\s+content="([^"]+)"\s+property="og:image"/i);
-      if (ogMatch) {
-        avatarUrl = ogMatch[1];
-      } else {
-        const ytMatch = html.match(/(https:\/\/yt3\.googleusercontent\.com\/[^"'\s]+)/);
-        if (ytMatch) avatarUrl = ytMatch[1];
-      }
-      if (avatarUrl) {
-        const img = document.getElementById('ch-avatar-img');
-        img.src = avatarUrl;
-        img.onload = () => { img.style.display = 'block'; img.nextElementSibling.style.display = 'none'; };
-        return;
-      }
-    } catch(e) { /* siguiente proxy */ }
-  }
-}
-
-// ─── CARGA PRINCIPAL ─────────────────────────────────────────────
 async function loadVideos() {
-  allVideos = [];
-  displayed = 0;
-  showLoading();
-
   try {
-    const raw = await fetchViaProxies(FEED_URL);
-
-    // ¿Es JSON de rss2json?
-    if (raw.trim().startsWith('{')) {
-      const data = JSON.parse(raw);
-      if (data.status === 'ok' && data.items) {
-        allVideos = data.items.map(item => ({
-          id:          extractVideoId(item.link),
-          title:       item.title,
-          description: item.description || '',
-          thumbnail:   item.thumbnail || item.enclosure?.link || '',
-          publishedAt: item.pubDate,
-          views:       null,
-          duration:    null,
-          isLive:      false,
-        }));
-        finishLoad();
-        return;
-      }
-    }
-
-    // Es XML — parsear como Atom feed
-    const parser = new DOMParser();
-    const xml = parser.parseFromString(raw, 'text/xml');
-    const parseErr = xml.querySelector('parsererror');
-    if (parseErr) throw new Error('Feed XML inválido');
-
-    const entries = Array.from(xml.querySelectorAll('entry'));
-    if (!entries.length) throw new Error('El feed no devolvió videos');
-
-    // Namespace para media:group
-    allVideos = entries.map(e => {
-      const videoId = e.querySelector('videoId')?.textContent
-                   || (e.querySelector('id')?.textContent || '').replace('yt:video:', '');
-      const title   = e.querySelector('title')?.textContent || '';
-      const pubDate = e.querySelector('published')?.textContent || '';
-      const desc    = e.querySelector('group description')?.textContent
-                   || e.querySelector('description')?.textContent || '';
-      const thumb   = e.querySelector('group thumbnail')?.getAttribute('url')
-                   || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
-      const views   = e.querySelector('group community statistics')?.getAttribute('views')
-                   || e.querySelector('statistics')?.getAttribute('views') || null;
-
-      return {
-        id: videoId, title, description: desc, thumbnail: thumb,
-        publishedAt: pubDate, views, duration: null, isLive: false,
-      };
-    });
-
-    updateChannelStats(entries.length);
-    finishLoad();
-  } catch(err) {
-    showError(err.message);
+    const res = await fetch('videos.json?_t=' + Date.now());
+    if (!res.ok) throw new Error('No se pudo cargar videos.json');
+    const data = await res.json();
+    allVideos = (data.videos || []).map((v, i) => ({
+      ...v,
+      id: extractId(v.url),
+      _index: i
+    })).filter(v => v.id);
+    render();
+  } catch (e) {
+    console.error(e);
+    document.getElementById('content').innerHTML = `
+      <div class="empty-state">
+        <div class="icon">📭</div>
+        <h3>No hay videos aún</h3>
+        <p>Aún no se ha creado el archivo <strong style="color:var(--accent)">videos.json</strong> o está vacío. Usa el botón "Sugerir Video" para generar la primera entrada.</p>
+      </div>
+    `;
   }
 }
 
-// ─── HELPERS ─────────────────────────────────────────────────────
-function extractVideoId(url) {
-  const m = url.match(/[?&]v=([^&]+)/) || url.match(/youtu\.be\/([^?]+)/);
-  return m ? m[1] : url;
+// ============================================================
+//  EXTRAER ID DE URL
+// ============================================================
+function extractId(url) {
+  if (!url) return null;
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=)([A-Za-z0-9_-]{11})/,
+    /(?:youtu\.be\/)([A-Za-z0-9_-]{11})/,
+    /(?:youtube\.com\/shorts\/)([A-Za-z0-9_-]{11})/,
+    /(?:youtube\.com\/embed\/)([A-Za-z0-9_-]{11})/,
+    /(?:youtube\.com\/live\/)([A-Za-z0-9_-]{11})/,
+    /^([A-Za-z0-9_-]{11})$/
+  ];
+  for (const p of patterns) {
+    const m = url.match(p);
+    if (m) return m[1];
+  }
+  return null;
 }
 
-function isNew(dateStr) {
-  return (Date.now() - new Date(dateStr).getTime()) / 864e5 <= NEW_DAYS;
-}
+// ============================================================
+//  RENDER
+// ============================================================
+function render() {
+  const content = document.getElementById('content');
+  const filters = document.getElementById('filters');
 
-function formatDate(dateStr) {
-  return new Date(dateStr).toLocaleDateString('es-MX', { year:'numeric', month:'short', day:'numeric' });
-}
-
-function formatViews(n) {
-  if (!n) return '';
-  const num = parseInt(n);
-  if (num >= 1e6) return (num/1e6).toFixed(1) + 'M vistas';
-  if (num >= 1e3) return (num/1e3).toFixed(1) + 'K vistas';
-  return num + ' vistas';
-}
-
-function formatDuration(iso) {
-  if (!iso) return '';
-  const m = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
-  if (!m) return '';
-  const h = parseInt(m[1]||0), min = parseInt(m[2]||0), s = parseInt(m[3]||0);
-  if (h) return `${h}:${String(min).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-  return `${min}:${String(s).padStart(2,'0')}`;
-}
-
-function formatCount(n) {
-  if (!n) return '—';
-  const num = parseInt(n);
-  if (num >= 1e6) return (num/1e6).toFixed(1) + 'M';
-  if (num >= 1e3) return Math.round(num/1e3) + 'K';
-  return num.toString();
-}
-
-function updateChannelStats(videos) {
-  document.getElementById('stat-videos').textContent = formatCount(videos);
-}
-
-// ─── RENDER ──────────────────────────────────────────────────────
-function finishLoad() {
-  buildVideoMap();
-  filtered = applyActiveFilter(allVideos);
-  displayed = Math.min(PAGE_SIZE, filtered.length);
-  renderGrid(filtered.slice(0, displayed));
-  updateCounter();
-  updateLoadMore();
-  document.getElementById('last-updated').textContent = 'Última actualización: ' + new Date().toLocaleTimeString('es-MX');
-}
-
-function applyActiveFilter(vids) {
-  const q = (document.getElementById('search-q')?.value || '').toLowerCase();
-  return vids.filter(v => {
-    const matchSearch = !q || v.title.toLowerCase().includes(q);
-    const matchFilter = activeFilter === 'all' || (activeFilter === 'new' && isNew(v.publishedAt));
-    return matchSearch && matchFilter;
+  // Categorías dinámicas
+  const cats = {};
+  allVideos.forEach(v => {
+    const c = v.categoria || 'Sin categoría';
+    cats[c] = (cats[c] || 0) + 1;
   });
-}
 
-function renderGrid(videos) {
-  const area = document.getElementById('content-area');
-  if (!videos.length) {
-    area.innerHTML = `<div class="state-box">
-      <div class="sb-icon">📭</div><p>SIN VIDEOS</p>
-      <p class="sb-sub">No se encontraron videos con ese criterio.</p>
-    </div>`;
+  // Reconstruir filtros
+  filters.innerHTML = `<button class="filter-btn ${currentFilter==='todos'?'active':''}" data-cat="todos">Todos <span class="count">${allVideos.length}</span></button>`;
+  Object.keys(cats).sort().forEach(c => {
+    const active = currentFilter === c ? 'active' : '';
+    filters.innerHTML += `<button class="filter-btn ${active}" data-cat="${escapeAttr(c)}">${escapeHtml(c)} <span class="count">${cats[c]}</span></button>`;
+  });
+
+  // Filtrar
+  const term = currentSearch.trim().toLowerCase();
+  let list = allVideos.filter(v => {
+    if (currentFilter !== 'todos' && (v.categoria || 'Sin categoría') !== currentFilter) return false;
+    if (!term) return true;
+    const hay = (v.titulo || '').toLowerCase() + ' ' + (v.autor || '').toLowerCase();
+    return hay.includes(term);
+  });
+
+  if (list.length === 0) {
+    content.innerHTML = `
+      <div class="empty-state">
+        <div class="icon">🔍</div>
+        <h3>Sin resultados</h3>
+        <p>No hay videos que coincidan con tu búsqueda o filtro.</p>
+      </div>
+    `;
     return;
   }
-  area.innerHTML = `<div class="video-grid">${videos.map(videoCard).join('')}</div>`;
-}
 
-function videoCard(v) {
-  const novedad = isNew(v.publishedAt);
-  const thumb   = v.thumbnail || `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`;
-  const dur     = formatDuration(v.duration);
-  const views   = formatViews(v.views);
-  const date    = formatDate(v.publishedAt);
-
-  return `<div class="video-card${novedad?' new-video':''}" data-vid="${v.id}">
-    ${novedad ? '<div class="new-badge">NUEVO</div>' : ''}
-    ${v.isLive ? '<div class="live-badge">EN VIVO</div>' : ''}
-    <div class="thumb-wrap">
-      <img src="${thumb}" alt="" loading="lazy" onerror="this.src='https://i.ytimg.com/vi/${v.id}/hqdefault.jpg'"/>
-      <div class="play-overlay">
-        <div class="play-btn-circle">
-          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+  content.innerHTML = '<div class="grid">' + list.map(v => {
+    const cat = v.categoria || 'Sin categoría';
+    const oficial = /oficial|codex/i.test(cat) || /codex/i.test(v.autor || '');
+    return `
+      <a class="video-card" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener">
+        <div class="thumb">
+          <img src="https://img.youtube.com/vi/${v.id}/mqdefault.jpg"
+               onerror="this.src='https://img.youtube.com/vi/${v.id}/hqdefault.jpg'"
+               alt="${escapeAttr(v.titulo || 'Video')}" loading="lazy">
+          <div class="badge-cat">${escapeHtml(cat)}</div>
+          ${oficial ? '<div class="badge-oficial">OFICIAL</div>' : ''}
+          <div class="play-overlay"><div class="play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>
         </div>
-      </div>
-      ${dur ? `<div class="duration-badge">${dur}</div>` : ''}
-    </div>
-    <div class="vc-body">
-      <div class="vc-title">${v.title}</div>
-      <div class="vc-meta">
-        <span class="vc-date">📅 ${date}</span>
-        ${views ? `<span class="vc-views">👁 ${views}</span>` : ''}
-      </div>
-    </div>
-  </div>`;
+        <div class="card-body">
+          <div class="card-title">${escapeHtml(v.titulo || 'Sin título')}</div>
+          <div class="card-meta">
+            <span class="autor">${escapeHtml(v.autor || 'Anónimo')}</span>
+          </div>
+        </div>
+      </a>
+    `;
+  }).join('') + '</div>';
 }
 
-function updateCounter() {
-  document.getElementById('vid-counter').innerHTML = `Mostrando <span>${displayed}</span> de <span>${filtered.length}</span> videos`;
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
+function escapeAttr(s) { return escapeHtml(s); }
 
-function updateLoadMore() {
-  document.getElementById('load-more-btn').style.display = displayed < filtered.length ? 'block' : 'none';
-}
-
-// ─── FILTROS Y BÚSQUEDA ──────────────────────────────────────────
-function setFilter(f, btn) {
-  activeFilter = f;
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  filterVideos();
-}
-
-function filterVideos() {
-  filtered = applyActiveFilter(allVideos);
-  displayed = Math.min(PAGE_SIZE, filtered.length);
-  renderGrid(filtered.slice(0, displayed));
-  updateCounter();
-  updateLoadMore();
-}
-
-// ─── CARGAR MÁS ──────────────────────────────────────────────────
-function loadMore() {
-  displayed = Math.min(displayed + PAGE_SIZE, filtered.length);
-  renderGrid(filtered.slice(0, displayed));
-  updateCounter();
-  updateLoadMore();
-}
-
-// ─── REFRESH ─────────────────────────────────────────────────────
-async function refresh() {
-  const btn = document.getElementById('refresh-btn');
-  btn.classList.add('spinning'); btn.textContent = '⟳';
-  await loadVideos();
-  btn.classList.remove('spinning'); btn.textContent = '⟳ ACTUALIZAR';
-}
-
-// ─── VIDEO DATA MAP (evita strings inline en onclick) ────────────
-const videoMap = {};
-
-function buildVideoMap() {
-  allVideos.forEach(v => { videoMap[v.id] = v; });
-}
-
-// Event delegation — click en cualquier video-card
-document.addEventListener('click', e => {
-  const card = e.target.closest('.video-card[data-vid]');
-  if (!card) return;
-  const vid = card.getAttribute('data-vid');
-  if (vid) openVideo(vid);
+// ============================================================
+//  EVENTOS
+// ============================================================
+document.getElementById('searchInput').addEventListener('input', e => {
+  currentSearch = e.target.value;
+  render();
 });
 
-// ─── PLAYER ──────────────────────────────────────────────────────
-function openVideo(id) {
-  const v = videoMap[id];
-  const ytLink = `https://www.youtube.com/watch?v=${id}`;
-  if (!v) { window.open(ytLink, '_blank'); return; }
+document.getElementById('filters').addEventListener('click', e => {
+  const btn = e.target.closest('.filter-btn');
+  if (!btn) return;
+  currentFilter = btn.dataset.cat;
+  render();
+});
 
-  const thumb = v.thumbnail || `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+// ============================================================
+//  MODAL SUGERIR
+// ============================================================
+const modal = document.getElementById('modalOverlay');
+const inputUrl = document.getElementById('inputUrl');
+const previewBox = document.getElementById('previewBox');
+const previewThumb = document.getElementById('previewThumb');
+const previewId = document.getElementById('previewId');
+const outputJson = document.getElementById('outputJson');
+const instructions = document.getElementById('instructions');
 
-  document.getElementById('modal-thumb').src         = thumb;
-  document.getElementById('modal-thumb-wrap').onclick = () => { window.open(ytLink, '_blank'); };
-  document.getElementById('modal-title').textContent = v.title;
-  document.getElementById('modal-date').textContent  = '📅 ' + formatDate(v.publishedAt);
-  document.getElementById('modal-views').textContent = v.views ? '👁 ' + formatViews(v.views) : '';
-  document.getElementById('modal-desc').textContent  = (v.description || '').slice(0, 300);
-  document.getElementById('modal-yt-link').href      = ytLink;
-  document.getElementById('modal').classList.add('open');
-  document.body.style.overflow = 'hidden';
+document.getElementById('btnSugerir').addEventListener('click', () => {
+  modal.classList.add('open');
+});
+document.getElementById('btnCancelar').addEventListener('click', closeModal);
+modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+
+function closeModal() {
+  modal.classList.remove('open');
+  inputUrl.value = '';
+  document.getElementById('inputTitulo').value = '';
+  document.getElementById('inputAutor').value = '';
+  previewBox.classList.remove('show');
+  outputJson.classList.remove('show');
+  instructions.classList.remove('show');
 }
 
-function showIframeFallback() { /* ya no se usa */ }
+inputUrl.addEventListener('input', e => {
+  const id = extractId(e.target.value);
+  if (id) {
+    previewThumb.src = `https://img.youtube.com/vi/${id}/mqdefault.jpg`;
+    previewId.textContent = id;
+    previewBox.classList.add('show');
+  } else {
+    previewBox.classList.remove('show');
+  }
+});
 
-function closeModal(evt) {
-  if (evt && evt.target !== document.getElementById('modal') && !evt.target.closest('.modal-close')) return;
-  document.getElementById('modal').classList.remove('open');
-  document.body.style.overflow = '';
+document.getElementById('btnGenerar').addEventListener('click', () => {
+  const id = extractId(inputUrl.value);
+  if (!id) {
+    showToast('⚠ URL no válida', true);
+    return;
+  }
+  const entry = {
+    url: `https://www.youtube.com/watch?v=${id}`,
+    titulo: document.getElementById('inputTitulo').value.trim() || 'Sin título',
+    autor: document.getElementById('inputAutor').value.trim() || 'Anónimo',
+    categoria: document.getElementById('inputCategoria').value
+  };
+  const json = '  ' + JSON.stringify(entry, null, 2).replace(/\n/g, '\n  ') + ',';
+  outputJson.textContent = json;
+  outputJson.classList.add('show');
+  instructions.classList.add('show');
+
+  outputJson.onclick = () => {
+    navigator.clipboard.writeText(json.replace(/,$/, ''))
+      .then(() => showToast('✓ Copiado al portapapeles'))
+      .catch(() => showToast('⚠ No se pudo copiar', true));
+  };
+});
+
+function showToast(msg, err) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = err ? 'var(--danger)' : 'var(--accent)';
+  t.style.color = err ? '#fff' : '#000';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
 }
 
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal({target:document.getElementById('modal')}); });
-
-// ─── UI STATES ───────────────────────────────────────────────────
-function showLoading() {
-  document.getElementById('content-area').innerHTML = `<div class="state-box">
-    <div class="loader"></div><p>CARGANDO VIDEOS</p>
-    <p class="sb-sub">Conectando con YouTube…</p>
-  </div>`;
-  document.getElementById('vid-counter').innerHTML = '';
-  document.getElementById('load-more-btn').style.display = 'none';
-}
-
-function showError(msg) {
-  const parts = msg.split('\n');
-  const title = parts[0];
-  const details = parts.slice(1).filter(l => l.trim()).map(l =>
-    `<div style="font-family:monospace;font-size:9px;color:#ff6b6b;text-align:left;padding:1px 16px;word-break:break-all;">${l}</div>`
-  ).join('');
-  document.getElementById('content-area').innerHTML = `<div class="state-box">
-    <div class="sb-icon">⚠️</div>
-    <p>ERROR AL CARGAR</p>
-    <p class="sb-sub">${title}</p>
-    <div style="margin:10px auto;max-width:380px;">${details}</div>
-    <p class="sb-sub" style="margin-top:12px;">Intenta actualizar o visita el canal directamente.</p>
-    <button class="refresh-btn" onclick="refresh()" style="margin:16px auto 0;display:block;">⟳ REINTENTAR</button>
-  </div>`;
-}
-
-function showMsg(m) {
-  const d = document.createElement('div');
-  d.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--accent);color:#07090f;padding:10px 24px;border-radius:4px;font-family:Orbitron,sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;z-index:9999;white-space:nowrap;';
-  d.textContent = m; document.body.appendChild(d);
-  setTimeout(() => d.remove(), 3000);
-}
-
-function decodeStr(s) {
-  try { return decodeURIComponent(s); } catch(e) { return s; }
-}
+// ============================================================
+//  INICIALIZAR
+// ============================================================
+loadVideos();
 </script>
+
 </body>
 </html>

@@ -109,6 +109,176 @@
       font-weight: 500;
     }
     
+    /* Botón CTA llamativo — Cartas Limitadas */
+    .cta-banlist {
+      display: block;
+      width: 100%;
+      margin: 0 0 24px;
+      padding: 16px 20px;
+      background: linear-gradient(135deg, #7a0033 0%, #cc0044 50%, #ff2266 100%);
+      background-size: 200% 200%;
+      border: 2px solid #ff4477;
+      border-radius: 12px;
+      color: #fff;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 15px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      text-align: center;
+      cursor: pointer;
+      box-shadow:
+        0 0 20px rgba(255, 68, 119, 0.5),
+        0 0 40px rgba(255, 68, 119, 0.25),
+        inset 0 0 20px rgba(255, 255, 255, 0.08);
+      text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+      animation: cta-pulse 2.4s ease-in-out infinite, cta-shift 6s ease infinite;
+      transition: transform 0.2s;
+    }
+
+    .cta-banlist:hover { transform: translateY(-2px); }
+    .cta-banlist:active { transform: scale(0.97); }
+
+    .cta-banlist .cta-badge {
+      display: inline-block;
+      background: #fff;
+      color: #cc0044;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 900;
+      margin-left: 8px;
+      vertical-align: middle;
+      letter-spacing: 0.5px;
+    }
+
+    .cta-banlist .cta-sub {
+      display: block;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: none;
+      letter-spacing: 0.3px;
+      margin-top: 6px;
+      opacity: 0.9;
+      text-shadow: none;
+    }
+
+    @keyframes cta-pulse {
+      0%, 100% {
+        box-shadow:
+          0 0 20px rgba(255, 68, 119, 0.5),
+          0 0 40px rgba(255, 68, 119, 0.25),
+          inset 0 0 20px rgba(255, 255, 255, 0.08);
+      }
+      50% {
+        box-shadow:
+          0 0 30px rgba(255, 68, 119, 0.8),
+          0 0 60px rgba(255, 68, 119, 0.4),
+          inset 0 0 25px rgba(255, 255, 255, 0.15);
+      }
+    }
+
+    @keyframes cta-shift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    /* Sub-tabs dentro de Cartas Limitadas */
+    .banlist-subtabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .banlist-subtab {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 10px 16px;
+      background: transparent;
+      border: 1.5px solid rgba(204, 85, 255, 0.4);
+      color: #999;
+      border-radius: 8px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: all 0.2s;
+    }
+
+    .banlist-subtab.active {
+      background: rgba(204, 85, 255, 0.15);
+      border-color: #cc55ff;
+      color: #cc55ff;
+      text-shadow: 0 0 8px rgba(204, 85, 255, 0.5);
+    }
+
+    .banlist-subtab .badge-new {
+      display: inline-block;
+      background: #ff2266;
+      color: #fff;
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    .banlist-subtab .badge-archive {
+      display: inline-block;
+      background: #444;
+      color: #ccc;
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    .banlist-version { display: none; }
+    .banlist-version.active { display: block; }
+
+    /* Estatus pill dentro de la tabla */
+    .estatus-pill {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      font-family: 'Orbitron', sans-serif;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+    }
+
+    .estatus-limitada {
+      background: rgba(255, 153, 51, 0.2);
+      color: #ff9933;
+      border: 1px solid rgba(255, 153, 51, 0.5);
+    }
+
+    .estatus-semilimitada {
+      background: rgba(0, 207, 255, 0.15);
+      color: #00cfff;
+      border: 1px solid rgba(0, 207, 255, 0.5);
+    }
+
+    .estatus-condenada {
+      background: rgba(255, 68, 68, 0.2);
+      color: #ff4444;
+      border: 1px solid rgba(255, 68, 68, 0.6);
+    }
+
+    .archive-notice {
+      background: rgba(100, 100, 100, 0.15);
+      border-left: 4px solid #888;
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      color: #aaa;
+      font-size: 13px;
+      border-radius: 4px;
+    }
+
     /* Sistema de tabs */
     .tabs {
       display: flex;
@@ -325,6 +495,13 @@
     <h2>⚔️ Reglamento Oficial</h2>
     <p>Domina las reglas del juego</p>
   </div>
+
+  <!-- CTA — Lista de Cartas Limitadas -->
+  <button type="button" class="cta-banlist" id="ctaBanlist">
+    🚨 Consultar Lista de Cartas Limitadas Actualizada
+    <span class="cta-badge">JUNIO 2026</span>
+    <span class="cta-sub">Nuevas restricciones vigentes · Toca para ver el listado completo</span>
+  </button>
   
   <!-- Sistema de tabs -->
   <div class="tabs">
@@ -871,27 +1048,128 @@
   
   <!-- TAB 4: CARTAS LIMITADAS -->
   <div class="tab-content" id="tab-limitadas">
-    
-    <div class="section open">
-      <div class="section-header">
-        <h3 class="section-title">🚫 Lista de Cartas Restringidas y Condenadas</h3>
-        <span class="section-icon">▼</span>
+
+    <!-- Sub-tabs de versión -->
+    <div class="banlist-subtabs">
+      <button class="banlist-subtab active" data-version="junio2026">Junio 2026 <span class="badge-new">VIGENTE</span></button>
+      <button class="banlist-subtab" data-version="marzo2026">Marzo 2026 <span class="badge-archive">ARCHIVO</span></button>
+    </div>
+
+    <!-- ================= VERSIÓN JUNIO 2026 (VIGENTE) ================= -->
+    <div class="banlist-version active" id="version-junio2026">
+      <div class="section open">
+        <div class="section-header">
+          <h3 class="section-title">🚫 Lista de Cartas Restringidas y Condenadas</h3>
+          <span class="section-icon">▼</span>
+        </div>
+        <div class="section-content">
+          <div class="section-body">
+            <h3>Actualización: Junio 2026 <span style="color:#ff2266; font-size:12px; margin-left:6px;">● VIGENTE</span></h3>
+            <p>Las siguientes cartas están sujetas a restricciones especiales en torneos oficiales de Choque de Héroes TCG. La lista incluye tres categorías: <strong style="color:#ff9933;">Limitada</strong> (1 copia por baraja), <strong style="color:#00cfff;">Semi Limitada</strong> (2 copias por baraja) y <strong style="color:#ff4444;">Condenada</strong> (ninguna copia permitida).</p>
+
+            <div style="overflow-x: auto; margin: 20px 0;">
+              <table style="width: 100%; border-collapse: collapse; background: rgba(55, 10, 80, 0.1); border: 1px solid rgba(204, 85, 255, 0.3);">
+                <thead>
+                  <tr style="background: rgba(204, 85, 255, 0.2); border-bottom: 2px solid #cc55ff;">
+                    <th style="padding: 12px; text-align: left; color: #f5a623; font-family: 'Orbitron', sans-serif; font-size: 13px;">NOMBRE DE LA CARTA</th>
+                    <th style="padding: 12px; text-align: left; color: #f5a623; font-family: 'Orbitron', sans-serif; font-size: 13px;">TIPO</th>
+                    <th style="padding: 12px; text-align: left; color: #f5a623; font-family: 'Orbitron', sans-serif; font-size: 13px;">ARQUETIPO</th>
+                    <th style="padding: 12px; text-align: left; color: #f5a623; font-family: 'Orbitron', sans-serif; font-size: 13px;">ESTATUS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- LIMITADAS -->
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">Loto Mágico de la Oscuridad</td><td style="padding:10px; color:#ff4444;">APOYO</td><td style="padding:10px; color:#888;">N/A</td><td style="padding:10px;"><span class="estatus-pill estatus-limitada">LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">Desterrador de Espíritus</td><td style="padding:10px; color:#ff4444;">APOYO</td><td style="padding:10px; color:#888;">N/A</td><td style="padding:10px;"><span class="estatus-pill estatus-limitada">LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">Arrebatador de Alma</td><td style="padding:10px; color:#ff4444;">APOYO</td><td style="padding:10px; color:#888;">N/A</td><td style="padding:10px;"><span class="estatus-pill estatus-limitada">LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">Resurrección Ancestral</td><td style="padding:10px; color:#ff4444;">APOYO</td><td style="padding:10px; color:#888;">N/A</td><td style="padding:10px;"><span class="estatus-pill estatus-limitada">LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">Sector Bloqueado</td><td style="padding:10px; color:#cc55ff;">SECTOR</td><td style="padding:10px; color:#888;">N/A</td><td style="padding:10px;"><span class="estatus-pill estatus-limitada">LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">Galeón Inquisidor</td><td style="padding:10px; color:#00ff9d;">ARENA</td><td style="padding:10px; color:#888;">Legión del Mar</td><td style="padding:10px;"><span class="estatus-pill estatus-limitada">LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">Derris, El Agonista Aullador</td><td style="padding:10px; color:#ff9933;">PERSONAJE</td><td style="padding:10px; color:#888;">Héroe Invitado</td><td style="padding:10px;"><span class="estatus-pill estatus-limitada">LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">Encantadora Apprentiz, Jenniel</td><td style="padding:10px; color:#ff9933;">PERSONAJE</td><td style="padding:10px; color:#888;">Encantadora</td><td style="padding:10px;"><span class="estatus-pill estatus-limitada">LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">Encantadora Apprentiz, Brittael</td><td style="padding:10px; color:#ff9933;">PERSONAJE</td><td style="padding:10px; color:#888;">Encantadora</td><td style="padding:10px;"><span class="estatus-pill estatus-limitada">LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">Encantadora Apprentiz, Jakkyel</td><td style="padding:10px; color:#ff9933;">PERSONAJE</td><td style="padding:10px; color:#888;">Encantadora</td><td style="padding:10px;"><span class="estatus-pill estatus-limitada">LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">Ex-Pada Encarnada Águila</td><td style="padding:10px; color:#ff9933;">PERSONAJE</td><td style="padding:10px; color:#888;">Ex-Pada</td><td style="padding:10px;"><span class="estatus-pill estatus-limitada">LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">Balbox Max-Kara</td><td style="padding:10px; color:#ff9933;">PERSONAJE</td><td style="padding:10px; color:#888;">Max-Kara</td><td style="padding:10px;"><span class="estatus-pill estatus-limitada">LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">El Líder Fantasma</td><td style="padding:10px; color:#ff9933;">PERSONAJE</td><td style="padding:10px; color:#888;">Héroe Invitado</td><td style="padding:10px;"><span class="estatus-pill estatus-limitada">LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">La Niña Piñata</td><td style="padding:10px; color:#ff9933;">PERSONAJE</td><td style="padding:10px; color:#888;">Héroe Invitado</td><td style="padding:10px;"><span class="estatus-pill estatus-limitada">LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">Mojito</td><td style="padding:10px; color:#ff9933;">PERSONAJE</td><td style="padding:10px; color:#888;">Héroe Invitado</td><td style="padding:10px;"><span class="estatus-pill estatus-limitada">LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">Rayah, La Genio</td><td style="padding:10px; color:#ff9933;">PERSONAJE</td><td style="padding:10px; color:#888;">Héroe Invitado</td><td style="padding:10px;"><span class="estatus-pill estatus-limitada">LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">Quetzalcoatl Primigenio</td><td style="padding:10px; color:#ff9933;">PERSONAJE</td><td style="padding:10px; color:#888;">Koatl el Defensor</td><td style="padding:10px;"><span class="estatus-pill estatus-limitada">LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">Mictlantecuhtli Primigenio</td><td style="padding:10px; color:#ff9933;">PERSONAJE</td><td style="padding:10px; color:#888;">Koatl el Defensor</td><td style="padding:10px;"><span class="estatus-pill estatus-limitada">LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">Noth, Dragón Alfa de Cristal</td><td style="padding:10px; color:#ff9933;">PERSONAJE</td><td style="padding:10px; color:#888;">Dragón de Cristal</td><td style="padding:10px;"><span class="estatus-pill estatus-limitada">LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">Cipacdragón, La Bestia Terrena</td><td style="padding:10px; color:#f5a623;">AMALGAMA</td><td style="padding:10px; color:#888;">Koatl el Defensor</td><td style="padding:10px;"><span class="estatus-pill estatus-limitada">LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">D Emperatriz Ornamentum</td><td style="padding:10px; color:#f5a623;">AMALGAMA</td><td style="padding:10px; color:#888;">Ornamentum</td><td style="padding:10px;"><span class="estatus-pill estatus-limitada">LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">Ex-Pada Reencarnada, Kitsuné</td><td style="padding:10px; color:#f5a623;">AMALGAMA</td><td style="padding:10px; color:#888;">Ex-Pada</td><td style="padding:10px;"><span class="estatus-pill estatus-limitada">LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">Vika, Hechicera Oscura</td><td style="padding:10px; color:#f5a623;">AMALGAMA</td><td style="padding:10px; color:#888;">Héroe Invitado</td><td style="padding:10px;"><span class="estatus-pill estatus-limitada">LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">Hestia, Cálida Diosa de las Brasas</td><td style="padding:10px; color:#f5a623;">AMALGAMA</td><td style="padding:10px; color:#888;">Héroe Invitado</td><td style="padding:10px;"><span class="estatus-pill estatus-limitada">LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">Hellw, Khalet</td><td style="padding:10px; color:#f5a623;">AMALGAMA</td><td style="padding:10px; color:#888;">Khalet</td><td style="padding:10px;"><span class="estatus-pill estatus-limitada">LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">Ozmozord Metalúrgico</td><td style="padding:10px; color:#f5a623;">AMALGAMA</td><td style="padding:10px; color:#888;">Metalúrgico</td><td style="padding:10px;"><span class="estatus-pill estatus-limitada">LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">Évolotl, Poxak</td><td style="padding:10px; color:#f5a623;">AMALGAMA</td><td style="padding:10px; color:#888;">Evolotl</td><td style="padding:10px;"><span class="estatus-pill estatus-limitada">LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">Évolotl, Xoktl</td><td style="padding:10px; color:#f5a623;">AMALGAMA</td><td style="padding:10px; color:#888;">Evolotl</td><td style="padding:10px;"><span class="estatus-pill estatus-limitada">LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">Évolotl, Tlatik</td><td style="padding:10px; color:#f5a623;">AMALGAMA</td><td style="padding:10px; color:#888;">Evolotl</td><td style="padding:10px;"><span class="estatus-pill estatus-limitada">LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">Évolotl, Omni Axolotl</td><td style="padding:10px; color:#f5a623;">AMALGAMA</td><td style="padding:10px; color:#888;">Evolotl</td><td style="padding:10px;"><span class="estatus-pill estatus-limitada">LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">Encantadora Bruxa Magus, Cosmika</td><td style="padding:10px; color:#f5a623;">AMALGAMA</td><td style="padding:10px; color:#888;">Encantadora</td><td style="padding:10px;"><span class="estatus-pill estatus-limitada">LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">Alma de Campeón X</td><td style="padding:10px; color:#00cfff;">ALMA</td><td style="padding:10px; color:#888;">Codex Studio</td><td style="padding:10px;"><span class="estatus-pill estatus-limitada">LIMITADA</span></td></tr>
+
+                  <!-- SEMI LIMITADAS -->
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">D´ Tempestad Ornamentum</td><td style="padding:10px; color:#ff9933;">PERSONAJE</td><td style="padding:10px; color:#888;">Ornamentum</td><td style="padding:10px;"><span class="estatus-pill estatus-semilimitada">SEMI LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">D´ Explosiva Ornamentum</td><td style="padding:10px; color:#ff9933;">PERSONAJE</td><td style="padding:10px; color:#888;">Ornamentum</td><td style="padding:10px;"><span class="estatus-pill estatus-semilimitada">SEMI LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">D´ Marea Ornamentum</td><td style="padding:10px; color:#ff9933;">PERSONAJE</td><td style="padding:10px; color:#888;">Ornamentum</td><td style="padding:10px;"><span class="estatus-pill estatus-semilimitada">SEMI LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">D´ Reactiva Ornamentum</td><td style="padding:10px; color:#ff9933;">PERSONAJE</td><td style="padding:10px; color:#888;">Ornamentum</td><td style="padding:10px;"><span class="estatus-pill estatus-semilimitada">SEMI LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">M</td><td style="padding:10px; color:#ff9933;">PERSONAJE</td><td style="padding:10px; color:#888;">Héroe Invitado</td><td style="padding:10px;"><span class="estatus-pill estatus-semilimitada">SEMI LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">Baal</td><td style="padding:10px; color:#ff9933;">PERSONAJE</td><td style="padding:10px; color:#888;">Héroe Invitado</td><td style="padding:10px;"><span class="estatus-pill estatus-semilimitada">SEMI LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">Oxkotetl, Coloso Devastador</td><td style="padding:10px; color:#ff9933;">PERSONAJE</td><td style="padding:10px; color:#888;">N/A</td><td style="padding:10px;"><span class="estatus-pill estatus-semilimitada">SEMI LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">Xochimilko, El Cauce del Inicio</td><td style="padding:10px; color:#00ff9d;">ARENA</td><td style="padding:10px; color:#888;">Évolotl</td><td style="padding:10px;"><span class="estatus-pill estatus-semilimitada">SEMI LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">L.A.B — Lugar Avanzado de Batalla</td><td style="padding:10px; color:#00ff9d;">ARENA</td><td style="padding:10px; color:#888;">Metalúrgico</td><td style="padding:10px;"><span class="estatus-pill estatus-semilimitada">SEMI LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">Legión del Mar, Grace Omay</td><td style="padding:10px; color:#f5a623;">AMALGAMA</td><td style="padding:10px; color:#888;">Legión del Mar</td><td style="padding:10px;"><span class="estatus-pill estatus-semilimitada">SEMI LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">Dragón de Cristal, Khaleydoh</td><td style="padding:10px; color:#f5a623;">AMALGAMA</td><td style="padding:10px; color:#888;">Dragón de Cristal</td><td style="padding:10px;"><span class="estatus-pill estatus-semilimitada">SEMI LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">X-Master PT</td><td style="padding:10px; color:#ff4444;">APOYO</td><td style="padding:10px; color:#888;">N/A</td><td style="padding:10px;"><span class="estatus-pill estatus-semilimitada">SEMI LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">Refuerzo Heróico</td><td style="padding:10px; color:#ff4444;">APOYO</td><td style="padding:10px; color:#888;">N/A</td><td style="padding:10px;"><span class="estatus-pill estatus-semilimitada">SEMI LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">Trazador de Pesadillas</td><td style="padding:10px; color:#ff4444;">APOYO</td><td style="padding:10px; color:#888;">N/A</td><td style="padding:10px;"><span class="estatus-pill estatus-semilimitada">SEMI LIMITADA</span></td></tr>
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">Batalla entre Clanes</td><td style="padding:10px; color:#cc55ff;">SECTOR</td><td style="padding:10px; color:#888;">Dragón de Cristal</td><td style="padding:10px;"><span class="estatus-pill estatus-semilimitada">SEMI LIMITADA</span></td></tr>
+
+                  <!-- CONDENADAS -->
+                  <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);"><td style="padding:10px; color:#c0c4c8;">Legión del Mar, Capitán Drake</td><td style="padding:10px; color:#f5a623;">AMALGAMA</td><td style="padding:10px; color:#888;">Legión del Mar</td><td style="padding:10px;"><span class="estatus-pill estatus-condenada">CONDENADA</span></td></tr>
+                  <tr><td style="padding:10px; color:#c0c4c8;">Epidemia</td><td style="padding:10px; color:#ff4444;">APOYO</td><td style="padding:10px; color:#888;">Koatl el Defensor</td><td style="padding:10px;"><span class="estatus-pill estatus-condenada">CONDENADA</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p style="margin-top: 20px; color: #888; font-size: 14px; font-style: italic;">
+              * Esta lista se actualiza periódicamente. Consulta siempre la versión más reciente antes de participar en torneos oficiales.
+            </p>
+          </div>
+        </div>
       </div>
-      <div class="section-content">
-        <div class="section-body">
-          <h3>Actualización: Marzo 2026</h3>
-          <p>Las siguientes cartas están sujetas a restricciones especiales en torneos oficiales de Choque de Héroes TCG:</p>
-          
-          <div style="overflow-x: auto; margin: 20px 0;">
-            <table style="width: 100%; border-collapse: collapse; background: rgba(55, 10, 80, 0.1); border: 1px solid rgba(204, 85, 255, 0.3);">
-              <thead>
-                <tr style="background: rgba(204, 85, 255, 0.2); border-bottom: 2px solid #cc55ff;">
-                  <th style="padding: 12px; text-align: left; color: #f5a623; font-family: 'Orbitron', sans-serif; font-size: 13px; border-right: 1px solid rgba(204, 85, 255, 0.2);">NOMBRE DE LA CARTA</th>
-                  <th style="padding: 12px; text-align: left; color: #f5a623; font-family: 'Orbitron', sans-serif; font-size: 13px; border-right: 1px solid rgba(204, 85, 255, 0.2);">TIPO</th>
-                  <th style="padding: 12px; text-align: left; color: #f5a623; font-family: 'Orbitron', sans-serif; font-size: 13px;">ARQUETIPO</th>
-                </tr>
-              </thead>
-              <tbody>
+    </div>
+
+    <!-- ================= VERSIÓN MARZO 2026 (ARCHIVO) ================= -->
+    <div class="banlist-version" id="version-marzo2026">
+      <div class="archive-notice">
+        📦 <strong>Versión de archivo</strong> — Esta lista corresponde a la banlist de Marzo 2026 y ya no está vigente. Se conserva únicamente para consulta histórica. Para torneos actuales usa la versión de Junio 2026.
+      </div>
+
+      <div class="section open">
+        <div class="section-header">
+          <h3 class="section-title">🗂️ Lista Histórica de Cartas Restringidas y Condenadas</h3>
+          <span class="section-icon">▼</span>
+        </div>
+        <div class="section-content">
+          <div class="section-body">
+            <h3>Actualización: Marzo 2026 <span style="color:#888; font-size:12px; margin-left:6px;">● NO VIGENTE</span></h3>
+            <p>Las siguientes cartas estuvieron sujetas a restricciones especiales en torneos oficiales de Choque de Héroes TCG durante el periodo de Marzo 2026:</p>
+
+            <div style="overflow-x: auto; margin: 20px 0;">
+              <table style="width: 100%; border-collapse: collapse; background: rgba(55, 10, 80, 0.1); border: 1px solid rgba(204, 85, 255, 0.3);">
+                <thead>
+                  <tr style="background: rgba(204, 85, 255, 0.2); border-bottom: 2px solid #cc55ff;">
+                    <th style="padding: 12px; text-align: left; color: #f5a623; font-family: 'Orbitron', sans-serif; font-size: 13px; border-right: 1px solid rgba(204, 85, 255, 0.2);">NOMBRE DE LA CARTA</th>
+                    <th style="padding: 12px; text-align: left; color: #f5a623; font-family: 'Orbitron', sans-serif; font-size: 13px; border-right: 1px solid rgba(204, 85, 255, 0.2);">TIPO</th>
+                    <th style="padding: 12px; text-align: left; color: #f5a623; font-family: 'Orbitron', sans-serif; font-size: 13px;">ARQUETIPO</th>
+                  </tr>
+                </thead>
+                <tbody>
                 <tr style="border-bottom: 1px solid rgba(204, 85, 255, 0.2);">
                   <td style="padding: 10px; color: #c0c4c8; border-right: 1px solid rgba(204, 85, 255, 0.1);">Loto Mágico de la Oscuridad</td>
                   <td style="padding: 10px; color: #ff4444; border-right: 1px solid rgba(204, 85, 255, 0.1);">APOYO</td>
@@ -1017,11 +1295,12 @@
           </div>
           
           <p style="margin-top: 20px; color: #888; font-size: 14px; font-style: italic;">
-            * Esta lista se actualiza periódicamente. Consulta siempre la versión más reciente antes de participar en torneos oficiales.
+            * Esta lista corresponde al archivo histórico de Marzo 2026. Para consultar las restricciones vigentes, ve a la pestaña <strong>Junio 2026</strong>.
           </p>
         </div>
       </div>
     </div>
+    </div><!-- /version-marzo2026 -->
 
   </div>
 </div>
@@ -1031,20 +1310,44 @@
 const tabBtns = document.querySelectorAll('.tab-btn');
 const tabContents = document.querySelectorAll('.tab-content');
 
+function activateTab(targetTab) {
+  tabBtns.forEach(b => b.classList.remove('active'));
+  tabContents.forEach(c => c.classList.remove('active'));
+  const btn = document.querySelector(`.tab-btn[data-tab="${targetTab}"]`);
+  const content = document.getElementById('tab-' + targetTab);
+  if (btn) btn.classList.add('active');
+  if (content) content.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 tabBtns.forEach(btn => {
+  btn.addEventListener('click', () => activateTab(btn.dataset.tab));
+});
+
+// CTA — Ir directo a Cartas Limitadas (versión vigente)
+const ctaBanlist = document.getElementById('ctaBanlist');
+if (ctaBanlist) {
+  ctaBanlist.addEventListener('click', () => {
+    activateTab('limitadas');
+    // Asegurar que se muestre la versión vigente (Junio 2026)
+    document.querySelectorAll('.banlist-subtab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.banlist-version').forEach(v => v.classList.remove('active'));
+    const activeBtn = document.querySelector('.banlist-subtab[data-version="junio2026"]');
+    const activeVer = document.getElementById('version-junio2026');
+    if (activeBtn) activeBtn.classList.add('active');
+    if (activeVer) activeVer.classList.add('active');
+  });
+}
+
+// Sub-tabs de banlist (Junio 2026 / Marzo 2026)
+document.querySelectorAll('.banlist-subtab').forEach(btn => {
   btn.addEventListener('click', () => {
-    const targetTab = btn.dataset.tab;
-    
-    // Remover active de todos
-    tabBtns.forEach(b => b.classList.remove('active'));
-    tabContents.forEach(c => c.classList.remove('active'));
-    
-    // Activar el seleccionado
+    const version = btn.dataset.version;
+    document.querySelectorAll('.banlist-subtab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.banlist-version').forEach(v => v.classList.remove('active'));
     btn.classList.add('active');
-    document.getElementById('tab-' + targetTab).classList.add('active');
-    
-    // Scroll suave al inicio
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const target = document.getElementById('version-' + version);
+    if (target) target.classList.add('active');
   });
 });
 

@@ -56,43 +56,80 @@ const TEMAS_CATALOGO = {
 };
 
 // ─── ANIMACIONES CSS COMPLETAS (aplicadas al equipar tema animado) ───
+// Usa @property + animación de variables :root → todo elemento con var(--neon)
+// se anima automáticamente (backgrounds, borders, shadows, gradients).
+// Registrar @property una sola vez (una declaración fuera de cualquier tema)
+const TEMA_PROPS_REGISTER = `
+  @property --neon      { syntax:'<color>'; inherits:true; initial-value:#00ff9d; }
+  @property --accent    { syntax:'<color>'; inherits:true; initial-value:#00ff9d; }
+  @property --neon-d    { syntax:'<color>'; inherits:true; initial-value:#007a4a; }
+  @property --neon-dim  { syntax:'<color>'; inherits:true; initial-value:rgba(0,255,157,.09); }
+`;
+
 const TEMA_ANIMS_FULL = {
   rainbow: `
-    @keyframes chhAnimRainbowT{0%{color:#ff2244!important;text-shadow:0 0 8px #ff2244,0 0 20px rgba(255,34,68,.5)!important}17%{color:#ff7700!important;text-shadow:0 0 8px #ff7700,0 0 20px rgba(255,119,0,.5)!important}33%{color:#f5a623!important;text-shadow:0 0 8px #f5a623,0 0 20px rgba(245,166,35,.5)!important}50%{color:#00ff9d!important;text-shadow:0 0 8px #00ff9d,0 0 20px rgba(0,255,157,.5)!important}67%{color:#00cfff!important;text-shadow:0 0 8px #00cfff,0 0 20px rgba(0,207,255,.5)!important}83%{color:#cc55ff!important;text-shadow:0 0 8px #cc55ff,0 0 20px rgba(204,85,255,.5)!important}100%{color:#ff2244!important;text-shadow:0 0 8px #ff2244,0 0 20px rgba(255,34,68,.5)!important}}
-    @keyframes chhAnimRainbowB{0%{border-color:#ff2244!important}17%{border-color:#ff7700!important}33%{border-color:#f5a623!important}50%{border-color:#00ff9d!important}67%{border-color:#00cfff!important}83%{border-color:#cc55ff!important}100%{border-color:#ff2244!important}}
-    @keyframes chhAnimRainbowBg{0%{background:linear-gradient(135deg,#ff2244,#aa0022)!important}17%{background:linear-gradient(135deg,#ff7700,#aa4400)!important}33%{background:linear-gradient(135deg,#f5a623,#a56a0e)!important}50%{background:linear-gradient(135deg,#00ff9d,#00aa66)!important}67%{background:linear-gradient(135deg,#00cfff,#0088aa)!important}83%{background:linear-gradient(135deg,#cc55ff,#8833aa)!important}100%{background:linear-gradient(135deg,#ff2244,#aa0022)!important}}
-    .tcg-label,.stitle,.mod-name,.calc-name,.calc-arrow,.nav-title,.nav-back,.cat-name,.accent,.item-btn.btn-equipped{animation:chhAnimRainbowT 6s linear infinite!important}
-    .mod-badge,.mod-icon,.calc-icon,.cat-icon,.ranking-badge{animation:chhAnimRainbowB 6s linear infinite!important}
-    .btn,.item-btn.btn-unlock,.item-btn.btn-equip,.filter-btn.active{animation:chhAnimRainbowBg 6s linear infinite!important}
+    @keyframes chhAnimRainbow {
+      0%   { --neon:#ff2244; --accent:#ff2244; --neon-d:#7a0011; --neon-dim:rgba(255,34,68,.15); }
+      17%  { --neon:#ff7700; --accent:#ff7700; --neon-d:#7a3800; --neon-dim:rgba(255,119,0,.15); }
+      33%  { --neon:#f5a623; --accent:#f5a623; --neon-d:#7a5210; --neon-dim:rgba(245,166,35,.15); }
+      50%  { --neon:#00ff9d; --accent:#00ff9d; --neon-d:#007a4a; --neon-dim:rgba(0,255,157,.15); }
+      67%  { --neon:#00cfff; --accent:#00cfff; --neon-d:#005f80; --neon-dim:rgba(0,207,255,.15); }
+      83%  { --neon:#cc55ff; --accent:#cc55ff; --neon-d:#6a1a80; --neon-dim:rgba(204,85,255,.15); }
+      100% { --neon:#ff2244; --accent:#ff2244; --neon-d:#7a0011; --neon-dim:rgba(255,34,68,.15); }
+    }
+    :root { animation: chhAnimRainbow 6s linear infinite !important; }
   `,
   neon_pulse: `
-    @keyframes chhAnimPulseT{0%,100%{color:#ff2ecc!important;text-shadow:0 0 6px #ff2ecc,0 0 15px rgba(255,46,204,.3)!important}50%{color:#ff9fe5!important;text-shadow:0 0 20px #ff2ecc,0 0 40px rgba(255,46,204,.9),0 0 60px rgba(255,46,204,.6)!important}}
-    @keyframes chhAnimPulseB{0%,100%{border-color:#ff2ecc!important;box-shadow:0 0 6px rgba(255,46,204,.3)!important}50%{border-color:#ff9fe5!important;box-shadow:0 0 18px #ff2ecc,0 0 34px rgba(255,46,204,.6)!important}}
-    .tcg-label,.stitle,.mod-name,.calc-name,.calc-arrow,.nav-title,.nav-back,.cat-name,.accent,.item-btn.btn-equipped{animation:chhAnimPulseT 1.8s ease-in-out infinite!important}
-    .mod-badge,.mod-icon,.calc-icon,.cat-icon,.ranking-badge{animation:chhAnimPulseB 1.8s ease-in-out infinite!important}
-    .btn,.item-btn.btn-unlock,.item-btn.btn-equip,.filter-btn.active{background:linear-gradient(135deg,#ff2ecc,#80166a)!important;animation:chhAnimPulseB 1.8s ease-in-out infinite!important}
+    @keyframes chhAnimPulse {
+      0%,100% { --neon:#ff2ecc; --accent:#ff2ecc; --neon-d:#80166a; --neon-dim:rgba(255,46,204,.09); }
+      50%     { --neon:#ff9fe5; --accent:#ff9fe5; --neon-d:#c04fa5; --neon-dim:rgba(255,159,229,.28); }
+    }
+    @keyframes chhPulseScale {
+      0%,100% { transform: scale(1); }
+      50%     { transform: scale(1.03); }
+    }
+    :root { animation: chhAnimPulse 1.6s ease-in-out infinite !important; }
+    .tcg-label, .stitle, .calc-name, .nav-title, .cat-name { animation: chhPulseScale 1.6s ease-in-out infinite !important; }
   `,
   aurora: `
-    @keyframes chhAnimAuroraT{0%{color:#4facfe!important;text-shadow:0 0 10px #4facfe,0 0 24px rgba(79,172,254,.5)!important}33%{color:#43e97b!important;text-shadow:0 0 10px #43e97b,0 0 24px rgba(67,233,123,.5)!important}66%{color:#b455ff!important;text-shadow:0 0 10px #b455ff,0 0 24px rgba(180,85,255,.5)!important}100%{color:#4facfe!important;text-shadow:0 0 10px #4facfe,0 0 24px rgba(79,172,254,.5)!important}}
-    @keyframes chhAnimAuroraB{0%{border-color:#4facfe!important}33%{border-color:#43e97b!important}66%{border-color:#b455ff!important}100%{border-color:#4facfe!important}}
-    @keyframes chhAnimAuroraBg{0%{background:linear-gradient(135deg,#4facfe,#2288cc)!important}33%{background:linear-gradient(135deg,#43e97b,#22aa55)!important}66%{background:linear-gradient(135deg,#b455ff,#7733cc)!important}100%{background:linear-gradient(135deg,#4facfe,#2288cc)!important}}
-    .tcg-label,.stitle,.mod-name,.calc-name,.calc-arrow,.nav-title,.nav-back,.cat-name,.accent,.item-btn.btn-equipped{animation:chhAnimAuroraT 8s ease-in-out infinite!important}
-    .mod-badge,.mod-icon,.calc-icon,.cat-icon,.ranking-badge{animation:chhAnimAuroraB 8s ease-in-out infinite!important}
-    .btn,.item-btn.btn-unlock,.item-btn.btn-equip,.filter-btn.active{animation:chhAnimAuroraBg 8s ease-in-out infinite!important}
+    @keyframes chhAnimAurora {
+      0%   { --neon:#4facfe; --accent:#4facfe; --neon-d:#2288cc; --neon-dim:rgba(79,172,254,.15); }
+      33%  { --neon:#43e97b; --accent:#43e97b; --neon-d:#22aa55; --neon-dim:rgba(67,233,123,.15); }
+      66%  { --neon:#b455ff; --accent:#b455ff; --neon-d:#7733cc; --neon-dim:rgba(180,85,255,.18); }
+      100% { --neon:#4facfe; --accent:#4facfe; --neon-d:#2288cc; --neon-dim:rgba(79,172,254,.15); }
+    }
+    :root { animation: chhAnimAurora 6s ease-in-out infinite !important; }
   `,
   cyber_glitch: `
-    @keyframes chhAnimGlitchT{0%,100%{color:#00fff0!important;text-shadow:2px 0 #ff00cc,-2px 0 #00cfff!important;transform:translate(0)}20%{color:#ff00cc!important;text-shadow:-2px 0 #00fff0,2px 0 #ff00cc,0 0 8px #ff00cc!important;transform:translate(-1px,1px)}40%{color:#00fff0!important;text-shadow:2px 0 #ff00cc,-2px 0 #00cfff!important;transform:translate(1px,-1px)}60%{color:#ff00cc!important;text-shadow:-2px 0 #00fff0,2px 0 #ff00cc!important;transform:translate(-1px,0)}80%{color:#00fff0!important;text-shadow:2px 0 #ff00cc,-2px 0 #00cfff,0 0 8px #00fff0!important;transform:translate(0,1px)}}
-    @keyframes chhAnimGlitchB{0%,100%{border-color:#00fff0!important;box-shadow:0 0 8px rgba(0,255,240,.5)!important}50%{border-color:#ff00cc!important;box-shadow:0 0 12px rgba(255,0,204,.6)!important}}
-    .tcg-label,.stitle,.mod-name,.calc-name,.calc-arrow,.nav-title,.nav-back,.cat-name,.accent,.item-btn.btn-equipped{animation:chhAnimGlitchT .5s steps(5,end) infinite!important;display:inline-block}
-    .mod-badge,.mod-icon,.calc-icon,.cat-icon,.ranking-badge{animation:chhAnimGlitchB .8s steps(2,end) infinite!important}
-    .btn,.item-btn.btn-unlock,.item-btn.btn-equip,.filter-btn.active{background:linear-gradient(135deg,#00fff0,#ff00cc)!important;animation:chhAnimGlitchB .8s steps(2,end) infinite!important;color:#0b0e18!important}
+    @keyframes chhAnimGlitchVars {
+      0%,100% { --neon:#00fff0; --accent:#00fff0; --neon-d:#008077; --neon-dim:rgba(0,255,240,.15); }
+      50%     { --neon:#ff00cc; --accent:#ff00cc; --neon-d:#80006a; --neon-dim:rgba(255,0,204,.15); }
+    }
+    @keyframes chhAnimGlitchText {
+      0%,100% { text-shadow: 2px 0 #ff00cc, -2px 0 #00cfff !important; transform: translate(0); }
+      20%     { text-shadow: -2px 0 #00fff0, 2px 0 #ff00cc, 0 0 8px #ff00cc !important; transform: translate(-1px,1px); }
+      40%     { text-shadow: 2px 0 #ff00cc, -2px 0 #00cfff !important; transform: translate(1px,-1px); }
+      60%     { text-shadow: -2px 0 #00fff0, 2px 0 #ff00cc !important; transform: translate(-1px,0); }
+      80%     { text-shadow: 2px 0 #ff00cc, -2px 0 #00cfff, 0 0 8px #00fff0 !important; transform: translate(0,1px); }
+    }
+    :root { animation: chhAnimGlitchVars .6s steps(2,end) infinite !important; }
+    .tcg-label, .stitle, .mod-name, .calc-name, .nav-title, .cat-name, .accent { animation: chhAnimGlitchText .5s steps(5,end) infinite !important; display: inline-block; }
   `,
   fire: `
-    @keyframes chhAnimFireT{0%,100%{color:#ff4400!important;text-shadow:0 0 8px #ff4400,0 0 16px rgba(255,68,0,.7),0 0 24px rgba(255,119,0,.4)!important}25%{color:#ff8800!important;text-shadow:0 0 10px #ff8800,0 0 20px rgba(255,136,0,.7),0 0 32px rgba(255,170,0,.4)!important}50%{color:#ffcc00!important;text-shadow:0 0 12px #ffcc00,0 0 24px rgba(255,204,0,.7),0 0 40px rgba(255,187,0,.5)!important}75%{color:#ff8800!important;text-shadow:0 0 8px #ff8800,0 0 16px rgba(255,136,0,.6)!important}}
-    @keyframes chhAnimFireB{0%,100%{border-color:#ff4400!important;box-shadow:0 0 8px rgba(255,68,0,.5)!important}50%{border-color:#ffcc00!important;box-shadow:0 0 18px #ff8800,0 0 28px rgba(255,204,0,.5)!important}}
-    .tcg-label,.stitle,.mod-name,.calc-name,.calc-arrow,.nav-title,.nav-back,.cat-name,.accent,.item-btn.btn-equipped{animation:chhAnimFireT 1.2s ease-in-out infinite!important}
-    .mod-badge,.mod-icon,.calc-icon,.cat-icon,.ranking-badge{animation:chhAnimFireB 1.5s ease-in-out infinite!important}
-    .btn,.item-btn.btn-unlock,.item-btn.btn-equip,.filter-btn.active{background:linear-gradient(135deg,#ff4400,#ff8800,#ffcc00)!important;animation:chhAnimFireB 1.2s ease-in-out infinite!important}
+    @keyframes chhAnimFire {
+      0%,100% { --neon:#ff4400; --accent:#ff4400; --neon-d:#993300; --neon-dim:rgba(255,68,0,.18); }
+      25%     { --neon:#ff8800; --accent:#ff8800; --neon-d:#a04a00; --neon-dim:rgba(255,136,0,.22); }
+      50%     { --neon:#ffcc00; --accent:#ffcc00; --neon-d:#a08800; --neon-dim:rgba(255,204,0,.24); }
+      75%     { --neon:#ff8800; --accent:#ff8800; --neon-d:#a04a00; --neon-dim:rgba(255,136,0,.22); }
+    }
+    @keyframes chhFireFlicker {
+      0%,100% { transform: translate(0,0); }
+      25%     { transform: translate(0,-.5px); }
+      50%     { transform: translate(.5px,0); }
+      75%     { transform: translate(-.5px,-.5px); }
+    }
+    :root { animation: chhAnimFire 1s ease-in-out infinite !important; }
+    .tcg-label, .stitle, .calc-name, .nav-title, .cat-name { animation: chhFireFlicker .18s steps(4,end) infinite !important; }
   `
 };
 
@@ -135,33 +172,59 @@ function applyTheme(theme) {
 
 // ─── APLICAR TEMA DE COLOR (fuente única) ─────
 // Reemplaza applyAccentColor + inyectarColorTienda (una sola implementación).
+// Para temas estáticos: setea las vars en :root con el hex del catálogo.
+// Para animados: :root no las setea (las anima el @keyframes) — todo usa var(--neon).
 function applyTema(temaId) {
   const t = TEMAS_CATALOGO[temaId];
   if (!t) { console.warn('[CHH_TEMAS] Tema no existe:', temaId); return false; }
+  const isAnimated = !!(t.animId && TEMA_ANIMS_FULL[t.animId]);
   const h=t.hex, d=t.d, dim=t.dim, glow=t.glow;
-  const baseCss = `:root{--neon:${h}!important;--neon-d:${d}!important;--neon-dim:${dim}!important;--nglow:${glow}!important;--accent:${h}!important;--accent-glow:${dim}!important;--accent-dim:${dim}!important;}
-    .tcg-label{color:${h}!important;text-shadow:${glow}!important;}
-    .stitle{color:${h}!important;}.stitle::after{background:linear-gradient(90deg,${d},transparent)!important;}
-    .mod-name,.c-neon .mod-name,.c-blue .mod-name,.c-gold .mod-name,.c-red .mod-name,.c-purple .mod-name{color:${h}!important;text-shadow:${glow}!important;}
-    .mod-badge,.c-neon .mod-badge,.c-blue .mod-badge,.c-gold .mod-badge,.c-red .mod-badge,.c-purple .mod-badge{color:${h}!important;border:1px solid ${d}!important;background:${dim}!important;}
-    .mod-icon,.c-neon .mod-icon,.c-blue .mod-icon,.c-gold .mod-icon,.c-red .mod-icon,.c-purple .mod-icon{border-color:${d}!important;background:${dim}!important;}
-    .mod-card:hover{border-color:${h}!important;box-shadow:${glow},0 0 8px ${dim} inset!important;}
-    .calc-card{background:${dim}!important;border-color:${d}!important;box-shadow:${glow},inset 0 0 24px ${dim}!important;}.calc-card::before{background:linear-gradient(90deg,transparent,${h},transparent)!important;}
-    .calc-card:hover{border-color:${h}!important;box-shadow:${glow}!important;}
-    .calc-name{color:${h}!important;text-shadow:${glow}!important;}.calc-arrow{color:${h}!important;text-shadow:${glow}!important;}.calc-icon{border-color:${d}!important;background:${dim}!important;}
-    .nav-back{color:${h}!important;border-color:${d}!important;text-shadow:${glow}!important;}.nav-title{color:${h}!important;text-shadow:${glow}!important;}#chh-nav::after{background:linear-gradient(90deg,transparent,${h},transparent)!important;}
-    .settings-btn:active svg{fill:${h}!important;}.banner-dot.active{background:${h}!important;box-shadow:0 0 8px ${h}!important;}
-    .ranking-badge{background:${dim}!important;border-color:${d}!important;color:${h}!important;}
-    .btn,.item-btn.btn-unlock,.item-btn.btn-equip{background:linear-gradient(135deg,${h},${d})!important;}.item-btn.btn-equipped{color:${h}!important;border-color:${d}!important;}
-    .filter-btn.active{background:linear-gradient(135deg,${h},${d})!important;border-color:${h}!important;}
-    .accent,[style*="var(--accent)"]{color:${h}!important;}`;
-  const animCss = (t.animId && TEMA_ANIMS_FULL[t.animId]) ? TEMA_ANIMS_FULL[t.animId] : '';
-  // Un solo style tag global (reemplaza al anterior)
+
+  // Registrar @property una sola vez para animar colores de forma smooth
+  ensurePropsRegistered();
+
+  // Para temas estáticos, definir las vars en :root. Para animados, el keyframe las define.
+  const rootVars = isAnimated ? '' :
+    `:root{--neon:${h}!important;--neon-d:${d}!important;--neon-dim:${dim}!important;--nglow:${glow}!important;--accent:${h}!important;--accent-glow:${dim}!important;--accent-dim:${dim}!important;}`;
+
+  // Base CSS usa var() para TODOS los selectores → cualquier cambio en las vars propaga.
+  const baseCss = `${rootVars}
+    .tcg-label{color:var(--neon)!important;text-shadow:0 0 8px var(--neon),0 0 20px var(--neon-dim)!important;}
+    .stitle{color:var(--neon)!important;}.stitle::after{background:linear-gradient(90deg,var(--neon-d),transparent)!important;}
+    .mod-name,.c-neon .mod-name,.c-blue .mod-name,.c-gold .mod-name,.c-red .mod-name,.c-purple .mod-name{color:var(--neon)!important;text-shadow:0 0 8px var(--neon),0 0 20px var(--neon-dim)!important;}
+    .mod-badge,.c-neon .mod-badge,.c-blue .mod-badge,.c-gold .mod-badge,.c-red .mod-badge,.c-purple .mod-badge{color:var(--neon)!important;border:1px solid var(--neon-d)!important;background:var(--neon-dim)!important;}
+    .mod-icon,.c-neon .mod-icon,.c-blue .mod-icon,.c-gold .mod-icon,.c-red .mod-icon,.c-purple .mod-icon{border-color:var(--neon-d)!important;background:var(--neon-dim)!important;}
+    .mod-card:hover{border-color:var(--neon)!important;box-shadow:0 0 8px var(--neon),0 0 8px var(--neon-dim) inset!important;}
+    .calc-card{background:var(--neon-dim)!important;border-color:var(--neon-d)!important;box-shadow:0 0 8px var(--neon),0 0 24px var(--neon-dim),inset 0 0 24px var(--neon-dim)!important;}
+    .calc-card::before{background:linear-gradient(90deg,transparent,var(--neon),transparent)!important;}
+    .calc-card:hover{border-color:var(--neon)!important;box-shadow:0 0 8px var(--neon),0 0 22px var(--neon-dim)!important;}
+    .calc-name{color:var(--neon)!important;text-shadow:0 0 8px var(--neon),0 0 20px var(--neon-dim)!important;}
+    .calc-arrow{color:var(--neon)!important;text-shadow:0 0 8px var(--neon),0 0 20px var(--neon-dim)!important;}
+    .calc-icon{border-color:var(--neon-d)!important;background:var(--neon-dim)!important;}
+    .nav-back{color:var(--neon)!important;border-color:var(--neon-d)!important;text-shadow:0 0 8px var(--neon)!important;}
+    .nav-title{color:var(--neon)!important;text-shadow:0 0 8px var(--neon),0 0 20px var(--neon-dim)!important;}
+    #chh-nav::after{background:linear-gradient(90deg,transparent,var(--neon),transparent)!important;}
+    .settings-btn:active svg{fill:var(--neon)!important;}.banner-dot.active{background:var(--neon)!important;box-shadow:0 0 8px var(--neon)!important;}
+    .ranking-badge{background:var(--neon-dim)!important;border-color:var(--neon-d)!important;color:var(--neon)!important;}
+    .btn,.item-btn.btn-unlock,.item-btn.btn-equip{background:linear-gradient(135deg,var(--neon),var(--neon-d))!important;}
+    .item-btn.btn-equipped{color:var(--neon)!important;border-color:var(--neon-d)!important;}
+    .filter-btn.active{background:linear-gradient(135deg,var(--neon),var(--neon-d))!important;border-color:var(--neon)!important;}
+    .accent,[style*="var(--accent)"]{color:var(--neon)!important;}`;
+  const animCss = isAnimated ? TEMA_ANIMS_FULL[t.animId] : '';
   injectStyle('chh-tema-global', baseCss + animCss);
   // Limpiar el legacy 'chh-tienda-color' si existía (versión antigua de tienda.html)
   const legacy = document.getElementById('chh-tienda-color');
   if (legacy) legacy.remove();
   return true;
+}
+
+// Registra @property una vez por página (para que las variables --neon, --accent,
+// --neon-d, --neon-dim se puedan animar smoothly como <color>).
+let _propsRegistered = false;
+function ensurePropsRegistered() {
+  if (_propsRegistered) return;
+  _propsRegistered = true;
+  injectStyle('chh-tema-props', TEMA_PROPS_REGISTER);
 }
 
 // Backward compat — el modal de ajustes viejo puede seguir llamando applyAccentColor('green')

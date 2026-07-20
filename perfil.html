@@ -1478,25 +1478,10 @@ async function cargarBadges(historial, totalPts, posGlobal) {
 // ── Aplicar items de tienda equipados ──
 function aplicarItemsGuardados() {
   if (!jugador) return;
-  const PUNTOS_POS_T = { 1:8, 2:5, 3:4, 4:3, 5:2, 6:2, 7:1, 8:1 };
-  // Tema de color
-  const temaId = localStorage.getItem(`nhEquip_temas_${jugador.id}`);
-  if (temaId) {
-    const temas = {
-      tema_azul:    { acento:'#00cfff', glow:'0 0 6px #00cfff,0 0 18px rgba(0,207,255,.4)' },
-      tema_dorado:  { acento:'#f5a623', glow:'0 0 8px #f5a623,0 0 22px rgba(245,166,35,.45)' },
-      tema_purpura: { acento:'#cc55ff', glow:'0 0 8px #cc55ff,0 0 22px rgba(180,70,255,.5)' },
-      tema_rojo:    { acento:'#ff2244', glow:'0 0 8px #ff2244,0 0 20px rgba(255,34,68,.4)' },
-      tema_blanco:  { acento:'#e0eeff', glow:'0 0 6px #e0eeff,0 0 18px rgba(224,238,255,.3)' },
-    };
-    const t = temas[temaId];
-    if (t) {
-      document.documentElement.style.setProperty('--neon', t.acento);
-      document.documentElement.style.setProperty('--accent', t.acento);
-      document.documentElement.style.setProperty('--nglow', t.glow);
-    }
-  }
-  // Fondo
+  // Tema de color — delegado a settings.js (aplica globalmente).
+  // Refresh para que lea el tema equipado del jugador actual (post-login).
+  if (window.CHH_TEMAS?.refresh) window.CHH_TEMAS.refresh();
+  // Fondo — legacy local (aún no migrado a settings.js)
   const fondoId = localStorage.getItem(`nhEquip_fondos_${jugador.id}`);
   const fondos = {
     bg_nebula:  'radial-gradient(ellipse at 20% 50%,#0d0020 0%,#03050a 60%)',

@@ -107,6 +107,32 @@
     .item-lock-pts{font-family:'Orbitron',sans-serif;font-size:.6rem;color:var(--gold);letter-spacing:1px;}
     .item-card.unlocked .item-lock,.item-card.equipped .item-lock{display:none;}
     .equipped-badge{position:absolute;top:6px;right:6px;background:var(--neon);color:var(--bg);font-family:'Orbitron',sans-serif;font-size:.5rem;font-weight:900;letter-spacing:1px;padding:3px 7px;border-radius:2px;z-index:2;}
+
+    /* ═══ ANIMACIONES DE PREVIEW PARA TEMAS ANIMADOS ═══ */
+    @keyframes prevRainbowDot{0%{background:#ff2244;box-shadow:0 0 12px #ff2244}17%{background:#ff7700;box-shadow:0 0 12px #ff7700}33%{background:#f5a623;box-shadow:0 0 12px #f5a623}50%{background:#00ff9d;box-shadow:0 0 12px #00ff9d}67%{background:#00cfff;box-shadow:0 0 12px #00cfff}83%{background:#cc55ff;box-shadow:0 0 12px #cc55ff}100%{background:#ff2244;box-shadow:0 0 12px #ff2244}}
+    @keyframes prevRainbowTxt{0%{color:#ff2244;text-shadow:0 0 6px #ff2244}17%{color:#ff7700;text-shadow:0 0 6px #ff7700}33%{color:#f5a623;text-shadow:0 0 6px #f5a623}50%{color:#00ff9d;text-shadow:0 0 6px #00ff9d}67%{color:#00cfff;text-shadow:0 0 6px #00cfff}83%{color:#cc55ff;text-shadow:0 0 6px #cc55ff}100%{color:#ff2244;text-shadow:0 0 6px #ff2244}}
+    .tema-prev-rainbow .tema-dot{animation:prevRainbowDot 6s linear infinite}
+    .tema-prev-rainbow .tema-txt{animation:prevRainbowTxt 6s linear infinite}
+
+    @keyframes prevPulseDot{0%,100%{background:#ff2ecc;box-shadow:0 0 6px #ff2ecc}50%{background:#ff9fe5;box-shadow:0 0 20px #ff2ecc,0 0 30px rgba(255,46,204,.6)}}
+    @keyframes prevPulseTxt{0%,100%{color:#ff2ecc;text-shadow:0 0 4px #ff2ecc}50%{color:#ff9fe5;text-shadow:0 0 12px #ff2ecc,0 0 20px rgba(255,46,204,.7)}}
+    .tema-prev-neon_pulse .tema-dot{animation:prevPulseDot 1.8s ease-in-out infinite}
+    .tema-prev-neon_pulse .tema-txt{animation:prevPulseTxt 1.8s ease-in-out infinite}
+
+    @keyframes prevAuroraDot{0%{background:#4facfe;box-shadow:0 0 10px #4facfe}33%{background:#43e97b;box-shadow:0 0 10px #43e97b}66%{background:#b455ff;box-shadow:0 0 10px #b455ff}100%{background:#4facfe;box-shadow:0 0 10px #4facfe}}
+    @keyframes prevAuroraTxt{0%{color:#4facfe;text-shadow:0 0 6px #4facfe}33%{color:#43e97b;text-shadow:0 0 6px #43e97b}66%{color:#b455ff;text-shadow:0 0 6px #b455ff}100%{color:#4facfe;text-shadow:0 0 6px #4facfe}}
+    .tema-prev-aurora .tema-dot{animation:prevAuroraDot 8s ease-in-out infinite}
+    .tema-prev-aurora .tema-txt{animation:prevAuroraTxt 8s ease-in-out infinite}
+
+    @keyframes prevGlitchDot{0%,100%{background:#00fff0;box-shadow:0 0 10px #00fff0}50%{background:#ff00cc;box-shadow:0 0 10px #ff00cc}}
+    @keyframes prevGlitchTxt{0%,100%{color:#00fff0;text-shadow:2px 0 #ff00cc,-2px 0 #00cfff;transform:translate(0)}20%{color:#ff00cc;transform:translate(-1px,1px)}40%{color:#00fff0;transform:translate(1px,-1px)}60%{color:#ff00cc;transform:translate(-1px,0)}80%{color:#00fff0;transform:translate(0,1px)}}
+    .tema-prev-cyber_glitch .tema-dot{animation:prevGlitchDot .8s steps(2,end) infinite}
+    .tema-prev-cyber_glitch .tema-txt{animation:prevGlitchTxt .5s steps(5,end) infinite;display:inline-block}
+
+    @keyframes prevFireDot{0%,100%{background:#ff4400;box-shadow:0 0 10px #ff4400,0 0 20px rgba(255,68,0,.5)}25%{background:#ff8800;box-shadow:0 0 12px #ff8800,0 0 24px rgba(255,136,0,.6)}50%{background:#ffcc00;box-shadow:0 0 14px #ffcc00,0 0 28px rgba(255,204,0,.7)}75%{background:#ff8800;box-shadow:0 0 10px #ff8800}}
+    @keyframes prevFireTxt{0%,100%{color:#ff4400;text-shadow:0 0 6px #ff4400,0 0 12px rgba(255,68,0,.6)}25%{color:#ff8800;text-shadow:0 0 8px #ff8800}50%{color:#ffcc00;text-shadow:0 0 10px #ffcc00,0 0 16px rgba(255,204,0,.5)}75%{color:#ff8800;text-shadow:0 0 6px #ff8800}}
+    .tema-prev-fire .tema-dot{animation:prevFireDot 1.2s ease-in-out infinite}
+    .tema-prev-fire .tema-txt{animation:prevFireTxt 1.2s ease-in-out infinite}
     .item-info{padding:10px 12px 12px;}
     .item-nombre{font-weight:700;font-size:.9rem;margin-bottom:2px;}
     .item-tipo{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
@@ -710,34 +736,18 @@ const CATALOGO = {
     {id:'bg_ruinas_teno',     nombre:'Ruinas de Tenochtitlán',pts:45,img:'fondos/fondo_23.jpg'},
     {id:'bg_nexo_primigenio', nombre:'Nexo Primigenio',      pts:60, img:'fondos/fondo_24.jpg'},
   ],
-  temas: [
-    {id:'green',settings:'green',nombre:'Verde Nexo',pts:0,hex:'#00ff9d',d:'#007a4a',dim:'rgba(0,255,157,.09)',glow:'0 0 6px #00ff9d,0 0 18px rgba(0,255,157,.4)',preview:'#00ff9d'},
-    {id:'blue',settings:'blue',nombre:'Azul Cyber',pts:3,hex:'#00cfff',d:'#005f80',dim:'rgba(0,207,255,.09)',glow:'0 0 6px #00cfff,0 0 18px rgba(0,207,255,.4)',preview:'#00cfff'},
-    {id:'gold',settings:'gold',nombre:'Dorado Real',pts:5,hex:'#f5a623',d:'#7a5210',dim:'rgba(245,166,35,.1)',glow:'0 0 8px #f5a623,0 0 22px rgba(245,166,35,.45)',preview:'#f5a623'},
-    {id:'purple',settings:'purple',nombre:'Púrpura',pts:8,hex:'#cc55ff',d:'#6a1a80',dim:'rgba(180,70,255,.1)',glow:'0 0 8px #cc55ff,0 0 22px rgba(180,70,255,.5)',preview:'#cc55ff'},
-    {id:'red',settings:null,nombre:'Rojo Sangre',pts:10,hex:'#ff2244',d:'#6a0011',dim:'rgba(255,34,68,.09)',glow:'0 0 8px #ff2244,0 0 20px rgba(255,34,68,.4)',preview:'#ff2244'},
-    {id:'orange',settings:null,nombre:'Naranja Fuego',pts:12,hex:'#ff7700',d:'#7a3800',dim:'rgba(255,119,0,.09)',glow:'0 0 8px #ff7700,0 0 20px rgba(255,119,0,.4)',preview:'#ff7700'},
-    {id:'pink',settings:null,nombre:'Rosa Nexo',pts:12,hex:'#ff4da6',d:'#80004d',dim:'rgba(255,77,166,.09)',glow:'0 0 8px #ff4da6,0 0 20px rgba(255,77,166,.4)',preview:'#ff4da6'},
-    {id:'cyan',settings:null,nombre:'Cyan Eléctrico',pts:15,hex:'#00fff5',d:'#007a75',dim:'rgba(0,255,245,.09)',glow:'0 0 6px #00fff5,0 0 18px rgba(0,255,245,.4)',preview:'#00fff5'},
-    {id:'lime',settings:null,nombre:'Lima Tóxico',pts:15,hex:'#aaff00',d:'#4d7a00',dim:'rgba(170,255,0,.09)',glow:'0 0 6px #aaff00,0 0 18px rgba(170,255,0,.4)',preview:'#aaff00'},
-    {id:'teal',settings:null,nombre:'Verde Profundo',pts:18,hex:'#00e5cc',d:'#006b60',dim:'rgba(0,229,204,.09)',glow:'0 0 6px #00e5cc,0 0 18px rgba(0,229,204,.4)',preview:'#00e5cc'},
-    {id:'indigo',settings:null,nombre:'Índigo',pts:20,hex:'#6677ff',d:'#2233aa',dim:'rgba(102,119,255,.1)',glow:'0 0 8px #6677ff,0 0 20px rgba(102,119,255,.4)',preview:'#6677ff'},
-    {id:'crimson',settings:null,nombre:'Carmesí',pts:22,hex:'#dc143c',d:'#6e0a1e',dim:'rgba(220,20,60,.09)',glow:'0 0 8px #dc143c,0 0 20px rgba(220,20,60,.4)',preview:'#dc143c'},
-    {id:'silver',settings:null,nombre:'Plata',pts:25,hex:'#c0c8d8',d:'#606878',dim:'rgba(192,200,216,.09)',glow:'0 0 6px #c0c8d8,0 0 18px rgba(192,200,216,.3)',preview:'#c0c8d8'},
-    {id:'white',settings:null,nombre:'Ártic White',pts:30,hex:'#e8f0ff',d:'#8090b0',dim:'rgba(232,240,255,.08)',glow:'0 0 6px #e8f0ff,0 0 18px rgba(232,240,255,.25)',preview:'#e8f0ff'},
-    {id:'rainbow',settings:null,nombre:'Arco Iris',pts:50,hex:'#ff79c6',d:'#aa0066',dim:'rgba(255,121,198,.09)',glow:'0 0 8px #ff79c6,0 0 20px rgba(255,121,198,.5)',preview:'linear-gradient(135deg,#ff2244,#ff7700,#f5a623,#00ff9d,#00cfff,#cc55ff)',rainbow:true},
-    {id:'ember',    settings:null, nombre:'Ámbar Nocturno',    pts:15, hex:'#d4a017', d:'#6a500a', dim:'rgba(212,160,23,.09)', glow:'0 0 8px #d4a017,0 0 20px rgba(212,160,23,.4)',  preview:'#d4a017'},
-    {id:'emerald',  settings:null, nombre:'Esmeralda',         pts:18, hex:'#10b981', d:'#065f46', dim:'rgba(16,185,129,.09)', glow:'0 0 8px #10b981,0 0 20px rgba(16,185,129,.4)',  preview:'#10b981'},
-    {id:'sapphire', settings:null, nombre:'Zafiro Real',       pts:20, hex:'#3b5cff', d:'#1a2e80', dim:'rgba(59,92,255,.09)',  glow:'0 0 8px #3b5cff,0 0 20px rgba(59,92,255,.4)',   preview:'#3b5cff'},
-    {id:'ruby',     settings:null, nombre:'Rubí Sangriento',   pts:22, hex:'#e60033', d:'#73001a', dim:'rgba(230,0,51,.09)',   glow:'0 0 8px #e60033,0 0 20px rgba(230,0,51,.4)',    preview:'#e60033'},
-    {id:'copper',   settings:null, nombre:'Cobre Antiguo',     pts:22, hex:'#c87533', d:'#643a1a', dim:'rgba(200,117,51,.09)', glow:'0 0 8px #c87533,0 0 20px rgba(200,117,51,.4)',  preview:'#c87533'},
-    {id:'magenta',  settings:null, nombre:'Magenta Neón',      pts:25, hex:'#ff2ecc', d:'#80166a', dim:'rgba(255,46,204,.09)', glow:'0 0 8px #ff2ecc,0 0 22px rgba(255,46,204,.5)',  preview:'#ff2ecc'},
-    {id:'obsidian', settings:null, nombre:'Obsidiana',         pts:28, hex:'#6a1b9a', d:'#38105a', dim:'rgba(106,27,154,.09)', glow:'0 0 8px #6a1b9a,0 0 20px rgba(106,27,154,.4)',  preview:'#6a1b9a'},
-    {id:'jade',     settings:null, nombre:'Jade Antiguo',      pts:30, hex:'#00a86b', d:'#005a38', dim:'rgba(0,168,107,.09)',  glow:'0 0 8px #00a86b,0 0 20px rgba(0,168,107,.4)',   preview:'#00a86b'},
-    {id:'plasma',   settings:null, nombre:'Plasma Solar',      pts:35, hex:'#ff1493', d:'#800a4a', dim:'rgba(255,20,147,.09)', glow:'0 0 8px #ff1493,0 0 22px rgba(255,20,147,.5)',  preview:'#ff1493'},
-    {id:'quantum',  settings:null, nombre:'Violeta Cuántico',  pts:45, hex:'#7c00ff', d:'#3d0080', dim:'rgba(124,0,255,.09)',  glow:'0 0 10px #7c00ff,0 0 24px rgba(124,0,255,.55)', preview:'#7c00ff'},
-  ]
+  temas: [] // Se llena en init desde window.CHH_TEMAS.catalogo (settings.js)
 };
+
+// Popula CATALOGO.temas al cargar settings.js. Si aún no está listo, reintenta.
+function _hydrateTemas() {
+  if (!window.CHH_TEMAS?.catalogo) { setTimeout(_hydrateTemas, 50); return; }
+  CATALOGO.temas = Object.entries(window.CHH_TEMAS.catalogo)
+    .map(([id, t]) => ({ id, ...t }))
+    .sort((a,b) => (a.pts||0) - (b.pts||0));
+}
+_hydrateTemas();
+
 
 // ════════════════════════════════════════════
 //  RAREZA — constantes compartidas
@@ -1381,9 +1391,17 @@ function renderItem(item, tab) {
       ${equipado ? '<div class="equipped-badge">ACTIVO</div>' : ''}
     </div>`;
   } else if (tab === 'temas') {
-    previewHtml = `<div class="item-preview" style="background:#0b0e18;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;gap:6px;">
-      <div style="width:20px;height:20px;border-radius:50%;background:${item.preview};box-shadow:0 0 12px ${item.preview};"></div>
-      <div style="font-family:'Orbitron',monospace;font-size:.55rem;color:${item.preview};">NEXO</div>
+    const isAnim = !!item.animId;
+    const animCls = isAnim ? ` tema-prev-${item.animId}` : '';
+    const dotStyle = isAnim
+      ? 'width:20px;height:20px;border-radius:50%;'
+      : `width:20px;height:20px;border-radius:50%;background:${item.preview};box-shadow:0 0 12px ${item.preview};`;
+    const txtStyle = isAnim
+      ? "font-family:'Orbitron',monospace;font-size:.55rem;"
+      : `font-family:'Orbitron',monospace;font-size:.55rem;color:${item.preview};`;
+    previewHtml = `<div class="item-preview${animCls}" style="background:#0b0e18;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;gap:6px;position:relative;">
+      <div class="tema-dot" style="${dotStyle}"></div>
+      <div class="tema-txt" style="${txtStyle}">NEXO</div>
       ${!desbloqueado ? lockOverlay(item, puedePagar) : ''}
       ${equipado ? '<div class="equipped-badge">ACTIVO</div>' : ''}
     </div>`;
@@ -1447,37 +1465,18 @@ function aplicarFondoImagen(imgUrl) {
   style.textContent = `html,body{background-image:url('${imgUrl}') !important;background-size:cover !important;background-position:center !important;background-attachment:fixed !important;background-repeat:no-repeat !important;}body::before{display:none !important;}`;
 }
 
+// Delegado a settings.js — mantenemos la firma por compat, pero window.CHH_TEMAS.aplicar
+// es la fuente única (misma lógica en todas las páginas).
 function inyectarColorTienda(item) {
-  let style = document.getElementById('chh-tienda-color');
-  if (!style) { style = document.createElement('style'); style.id = 'chh-tienda-color'; document.head.appendChild(style); }
-  const rainbowCss = item.rainbow ? `@keyframes rainbowShift{0%{--neon:#ff2244;--accent:#ff2244}17%{--neon:#ff7700;--accent:#ff7700}33%{--neon:#f5a623;--accent:#f5a623}50%{--neon:#00ff9d;--accent:#00ff9d}67%{--neon:#00cfff;--accent:#00cfff}83%{--neon:#cc55ff;--accent:#cc55ff}100%{--neon:#ff2244;--accent:#ff2244}}:root{animation:rainbowShift 4s linear infinite;}` : '';
-  const h=item.hex,d=item.d,dim=item.dim,glow=item.glow;
-  style.textContent = `:root{--neon:${h} !important;--neon-d:${d} !important;--neon-dim:${dim} !important;--nglow:${glow} !important;--accent:${h} !important;}${rainbowCss}
-    .tcg-label{color:${h} !important;text-shadow:${glow} !important;}.stitle{color:${h} !important;}.stitle::after{background:linear-gradient(90deg,${d},transparent) !important;}
-    .mod-name,.c-neon .mod-name,.c-blue .mod-name,.c-gold .mod-name,.c-red .mod-name,.c-purple .mod-name{color:${h} !important;text-shadow:${glow} !important;}
-    .mod-badge,.c-neon .mod-badge,.c-blue .mod-badge,.c-gold .mod-badge,.c-red .mod-badge,.c-purple .mod-badge{color:${h} !important;border:1px solid ${d} !important;background:${dim} !important;}
-    .mod-icon,.c-neon .mod-icon,.c-blue .mod-icon,.c-gold .mod-icon,.c-red .mod-icon,.c-purple .mod-icon{border-color:${d} !important;background:${dim} !important;}
-    .mod-card:hover{border-color:${h} !important;box-shadow:${glow},0 0 8px ${dim} inset !important;}
-    .calc-card{background:${dim} !important;border-color:${d} !important;box-shadow:${glow},inset 0 0 24px ${dim} !important;}.calc-card::before{background:linear-gradient(90deg,transparent,${h},transparent) !important;}
-    .calc-name{color:${h} !important;text-shadow:${glow} !important;}.calc-arrow{color:${h} !important;text-shadow:${glow} !important;}.calc-icon{border-color:${d} !important;background:${dim} !important;}
-    .nav-back{color:${h} !important;border-color:${d} !important;text-shadow:${glow} !important;}.nav-title{color:${h} !important;text-shadow:${glow} !important;}#chh-nav::after{background:linear-gradient(90deg,transparent,${h},transparent) !important;}
-    .settings-btn:active svg{fill:${h} !important;}.banner-dot.active{background:${h} !important;box-shadow:0 0 8px ${h} !important;}
-    .ranking-badge{background:${dim} !important;border-color:${d} !important;color:${h} !important;}
-    .btn,.item-btn.btn-unlock,.item-btn.btn-equip{background:linear-gradient(135deg,${h},${d}) !important;}.item-btn.btn-equipped{color:${h} !important;border-color:${d} !important;}
-    .filter-btn.active{background:linear-gradient(135deg,${h},${d}) !important;border-color:${h} !important;}
-    .accent,[style*="var(--accent)"]{color:${h} !important;}`;
+  if (window.CHH_TEMAS?.aplicar) return window.CHH_TEMAS.aplicar(item.id);
+  console.warn('[tienda] CHH_TEMAS no disponible — settings.js no cargado');
 }
 
 function aplicarItem(itemId, tab) {
   if (tab === 'temas') {
-    const item = CATALOGO.temas.find(i => i.id === itemId);
-    if (!item) return;
-    if (item.settings) {
-      try { const s = JSON.parse(localStorage.getItem('chh_settings') || '{}'); s.accentColor = item.settings; localStorage.setItem('chh_settings', JSON.stringify(s)); } catch(e){}
-      if (typeof applyAccentColor === 'function') applyAccentColor(item.settings);
-    }
-    inyectarColorTienda(item);
-    try { const s = JSON.parse(localStorage.getItem('chh_settings') || '{}'); s.temaId=itemId; s.temaHex=item.hex; s.temaD=item.d; s.temaDim=item.dim; s.temaGlow=item.glow; s.temaRainbow=item.rainbow||false; localStorage.setItem('chh_settings', JSON.stringify(s)); } catch(e){}
+    const jId = jugador?.id || null;
+    // Persiste equipado + aplica globalmente (todas las páginas via chh-tema-global)
+    if (window.CHH_TEMAS?.equipar) window.CHH_TEMAS.equipar(itemId, jId);
   } else if (tab === 'fondos') {
     const item = CATALOGO.fondos.find(i => i.id === itemId);
     if (!item) return;
@@ -1488,17 +1487,20 @@ function aplicarItem(itemId, tab) {
       localStorage.setItem(`nhAv_${jugador.id}`, itemId);
       const avEl = document.getElementById('jh-avatar');
       const item = CATALOGO.avatares.find(i => i.id === itemId);
-      if (avEl && item) { const img = document.createElement('img'); img.src = item.img; img.onerror = () => {}; avEl.innerHTML = ''; avEl.appendChild(img); }
+      if (avEl && item) { const img = document.createElement('img'); img.src = item.img; img.onerror = () => { avEl.textContent = item.emoji || '🦸'; }; avEl.innerHTML = ''; avEl.appendChild(img); }
     }
   }
 }
 
 function aplicarItemsGuardados() {
+  // Fondos: local a tienda (settings.js también los aplica pero por seguridad refresh)
   try {
     const s = JSON.parse(localStorage.getItem('chh_settings') || '{}');
     if (s.fondoImg) aplicarFondoImagen(s.fondoImg);
-    if (s.temaId) { const item = CATALOGO.temas.find(i => i.id === s.temaId); if (item) inyectarColorTienda(item); }
   } catch(e){}
+  // Tema: settings.js ya lo aplicó en su init. Si el jugador cambió (login),
+  // re-aplicamos con el equipado suyo.
+  if (window.CHH_TEMAS?.refresh) window.CHH_TEMAS.refresh();
 }
 
 // ════════════════════════════════════════════

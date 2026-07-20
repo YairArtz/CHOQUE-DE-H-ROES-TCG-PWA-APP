@@ -8,7 +8,11 @@ const DEFAULT_SETTINGS = {
   accentColor: 'green',
   tournamentsNotif: true,
   galleryView: '3col',
-  animations: true
+  animations: true,
+  // Tier 1 nuevos
+  textScale: 'normal',   // 'small' | 'normal' | 'large'
+  vibrate: true,         // vibración táctil global
+  landingPage: 'index'   // 'index' | 'calc' | 'perfil' | 'tienda' | 'last'
 };
 
 // ─── CATÁLOGO GLOBAL DE TEMAS ─────────────────
@@ -256,6 +260,105 @@ function applyFondo(fondoImg) {
   injectStyle('chh-tienda-fondo', `html,body{background-image:url('${fondoImg}')!important;background-size:cover!important;background-position:center!important;background-attachment:fixed!important;background-repeat:no-repeat!important;}body::before{display:none!important;}`);
 }
 
+// ─── TIER 1: ESCALA DE TEXTO ─────────────────
+function applyTextScale(size) {
+  const map = { small:'0.9', normal:'1', large:'1.12' };
+  const z = map[size] || '1';
+  // Zoom global (Chrome/Safari/Edge). Firefox mobile es <1% del user base.
+  document.documentElement.style.zoom = z;
+}
+
+// ─── TIER 1: VIBRACIÓN CONDICIONAL ───────────
+function vibrateIf(pattern) {
+  const s = loadSettings();
+  if (!s.vibrate) return;
+  if (navigator.vibrate) navigator.vibrate(pattern);
+}
+
+// ─── TIER 1: LANDING PAGE ────────────────────
+function redirectToLandingIfNeeded() {
+  if (sessionStorage.getItem('nhLandingRedirected')) return;
+  const s = loadSettings();
+  const landing = s.landingPage;
+  if (!landing || landing === 'index') return;
+  const path = (location.pathname.split('/').pop() || '').toLowerCase();
+  const isEntry = !path || path === 'index.html' || path === 'boot.html';
+  if (!isEntry) return;
+  sessionStorage.setItem('nhLandingRedirected', '1');
+  const map = { calc:'calculadora.html', perfil:'perfil.html', tienda:'tienda.html', noticias:'noticias.html', calendario:'calendario.html' };
+  if (landing === 'last') {
+    const last = localStorage.getItem('nhLastPage');
+    if (last && last !== path) location.replace(last);
+    return;
+  }
+  const target = map[landing];
+  if (target) location.replace(target);
+}
+
+// Registrar "última página visitada" (para landing='last')
+function trackLastPage() {
+  const path = (location.pathname.split('/').pop() || '').toLowerCase();
+  if (!path || path === 'index.html' || path === 'boot.html') return;
+  localStorage.setItem('nhLastPage', path);
+}
+
+// ─── TIER 1: EXPORTAR / IMPORTAR / STORAGE ───
+function exportarDatos() {
+  const data = { _meta: { app:'CHH-TCG', version:1, fecha:new Date().toISOString() }, ls: {} };
+  for (let i=0; i<localStorage.length; i++) {
+    const k = localStorage.key(i);
+    data.ls[k] = localStorage.getItem(k);
+  }
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `chh-tcg-respaldo-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  return true;
+}
+
+async function importarDatos(file) {
+  if (!file) throw new Error('Sin archivo');
+  const text = await file.text();
+  let data;
+  try { data = JSON.parse(text); } catch(e) { throw new Error('JSON inválido'); }
+  if (!data.ls || typeof data.ls !== 'object') throw new Error('Formato no reconocido (falta ls)');
+  if (data._meta?.app && data._meta.app !== 'CHH-TCG') throw new Error('Respaldo de otra app');
+  // Aplicar entrada por entrada
+  let count = 0;
+  Object.entries(data.ls).forEach(([k, v]) => {
+    if (typeof v === 'string') { localStorage.setItem(k, v); count++; }
+  });
+  return count;
+}
+
+async function getStorageEstimate() {
+  if (!navigator.storage?.estimate) return null;
+  try {
+    const est = await navigator.storage.estimate();
+    return {
+      usage: est.usage || 0,
+      quota: est.quota || 0,
+      pct: est.quota ? (est.usage / est.quota * 100) : 0
+    };
+  } catch(e) { return null; }
+}
+
+async function limpiarCacheSW() {
+  // Borra todos los caches del SW
+  if ('caches' in window) {
+    const keys = await caches.keys();
+    await Promise.all(keys.map(k => caches.delete(k)));
+  }
+  // Desregistra el SW para forzar nueva instalación en el próximo load
+  if ('serviceWorker' in navigator) {
+    const regs = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(regs.map(r => r.unregister()));
+  }
+}
+
 // ─── APLICAR TODOS LOS AJUSTES ───────────────
 
 function applyAllSettings() {
@@ -263,6 +366,7 @@ function applyAllSettings() {
   applyTheme(settings.theme);
   applyAnimations(settings.animations);
   applyGalleryView(settings.galleryView);
+  applyTextScale(settings.textScale);
   if (settings.fondoImg) applyFondo(settings.fondoImg);
 
   // TEMA: prioridad = tema equipado del jugador > settings.temaId > settings.accentColor > 'green'
@@ -289,9 +393,27 @@ window.CHH_TEMAS = {
   refreshPickerUI: null // lo puede setear la página que abre el modal
 };
 
+window.CHH_SETTINGS = {
+  load: loadSettings,
+  save: saveSettings,
+  applyAll: applyAllSettings,
+  applyTextScale,
+  vibrateIf,
+  exportar: exportarDatos,
+  importar: importarDatos,
+  storageEstimate: getStorageEstimate,
+  limpiarCache: limpiarCacheSW,
+  redirectToLanding: redirectToLandingIfNeeded,
+  trackLastPage
+};
+
 // ─── INIT ────────────────────────────────────
 
+// Landing redirect ANTES de aplicar estilos (evita flash de contenido)
+redirectToLandingIfNeeded();
+
 applyAllSettings();
+trackLastPage();
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', applyAllSettings);

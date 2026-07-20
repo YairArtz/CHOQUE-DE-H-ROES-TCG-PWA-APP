@@ -24,357 +24,276 @@
   --rglow:0 0 8px #ff2244,0 0 20px rgba(255,34,68,.4);
   --muted:#6a7f9a; --border:#141c2a;
 }
-html,body{
-  min-height:100%;background:var(--bg);color:#e0eeff;
-  font-family:'Orbitron',monospace;
-  -webkit-tap-highlight-color:transparent;
-  overflow-x:hidden;
-}
-body::after{
-  content:'';position:fixed;inset:0;
-  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.06) 3px,rgba(0,0,0,.06) 4px);
-  pointer-events:none;z-index:1000;
-}
-body::before{
-  content:'';position:fixed;inset:0;
-  background:
-    radial-gradient(ellipse 70% 40% at 15% 10%,rgba(0,255,157,.05) 0%,transparent 60%),
-    radial-gradient(ellipse 70% 40% at 85% 90%,rgba(0,207,255,.05) 0%,transparent 60%);
-  pointer-events:none;
-}
-#wrap{
-  max-width:480px;margin:0 auto;
-  display:flex;flex-direction:column;
-  min-height:100dvh;padding-bottom:28px;
-}
+html,body{min-height:100%;background:var(--bg);color:#e0eeff;font-family:'Orbitron',monospace;-webkit-tap-highlight-color:transparent;overflow-x:hidden;}
+body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.06) 3px,rgba(0,0,0,.06) 4px);pointer-events:none;z-index:1000;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 40% at 15% 10%,rgba(0,255,157,.05) 0%,transparent 60%),radial-gradient(ellipse 70% 40% at 85% 90%,rgba(0,207,255,.05) 0%,transparent 60%);pointer-events:none;}
+#wrap{max-width:480px;margin:0 auto;display:flex;flex-direction:column;min-height:100dvh;padding-bottom:28px;}
 
-/* ─── HEADER ─── */
-header{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:20px;position:relative;
-  border-bottom:1px solid var(--border);
-}
-header::after{
-  content:'';position:absolute;bottom:0;left:8%;right:8%;height:1px;
-  background:linear-gradient(90deg,transparent,var(--neon-d),transparent);
-}
-.back-btn{
-  background:linear-gradient(135deg,var(--bg3),var(--bg2));
-  border:1px solid var(--border);color:var(--neon);
-  font-size:20px;width:44px;height:44px;border-radius:10px;
-  display:flex;align-items:center;justify-content:center;
-  cursor:pointer;text-decoration:none;transition:all .3s;
-  box-shadow:0 2px 8px rgba(0,0,0,.4);
-}
-.back-btn:active{
-  transform:scale(.92);
-  box-shadow:var(--nglow),0 2px 8px rgba(0,0,0,.4);
-}
-.header-title{
-  font-family:'Orbitron',monospace;
-  font-size:16px;font-weight:900;letter-spacing:3px;
-  text-transform:uppercase;color:var(--neon);
-  text-shadow:var(--nglow);
-}
+/* ── HEADER ── */
+header{display:flex;align-items:center;justify-content:space-between;padding:20px;position:relative;border-bottom:1px solid var(--border);}
+header::after{content:'';position:absolute;bottom:0;left:8%;right:8%;height:1px;background:linear-gradient(90deg,transparent,var(--neon-d),transparent);}
+.back-btn{background:linear-gradient(135deg,var(--bg3),var(--bg2));border:1px solid var(--border);color:var(--neon);font-size:20px;width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none;transition:all .3s;box-shadow:0 2px 8px rgba(0,0,0,.4);}
+.back-btn:active{transform:scale(.92);box-shadow:var(--nglow),0 2px 8px rgba(0,0,0,.4);}
+.header-title{font-family:'Orbitron',monospace;font-size:16px;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:var(--neon);text-shadow:var(--nglow);}
 
-/* ─── SECCIONES ─── */
-.settings-section{
-  padding:0 16px;margin-top:24px;
-}
-.section-title{
-  font-size:10px;font-weight:700;letter-spacing:3px;
-  text-transform:uppercase;color:var(--muted);
-  margin-bottom:12px;padding-left:4px;
-  display:flex;align-items:center;gap:6px;
-}
-.section-title::before{
-  content:'';width:3px;height:12px;
-  background:linear-gradient(180deg,var(--neon),transparent);
-}
+/* ── SECCIONES ── */
+.settings-section{padding:0 16px;margin-top:24px;}
+.section-title{font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;padding-left:4px;display:flex;align-items:center;gap:6px;}
+.section-title::before{content:'';width:3px;height:12px;background:linear-gradient(180deg,var(--neon),transparent);}
 
-/* ─── SETTING ITEM ─── */
-.setting-item{
-  background:linear-gradient(135deg,var(--bg2),var(--bg3));
-  border:1px solid var(--border);border-radius:12px;
-  padding:16px;margin-bottom:12px;
-  position:relative;overflow:hidden;
-  transition:all .3s;
-}
-.setting-item::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,transparent,var(--neon-dim),transparent);
-}
-.setting-label{
-  font-size:13px;font-weight:700;color:#e0eeff;
-  margin-bottom:4px;display:flex;align-items:center;gap:8px;
-}
-.setting-label::before{
-  font-size:16px;
-}
-.setting-desc{
-  font-size:10px;color:var(--muted);
-  margin-bottom:12px;line-height:1.4;
-}
+/* ── SETTING ITEM ── */
+.setting-item{background:linear-gradient(135deg,var(--bg2),var(--bg3));border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;position:relative;overflow:hidden;transition:all .3s;}
+.setting-item::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--neon-dim),transparent);}
+.setting-label{font-size:13px;font-weight:700;color:#e0eeff;margin-bottom:4px;display:flex;align-items:center;gap:8px;}
+.setting-desc{font-size:10px;color:var(--muted);margin-bottom:12px;line-height:1.4;}
 
-/* ─── TOGGLE SWITCH ─── */
-.toggle-container{
-  display:flex;align-items:center;justify-content:space-between;
-}
-.toggle-switch{
-  position:relative;width:52px;height:28px;
-  background:var(--bg);border:1px solid var(--border);
-  border-radius:14px;cursor:pointer;transition:all .3s;
-}
-.toggle-switch::after{
-  content:'';position:absolute;top:3px;left:3px;
-  width:20px;height:20px;border-radius:50%;
-  background:var(--muted);transition:all .3s;
-  box-shadow:0 2px 6px rgba(0,0,0,.4);
-}
-.toggle-switch.active{
-  background:var(--neon-d);border-color:var(--neon);
-}
-.toggle-switch.active::after{
-  left:27px;background:var(--neon);
-  box-shadow:0 0 12px rgba(0,255,157,.6);
-}
+/* ── TOGGLE SWITCH ── */
+.toggle-container{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.toggle-container>div:first-child{flex:1;min-width:0;}
+.toggle-container .setting-desc{margin-bottom:0;}
+.toggle-switch{position:relative;width:52px;height:28px;background:var(--bg);border:1px solid var(--border);border-radius:14px;cursor:pointer;transition:all .3s;flex-shrink:0;}
+.toggle-switch::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--muted);transition:all .3s;box-shadow:0 2px 6px rgba(0,0,0,.4);}
+.toggle-switch.active{background:var(--neon-d);border-color:var(--neon);}
+.toggle-switch.active::after{left:27px;background:var(--neon);box-shadow:0 0 12px rgba(0,255,157,.6);}
 
-/* ─── SELECTOR DE OPCIONES ─── */
-.option-selector{
-  display:flex;gap:8px;flex-wrap:wrap;
-}
-.option-btn{
-  flex:1;min-width:70px;
-  background:var(--bg);border:1px solid var(--border);
-  color:var(--muted);border-radius:8px;padding:10px 8px;
-  font-size:10px;font-weight:700;letter-spacing:1px;
-  text-transform:uppercase;cursor:pointer;
-  transition:all .3s;font-family:'Orbitron',monospace;
-}
-.option-btn:active{
-  transform:scale(.95);
-}
-.option-btn.active{
-  background:linear-gradient(135deg,var(--neon-d),var(--neon));
-  color:var(--bg);border-color:var(--neon);
-  box-shadow:var(--nglow);
-}
+/* ── SELECTOR DE OPCIONES ── */
+.option-selector{display:flex;gap:8px;flex-wrap:wrap;}
+.option-btn{flex:1;min-width:70px;background:var(--bg);border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:10px 8px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all .3s;font-family:'Orbitron',monospace;}
+.option-btn:active{transform:scale(.95);}
+.option-btn.active{background:linear-gradient(135deg,var(--neon-d),var(--neon));color:var(--bg);border-color:var(--neon);box-shadow:var(--nglow);}
 
-/* Variantes de color */
-.option-btn.color-green.active{
-  background:linear-gradient(135deg,var(--neon-d),var(--neon));
-}
-.option-btn.color-gold.active{
-  background:linear-gradient(135deg,var(--gold-d),var(--gold));
-}
-.option-btn.color-blue.active{
-  background:linear-gradient(135deg,var(--blue-d),var(--blue));
-}
-.option-btn.color-purple.active{
-  background:linear-gradient(135deg,var(--purple-d),var(--purple));
-}
+/* ── SELECT ── */
+.chh-select{width:100%;background:var(--bg);border:1px solid var(--border);color:#e0eeff;border-radius:8px;padding:12px;font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:1px;cursor:pointer;}
+.chh-select:focus{outline:none;border-color:var(--neon);box-shadow:var(--nglow);}
 
-/* ─── BOTONES DE ACCIÓN ─── */
-.action-btn{
-  width:100%;
-  background:linear-gradient(135deg,var(--bg2),var(--bg3));
-  border:1px solid var(--border);color:#e0eeff;
-  border-radius:10px;padding:14px;
-  font-family:'Orbitron',monospace;
-  font-size:11px;font-weight:700;letter-spacing:2px;
-  text-transform:uppercase;cursor:pointer;
-  transition:all .3s;margin-top:8px;
-  display:flex;align-items:center;justify-content:center;gap:8px;
-}
-.action-btn:active{
-  transform:scale(.97);
-}
-.action-btn.danger{
-  border-color:var(--red-d);color:var(--red);
-}
-.action-btn.danger:active{
-  background:var(--red-dim);
-  box-shadow:0 0 16px rgba(255,34,68,.3);
-}
+/* ── BOTONES DE ACCIÓN ── */
+.action-btn{width:100%;background:linear-gradient(135deg,var(--bg2),var(--bg3));border:1px solid var(--border);color:#e0eeff;border-radius:10px;padding:14px;font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .3s;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px;}
+.action-btn:active{transform:scale(.97);}
+.action-btn.danger{border-color:var(--red-d);color:var(--red);}
+.action-btn.danger:active{background:var(--red-dim);box-shadow:0 0 16px rgba(255,34,68,.3);}
+.action-btn.accent{border-color:var(--neon-d);color:var(--neon);}
+.action-btn.accent:active{background:var(--neon-dim);box-shadow:var(--nglow);}
 
-/* ─── INFO CARD ─── */
-.info-card{
-  background:linear-gradient(135deg,var(--bg2),var(--bg3));
-  border:1px solid var(--border);border-radius:12px;
-  padding:20px;margin-top:12px;text-align:center;
-}
-.info-card .app-logo{
-  width:70%;max-width:240px;margin:0 auto 16px;
-  filter:drop-shadow(0 0 18px rgba(0,207,255,.55)) drop-shadow(0 0 40px rgba(0,180,255,.30));
-}
-.info-card .app-name{
-  font-size:14px;font-weight:900;color:#e0eeff;
-  margin-bottom:4px;letter-spacing:2px;
-}
-.info-card .app-version{
-  font-size:11px;color:var(--neon);
-  font-weight:700;margin-bottom:8px;
-}
-.info-card .app-desc{
-  font-size:9px;color:var(--muted);
-  line-height:1.5;
-}
+/* ── TEMA PICKER GRID ── */
+#tema-picker-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px;margin-top:8px;}
+.tema-picker-item.active{box-shadow:var(--nglow);}
+/* Preview animations (espejo de tienda.html) */
+@keyframes prevRainbowDot{0%{background:#ff2244;box-shadow:0 0 12px #ff2244}17%{background:#ff7700;box-shadow:0 0 12px #ff7700}33%{background:#f5a623;box-shadow:0 0 12px #f5a623}50%{background:#00ff9d;box-shadow:0 0 12px #00ff9d}67%{background:#00cfff;box-shadow:0 0 12px #00cfff}83%{background:#cc55ff;box-shadow:0 0 12px #cc55ff}100%{background:#ff2244;box-shadow:0 0 12px #ff2244}}
+@keyframes prevRainbowTxt{0%{color:#ff2244;text-shadow:0 0 6px #ff2244}17%{color:#ff7700;text-shadow:0 0 6px #ff7700}33%{color:#f5a623;text-shadow:0 0 6px #f5a623}50%{color:#00ff9d;text-shadow:0 0 6px #00ff9d}67%{color:#00cfff;text-shadow:0 0 6px #00cfff}83%{color:#cc55ff;text-shadow:0 0 6px #cc55ff}100%{color:#ff2244;text-shadow:0 0 6px #ff2244}}
+.tema-prev-rainbow .tema-dot{animation:prevRainbowDot 6s linear infinite}
+.tema-prev-rainbow .tema-txt{animation:prevRainbowTxt 6s linear infinite}
+@keyframes prevPulseDot{0%,100%{background:#ff2ecc;box-shadow:0 0 6px #ff2ecc}50%{background:#ff9fe5;box-shadow:0 0 20px #ff2ecc,0 0 30px rgba(255,46,204,.6)}}
+@keyframes prevPulseTxt{0%,100%{color:#ff2ecc;text-shadow:0 0 4px #ff2ecc}50%{color:#ff9fe5;text-shadow:0 0 12px #ff2ecc,0 0 20px rgba(255,46,204,.7)}}
+.tema-prev-neon_pulse .tema-dot{animation:prevPulseDot 1.8s ease-in-out infinite}
+.tema-prev-neon_pulse .tema-txt{animation:prevPulseTxt 1.8s ease-in-out infinite}
+@keyframes prevAuroraDot{0%{background:#4facfe;box-shadow:0 0 10px #4facfe}33%{background:#43e97b;box-shadow:0 0 10px #43e97b}66%{background:#b455ff;box-shadow:0 0 10px #b455ff}100%{background:#4facfe;box-shadow:0 0 10px #4facfe}}
+@keyframes prevAuroraTxt{0%{color:#4facfe;text-shadow:0 0 6px #4facfe}33%{color:#43e97b;text-shadow:0 0 6px #43e97b}66%{color:#b455ff;text-shadow:0 0 6px #b455ff}100%{color:#4facfe;text-shadow:0 0 6px #4facfe}}
+.tema-prev-aurora .tema-dot{animation:prevAuroraDot 8s ease-in-out infinite}
+.tema-prev-aurora .tema-txt{animation:prevAuroraTxt 8s ease-in-out infinite}
+@keyframes prevGlitchDot{0%,100%{background:#00fff0;box-shadow:0 0 10px #00fff0}50%{background:#ff00cc;box-shadow:0 0 10px #ff00cc}}
+@keyframes prevGlitchTxt{0%,100%{color:#00fff0;text-shadow:2px 0 #ff00cc,-2px 0 #00cfff;transform:translate(0)}20%{color:#ff00cc;transform:translate(-1px,1px)}40%{color:#00fff0;transform:translate(1px,-1px)}60%{color:#ff00cc;transform:translate(-1px,0)}80%{color:#00fff0;transform:translate(0,1px)}}
+.tema-prev-cyber_glitch .tema-dot{animation:prevGlitchDot .8s steps(2,end) infinite}
+.tema-prev-cyber_glitch .tema-txt{animation:prevGlitchTxt .5s steps(5,end) infinite;display:inline-block}
+@keyframes prevFireDot{0%,100%{background:#ff4400;box-shadow:0 0 10px #ff4400}25%{background:#ff8800;box-shadow:0 0 12px #ff8800}50%{background:#ffcc00;box-shadow:0 0 14px #ffcc00}75%{background:#ff8800;box-shadow:0 0 10px #ff8800}}
+@keyframes prevFireTxt{0%,100%{color:#ff4400;text-shadow:0 0 6px #ff4400}25%{color:#ff8800}50%{color:#ffcc00;text-shadow:0 0 10px #ffcc00}75%{color:#ff8800}}
+.tema-prev-fire .tema-dot{animation:prevFireDot 1.2s ease-in-out infinite}
+.tema-prev-fire .tema-txt{animation:prevFireTxt 1.2s ease-in-out infinite}
 
-/* ─── SOCIAL LINKS ─── */
-.social-links{
-  display:flex;gap:10px;margin-top:12px;
-}
-.social-btn{
-  flex:1;background:linear-gradient(135deg,var(--bg2),var(--bg3));
-  border:1px solid var(--border);color:var(--neon);
-  border-radius:10px;padding:14px;
-  font-size:20px;cursor:pointer;
-  text-decoration:none;display:flex;
-  align-items:center;justify-content:center;
-  transition:all .3s;
-}
-.social-btn:active{
-  transform:scale(.95);
-  box-shadow:0 0 16px rgba(0,255,157,.3);
-}
+/* ── STORAGE BAR ── */
+.storage-bar{width:100%;height:6px;background:var(--bg);border:1px solid var(--border);border-radius:3px;overflow:hidden;margin-top:6px;}
+.storage-bar-fill{height:100%;background:linear-gradient(90deg,var(--neon),var(--gold));transition:width .5s;}
+.storage-info{font-size:10px;color:var(--muted);margin-top:6px;display:flex;justify-content:space-between;}
 
-/* ─── FOOTER ─── */
-footer{
-  margin-top:auto;padding:24px 16px 16px;
-  text-align:center;color:var(--muted);
-  font-size:9px;letter-spacing:1px;
-}
-.footer-brand{
-  font-weight:700;margin-bottom:4px;
-}
+/* ── INFO CARD ── */
+.info-card{background:linear-gradient(135deg,var(--bg2),var(--bg3));border:1px solid var(--border);border-radius:12px;padding:20px;margin-top:12px;text-align:center;}
+.info-card .app-logo{width:70%;max-width:240px;margin:0 auto 16px;filter:drop-shadow(0 0 18px rgba(0,207,255,.55)) drop-shadow(0 0 40px rgba(0,180,255,.30));}
+.info-card .app-name{font-size:14px;font-weight:900;color:#e0eeff;margin-bottom:4px;letter-spacing:2px;}
+.info-card .app-version{font-size:11px;color:var(--neon);font-weight:700;margin-bottom:8px;}
+.info-card .app-desc{font-size:9px;color:var(--muted);line-height:1.5;}
+
+/* ── SOCIAL ── */
+.social-links{display:flex;gap:10px;margin-top:12px;}
+.social-btn{flex:1;background:linear-gradient(135deg,var(--bg2),var(--bg3));border:1px solid var(--border);color:var(--neon);border-radius:10px;padding:14px;font-size:20px;cursor:pointer;text-decoration:none;display:flex;align-items:center;justify-content:center;transition:all .3s;}
+.social-btn:active{transform:scale(.95);box-shadow:0 0 16px rgba(0,255,157,.3);}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg3);border:1px solid var(--neon);color:var(--neon);padding:12px 20px;border-radius:10px;font-size:12px;font-weight:700;letter-spacing:1px;box-shadow:var(--nglow);transition:transform .3s;z-index:2000;pointer-events:none;max-width:90%;text-align:center;}
+#toast.show{transform:translateX(-50%) translateY(0);}
+#toast.error{border-color:var(--red);color:var(--red);box-shadow:var(--rglow);}
+
+/* ── FOOTER ── */
+footer{margin-top:auto;padding:24px 16px 16px;text-align:center;color:var(--muted);font-size:9px;letter-spacing:1px;}
+.footer-brand{font-weight:700;margin-bottom:4px;}
 </style>
 </head>
 <body>
 <div id="wrap">
 
-  <!-- HEADER -->
   <header>
     <a href="index.html" class="back-btn">←</a>
     <div class="header-title">⚙️ AJUSTES</div>
     <div style="width:44px"></div>
   </header>
 
-  <!-- SECCIÓN: APARIENCIA -->
+  <!-- APARIENCIA -->
   <div class="settings-section">
     <div class="section-title">🎨 Apariencia</div>
 
-    <!-- Tema -->
     <div class="setting-item">
       <div class="setting-label">💡 Tema visual</div>
-      <div class="setting-desc">Cambia entre modo oscuro, claro o automático</div>
-      <div class="option-selector">
-        <button class="option-btn active" onclick="setTheme('dark')">Oscuro</button>
-        <button class="option-btn" onclick="setTheme('light')">Claro</button>
-        <button class="option-btn" onclick="setTheme('auto')">Auto</button>
+      <div class="setting-desc">Cambia entre modo oscuro o claro</div>
+      <div class="option-selector" id="theme-selector">
+        <button class="option-btn" data-val="dark"  onclick="setTheme('dark')">Oscuro</button>
+        <button class="option-btn" data-val="light" onclick="setTheme('light')">Claro</button>
       </div>
     </div>
 
-    <!-- Color de acento -->
     <div class="setting-item">
-      <div class="setting-label">🌈 Color de acento</div>
-      <div class="setting-desc">Personaliza el color principal de la interfaz</div>
-      <div class="option-selector">
-        <button class="option-btn color-green active" onclick="setAccent('green')">Verde</button>
-        <button class="option-btn color-gold" onclick="setAccent('gold')">Dorado</button>
-        <button class="option-btn color-blue" onclick="setAccent('blue')">Azul</button>
-        <button class="option-btn color-purple" onclick="setAccent('purple')">Morado</button>
-      </div>
+      <div class="setting-label">🌈 Tema de color</div>
+      <div class="setting-desc">Solo puedes usar los temas que has desbloqueado en la tienda. Los bloqueados aparecen atenuados.</div>
+      <div id="tema-picker-grid"></div>
+      <button class="action-btn accent" onclick="location.href='tienda.html'" style="margin-top:12px;">
+        🛒 Ir a la tienda
+      </button>
     </div>
 
+    <div class="setting-item">
+      <div class="setting-label">🔤 Tamaño de texto</div>
+      <div class="setting-desc">Ajusta el tamaño global de la interfaz</div>
+      <div class="option-selector" id="textscale-selector">
+        <button class="option-btn" data-val="small"  onclick="setTextScale('small')">Pequeño</button>
+        <button class="option-btn" data-val="normal" onclick="setTextScale('normal')">Normal</button>
+        <button class="option-btn" data-val="large"  onclick="setTextScale('large')">Grande</button>
+      </div>
+    </div>
   </div>
 
-  <!-- SECCIÓN: NOTIFICACIONES -->
+  <!-- PREFERENCIAS -->
+  <div class="settings-section">
+    <div class="section-title">🚀 Preferencias</div>
+
+    <div class="setting-item">
+      <div class="setting-label">🏠 Página de inicio</div>
+      <div class="setting-desc">Cuál pantalla abrir al iniciar la app</div>
+      <select class="chh-select" id="landing-select" onchange="setLanding(this.value)">
+        <option value="index">Inicio (Nexo de Héroes)</option>
+        <option value="calc">Calculadora de vida</option>
+        <option value="perfil">Mi perfil</option>
+        <option value="tienda">Tienda</option>
+        <option value="calendario">Calendario de torneos</option>
+        <option value="noticias">Noticias</option>
+        <option value="last">Última página visitada</option>
+      </select>
+    </div>
+
+    <div class="setting-item">
+      <div class="toggle-container">
+        <div>
+          <div class="setting-label">📳 Vibración táctil</div>
+          <div class="setting-desc">Feedback vibratorio en botones y escaneos</div>
+        </div>
+        <div class="toggle-switch" id="toggle-vibrate" onclick="toggleVibrate(this)"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTIFICACIONES -->
   <div class="settings-section">
     <div class="section-title">🔔 Notificaciones</div>
-
     <div class="setting-item">
       <div class="toggle-container">
         <div>
           <div class="setting-label">📢 Avisos de torneos</div>
           <div class="setting-desc">Recibe notificaciones de nuevos torneos</div>
         </div>
-        <div class="toggle-switch active" onclick="toggleSetting(this, 'tournaments')"></div>
+        <div class="toggle-switch" id="toggle-tournaments" onclick="toggleTournaments(this)"></div>
       </div>
     </div>
-
   </div>
 
-  <!-- SECCIÓN: GALERÍA -->
+  <!-- GALERÍA -->
   <div class="settings-section">
     <div class="section-title">🃏 Galería de cartas</div>
-
-    <!-- Vista de galería -->
     <div class="setting-item">
       <div class="setting-label">📱 Vista del grid</div>
       <div class="setting-desc">Columnas mostradas en la galería</div>
-      <div class="option-selector">
-        <button class="option-btn" onclick="setGallery('2col')">2 Col</button>
-        <button class="option-btn active" onclick="setGallery('3col')">3 Col</button>
-        <button class="option-btn" onclick="setGallery('4col')">4 Col</button>
+      <div class="option-selector" id="gallery-selector">
+        <button class="option-btn" data-val="2col" onclick="setGallery('2col')">2 Col</button>
+        <button class="option-btn" data-val="3col" onclick="setGallery('3col')">3 Col</button>
+        <button class="option-btn" data-val="4col" onclick="setGallery('4col')">4 Col</button>
       </div>
     </div>
-
-    <!-- Animaciones -->
     <div class="setting-item">
       <div class="toggle-container">
         <div>
           <div class="setting-label">✨ Animaciones</div>
           <div class="setting-desc">Transiciones suaves en la interfaz</div>
         </div>
-        <div class="toggle-switch active" onclick="toggleSetting(this, 'animations')"></div>
+        <div class="toggle-switch" id="toggle-anims" onclick="toggleAnims(this)"></div>
       </div>
     </div>
-
   </div>
 
-  <!-- SECCIÓN: DATOS -->
+  <!-- DATOS -->
   <div class="settings-section">
     <div class="section-title">💾 Datos y almacenamiento</div>
 
     <div class="setting-item">
-      <div class="setting-label">🗑️ Borrar caché</div>
-      <div class="setting-desc">Libera espacio eliminando datos temporales</div>
-      <button class="action-btn danger" onclick="clearCache()">
-        🗑️ Limpiar caché
+      <div class="setting-label">📤 Exportar mi progreso</div>
+      <div class="setting-desc">Descarga un respaldo (.json) con todos tus datos: desbloqueos, badges, Hero Pesos, tema, avatar. Útil antes de cambiar de dispositivo.</div>
+      <button class="action-btn accent" onclick="hacerExport()">
+        📤 Descargar respaldo
       </button>
     </div>
 
-  </div>
+    <div class="setting-item">
+      <div class="setting-label">📥 Importar respaldo</div>
+      <div class="setting-desc">Restaura un respaldo previo. Reemplaza todos tus datos actuales.</div>
+      <input type="file" id="import-file" accept="application/json,.json" style="display:none;" onchange="hacerImport(this)">
+      <button class="action-btn" onclick="document.getElementById('import-file').click()">
+        📥 Seleccionar archivo
+      </button>
+    </div>
 
-  <!-- SECCIÓN: INFORMACIÓN -->
-  <div class="settings-section">
-    <div class="section-title">ℹ️ Información de la app</div>
-
-    <div class="info-card">
-      <img src="icon-192.png" alt="Choque de Héroes" class="app-logo">
-      <div class="app-name">CHOQUE DE HÉROES TCG</div>
-      <div class="app-version">Versión 1.2.0</div>
-      <div class="app-desc">
-        Ecosistema completo para jugadores<br>
-        Desarrollado por Yair Artz · Codex Cómics
+    <div class="setting-item">
+      <div class="setting-label">📊 Uso de almacenamiento</div>
+      <div class="setting-desc" id="storage-desc">Calculando…</div>
+      <div class="storage-bar"><div class="storage-bar-fill" id="storage-fill" style="width:0%;"></div></div>
+      <div class="storage-info">
+        <span id="storage-used">— MB</span>
+        <span id="storage-total">— MB</span>
       </div>
     </div>
 
-    <!-- Redes sociales -->
+    <div class="setting-item">
+      <div class="setting-label">🗑️ Limpiar caché</div>
+      <div class="setting-desc">Fuerza la descarga de la última versión de la app. Tus datos y desbloqueos se conservan.</div>
+      <button class="action-btn danger" onclick="hacerLimpiarCache()">
+        🗑️ Limpiar y recargar
+      </button>
+    </div>
+  </div>
+
+  <!-- INFO -->
+  <div class="settings-section">
+    <div class="section-title">ℹ️ Información de la app</div>
+    <div class="info-card">
+      <img src="icon-192.png" alt="Choque de Héroes" class="app-logo">
+      <div class="app-name">CHOQUE DE HÉROES TCG</div>
+      <div class="app-version">Versión 1.3.0</div>
+      <div class="app-desc">Ecosistema completo para jugadores<br>Desarrollado por Yair Artz · Codex Cómics</div>
+    </div>
     <div class="social-links">
       <a href="https://www.facebook.com/choquedheroes" target="_blank" class="social-btn">📘</a>
       <a href="https://www.instagram.com/choquedeheroestcg/" target="_blank" class="social-btn">📷</a>
       <a href="https://www.youtube.com/@choquedeheroestcg9035" target="_blank" class="social-btn">📺</a>
     </div>
-
-    <!-- Botón restaurar valores -->
     <button class="action-btn" onclick="resetSettings()" style="margin-top:16px">
       🔄 Restaurar valores por defecto
     </button>
-
   </div>
 
-  <!-- SECCIÓN: INTRO -->
+  <!-- INTRO -->
   <div class="settings-section">
     <div class="section-title">🎬 Introducción</div>
     <div class="setting-item">
@@ -386,7 +305,6 @@ footer{
     </div>
   </div>
 
-  <!-- FOOTER -->
   <footer>
     <div class="footer-brand">Codex Cómics · Choque de Héroes TCG</div>
     <div>© 2016–2026 · Todos los derechos reservados</div>
@@ -394,147 +312,151 @@ footer{
 
 </div>
 
-<!-- Sistema de ajustes compartido -->
-<script src="settings.js"></script>
+<div id="toast"></div>
 
+<script src="settings.js"></script>
 <script>
 // ═══════════════════════════════════════════
-// INTERFAZ DE AJUSTES
+// AJUSTES · V3
+// Delega toda la lógica en settings.js (CHH_TEMAS + CHH_SETTINGS).
 // ═══════════════════════════════════════════
 
-// ═══════════════════════════════════════════
-// INTERFAZ DE AJUSTES
-// ═══════════════════════════════════════════
-
-// Aplicar configuración guardada a la UI
-function applySettingsToUI() {
-  const settings = loadSettings();
-  
-  // Aplicar tema
-  document.querySelectorAll('.option-selector')[0].querySelectorAll('.option-btn').forEach(btn => {
-    const btnTheme = btn.textContent.toLowerCase();
-    btn.classList.toggle('active', btnTheme === settings.theme);
-  });
-  
-  // Aplicar color de acento
-  const colorMap = { green: 0, gold: 1, blue: 2, purple: 3 };
-  const colorBtns = document.querySelectorAll('.option-selector')[1].children;
-  Array.from(colorBtns).forEach((btn, i) => {
-    btn.classList.toggle('active', i === colorMap[settings.accentColor]);
-  });
-  
-  // Aplicar vista de galería
-  const galleryMap = { '2col': 0, '3col': 1, '4col': 2 };
-  const galleryBtns = document.querySelectorAll('.option-selector')[2].children;
-  Array.from(galleryBtns).forEach((btn, i) => {
-    btn.classList.toggle('active', i === galleryMap[settings.galleryView]);
-  });
-  
-  // Aplicar toggles
-  document.querySelectorAll('.toggle-switch')[0].classList.toggle('active', settings.tournamentsNotif);
-  document.querySelectorAll('.toggle-switch')[1].classList.toggle('active', settings.animations);
+function toast(msg, isErr = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show' + (isErr ? ' error' : '');
+  setTimeout(() => t.className = '', 2400);
+  CHH_SETTINGS.vibrateIf(isErr ? [80,40,80] : [50]);
 }
 
-// ═══════════════════════════════════════════
-// FUNCIONES DE CONFIGURACIÓN
-// ═══════════════════════════════════════════
+// ── UI ──
+function refrescarUI() {
+  const s = CHH_SETTINGS.load();
+  document.querySelectorAll('#theme-selector .option-btn').forEach(b => b.classList.toggle('active', b.dataset.val === s.theme));
+  document.querySelectorAll('#textscale-selector .option-btn').forEach(b => b.classList.toggle('active', b.dataset.val === (s.textScale || 'normal')));
+  document.querySelectorAll('#gallery-selector .option-btn').forEach(b => b.classList.toggle('active', b.dataset.val === s.galleryView));
+  document.getElementById('landing-select').value = s.landingPage || 'index';
+  document.getElementById('toggle-vibrate').classList.toggle('active', s.vibrate !== false);
+  document.getElementById('toggle-tournaments').classList.toggle('active', !!s.tournamentsNotif);
+  document.getElementById('toggle-anims').classList.toggle('active', !!s.animations);
+  refrescarPicker();
+}
 
+function refrescarPicker() {
+  const s = CHH_SETTINGS.load();
+  const jId = CHH_TEMAS.getSesionId();
+  const cur = s.temaId || s.accentColor || 'green';
+  document.getElementById('tema-picker-grid').innerHTML = CHH_TEMAS.renderPickerHTML(jId, cur);
+}
+CHH_TEMAS.refreshPickerUI = refrescarPicker;
+
+// ── SETTERS ──
 function setTheme(theme) {
-  const settings = loadSettings();
-  settings.theme = theme;
-  saveSettings(settings);
-  
-  // Actualizar UI
-  event.target.parentElement.querySelectorAll('.option-btn').forEach(btn => {
-    btn.classList.remove('active');
-  });
-  event.target.classList.add('active');
-  
-  // ✨ APLICAR CAMBIO EN TIEMPO REAL
+  const s = CHH_SETTINGS.load(); s.theme = theme; CHH_SETTINGS.save(s);
   applyTheme(theme);
-  console.log('🎨 Tema cambiado a:', theme);
+  refrescarUI();
+  toast('Tema aplicado');
 }
-
-function setAccent(color) {
-  const settings = loadSettings();
-  settings.accentColor = color;
-  saveSettings(settings);
-  
-  // Actualizar UI
-  event.target.parentElement.querySelectorAll('.option-btn').forEach(btn => {
-    btn.classList.remove('active');
-  });
-  event.target.classList.add('active');
-  
-  // ✨ APLICAR CAMBIO EN TIEMPO REAL
-  applyAccentColor(color);
-  console.log('🌈 Color de acento:', color);
+function setTextScale(size) {
+  const s = CHH_SETTINGS.load(); s.textScale = size; CHH_SETTINGS.save(s);
+  CHH_SETTINGS.applyTextScale(size);
+  refrescarUI();
+  toast('Tamaño aplicado');
 }
-
+function setLanding(val) {
+  const s = CHH_SETTINGS.load(); s.landingPage = val; CHH_SETTINGS.save(s);
+  toast('Página de inicio actualizada');
+}
 function setGallery(view) {
-  const settings = loadSettings();
-  settings.galleryView = view;
-  saveSettings(settings);
-  
-  // Actualizar UI
-  event.target.parentElement.querySelectorAll('.option-btn').forEach(btn => {
-    btn.classList.remove('active');
-  });
-  event.target.classList.add('active');
-  
-  console.log('📱 Vista de galería:', view);
+  const s = CHH_SETTINGS.load(); s.galleryView = view; CHH_SETTINGS.save(s);
+  refrescarUI();
+}
+function toggleVibrate(el) {
+  const active = el.classList.toggle('active');
+  const s = CHH_SETTINGS.load(); s.vibrate = active; CHH_SETTINGS.save(s);
+  if (active && navigator.vibrate) navigator.vibrate([60]);
+}
+function toggleTournaments(el) {
+  const active = el.classList.toggle('active');
+  const s = CHH_SETTINGS.load(); s.tournamentsNotif = active; CHH_SETTINGS.save(s);
+}
+function toggleAnims(el) {
+  const active = el.classList.toggle('active');
+  const s = CHH_SETTINGS.load(); s.animations = active; CHH_SETTINGS.save(s);
+  applyAnimations(active);
 }
 
-function toggleSetting(element, setting) {
-  const isActive = element.classList.toggle('active');
-  const settings = loadSettings();
-  
-  if (setting === 'tournaments') {
-    settings.tournamentsNotif = isActive;
-  } else if (setting === 'animations') {
-    settings.animations = isActive;
-    // ✨ APLICAR CAMBIO EN TIEMPO REAL
-    applyAnimations(isActive);
+// ── DATOS ──
+function hacerExport() {
+  try { CHH_SETTINGS.exportar(); toast('Respaldo descargado'); }
+  catch(e) { console.error(e); toast('Error al exportar', true); }
+}
+
+async function hacerImport(input) {
+  const file = input.files?.[0];
+  input.value = '';
+  if (!file) return;
+  if (!confirm('¿Restaurar este respaldo?\n\nSe REEMPLAZARÁN todos tus datos actuales (desbloqueos, badges, HP, tema).\n\nSe recargará la app al finalizar.')) return;
+  try {
+    const n = await CHH_SETTINGS.importar(file);
+    toast(`${n} entradas importadas — recargando`);
+    setTimeout(() => location.reload(), 900);
+  } catch(e) {
+    console.error(e);
+    toast('Error: ' + e.message, true);
   }
-  
-  saveSettings(settings);
-  console.log(`🔔 ${setting} → ${isActive ? 'ON' : 'OFF'}`);
 }
 
-function clearCache() {
-  if (confirm('¿Seguro que quieres borrar el caché?\n\nEsto eliminará imágenes y datos temporales.')) {
-    // Limpiar caché del service worker
-    if ('caches' in window) {
-      caches.keys().then(names => {
-        names.forEach(name => caches.delete(name));
-      });
-    }
-    
-    alert('✅ Caché eliminado correctamente');
-    console.log('🗑️ Caché borrado');
+async function refrescarStorage() {
+  const est = await CHH_SETTINGS.storageEstimate();
+  const desc = document.getElementById('storage-desc');
+  const fill = document.getElementById('storage-fill');
+  const used = document.getElementById('storage-used');
+  const total = document.getElementById('storage-total');
+  if (!est) { desc.textContent = 'No disponible en este navegador'; return; }
+  const mb = b => (b / 1024 / 1024).toFixed(1);
+  used.textContent = `${mb(est.usage)} MB usados`;
+  total.textContent = `${mb(est.quota)} MB disponibles`;
+  fill.style.width = est.pct.toFixed(1) + '%';
+  desc.textContent = `${est.pct.toFixed(1)}% del espacio disponible`;
+}
+
+async function hacerLimpiarCache() {
+  if (!confirm('¿Limpiar caché y recargar?\n\nTus datos y desbloqueos se conservan.')) return;
+  try {
+    await CHH_SETTINGS.limpiarCache();
+    toast('Caché limpiado — recargando');
+    setTimeout(() => location.reload(true), 700);
+  } catch(e) {
+    console.error(e);
+    toast('Error al limpiar', true);
   }
 }
 
 function resetSettings() {
-  if (confirm('¿Restaurar todos los ajustes a valores por defecto?')) {
-    saveSettings(DEFAULT_SETTINGS);
-    alert('✅ Ajustes restaurados correctamente');
-    location.reload();
-  }
+  if (!confirm('¿Restaurar TODOS los ajustes a valores por defecto?\n\nEsto no borra tus desbloqueos ni Hero Pesos, solo las preferencias.')) return;
+  // Preserva desbloqueos y datos del jugador — solo resetea preferencias de UI
+  const preserve = {};
+  const s = CHH_SETTINGS.load();
+  if (s.temaId) preserve.temaId = s.temaId; // conserva tema equipado
+  CHH_SETTINGS.save({
+    theme:'dark', accentColor:'green', tournamentsNotif:true, galleryView:'3col',
+    animations:true, textScale:'normal', vibrate:true, landingPage:'index',
+    ...preserve
+  });
+  toast('Ajustes restaurados');
+  setTimeout(() => location.reload(), 700);
 }
-
-// ═══════════════════════════════════════════
-// INICIALIZACIÓN
-// ═══════════════════════════════════════════
 
 function verIntroDeNuevo() {
   localStorage.removeItem('nexo_intro_vista');
-  window.location.href = 'intro.html';
+  location.href = 'intro.html';
 }
 
+// ── INIT ──
 document.addEventListener('DOMContentLoaded', () => {
-  applySettingsToUI();
-  console.log('⚙️ Módulo de ajustes cargado');
+  refrescarUI();
+  refrescarStorage();
 });
 </script>
 

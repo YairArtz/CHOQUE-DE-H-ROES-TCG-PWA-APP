@@ -832,6 +832,14 @@ async function calcularPuntos() {
       }
     });
     totalPts = pts;
+    // ── DEV OVERRIDE: puntos fantasma locales (sincronizado con perfil.html) ──
+    if (miId === 'CHH-00005') {
+      const devPts = parseInt(localStorage.getItem('nhDevPuntos') || '500', 10);
+      if (devPts > 0) {
+        totalPts += devPts;
+        console.log(`[DEV] +${devPts} pts fantasma aplicados en tienda a ${miId} (total local: ${totalPts})`);
+      }
+    }
   } catch(e) {}
   document.getElementById('nav-pts-val').textContent = totalPts;
   document.getElementById('jh-pts-val').textContent  = totalPts;

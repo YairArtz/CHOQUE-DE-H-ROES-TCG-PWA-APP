@@ -2,8 +2,8 @@
 //  CHOQUE DE HÉROES TCG — Service Worker v6
 //  Con notificaciones locales de noticias y torneos
 // ================================================================
-const CACHE_NAME    = 'chh-tcg-v14';
-const CACHE_DYNAMIC = 'chh-dynamic-v14';
+const CACHE_NAME    = 'chh-tcg-v17';
+const CACHE_DYNAMIC = 'chh-dynamic-v17';
 
 const CACHE_CORE = [
   './', './boot.html', './index.html', './calculadora.html',
@@ -45,8 +45,8 @@ self.addEventListener('fetch', event => {
   if (NO_CACHE_ORIGINS.some(o => url.hostname.includes(o))) return;
   if (url.origin !== self.location.origin) return;
   const isCore = CACHE_CORE.some(f => url.pathname.endsWith(f.replace('./','/')) || url.pathname === '/');
-  // Archivos HTML y JSON siempre networkFirst para recibir actualizaciones
-  const isHtmlOrJson = /\.(html|json)$/i.test(url.pathname) || url.pathname === '/';
+  // Archivos HTML, JSON y JS siempre networkFirst para recibir actualizaciones
+  const isHtmlOrJson = /\.(html|json|js)$/i.test(url.pathname) || url.pathname === '/';
   if (isHtmlOrJson) event.respondWith(networkFirst(event.request));
   else if (isCore) event.respondWith(cacheFirst(event.request));
   else if (/\.(jpg|jpeg|png|gif|webp|svg|css|woff2?|ttf)$/i.test(url.pathname)) event.respondWith(staleWhileRevalidate(event.request));

@@ -24,6 +24,35 @@
       --hp-color:#f5a623;
     }
     html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;}
+    /* ── LEGIBILIDAD SOBRE FONDOS CLAROS ── */
+    /* Outline negro multi-direccional para textos que aparecen sobre fondos variables. */
+    .nav-title,
+    .stitle,
+    .sec-back,
+    .seccion-label,
+    .cat-name {
+      text-shadow:
+        -1px -1px 0 rgba(0,0,0,.9),
+        1px -1px 0 rgba(0,0,0,.9),
+        -1px 1px 0 rgba(0,0,0,.9),
+        1px 1px 0 rgba(0,0,0,.9),
+        0 2px 6px rgba(0,0,0,.85);
+      -webkit-text-stroke: .25px rgba(0,0,0,.6);
+    }
+    /* Título de sección más visible con backdrop chip */
+    .stitle {
+      display: inline-block;
+      padding: 4px 10px;
+      background: rgba(3,5,10,.55);
+      border-radius: 5px;
+      backdrop-filter: blur(6px);
+      margin-bottom: 12px;
+    }
+    /* Descripción muted más legible sobre fondos claros */
+    .section-panel p[style*="var(--muted)"] {
+      text-shadow: 0 1px 3px rgba(0,0,0,.9), 0 0 8px rgba(0,0,0,.6);
+    }
+
     body{display:flex;flex-direction:column;min-height:100vh;overflow-x:hidden;position:relative;}
     body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,255,157,0.018) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,157,0.018) 1px,transparent 1px);background-size:44px 44px;pointer-events:none;z-index:0;}
 
@@ -1747,7 +1776,10 @@ abrirSeccion = function(tab) {
   _origAbrirSeccion(tab);
   if (tab === 'musica') {
     const el = document.getElementById('musica-pts-val');
-    if (el) el.textContent = totalPts ?? '—';
+    // Lee del header (que ya está correcto tras calcularPuntos + dev override).
+    // Evita cualquier race con la variable totalPts.
+    const src = document.getElementById('nav-pts-val');
+    if (el) el.textContent = src?.textContent || totalPts || '—';
   }
 };
 </script>

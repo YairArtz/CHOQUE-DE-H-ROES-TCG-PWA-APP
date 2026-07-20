@@ -784,9 +784,12 @@ window.addEventListener('load', async () => {
   const avId = localStorage.getItem(`nhAv_${jugador.id}`);
   if (avId) {
     const avEl = document.getElementById('jh-avatar');
+    const avItem = CATALOGO.avatares.find(a => a.id === avId);
+    const avSrc = avItem?.img
+      || (avId.startsWith('av_') ? `avatares/${avId}.jpg` : `avatares/${avId.replace('av','avatar_')}.jpg`);
     const img = document.createElement('img');
-    img.src = `avatares/${avId.replace('av','avatar_')}.jpg`;
-    img.onerror = () => {};
+    img.src = avSrc;
+    img.onerror = () => { avEl.textContent = avItem?.emoji || '🦸'; };
     avEl.innerHTML = '';
     avEl.appendChild(img);
   }
@@ -1417,11 +1420,13 @@ function estaEquipado(itemId, tab) { return localStorage.getItem(keyEquipado(tab
 
 function desbloquearItem(itemId, tab) {
   const item = CATALOGO[tab].find(i => i.id === itemId);
-  if (!item) return;
-  if (totalPts < item.pts) { mostrarToast('No tienes suficientes puntos'); return; }
+  console.log(`[DBG desbloquearItem] tab=${tab} id=${itemId} totalPts=${totalPts} item.pts=${item?.pts} item=`, item);
+  if (!item) { console.warn('[DBG] Item no encontrado en CATALOGO'); return; }
+  if (totalPts < item.pts) { mostrarToast(`No tienes suficientes puntos (${totalPts}/${item.pts})`); return; }
   const lista = getDesbloqueados();
   if (!lista.includes(itemId)) lista.push(itemId);
   localStorage.setItem(keyDesbloqueados(), JSON.stringify(lista));
+  console.log(`[DBG] Guardado en ${keyDesbloqueados()}:`, lista);
   mostrarToast(`¡${item.nombre} desbloqueado!`);
   equiparItem(itemId, tab);
 }
@@ -1720,16 +1725,17 @@ function renderMusica() {
 
 function desbloquearMusica(pistaId) {
   const pista = CATALOGO.musica.find(p => p.id === pistaId);
-  if (!pista) return;
-  if (totalPts < pista.pts) { mostrarToast('No tienes suficientes puntos de liga'); return; }
+  console.log(`[DBG desbloquearMusica] id=${pistaId} totalPts=${totalPts} pista.pts=${pista?.pts} pista=`, pista);
+  if (!pista) { console.warn('[DBG] Pista no encontrada'); return; }
+  if (totalPts < pista.pts) { mostrarToast(`No tienes puntos de liga (${totalPts}/${pista.pts})`); return; }
   const key = keyMusicaDesbloqueada();
   if (!key) { mostrarToast('Inicia sesión primero'); return; }
   const lista = getMusicaDesbloqueada();
   if (!lista.includes(pistaId)) lista.push(pistaId);
   localStorage.setItem(key, JSON.stringify(lista));
+  console.log(`[DBG] Guardado en ${key}:`, lista);
   mostrarToast(`¡"${pista.nombre}" desbloqueada!`);
   renderMusica();
-  // Actualizar mini-player en calculadora si está abierta en otra pestaña
   localStorage.setItem('nhMusica_updated', Date.now().toString());
 }
 

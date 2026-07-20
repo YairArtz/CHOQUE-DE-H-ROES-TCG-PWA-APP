@@ -1834,6 +1834,16 @@ async function cargarRanking() {
       }
     });
 
+    // ── DEV OVERRIDE: puntos fantasma locales (SOLO afectan esta vista, NO el ranking global) ──
+    // Override con: localStorage.setItem('nhDevPuntos', 'N')   ·   Apagar: localStorage.removeItem('nhDevPuntos')
+    if (miId === 'CHH-00005') {
+      const devPts = parseInt(localStorage.getItem('nhDevPuntos') || '500', 10);
+      if (devPts > 0) {
+        totalPts += devPts;
+        console.log(`[DEV] +${devPts} pts fantasma aplicados a ${miId} (total local: ${totalPts})`);
+      }
+    }
+
     // ── Calcular posición global comparando con todos los jugadores ──
     const puntajesPorJugador = {};
     d.resultados.forEach(torneo => {

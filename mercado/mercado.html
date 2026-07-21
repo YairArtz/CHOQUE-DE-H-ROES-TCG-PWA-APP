@@ -70,8 +70,9 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .search-input::placeholder{color:var(--muted);letter-spacing:1px;font-weight:500;}
 .search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:20px;height:20px;fill:var(--gold);pointer-events:none;filter:drop-shadow(0 0 4px rgba(212,175,55,.5));}
 
-.filter-row{padding:0 14px 10px;max-width:600px;margin:0 auto;display:flex;gap:8px;}
-.filter-select{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text-dim);font-family:'Orbitron',monospace;font-size:.65rem;font-weight:700;letter-spacing:1.2px;cursor:pointer;}
+.filter-row{padding:0 14px 10px;max-width:600px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.filter-select{width:100%;min-width:0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:9px 28px 9px 10px;color:var(--text-dim);font-family:'Orbitron',monospace;font-size:.62rem;font-weight:700;letter-spacing:1px;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23d4af37'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;background-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.filter-select.full{grid-column:1/-1;}
 .filter-select:focus{outline:none;border-color:var(--gold-dark);}
 
 .tabs-wrap{position:sticky;top:58px;z-index:90;background:linear-gradient(180deg,rgba(10,8,6,.96),rgba(10,8,6,.88));backdrop-filter:blur(10px);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:10px 0;}
@@ -171,9 +172,19 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 </div>
 
 <div class="filter-row">
-  <select class="filter-select" id="filter-exp"><option value="">TODAS LAS EXPANSIONES</option></select>
+  <select class="filter-select full" id="filter-exp"><option value="">TODAS LAS EXPANSIONES</option></select>
+  <select class="filter-select" id="filter-tipo">
+    <option value="">TODOS LOS TIPOS</option>
+    <option value="personaje">PERSONAJE</option>
+    <option value="apoyo">APOYO</option>
+    <option value="alma">ALMA</option>
+    <option value="sector">SECTOR</option>
+    <option value="arena">ARENA</option>
+    <option value="amalgama">AMALGAMA</option>
+  </select>
   <select class="filter-select" id="filter-sort">
-    <option value="nombre">ORDENAR: NOMBRE</option>
+    <option value="expansion">EXPANSIÓN (RECIENTES)</option>
+    <option value="nombre">NOMBRE</option>
     <option value="precio-desc">PRECIO ↓</option>
     <option value="precio-asc">PRECIO ↑</option>
     <option value="id">ID</option>
@@ -247,7 +258,23 @@ function resetAuto(){clearInterval(autoSlide);autoSlide=setInterval(nextSlide,45
 renderBanners();
 resetAuto();
 
-const STATE={cartas:[],precios:{},meta:{},filtered:[],rareza:'todas',expansion:'',sort:'nombre',search:''};
+const STATE={cartas:[],precios:{},meta:{},filtered:[],rareza:'todas',expansion:'',tipo:'',sort:'expansion',search:'',ocultas:new Set()};
+
+// Orden de expansiones: más reciente → más antigua
+const ORDEN_EXP = ['reliquias del multiverso','variantes','sobre_torneo_1','series','heroes_del_exilio','control_absoluto','renacer_heroico','crisis_dimensional','despertar_ancestral','heroes_de_leyenda','secretos_de_phorus','azote_del_mictlan','ancestros'];
+function expRank(e){const i=ORDEN_EXP.indexOf(e);return i===-1?999:i;}
+
+// Categoría de tipo de carta
+function tipoCat(tipo){
+  const t=tipo.toUpperCase();
+  if(t.includes('AMALGAMA'))return 'amalgama';
+  if(t.includes('ALMA'))return 'alma';
+  if(t.includes('APOYO'))return 'apoyo';
+  if(t.includes('ARENA'))return 'arena';
+  if(t.includes('SECTOR'))return 'sector';
+  if(t.includes('PERSONAJE')||t.includes('HÉROE INVITADO')||t.includes('HEROE INVITADO'))return 'personaje';
+  return '';
+}
 const RAREZAS=[{id:'todas',label:'TODAS'},{id:'comun',label:'COMÚN'},{id:'alfa',label:'ALFA'},{id:'omega',label:'OMEGA'},{id:'codex',label:'CODEX'},{id:'promo_torneo',label:'PROMO TORNEO'},{id:'promo_evento',label:'PROMO EVENTO'},{id:'promo_app',label:'PROMO APP'}];
 const RAREZA_LABEL={comun:'Común',alfa:'Alfa',omega:'Omega',codex:'Codex',promo_torneo:'Promo Torneo',promo_evento:'Promo Evento',promo_app:'Promo App'};
 const CONDICION_PCT={NM:1,LP:.85,MP:.7,HP:.5,DMG:.3};
@@ -264,7 +291,7 @@ async function cargar(){
   }catch(e){document.getElementById('list').innerHTML=`<div class="state"><div class="state-icon">⚠</div>Error al cargar datos:<br>${e.message}</div>`;}
 }
 function poblarExpansiones(){
-  const exps=[...new Set(STATE.cartas.map(c=>c.expansion))].sort();
+  const exps=[...new Set(STATE.cartas.map(c=>c.expansion))].sort((a,b)=>expRank(a)-expRank(b));
   const sel=document.getElementById('filter-exp');
   exps.forEach(e=>{const opt=document.createElement('option');opt.value=e;opt.textContent=e.toUpperCase().replace(/_/g,' ');sel.appendChild(opt);});
 }
@@ -282,9 +309,11 @@ function renderTabs(){
 function aplicar(){
   let list=STATE.cartas.filter(c=>{
     const p=STATE.precios[c.id];if(!p)return false;
+    if(STATE.ocultas.has(c.id))return false;
     if(STATE.rareza==='omega'){if(p.rareza!=='comun'||p.precio_omega==null)return false;}
     else if(STATE.rareza!=='todas'&&p.rareza!==STATE.rareza)return false;
     if(STATE.expansion&&c.expansion!==STATE.expansion)return false;
+    if(STATE.tipo&&tipoCat(c.tipo)!==STATE.tipo)return false;
     if(STATE.search){const q=STATE.search.toLowerCase();if(!c.nombre.toLowerCase().includes(q)&&!c.id.toString().toLowerCase().includes(q))return false;}
     return true;
   });
@@ -293,7 +322,11 @@ function aplicar(){
     if(STATE.sort==='precio-desc')return(pb.precio_nm||0)-(pa.precio_nm||0);
     if(STATE.sort==='precio-asc')return(pa.precio_nm||0)-(pb.precio_nm||0);
     if(STATE.sort==='id')return a.id.toString().localeCompare(b.id.toString(),undefined,{numeric:true});
-    return a.nombre.localeCompare(b.nombre);
+    if(STATE.sort==='nombre')return a.nombre.localeCompare(b.nombre);
+    // Default: expansión reciente → antigua, orden original dentro de cada expansión
+    const r=expRank(a.expansion)-expRank(b.expansion);
+    if(r!==0)return r;
+    return STATE.cartas.indexOf(a)-STATE.cartas.indexOf(b);
   });
   STATE.filtered=list;renderList();
 }
@@ -320,7 +353,7 @@ function renderList(){
     </div>`;
   }).join('');
   const io=new IntersectionObserver((entries,obs)=>{
-    entries.forEach(e=>{if(e.isIntersecting){const img=e.target;img.src=img.dataset.src;img.onload=()=>img.classList.replace('loading','loaded');img.onerror=()=>{img.classList.remove('loading');img.src='';};obs.unobserve(img);}});
+    entries.forEach(e=>{if(e.isIntersecting){const img=e.target;img.src=img.dataset.src;img.onload=()=>img.classList.replace('loading','loaded');img.onerror=()=>{const row=img.closest('.row');if(row){STATE.ocultas.add(row.dataset.id);row.remove();}};obs.unobserve(img);}});
   },{rootMargin:'200px'});
   cont.querySelectorAll('.row-thumb img').forEach(img=>io.observe(img));
   cont.querySelectorAll('.row').forEach(el=>{el.addEventListener('click',()=>abrirModal(el.dataset.id));});
@@ -361,6 +394,7 @@ document.getElementById('info-back').addEventListener('click',(e)=>{if(e.target.
 let searchTimer;
 document.getElementById('search').addEventListener('input',(e)=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>{STATE.search=e.target.value.trim();aplicar();},200);});
 document.getElementById('filter-exp').addEventListener('change',(e)=>{STATE.expansion=e.target.value;aplicar();});
+document.getElementById('filter-tipo').addEventListener('change',(e)=>{STATE.tipo=e.target.value;aplicar();});
 document.getElementById('filter-sort').addEventListener('change',(e)=>{STATE.sort=e.target.value;aplicar();});
 try{localStorage.setItem('nh_visito_mercado','1');}catch(e){}
 cargar();

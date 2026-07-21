@@ -125,6 +125,8 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .precio-row:last-child{border-bottom:none;}
 .precio-label{font-family:'Rajdhani',sans-serif;font-size:.85rem;font-weight:600;color:var(--text-dim);letter-spacing:.5px;}
 .precio-value{font-family:'Orbitron',monospace;font-size:1.05rem;font-weight:900;background:var(--grad-gold);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+.precio-value.digital{background:linear-gradient(135deg,#5a8dff,#4169e1,#2749b8);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+.precio-value.na{background:none;-webkit-text-fill-color:var(--muted);color:var(--muted);font-size:.85rem;}
 .precio-value.omega{background:linear-gradient(135deg,#ffd700,#ffb700,#ff8c00);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
 .modal-info{font-family:'Rajdhani',sans-serif;font-size:.8rem;color:var(--text-dim);line-height:1.5;}
 .modal-info-row{display:flex;gap:8px;margin-bottom:6px;}
@@ -237,6 +239,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
     <li><b>Promo Torneo</b> — Foil con barniz, emblema de libro de cómic abierto. Desde $80.</li>
     <li><b>Promo Evento</b> — Exclusivas de ferias del libro, convenciones y eventos del estudio. Desde $150 (mayor si son cartas de campeón).</li>
     <li><b>Promo App</b> — Exclusivas de sobres digitales del Nexo de Héroes. Incluyen logo de la app. Rareza y precio variables.</li>
+    <li><b>📱 Sobre Digital</b> — Si una carta muestra precio en <b style="color:#4169e1;">azul</b>, también puede obtenerse en los sobres digitales de la app. N/A = solo disponible en físico.</li>
   </ul>
   <h3>Descuento por condición</h3>
   <p>Al precio NM sugerido, aplica estos ajustes según estado real:</p>
@@ -406,6 +409,11 @@ function abrirModal(id){
   const preciosHTML=[];
   preciosHTML.push(`<div class="precio-row"><span class="precio-label">Precio NM (Near Mint)</span><span class="precio-value">$${p.precio_nm} MXN</span></div>`);
   if(p.precio_omega!=null)preciosHTML.push(`<div class="precio-row"><span class="precio-label">◆ Versión Omega (foil)</span><span class="precio-value omega">$${p.precio_omega} MXN</span></div>`);
+  if(p.precio_digital!=null){
+    preciosHTML.push(`<div class="precio-row"><span class="precio-label">📱 Nexo de Héroes · Sobre Digital</span><span class="precio-value digital">$${p.precio_digital} MXN</span></div>`);
+  }else{
+    preciosHTML.push(`<div class="precio-row"><span class="precio-label">📱 Nexo de Héroes · Sobre Digital</span><span class="precio-value na">N/A</span></div>`);
+  }
   ['LP','MP','HP','DMG'].forEach(cond=>{
     const val=Math.round(p.precio_nm*CONDICION_PCT[cond]);
     const nombre=cond==='LP'?'Lightly Played':cond==='MP'?'Moderately Played':cond==='HP'?'Heavily Played':'Damaged';

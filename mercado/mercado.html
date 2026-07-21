@@ -8,639 +8,174 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <link rel="manifest" href="../manifest.json">
 <title>Mercado Heroico · Choque de Héroes TCG</title>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@600;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-
 :root{
-  /* Fondos negros cálidos */
-  --bg:#0a0806;
-  --bg2:#12100c;
-  --bg3:#1a1712;
-  --bg4:#221d16;
-
-  /* Dorado metálico */
-  --gold:#d4af37;
-  --gold-bright:#f4d03f;
-  --gold-dark:#8b6914;
-  --gold-deep:#5c4409;
+  --bg:#0a0806;--bg2:#12100c;--bg3:#1a1712;--bg4:#221d16;
+  --gold:#d4af37;--gold-bright:#f4d03f;--gold-dark:#8b6914;--gold-deep:#5c4409;
   --gold-dim:rgba(212,175,55,.12);
   --gold-glow:0 0 8px rgba(212,175,55,.6),0 0 22px rgba(212,175,55,.3);
-
-  /* Plata metálica */
-  --silver:#c0c0c0;
-  --silver-bright:#e8e8e8;
-  --silver-dark:#7a7a7a;
-  --silver-deep:#4a4a4a;
+  --silver:#c0c0c0;--silver-bright:#e8e8e8;--silver-dark:#7a7a7a;--silver-deep:#4a4a4a;
   --silver-dim:rgba(192,192,192,.1);
   --silver-glow:0 0 6px rgba(192,192,192,.5),0 0 18px rgba(192,192,192,.25);
-
-  /* Texto */
-  --text:#f0e8d8;
-  --text-dim:#c8bfa8;
-  --muted:#8a8577;
-  --border:#2a241b;
-
-  /* Acentos por rareza */
-  --r-comun:#c0c0c0;
-  --r-alfa:#f4d03f;
-  --r-omega:#ffd700;
-  --r-codex:#d4af37;
-  --r-promo-torneo:#e74c3c;
-  --r-promo-evento:#9b59b6;
-  --r-promo-app:#00d4a0;
-
-  /* Gradientes metálicos */
+  --text:#f0e8d8;--text-dim:#c8bfa8;--muted:#8a8577;--border:#2a241b;
+  --r-comun:#c0c0c0;--r-alfa:#f4d03f;--r-omega:#ffd700;--r-codex:#d4af37;
+  --r-promo-torneo:#e74c3c;--r-promo-evento:#c39bff;--r-promo-app:#00d4a0;
   --grad-gold:linear-gradient(135deg,#f4d03f 0%,#d4af37 30%,#8b6914 70%,#d4af37 100%);
   --grad-silver:linear-gradient(135deg,#e8e8e8 0%,#c0c0c0 30%,#6a6a6a 70%,#c0c0c0 100%);
-  --grad-dark-warm:linear-gradient(135deg,#1a1712 0%,#0a0806 100%);
 }
+html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Orbitron',monospace;-webkit-tap-highlight-color:transparent;user-select:none;overflow-x:hidden;}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:1000;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.08) 3px,rgba(0,0,0,.08) 4px);}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse at 20% 10%,rgba(212,175,55,.08) 0%,transparent 50%),radial-gradient(ellipse at 80% 90%,rgba(192,192,192,.05) 0%,transparent 50%),radial-gradient(ellipse at 50% 50%,rgba(139,105,20,.04) 0%,transparent 60%);}
+::-webkit-scrollbar{display:none}
 
-html,body{
-  min-height:100%;
-  background:var(--bg);
-  color:var(--text);
-  font-family:'Orbitron',monospace;
-  -webkit-tap-highlight-color:transparent;
-  user-select:none;
-  overflow-x:hidden;
-}
-
-/* Textura de scanline coherente con la PWA */
-body::after{
-  content:'';position:fixed;inset:0;pointer-events:none;z-index:1000;
-  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.08) 3px,rgba(0,0,0,.08) 4px);
-}
-
-/* Fondo con brillo dorado sutil */
-body::before{
-  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
-  background:
-    radial-gradient(ellipse at 20% 10%,rgba(212,175,55,.08) 0%,transparent 50%),
-    radial-gradient(ellipse at 80% 90%,rgba(192,192,192,.05) 0%,transparent 50%),
-    radial-gradient(ellipse at 50% 50%,rgba(139,105,20,.04) 0%,transparent 60%);
-}
-
-/* ─── HEADER ─── */
-.top-bar{
-  position:sticky;top:0;z-index:100;
-  background:linear-gradient(180deg,rgba(10,8,6,.98),rgba(10,8,6,.9));
-  backdrop-filter:blur(10px);
-  border-bottom:1px solid var(--gold-dark);
-  padding:12px 16px;
-  display:flex;align-items:center;gap:12px;
-  box-shadow:0 2px 20px rgba(0,0,0,.6),0 1px 0 var(--gold-dim);
-}
-
-.back-btn{
-  background:rgba(212,175,55,.08);
-  border:1px solid var(--gold-dark);
-  color:var(--gold);
-  padding:6px 12px;
-  border-radius:6px;
-  font-family:'Orbitron',monospace;
-  font-size:.7rem;font-weight:700;
-  letter-spacing:1px;
-  cursor:pointer;
-  transition:all .2s;
-  text-decoration:none;
-  display:inline-flex;align-items:center;gap:4px;
-}
-.back-btn:active{
-  background:var(--gold-dim);
-  border-color:var(--gold);
-  box-shadow:var(--gold-glow);
-}
-
-.brand{
-  flex:1;text-align:center;
-  font-family:'Cinzel Decorative',serif;
-  font-weight:900;
-  font-size:1.05rem;
-  background:var(--grad-gold);
-  -webkit-background-clip:text;
-  background-clip:text;
-  -webkit-text-fill-color:transparent;
-  text-shadow:0 0 20px rgba(212,175,55,.3);
-  letter-spacing:2px;
-}
-.brand-sub{
-  display:block;
-  font-family:'Rajdhani',sans-serif;
-  font-size:.55rem;font-weight:600;
-  color:var(--silver-dark);
-  letter-spacing:3px;
-  margin-top:2px;
-  -webkit-text-fill-color:var(--silver-dark);
-  background:none;
-}
-
-.meta-btn{
-  background:rgba(192,192,192,.06);
-  border:1px solid var(--silver-deep);
-  color:var(--silver);
-  width:36px;height:36px;
-  border-radius:8px;
-  display:flex;align-items:center;justify-content:center;
-  cursor:pointer;
-  transition:all .2s;
-}
+.top-bar{position:sticky;top:0;z-index:100;background:linear-gradient(180deg,rgba(10,8,6,.98),rgba(10,8,6,.9));backdrop-filter:blur(10px);border-bottom:1px solid var(--gold-dark);padding:10px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 2px 20px rgba(0,0,0,.6);}
+.top-bar::after{content:'';position:absolute;bottom:0;left:8%;right:8%;height:1px;background:linear-gradient(90deg,transparent,var(--gold-dark),transparent);}
+.back-btn{background:rgba(212,175,55,.08);border:1px solid var(--gold-dark);color:var(--gold);padding:6px 10px;border-radius:6px;font-family:'Orbitron',monospace;font-size:.65rem;font-weight:900;letter-spacing:1.5px;cursor:pointer;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;gap:4px;}
+.back-btn:active{background:var(--gold-dim);border-color:var(--gold);box-shadow:var(--gold-glow);}
+.brand{flex:1;text-align:center;font-family:'Orbitron',monospace;font-weight:900;font-size:.95rem;color:var(--gold);filter:brightness(0.9);letter-spacing:4px;text-transform:uppercase;text-shadow:0 0 1px #000,0 0 4px #000,0 0 10px #000,0 0 22px #000,1px 1px 0 #000,-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000;}
+.brand-sub{display:block;font-family:'Orbitron',monospace;font-size:.5rem;font-weight:700;color:var(--silver-dark);letter-spacing:3px;margin-top:2px;text-shadow:0 0 4px #000,1px 1px 0 #000;}
+.meta-btn{background:rgba(192,192,192,.06);border:1px solid var(--silver-deep);color:var(--silver);width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;}
 .meta-btn:active{background:var(--silver-dim);border-color:var(--silver);box-shadow:var(--silver-glow);}
 .meta-btn svg{width:18px;height:18px;fill:var(--silver);}
 
-/* ─── HERO ─── */
-.hero{
-  position:relative;z-index:1;
-  padding:24px 16px 16px;
-  text-align:center;
-  border-bottom:1px solid var(--border);
-  background:linear-gradient(180deg,rgba(26,23,18,.6),transparent);
-}
-.hero-title{
-  font-family:'Cinzel Decorative',serif;
-  font-size:1.8rem;font-weight:900;
-  background:var(--grad-gold);
-  -webkit-background-clip:text;background-clip:text;
-  -webkit-text-fill-color:transparent;
-  letter-spacing:3px;
-  margin-bottom:6px;
-  filter:drop-shadow(0 2px 8px rgba(212,175,55,.3));
-}
-.hero-sub{
-  font-family:'Rajdhani',sans-serif;
-  font-size:.85rem;font-weight:600;
-  color:var(--silver);
-  letter-spacing:2px;
-  text-transform:uppercase;
-}
-.hero-meta{
-  font-family:'Orbitron',monospace;
-  font-size:.65rem;color:var(--muted);
-  margin-top:10px;letter-spacing:1px;
-}
-.hero-divider{
-  width:60%;max-width:280px;
-  height:1px;margin:12px auto 0;
-  background:linear-gradient(90deg,transparent,var(--gold),transparent);
-}
+/* BANNER SLIDER */
+.banner-slider{width:calc(100% - 28px);max-width:480px;margin:14px auto 0;border-radius:12px;overflow:hidden;position:relative;box-shadow:0 0 20px rgba(212,175,55,.28);border:1.5px solid rgba(212,175,55,.35);}
+.banner-track{display:flex;transition:transform 0.5s cubic-bezier(0.77,0,0.18,1);will-change:transform;}
+.banner-slide{min-width:100%;display:block;position:relative;}
+.banner-slide a{display:block;text-decoration:none;position:relative;}
+.banner-slide img{width:100%;display:block;border-radius:12px;}
+.banner-label{position:absolute;bottom:8px;left:8px;right:60px;padding:6px 10px;background:linear-gradient(90deg,rgba(0,0,0,.85),rgba(0,0,0,.5));border-left:3px solid var(--gold);border-radius:4px;font-family:'Orbitron',monospace;font-size:.65rem;font-weight:900;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;text-shadow:0 0 4px #000;pointer-events:none;}
+.banner-tag{position:absolute;top:8px;right:8px;padding:3px 8px;background:var(--grad-gold);color:#1a1300;font-family:'Orbitron',monospace;font-size:.55rem;font-weight:900;letter-spacing:1.5px;border-radius:10px;text-shadow:0 1px 0 rgba(255,255,255,.3);pointer-events:none;}
+.banner-dots{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);display:flex;gap:7px;z-index:5;}
+.banner-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.3);border:none;padding:0;cursor:pointer;transition:background 0.3s;}
+.banner-dot.active{background:var(--gold);box-shadow:0 0 8px var(--gold);}
+.banner-placeholder{width:100%;aspect-ratio:5/2;background:linear-gradient(135deg,rgba(212,175,55,.15) 0%,rgba(10,8,6,.9) 60%),repeating-linear-gradient(45deg,rgba(212,175,55,.05) 0 10px,transparent 10px 20px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--gold);font-family:'Orbitron',monospace;font-size:.85rem;font-weight:900;letter-spacing:2px;text-align:center;padding:0 20px;text-shadow:0 0 4px #000,1px 1px 0 #000;}
+.banner-placeholder .ph-sub{font-size:.6rem;color:var(--silver);letter-spacing:2px;font-weight:700;}
 
-/* ─── CONTROLES ─── */
-.controls{
-  position:relative;z-index:1;
-  padding:12px 16px;
-  display:flex;flex-direction:column;gap:10px;
-}
+.hero{position:relative;z-index:1;padding:18px 16px 12px;text-align:center;}
+.hero-title{font-family:'Orbitron',monospace;font-weight:900;font-size:1.4rem;color:var(--gold);filter:brightness(0.95);letter-spacing:5px;text-transform:uppercase;margin-bottom:6px;text-shadow:0 0 1px #000,0 0 4px #000,0 0 12px #000,0 0 24px #000,1px 1px 0 #000,-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000;}
+.hero-sub{font-family:'Orbitron',monospace;font-size:.6rem;font-weight:700;color:var(--silver);letter-spacing:3px;text-transform:uppercase;text-shadow:0 0 4px #000;}
+.hero-divider{width:60%;max-width:280px;height:1px;margin:10px auto 0;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+.hero-meta{font-family:'Orbitron',monospace;font-size:.6rem;color:var(--muted);margin-top:8px;letter-spacing:1.5px;}
 
-.search-box{
-  position:relative;
-}
-.search-input{
-  width:100%;
-  background:var(--bg2);
-  border:1px solid var(--border);
-  border-radius:8px;
-  padding:10px 14px 10px 38px;
-  color:var(--text);
-  font-family:'Rajdhani',sans-serif;
-  font-size:.95rem;font-weight:600;
-  letter-spacing:.5px;
-  transition:all .2s;
-}
-.search-input:focus{
-  outline:none;
-  border-color:var(--gold);
-  background:var(--bg3);
-  box-shadow:0 0 0 3px rgba(212,175,55,.15);
-}
-.search-icon{
-  position:absolute;left:12px;top:50%;transform:translateY(-50%);
-  width:16px;height:16px;fill:var(--muted);pointer-events:none;
-}
+.search-wrap{position:relative;z-index:1;padding:4px 14px 10px;max-width:600px;margin:0 auto;}
+.search-box{position:relative;background:var(--bg2);border:1.5px solid var(--gold-dark);border-radius:10px;transition:all .2s;}
+.search-box:focus-within{border-color:var(--gold);box-shadow:0 0 0 3px rgba(212,175,55,.15),0 0 20px rgba(212,175,55,.2);}
+.search-input{width:100%;background:transparent;border:none;padding:14px 16px 14px 46px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:600;letter-spacing:.5px;}
+.search-input:focus{outline:none;}
+.search-input::placeholder{color:var(--muted);letter-spacing:1px;font-weight:500;}
+.search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:20px;height:20px;fill:var(--gold);pointer-events:none;filter:drop-shadow(0 0 4px rgba(212,175,55,.5));}
 
-.filter-row{
-  display:flex;gap:8px;
-}
-.filter-select{
-  flex:1;
-  background:var(--bg2);
-  border:1px solid var(--border);
-  border-radius:8px;
-  padding:8px 12px;
-  color:var(--text-dim);
-  font-family:'Orbitron',monospace;
-  font-size:.7rem;font-weight:600;
-  letter-spacing:1px;
-  cursor:pointer;
-}
-.filter-select:focus{outline:none;border-color:var(--silver-dark);}
+.filter-row{padding:0 14px 10px;max-width:600px;margin:0 auto;display:flex;gap:8px;}
+.filter-select{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text-dim);font-family:'Orbitron',monospace;font-size:.65rem;font-weight:700;letter-spacing:1.2px;cursor:pointer;}
+.filter-select:focus{outline:none;border-color:var(--gold-dark);}
 
-/* ─── TABS DE RAREZA ─── */
-.tabs-wrap{
-  position:sticky;top:63px;z-index:90;
-  background:linear-gradient(180deg,rgba(10,8,6,.96),rgba(10,8,6,.88));
-  backdrop-filter:blur(10px);
-  border-bottom:1px solid var(--border);
-  padding:10px 0;
-}
-.tabs{
-  display:flex;gap:6px;
-  padding:0 16px;
-  overflow-x:auto;
-  scrollbar-width:none;
-  -webkit-overflow-scrolling:touch;
-}
-.tabs::-webkit-scrollbar{display:none;}
-.tab{
-  flex:0 0 auto;
-  padding:8px 14px;
-  background:var(--bg2);
-  border:1px solid var(--border);
-  border-radius:20px;
-  font-family:'Orbitron',monospace;
-  font-size:.68rem;font-weight:700;
-  color:var(--muted);
-  letter-spacing:1.2px;
-  cursor:pointer;
-  transition:all .2s;
-  white-space:nowrap;
-  position:relative;
-}
-.tab-count{
-  display:inline-block;
-  margin-left:6px;
-  padding:1px 6px;
-  border-radius:10px;
-  background:rgba(255,255,255,.08);
-  font-size:.6rem;
-  color:var(--text-dim);
-}
-.tab.active{
-  background:var(--grad-gold);
-  color:#1a1300;
-  border-color:var(--gold-bright);
-  box-shadow:var(--gold-glow);
-  text-shadow:0 1px 0 rgba(255,255,255,.3);
-}
-.tab.active .tab-count{
-  background:rgba(0,0,0,.25);
-  color:#1a1300;
-}
+.tabs-wrap{position:sticky;top:56px;z-index:90;background:linear-gradient(180deg,rgba(10,8,6,.96),rgba(10,8,6,.88));backdrop-filter:blur(10px);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:10px 0;}
+.tabs{display:flex;gap:6px;padding:0 14px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;max-width:600px;margin:0 auto;}
+.tab{flex:0 0 auto;padding:7px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:18px;font-family:'Orbitron',monospace;font-size:.65rem;font-weight:700;color:var(--muted);letter-spacing:1.2px;cursor:pointer;transition:all .2s;white-space:nowrap;text-transform:uppercase;}
+.tab-count{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:10px;background:rgba(255,255,255,.08);font-size:.58rem;color:var(--text-dim);}
+.tab.active{background:var(--grad-gold);color:#1a1300;border-color:var(--gold-bright);box-shadow:var(--gold-glow);text-shadow:0 1px 0 rgba(255,255,255,.3);}
+.tab.active .tab-count{background:rgba(0,0,0,.25);color:#1a1300;}
 .tab[data-r="comun"].active{background:var(--grad-silver);border-color:var(--silver-bright);box-shadow:var(--silver-glow);color:#1a1a1a;}
 .tab[data-r="comun"].active .tab-count{background:rgba(0,0,0,.2);color:#1a1a1a;}
 
-/* ─── GRID DE CARTAS ─── */
-.grid{
-  position:relative;z-index:1;
-  padding:14px 12px 40px;
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
-  gap:12px;
-}
-@media(min-width:600px){
-  .grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;}
-}
+.list{position:relative;z-index:1;padding:10px 12px 40px;max-width:600px;margin:0 auto;display:flex;flex-direction:column;gap:6px;}
+.row{position:relative;background:var(--bg2);border:1px solid var(--border);border-radius:10px;display:grid;grid-template-columns:64px 1fr auto;gap:12px;padding:8px 12px 8px 8px;align-items:center;cursor:pointer;transition:background .15s,border-color .15s,transform .1s;min-height:88px;}
+.row:active{transform:scale(.995);}
+.row:hover{background:var(--bg3);border-color:var(--gold-dark);}
+.row::before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:3px;background:var(--r-color,var(--silver-dark));border-radius:0 2px 2px 0;box-shadow:0 0 6px var(--r-color,var(--silver-dark));opacity:.7;}
+.row[data-r="comun"]{--r-color:#c0c0c0;}
+.row[data-r="alfa"]{--r-color:#f4d03f;}
+.row[data-r="omega"]{--r-color:#ffd700;}
+.row[data-r="codex"]{--r-color:#d4af37;}
+.row[data-r="promo_torneo"]{--r-color:#e74c3c;}
+.row[data-r="promo_evento"]{--r-color:#c39bff;}
+.row[data-r="promo_app"]{--r-color:#00d4a0;}
+.row-thumb{width:64px;height:88px;background:#000;border-radius:6px;overflow:hidden;border:1px solid var(--border);display:block;flex-shrink:0;}
+.row-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.row-thumb img.loading{opacity:0;}
+.row-thumb img.loaded{opacity:1;transition:opacity .3s;}
+.row-info{min-width:0;display:flex;flex-direction:column;gap:3px;}
+.row-nombre{font-family:'Rajdhani',sans-serif;font-size:.95rem;font-weight:700;color:var(--text);letter-spacing:.3px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.row-meta{font-family:'Orbitron',monospace;font-size:.55rem;font-weight:600;color:var(--muted);letter-spacing:1px;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.row-rareza{display:inline-block;padding:2px 7px;border-radius:10px;font-family:'Orbitron',monospace;font-size:.55rem;font-weight:900;letter-spacing:1.2px;border:1px solid var(--r-color,var(--silver-dark));color:var(--r-color,var(--silver));background:rgba(0,0,0,.4);margin-top:2px;text-transform:uppercase;align-self:flex-start;}
+.row-price{text-align:right;display:flex;flex-direction:column;gap:2px;min-width:80px;align-items:flex-end;}
+.row-price-nm{font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:900;background:var(--grad-gold);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:.5px;line-height:1;}
+.row-price-currency{font-size:.5rem;color:var(--muted);font-weight:700;letter-spacing:1.5px;}
+.row-price-omega{font-size:.65rem;color:var(--r-omega);font-weight:700;letter-spacing:.5px;text-shadow:0 0 4px rgba(255,215,0,.4);}
 
-.card{
-  position:relative;
-  background:var(--bg3);
-  border:1px solid var(--border);
-  border-radius:10px;
-  overflow:hidden;
-  cursor:pointer;
-  transition:transform .2s,box-shadow .2s,border-color .2s;
-}
-.card:active{transform:scale(.97);}
-.card-img-wrap{
-  position:relative;
-  aspect-ratio:63/88;
-  background:#000;
-  overflow:hidden;
-}
-.card-img{
-  width:100%;height:100%;
-  object-fit:cover;
-  display:block;
-}
-.card-img.loading{opacity:0;}
-.card-img.loaded{opacity:1;transition:opacity .3s;}
-
-/* Marco metálico según rareza */
-.card::before{
-  content:'';
-  position:absolute;inset:0;
-  border-radius:10px;
-  padding:1px;
-  background:linear-gradient(135deg,var(--r-color,var(--silver-dark)),transparent 40%,transparent 60%,var(--r-color,var(--silver-dark)));
-  -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
-  -webkit-mask-composite:xor;mask-composite:exclude;
-  pointer-events:none;
-  opacity:.6;
-}
-
-.card[data-r="comun"]{--r-color:#c0c0c0;}
-.card[data-r="alfa"]{--r-color:#f4d03f;}
-.card[data-r="omega"]{--r-color:#ffd700;}
-.card[data-r="codex"]{--r-color:#d4af37;}
-.card[data-r="promo_torneo"]{--r-color:#e74c3c;}
-.card[data-r="promo_evento"]{--r-color:#c39bff;}
-.card[data-r="promo_app"]{--r-color:#00d4a0;}
-
-/* Badge de rareza en la carta */
-.card-rareza{
-  position:absolute;top:6px;left:6px;
-  padding:3px 8px;
-  border-radius:12px;
-  font-family:'Orbitron',monospace;
-  font-size:.55rem;font-weight:900;
-  letter-spacing:1.5px;
-  text-transform:uppercase;
-  background:rgba(0,0,0,.8);
-  border:1px solid var(--r-color,var(--silver-dark));
-  color:var(--r-color,var(--silver));
-  backdrop-filter:blur(4px);
-}
-
-/* Info debajo */
-.card-info{
-  padding:8px 10px 10px;
-  background:linear-gradient(180deg,transparent,rgba(0,0,0,.4));
-}
-.card-nombre{
-  font-family:'Rajdhani',sans-serif;
-  font-size:.78rem;font-weight:700;
-  color:var(--text);
-  letter-spacing:.3px;
-  line-height:1.2;
-  min-height:1.9em;
-  overflow:hidden;display:-webkit-box;
-  -webkit-line-clamp:2;-webkit-box-orient:vertical;
-  margin-bottom:6px;
-}
-.card-precio{
-  display:flex;align-items:baseline;justify-content:space-between;
-  gap:4px;
-}
-.precio-nm{
-  font-family:'Orbitron',monospace;
-  font-size:1rem;font-weight:900;
-  background:var(--grad-gold);
-  -webkit-background-clip:text;background-clip:text;
-  -webkit-text-fill-color:transparent;
-  letter-spacing:.5px;
-}
-.precio-currency{
-  font-size:.55rem;color:var(--muted);
-  font-weight:600;letter-spacing:1px;
-}
-.precio-omega{
-  font-size:.65rem;
-  color:var(--r-omega);
-  font-weight:700;
-}
-
-/* ─── MODAL DETALLE ─── */
-.modal-back{
-  position:fixed;inset:0;
-  background:rgba(0,0,0,.85);
-  backdrop-filter:blur(6px);
-  z-index:200;
-  display:none;
-  align-items:center;justify-content:center;
-  padding:16px;
-}
+.modal-back{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(6px);z-index:200;display:none;align-items:center;justify-content:center;padding:16px;}
 .modal-back.open{display:flex;}
-.modal{
-  background:var(--bg2);
-  border:1px solid var(--gold-dark);
-  border-radius:14px;
-  max-width:420px;width:100%;
-  max-height:90vh;
-  overflow-y:auto;
-  position:relative;
-  box-shadow:0 20px 60px rgba(0,0,0,.8),0 0 0 1px rgba(212,175,55,.1);
-}
-.modal::before{
-  content:'';position:absolute;inset:0;
-  border-radius:14px;
-  padding:1px;
-  background:var(--grad-gold);
-  -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
-  -webkit-mask-composite:xor;mask-composite:exclude;
-  pointer-events:none;
-  opacity:.5;
-}
-.modal-close{
-  position:absolute;top:10px;right:10px;
-  width:32px;height:32px;
-  background:rgba(0,0,0,.6);
-  border:1px solid var(--border);
-  border-radius:50%;
-  color:var(--text);
-  font-size:1.1rem;
-  cursor:pointer;
-  z-index:10;
-  display:flex;align-items:center;justify-content:center;
-}
+.modal{background:var(--bg2);border:1px solid var(--gold-dark);border-radius:14px;max-width:420px;width:100%;max-height:90vh;overflow-y:auto;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.8),0 0 0 1px rgba(212,175,55,.1);}
+.modal::before{content:'';position:absolute;inset:0;border-radius:14px;padding:1px;background:var(--grad-gold);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;opacity:.5;}
+.modal-close{position:absolute;top:10px;right:10px;width:32px;height:32px;background:rgba(0,0,0,.7);border:1px solid var(--border);border-radius:50%;color:var(--text);font-size:1.1rem;cursor:pointer;z-index:10;display:flex;align-items:center;justify-content:center;}
 .modal-close:active{background:var(--gold-dim);border-color:var(--gold);}
-
-.modal-img{
-  width:100%;
-  aspect-ratio:63/88;
-  object-fit:contain;
-  background:#000;
-  border-radius:14px 14px 0 0;
-  display:block;
-}
-.modal-body{
-  padding:16px 18px 20px;
-}
-.modal-nombre{
-  font-family:'Cinzel',serif;
-  font-size:1.15rem;font-weight:900;
-  color:var(--text);
-  letter-spacing:.5px;
-  margin-bottom:4px;
-  line-height:1.2;
-}
-.modal-tipo{
-  font-family:'Orbitron',monospace;
-  font-size:.65rem;color:var(--muted);
-  letter-spacing:1.5px;text-transform:uppercase;
-  margin-bottom:14px;
-}
-.modal-rareza-badge{
-  display:inline-block;
-  padding:4px 10px;
-  border-radius:14px;
-  background:rgba(0,0,0,.5);
-  border:1px solid var(--r-color,var(--silver-dark));
-  color:var(--r-color,var(--silver));
-  font-family:'Orbitron',monospace;
-  font-size:.6rem;font-weight:900;
-  letter-spacing:2px;
-  text-transform:uppercase;
-  margin-bottom:14px;
-}
-.modal-precios{
-  background:var(--bg3);
-  border:1px solid var(--border);
-  border-radius:10px;
-  padding:14px;
-  margin-bottom:14px;
-}
-.precio-row{
-  display:flex;justify-content:space-between;align-items:baseline;
-  padding:8px 0;
-  border-bottom:1px dashed var(--border);
-}
+.modal-img{width:100%;aspect-ratio:63/88;object-fit:contain;background:#000;border-radius:14px 14px 0 0;display:block;}
+.modal-body{padding:16px 18px 20px;}
+.modal-nombre{font-family:'Orbitron',monospace;font-size:1.05rem;font-weight:900;color:var(--text);letter-spacing:1.5px;margin-bottom:4px;line-height:1.2;text-transform:uppercase;text-shadow:0 0 4px #000;}
+.modal-tipo{font-family:'Orbitron',monospace;font-size:.6rem;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;}
+.modal-rareza-badge{display:inline-block;padding:4px 10px;border-radius:14px;background:rgba(0,0,0,.5);border:1px solid var(--r-color,var(--silver-dark));color:var(--r-color,var(--silver));font-family:'Orbitron',monospace;font-size:.6rem;font-weight:900;letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;}
+.modal-precios{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;}
+.precio-row{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px dashed var(--border);}
 .precio-row:last-child{border-bottom:none;}
-.precio-label{
-  font-family:'Rajdhani',sans-serif;
-  font-size:.85rem;font-weight:600;
-  color:var(--text-dim);
-  letter-spacing:.5px;
-}
-.precio-value{
-  font-family:'Orbitron',monospace;
-  font-size:1.1rem;font-weight:900;
-  background:var(--grad-gold);
-  -webkit-background-clip:text;background-clip:text;
-  -webkit-text-fill-color:transparent;
-}
-.precio-value.omega{
-  background:linear-gradient(135deg,#ffd700,#ffb700,#ff8c00);
-  -webkit-background-clip:text;background-clip:text;
-  -webkit-text-fill-color:transparent;
-}
-.modal-info{
-  font-family:'Rajdhani',sans-serif;
-  font-size:.8rem;
-  color:var(--text-dim);
-  line-height:1.5;
-}
-.modal-info-row{
-  display:flex;gap:8px;margin-bottom:6px;
-}
-.modal-info-label{
-  color:var(--muted);
-  font-weight:700;
-  min-width:80px;
-  letter-spacing:.5px;
-  text-transform:uppercase;
-  font-size:.7rem;
-}
-.modal-notas{
-  margin-top:12px;
-  padding:10px 12px;
-  background:rgba(212,175,55,.06);
-  border-left:3px solid var(--gold);
-  border-radius:4px;
-  font-family:'Rajdhani',sans-serif;
-  font-size:.8rem;
-  color:var(--text-dim);
-  font-style:italic;
-}
+.precio-label{font-family:'Rajdhani',sans-serif;font-size:.85rem;font-weight:600;color:var(--text-dim);letter-spacing:.5px;}
+.precio-value{font-family:'Orbitron',monospace;font-size:1.05rem;font-weight:900;background:var(--grad-gold);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+.precio-value.omega{background:linear-gradient(135deg,#ffd700,#ffb700,#ff8c00);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+.modal-info{font-family:'Rajdhani',sans-serif;font-size:.8rem;color:var(--text-dim);line-height:1.5;}
+.modal-info-row{display:flex;gap:8px;margin-bottom:6px;}
+.modal-info-label{color:var(--muted);font-weight:700;min-width:80px;letter-spacing:.5px;text-transform:uppercase;font-size:.7rem;font-family:'Orbitron',monospace;}
+.modal-notas{margin-top:12px;padding:10px 12px;background:rgba(212,175,55,.06);border-left:3px solid var(--gold);border-radius:4px;font-family:'Rajdhani',sans-serif;font-size:.8rem;color:var(--text-dim);font-style:italic;}
 
-/* ─── ESTADO VACÍO / LOADING ─── */
-.state{
-  padding:60px 20px;
-  text-align:center;
-  color:var(--muted);
-  font-family:'Orbitron',monospace;
-  font-size:.85rem;
-  letter-spacing:1.5px;
-}
+.state{padding:60px 20px;text-align:center;color:var(--muted);font-family:'Orbitron',monospace;font-size:.85rem;letter-spacing:1.5px;}
 .state-icon{font-size:2rem;margin-bottom:12px;}
 
-/* ─── FAQ / INFO ─── */
-.info-modal{
-  background:var(--bg2);
-  border:1px solid var(--silver-deep);
-  border-radius:14px;
-  max-width:520px;width:100%;
-  max-height:90vh;
-  overflow-y:auto;
-  padding:22px 22px 26px;
-  position:relative;
-}
-.info-modal h2{
-  font-family:'Cinzel Decorative',serif;
-  font-size:1.1rem;
-  background:var(--grad-gold);
-  -webkit-background-clip:text;background-clip:text;
-  -webkit-text-fill-color:transparent;
-  margin-bottom:14px;
-  letter-spacing:2px;
-  text-align:center;
-}
-.info-modal h3{
-  font-family:'Orbitron',monospace;
-  font-size:.75rem;
-  color:var(--gold);
-  margin:14px 0 6px;
-  letter-spacing:1.5px;
-  text-transform:uppercase;
-}
-.info-modal p{
-  font-family:'Rajdhani',sans-serif;
-  font-size:.85rem;
-  color:var(--text-dim);
-  line-height:1.5;
-  margin-bottom:6px;
-}
-.info-modal ul{
-  list-style:none;padding:0;
-  font-family:'Rajdhani',sans-serif;
-  font-size:.82rem;
-  color:var(--text-dim);
-}
-.info-modal li{
-  padding:8px 0;
-  border-bottom:1px dashed var(--border);
-  line-height:1.4;
-}
-.info-modal li b{
-  color:var(--gold);
-  font-weight:700;
-  letter-spacing:.5px;
-}
+.info-modal{background:var(--bg2);border:1px solid var(--silver-deep);border-radius:14px;max-width:520px;width:100%;max-height:90vh;overflow-y:auto;padding:22px 22px 26px;position:relative;}
+.info-modal h2{font-family:'Orbitron',monospace;font-size:1rem;font-weight:900;color:var(--gold);margin-bottom:14px;letter-spacing:3px;text-align:center;text-transform:uppercase;text-shadow:0 0 4px #000,0 0 10px #000;}
+.info-modal h3{font-family:'Orbitron',monospace;font-size:.7rem;font-weight:900;color:var(--gold);margin:14px 0 6px;letter-spacing:2px;text-transform:uppercase;}
+.info-modal p{font-family:'Rajdhani',sans-serif;font-size:.85rem;color:var(--text-dim);line-height:1.5;margin-bottom:6px;}
+.info-modal ul{list-style:none;padding:0;font-family:'Rajdhani',sans-serif;font-size:.82rem;color:var(--text-dim);}
+.info-modal li{padding:8px 0;border-bottom:1px dashed var(--border);line-height:1.4;}
+.info-modal li b{color:var(--gold);font-weight:700;letter-spacing:.5px;}
 
-/* ─── FOOTER ─── */
-.footer{
-  position:relative;z-index:1;
-  padding:20px 16px 30px;
-  text-align:center;
-  font-family:'Orbitron',monospace;
-  font-size:.6rem;
-  color:var(--muted);
-  letter-spacing:1.5px;
-  border-top:1px solid var(--border);
-  margin-top:20px;
-}
-.footer-brand{
-  background:var(--grad-gold);
-  -webkit-background-clip:text;background-clip:text;
-  -webkit-text-fill-color:transparent;
-  font-weight:900;
-  letter-spacing:2px;
-}
+.footer{position:relative;z-index:1;padding:20px 16px 30px;text-align:center;font-family:'Orbitron',monospace;font-size:.55rem;color:var(--muted);letter-spacing:2px;border-top:1px solid var(--border);margin-top:20px;}
+.footer-brand{color:var(--gold);font-weight:900;letter-spacing:3px;text-shadow:0 0 4px #000,0 0 8px rgba(212,175,55,.3);}
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
 <div class="top-bar">
   <a href="../index.html" class="back-btn">◀ MENÚ</a>
-  <div class="brand">
-    MERCADO HEROICO
-    <span class="brand-sub">CHOQUE DE HÉROES · MXN</span>
-  </div>
+  <div class="brand">MERCADO HEROICO<span class="brand-sub">CHOQUE DE HÉROES · MXN</span></div>
   <button class="meta-btn" id="btn-info" aria-label="Información">
     <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
   </button>
 </div>
 
-<!-- HERO -->
+<div class="banner-slider" id="bannerSlider">
+  <div class="banner-track" id="bannerTrack">
+    <div class="banner-slide"><a href="https://www.facebook.com/share/1Qi8Zxqhzs/" target="_blank" rel="noopener">
+      <div class="banner-placeholder"><div>VICTORY ROAD SLP</div><div class="ph-sub">◆ TIENDA OFICIAL ◆ SAN LUIS POTOSÍ</div></div>
+      <span class="banner-tag">TIENDA OFICIAL</span><span class="banner-label">Victory Road SLP</span></a></div>
+    <div class="banner-slide"><a href="https://www.facebook.com/share/17enxp4wmH/" target="_blank" rel="noopener">
+      <div class="banner-placeholder"><div>LA TIENDA DEL HÉROE</div><div class="ph-sub">◆ TIENDA OFICIAL ◆ MÉXICO</div></div>
+      <span class="banner-tag">TIENDA OFICIAL</span><span class="banner-label">La Tienda del Héroe MX</span></a></div>
+    <div class="banner-slide"><a href="https://www.facebook.com/jon8762" target="_blank" rel="noopener">
+      <div class="banner-placeholder"><div>OBELISKO TCG</div><div class="ph-sub">◆ TIENDA OFICIAL ◆ COLECCIONABLES</div></div>
+      <span class="banner-tag">TIENDA OFICIAL</span><span class="banner-label">Obelisko TCG & Coleccionables</span></a></div>
+    <div class="banner-slide"><a href="https://www.facebook.com/GameZoneMex" target="_blank" rel="noopener">
+      <div class="banner-placeholder"><div>GAME ZONE MX</div><div class="ph-sub">◆ TIENDA OFICIAL ◆ MÉXICO</div></div>
+      <span class="banner-tag">TIENDA OFICIAL</span><span class="banner-label">Game Zone Mx</span></a></div>
+  </div>
+  <div class="banner-dots">
+    <button class="banner-dot active" onclick="goSlide(0)"></button>
+    <button class="banner-dot" onclick="goSlide(1)"></button>
+    <button class="banner-dot" onclick="goSlide(2)"></button>
+    <button class="banner-dot" onclick="goSlide(3)"></button>
+  </div>
+</div>
+
 <div class="hero">
   <div class="hero-title">MERCADO HEROICO</div>
   <div class="hero-sub">Precios sugeridos · Pesos mexicanos</div>
@@ -648,380 +183,185 @@ body::before{
   <div class="hero-meta" id="hero-meta">Cargando catálogo...</div>
 </div>
 
-<!-- CONTROLES -->
-<div class="controls">
+<div class="search-wrap">
   <div class="search-box">
     <svg class="search-icon" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg>
-    <input type="text" class="search-input" id="search" placeholder="Buscar carta por nombre...">
-  </div>
-  <div class="filter-row">
-    <select class="filter-select" id="filter-exp">
-      <option value="">TODAS LAS EXPANSIONES</option>
-    </select>
-    <select class="filter-select" id="filter-sort">
-      <option value="nombre">ORDENAR: NOMBRE</option>
-      <option value="precio-desc">PRECIO ↓</option>
-      <option value="precio-asc">PRECIO ↑</option>
-      <option value="id">ID</option>
-    </select>
+    <input type="text" class="search-input" id="search" placeholder="Buscar carta por nombre o ID...">
   </div>
 </div>
 
-<!-- TABS DE RAREZA -->
-<div class="tabs-wrap">
-  <div class="tabs" id="tabs"></div>
+<div class="filter-row">
+  <select class="filter-select" id="filter-exp"><option value="">TODAS LAS EXPANSIONES</option></select>
+  <select class="filter-select" id="filter-sort">
+    <option value="nombre">ORDENAR: NOMBRE</option>
+    <option value="precio-desc">PRECIO ↓</option>
+    <option value="precio-asc">PRECIO ↑</option>
+    <option value="id">ID</option>
+  </select>
 </div>
 
-<!-- GRID -->
-<div class="grid" id="grid">
-  <div class="state"><div class="state-icon">⏳</div>Cargando mercado...</div>
-</div>
+<div class="tabs-wrap"><div class="tabs" id="tabs"></div></div>
+<div class="list" id="list"><div class="state"><div class="state-icon">⏳</div>Cargando mercado...</div></div>
 
-<!-- MODAL DETALLE -->
-<div class="modal-back" id="modal-back">
-  <div class="modal" id="modal">
-    <button class="modal-close" id="modal-close">✕</button>
-    <img class="modal-img" id="modal-img" src="" alt="">
-    <div class="modal-body" id="modal-body"></div>
-  </div>
-</div>
+<div class="modal-back" id="modal-back"><div class="modal" id="modal">
+  <button class="modal-close" id="modal-close">✕</button>
+  <img class="modal-img" id="modal-img" src="" alt="">
+  <div class="modal-body" id="modal-body"></div>
+</div></div>
 
-<!-- MODAL INFO -->
-<div class="modal-back" id="info-back">
-  <div class="info-modal">
-    <button class="modal-close" onclick="document.getElementById('info-back').classList.remove('open')">✕</button>
-    <h2>◆ MERCADO HEROICO ◆</h2>
-    <p>Precios sugeridos de venta e intercambio para cartas de Choque de Héroes TCG en Near Mint (NM). Los precios son referenciales y pueden variar según demanda, utilidad competitiva y estado real de la carta.</p>
+<div class="modal-back" id="info-back"><div class="info-modal">
+  <button class="modal-close" onclick="document.getElementById('info-back').classList.remove('open')">✕</button>
+  <h2>◆ MERCADO HEROICO ◆</h2>
+  <p>Precios sugeridos de venta e intercambio para cartas de Choque de Héroes TCG en Near Mint (NM). Los precios son referenciales y pueden variar según demanda, utilidad competitiva y estado real de la carta.</p>
+  <h3>Guía de rarezas</h3>
+  <ul>
+    <li><b>Común</b> — Cartas estándar de sobres. Base $5 MXN. Pueden tener versión <b>Omega</b> (foil) desde $20.</li>
+    <li><b>Alfa</b> — Foil premium, 1 por caja de sobres. Base $60, varía por expansión.</li>
+    <li><b>Omega</b> — Cualquier carta común en versión foil. Desde $20 MXN.</li>
+    <li><b>Codex</b> — Foil con barniz, sin marco, con emblema de Codex en la parte baja. Desde $50.</li>
+    <li><b>Promo Torneo</b> — Foil con barniz, emblema de libro de cómic abierto. Desde $80.</li>
+    <li><b>Promo Evento</b> — Exclusivas de ferias del libro, convenciones y eventos del estudio. Desde $150 (mayor si son cartas de campeón).</li>
+    <li><b>Promo App</b> — Exclusivas de sobres digitales del Nexo de Héroes. Incluyen logo de la app. Rareza y precio variables.</li>
+  </ul>
+  <h3>Descuento por condición</h3>
+  <p>Al precio NM sugerido, aplica estos ajustes según estado real:</p>
+  <ul>
+    <li><b>NM · Near Mint</b> — 100% del precio</li>
+    <li><b>LP · Lightly Played</b> — 85% del precio</li>
+    <li><b>MP · Moderately Played</b> — 70% del precio</li>
+    <li><b>HP · Heavily Played</b> — 50% del precio</li>
+    <li><b>DMG · Damaged</b> — 30% o venta como bulk</li>
+  </ul>
+  <h3>Tiendas oficiales</h3>
+  <p>Los banners en la parte superior son tiendas asociadas donde puedes comprar cartas físicas. Toca cualquier banner para visitar su página.</p>
+  <p style="margin-top:14px;font-size:.7rem;color:var(--muted);text-align:center;">Base de datos actualizada: <span id="info-fecha">—</span></p>
+</div></div>
 
-    <h3>Guía de rarezas</h3>
-    <ul>
-      <li><b>Común</b> — Cartas estándar de sobres. Base $5 MXN. Pueden tener versión <b>Omega</b> (foil) desde $20.</li>
-      <li><b>Alfa</b> — Foil premium, 1 por caja de sobres. Base $60, varía por expansión.</li>
-      <li><b>Omega</b> — Cualquier carta común en versión foil. Desde $20 MXN.</li>
-      <li><b>Codex</b> — Foil con barniz, sin marco, con emblema de Codex en la parte baja. Desde $50.</li>
-      <li><b>Promo Torneo</b> — Foil con barniz, emblema de libro de cómic abierto. Desde $80.</li>
-      <li><b>Promo Evento</b> — Exclusivas de ferias del libro, convenciones y eventos del estudio. Desde $150 (mayor si son cartas de campeón).</li>
-      <li><b>Promo App</b> — Exclusivas de sobres digitales del Nexo de Héroes. Incluyen logo de la app. Rareza y precio variables.</li>
-    </ul>
-
-    <h3>Descuento por condición</h3>
-    <p>Al precio NM sugerido, aplica estos ajustes según estado real:</p>
-    <ul>
-      <li><b>NM · Near Mint</b> — 100% del precio</li>
-      <li><b>LP · Lightly Played</b> — 85% del precio</li>
-      <li><b>MP · Moderately Played</b> — 70% del precio</li>
-      <li><b>HP · Heavily Played</b> — 50% del precio</li>
-      <li><b>DMG · Damaged</b> — 30% o venta como bulk</li>
-    </ul>
-
-    <p style="margin-top:14px;font-size:.7rem;color:var(--muted);text-align:center;">
-      Base de datos actualizada: <span id="info-fecha">—</span>
-    </p>
-  </div>
-</div>
-
-<!-- FOOTER -->
-<div class="footer">
-  <div class="footer-brand">CODEX STUDIO</div>
-  <div style="margin-top:4px;">MERCADO HEROICO · v1.0</div>
-</div>
+<div class="footer"><div class="footer-brand">CODEX STUDIO</div><div style="margin-top:6px;">MERCADO HEROICO · v1.1</div></div>
 
 <script>
-// ═════════════ ESTADO ═════════════
-const STATE = {
-  cartas: [],
-  precios: {},
-  meta: {},
-  filtered: [],
-  rareza: 'todas',
-  expansion: '',
-  sort: 'nombre',
-  search: ''
-};
+var slideIndex = 0, slideCount = 4, autoSlide;
+function goSlide(n){slideIndex=n;document.getElementById('bannerTrack').style.transform='translateX(-'+(n*100)+'%)';document.querySelectorAll('.banner-dot').forEach(function(d,i){d.classList.toggle('active',i===n);});resetAuto();}
+function nextSlide(){goSlide((slideIndex+1)%slideCount);}
+function resetAuto(){clearInterval(autoSlide);autoSlide=setInterval(nextSlide,4500);}
+resetAuto();
 
-const RAREZAS = [
-  { id:'todas',        label:'TODAS' },
-  { id:'comun',        label:'COMÚN' },
-  { id:'alfa',         label:'ALFA' },
-  { id:'omega',        label:'OMEGA' },
-  { id:'codex',        label:'CODEX' },
-  { id:'promo_torneo', label:'PROMO TORNEO' },
-  { id:'promo_evento', label:'PROMO EVENTO' },
-  { id:'promo_app',    label:'PROMO APP' }
-];
+const STATE={cartas:[],precios:{},meta:{},filtered:[],rareza:'todas',expansion:'',sort:'nombre',search:''};
+const RAREZAS=[{id:'todas',label:'TODAS'},{id:'comun',label:'COMÚN'},{id:'alfa',label:'ALFA'},{id:'omega',label:'OMEGA'},{id:'codex',label:'CODEX'},{id:'promo_torneo',label:'PROMO TORNEO'},{id:'promo_evento',label:'PROMO EVENTO'},{id:'promo_app',label:'PROMO APP'}];
+const RAREZA_LABEL={comun:'Común',alfa:'Alfa',omega:'Omega',codex:'Codex',promo_torneo:'Promo Torneo',promo_evento:'Promo Evento',promo_app:'Promo App'};
+const CONDICION_PCT={NM:1,LP:.85,MP:.7,HP:.5,DMG:.3};
 
-const RAREZA_LABEL = {
-  comun:'Común', alfa:'Alfa', omega:'Omega', codex:'Codex',
-  promo_torneo:'Promo Torneo', promo_evento:'Promo Evento', promo_app:'Promo App'
-};
-
-const CONDICION_PCT = {NM:1, LP:.85, MP:.7, HP:.5, DMG:.3};
-
-// ═════════════ CARGA ═════════════
-async function cargar() {
-  try {
-    const [rC, rP] = await Promise.all([
-      fetch('../cartas.json'),
-      fetch('./precios.json')
-    ]);
-    STATE.cartas = await rC.json();
-    const dp = await rP.json();
-    STATE.precios = dp.precios || {};
-    STATE.meta = dp.meta || {};
-
-    document.getElementById('info-fecha').textContent = dp.actualizado || '—';
-    document.getElementById('hero-meta').textContent =
-      `${STATE.cartas.length} CARTAS · ACTUALIZADO ${dp.actualizado || ''}`;
-
-    poblarExpansiones();
-    renderTabs();
-    aplicar();
-  } catch(e) {
-    document.getElementById('grid').innerHTML =
-      `<div class="state"><div class="state-icon">⚠</div>Error al cargar datos:<br>${e.message}</div>`;
-  }
+async function cargar(){
+  try{
+    const [rC,rP]=await Promise.all([fetch('../cartas.json'),fetch('./precios.json')]);
+    STATE.cartas=await rC.json();
+    const dp=await rP.json();
+    STATE.precios=dp.precios||{};STATE.meta=dp.meta||{};
+    document.getElementById('info-fecha').textContent=dp.actualizado||'—';
+    document.getElementById('hero-meta').textContent=`${STATE.cartas.length} CARTAS · ACTUALIZADO ${dp.actualizado||''}`;
+    poblarExpansiones();renderTabs();aplicar();
+  }catch(e){document.getElementById('list').innerHTML=`<div class="state"><div class="state-icon">⚠</div>Error al cargar datos:<br>${e.message}</div>`;}
 }
-
-// ═════════════ FILTROS ═════════════
-function poblarExpansiones() {
-  const exps = [...new Set(STATE.cartas.map(c => c.expansion))].sort();
-  const sel = document.getElementById('filter-exp');
-  exps.forEach(e => {
-    const opt = document.createElement('option');
-    opt.value = e;
-    opt.textContent = e.toUpperCase().replace(/_/g,' ');
-    sel.appendChild(opt);
-  });
+function poblarExpansiones(){
+  const exps=[...new Set(STATE.cartas.map(c=>c.expansion))].sort();
+  const sel=document.getElementById('filter-exp');
+  exps.forEach(e=>{const opt=document.createElement('option');opt.value=e;opt.textContent=e.toUpperCase().replace(/_/g,' ');sel.appendChild(opt);});
 }
-
-function contarPorRareza() {
-  const counts = { todas: STATE.cartas.length };
-  STATE.cartas.forEach(c => {
-    const p = STATE.precios[c.id];
-    if (!p) return;
-    counts[p.rareza] = (counts[p.rareza] || 0) + 1;
-    if (p.rareza === 'comun' && p.precio_omega != null) {
-      counts.omega = (counts.omega || 0) + 1;
-    }
-  });
+function contarPorRareza(){
+  const counts={todas:STATE.cartas.length};
+  STATE.cartas.forEach(c=>{const p=STATE.precios[c.id];if(!p)return;counts[p.rareza]=(counts[p.rareza]||0)+1;if(p.rareza==='comun'&&p.precio_omega!=null)counts.omega=(counts.omega||0)+1;});
   return counts;
 }
-
-function renderTabs() {
-  const counts = contarPorRareza();
-  const tabsEl = document.getElementById('tabs');
-  tabsEl.innerHTML = RAREZAS.map(r => `
-    <div class="tab ${r.id === STATE.rareza ? 'active':''}" data-r="${r.id}">
-      ${r.label}<span class="tab-count">${counts[r.id] || 0}</span>
-    </div>
-  `).join('');
-  tabsEl.querySelectorAll('.tab').forEach(t => {
-    t.addEventListener('click', () => {
-      STATE.rareza = t.dataset.r;
-      tabsEl.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
-      t.classList.add('active');
-      aplicar();
-    });
-  });
+function renderTabs(){
+  const counts=contarPorRareza();
+  const tabsEl=document.getElementById('tabs');
+  tabsEl.innerHTML=RAREZAS.map(r=>`<div class="tab ${r.id===STATE.rareza?'active':''}" data-r="${r.id}">${r.label}<span class="tab-count">${counts[r.id]||0}</span></div>`).join('');
+  tabsEl.querySelectorAll('.tab').forEach(t=>{t.addEventListener('click',()=>{STATE.rareza=t.dataset.r;tabsEl.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');aplicar();});});
 }
-
-function aplicar() {
-  let list = STATE.cartas.filter(c => {
-    const p = STATE.precios[c.id];
-    if (!p) return false;
-
-    // Rareza
-    if (STATE.rareza === 'omega') {
-      if (p.rareza !== 'comun' || p.precio_omega == null) return false;
-    } else if (STATE.rareza !== 'todas' && p.rareza !== STATE.rareza) {
-      return false;
-    }
-
-    // Expansión
-    if (STATE.expansion && c.expansion !== STATE.expansion) return false;
-
-    // Búsqueda
-    if (STATE.search) {
-      const q = STATE.search.toLowerCase();
-      if (!c.nombre.toLowerCase().includes(q) &&
-          !c.id.toString().toLowerCase().includes(q)) return false;
-    }
+function aplicar(){
+  let list=STATE.cartas.filter(c=>{
+    const p=STATE.precios[c.id];if(!p)return false;
+    if(STATE.rareza==='omega'){if(p.rareza!=='comun'||p.precio_omega==null)return false;}
+    else if(STATE.rareza!=='todas'&&p.rareza!==STATE.rareza)return false;
+    if(STATE.expansion&&c.expansion!==STATE.expansion)return false;
+    if(STATE.search){const q=STATE.search.toLowerCase();if(!c.nombre.toLowerCase().includes(q)&&!c.id.toString().toLowerCase().includes(q))return false;}
     return true;
   });
-
-  // Sort
-  list.sort((a,b) => {
-    const pa = STATE.precios[a.id];
-    const pb = STATE.precios[b.id];
-    if (STATE.sort === 'precio-desc') return (pb.precio_nm||0) - (pa.precio_nm||0);
-    if (STATE.sort === 'precio-asc')  return (pa.precio_nm||0) - (pb.precio_nm||0);
-    if (STATE.sort === 'id') return a.id.toString().localeCompare(b.id.toString(), undefined, {numeric:true});
+  list.sort((a,b)=>{
+    const pa=STATE.precios[a.id],pb=STATE.precios[b.id];
+    if(STATE.sort==='precio-desc')return(pb.precio_nm||0)-(pa.precio_nm||0);
+    if(STATE.sort==='precio-asc')return(pa.precio_nm||0)-(pb.precio_nm||0);
+    if(STATE.sort==='id')return a.id.toString().localeCompare(b.id.toString(),undefined,{numeric:true});
     return a.nombre.localeCompare(b.nombre);
   });
-
-  STATE.filtered = list;
-  renderGrid();
+  STATE.filtered=list;renderList();
 }
-
-// ═════════════ RENDER ═════════════
-function renderGrid() {
-  const grid = document.getElementById('grid');
-  if (STATE.filtered.length === 0) {
-    grid.innerHTML = `<div class="state" style="grid-column:1/-1;"><div class="state-icon">◇</div>Ninguna carta coincide con los filtros</div>`;
-    return;
-  }
-
-  grid.innerHTML = STATE.filtered.map(c => {
-    const p = STATE.precios[c.id];
-    const mostrarOmega = STATE.rareza === 'omega';
-    const precio = mostrarOmega ? p.precio_omega : p.precio_nm;
-    const rareza = mostrarOmega ? 'omega' : p.rareza;
-    return `
-      <div class="card" data-r="${rareza}" data-id="${c.id}">
-        <div class="card-img-wrap">
-          <span class="card-rareza">${RAREZA_LABEL[rareza] || 'Común'}</span>
-          <img class="card-img loading"
-               data-src="../${c.miniatura}"
-               alt="${c.nombre}">
-        </div>
-        <div class="card-info">
-          <div class="card-nombre">${c.nombre}</div>
-          <div class="card-precio">
-            <span class="precio-nm">$${precio}</span>
-            <span class="precio-currency">MXN</span>
-          </div>
-          ${(!mostrarOmega && p.precio_omega != null) ?
-            `<div class="precio-omega">◆ Omega $${p.precio_omega}</div>` : ''}
-        </div>
+function renderList(){
+  const cont=document.getElementById('list');
+  if(STATE.filtered.length===0){cont.innerHTML=`<div class="state"><div class="state-icon">◇</div>Ninguna carta coincide con los filtros</div>`;return;}
+  cont.innerHTML=STATE.filtered.map(c=>{
+    const p=STATE.precios[c.id];
+    const mostrarOmega=STATE.rareza==='omega';
+    const precio=mostrarOmega?p.precio_omega:p.precio_nm;
+    const rareza=mostrarOmega?'omega':p.rareza;
+    const expLabel=c.expansion.replace(/_/g,' ').toUpperCase();
+    return `<div class="row" data-r="${rareza}" data-id="${c.id}">
+      <div class="row-thumb"><img class="loading" data-src="../${c.miniatura}" alt="${c.nombre}"></div>
+      <div class="row-info">
+        <div class="row-nombre">${c.nombre}</div>
+        <div class="row-meta">${c.tipo} · ${expLabel} · #${c.id}</div>
+        <span class="row-rareza">${RAREZA_LABEL[rareza]||'Común'}</span>
       </div>
-    `;
+      <div class="row-price">
+        <div><span class="row-price-nm">$${precio}</span> <span class="row-price-currency">MXN</span></div>
+        ${(!mostrarOmega&&p.precio_omega!=null)?`<div class="row-price-omega">◆ Omega $${p.precio_omega}</div>`:''}
+      </div>
+    </div>`;
   }).join('');
-
-  // Lazy load imágenes
-  const io = new IntersectionObserver((entries, obs) => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        const img = e.target;
-        img.src = img.dataset.src;
-        img.onload = () => img.classList.replace('loading','loaded');
-        img.onerror = () => { img.classList.remove('loading'); img.src=''; };
-        obs.unobserve(img);
-      }
-    });
-  }, { rootMargin:'200px' });
-  grid.querySelectorAll('.card-img').forEach(img => io.observe(img));
-
-  // Click en carta → modal
-  grid.querySelectorAll('.card').forEach(el => {
-    el.addEventListener('click', () => abrirModal(el.dataset.id));
-  });
+  const io=new IntersectionObserver((entries,obs)=>{
+    entries.forEach(e=>{if(e.isIntersecting){const img=e.target;img.src=img.dataset.src;img.onload=()=>img.classList.replace('loading','loaded');img.onerror=()=>{img.classList.remove('loading');img.src='';};obs.unobserve(img);}});
+  },{rootMargin:'200px'});
+  cont.querySelectorAll('.row-thumb img').forEach(img=>io.observe(img));
+  cont.querySelectorAll('.row').forEach(el=>{el.addEventListener('click',()=>abrirModal(el.dataset.id));});
 }
-
-// ═════════════ MODAL ═════════════
-function abrirModal(id) {
-  const c = STATE.cartas.find(x => x.id === id);
-  const p = STATE.precios[id];
-  if (!c || !p) return;
-
-  const img = document.getElementById('modal-img');
-  img.src = '../' + (c.ampliada || c.miniatura);
-  img.alt = c.nombre;
-
-  const body = document.getElementById('modal-body');
-  const rareza = p.rareza;
-  const rColor = {
-    comun:'#c0c0c0', alfa:'#f4d03f', codex:'#d4af37',
-    promo_torneo:'#e74c3c', promo_evento:'#c39bff', promo_app:'#00d4a0'
-  }[rareza] || '#c0c0c0';
-
-  const preciosHTML = [];
-  preciosHTML.push(`
-    <div class="precio-row">
-      <span class="precio-label">Precio NM (Near Mint)</span>
-      <span class="precio-value">$${p.precio_nm} MXN</span>
-    </div>
-  `);
-  if (p.precio_omega != null) {
-    preciosHTML.push(`
-      <div class="precio-row">
-        <span class="precio-label">◆ Versión Omega (foil)</span>
-        <span class="precio-value omega">$${p.precio_omega} MXN</span>
-      </div>
-    `);
-  }
-  // Condiciones sugeridas
-  ['LP','MP','HP','DMG'].forEach(cond => {
-    const val = Math.round(p.precio_nm * CONDICION_PCT[cond]);
-    preciosHTML.push(`
-      <div class="precio-row">
-        <span class="precio-label">${cond} · ${cond==='LP'?'Lightly':cond==='MP'?'Moderately':cond==='HP'?'Heavily':'Damaged'}</span>
-        <span class="precio-value" style="background:linear-gradient(135deg,#c0c0c0,#7a7a7a);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-size:.95rem;">$${val} MXN</span>
-      </div>
-    `);
+function abrirModal(id){
+  const c=STATE.cartas.find(x=>x.id===id),p=STATE.precios[id];
+  if(!c||!p)return;
+  const img=document.getElementById('modal-img');
+  img.src='../'+(c.ampliada||c.miniatura);img.alt=c.nombre;
+  const body=document.getElementById('modal-body');
+  const rareza=p.rareza;
+  const rColor={comun:'#c0c0c0',alfa:'#f4d03f',codex:'#d4af37',promo_torneo:'#e74c3c',promo_evento:'#c39bff',promo_app:'#00d4a0'}[rareza]||'#c0c0c0';
+  const preciosHTML=[];
+  preciosHTML.push(`<div class="precio-row"><span class="precio-label">Precio NM (Near Mint)</span><span class="precio-value">$${p.precio_nm} MXN</span></div>`);
+  if(p.precio_omega!=null)preciosHTML.push(`<div class="precio-row"><span class="precio-label">◆ Versión Omega (foil)</span><span class="precio-value omega">$${p.precio_omega} MXN</span></div>`);
+  ['LP','MP','HP','DMG'].forEach(cond=>{
+    const val=Math.round(p.precio_nm*CONDICION_PCT[cond]);
+    const nombre=cond==='LP'?'Lightly Played':cond==='MP'?'Moderately Played':cond==='HP'?'Heavily Played':'Damaged';
+    preciosHTML.push(`<div class="precio-row"><span class="precio-label">${cond} · ${nombre}</span><span class="precio-value" style="background:linear-gradient(135deg,#c0c0c0,#7a7a7a);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-size:.95rem;">$${val} MXN</span></div>`);
   });
-
-  body.innerHTML = `
-    <div style="--r-color:${rColor}">
-      <div class="modal-rareza-badge" style="border-color:${rColor};color:${rColor};">${RAREZA_LABEL[rareza] || 'Común'}</div>
-      <div class="modal-nombre">${c.nombre}</div>
-      <div class="modal-tipo">${c.tipo}</div>
-
-      <div class="modal-precios">
-        ${preciosHTML.join('')}
-      </div>
-
-      <div class="modal-info">
-        <div class="modal-info-row">
-          <span class="modal-info-label">ID</span>
-          <span>${c.id}</span>
-        </div>
-        <div class="modal-info-row">
-          <span class="modal-info-label">Expansión</span>
-          <span>${c.expansion.replace(/_/g,' ').toUpperCase()}</span>
-        </div>
-      </div>
-
-      ${p.notas ? `<div class="modal-notas">${p.notas}</div>` : ''}
+  body.innerHTML=`<div style="--r-color:${rColor}">
+    <div class="modal-rareza-badge" style="border-color:${rColor};color:${rColor};">${RAREZA_LABEL[rareza]||'Común'}</div>
+    <div class="modal-nombre">${c.nombre}</div>
+    <div class="modal-tipo">${c.tipo}</div>
+    <div class="modal-precios">${preciosHTML.join('')}</div>
+    <div class="modal-info">
+      <div class="modal-info-row"><span class="modal-info-label">ID</span><span>${c.id}</span></div>
+      <div class="modal-info-row"><span class="modal-info-label">Expansión</span><span>${c.expansion.replace(/_/g,' ').toUpperCase()}</span></div>
     </div>
-  `;
-
+    ${p.notas?`<div class="modal-notas">${p.notas}</div>`:''}
+  </div>`;
   document.getElementById('modal-back').classList.add('open');
 }
-
-// ═════════════ EVENTOS ═════════════
-document.getElementById('modal-close').addEventListener('click', () => {
-  document.getElementById('modal-back').classList.remove('open');
-});
-document.getElementById('modal-back').addEventListener('click', (e) => {
-  if (e.target.id === 'modal-back') e.target.classList.remove('open');
-});
-document.getElementById('btn-info').addEventListener('click', () => {
-  document.getElementById('info-back').classList.add('open');
-});
-document.getElementById('info-back').addEventListener('click', (e) => {
-  if (e.target.id === 'info-back') e.target.classList.remove('open');
-});
-
+document.getElementById('modal-close').addEventListener('click',()=>document.getElementById('modal-back').classList.remove('open'));
+document.getElementById('modal-back').addEventListener('click',(e)=>{if(e.target.id==='modal-back')e.target.classList.remove('open');});
+document.getElementById('btn-info').addEventListener('click',()=>document.getElementById('info-back').classList.add('open'));
+document.getElementById('info-back').addEventListener('click',(e)=>{if(e.target.id==='info-back')e.target.classList.remove('open');});
 let searchTimer;
-document.getElementById('search').addEventListener('input', (e) => {
-  clearTimeout(searchTimer);
-  searchTimer = setTimeout(() => {
-    STATE.search = e.target.value.trim();
-    aplicar();
-  }, 200);
-});
-document.getElementById('filter-exp').addEventListener('change', (e) => {
-  STATE.expansion = e.target.value;
-  aplicar();
-});
-document.getElementById('filter-sort').addEventListener('change', (e) => {
-  STATE.sort = e.target.value;
-  aplicar();
-});
-
-// Marcar que el usuario visitó Mercado (para badges futuros)
-try { localStorage.setItem('nh_visito_mercado', '1'); } catch(e){}
-
+document.getElementById('search').addEventListener('input',(e)=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>{STATE.search=e.target.value.trim();aplicar();},200);});
+document.getElementById('filter-exp').addEventListener('change',(e)=>{STATE.expansion=e.target.value;aplicar();});
+document.getElementById('filter-sort').addEventListener('change',(e)=>{STATE.sort=e.target.value;aplicar();});
+try{localStorage.setItem('nh_visito_mercado','1');}catch(e){}
 cargar();
 </script>
 </body>

@@ -40,19 +40,21 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .meta-btn:active{background:var(--silver-dim);border-color:var(--silver);box-shadow:var(--silver-glow);}
 .meta-btn svg{width:18px;height:18px;fill:var(--silver);}
 
+/* Buscador en top-bar */
+.top-search{flex:1;background:var(--bg2);border:1.5px solid var(--gold-dark);border-radius:10px;position:relative;}
+.top-search .search-input{padding:10px 12px 10px 40px;font-size:.95rem;}
+.top-search .search-icon{left:12px;width:18px;height:18px;}
 /* BANNER SLIDER */
 .banner-slider{width:calc(100% - 28px);max-width:480px;margin:14px auto 0;border-radius:12px;overflow:hidden;position:relative;box-shadow:0 0 20px rgba(212,175,55,.28);border:1.5px solid rgba(212,175,55,.35);}
 .banner-track{display:flex;transition:transform 0.5s cubic-bezier(0.77,0,0.18,1);will-change:transform;}
 .banner-slide{min-width:100%;display:block;position:relative;}
 .banner-slide a{display:block;text-decoration:none;position:relative;}
 .banner-slide img{width:100%;display:block;border-radius:12px;}
-.banner-label{position:absolute;bottom:8px;left:8px;right:60px;padding:6px 10px;background:linear-gradient(90deg,rgba(0,0,0,.85),rgba(0,0,0,.5));border-left:3px solid var(--gold);border-radius:4px;font-family:'Orbitron',monospace;font-size:.65rem;font-weight:900;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;text-shadow:0 0 4px #000;pointer-events:none;}
-.banner-tag{position:absolute;top:8px;right:8px;padding:3px 8px;background:var(--grad-gold);color:#1a1300;font-family:'Orbitron',monospace;font-size:.55rem;font-weight:900;letter-spacing:1.5px;border-radius:10px;text-shadow:0 1px 0 rgba(255,255,255,.3);pointer-events:none;}
+
 .banner-dots{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);display:flex;gap:7px;z-index:5;}
 .banner-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.3);border:none;padding:0;cursor:pointer;transition:background 0.3s;}
 .banner-dot.active{background:var(--gold);box-shadow:0 0 8px var(--gold);}
-.banner-placeholder{width:100%;aspect-ratio:5/2;background:linear-gradient(135deg,rgba(212,175,55,.15) 0%,rgba(10,8,6,.9) 60%),repeating-linear-gradient(45deg,rgba(212,175,55,.05) 0 10px,transparent 10px 20px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--gold);font-family:'Orbitron',monospace;font-size:.85rem;font-weight:900;letter-spacing:2px;text-align:center;padding:0 20px;text-shadow:0 0 4px #000,1px 1px 0 #000;}
-.banner-placeholder .ph-sub{font-size:.6rem;color:var(--silver);letter-spacing:2px;font-weight:700;}
+.banner-placeholder{width:100%;aspect-ratio:5/2;background:linear-gradient(135deg,rgba(212,175,55,.15) 0%,rgba(10,8,6,.9) 60%);display:flex;align-items:center;justify-content:center;color:var(--gold);font-family:'Orbitron',monospace;font-size:.85rem;font-weight:900;letter-spacing:2px;text-align:center;padding:0 20px;text-shadow:0 0 4px #000,1px 1px 0 #000;}
 
 .hero{position:relative;z-index:1;padding:18px 16px 12px;text-align:center;}
 .hero-title{font-family:'Orbitron',monospace;font-weight:900;font-size:1.4rem;color:var(--gold);filter:brightness(0.95);letter-spacing:5px;text-transform:uppercase;margin-bottom:6px;text-shadow:0 0 1px #000,0 0 4px #000,0 0 12px #000,0 0 24px #000,1px 1px 0 #000,-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000;}
@@ -72,7 +74,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .filter-select{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text-dim);font-family:'Orbitron',monospace;font-size:.65rem;font-weight:700;letter-spacing:1.2px;cursor:pointer;}
 .filter-select:focus{outline:none;border-color:var(--gold-dark);}
 
-.tabs-wrap{position:sticky;top:56px;z-index:90;background:linear-gradient(180deg,rgba(10,8,6,.96),rgba(10,8,6,.88));backdrop-filter:blur(10px);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:10px 0;}
+.tabs-wrap{position:sticky;top:58px;z-index:90;background:linear-gradient(180deg,rgba(10,8,6,.96),rgba(10,8,6,.88));backdrop-filter:blur(10px);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:10px 0;}
 .tabs{display:flex;gap:6px;padding:0 14px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;max-width:600px;margin:0 auto;}
 .tab{flex:0 0 auto;padding:7px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:18px;font-family:'Orbitron',monospace;font-size:.65rem;font-weight:700;color:var(--muted);letter-spacing:1.2px;cursor:pointer;transition:all .2s;white-space:nowrap;text-transform:uppercase;}
 .tab-count{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:10px;background:rgba(255,255,255,.08);font-size:.58rem;color:var(--text-dim);}
@@ -146,34 +148,19 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 <body>
 
 <div class="top-bar">
-  <a href="../index.html" class="back-btn">◀ MENÚ</a>
-  <div class="brand">MERCADO HEROICO<span class="brand-sub">CHOQUE DE HÉROES · MXN</span></div>
+  <a href="../index.html" class="back-btn">◀</a>
+  <div class="search-box top-search">
+    <svg class="search-icon" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg>
+    <input type="text" class="search-input" id="search" placeholder="Buscar carta por nombre o ID...">
+  </div>
   <button class="meta-btn" id="btn-info" aria-label="Información">
     <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
   </button>
 </div>
 
 <div class="banner-slider" id="bannerSlider">
-  <div class="banner-track" id="bannerTrack">
-    <div class="banner-slide"><a href="https://www.facebook.com/share/1Qi8Zxqhzs/" target="_blank" rel="noopener">
-      <div class="banner-placeholder"><div>VICTORY ROAD SLP</div><div class="ph-sub">◆ TIENDA OFICIAL ◆ SAN LUIS POTOSÍ</div></div>
-      <span class="banner-tag">TIENDA OFICIAL</span><span class="banner-label">Victory Road SLP</span></a></div>
-    <div class="banner-slide"><a href="https://www.facebook.com/share/17enxp4wmH/" target="_blank" rel="noopener">
-      <div class="banner-placeholder"><div>LA TIENDA DEL HÉROE</div><div class="ph-sub">◆ TIENDA OFICIAL ◆ MÉXICO</div></div>
-      <span class="banner-tag">TIENDA OFICIAL</span><span class="banner-label">La Tienda del Héroe MX</span></a></div>
-    <div class="banner-slide"><a href="https://www.facebook.com/jon8762" target="_blank" rel="noopener">
-      <div class="banner-placeholder"><div>OBELISKO TCG</div><div class="ph-sub">◆ TIENDA OFICIAL ◆ COLECCIONABLES</div></div>
-      <span class="banner-tag">TIENDA OFICIAL</span><span class="banner-label">Obelisko TCG & Coleccionables</span></a></div>
-    <div class="banner-slide"><a href="https://www.facebook.com/GameZoneMex" target="_blank" rel="noopener">
-      <div class="banner-placeholder"><div>GAME ZONE MX</div><div class="ph-sub">◆ TIENDA OFICIAL ◆ MÉXICO</div></div>
-      <span class="banner-tag">TIENDA OFICIAL</span><span class="banner-label">Game Zone Mx</span></a></div>
-  </div>
-  <div class="banner-dots">
-    <button class="banner-dot active" onclick="goSlide(0)"></button>
-    <button class="banner-dot" onclick="goSlide(1)"></button>
-    <button class="banner-dot" onclick="goSlide(2)"></button>
-    <button class="banner-dot" onclick="goSlide(3)"></button>
-  </div>
+  <div class="banner-track" id="bannerTrack"></div>
+  <div class="banner-dots" id="bannerDots"></div>
 </div>
 
 <div class="hero">
@@ -181,13 +168,6 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
   <div class="hero-sub">Precios sugeridos · Pesos mexicanos</div>
   <div class="hero-divider"></div>
   <div class="hero-meta" id="hero-meta">Cargando catálogo...</div>
-</div>
-
-<div class="search-wrap">
-  <div class="search-box">
-    <svg class="search-icon" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg>
-    <input type="text" class="search-input" id="search" placeholder="Buscar carta por nombre o ID...">
-  </div>
 </div>
 
 <div class="filter-row">
@@ -240,10 +220,31 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 <div class="footer"><div class="footer-brand">CODEX STUDIO</div><div style="margin-top:6px;">MERCADO HEROICO · v1.1</div></div>
 
 <script>
-var slideIndex = 0, slideCount = 4, autoSlide;
+// ═════ BANNERS DE TIENDAS ═════
+// Para agregar un banner: sube banners/banner_N.jpg y agrega {url} aquí.
+// El orden del array = orden del slider. nombre solo se usa si falta la imagen.
+const BANNERS = [
+  { img:'banners/banner_1.jpg', url:'https://www.facebook.com/share/1Qi8Zxqhzs/', nombre:'Victory Road SLP' },
+  { img:'banners/banner_2.jpg', url:'https://www.facebook.com/share/17enxp4wmH/', nombre:'La Tienda del Héroe MX' },
+  { img:'banners/banner_3.jpg', url:'https://www.facebook.com/jon8762', nombre:'Obelisko TCG & Coleccionables' },
+  { img:'banners/banner_4.jpg', url:'https://www.facebook.com/GameZoneMex', nombre:'Game Zone Mx' }
+];
+
+var slideIndex = 0, slideCount = BANNERS.length, autoSlide;
+function renderBanners(){
+  const track = document.getElementById('bannerTrack');
+  const dots = document.getElementById('bannerDots');
+  track.innerHTML = BANNERS.map(b => `
+    <div class="banner-slide"><a href="${b.url}" target="_blank" rel="noopener">
+      <img src="${b.img}" alt="${b.nombre}" onerror="this.outerHTML='<div class=banner-placeholder>${b.nombre}</div>'">
+    </a></div>`).join('');
+  dots.innerHTML = BANNERS.map((_,i) =>
+    `<button class="banner-dot ${i===0?'active':''}" onclick="goSlide(${i})"></button>`).join('');
+}
 function goSlide(n){slideIndex=n;document.getElementById('bannerTrack').style.transform='translateX(-'+(n*100)+'%)';document.querySelectorAll('.banner-dot').forEach(function(d,i){d.classList.toggle('active',i===n);});resetAuto();}
 function nextSlide(){goSlide((slideIndex+1)%slideCount);}
 function resetAuto(){clearInterval(autoSlide);autoSlide=setInterval(nextSlide,4500);}
+renderBanners();
 resetAuto();
 
 const STATE={cartas:[],precios:{},meta:{},filtered:[],rareza:'todas',expansion:'',sort:'nombre',search:''};
@@ -258,7 +259,7 @@ async function cargar(){
     const dp=await rP.json();
     STATE.precios=dp.precios||{};STATE.meta=dp.meta||{};
     document.getElementById('info-fecha').textContent=dp.actualizado||'—';
-    document.getElementById('hero-meta').textContent=`${STATE.cartas.length} CARTAS · ACTUALIZADO ${dp.actualizado||''}`;
+    document.getElementById('hero-meta').textContent=`${Object.keys(STATE.precios).length} CARTAS · ACTUALIZADO ${dp.actualizado||''}`;
     poblarExpansiones();renderTabs();aplicar();
   }catch(e){document.getElementById('list').innerHTML=`<div class="state"><div class="state-icon">⚠</div>Error al cargar datos:<br>${e.message}</div>`;}
 }
@@ -268,8 +269,8 @@ function poblarExpansiones(){
   exps.forEach(e=>{const opt=document.createElement('option');opt.value=e;opt.textContent=e.toUpperCase().replace(/_/g,' ');sel.appendChild(opt);});
 }
 function contarPorRareza(){
-  const counts={todas:STATE.cartas.length};
-  STATE.cartas.forEach(c=>{const p=STATE.precios[c.id];if(!p)return;counts[p.rareza]=(counts[p.rareza]||0)+1;if(p.rareza==='comun'&&p.precio_omega!=null)counts.omega=(counts.omega||0)+1;});
+  const counts={todas:0};
+  STATE.cartas.forEach(c=>{const p=STATE.precios[c.id];if(!p)return;counts.todas++;counts[p.rareza]=(counts[p.rareza]||0)+1;if(p.rareza==='comun'&&p.precio_omega!=null)counts.omega=(counts.omega||0)+1;});
   return counts;
 }
 function renderTabs(){

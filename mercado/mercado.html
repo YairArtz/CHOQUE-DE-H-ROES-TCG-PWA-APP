@@ -142,6 +142,30 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .info-modal li{padding:8px 0;border-bottom:1px dashed var(--border);line-height:1.4;}
 .info-modal li b{color:var(--gold);font-weight:700;letter-spacing:.5px;}
 
+
+/* ─── COTIZADOR DE MAZO ─── */
+.fab-cotizar{position:fixed;bottom:20px;right:16px;z-index:150;background:var(--grad-gold);color:#1a1300;border:none;border-radius:24px;padding:12px 18px;font-family:'Orbitron',monospace;font-size:.7rem;font-weight:900;letter-spacing:1.5px;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,.6),var(--gold-glow);display:flex;align-items:center;gap:6px;text-shadow:0 1px 0 rgba(255,255,255,.3);}
+.fab-cotizar:active{transform:scale(.95);}
+.cotiz-modal{background:var(--bg2);border:1px solid var(--gold-dark);border-radius:14px;max-width:520px;width:100%;max-height:90vh;overflow-y:auto;padding:20px 18px 24px;position:relative;}
+.cotiz-modal h2{font-family:'Orbitron',monospace;font-size:.9rem;font-weight:900;color:var(--gold);letter-spacing:2px;text-align:center;text-transform:uppercase;margin-bottom:4px;text-shadow:0 0 4px #000;}
+.cotiz-modal .cotiz-sub{font-family:'Rajdhani',sans-serif;font-size:.8rem;color:var(--muted);text-align:center;margin-bottom:14px;line-height:1.4;}
+.cotiz-decks{width:100%;margin-bottom:10px;background:var(--bg3);border:1px solid var(--gold-dark);border-radius:10px;padding:10px 28px 10px 12px;color:var(--text);font-family:'Orbitron',monospace;font-size:.65rem;font-weight:700;letter-spacing:1px;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23d4af37'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;background-size:14px;}
+.cotiz-decks:focus{outline:none;border-color:var(--gold);}
+.cotiz-input{width:100%;min-height:140px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:.9rem;font-weight:600;resize:vertical;line-height:1.5;}
+.cotiz-input:focus{outline:none;border-color:var(--gold);}
+.cotiz-btn{width:100%;margin-top:10px;background:var(--grad-gold);color:#1a1300;border:none;border-radius:10px;padding:12px;font-family:'Orbitron',monospace;font-size:.75rem;font-weight:900;letter-spacing:2px;cursor:pointer;text-shadow:0 1px 0 rgba(255,255,255,.3);}
+.cotiz-btn:active{transform:scale(.98);}
+.cotiz-result{margin-top:16px;}
+.cotiz-row{display:grid;grid-template-columns:34px 1fr auto;gap:8px;align-items:center;padding:7px 0;border-bottom:1px dashed var(--border);font-family:'Rajdhani',sans-serif;font-size:.85rem;}
+.cotiz-row .cq{font-family:'Orbitron',monospace;font-size:.7rem;font-weight:900;color:var(--silver);text-align:center;}
+.cotiz-row .cn{color:var(--text);font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.cotiz-row .cn small{display:block;color:var(--muted);font-size:.68rem;letter-spacing:.5px;}
+.cotiz-row .cp{font-family:'Orbitron',monospace;font-weight:900;font-size:.8rem;background:var(--grad-gold);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;white-space:nowrap;}
+.cotiz-row.nf .cn,.cotiz-row.nf .cq{color:var(--r-promo-torneo);}
+.cotiz-total{margin-top:12px;padding:14px;background:var(--bg3);border:1px solid var(--gold-dark);border-radius:10px;display:flex;justify-content:space-between;align-items:baseline;}
+.cotiz-total .tl{font-family:'Orbitron',monospace;font-size:.7rem;font-weight:900;color:var(--text-dim);letter-spacing:2px;}
+.cotiz-total .tv{font-family:'Orbitron',monospace;font-size:1.4rem;font-weight:900;background:var(--grad-gold);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+.cotiz-note{margin-top:10px;font-family:'Rajdhani',sans-serif;font-size:.72rem;color:var(--muted);line-height:1.4;text-align:center;}
 .footer{position:relative;z-index:1;padding:20px 16px 30px;text-align:center;font-family:'Orbitron',monospace;font-size:.55rem;color:var(--muted);letter-spacing:2px;border-top:1px solid var(--border);margin-top:20px;}
 .footer-brand{color:var(--gold);font-weight:900;letter-spacing:3px;text-shadow:0 0 4px #000,0 0 8px rgba(212,175,55,.3);}
 </style>
@@ -226,6 +250,19 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
   <h3>Tiendas oficiales</h3>
   <p>Los banners en la parte superior son tiendas asociadas donde puedes comprar cartas físicas. Toca cualquier banner para visitar su página.</p>
   <p style="margin-top:14px;font-size:.7rem;color:var(--muted);text-align:center;">Base de datos actualizada: <span id="info-fecha">—</span></p>
+</div></div>
+
+
+<button class="fab-cotizar" id="btn-cotizar">🧮 COTIZAR MAZO</button>
+
+<div class="modal-back" id="cotiz-back"><div class="cotiz-modal">
+  <button class="modal-close" onclick="document.getElementById('cotiz-back').classList.remove('open')">✕</button>
+  <h2>🧮 Cotizador de Mazo</h2>
+  <div class="cotiz-sub">Elige una baraja guardada del Constructor o pega tu lista.<br>Formatos: <b>3x Nombre</b> · <b>Nombre x3</b> · un nombre o ID por línea.</div>
+  <select class="cotiz-decks" id="cotiz-decks"><option value="">📂 MIS BARAJAS GUARDADAS...</option></select>
+  <textarea class="cotiz-input" id="cotiz-input" placeholder="3x Koatl el Defensor&#10;2x Alma Nexotlan&#10;Quetzalcoatl Primigenio&#10;1402"></textarea>
+  <button class="cotiz-btn" id="cotiz-calc">CALCULAR PRECIO</button>
+  <div class="cotiz-result" id="cotiz-result"></div>
 </div></div>
 
 <div class="footer"><div class="footer-brand">CODEX STUDIO</div><div style="margin-top:6px;">MERCADO HEROICO · v1.1</div></div>
@@ -396,6 +433,126 @@ document.getElementById('search').addEventListener('input',(e)=>{clearTimeout(se
 document.getElementById('filter-exp').addEventListener('change',(e)=>{STATE.expansion=e.target.value;aplicar();});
 document.getElementById('filter-tipo').addEventListener('change',(e)=>{STATE.tipo=e.target.value;aplicar();});
 document.getElementById('filter-sort').addEventListener('change',(e)=>{STATE.sort=e.target.value;aplicar();});
+
+// ═════ COTIZADOR DE MAZO ═════
+function normalizar(s){return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();}
+
+function buscarCarta(query){
+  const q=normalizar(query);
+  if(!q)return null;
+  // 1. Match exacto por ID
+  let c=STATE.cartas.find(x=>x.id.toString().toLowerCase()===query.trim().toLowerCase());
+  if(c&&STATE.precios[c.id])return c;
+  // 2. Match exacto por nombre
+  c=STATE.cartas.find(x=>normalizar(x.nombre)===q&&STATE.precios[x.id]);
+  if(c)return c;
+  // 3. Match parcial (nombre contiene la búsqueda)
+  const cands=STATE.cartas.filter(x=>STATE.precios[x.id]&&normalizar(x.nombre).includes(q));
+  if(cands.length===1)return cands[0];
+  if(cands.length>1){
+    // preferir la más barata en versión común (base del mazo)
+    cands.sort((a,b)=>(STATE.precios[a.id].precio_nm||0)-(STATE.precios[b.id].precio_nm||0));
+    return cands[0];
+  }
+  return null;
+}
+
+function parsearLinea(linea){
+  linea=linea.trim();
+  if(!linea)return null;
+  let qty=1,nombre=linea;
+  let m=linea.match(/^(\d+)\s*[xX]\s+(.+)$/);          // "3x Nombre"
+  if(m){qty=parseInt(m[1]);nombre=m[2];}
+  else{
+    m=linea.match(/^(.+?)\s+[xX]\s*(\d+)$/);            // "Nombre x3"
+    if(m){nombre=m[1];qty=parseInt(m[2]);}
+    else{
+      m=linea.match(/^(\d+)\s+(.+)$/);                    // "3 Nombre"
+      if(m&&parseInt(m[1])<=10){qty=parseInt(m[1]);nombre=m[2];}
+    }
+  }
+  return {qty:Math.max(1,qty),nombre:nombre.trim()};
+}
+
+function cotizarMazo(){
+  const texto=document.getElementById('cotiz-input').value;
+  const lineas=texto.split('\n').map(parsearLinea).filter(Boolean);
+  const result=document.getElementById('cotiz-result');
+  if(!lineas.length){result.innerHTML='<div class="cotiz-note">Pega una lista de cartas para cotizar.</div>';return;}
+
+  let total=0,encontradas=0,filas=[];
+  lineas.forEach(l=>{
+    const c=buscarCarta(l.nombre);
+    if(c){
+      const p=STATE.precios[c.id];
+      const sub=p.precio_nm*l.qty;
+      total+=sub;encontradas+=l.qty;
+      filas.push(`<div class="cotiz-row">
+        <span class="cq">${l.qty}x</span>
+        <span class="cn">${c.nombre}<small>${RAREZA_LABEL[p.rareza]||''} · $${p.precio_nm} c/u</small></span>
+        <span class="cp">$${sub}</span>
+      </div>`);
+    }else{
+      filas.push(`<div class="cotiz-row nf">
+        <span class="cq">${l.qty}x</span>
+        <span class="cn">${l.nombre}<small>No encontrada</small></span>
+        <span class="cp">—</span>
+      </div>`);
+    }
+  });
+
+  result.innerHTML=filas.join('')+`
+    <div class="cotiz-total">
+      <span class="tl">TOTAL (${encontradas} CARTAS)</span>
+      <span class="tv">$${total} MXN</span>
+    </div>
+    <div class="cotiz-note">Precios NM sugeridos. Las versiones Omega/foil no se incluyen — cotízalas individualmente.</div>`;
+}
+
+// Cargar barajas guardadas del Constructor (localStorage chh_decks)
+function poblarBarajas(){
+  const sel=document.getElementById('cotiz-decks');
+  let decks=[];
+  try{decks=JSON.parse(localStorage.getItem('chh_decks')||'[]');}catch(e){}
+  // limpiar opciones previas (dejar la primera)
+  while(sel.options.length>1)sel.remove(1);
+  decks.forEach((d,i)=>{
+    const total=(d.decks?.BP?.length||0)+(d.decks?.BA?.length||0)+(d.decks?.BS?.length||0);
+    const opt=document.createElement('option');
+    opt.value=i;
+    opt.textContent=`${d.name} (${total} cartas)`;
+    sel.appendChild(opt);
+  });
+  if(!decks.length){
+    const opt=document.createElement('option');
+    opt.disabled=true;opt.textContent='— No hay barajas guardadas —';
+    sel.appendChild(opt);
+  }
+}
+
+function barajaATexto(d){
+  // Agrupa las cartas de BP+BA+BS por nombre y genera "Nx Nombre"
+  const todas=[...(d.decks?.BP||[]),...(d.decks?.BA||[]),...(d.decks?.BS||[])];
+  const conteo={};
+  todas.forEach(c=>{const k=c.id;if(!conteo[k])conteo[k]={n:c.nombre,q:0};conteo[k].q++;});
+  return Object.values(conteo).map(x=>`${x.q}x ${x.n}`).join('\n');
+}
+
+document.getElementById('cotiz-decks').addEventListener('change',(e)=>{
+  const i=e.target.value;
+  if(i==='')return;
+  let decks=[];
+  try{decks=JSON.parse(localStorage.getItem('chh_decks')||'[]');}catch(e){}
+  const d=decks[parseInt(i)];
+  if(!d)return;
+  document.getElementById('cotiz-input').value=barajaATexto(d);
+  cotizarMazo();
+});
+
+document.getElementById('btn-cotizar').addEventListener('click',()=>{poblarBarajas();document.getElementById('cotiz-back').classList.add('open');});
+document.getElementById('cotiz-back').addEventListener('click',(e)=>{if(e.target.id==='cotiz-back')e.target.classList.remove('open');});
+document.getElementById('cotiz-calc').addEventListener('click',cotizarMazo);
+
 try{localStorage.setItem('nh_visito_mercado','1');}catch(e){}
 cargar();
 </script>

@@ -374,9 +374,9 @@ body::after{
     <div class="phdr">
       <div class="pname" id="nm2">Jugador 2</div>
       <div class="hmax-wrap">
-        <button class="hmx" onclick="chMax(2,-1)">−</button>
+        <button class="hmx" id="hmx2d">−</button>
         <div class="hbadge">❤ <span id="hl2">10</span>/<span id="hm2">10</span></div>
-        <button class="hmx" onclick="chMax(2,+1)">+</button>
+        <button class="hmx" id="hmx2u">+</button>
       </div>
     </div>
     <div class="hrow" id="hr2"></div>
@@ -385,10 +385,10 @@ body::after{
   </div>
 
   <div id="divider">
-    <button class="act-btn back-btn" onclick="window.location.href='index.html'">← Menú</button>
-    <button class="act-btn" onclick="chhEditNames()">✎ Nombres</button>
-    <div class="div-vs" style="position:relative;">VS<span style="position:absolute;bottom:-9px;left:50%;transform:translateX(-50%);font-size:7px;letter-spacing:1px;color:#3a4a60;">v2.3</span></div>
-    <button class="act-btn" onclick="chhResetGame()">↺ Reset</button>
+    <button class="act-btn back-btn" id="btn-menu">← Menú</button>
+    <button class="act-btn" id="btn-names">✎ Nombres</button>
+    <div class="div-vs" style="position:relative;">VS<span style="position:absolute;bottom:-9px;left:50%;transform:translateX(-50%);font-size:7px;letter-spacing:1px;color:#3a4a60;">v2.4</span></div>
+    <button class="act-btn" id="btn-reset">↺ Reset</button>
   </div>
 
   <div class="pzone p1" id="z1">
@@ -396,9 +396,9 @@ body::after{
     <div class="phdr">
       <div class="pname" id="nm1">Jugador 1</div>
       <div class="hmax-wrap">
-        <button class="hmx" onclick="chMax(1,-1)">−</button>
+        <button class="hmx" id="hmx1d">−</button>
         <div class="hbadge">❤ <span id="hl1">10</span>/<span id="hm1">10</span></div>
-        <button class="hmx" onclick="chMax(1,+1)">+</button>
+        <button class="hmx" id="hmx1u">+</button>
       </div>
     </div>
     <div class="hrow" id="hr1"></div>
@@ -419,7 +419,7 @@ body::after{
         <div class="ov-lname" id="ov-ln">Jugador 2</div>
         <div class="ov-def">✕ DERROTA</div>
       </div>
-      <button class="ov-restart" onclick="chhResetGame()">↺ Nueva Partida</button>
+      <button class="ov-restart" id="btn-newgame">↺ Nueva Partida</button>
     </div>
   </div>
 </div>
@@ -431,7 +431,7 @@ try {
   if (!s.includes('calculadora')) { s.push('calculadora'); localStorage.setItem('chh_secciones_visitadas', JSON.stringify(s)); }
 } catch(e) {}
 
-console.log('[CHH] calculadora v2.3');
+console.log('[CHH] calculadora v2.4 — listeners JS, sin onclick inline');
 const TH_DEF=10;   // corazones iniciales
 const TH_VIEW=10;  // umbral: >10 pasa a modo compacto
 const TH_LIM=30;   // máximo absoluto
@@ -475,12 +475,12 @@ function chhRenderH(p){
     // ── modo compacto (>10): corazón oficial × contador ──
     el.classList.add('compact');
     el.innerHTML=
-      '<button class="hcbtn" onclick="chH('+p+',-1)">−</button>'+
-      '<div class="hrt-big '+(d.h>0?'alive':'dead')+'" id="hbig'+p+'" onclick="chH('+p+',-1)">'+
+      '<button class="hcbtn" data-hd="-1">−</button>'+
+      '<div class="hrt-big '+(d.h>0?'alive':'dead')+'" id="hbig'+p+'" data-hd="-1">'+
         '<img src="'+HSRC+'" alt="v" draggable="false">'+
       '</div>'+
       '<div class="hcount" id="hc'+p+'">× '+d.h+'</div>'+
-      '<button class="hcbtn" onclick="chH('+p+',+1)">+</button>';
+      '<button class="hcbtn" data-hd="+1">+</button>';
   }
   const hlEl=document.getElementById('hl'+p); if(hlEl)hlEl.textContent=d.h;
   const hmEl=document.getElementById('hm'+p); if(hmEl)hmEl.textContent=d.max;
@@ -574,8 +574,8 @@ function buildSectors(p){
           '<div class="zona-hp '+(hp>0?'active':'zero')+'" id="zhp'+p+'-'+idx+'">'+hp+'</div>'+
           '<div class="zona-name">PERSONAJE '+(idx+1)+'</div>'+
           '<div class="zona-btns">'+
-            '<button class="zbtn" onclick="chp('+p+','+idx+',-1)">−</button>'+
-            '<button class="zbtn" onclick="chp('+p+','+idx+',+1)">+</button>'+
+            '<button class="zbtn" data-ci="'+idx+'" data-cd="-1">−</button>'+
+            '<button class="zbtn" data-ci="'+idx+'" data-cd="+1">+</button>'+
           '</div>'+
         '</div>';
       sc.appendChild(zona);
@@ -620,13 +620,39 @@ function chhEditNames(){
   document.getElementById('nm1').textContent=S.p1.name;
   document.getElementById('nm2').textContent=S.p2.name;
 }
+// Toast de confirmación visible (sin consola)
+function chhToast(msg){
+  const old=document.getElementById('chh-toast');if(old)old.remove();
+  const t=document.createElement('div');t.id='chh-toast';t.textContent=msg;
+  t.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(3,5,10,.95);border:1px solid var(--neon-d);color:var(--neon);font-family:Orbitron,monospace;font-size:11px;font-weight:900;letter-spacing:2px;padding:12px 22px;border-radius:8px;z-index:2000;text-shadow:var(--nglow);pointer-events:none;';
+  document.body.appendChild(t);setTimeout(()=>t.remove(),1200);
+}
+
+// ── Delegación: corazones (fila y compacto) ──
 [1,2].forEach(p=>{
   document.getElementById('hr'+p).addEventListener('click',e=>{
+    const hd=e.target.closest('[data-hd]');
+    if(hd){chH(p,parseInt(hd.getAttribute('data-hd'),10));return;}
     const h=e.target.closest('.hrt');
-    if(!h)return;
-    toggleH(p,parseInt(h.id.split('-')[1]));
+    if(h)toggleH(p,parseInt(h.id.split('-')[1],10));
+  });
+  // ── Delegación: botones de zonas de personaje ──
+  document.getElementById('sec'+p).addEventListener('click',e=>{
+    const b=e.target.closest('[data-ci]');
+    if(!b)return;
+    chp(p,parseInt(b.getAttribute('data-ci'),10),parseInt(b.getAttribute('data-cd'),10));
   });
 });
+
+// ── Bindings estáticos (sin onclick inline) ──
+document.getElementById('btn-menu').addEventListener('click',()=>{window.location.href='index.html';});
+document.getElementById('btn-names').addEventListener('click',chhEditNames);
+document.getElementById('btn-reset').addEventListener('click',()=>{chhResetGame();chhToast('↺ RESET · '+S.p1.h+'/'+S.p1.max+' — '+S.p2.h+'/'+S.p2.max);});
+document.getElementById('btn-newgame').addEventListener('click',()=>{chhResetGame();chhToast('↺ NUEVA PARTIDA');});
+document.getElementById('hmx1d').addEventListener('click',()=>chMax(1,-1));
+document.getElementById('hmx1u').addEventListener('click',()=>chMax(1,+1));
+document.getElementById('hmx2d').addEventListener('click',()=>chMax(2,-1));
+document.getElementById('hmx2u').addEventListener('click',()=>chMax(2,+1));
 function chhRenderAll(){chhRenderH(1);chhRenderH(2);buildSectors(1);buildSectors(2);}
 chhRenderAll();
 </script>

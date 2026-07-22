@@ -386,9 +386,9 @@ body::after{
 
   <div id="divider">
     <button class="act-btn back-btn" onclick="window.location.href='index.html'">← Menú</button>
-    <button class="act-btn" onclick="editNames()">✎ Nombres</button>
+    <button class="act-btn" onclick="chhEditNames()">✎ Nombres</button>
     <div class="div-vs">VS</div>
-    <button class="act-btn" onclick="resetGame()">↺ Reset</button>
+    <button class="act-btn" onclick="chhResetGame()">↺ Reset</button>
   </div>
 
   <div class="pzone p1" id="z1">
@@ -419,7 +419,7 @@ body::after{
         <div class="ov-lname" id="ov-ln">Jugador 2</div>
         <div class="ov-def">✕ DERROTA</div>
       </div>
-      <button class="ov-restart" onclick="resetGame()">↺ Nueva Partida</button>
+      <button class="ov-restart" onclick="chhResetGame()">↺ Nueva Partida</button>
     </div>
   </div>
 </div>
@@ -431,7 +431,7 @@ try {
   if (!s.includes('calculadora')) { s.push('calculadora'); localStorage.setItem('chh_secciones_visitadas', JSON.stringify(s)); }
 } catch(e) {}
 
-console.log('[CHH] calculadora v2.1 — corazones extendidos activo');
+console.log('[CHH] calculadora v2.2 — funciones renombradas anti-colisión');
 const TH_DEF=10;   // corazones iniciales
 const TH_VIEW=10;  // umbral: >10 pasa a modo compacto
 const TH_LIM=30;   // máximo absoluto
@@ -458,7 +458,7 @@ function sfxWin(){try{const c=gac();
     g.gain.exponentialRampToValueAtTime(.001,t+.5);o.start(t);o.stop(t+.5);
   });}catch(e){}}
 
-function renderH(p){
+function chhRenderH(p){
   const el=document.getElementById('hr'+p),d=p===1?S.p1:S.p2;
   el.innerHTML='';
   if(d.max<=TH_VIEW){
@@ -525,7 +525,7 @@ function chMax(p,d){
   pl.max=nm;
   if(d>0){ pl.h=Math.min(pl.max,pl.h+1); sfxHeal(); }
   else   { pl.h=Math.min(pl.h,pl.max);   sfxHit();  }
-  renderH(p);
+  chhRenderH(p);
 }
 
 function toggleH(p,idx){
@@ -607,11 +607,12 @@ function showWin(w,l){
   if(navigator.vibrate)navigator.vibrate([100,50,100,50,300]);
 }
 
-function resetGame(){
+function chhResetGame(){
+  console.log('[CHH] chhResetGame → restaurando', S.p1.max, '/', S.p2.max);
   over=false;S.p1.h=S.p1.max;S.p2.h=S.p2.max;S.p1.c=[0,0,0,0];S.p2.c=[0,0,0,0];
-  document.getElementById('ov').classList.remove('on');renderAll();
+  document.getElementById('ov').classList.remove('on');chhRenderAll();
 }
-function editNames(){
+function chhEditNames(){
   const n1=prompt('Nombre del Jugador 1:',S.p1.name);
   if(n1&&n1.trim())S.p1.name=n1.trim().toUpperCase();
   const n2=prompt('Nombre del Jugador 2:',S.p2.name);
@@ -626,8 +627,8 @@ function editNames(){
     toggleH(p,parseInt(h.id.split('-')[1]));
   });
 });
-function renderAll(){renderH(1);renderH(2);buildSectors(1);buildSectors(2);}
-renderAll();
+function chhRenderAll(){chhRenderH(1);chhRenderH(2);buildSectors(1);buildSectors(2);}
+chhRenderAll();
 </script>
 
 <!-- Sistema de ajustes -->

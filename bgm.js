@@ -1,17 +1,25 @@
-// ── BGM PERSISTENTE ─────────────────────────────────────────────────────────
+// ── BGM PERSISTENTE (v2) ─────────────────────────────────────────────────────
 // Uso: incluir <script src="bgm.js"></script> en cada módulo.
+//      Desde subcarpetas (ej. /mercado/): <script src="../bgm.js"></script>
 // El audio se retoma desde el punto donde quedó al navegar entre páginas.
+// v2: la ruta de la pista se resuelve relativa a ESTE archivo, no a la página,
+//     por lo que funciona igual desde la raíz que desde cualquier subcarpeta.
 // ─────────────────────────────────────────────────────────────────────────────
 
 (function () {
-  const TRACK   = 'assets/audio/bgm.mp3';
-  const KEY_T   = 'bgm_time';   // sessionStorage: currentTime
-  const KEY_M   = 'bgm_muted';  // localStorage:   preferencia mute (persiste)
+  // Resolver la pista relativa a la ubicación de bgm.js (raíz del proyecto)
+  var scriptURL = (document.currentScript && document.currentScript.src) || location.href;
+  var TRACK = window.BGM_TRACK || new URL('assets/audio/bgm.mp3', scriptURL).href;
+
+  // Posición guardada POR PISTA: cada pista retoma en su propio punto
+  var trackName = TRACK.split('/').pop();
+  const KEY_T = 'bgm_time::' + trackName;   // sessionStorage: currentTime de esta pista
+  const KEY_M = 'bgm_muted';                // localStorage:   preferencia mute (global)
 
   // ── Crear elemento de audio ──
   const audio = document.createElement('audio');
-  audio.src   = TRACK;
-  audio.loop  = true;
+  audio.src = TRACK;
+  audio.loop = true;
   audio.volume = 0.4;
   audio.preload = 'auto';
   document.body.appendChild(audio);
@@ -27,7 +35,7 @@
   function tryPlay() {
     audio.play().catch(() => {
       // Autoplay bloqueado: esperar interacción del usuario
-      document.addEventListener('click',  onFirstInteraction, { once: true });
+      document.addEventListener('click', onFirstInteraction, { once: true });
       document.addEventListener('touchstart', onFirstInteraction, { once: true });
     });
   }
@@ -87,7 +95,6 @@
     btn.innerHTML = audio.muted ? '🔇' : '🎵';
     btn.style.transform = 'scale(0.88)';
     setTimeout(function () { btn.style.transform = 'scale(1)'; }, 150);
-    // Si estaba detenido por autoplay bloqueado, intentar reproducir al activar
     if (!audio.muted && audio.paused) audio.play().catch(() => {});
   });
 

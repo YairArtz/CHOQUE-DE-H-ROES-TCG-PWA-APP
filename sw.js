@@ -2,8 +2,8 @@
 //  CHOQUE DE HÉROES TCG — Service Worker v6.1
 //  Con notificaciones locales de noticias y torneos
 // ================================================================
-const CACHE_NAME    = 'chh-tcg-v24';
-const CACHE_DYNAMIC = 'chh-dynamic-v24';
+const CACHE_NAME    = 'chh-tcg-v25';
+const CACHE_DYNAMIC = 'chh-dynamic-v25';
 
 const CACHE_CORE = [
   './', './boot.html', './index.html', './calculadora.html',

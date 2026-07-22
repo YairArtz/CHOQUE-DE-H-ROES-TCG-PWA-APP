@@ -431,6 +431,7 @@ try {
   if (!s.includes('calculadora')) { s.push('calculadora'); localStorage.setItem('chh_secciones_visitadas', JSON.stringify(s)); }
 } catch(e) {}
 
+console.log('[CHH] calculadora v2.1 — corazones extendidos activo');
 const TH_DEF=10;   // corazones iniciales
 const TH_VIEW=10;  // umbral: >10 pasa a modo compacto
 const TH_LIM=30;   // máximo absoluto
@@ -481,8 +482,8 @@ function renderH(p){
       '<div class="hcount" id="hc'+p+'">× '+d.h+'</div>'+
       '<button class="hcbtn" onclick="chH('+p+',+1)">+</button>';
   }
-  document.getElementById('hl'+p).textContent=d.h;
-  document.getElementById('hm'+p).textContent=d.max;
+  const hlEl=document.getElementById('hl'+p); if(hlEl)hlEl.textContent=d.h;
+  const hmEl=document.getElementById('hm'+p); if(hmEl)hmEl.textContent=d.max;
 }
 
 // ── vida en modo compacto ──

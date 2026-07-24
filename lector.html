@@ -123,27 +123,35 @@
   }
   .cred-inner{max-width:520px;margin:0 auto;text-align:center}
   .cred-fin{font-family:'Orbitron',sans-serif;font-size:2.2rem;font-weight:900;color:var(--acc-gold);letter-spacing:12px;margin-bottom:8px;text-shadow:0 0 20px rgba(232,200,106,.4)}
-  .cred-sub{font-family:'Orbitron',sans-serif;font-size:.75rem;color:var(--txt-2);letter-spacing:4px;margin-bottom:40px}
+  .cred-sub{font-family:'Orbitron',sans-serif;font-size:.75rem;color:var(--txt-2);letter-spacing:4px;margin-bottom:40px;padding:0 8px}
+
+  /* Bloque de crédito individual */
+  .cred-persona{
+    margin-bottom:32px;padding-bottom:32px;
+    border-bottom:1px solid rgba(232,200,106,.12);
+    animation:fadeIn .6s ease;
+  }
+  .cred-persona:last-of-type{border-bottom:none}
   .cred-avatar{
-    width:120px;height:120px;border-radius:50%;
-    margin:0 auto 20px;overflow:hidden;
+    width:110px;height:110px;border-radius:50%;
+    margin:0 auto 16px;overflow:hidden;
     border:2px solid var(--acc-gold);
     box-shadow:0 0 30px rgba(232,200,106,.4);
     background:var(--bg-2);display:grid;place-items:center;color:var(--acc-gold);font-family:'Orbitron',sans-serif;font-size:2.5rem;
   }
   .cred-avatar img{width:100%;height:100%;object-fit:cover}
-  .cred-nombre{font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;color:var(--acc-gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}
-  .cred-rol{font-family:'Orbitron',sans-serif;font-size:.7rem;color:var(--txt-2);letter-spacing:3px;margin-bottom:16px}
-  .cred-bio{color:var(--txt-1);line-height:1.5;font-size:.95rem;margin-bottom:24px;padding:0 8px}
-  .cred-redes{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-bottom:32px}
+  .cred-rol{font-family:'Orbitron',sans-serif;font-size:.7rem;color:var(--acc-red);letter-spacing:4px;margin-bottom:8px;text-transform:uppercase;font-weight:700}
+  .cred-nombre{font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;color:var(--acc-gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px}
+  .cred-bio{color:var(--txt-1);line-height:1.5;font-size:.9rem;margin-bottom:16px;padding:0 8px;opacity:.9}
+  .cred-redes{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
   .cred-red{
     background:rgba(20,25,40,.7);border:1px solid var(--border);color:var(--acc-gold);
-    padding:10px 18px;border-radius:24px;
-    font-family:'Orbitron',sans-serif;font-size:.7rem;letter-spacing:2px;
-    text-decoration:none;transition:.2s;display:inline-flex;align-items:center;gap:8px;
+    padding:8px 14px;border-radius:24px;
+    font-family:'Orbitron',sans-serif;font-size:.65rem;letter-spacing:2px;
+    text-decoration:none;transition:.2s;display:inline-flex;align-items:center;gap:6px;
   }
   .cred-red:hover{background:rgba(232,200,106,.15);transform:translateY(-2px)}
-  .cred-acciones{display:flex;flex-direction:column;gap:12px;margin-top:20px}
+  .cred-acciones{display:flex;flex-direction:column;gap:12px;margin-top:24px}
   .cred-btn{
     background:linear-gradient(135deg,var(--acc-red),#8b1e1e);color:#fff;
     border:none;padding:14px 24px;font-family:'Orbitron',sans-serif;
@@ -196,14 +204,10 @@
   <div class="cred-inner">
     <div class="cred-fin">FIN</div>
     <div class="cred-sub" id="cred-titulo">— · — —</div>
-    <div class="cred-avatar" id="cred-avatar">?</div>
-    <div class="cred-nombre" id="cred-nombre">—</div>
-    <div class="cred-rol">GUIÓN · ARTE · TINTAS</div>
-    <div class="cred-bio" id="cred-bio">—</div>
-    <div class="cred-redes" id="cred-redes"></div>
+    <div id="cred-personas"></div>
     <div class="cred-acciones">
       <button class="cred-btn gold" onclick="reiniciar()">↺ LEER DE NUEVO</button>
-      <a class="cred-btn" href="comics.html">← volver a la Comicteca</a>
+      <a class="cred-btn" href="comics.html">← Volver a la Comicteca</a>
     </div>
   </div>
 </div>
@@ -259,17 +263,14 @@ function toggleHUD(){hudVisible?ocultarHUD():mostrarHUD()}
 function calcularTam(){
   const vw=window.innerWidth, vh=window.innerHeight;
   const landscape=vw>vh && vw>=768;
-  // Ratio comic estándar 2:3
   const ratio=2/3;
   let w,h;
   if(landscape){
-    // Doble página
     h=Math.min(vh-40,900);
     w=Math.round(h*ratio*2);
     if(w>vw-40){w=vw-40;h=Math.round(w/2/ratio)}
     return{w,h,landscape:true,single:false}
   }else{
-    // Single page
     h=Math.min(vh-40,vh*.92);
     w=Math.round(h*ratio);
     if(w>vw-20){w=vw-20;h=Math.round(w/ratio)}
@@ -300,7 +301,7 @@ async function renderPagina(num){
 async function init(){
   if(!comicId){splashError('No se indicó qué cómic leer.');return}
 
-  setSplashProgress(10,'Consultando catálogo…');
+  setSplashProgress(5,'Consultando catálogo…');
   let config;
   try{
     const r=await fetch('comics_config.json?v='+Date.now());
@@ -314,7 +315,7 @@ async function init(){
   $('titulo').textContent=comic.titulo;
   document.title=comic.titulo+' — Nexo de Héroes';
 
-  setSplashProgress(25,'Descargando páginas…');
+  setSplashProgress(10,'Descargando PDF…');
   try{
     const loadingTask=pdfjsLib.getDocument({
       url:comic.pdf,
@@ -323,8 +324,8 @@ async function init(){
     });
     loadingTask.onProgress=data=>{
       if(data.total){
-        const pct=25+Math.round((data.loaded/data.total)*45);
-        setSplashProgress(Math.min(pct,70),'Descargando páginas…');
+        const pct=10+Math.round((data.loaded/data.total)*15);
+        setSplashProgress(Math.min(pct,25),'Descargando PDF…');
       }
     };
     pdf=await loadingTask.promise;
@@ -333,12 +334,21 @@ async function init(){
   totalPaginas=pdf.numPages;
   $('prog').textContent='1 / '+totalPaginas;
 
-  setSplashProgress(75,'Preparando primeras páginas…');
-  // Pre-cargar las primeras páginas
-  const preload=Math.min(4,totalPaginas);
-  for(let i=1;i<=preload;i++){
-    await renderPagina(i);
-    setSplashProgress(75+Math.round((i/preload)*20),'Preparando…');
+  // ===== FIX del bug de página 4 =====
+  // StPageFlip toma un snapshot del HTML al llamar loadFromHTML().
+  // Si sólo pre-cargábamos 4 páginas, las páginas 5+ quedaban como divs vacíos
+  // dentro del libro rendereado, y las imágenes cargadas después no se
+  // reflejaban visualmente. La solución: renderizar TODAS las páginas antes
+  // de construir el libro.
+  setSplashProgress(25,'Preparando páginas…');
+  for(let i=1;i<=totalPaginas;i++){
+    try{
+      await renderPagina(i);
+    }catch(e){
+      console.warn('Error renderizando página',i,e);
+    }
+    const pct=25+Math.round((i/totalPaginas)*65);
+    setSplashProgress(pct,'Preparando página '+i+' / '+totalPaginas);
   }
 
   setSplashProgress(95,'Encuadernando…');
@@ -351,15 +361,6 @@ async function init(){
     setTimeout(()=>$('splash').style.display='none',500);
     mostrarHUD();
   },300);
-
-  // Pre-cargar el resto en segundo plano
-  (async()=>{
-    for(let i=preload+1;i<=totalPaginas;i++){
-      try{await renderPagina(i)}catch(e){console.warn('preload fail',i,e)}
-    }
-    // Regenerar miniaturas ahora que están cacheadas
-    construirMiniaturas();
-  })();
 }
 
 // ========== StPageFlip ==========
@@ -368,8 +369,7 @@ function construirLibro(){
   const bookEl=$('book');
   bookEl.innerHTML='';
 
-  // Preparar páginas: portada + páginas + contraportada (opcional)
-  const paginas=[];
+  // Todas las páginas ya están renderizadas en cache; las inyectamos con img.
   for(let i=1;i<=totalPaginas;i++){
     const div=document.createElement('div');
     div.className='page';
@@ -380,9 +380,8 @@ function construirLibro(){
       img.src=src;img.alt='Página '+i;
       div.appendChild(img);
     }else{
-      div.innerHTML='<div class="page-empty">Cargando…</div>';
+      div.innerHTML='<div class="page-empty">Página '+i+'</div>';
     }
-    paginas.push(div);
     bookEl.appendChild(div);
   }
 
@@ -408,21 +407,6 @@ function construirLibro(){
     $('prog').textContent=(paginaActual+1)+' / '+totalPaginas;
     actualizarMiniaturas();
     actualizarBotones();
-    // Refrescar imágenes que estaban en carga
-    const cerca=[paginaActual-1,paginaActual,paginaActual+1,paginaActual+2];
-    cerca.forEach(idx=>{
-      if(idx<0||idx>=totalPaginas)return;
-      const pageDiv=bookEl.children[idx];
-      if(pageDiv && !pageDiv.querySelector('img')){
-        const src=cache.get(idx+1);
-        if(src){
-          pageDiv.innerHTML='';
-          const img=document.createElement('img');
-          img.src=src;pageDiv.appendChild(img);
-        }
-      }
-    });
-    // Si llegamos al final
     if(paginaActual>=totalPaginas-1){
       setTimeout(mostrarCreditos,1200);
     }
@@ -467,36 +451,93 @@ function actualizarMiniaturas(){
   });
 }
 
-// ========== Créditos ==========
+// ========== Créditos (múltiples personas) ==========
+function obtenerCreditos(){
+  // Prioridad: creditos[] (nuevo formato) > autor (retrocompat)
+  if(Array.isArray(comic.creditos) && comic.creditos.length){
+    return comic.creditos;
+  }
+  if(comic.autor){
+    return [{
+      rol: 'Guión y Arte',
+      nombre: comic.autor.nombre,
+      foto: comic.autor.foto,
+      bio: comic.autor.bio,
+      redes: comic.autor.redes || {}
+    }];
+  }
+  return [];
+}
+
 function mostrarCreditos(){
-  if(!comic?.autor)return;
-  const a=comic.autor;
+  const creditos=obtenerCreditos();
+  if(!creditos.length){$('creditos').classList.add('show');return}
+
   $('cred-titulo').textContent=(comic.titulo||'').toUpperCase()+(comic.subtitulo?' · '+comic.subtitulo.toUpperCase():'');
-  $('cred-nombre').textContent=a.nombre||'—';
-  $('cred-bio').textContent=a.bio||'';
-  const av=$('cred-avatar');
-  if(a.foto){
-    av.innerHTML='';
-    const img=document.createElement('img');
-    img.src=a.foto;
-    img.onerror=()=>{av.innerHTML=(a.nombre||'?').charAt(0)};
-    av.appendChild(img);
-  }else{
-    av.textContent=(a.nombre||'?').charAt(0);
-  }
-  const redes=$('cred-redes');redes.innerHTML='';
+
+  const cont=$('cred-personas');
+  cont.innerHTML='';
   const iconos={facebook:'ⓕ',instagram:'ⓘ',twitter:'𝕏',x:'𝕏',web:'⚭',tienda:'🛒',youtube:'▶',tiktok:'♪'};
-  if(a.redes){
-    Object.entries(a.redes).forEach(([k,v])=>{
-      if(!v)return;
-      const link=document.createElement('a');
-      link.className='cred-red';link.href=v;link.target='_blank';link.rel='noopener';
-      link.innerHTML='<span>'+(iconos[k]||'●')+'</span>'+k.toUpperCase();
-      redes.appendChild(link);
-    });
-  }
+
+  creditos.forEach((p,idx)=>{
+    const bloque=document.createElement('div');
+    bloque.className='cred-persona';
+    bloque.style.animationDelay=(idx*.15)+'s';
+
+    // Avatar
+    const av=document.createElement('div');
+    av.className='cred-avatar';
+    if(p.foto){
+      const img=document.createElement('img');
+      img.src=p.foto;
+      img.onerror=()=>{av.innerHTML=(p.nombre||'?').charAt(0)};
+      av.appendChild(img);
+    }else{
+      av.textContent=(p.nombre||'?').charAt(0);
+    }
+    bloque.appendChild(av);
+
+    // Rol
+    const rol=document.createElement('div');
+    rol.className='cred-rol';
+    rol.textContent=p.rol||'CRÉDITO';
+    bloque.appendChild(rol);
+
+    // Nombre
+    const nom=document.createElement('div');
+    nom.className='cred-nombre';
+    nom.textContent=p.nombre||'—';
+    bloque.appendChild(nom);
+
+    // Bio
+    if(p.bio){
+      const bio=document.createElement('div');
+      bio.className='cred-bio';
+      bio.textContent=p.bio;
+      bloque.appendChild(bio);
+    }
+
+    // Redes
+    if(p.redes){
+      const redes=document.createElement('div');
+      redes.className='cred-redes';
+      let count=0;
+      Object.entries(p.redes).forEach(([k,v])=>{
+        if(!v)return;
+        count++;
+        const link=document.createElement('a');
+        link.className='cred-red';link.href=v;link.target='_blank';link.rel='noopener';
+        link.innerHTML='<span>'+(iconos[k]||'●')+'</span>'+k.toUpperCase();
+        redes.appendChild(link);
+      });
+      if(count>0)bloque.appendChild(redes);
+    }
+
+    cont.appendChild(bloque);
+  });
+
   $('creditos').classList.add('show');
-  // Registrar lectura completada (para Etapa 2 / logros)
+  // Registrar lectura completada
   try{
     const leidos=JSON.parse(localStorage.getItem('comics_leidos')||'[]');
     if(!leidos.includes(comic.id)){
@@ -513,7 +554,6 @@ function reiniciar(){
 
 // ========== Interacción ==========
 $('stage').addEventListener('click',e=>{
-  // Si tocó una zona de nav, dejar que el handler lo tome
   if(e.target.classList.contains('tap-zone'))return;
   toggleHUD();
 });

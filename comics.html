@@ -28,28 +28,67 @@
     border-bottom:1px solid var(--border);
     padding:14px 16px;display:flex;align-items:center;gap:12px;
   }
-  .back{
+  .back,.home{
     background:none;border:1px solid var(--border);color:var(--acc-gold);
-    width:38px;height:38px;border-radius:50%;font-size:20px;cursor:pointer;
-    display:grid;place-items:center;transition:.2s;
+    width:38px;height:38px;border-radius:50%;font-size:18px;cursor:pointer;
+    display:grid;place-items:center;transition:.2s;flex-shrink:0;
+    text-decoration:none;
   }
-  .back:hover{background:var(--border);transform:translateX(-2px)}
+  .back:hover,.home:hover{background:var(--border);transform:translateY(-1px)}
+  .home{font-size:16px}
   h1{font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:900;color:var(--acc-gold);
-    letter-spacing:3px;text-shadow:0 0 20px rgba(232,200,106,.3);flex:1;text-transform:uppercase}
-  h1 small{display:block;font-family:'Orbitron',sans-serif;font-size:.65rem;color:var(--txt-2);letter-spacing:3px;font-weight:500}
-  .container{padding:24px 16px 100px;max-width:1200px;margin:0 auto}
-  .intro{text-align:center;margin-bottom:28px;padding:0 8px}
+    letter-spacing:3px;text-shadow:0 0 20px rgba(232,200,106,.3);flex:1;text-transform:uppercase;text-align:center}
+  h1 small{display:block;font-family:'Orbitron',sans-serif;font-size:.62rem;color:var(--txt-2);letter-spacing:3px;font-weight:500;margin-top:2px}
+  .container{padding:20px 16px 100px;max-width:1200px;margin:0 auto}
+  .intro{text-align:center;margin-bottom:20px;padding:0 8px}
   .intro p{color:var(--txt-2);font-size:.95rem;line-height:1.5;max-width:600px;margin:0 auto}
+
+  /* Contadores */
+  .stats{
+    display:flex;justify-content:center;gap:20px;
+    margin:16px 0 24px;padding:14px;
+    background:rgba(20,25,40,.5);border:1px solid var(--border);border-radius:8px;
+    max-width:520px;margin-left:auto;margin-right:auto;
+  }
+  .stat{text-align:center;flex:1}
+  .stat .num{font-family:'Orbitron',sans-serif;font-size:1.4rem;font-weight:900;color:var(--acc-gold);letter-spacing:1px;line-height:1}
+  .stat .lbl{font-family:'Orbitron',sans-serif;font-size:.6rem;color:var(--txt-2);letter-spacing:2px;margin-top:4px;text-transform:uppercase}
+  .stat .num.red{color:var(--acc-red)}
+  .stat .num.cyan{color:var(--acc-cyan)}
+
+  /* Filtros por arco */
+  .filtros{
+    display:flex;gap:8px;overflow-x:auto;padding:8px 0 12px;
+    margin-bottom:20px;scrollbar-width:none;
+    -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 16px,#000 calc(100% - 16px),transparent 100%);
+    mask-image:linear-gradient(90deg,transparent 0,#000 16px,#000 calc(100% - 16px),transparent 100%);
+  }
+  .filtros::-webkit-scrollbar{display:none}
+  .filtro{
+    flex-shrink:0;background:rgba(20,25,40,.6);border:1px solid var(--border);
+    color:var(--txt-2);padding:8px 16px;border-radius:20px;
+    font-family:'Orbitron',sans-serif;font-size:.68rem;letter-spacing:1.5px;
+    cursor:pointer;transition:.2s;text-transform:uppercase;font-weight:600;
+    display:flex;align-items:center;gap:6px;
+  }
+  .filtro:hover{background:rgba(232,200,106,.1);color:var(--acc-gold)}
+  .filtro.active{background:var(--acc-gold);color:#0a0e1a;border-color:var(--acc-gold);font-weight:700}
+  .filtro .cnt{opacity:.7;font-size:.6rem}
+  .filtro.active .cnt{opacity:.85}
+  .filtro .dot{width:8px;height:8px;border-radius:50%;background:currentColor;opacity:.6}
+
   .grid{
     display:grid;
     grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
-    gap:20px 16px;
+    gap:24px 16px;
   }
-  @media(min-width:768px){.grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:28px 20px}}
+  @media(min-width:768px){.grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:32px 20px}}
   .comic{
     cursor:pointer;position:relative;
     transition:transform .3s cubic-bezier(.34,1.56,.64,1);
+    animation:fadeUp .4s ease backwards;
   }
+  @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
   .comic:active{transform:scale(.96)}
   .comic:hover{transform:translateY(-4px)}
   .cover{
@@ -70,17 +109,33 @@
     text-align:center;padding:12px;
   }
   .lock .icon{font-size:2rem;margin-bottom:8px;filter:drop-shadow(0 0 8px var(--acc-gold))}
+  .read-badge{
+    position:absolute;top:8px;right:8px;
+    background:rgba(79,209,197,.9);color:#0a0e1a;
+    font-family:'Orbitron',sans-serif;font-size:.6rem;
+    width:26px;height:26px;border-radius:50%;
+    display:grid;place-items:center;font-weight:900;
+    box-shadow:0 2px 8px rgba(0,0,0,.4);
+  }
   .arc-tag{
     position:absolute;top:8px;left:8px;
     background:rgba(197,48,48,.9);color:#fff;
     font-family:'Orbitron',sans-serif;font-size:.55rem;
     padding:3px 8px;letter-spacing:1.5px;font-weight:700;
-    border-radius:2px;
+    border-radius:2px;max-width:calc(100% - 16px);
+    text-overflow:ellipsis;white-space:nowrap;overflow:hidden;
   }
   .info{padding:12px 4px 0}
   .titulo{font-family:'Orbitron',sans-serif;font-size:.8rem;font-weight:700;color:var(--acc-gold);line-height:1.25;margin-bottom:4px;letter-spacing:1px;text-transform:uppercase}
-  .subtitulo{font-size:.78rem;color:var(--txt-2);font-style:italic}
-  .meta{display:flex;gap:8px;margin-top:6px;font-family:'Orbitron',sans-serif;font-size:.6rem;color:var(--txt-2);letter-spacing:1px}
+  .subtitulo{font-size:.78rem;color:var(--txt-2);font-style:italic;margin-bottom:6px}
+  .creditos-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+  .chip{
+    font-family:'Orbitron',sans-serif;font-size:.55rem;letter-spacing:1px;
+    background:rgba(232,200,106,.1);color:var(--acc-gold);
+    padding:2px 6px;border-radius:3px;border:1px solid rgba(232,200,106,.2);
+    text-transform:uppercase;font-weight:600;
+  }
+  .meta{display:flex;gap:8px;margin-top:8px;font-family:'Orbitron',sans-serif;font-size:.6rem;color:var(--txt-2);letter-spacing:1px}
   .meta span::before{content:'▸ '}
   .loading{text-align:center;padding:60px 20px;color:var(--txt-2);font-family:'Orbitron',sans-serif;letter-spacing:2px;font-size:.85rem}
   .empty{text-align:center;padding:60px 20px}
@@ -92,12 +147,22 @@
 <header>
   <button class="back" onclick="history.length>1?history.back():location.href='index.html'" aria-label="Volver">←</button>
   <h1>Comicteca<small>ARCHIVO DIGITAL</small></h1>
+  <a class="home" href="index.html" aria-label="Menú principal" title="Menú principal">⌂</a>
 </header>
 
 <div class="container">
   <div class="intro">
     <p>Las historias detrás de los héroes. Lee los cómics originales de los personajes de <em>Choque de Héroes TCG</em>.</p>
   </div>
+
+  <div class="stats" id="stats" style="display:none">
+    <div class="stat"><div class="num" id="stat-total">—</div><div class="lbl">Total</div></div>
+    <div class="stat"><div class="num cyan" id="stat-leidos">—</div><div class="lbl">Leídos</div></div>
+    <div class="stat"><div class="num red" id="stat-bloqueados">—</div><div class="lbl">Bloqueados</div></div>
+  </div>
+
+  <div class="filtros" id="filtros"></div>
+
   <div id="grid" class="grid">
     <div class="loading">Cargando el archivo…</div>
   </div>
@@ -107,12 +172,15 @@
 <script>
 (async function(){
   const grid=document.getElementById('grid');
+  const filtrosEl=document.getElementById('filtros');
+  const statsEl=document.getElementById('stats');
 
-  // Estado del jugador para desbloqueos (Etapa 2)
+  // Estado del jugador para desbloqueos
   const jugador={
     hp: parseInt(localStorage.getItem('hero_pesos')||'0',10),
     puntos: parseInt(localStorage.getItem('puntos_ranking')||'0',10),
-    desbloqueados: JSON.parse(localStorage.getItem('comics_desbloqueados')||'[]')
+    desbloqueados: JSON.parse(localStorage.getItem('comics_desbloqueados')||'[]'),
+    leidos: JSON.parse(localStorage.getItem('comics_leidos')||'[]')
   };
 
   let config;
@@ -132,31 +200,102 @@
     return;
   }
 
-  grid.innerHTML='';
-  comics.forEach(c=>{
-    const bloqueado=c.desbloqueo?.requiere && !jugador.desbloqueados.includes(c.id);
-    const el=document.createElement('div');
-    el.className='comic';
-    el.innerHTML=`
-      <div class="cover ${!c.portada?'placeholder':''}">
-        ${c.portada?`<img src="${c.portada}" alt="${escapeHtml(c.titulo)}" loading="lazy" onerror="this.parentElement.classList.add('placeholder');this.remove();this.parentElement.textContent='${(c.titulo||'?').charAt(0)}'">`:c.titulo.charAt(0)}
-        ${c.arco?`<span class="arc-tag">${escapeHtml(c.arco)}</span>`:''}
-        ${bloqueado?`<div class="lock"><div><div class="icon">🔒</div>${c.desbloqueo.costo_hp?c.desbloqueo.costo_hp+' HP':''}${c.desbloqueo.puntos_min?' · '+c.desbloqueo.puntos_min+' pts':''}</div></div>`:''}
-      </div>
-      <div class="info">
-        <div class="titulo">${escapeHtml(c.titulo)}</div>
-        ${c.subtitulo?`<div class="subtitulo">${escapeHtml(c.subtitulo)}</div>`:''}
-        <div class="meta">${c.paginas?`<span>${c.paginas} pág</span>`:''}${c.publicado?`<span>${c.publicado.slice(0,4)}</span>`:''}</div>
-      </div>`;
-    el.addEventListener('click',()=>{
-      if(bloqueado){
-        alert('Este cómic está bloqueado.\nCosto: '+(c.desbloqueo.costo_hp||0)+' HP\nRanking mínimo: '+(c.desbloqueo.puntos_min||0)+' pts\n\nPodrás desbloquearlo desde la Tienda próximamente.');
-        return;
-      }
-      location.href='lector.html?id='+encodeURIComponent(c.id);
+  // Mapa de arcos (id → nombre y color)
+  const arcosMap=new Map();
+  (config.arcos||[]).forEach(a=>arcosMap.set(a.id,a));
+
+  // Contadores
+  const total=comics.length;
+  const leidos=comics.filter(c=>jugador.leidos.includes(c.id)).length;
+  const bloqueados=comics.filter(c=>c.desbloqueo?.requiere && !jugador.desbloqueados.includes(c.id)).length;
+  document.getElementById('stat-total').textContent=total;
+  document.getElementById('stat-leidos').textContent=leidos;
+  document.getElementById('stat-bloqueados').textContent=bloqueados;
+  statsEl.style.display='flex';
+
+  // Construir filtros por arco
+  const conteoArcos=new Map();
+  comics.forEach(c=>conteoArcos.set(c.arco,(conteoArcos.get(c.arco)||0)+1));
+
+  let filtroActivo='__all__';
+  function renderFiltros(){
+    filtrosEl.innerHTML='';
+    const btnAll=document.createElement('button');
+    btnAll.className='filtro'+(filtroActivo==='__all__'?' active':'');
+    btnAll.innerHTML='TODOS <span class="cnt">('+total+')</span>';
+    btnAll.onclick=()=>{filtroActivo='__all__';renderFiltros();renderGrid()};
+    filtrosEl.appendChild(btnAll);
+
+    // Arcos en orden del config, si existe; si no, orden alfabético
+    const arcosOrdenados=(config.arcos||[]).filter(a=>conteoArcos.has(a.id));
+    // Añadir arcos huérfanos (que estén en comics pero no en config.arcos)
+    conteoArcos.forEach((_,arcoId)=>{
+      if(!arcosMap.has(arcoId))arcosOrdenados.push({id:arcoId,nombre:arcoId,color:'#e8c86a'});
     });
-    grid.appendChild(el);
-  });
+
+    arcosOrdenados.forEach(a=>{
+      const b=document.createElement('button');
+      b.className='filtro'+(filtroActivo===a.id?' active':'');
+      const dot=filtroActivo===a.id?'':`<span class="dot" style="background:${a.color}"></span>`;
+      b.innerHTML=dot+escapeHtml(a.nombre)+' <span class="cnt">('+conteoArcos.get(a.id)+')</span>';
+      b.onclick=()=>{filtroActivo=a.id;renderFiltros();renderGrid()};
+      filtrosEl.appendChild(b);
+    });
+  }
+
+  function obtenerCreditos(c){
+    if(Array.isArray(c.creditos) && c.creditos.length)return c.creditos;
+    if(c.autor)return [{rol:'Guión y Arte',nombre:c.autor.nombre}];
+    return [];
+  }
+
+  function renderGrid(){
+    const lista=filtroActivo==='__all__'?comics:comics.filter(c=>c.arco===filtroActivo);
+    if(!lista.length){
+      grid.innerHTML='<div class="empty"><h2>Sin cómics</h2><p>No hay cómics en este arco todavía.</p></div>';
+      return;
+    }
+    grid.innerHTML='';
+    lista.forEach((c,idx)=>{
+      const bloqueado=c.desbloqueo?.requiere && !jugador.desbloqueados.includes(c.id);
+      const leido=jugador.leidos.includes(c.id);
+      const arcoInfo=arcosMap.get(c.arco);
+      const arcoNombre=arcoInfo?arcoInfo.nombre:c.arco;
+      const arcoColor=arcoInfo?arcoInfo.color:'#c53030';
+
+      // Chips únicos de rol
+      const creditos=obtenerCreditos(c);
+      const rolesUnicos=[...new Set(creditos.map(cr=>cr.rol).filter(Boolean))];
+
+      const el=document.createElement('div');
+      el.className='comic';
+      el.style.animationDelay=(idx*.03)+'s';
+      el.innerHTML=`
+        <div class="cover ${!c.portada?'placeholder':''}">
+          ${c.portada?`<img src="${c.portada}" alt="${escapeHtml(c.titulo)}" loading="lazy" onerror="this.parentElement.classList.add('placeholder');this.remove();this.parentElement.textContent='${(c.titulo||'?').charAt(0)}'">`:c.titulo.charAt(0)}
+          ${arcoNombre?`<span class="arc-tag" style="background:${arcoColor}dd">${escapeHtml(arcoNombre)}</span>`:''}
+          ${leido && !bloqueado?`<span class="read-badge" title="Leído">✓</span>`:''}
+          ${bloqueado?`<div class="lock"><div><div class="icon">🔒</div>${c.desbloqueo.costo_hp?c.desbloqueo.costo_hp+' HP':''}${c.desbloqueo.puntos_min?' · '+c.desbloqueo.puntos_min+' pts':''}</div></div>`:''}
+        </div>
+        <div class="info">
+          <div class="titulo">${escapeHtml(c.titulo)}</div>
+          ${c.subtitulo?`<div class="subtitulo">${escapeHtml(c.subtitulo)}</div>`:''}
+          ${rolesUnicos.length?`<div class="creditos-chips">${rolesUnicos.map(r=>`<span class="chip">${escapeHtml(r)}</span>`).join('')}</div>`:''}
+          <div class="meta">${c.paginas?`<span>${c.paginas} pág</span>`:''}${c.publicado?`<span>${c.publicado.slice(0,4)}</span>`:''}</div>
+        </div>`;
+      el.addEventListener('click',()=>{
+        if(bloqueado){
+          alert('Este cómic está bloqueado.\nCosto: '+(c.desbloqueo.costo_hp||0)+' HP\nRanking mínimo: '+(c.desbloqueo.puntos_min||0)+' pts\n\nPodrás desbloquearlo desde la Tienda próximamente.');
+          return;
+        }
+        location.href='lector.html?id='+encodeURIComponent(c.id);
+      });
+      grid.appendChild(el);
+    });
+  }
+
+  renderFiltros();
+  renderGrid();
 
   function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 })();

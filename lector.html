@@ -248,7 +248,11 @@ let pdf=null;
 let flipBook=null;
 let paginaActual=0;
 let totalPaginas=0;
-const cache=new Map();
+const cache=new Map();       // num -> url de baja resolución (para navegación rápida)
+const cacheHD=new Map();     // num -> url de alta resolución (para zoom)
+const hdEnCurso=new Set();   // páginas que se están renderizando en HD
+const HD_MAX_CACHE=6;        // número máximo de páginas en HD (LRU)
+const ZOOM_UMBRAL_HD=1.3;    // a partir de este zoom, cargamos HD
 let hudTimer=null;
 let hudVisible=true;
 
@@ -327,6 +331,87 @@ async function renderPagina(num){
   try{page.cleanup()}catch(_){}
   cache.set(num,url);
   return url;
+}
+
+// Render HD: escala mucho mayor, para que al hacer zoom no se vea borroso.
+// Se hace sólo bajo demanda para las páginas que el usuario está viendo con zoom.
+async function renderPaginaHD(num){
+  if(cacheHD.has(num))return cacheHD.get(num);
+  const page=await pdf.getPage(num);
+  const {w,h,single}=calcularTam();
+  const pageW=single?w:w/2;
+  const viewport=page.getViewport({scale:1});
+  // Renderizamos a la escala que necesitaría el zoom máximo * dpr.
+  // Con esto, al hacer pinch a 4× la página sigue siendo nítida.
+  const dpr=window.devicePixelRatio||1;
+  const baseScale=Math.min(pageW/viewport.width,h/viewport.height);
+  const scale=baseScale*dpr*ZOOM_MAX;
+  const scaled=page.getViewport({scale});
+  // Salvaguarda de tamaño: algunos móviles fallan con canvas > 16k px.
+  const maxDim=Math.max(scaled.width,scaled.height);
+  let finalScale=scale;
+  if(maxDim>8192){
+    finalScale=scale*(8192/maxDim);
+  }
+  const finalVP=finalScale===scale?scaled:page.getViewport({scale:finalScale});
+  const canvas=document.createElement('canvas');
+  canvas.width=finalVP.width;canvas.height=finalVP.height;
+  const ctx=canvas.getContext('2d');
+  await page.render({canvasContext:ctx,viewport:finalVP}).promise;
+  const blob=await new Promise(res=>canvas.toBlob(res,'image/jpeg',0.92));
+  const url=blob?URL.createObjectURL(blob):canvas.toDataURL('image/jpeg',0.92);
+  canvas.width=0;canvas.height=0;
+  try{page.cleanup()}catch(_){}
+
+  // LRU: si superamos el máximo, expulsamos la más vieja y liberamos su URL.
+  if(cacheHD.size>=HD_MAX_CACHE){
+    const primera=cacheHD.keys().next().value;
+    const urlVieja=cacheHD.get(primera);
+    cacheHD.delete(primera);
+    if(urlVieja&&urlVieja.startsWith('blob:'))URL.revokeObjectURL(urlVieja);
+  }
+  cacheHD.set(num,url);
+  return url;
+}
+
+// Índices (1-based) de las páginas actualmente visibles en el libro.
+function paginasVisibles(){
+  const {single}=calcularTam();
+  const actual=paginaActual+1;
+  if(single) return [actual].filter(n=>n>=1&&n<=totalPaginas);
+  // En doble página, el spread es (paginaActual, paginaActual+1).
+  return [actual,actual+1].filter(n=>n>=1&&n<=totalPaginas);
+}
+
+// Aplica el src HD al <img> correspondiente dentro del libro renderizado.
+function aplicarHD(num,url){
+  document.querySelectorAll('#book .page[data-pagina="'+num+'"] img').forEach(img=>{
+    if(img.src!==url){
+      // Precarga silenciosa para que el swap no muestre parpadeo.
+      const tmp=new Image();
+      tmp.onload=()=>{img.src=url};
+      tmp.src=url;
+    }
+  });
+}
+
+// Solicita HD de una lista de páginas, con dedupe.
+function pedirHD(nums){
+  nums.forEach(num=>{
+    if(cacheHD.has(num)){
+      aplicarHD(num,cacheHD.get(num));
+      return;
+    }
+    if(hdEnCurso.has(num))return;
+    hdEnCurso.add(num);
+    renderPaginaHD(num).then(url=>{
+      aplicarHD(num,url);
+    }).catch(e=>{
+      console.warn('Render HD falló para página',num,e);
+    }).finally(()=>{
+      hdEnCurso.delete(num);
+    });
+  });
 }
 
 // ========== Inicialización ==========
@@ -475,6 +560,9 @@ function construirLibro(){
     actualizarBotones();
     // Resetear zoom al cambiar de página
     if(zoomScale>1.01) resetZoom();
+    // Precarga HD de la página actual si acabamos de resetear con zoom > umbral
+    // (no aplica aquí porque acabamos de resetear, pero por si en el futuro se
+    // cambia el comportamiento, dejamos el hook.)
     if(paginaActual>=totalPaginas-1){
       setTimeout(mostrarCreditos,1200);
     }
@@ -640,6 +728,10 @@ function aplicarZoom(animar){
   zoomBadge.classList.toggle('show',zoomed);
   $('zoom-nivel').textContent=zoomScale.toFixed(1)+'×';
   if(animar) setTimeout(()=>bookWrap.classList.remove('animar'),320);
+  // Si el zoom supera el umbral, cargar la versión HD de las páginas visibles.
+  if(zoomScale>=ZOOM_UMBRAL_HD){
+    pedirHD(paginasVisibles());
+  }
 }
 
 function resetZoom(){

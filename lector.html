@@ -50,7 +50,27 @@
     position:relative;
     max-width:100vw;max-height:100vh;
     filter:drop-shadow(0 20px 40px rgba(0,0,0,.8));
+    transform-origin:center center;
+    will-change:transform;
   }
+  #book-wrap.animar{transition:transform .3s cubic-bezier(.22,1,.36,1)}
+  body.zoomed .tap-zone{pointer-events:none}
+  body.zoomed #stage{cursor:grab}
+  body.zoomed #stage:active{cursor:grabbing}
+
+  /* Badge de zoom (HUD superior) */
+  .zoom-badge{
+    position:fixed;top:calc(64px + env(safe-area-inset-top));right:16px;z-index:31;
+    background:rgba(20,25,40,.85);border:1px solid var(--acc-gold);color:var(--acc-gold);
+    padding:6px 12px;border-radius:20px;
+    font-family:'Orbitron',sans-serif;font-size:.7rem;letter-spacing:2px;font-weight:700;
+    display:none;align-items:center;gap:8px;
+    backdrop-filter:blur(8px);
+    animation:fadeIn .2s ease;
+    cursor:pointer;
+  }
+  .zoom-badge.show{display:inline-flex}
+  .zoom-badge span{font-size:.9rem}
   #book{margin:0 auto}
   .page{
     background:#111;
@@ -192,6 +212,10 @@
   <div class="tap-zone right" id="tap-right"></div>
   <div id="book-wrap"><div id="book"></div></div>
 </div>
+
+<button id="zoom-badge" class="zoom-badge" onclick="resetZoom()" title="Restablecer zoom">
+  <span>🔍</span><span id="zoom-nivel">1.0×</span> ✕
+</button>
 
 <div id="hud-bottom" class="hud-bottom hidden">
   <button class="nav-btn" id="btn-prev" aria-label="Anterior">‹</button>
@@ -407,6 +431,8 @@ function construirLibro(){
     $('prog').textContent=(paginaActual+1)+' / '+totalPaginas;
     actualizarMiniaturas();
     actualizarBotones();
+    // Resetear zoom al cambiar de página
+    if(zoomScale>1.01) resetZoom();
     if(paginaActual>=totalPaginas-1){
       setTimeout(mostrarCreditos,1200);
     }
@@ -552,20 +578,182 @@ function reiniciar(){
   flipBook?.turnToPage(0);
 }
 
-// ========== Interacción ==========
+// ========== Zoom táctil (pinch + pan + doble-tap) ==========
+let zoomScale=1, zoomX=0, zoomY=0;
+let pinchInicio=null;   // {dist, scaleInicial, xInicial, yInicial}
+let panInicio=null;     // {x, y, tx, ty}
+let ultimoTap=0;        // timestamp del último tap simple (para detectar doble-tap)
+let ultimoTapX=0, ultimoTapY=0;
+const ZOOM_MIN=1, ZOOM_MAX=4, ZOOM_DOBLE_TAP=2.4;
+
+const bookWrap=$('book-wrap');
+const zoomBadge=$('zoom-badge');
+
+function aplicarZoom(animar){
+  if(animar) bookWrap.classList.add('animar');
+  else bookWrap.classList.remove('animar');
+  bookWrap.style.transform=`translate3d(${zoomX}px, ${zoomY}px, 0) scale(${zoomScale})`;
+  const zoomed=zoomScale>1.05;
+  document.body.classList.toggle('zoomed',zoomed);
+  zoomBadge.classList.toggle('show',zoomed);
+  $('zoom-nivel').textContent=zoomScale.toFixed(1)+'×';
+  if(animar) setTimeout(()=>bookWrap.classList.remove('animar'),320);
+}
+
+function resetZoom(){
+  zoomScale=1; zoomX=0; zoomY=0;
+  aplicarZoom(true);
+}
+
+// Clamp del pan para que la página no se salga demasiado
+function ajustarPan(){
+  if(zoomScale<=1){zoomX=0;zoomY=0;return}
+  const rect=bookWrap.getBoundingClientRect();
+  // rect ya incluye el scale actual
+  const maxX=Math.max(0,(rect.width-window.innerWidth)/2 + 40);
+  const maxY=Math.max(0,(rect.height-window.innerHeight)/2 + 40);
+  zoomX=Math.max(-maxX,Math.min(maxX,zoomX));
+  zoomY=Math.max(-maxY,Math.min(maxY,zoomY));
+}
+
+function dist(t1,t2){return Math.hypot(t2.clientX-t1.clientX,t2.clientY-t1.clientY)}
+
+// --- Touch handlers ---
+$('stage').addEventListener('touchstart',e=>{
+  if(e.touches.length===2){
+    // Iniciar pinch
+    e.preventDefault();
+    pinchInicio={
+      dist:dist(e.touches[0],e.touches[1]),
+      scaleInicial:zoomScale,
+      xInicial:zoomX,
+      yInicial:zoomY
+    };
+    panInicio=null;
+  }else if(e.touches.length===1 && zoomScale>1.05){
+    // Pan con un dedo cuando ya hay zoom
+    const t=e.touches[0];
+    panInicio={x:t.clientX,y:t.clientY,tx:zoomX,ty:zoomY};
+  }
+},{passive:false});
+
+$('stage').addEventListener('touchmove',e=>{
+  if(pinchInicio && e.touches.length===2){
+    e.preventDefault();
+    e.stopPropagation();
+    const d=dist(e.touches[0],e.touches[1]);
+    const factor=d/pinchInicio.dist;
+    zoomScale=Math.max(ZOOM_MIN,Math.min(ZOOM_MAX,pinchInicio.scaleInicial*factor));
+    // Escalar también el pan proporcionalmente
+    const rel=zoomScale/pinchInicio.scaleInicial;
+    zoomX=pinchInicio.xInicial*rel;
+    zoomY=pinchInicio.yInicial*rel;
+    ajustarPan();
+    aplicarZoom(false);
+  }else if(panInicio && e.touches.length===1 && zoomScale>1.05){
+    e.preventDefault();
+    e.stopPropagation();
+    const t=e.touches[0];
+    zoomX=panInicio.tx+(t.clientX-panInicio.x);
+    zoomY=panInicio.ty+(t.clientY-panInicio.y);
+    ajustarPan();
+    aplicarZoom(false);
+  }else if(e.touches.length===1 && zoomScale<=1.05){
+    // Sin zoom: prevenir scroll de rebote (excepto en créditos y miniaturas)
+    if(!e.target.closest('#creditos')&&!e.target.closest('.thumbs')){
+      e.preventDefault();
+    }
+  }
+},{passive:false});
+
+$('stage').addEventListener('touchend',e=>{
+  if(e.touches.length<2) pinchInicio=null;
+  if(e.touches.length===0){
+    panInicio=null;
+    // Si quedó apenas por encima de 1, snap back
+    if(zoomScale<1.05 && zoomScale!==1){
+      resetZoom();
+    }
+  }
+});
+
+// --- Doble tap para zoom rápido (in/out) ---
+$('stage').addEventListener('touchend',e=>{
+  if(e.changedTouches.length!==1||e.touches.length!==0)return;
+  const t=e.changedTouches[0];
+  const ahora=Date.now();
+  const dx=Math.abs(t.clientX-ultimoTapX), dy=Math.abs(t.clientY-ultimoTapY);
+  if(ahora-ultimoTap<320 && dx<40 && dy<40){
+    // Doble tap detectado
+    e.preventDefault();
+    if(zoomScale>1.05){
+      resetZoom();
+    }else{
+      // Zoom centrado en el punto del tap
+      const rect=bookWrap.getBoundingClientRect();
+      const cx=rect.left+rect.width/2;
+      const cy=rect.top+rect.height/2;
+      zoomScale=ZOOM_DOBLE_TAP;
+      zoomX=(cx-t.clientX)*(zoomScale-1)/zoomScale;
+      zoomY=(cy-t.clientY)*(zoomScale-1)/zoomScale;
+      ajustarPan();
+      aplicarZoom(true);
+    }
+    ultimoTap=0;
+  }else{
+    ultimoTap=ahora;
+    ultimoTapX=t.clientX;
+    ultimoTapY=t.clientY;
+  }
+});
+
+// --- Wheel + Ctrl para desktop ---
+$('stage').addEventListener('wheel',e=>{
+  if(!e.ctrlKey && !e.metaKey)return;
+  e.preventDefault();
+  const factor=e.deltaY<0?1.15:1/1.15;
+  const nuevoScale=Math.max(ZOOM_MIN,Math.min(ZOOM_MAX,zoomScale*factor));
+  if(nuevoScale===zoomScale)return;
+  const rect=bookWrap.getBoundingClientRect();
+  const cx=rect.left+rect.width/2, cy=rect.top+rect.height/2;
+  const rel=nuevoScale/zoomScale;
+  zoomX=(zoomX+(cx-e.clientX))*rel-(cx-e.clientX);
+  zoomY=(zoomY+(cy-e.clientY))*rel-(cy-e.clientY);
+  zoomScale=nuevoScale;
+  if(zoomScale<=1){zoomX=0;zoomY=0}
+  ajustarPan();
+  aplicarZoom(false);
+},{passive:false});
+
+// ========== Interacción de navegación ==========
 $('stage').addEventListener('click',e=>{
+  // Si está zoomeado, un tap simple no debe togglear el HUD ni voltear página
+  if(zoomScale>1.05){return}
   if(e.target.classList.contains('tap-zone'))return;
   toggleHUD();
 });
-$('tap-left').addEventListener('click',e=>{e.stopPropagation();flipBook?.flipPrev();mostrarHUD()});
-$('tap-right').addEventListener('click',e=>{e.stopPropagation();flipBook?.flipNext();mostrarHUD()});
+$('tap-left').addEventListener('click',e=>{
+  if(zoomScale>1.05)return;
+  e.stopPropagation();flipBook?.flipPrev();mostrarHUD();
+});
+$('tap-right').addEventListener('click',e=>{
+  if(zoomScale>1.05)return;
+  e.stopPropagation();flipBook?.flipNext();mostrarHUD();
+});
 
 // Teclado
 document.addEventListener('keydown',e=>{
-  if(e.key==='ArrowLeft')flipBook?.flipPrev();
-  else if(e.key==='ArrowRight'||e.key===' ')flipBook?.flipNext();
-  else if(e.key==='Escape')salir();
+  if(e.key==='ArrowLeft'){if(zoomScale<=1.05)flipBook?.flipPrev()}
+  else if(e.key==='ArrowRight'||e.key===' '){if(zoomScale<=1.05)flipBook?.flipNext()}
+  else if(e.key==='Escape'){zoomScale>1.05?resetZoom():salir()}
   else if(e.key==='f'||e.key==='F')toggleFullscreen();
+  else if(e.key==='+'||e.key==='='){
+    zoomScale=Math.min(ZOOM_MAX,zoomScale*1.25);aplicarZoom(true);
+  }else if(e.key==='-'||e.key==='_'){
+    zoomScale=Math.max(ZOOM_MIN,zoomScale/1.25);
+    if(zoomScale<=1){zoomX=0;zoomY=0}
+    aplicarZoom(true);
+  }else if(e.key==='0'){resetZoom()}
   mostrarHUD();
 });
 
@@ -575,6 +763,7 @@ window.addEventListener('resize',()=>{
   clearTimeout(resizeT);
   resizeT=setTimeout(()=>{
     if(!flipBook||!totalPaginas)return;
+    resetZoom();
     const {w,h,single}=calcularTam();
     try{
       flipBook.update({
@@ -585,12 +774,6 @@ window.addEventListener('resize',()=>{
     }catch(e){/* algunas versiones no exponen update */}
   },200);
 });
-
-// Prevenir scroll de rebote iOS
-document.addEventListener('touchmove',e=>{
-  if(e.target.closest('#creditos')||e.target.closest('.thumbs'))return;
-  e.preventDefault();
-},{passive:false});
 
 // Go
 init();

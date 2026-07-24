@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>Lector — Nexo de Héroes</title>
+<link rel="icon" href="img/favicon.png">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
+<style>
+  :root{
+    --bg-0:#000; --bg-1:#0a0e1a; --bg-2:#111827;
+    --acc-gold:#e8c86a; --acc-red:#c53030; --acc-cyan:#4fd1c5;
+    --txt-1:#f5f5f5; --txt-2:#a0aec0; --border:rgba(232,200,106,.25);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
+  html,body{background:#000;color:var(--txt-1);font-family:'Rajdhani',sans-serif;height:100vh;height:100dvh;overflow:hidden;overscroll-behavior:none}
+
+  /* HUD superior */
+  .hud-top{
+    position:fixed;top:0;left:0;right:0;z-index:30;
+    background:linear-gradient(180deg,rgba(0,0,0,.9),rgba(0,0,0,0));
+    padding:14px 16px calc(14px + env(safe-area-inset-top)) 16px;
+    padding-top:calc(14px + env(safe-area-inset-top));
+    display:flex;align-items:center;gap:12px;
+    transition:transform .3s ease,opacity .3s ease;
+  }
+  .hud-top.hidden{transform:translateY(-100%);opacity:0;pointer-events:none}
+  .btn-icon{
+    background:rgba(20,25,40,.7);border:1px solid var(--border);color:var(--acc-gold);
+    width:40px;height:40px;border-radius:50%;font-size:20px;cursor:pointer;
+    display:grid;place-items:center;backdrop-filter:blur(8px);transition:.2s;
+  }
+  .btn-icon:hover{background:rgba(232,200,106,.15)}
+  .btn-icon:active{transform:scale(.9)}
+  .hud-title{flex:1;text-align:center;overflow:hidden}
+  .hud-title h1{font-family:'Orbitron',sans-serif;font-size:.8rem;font-weight:700;color:var(--acc-gold);letter-spacing:2px;text-transform:uppercase;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+  .hud-title .prog{font-family:'Orbitron',sans-serif;font-size:.65rem;color:var(--txt-2);letter-spacing:2px;margin-top:2px}
+
+  /* Zona del libro */
+  #stage{
+    position:absolute;inset:0;
+    display:grid;place-items:center;
+    background:radial-gradient(ellipse at center,rgba(20,25,40,.5),#000 70%);
+    touch-action:pan-y pinch-zoom;
+  }
+  #book-wrap{
+    position:relative;
+    max-width:100vw;max-height:100vh;
+    filter:drop-shadow(0 20px 40px rgba(0,0,0,.8));
+  }
+  #book{margin:0 auto}
+  .page{
+    background:#111;
+    display:flex;align-items:center;justify-content:center;
+    overflow:hidden;
+    box-shadow:inset 0 0 20px rgba(0,0,0,.5);
+  }
+  .page canvas,.page img{max-width:100%;max-height:100%;display:block}
+  .page-empty{color:var(--txt-2);font-family:'Orbitron',sans-serif;font-style:italic;opacity:.4;font-size:.9rem;text-align:center;padding:20px}
+  .stf__parent{margin:0 auto}
+
+  /* Splash de carga */
+  #splash{
+    position:fixed;inset:0;z-index:50;background:#000;
+    display:grid;place-items:center;
+    transition:opacity .5s ease;
+  }
+  #splash.gone{opacity:0;pointer-events:none}
+  .splash-inner{text-align:center;padding:20px}
+  .splash-logo{font-family:'Orbitron',sans-serif;font-size:1.8rem;font-weight:900;color:var(--acc-gold);letter-spacing:8px;text-shadow:0 0 30px rgba(232,200,106,.5);margin-bottom:24px;animation:pulse 2s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+  .splash-bar{width:min(280px,70vw);height:3px;background:rgba(232,200,106,.15);border-radius:2px;overflow:hidden;margin:0 auto}
+  .splash-fill{height:100%;background:linear-gradient(90deg,var(--acc-gold),var(--acc-red));width:0%;transition:width .3s ease;box-shadow:0 0 10px var(--acc-gold)}
+  .splash-msg{font-family:'Orbitron',sans-serif;font-size:.7rem;letter-spacing:3px;color:var(--txt-2);margin-top:16px}
+  .splash-err{color:var(--acc-red);font-family:'Rajdhani',sans-serif;margin-top:20px;font-size:.95rem;max-width:80vw}
+
+  /* HUD inferior */
+  .hud-bottom{
+    position:fixed;bottom:0;left:0;right:0;z-index:30;
+    background:linear-gradient(0deg,rgba(0,0,0,.9),rgba(0,0,0,0));
+    padding:20px 16px calc(16px + env(safe-area-inset-bottom)) 16px;
+    display:flex;align-items:center;gap:12px;
+    transition:transform .3s ease,opacity .3s ease;
+  }
+  .hud-bottom.hidden{transform:translateY(100%);opacity:0;pointer-events:none}
+  .nav-btn{
+    background:rgba(20,25,40,.7);border:1px solid var(--border);color:var(--acc-gold);
+    width:44px;height:44px;border-radius:50%;font-size:22px;cursor:pointer;
+    display:grid;place-items:center;backdrop-filter:blur(8px);flex-shrink:0;
+  }
+  .nav-btn:disabled{opacity:.3;cursor:not-allowed}
+  .nav-btn:active:not(:disabled){transform:scale(.9)}
+  .thumbs{
+    flex:1;display:flex;gap:6px;overflow-x:auto;padding:4px 2px;
+    scrollbar-width:none;
+  }
+  .thumbs::-webkit-scrollbar{display:none}
+  .thumb{
+    flex-shrink:0;width:34px;height:48px;
+    background:#1a1f30;border:1px solid rgba(232,200,106,.15);
+    border-radius:3px;cursor:pointer;
+    display:grid;place-items:center;
+    font-family:'Orbitron',sans-serif;font-size:.6rem;color:var(--txt-2);
+    transition:.2s;overflow:hidden;position:relative;
+  }
+  .thumb.active{border-color:var(--acc-gold);box-shadow:0 0 8px rgba(232,200,106,.4)}
+  .thumb img{width:100%;height:100%;object-fit:cover}
+  .thumb .num{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.7);font-size:.55rem;padding:1px}
+
+  /* Créditos finales */
+  #creditos{
+    position:fixed;inset:0;z-index:40;background:linear-gradient(180deg,#000,#0a0e1a 40%,#000);
+    overflow-y:auto;padding:calc(60px + env(safe-area-inset-top)) 20px calc(40px + env(safe-area-inset-bottom));
+    display:none;
+  }
+  #creditos.show{display:block;animation:fadeIn .6s ease}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  .cred-close{
+    position:fixed;top:calc(14px + env(safe-area-inset-top));right:16px;z-index:41;
+  }
+  .cred-inner{max-width:520px;margin:0 auto;text-align:center}
+  .cred-fin{font-family:'Orbitron',sans-serif;font-size:2.2rem;font-weight:900;color:var(--acc-gold);letter-spacing:12px;margin-bottom:8px;text-shadow:0 0 20px rgba(232,200,106,.4)}
+  .cred-sub{font-family:'Orbitron',sans-serif;font-size:.75rem;color:var(--txt-2);letter-spacing:4px;margin-bottom:40px}
+  .cred-avatar{
+    width:120px;height:120px;border-radius:50%;
+    margin:0 auto 20px;overflow:hidden;
+    border:2px solid var(--acc-gold);
+    box-shadow:0 0 30px rgba(232,200,106,.4);
+    background:var(--bg-2);display:grid;place-items:center;color:var(--acc-gold);font-family:'Orbitron',sans-serif;font-size:2.5rem;
+  }
+  .cred-avatar img{width:100%;height:100%;object-fit:cover}
+  .cred-nombre{font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;color:var(--acc-gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}
+  .cred-rol{font-family:'Orbitron',sans-serif;font-size:.7rem;color:var(--txt-2);letter-spacing:3px;margin-bottom:16px}
+  .cred-bio{color:var(--txt-1);line-height:1.5;font-size:.95rem;margin-bottom:24px;padding:0 8px}
+  .cred-redes{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-bottom:32px}
+  .cred-red{
+    background:rgba(20,25,40,.7);border:1px solid var(--border);color:var(--acc-gold);
+    padding:10px 18px;border-radius:24px;
+    font-family:'Orbitron',sans-serif;font-size:.7rem;letter-spacing:2px;
+    text-decoration:none;transition:.2s;display:inline-flex;align-items:center;gap:8px;
+  }
+  .cred-red:hover{background:rgba(232,200,106,.15);transform:translateY(-2px)}
+  .cred-acciones{display:flex;flex-direction:column;gap:12px;margin-top:20px}
+  .cred-btn{
+    background:linear-gradient(135deg,var(--acc-red),#8b1e1e);color:#fff;
+    border:none;padding:14px 24px;font-family:'Orbitron',sans-serif;
+    font-size:.8rem;letter-spacing:2px;font-weight:700;border-radius:4px;
+    cursor:pointer;transition:.2s;text-decoration:none;text-align:center;display:block;
+  }
+  .cred-btn.gold{background:linear-gradient(135deg,var(--acc-gold),#c9a94d);color:#0a0e1a}
+  .cred-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.4)}
+
+  /* Zonas de tap */
+  .tap-zone{position:absolute;top:0;bottom:0;width:20%;z-index:5;cursor:pointer}
+  .tap-zone.left{left:0}
+  .tap-zone.right{right:0}
+</style>
+</head>
+<body>
+
+<div id="splash">
+  <div class="splash-inner">
+    <div class="splash-logo">NEXO</div>
+    <div class="splash-bar"><div id="splash-fill" class="splash-fill"></div></div>
+    <div id="splash-msg" class="splash-msg">Abriendo el códice…</div>
+    <div id="splash-err" class="splash-err" style="display:none"></div>
+  </div>
+</div>
+
+<div id="hud-top" class="hud-top hidden">
+  <button class="btn-icon" onclick="salir()" aria-label="Cerrar">✕</button>
+  <div class="hud-title">
+    <h1 id="titulo">—</h1>
+    <div class="prog" id="prog">— / —</div>
+  </div>
+  <button class="btn-icon" onclick="toggleFullscreen()" aria-label="Pantalla completa">⛶</button>
+</div>
+
+<div id="stage">
+  <div class="tap-zone left" id="tap-left"></div>
+  <div class="tap-zone right" id="tap-right"></div>
+  <div id="book-wrap"><div id="book"></div></div>
+</div>
+
+<div id="hud-bottom" class="hud-bottom hidden">
+  <button class="nav-btn" id="btn-prev" aria-label="Anterior">‹</button>
+  <div class="thumbs" id="thumbs"></div>
+  <button class="nav-btn" id="btn-next" aria-label="Siguiente">›</button>
+</div>
+
+<div id="creditos">
+  <button class="btn-icon cred-close" onclick="cerrarCreditos()" aria-label="Cerrar">✕</button>
+  <div class="cred-inner">
+    <div class="cred-fin">FIN</div>
+    <div class="cred-sub" id="cred-titulo">— · — —</div>
+    <div class="cred-avatar" id="cred-avatar">?</div>
+    <div class="cred-nombre" id="cred-nombre">—</div>
+    <div class="cred-rol">GUIÓN · ARTE · TINTAS</div>
+    <div class="cred-bio" id="cred-bio">—</div>
+    <div class="cred-redes" id="cred-redes"></div>
+    <div class="cred-acciones">
+      <button class="cred-btn gold" onclick="reiniciar()">↺ LEER DE NUEVO</button>
+      <a class="cred-btn" href="comics.html">← volver a la Comicteca</a>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========== Config PDF.js ==========
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// ========== Estado ==========
+const params=new URLSearchParams(location.search);
+const comicId=params.get('id');
+let comic=null;
+let pdf=null;
+let flipBook=null;
+let paginaActual=0;
+let totalPaginas=0;
+const cache=new Map();
+let hudTimer=null;
+let hudVisible=true;
+
+// ========== Utilidades ==========
+const $=id=>document.getElementById(id);
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function setSplashProgress(pct,msg){$('splash-fill').style.width=pct+'%';if(msg)$('splash-msg').textContent=msg}
+function splashError(msg){
+  $('splash-err').style.display='block';
+  $('splash-err').innerHTML=escapeHtml(msg)+'<br><br><a href="comics.html" style="color:var(--acc-gold)">← Volver a la Comicteca</a>';
+  $('splash-msg').style.display='none';
+}
+function salir(){location.href='comics.html'}
+function toggleFullscreen(){
+  if(!document.fullscreenElement){
+    document.documentElement.requestFullscreen?.().catch(()=>{});
+  }else{document.exitFullscreen?.()}
+}
+
+// ========== HUD auto-hide ==========
+function mostrarHUD(){
+  hudVisible=true;
+  $('hud-top').classList.remove('hidden');
+  $('hud-bottom').classList.remove('hidden');
+  clearTimeout(hudTimer);
+  hudTimer=setTimeout(ocultarHUD,3500);
+}
+function ocultarHUD(){
+  hudVisible=false;
+  $('hud-top').classList.add('hidden');
+  $('hud-bottom').classList.add('hidden');
+}
+function toggleHUD(){hudVisible?ocultarHUD():mostrarHUD()}
+
+// ========== Dimensiones del libro ==========
+function calcularTam(){
+  const vw=window.innerWidth, vh=window.innerHeight;
+  const landscape=vw>vh && vw>=768;
+  // Ratio comic estándar 2:3
+  const ratio=2/3;
+  let w,h;
+  if(landscape){
+    // Doble página
+    h=Math.min(vh-40,900);
+    w=Math.round(h*ratio*2);
+    if(w>vw-40){w=vw-40;h=Math.round(w/2/ratio)}
+    return{w,h,landscape:true,single:false}
+  }else{
+    // Single page
+    h=Math.min(vh-40,vh*.92);
+    w=Math.round(h*ratio);
+    if(w>vw-20){w=vw-20;h=Math.round(w/ratio)}
+    return{w,h,landscape:false,single:true}
+  }
+}
+
+// ========== Render de página PDF ==========
+async function renderPagina(num){
+  if(cache.has(num))return cache.get(num);
+  const page=await pdf.getPage(num);
+  const {w,h,single}=calcularTam();
+  const pageW=single?w:w/2;
+  const viewport=page.getViewport({scale:1});
+  const scale=Math.min(pageW/viewport.width,h/viewport.height)*(window.devicePixelRatio||1);
+  const scaled=page.getViewport({scale});
+  const canvas=document.createElement('canvas');
+  canvas.width=scaled.width;canvas.height=scaled.height;
+  canvas.style.width='100%';canvas.style.height='auto';
+  const ctx=canvas.getContext('2d');
+  await page.render({canvasContext:ctx,viewport:scaled}).promise;
+  const dataUrl=canvas.toDataURL('image/jpeg',0.85);
+  cache.set(num,dataUrl);
+  return dataUrl;
+}
+
+// ========== Inicialización ==========
+async function init(){
+  if(!comicId){splashError('No se indicó qué cómic leer.');return}
+
+  setSplashProgress(10,'Consultando catálogo…');
+  let config;
+  try{
+    const r=await fetch('comics_config.json?v='+Date.now());
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    config=await r.json();
+  }catch(e){splashError('No pude cargar el catálogo.\n'+e.message);return}
+
+  comic=(config.comics||[]).find(c=>c.id===comicId);
+  if(!comic){splashError('Cómic no encontrado: '+comicId);return}
+
+  $('titulo').textContent=comic.titulo;
+  document.title=comic.titulo+' — Nexo de Héroes';
+
+  setSplashProgress(25,'Descargando páginas…');
+  try{
+    const loadingTask=pdfjsLib.getDocument({
+      url:comic.pdf,
+      cMapUrl:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',
+      cMapPacked:true
+    });
+    loadingTask.onProgress=data=>{
+      if(data.total){
+        const pct=25+Math.round((data.loaded/data.total)*45);
+        setSplashProgress(Math.min(pct,70),'Descargando páginas…');
+      }
+    };
+    pdf=await loadingTask.promise;
+  }catch(e){splashError('No pude abrir el PDF.\n'+(e.message||e));return}
+
+  totalPaginas=pdf.numPages;
+  $('prog').textContent='1 / '+totalPaginas;
+
+  setSplashProgress(75,'Preparando primeras páginas…');
+  // Pre-cargar las primeras páginas
+  const preload=Math.min(4,totalPaginas);
+  for(let i=1;i<=preload;i++){
+    await renderPagina(i);
+    setSplashProgress(75+Math.round((i/preload)*20),'Preparando…');
+  }
+
+  setSplashProgress(95,'Encuadernando…');
+  construirLibro();
+  construirMiniaturas();
+
+  setSplashProgress(100,'Listo');
+  setTimeout(()=>{
+    $('splash').classList.add('gone');
+    setTimeout(()=>$('splash').style.display='none',500);
+    mostrarHUD();
+  },300);
+
+  // Pre-cargar el resto en segundo plano
+  (async()=>{
+    for(let i=preload+1;i<=totalPaginas;i++){
+      try{await renderPagina(i)}catch(e){console.warn('preload fail',i,e)}
+    }
+    // Regenerar miniaturas ahora que están cacheadas
+    construirMiniaturas();
+  })();
+}
+
+// ========== StPageFlip ==========
+function construirLibro(){
+  const {w,h,single}=calcularTam();
+  const bookEl=$('book');
+  bookEl.innerHTML='';
+
+  // Preparar páginas: portada + páginas + contraportada (opcional)
+  const paginas=[];
+  for(let i=1;i<=totalPaginas;i++){
+    const div=document.createElement('div');
+    div.className='page';
+    div.dataset.pagina=i;
+    const src=cache.get(i);
+    if(src){
+      const img=document.createElement('img');
+      img.src=src;img.alt='Página '+i;
+      div.appendChild(img);
+    }else{
+      div.innerHTML='<div class="page-empty">Cargando…</div>';
+    }
+    paginas.push(div);
+    bookEl.appendChild(div);
+  }
+
+  flipBook=new St.PageFlip(bookEl,{
+    width:single?w:w/2,
+    height:h,
+    size:'fixed',
+    minWidth:200,maxWidth:1200,
+    minHeight:300,maxHeight:1800,
+    maxShadowOpacity:.5,
+    showCover:true,
+    mobileScrollSupport:false,
+    usePortrait:single,
+    drawShadow:true,
+    flippingTime:600,
+    swipeDistance:30
+  });
+
+  flipBook.loadFromHTML(bookEl.querySelectorAll('.page'));
+
+  flipBook.on('flip',e=>{
+    paginaActual=e.data;
+    $('prog').textContent=(paginaActual+1)+' / '+totalPaginas;
+    actualizarMiniaturas();
+    actualizarBotones();
+    // Refrescar imágenes que estaban en carga
+    const cerca=[paginaActual-1,paginaActual,paginaActual+1,paginaActual+2];
+    cerca.forEach(idx=>{
+      if(idx<0||idx>=totalPaginas)return;
+      const pageDiv=bookEl.children[idx];
+      if(pageDiv && !pageDiv.querySelector('img')){
+        const src=cache.get(idx+1);
+        if(src){
+          pageDiv.innerHTML='';
+          const img=document.createElement('img');
+          img.src=src;pageDiv.appendChild(img);
+        }
+      }
+    });
+    // Si llegamos al final
+    if(paginaActual>=totalPaginas-1){
+      setTimeout(mostrarCreditos,1200);
+    }
+  });
+
+  $('btn-prev').onclick=()=>flipBook.flipPrev();
+  $('btn-next').onclick=()=>flipBook.flipNext();
+  actualizarBotones();
+}
+
+function actualizarBotones(){
+  $('btn-prev').disabled=paginaActual<=0;
+  $('btn-next').disabled=paginaActual>=totalPaginas-1;
+}
+
+// ========== Miniaturas ==========
+function construirMiniaturas(){
+  const cont=$('thumbs');
+  cont.innerHTML='';
+  for(let i=1;i<=totalPaginas;i++){
+    const t=document.createElement('div');
+    t.className='thumb';
+    t.dataset.pagina=i;
+    const src=cache.get(i);
+    if(src){
+      const img=document.createElement('img');img.src=src;t.appendChild(img);
+    }
+    const num=document.createElement('div');num.className='num';num.textContent=i;
+    t.appendChild(num);
+    t.onclick=()=>{
+      flipBook?.turnToPage(i-1);
+      mostrarHUD();
+    };
+    cont.appendChild(t);
+  }
+  actualizarMiniaturas();
+}
+function actualizarMiniaturas(){
+  $('thumbs').querySelectorAll('.thumb').forEach((t,i)=>{
+    t.classList.toggle('active',i===paginaActual);
+    if(i===paginaActual)t.scrollIntoView({inline:'center',behavior:'smooth',block:'nearest'});
+  });
+}
+
+// ========== Créditos ==========
+function mostrarCreditos(){
+  if(!comic?.autor)return;
+  const a=comic.autor;
+  $('cred-titulo').textContent=(comic.titulo||'').toUpperCase()+(comic.subtitulo?' · '+comic.subtitulo.toUpperCase():'');
+  $('cred-nombre').textContent=a.nombre||'—';
+  $('cred-bio').textContent=a.bio||'';
+  const av=$('cred-avatar');
+  if(a.foto){
+    av.innerHTML='';
+    const img=document.createElement('img');
+    img.src=a.foto;
+    img.onerror=()=>{av.innerHTML=(a.nombre||'?').charAt(0)};
+    av.appendChild(img);
+  }else{
+    av.textContent=(a.nombre||'?').charAt(0);
+  }
+  const redes=$('cred-redes');redes.innerHTML='';
+  const iconos={facebook:'ⓕ',instagram:'ⓘ',twitter:'𝕏',x:'𝕏',web:'⚭',tienda:'🛒',youtube:'▶',tiktok:'♪'};
+  if(a.redes){
+    Object.entries(a.redes).forEach(([k,v])=>{
+      if(!v)return;
+      const link=document.createElement('a');
+      link.className='cred-red';link.href=v;link.target='_blank';link.rel='noopener';
+      link.innerHTML='<span>'+(iconos[k]||'●')+'</span>'+k.toUpperCase();
+      redes.appendChild(link);
+    });
+  }
+  $('creditos').classList.add('show');
+  // Registrar lectura completada (para Etapa 2 / logros)
+  try{
+    const leidos=JSON.parse(localStorage.getItem('comics_leidos')||'[]');
+    if(!leidos.includes(comic.id)){
+      leidos.push(comic.id);
+      localStorage.setItem('comics_leidos',JSON.stringify(leidos));
+    }
+  }catch(e){}
+}
+function cerrarCreditos(){$('creditos').classList.remove('show')}
+function reiniciar(){
+  cerrarCreditos();
+  flipBook?.turnToPage(0);
+}
+
+// ========== Interacción ==========
+$('stage').addEventListener('click',e=>{
+  // Si tocó una zona de nav, dejar que el handler lo tome
+  if(e.target.classList.contains('tap-zone'))return;
+  toggleHUD();
+});
+$('tap-left').addEventListener('click',e=>{e.stopPropagation();flipBook?.flipPrev();mostrarHUD()});
+$('tap-right').addEventListener('click',e=>{e.stopPropagation();flipBook?.flipNext();mostrarHUD()});
+
+// Teclado
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowLeft')flipBook?.flipPrev();
+  else if(e.key==='ArrowRight'||e.key===' ')flipBook?.flipNext();
+  else if(e.key==='Escape')salir();
+  else if(e.key==='f'||e.key==='F')toggleFullscreen();
+  mostrarHUD();
+});
+
+// Reajuste en rotación / resize
+let resizeT;
+window.addEventListener('resize',()=>{
+  clearTimeout(resizeT);
+  resizeT=setTimeout(()=>{
+    if(!flipBook||!totalPaginas)return;
+    const {w,h,single}=calcularTam();
+    try{
+      flipBook.update({
+        width:single?w:w/2,
+        height:h,
+        usePortrait:single
+      });
+    }catch(e){/* algunas versiones no exponen update */}
+  },200);
+});
+
+// Prevenir scroll de rebote iOS
+document.addEventListener('touchmove',e=>{
+  if(e.target.closest('#creditos')||e.target.closest('.thumbs'))return;
+  e.preventDefault();
+},{passive:false});
+
+// Go
+init();
+</script>
+</body>
+</html>

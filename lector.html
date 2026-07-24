@@ -581,7 +581,7 @@ function reiniciar(){
 // ========== Zoom táctil (pinch + pan + doble-tap) ==========
 let zoomScale=1, zoomX=0, zoomY=0;
 let pinchInicio=null;   // {dist, scaleInicial, xInicial, yInicial}
-let panInicio=null;     // {x, y, tx, ty}
+let panInicio=null;     // {x, y, tx, ty, moved}
 let ultimoTap=0;        // timestamp del último tap simple (para detectar doble-tap)
 let ultimoTapX=0, ultimoTapY=0;
 const ZOOM_MIN=1, ZOOM_MAX=4, ZOOM_DOBLE_TAP=2.4;
@@ -609,20 +609,27 @@ function resetZoom(){
 function ajustarPan(){
   if(zoomScale<=1){zoomX=0;zoomY=0;return}
   const rect=bookWrap.getBoundingClientRect();
-  // rect ya incluye el scale actual
-  const maxX=Math.max(0,(rect.width-window.innerWidth)/2 + 40);
-  const maxY=Math.max(0,(rect.height-window.innerHeight)/2 + 40);
+  const maxX=Math.max(0,(rect.width-window.innerWidth)/2 + 60);
+  const maxY=Math.max(0,(rect.height-window.innerHeight)/2 + 60);
   zoomX=Math.max(-maxX,Math.min(maxX,zoomX));
   zoomY=Math.max(-maxY,Math.min(maxY,zoomY));
 }
 
 function dist(t1,t2){return Math.hypot(t2.clientX-t1.clientX,t2.clientY-t1.clientY)}
 
-// --- Touch handlers ---
+// --- Handlers en FASE DE CAPTURA para interceptar antes que StPageFlip ---
+// StPageFlip registra sus listeners en el elemento del libro; al capturar aquí
+// arriba, podemos bloquear el evento con stopImmediatePropagation() y evitar
+// que interprete el swipe como cambio de página cuando estamos manipulando zoom.
+function esGestoZoom(e){
+  return e.touches.length>=2 || (zoomScale>1.05);
+}
+
 $('stage').addEventListener('touchstart',e=>{
   if(e.touches.length===2){
-    // Iniciar pinch
+    // Iniciar pinch: bloqueamos StPageFlip
     e.preventDefault();
+    e.stopImmediatePropagation();
     pinchInicio={
       dist:dist(e.touches[0],e.touches[1]),
       scaleInicial:zoomScale,
@@ -630,21 +637,28 @@ $('stage').addEventListener('touchstart',e=>{
       yInicial:zoomY
     };
     panInicio=null;
+    // Si StPageFlip ya empezó a interpretar un swipe con el primer dedo,
+    // le enviamos un touchcancel para que aborte.
+    try{
+      const cancel=new TouchEvent('touchcancel',{bubbles:true,cancelable:true,touches:e.touches});
+      $('book').dispatchEvent(cancel);
+    }catch(_){/* algunos navegadores no permiten construir TouchEvent */}
   }else if(e.touches.length===1 && zoomScale>1.05){
-    // Pan con un dedo cuando ya hay zoom
+    // Pan: también bloqueamos StPageFlip
+    e.preventDefault();
+    e.stopImmediatePropagation();
     const t=e.touches[0];
-    panInicio={x:t.clientX,y:t.clientY,tx:zoomX,ty:zoomY};
+    panInicio={x:t.clientX,y:t.clientY,tx:zoomX,ty:zoomY,moved:false};
   }
-},{passive:false});
+},{passive:false,capture:true});
 
 $('stage').addEventListener('touchmove',e=>{
   if(pinchInicio && e.touches.length===2){
     e.preventDefault();
-    e.stopPropagation();
+    e.stopImmediatePropagation();
     const d=dist(e.touches[0],e.touches[1]);
     const factor=d/pinchInicio.dist;
     zoomScale=Math.max(ZOOM_MIN,Math.min(ZOOM_MAX,pinchInicio.scaleInicial*factor));
-    // Escalar también el pan proporcionalmente
     const rel=zoomScale/pinchInicio.scaleInicial;
     zoomX=pinchInicio.xInicial*rel;
     zoomY=pinchInicio.yInicial*rel;
@@ -652,44 +666,61 @@ $('stage').addEventListener('touchmove',e=>{
     aplicarZoom(false);
   }else if(panInicio && e.touches.length===1 && zoomScale>1.05){
     e.preventDefault();
-    e.stopPropagation();
+    e.stopImmediatePropagation();
     const t=e.touches[0];
     zoomX=panInicio.tx+(t.clientX-panInicio.x);
     zoomY=panInicio.ty+(t.clientY-panInicio.y);
+    if(Math.abs(t.clientX-panInicio.x)>4||Math.abs(t.clientY-panInicio.y)>4){
+      panInicio.moved=true;
+    }
     ajustarPan();
     aplicarZoom(false);
-  }else if(e.touches.length===1 && zoomScale<=1.05){
-    // Sin zoom: prevenir scroll de rebote (excepto en créditos y miniaturas)
+  }else if(zoomScale>1.05 && e.touches.length===1){
+    // Estamos zoomeados: bloquear siempre para que StPageFlip no lea el swipe
+    e.preventDefault();
+    e.stopImmediatePropagation();
+  }else if(e.touches.length===1){
+    // Sin zoom: prevenir scroll de rebote (pero dejar pasar a StPageFlip)
     if(!e.target.closest('#creditos')&&!e.target.closest('.thumbs')){
       e.preventDefault();
     }
   }
-},{passive:false});
+},{passive:false,capture:true});
 
 $('stage').addEventListener('touchend',e=>{
+  const wasPinch=!!pinchInicio;
+  const wasPan=!!panInicio;
   if(e.touches.length<2) pinchInicio=null;
+  if(e.touches.length===0) panInicio=null;
+
+  // Si veníamos de un gesto de zoom, bloqueamos también el touchend
+  // para que StPageFlip no lo interprete como fin de swipe.
+  if(wasPinch||wasPan||zoomScale>1.05){
+    e.stopImmediatePropagation();
+  }
+
   if(e.touches.length===0){
-    panInicio=null;
-    // Si quedó apenas por encima de 1, snap back
+    // Snap back si quedó ligeramente por encima de 1
     if(zoomScale<1.05 && zoomScale!==1){
       resetZoom();
     }
   }
-});
+},{capture:true});
 
 // --- Doble tap para zoom rápido (in/out) ---
+// Se registra sin capture porque no queremos interferir con taps normales.
 $('stage').addEventListener('touchend',e=>{
   if(e.changedTouches.length!==1||e.touches.length!==0)return;
+  // Si venimos de un pan real (con movimiento), no contar como tap
+  if(panInicio && panInicio.moved){return}
   const t=e.changedTouches[0];
   const ahora=Date.now();
   const dx=Math.abs(t.clientX-ultimoTapX), dy=Math.abs(t.clientY-ultimoTapY);
   if(ahora-ultimoTap<320 && dx<40 && dy<40){
-    // Doble tap detectado
     e.preventDefault();
     if(zoomScale>1.05){
       resetZoom();
     }else{
-      // Zoom centrado en el punto del tap
       const rect=bookWrap.getBoundingClientRect();
       const cx=rect.left+rect.width/2;
       const cy=rect.top+rect.height/2;
@@ -727,8 +758,7 @@ $('stage').addEventListener('wheel',e=>{
 
 // ========== Interacción de navegación ==========
 $('stage').addEventListener('click',e=>{
-  // Si está zoomeado, un tap simple no debe togglear el HUD ni voltear página
-  if(zoomScale>1.05){return}
+  if(zoomScale>1.05)return;
   if(e.target.classList.contains('tap-zone'))return;
   toggleHUD();
 });

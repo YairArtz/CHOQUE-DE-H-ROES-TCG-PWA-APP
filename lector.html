@@ -309,16 +309,24 @@ async function renderPagina(num){
   const {w,h,single}=calcularTam();
   const pageW=single?w:w/2;
   const viewport=page.getViewport({scale:1});
-  const scale=Math.min(pageW/viewport.width,h/viewport.height)*(window.devicePixelRatio||1);
+  // En PDFs largos limitamos el DPR para no consumir tanta RAM en móvil.
+  const dprBase=window.devicePixelRatio||1;
+  const dpr=totalPaginas>30?Math.min(1.5,dprBase):dprBase;
+  const scale=Math.min(pageW/viewport.width,h/viewport.height)*dpr;
   const scaled=page.getViewport({scale});
   const canvas=document.createElement('canvas');
   canvas.width=scaled.width;canvas.height=scaled.height;
   canvas.style.width='100%';canvas.style.height='auto';
   const ctx=canvas.getContext('2d');
   await page.render({canvasContext:ctx,viewport:scaled}).promise;
-  const dataUrl=canvas.toDataURL('image/jpeg',0.85);
-  cache.set(num,dataUrl);
-  return dataUrl;
+  // Blob URL en vez de Data URL: ~33% menos memoria, mejor GC.
+  const blob=await new Promise(res=>canvas.toBlob(res,'image/jpeg',0.85));
+  const url=blob?URL.createObjectURL(blob):canvas.toDataURL('image/jpeg',0.85);
+  // Liberar el canvas y la página del PDF cuanto antes.
+  canvas.width=0;canvas.height=0;
+  try{page.cleanup()}catch(_){}
+  cache.set(num,url);
+  return url;
 }
 
 // ========== Inicialización ==========
@@ -340,11 +348,18 @@ async function init(){
   document.title=comic.titulo+' — Nexo de Héroes';
 
   setSplashProgress(10,'Descargando PDF…');
-  try{
+
+  // Intento 1: modo normal (streaming). Rápido para PDFs bien formados.
+  // Intento 2: modo robusto (descarga completa antes de parsear). Rescata PDFs
+  // con estructuras raras: xref dañado, streams no estándar, exportaciones
+  // atípicas de InDesign/Photoshop, etc.
+  async function intentarAbrirPDF(opcionesExtra){
     const loadingTask=pdfjsLib.getDocument({
       url:comic.pdf,
       cMapUrl:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',
-      cMapPacked:true
+      cMapPacked:true,
+      isEvalSupported:false,
+      ...opcionesExtra
     });
     loadingTask.onProgress=data=>{
       if(data.total){
@@ -352,8 +367,35 @@ async function init(){
         setSplashProgress(Math.min(pct,25),'Descargando PDF…');
       }
     };
-    pdf=await loadingTask.promise;
-  }catch(e){splashError('No pude abrir el PDF.\n'+(e.message||e));return}
+    return await loadingTask.promise;
+  }
+
+  try{
+    pdf=await intentarAbrirPDF({});
+  }catch(e1){
+    console.warn('Intento 1 falló, reintentando en modo robusto',e1);
+    setSplashProgress(15,'Reintentando en modo robusto…');
+    try{
+      pdf=await intentarAbrirPDF({
+        disableAutoFetch:true,
+        disableStream:true,
+        disableRange:true
+      });
+    }catch(e2){
+      const detalle=(e2&&e2.message)||String(e2);
+      $('splash-err').style.display='block';
+      $('splash-err').innerHTML=
+        '<strong>No pude abrir este PDF.</strong><br>'+
+        '<span style="font-size:.85em;opacity:.75">'+escapeHtml(detalle)+'</span><br><br>'+
+        'Suele deberse a un PDF exportado con estructura no estándar. '+
+        'Prueba re-exportarlo desde el original (por ejemplo, "Guardar como PDF/A" o '+
+        '"Reducir tamaño de archivo" en Acrobat) o linealízalo con Ghostscript / <em>qpdf --linearize</em>.<br><br>'+
+        '<a href="'+encodeURI(comic.pdf)+'" target="_blank" rel="noopener" style="color:var(--acc-gold);text-decoration:underline">Descargar el PDF directamente</a><br><br>'+
+        '<a href="comics.html" style="color:var(--acc-gold)">← Volver a la Comicteca</a>';
+      $('splash-msg').style.display='none';
+      return;
+    }
+  }
 
   totalPaginas=pdf.numPages;
   $('prog').textContent='1 / '+totalPaginas;

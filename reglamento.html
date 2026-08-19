@@ -824,6 +824,67 @@
       .phase-card { flex: 0 0 110px; padding: 10px 8px; }
       .phase-card-name { font-size: 9px; }
     }
+
+    /* ═══ TABLERO OFICIAL + DIAGRAMA INTERACTIVO ═══ */
+    .tablero-wrapper {
+      margin: 14px 0 6px;
+      padding: 12px;
+      background: rgba(10, 12, 20, 0.5);
+      border: 1px solid rgba(245, 166, 35, 0.25);
+      border-radius: 10px;
+    }
+    .tablero-oficial {
+      width: 100%;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 14px;
+      display: block;
+    }
+    .diagrama-label {
+      font-size: 11px;
+      color: #b0b4b8;
+      margin-bottom: 8px;
+      font-family: 'Orbitron', sans-serif;
+      letter-spacing: 1px;
+      font-weight: 700;
+    }
+    .tablero-svg {
+      width: 100%;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      display: block;
+    }
+    .tablero-svg rect[onclick]:hover {
+      filter: brightness(1.4);
+    }
+    .zone-info-box {
+      display: none;
+      margin-top: 10px;
+      padding: 12px 14px;
+      background: rgba(245, 166, 35, 0.08);
+      border: 1px solid rgba(245, 166, 35, 0.4);
+      border-radius: 8px;
+      animation: zoneFadeIn 0.25s ease;
+    }
+    .zone-info-box.active { display: block; }
+    .zone-info-box .zone-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: #f5a623;
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+    }
+    .zone-info-box .zone-desc {
+      font-size: 13px;
+      line-height: 1.5;
+      color: #e0e4e8;
+    }
+    @keyframes zoneFadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
   </style>
 </head>
 <body>
@@ -1170,7 +1231,72 @@
             
             <li>No es necesario usar un tablero si ya conoces cada zona del mismo (podrás descargarlo en la página de CHH).</li>
             
-            <li>El tablero consta de: 4 zonas para personajes, 5 zonas para apoyos y almas, 1 zona para baraja principal, 1 para baraja de almas, 1 para baraja de soporte, 1 zona de aislamiento, 1 de confinamiento, 1 para personajes de soporte y el Mictlán.</li>
+            <li>El tablero consta de: 4 zonas para personajes, 5 zonas para apoyos y almas, 1 zona para baraja principal, 1 para baraja de almas, 1 para baraja de soporte, 1 zona de aislamiento, 1 de confinamiento, 1 para personajes de soporte y el Mictlán.
+              <div class="tablero-wrapper">
+                <img src="cartas/tablero.jpg" alt="Tablero Oficial CHH" class="tablero-oficial" onerror="this.style.display='none'">
+
+                <div class="diagrama-label">📍 DIAGRAMA INTERACTIVO — TOCA CADA ZONA</div>
+                <svg viewBox="0 0 360 240" xmlns="http://www.w3.org/2000/svg" class="tablero-svg">
+                  <rect width="360" height="240" fill="#0a0c14" rx="8"/>
+                  <!-- Baraja Soporte -->
+                  <rect x="6" y="6" width="54" height="36" rx="3" fill="rgba(255,224,102,0.12)" stroke="rgba(255,224,102,0.5)" stroke-width="1" onclick="showZone('Baraja de Soporte','Tus hasta 15 personajes de soporte colocados boca abajo. Los convocas al campo de soporte mediante efectos especiales.')"/>
+                  <text x="33" y="21" text-anchor="middle" font-family="Orbitron,monospace" font-size="5.5" fill="#ffe066">BARAJA</text>
+                  <text x="33" y="30" text-anchor="middle" font-family="Orbitron,monospace" font-size="5.5" fill="#ffe066">SOPORTE</text>
+                  <!-- Arenas centro top -->
+                  <rect x="138" y="6" width="84" height="36" rx="3" fill="rgba(0,255,157,0.1)" stroke="rgba(0,255,157,0.5)" stroke-width="1" onclick="showZone('Zona de Arenas','Aquí se coloca la carta ARENA activa. Si juegas una nueva arena, la anterior se destruye. Cambia el campo de uno o ambos jugadores.')"/>
+                  <text x="180" y="27" text-anchor="middle" font-family="Orbitron,monospace" font-size="6.5" fill="#00ff9d">ARENAS</text>
+                  <!-- Baraja Almas -->
+                  <rect x="300" y="6" width="54" height="36" rx="3" fill="rgba(77,207,255,0.12)" stroke="rgba(77,207,255,0.5)" stroke-width="1" onclick="showZone('Baraja de Almas','Tus 15 cartas de alma. En la Fase de Robo de Alma tomas la carta superior y la añades a tu mano. Si se agota puedes seguir jugando.')"/>
+                  <text x="327" y="21" text-anchor="middle" font-family="Orbitron,monospace" font-size="5.5" fill="#4dcfff">BARAJA</text>
+                  <text x="327" y="30" text-anchor="middle" font-family="Orbitron,monospace" font-size="5.5" fill="#4dcfff">ALMAS</text>
+                  <!-- Sector Izq -->
+                  <rect x="6" y="50" width="52" height="78" rx="3" fill="rgba(204,85,255,0.1)" stroke="rgba(204,85,255,0.4)" stroke-width="1" onclick="showZone('Sector Izquierdo','Zona para la carta SECTOR izquierdo. Afecta las 2 zonas de personajes de ese lado. Una AMALGAMA puede ser el líder de este sector.')"/>
+                  <text x="32" y="87" text-anchor="middle" font-family="Orbitron,monospace" font-size="5" fill="#cc55ff">SECTOR</text>
+                  <text x="32" y="96" text-anchor="middle" font-family="Orbitron,monospace" font-size="5" fill="#cc55ff">IZQ</text>
+                  <!-- 4 Zonas Personaje -->
+                  <rect x="62" y="50" width="60" height="78" rx="4" fill="rgba(255,140,66,0.08)" stroke="rgba(255,140,66,0.4)" stroke-width="1" onclick="showZone('Zona de Personaje','Aquí colocas tus personajes al llamarlos al campo. Tienes 4 zonas. Las 2 de la izquierda pertenecen al sector izquierdo, las 2 de la derecha al sector derecho.')"/>
+                  <text x="92" y="93" text-anchor="middle" font-family="Orbitron,monospace" font-size="5.5" fill="rgba(255,140,66,0.7)">ZONA PJ</text>
+                  <rect x="126" y="50" width="60" height="78" rx="4" fill="rgba(255,140,66,0.08)" stroke="rgba(255,140,66,0.4)" stroke-width="1" onclick="showZone('Zona de Personaje','Aquí colocas tus personajes al llamarlos al campo. Tienes 4 zonas. Las 2 de la izquierda pertenecen al sector izquierdo, las 2 de la derecha al sector derecho.')"/>
+                  <text x="156" y="93" text-anchor="middle" font-family="Orbitron,monospace" font-size="5.5" fill="rgba(255,140,66,0.7)">ZONA PJ</text>
+                  <rect x="190" y="50" width="60" height="78" rx="4" fill="rgba(255,140,66,0.08)" stroke="rgba(255,140,66,0.4)" stroke-width="1" onclick="showZone('Zona de Personaje','Aquí colocas tus personajes al llamarlos al campo. Tienes 4 zonas. Las 2 de la izquierda pertenecen al sector izquierdo, las 2 de la derecha al sector derecho.')"/>
+                  <text x="220" y="93" text-anchor="middle" font-family="Orbitron,monospace" font-size="5.5" fill="rgba(255,140,66,0.7)">ZONA PJ</text>
+                  <rect x="254" y="50" width="60" height="78" rx="4" fill="rgba(255,140,66,0.08)" stroke="rgba(255,140,66,0.4)" stroke-width="1" onclick="showZone('Zona de Personaje','Aquí colocas tus personajes al llamarlos al campo. Tienes 4 zonas. Las 2 de la izquierda pertenecen al sector izquierdo, las 2 de la derecha al sector derecho.')"/>
+                  <text x="284" y="93" text-anchor="middle" font-family="Orbitron,monospace" font-size="5.5" fill="rgba(255,140,66,0.7)">ZONA PJ</text>
+                  <!-- Sector Der -->
+                  <rect x="318" y="50" width="36" height="78" rx="3" fill="rgba(204,85,255,0.1)" stroke="rgba(204,85,255,0.4)" stroke-width="1" onclick="showZone('Sector Derecho','Zona para la carta SECTOR derecho. Afecta las 2 zonas de personajes de ese lado.')"/>
+                  <text x="336" y="87" text-anchor="middle" font-family="Orbitron,monospace" font-size="5" fill="#cc55ff">SECT</text>
+                  <text x="336" y="96" text-anchor="middle" font-family="Orbitron,monospace" font-size="5" fill="#cc55ff">DER</text>
+                  <!-- Linea central -->
+                  <line x1="0" y1="136" x2="360" y2="136" stroke="rgba(245,166,35,0.3)" stroke-width="1" stroke-dasharray="5,4"/>
+                  <text x="180" y="144" text-anchor="middle" font-family="Orbitron,monospace" font-size="5" fill="rgba(245,166,35,0.5)">── CAMPO DE BATALLA ──</text>
+                  <!-- 4 Zonas Apoyo (con almas) -->
+                  <rect x="62" y="148" width="60" height="40" rx="3" fill="rgba(255,77,109,0.08)" stroke="rgba(255,77,109,0.45)" stroke-width="1" onclick="showZone('Zona de Apoyo / Alma','¡CLAVE! Las ALMAS y los APOYOS continuos comparten estas 4 zonas. Cada alma activada ocupa permanentemente un slot. Con todos los slots llenos de almas, NO puedes activar ningún apoyo.')"/>
+                  <text x="92" y="165" text-anchor="middle" font-family="Orbitron,monospace" font-size="5.5" fill="rgba(255,77,109,0.8)">APOYO/</text>
+                  <text x="92" y="174" text-anchor="middle" font-family="Orbitron,monospace" font-size="5.5" fill="rgba(77,207,255,0.8)">ALMA</text>
+                  <rect x="126" y="148" width="60" height="40" rx="3" fill="rgba(255,77,109,0.08)" stroke="rgba(255,77,109,0.45)" stroke-width="1" onclick="showZone('Zona de Apoyo / Alma','¡CLAVE! Las ALMAS y los APOYOS continuos comparten estas 4 zonas. Cada alma activada ocupa permanentemente un slot. Con todos los slots llenos de almas, NO puedes activar ningún apoyo.')"/>
+                  <text x="156" y="165" text-anchor="middle" font-family="Orbitron,monospace" font-size="5.5" fill="rgba(255,77,109,0.8)">APOYO/</text>
+                  <text x="156" y="174" text-anchor="middle" font-family="Orbitron,monospace" font-size="5.5" fill="rgba(77,207,255,0.8)">ALMA</text>
+                  <rect x="190" y="148" width="60" height="40" rx="3" fill="rgba(255,77,109,0.08)" stroke="rgba(255,77,109,0.45)" stroke-width="1" onclick="showZone('Zona de Apoyo / Alma','¡CLAVE! Las ALMAS y los APOYOS continuos comparten estas 4 zonas. Cada alma activada ocupa permanentemente un slot. Con todos los slots llenos de almas, NO puedes activar ningún apoyo.')"/>
+                  <text x="220" y="165" text-anchor="middle" font-family="Orbitron,monospace" font-size="5.5" fill="rgba(255,77,109,0.8)">APOYO/</text>
+                  <text x="220" y="174" text-anchor="middle" font-family="Orbitron,monospace" font-size="5.5" fill="rgba(77,207,255,0.8)">ALMA</text>
+                  <rect x="254" y="148" width="60" height="40" rx="3" fill="rgba(255,77,109,0.08)" stroke="rgba(255,77,109,0.45)" stroke-width="1" onclick="showZone('Zona de Apoyo / Alma','¡CLAVE! Las ALMAS y los APOYOS continuos comparten estas 4 zonas. Cada alma activada ocupa permanentemente un slot. Con todos los slots llenos de almas, NO puedes activar ningún apoyo.')"/>
+                  <text x="284" y="165" text-anchor="middle" font-family="Orbitron,monospace" font-size="5.5" fill="rgba(255,77,109,0.8)">APOYO/</text>
+                  <text x="284" y="174" text-anchor="middle" font-family="Orbitron,monospace" font-size="5.5" fill="rgba(77,207,255,0.8)">ALMA</text>
+                  <!-- Mictlan -->
+                  <rect x="6" y="194" width="52" height="38" rx="3" fill="rgba(122,130,144,0.1)" stroke="rgba(122,130,144,0.4)" stroke-width="1" onclick="showZone('Mictlán','El cementerio del juego. Aquí van las cartas destruidas y el exceso de mano al final del turno. Para rendirte toca tu Mictlán y anúncialo.')"/>
+                  <text x="32" y="216" text-anchor="middle" font-family="Orbitron,monospace" font-size="5.5" fill="rgba(255,255,255,0.6)">MICTLÁN</text>
+                  <!-- Baraja Principal -->
+                  <rect x="302" y="194" width="52" height="38" rx="3" fill="rgba(245,166,35,0.1)" stroke="rgba(245,166,35,0.45)" stroke-width="1" onclick="showZone('Baraja Principal','Tus 40 cartas. En la Fase de Robo de Turno robas 1. Si se agota, pierdes el choque de inmediato.')"/>
+                  <text x="328" y="211" text-anchor="middle" font-family="Orbitron,monospace" font-size="5.5" fill="#f5a623">BARAJA</text>
+                  <text x="328" y="220" text-anchor="middle" font-family="Orbitron,monospace" font-size="5.5" fill="#f5a623">PPAL</text>
+                  <!-- Corazones -->
+                  <rect x="62" y="200" width="236" height="24" rx="3" fill="rgba(255,77,109,0.1)" stroke="rgba(255,77,109,0.5)" stroke-width="1" onclick="showZone('Corazones (Vida)','Cada jugador inicia con 10 corazones. Los corazones NO se regeneran entre turnos. Al llegar a 0, ese jugador pierde el choque.')"/>
+                  <text x="180" y="216" text-anchor="middle" font-family="Orbitron,monospace" font-size="5.5" fill="rgba(255,77,109,0.9)">❤️❤️❤️❤️❤️❤️❤️❤️❤️❤️  CORAZONES</text>
+                </svg>
+
+                <div id="zoneInfoBox" class="zone-info-box"><div id="zoneInfoCard"></div></div>
+              </div>
+            </li>
             
             <li>Existen <strong>6 tipos de cartas:</strong> APOYO, SECTOR, ARENA, PERSONAJE, ALMA y AMALGAMA.</li>
             
@@ -2031,6 +2157,16 @@ if (fabTop) {
     fabTop.classList.toggle('visible', window.scrollY > 400);
   }, { passive: true });
   fabTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+}
+
+// ── Diagrama interactivo del tablero (FAQ) ──
+function showZone(title, desc) {
+  const box = document.getElementById('zoneInfoBox');
+  const card = document.getElementById('zoneInfoCard');
+  if (!box || !card) return;
+  card.innerHTML = '<div class="zone-title">' + title + '</div><div class="zone-desc">' + desc + '</div>';
+  box.classList.add('active');
+  box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 </script>
 

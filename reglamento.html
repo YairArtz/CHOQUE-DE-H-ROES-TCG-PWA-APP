@@ -466,19 +466,363 @@
       line-height: 1.6;
     }
     
+    /* ═══════════════════════════════════════════════ */
+    /* MEJORAS v2 — Búsqueda, timeline, diagrama, filtros */
+    /* ═══════════════════════════════════════════════ */
+
+    /* Search bar global */
+    .search-wrapper {
+      position: relative;
+      margin-bottom: 20px;
+    }
+    .search-input {
+      width: 100%;
+      padding: 14px 44px 14px 44px;
+      background: rgba(55, 10, 80, 0.2);
+      border: 1.5px solid rgba(204, 85, 255, 0.35);
+      border-radius: 10px;
+      color: #e0e4e8;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      outline: none;
+      transition: all 0.25s;
+    }
+    .search-input:focus {
+      border-color: #cc55ff;
+      box-shadow: 0 0 20px rgba(204, 85, 255, 0.25);
+      background: rgba(55, 10, 80, 0.35);
+    }
+    .search-input::placeholder { color: #666; }
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 18px;
+      color: #cc55ff;
+      pointer-events: none;
+    }
+    .search-clear {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(204, 85, 255, 0.2);
+      border: none;
+      color: #cc55ff;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 700;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .search-clear.visible { display: flex; }
+    .search-result-count {
+      font-size: 12px;
+      color: #888;
+      margin-top: 8px;
+      padding-left: 4px;
+      min-height: 16px;
+    }
+    .search-hit {
+      background: rgba(245, 166, 35, 0.25);
+      color: #f5a623;
+      padding: 0 3px;
+      border-radius: 3px;
+    }
+    .search-hidden { display: none !important; }
+
+    /* Timeline de fases */
+    .phase-timeline {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 8px 4px 16px;
+      margin-bottom: 20px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      scrollbar-color: #cc55ff transparent;
+    }
+    .phase-timeline::-webkit-scrollbar { height: 6px; }
+    .phase-timeline::-webkit-scrollbar-thumb { background: #cc55ff; border-radius: 3px; }
+    .phase-card {
+      flex: 0 0 130px;
+      background: rgba(55, 10, 80, 0.25);
+      border: 1.5px solid rgba(204, 85, 255, 0.3);
+      border-radius: 10px;
+      padding: 12px 10px;
+      cursor: pointer;
+      transition: all 0.25s;
+      position: relative;
+      text-align: center;
+    }
+    .phase-card:hover {
+      transform: translateY(-2px);
+      border-color: #cc55ff;
+      box-shadow: 0 0 15px rgba(204, 85, 255, 0.35);
+    }
+    .phase-card.active {
+      background: rgba(245, 166, 35, 0.15);
+      border-color: #f5a623;
+      box-shadow: 0 0 20px rgba(245, 166, 35, 0.4);
+    }
+    .phase-card-num {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 11px;
+      font-weight: 900;
+      color: #cc55ff;
+      background: rgba(204, 85, 255, 0.15);
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 6px;
+    }
+    .phase-card.active .phase-card-num {
+      color: #f5a623;
+      background: rgba(245, 166, 35, 0.2);
+    }
+    .phase-card-icon {
+      font-size: 22px;
+      margin-bottom: 4px;
+      display: block;
+    }
+    .phase-card-name {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      color: #b0b4b8;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      line-height: 1.3;
+    }
+    .phase-card.active .phase-card-name { color: #f5a623; }
+    .phase-detail {
+      background: rgba(3, 5, 10, 0.6);
+      border-left: 4px solid #f5a623;
+      border-radius: 6px;
+      padding: 16px 18px;
+      margin-bottom: 24px;
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+    .phase-detail.visible { display: block; }
+    .phase-detail h4 {
+      font-family: 'Orbitron', sans-serif;
+      color: #f5a623;
+      margin-bottom: 10px;
+      font-size: 15px;
+    }
+
+    /* Pro-tip destacado */
+    .pro-tip {
+      background: linear-gradient(135deg, rgba(0, 207, 255, 0.12), rgba(0, 255, 157, 0.08));
+      border: 1.5px solid rgba(0, 207, 255, 0.5);
+      border-left: 5px solid #00cfff;
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin: 16px 0;
+      position: relative;
+    }
+    .pro-tip-label {
+      display: inline-block;
+      background: #00cfff;
+      color: #03050a;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 10px;
+      font-weight: 900;
+      padding: 3px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+    .pro-tip p { margin: 0; color: #e0e4e8; font-size: 14px; line-height: 1.6; }
+
+    /* Diagrama del campo */
+    .field-diagram-wrapper {
+      background: rgba(3, 5, 10, 0.5);
+      border: 1px solid rgba(204, 85, 255, 0.3);
+      border-radius: 10px;
+      padding: 16px;
+      margin: 18px 0;
+      overflow-x: auto;
+    }
+    .field-diagram-wrapper svg {
+      display: block;
+      margin: 0 auto;
+      max-width: 100%;
+      height: auto;
+    }
+    .field-legend {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 6px 12px;
+      margin-top: 14px;
+      font-size: 12px;
+    }
+    .field-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #b0b4b8;
+    }
+    .field-legend-swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    /* Visualizador de cadena LIFO */
+    .chain-demo {
+      background: rgba(3, 5, 10, 0.5);
+      border: 1px solid rgba(204, 85, 255, 0.3);
+      border-radius: 10px;
+      padding: 16px;
+      margin: 18px 0;
+    }
+    .chain-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin: 12px 0;
+    }
+    .chain-step {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(55, 10, 80, 0.3);
+      border: 1px solid rgba(204, 85, 255, 0.25);
+      border-radius: 6px;
+      padding: 10px 12px;
+      transition: all 0.4s ease;
+      opacity: 0.5;
+    }
+    .chain-step.highlighted {
+      opacity: 1;
+      background: rgba(245, 166, 35, 0.15);
+      border-color: #f5a623;
+      box-shadow: 0 0 15px rgba(245, 166, 35, 0.3);
+    }
+    .chain-step.resolved {
+      opacity: 0.4;
+      text-decoration: line-through;
+      background: rgba(100, 100, 100, 0.15);
+      border-color: #444;
+    }
+    .chain-num {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 900;
+      font-size: 13px;
+      color: #cc55ff;
+      background: rgba(204, 85, 255, 0.15);
+      border-radius: 50%;
+      width: 26px;
+      height: 26px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .chain-text { font-size: 13px; color: #e0e4e8; flex: 1; }
+    .chain-controls {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+    .chain-btn {
+      background: rgba(204, 85, 255, 0.15);
+      border: 1.5px solid #cc55ff;
+      color: #cc55ff;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: all 0.2s;
+    }
+    .chain-btn:hover { background: rgba(204, 85, 255, 0.3); }
+    .chain-btn:active { transform: scale(0.96); }
+
+    /* Filtros glosario/banlist */
+    .filter-bar {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+      padding: 12px;
+      background: rgba(55, 10, 80, 0.15);
+      border-radius: 8px;
+    }
+    .filter-chip {
+      background: transparent;
+      border: 1.5px solid rgba(204, 85, 255, 0.35);
+      color: #999;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+    }
+    .filter-chip:hover { border-color: #cc55ff; color: #cc55ff; }
+    .filter-chip.active {
+      background: rgba(204, 85, 255, 0.2);
+      border-color: #cc55ff;
+      color: #cc55ff;
+      text-shadow: 0 0 8px rgba(204, 85, 255, 0.4);
+    }
+
+    /* Botón flotante volver-arriba */
+    .fab-top {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: rgba(245, 166, 35, 0.95);
+      border: none;
+      color: #03050a;
+      font-size: 20px;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(245, 166, 35, 0.5);
+      opacity: 0;
+      transform: translateY(20px);
+      pointer-events: none;
+      transition: all 0.3s;
+      z-index: 200;
+    }
+    .fab-top.visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+    .fab-top:active { transform: scale(0.9); }
+
     /* Responsive */
     @media (max-width: 600px) {
-      .header h2 {
-        font-size: 22px;
-      }
-      
-      .section-title {
-        font-size: 14px;
-      }
-      
-      .section-body {
-        font-size: 14px;
-      }
+      .header h2 { font-size: 22px; }
+      .section-title { font-size: 14px; }
+      .section-body { font-size: 14px; }
+      .phase-card { flex: 0 0 110px; padding: 10px 8px; }
+      .phase-card-name { font-size: 9px; }
     }
   </style>
 </head>
@@ -503,6 +847,14 @@
     <span class="cta-sub">Nuevas restricciones vigentes · Toca para ver el listado completo</span>
   </button>
   
+  <!-- Buscador global -->
+  <div class="search-wrapper">
+    <span class="search-icon">🔍</span>
+    <input type="text" class="search-input" id="globalSearch" placeholder="Buscar en reglamento, FAQ, glosario y habilidades…" autocomplete="off">
+    <button type="button" class="search-clear" id="searchClear" aria-label="Limpiar búsqueda">✕</button>
+    <div class="search-result-count" id="searchCount"></div>
+  </div>
+
   <!-- Sistema de tabs -->
   <div class="tabs">
     <button class="tab-btn active" data-tab="reglamento">Reglamento</button>
@@ -546,7 +898,48 @@
       </div>
       <div class="section-content">
         <div class="section-body">
-          <p>Choque de Héroes consta de <strong>7 fases</strong> que deberás seguir en orden:</p>
+          <p>Choque de Héroes consta de <strong>7 fases</strong> que deberás seguir en orden. Toca cada fase para ver el detalle:</p>
+
+          <!-- Timeline visual interactivo -->
+          <div class="phase-timeline" id="phaseTimeline">
+            <div class="phase-card" data-phase="1">
+              <div class="phase-card-num">1</div>
+              <span class="phase-card-icon">🌅</span>
+              <div class="phase-card-name">Inicio de<br>Turno</div>
+            </div>
+            <div class="phase-card" data-phase="2">
+              <div class="phase-card-num">2</div>
+              <span class="phase-card-icon">🕯️</span>
+              <div class="phase-card-name">Ofrenda</div>
+            </div>
+            <div class="phase-card" data-phase="3">
+              <div class="phase-card-num">3</div>
+              <span class="phase-card-icon">✨</span>
+              <div class="phase-card-name">Robo de<br>Alma</div>
+            </div>
+            <div class="phase-card" data-phase="4">
+              <div class="phase-card-num">4</div>
+              <span class="phase-card-icon">🎴</span>
+              <div class="phase-card-name">Robo de<br>Turno</div>
+            </div>
+            <div class="phase-card" data-phase="5">
+              <div class="phase-card-num">5</div>
+              <span class="phase-card-icon">⚡</span>
+              <div class="phase-card-name">Acción</div>
+            </div>
+            <div class="phase-card" data-phase="6">
+              <div class="phase-card-num">6</div>
+              <span class="phase-card-icon">⚔️</span>
+              <div class="phase-card-name">Combate</div>
+            </div>
+            <div class="phase-card" data-phase="7">
+              <div class="phase-card-num">7</div>
+              <span class="phase-card-icon">🌙</span>
+              <div class="phase-card-name">Final de<br>Turno</div>
+            </div>
+          </div>
+          <div class="phase-detail" id="phaseDetail"></div>
+
           <h4>1. Inicio de Turno</h4>
           <p>Esta fase indica el comienzo del turno del jugador.</p>
           
@@ -607,6 +1000,11 @@
             <li><strong>Equipo:</strong> Se vinculan a personajes, se destruyen si el personaje sale</li>
             <li><strong>Uso Rápido:</strong> Activables en cualquier fase, turno propio o rival</li>
           </ul>
+
+          <div class="pro-tip">
+            <span class="pro-tip-label">💡 Pro-tip</span>
+            <p>Toda activación de APOYO — <strong>incluidas las de Uso Rápido</strong> — requiere al menos una zona de apoyo libre. Si tus 4 zonas están ocupadas por almas, pierdes toda capacidad de reactivar. Deja siempre una zona libre para poder responder al rival.</p>
+          </div>
           
           <h3>SECTOR</h3>
           <p>Afectan a 2 zonas de personajes anexas (semi-arena). Son continuas y brindan habilidades especiales a los personajes en esas zonas.</p>
@@ -772,7 +1170,148 @@
             
             <li>No es necesario usar un tablero si ya conoces cada zona del mismo (podrás descargarlo en la página de CHH).</li>
             
-            <li>El tablero consta de: 4 zonas para personajes, 5 zonas para apoyos y almas, 1 zona para baraja principal, 1 para baraja de almas, 1 para baraja de soporte, 1 zona de aislamiento, 1 de confinamiento, 1 para personajes de soporte y el Mictlán.</li>
+            <li>El tablero consta de: 4 zonas para personajes, 5 zonas para apoyos y almas, 1 zona para baraja principal, 1 para baraja de almas, 1 para baraja de soporte, 1 zona de aislamiento, 1 de confinamiento, 1 para personajes de soporte y el Mictlán.
+              <div class="field-diagram-wrapper">
+                <svg viewBox="0 0 560 340" xmlns="http://www.w3.org/2000/svg" aria-label="Diagrama del tablero de Choque de Héroes">
+                  <defs>
+                    <style>
+                      .zone-label { font-family: 'Orbitron', sans-serif; font-size: 9px; font-weight: 700; fill: #e0e4e8; text-anchor: middle; }
+                      .zone-sub { font-family: 'Rajdhani', sans-serif; font-size: 8px; fill: #b0b4b8; text-anchor: middle; }
+                      .sector-label { font-family: 'Orbitron', sans-serif; font-size: 8px; font-weight: 700; fill: #f5a623; text-anchor: middle; letter-spacing: 1px; }
+                    </style>
+                  </defs>
+                  <!-- Fondo -->
+                  <rect x="0" y="0" width="560" height="340" fill="#03050a"/>
+                  <!-- Línea central -->
+                  <line x1="0" y1="170" x2="560" y2="170" stroke="#f5a623" stroke-width="2" stroke-dasharray="6,4"/>
+
+                  <!-- Etiquetas de sector -->
+                  <text x="140" y="12" class="sector-label">SECTOR IZQ.</text>
+                  <text x="420" y="12" class="sector-label">SECTOR DER.</text>
+                  <text x="140" y="336" class="sector-label">SECTOR IZQ.</text>
+                  <text x="420" y="336" class="sector-label">SECTOR DER.</text>
+
+                  <!-- ═══ CAMPO ADVERSARIO (arriba) ═══ -->
+                  <!-- Baraja soporte adversario -->
+                  <rect x="10" y="20" width="60" height="60" fill="rgba(245,166,35,0.12)" stroke="#f5a623" stroke-width="1.5" rx="4"/>
+                  <text x="40" y="46" class="zone-label">BARAJA</text>
+                  <text x="40" y="58" class="zone-label">SOPORTE</text>
+
+                  <!-- Personajes adversario 4 zonas -->
+                  <rect x="80" y="20" width="90" height="60" fill="rgba(204,85,255,0.12)" stroke="#cc55ff" stroke-width="1.5" rx="4"/>
+                  <text x="125" y="46" class="zone-label">PERSONAJE</text>
+                  <text x="125" y="58" class="zone-sub">zona 1</text>
+                  <rect x="180" y="20" width="90" height="60" fill="rgba(204,85,255,0.12)" stroke="#cc55ff" stroke-width="1.5" rx="4"/>
+                  <text x="225" y="46" class="zone-label">PERSONAJE</text>
+                  <text x="225" y="58" class="zone-sub">zona 2</text>
+                  <rect x="290" y="20" width="90" height="60" fill="rgba(204,85,255,0.12)" stroke="#cc55ff" stroke-width="1.5" rx="4"/>
+                  <text x="335" y="46" class="zone-label">PERSONAJE</text>
+                  <text x="335" y="58" class="zone-sub">zona 3</text>
+                  <rect x="390" y="20" width="90" height="60" fill="rgba(204,85,255,0.12)" stroke="#cc55ff" stroke-width="1.5" rx="4"/>
+                  <text x="435" y="46" class="zone-label">PERSONAJE</text>
+                  <text x="435" y="58" class="zone-sub">zona 4</text>
+
+                  <!-- Mictlán/Aislam. adversario -->
+                  <rect x="490" y="20" width="60" height="60" fill="rgba(255,68,68,0.12)" stroke="#ff4444" stroke-width="1.5" rx="4"/>
+                  <text x="520" y="46" class="zone-label">MICTLÁN</text>
+                  <text x="520" y="58" class="zone-label">AISLA.</text>
+
+                  <!-- Sectores adversario (semi-arena) -->
+                  <rect x="80" y="88" width="190" height="18" fill="rgba(255,102,204,0.15)" stroke="#ff66cc" stroke-width="1" rx="3"/>
+                  <text x="175" y="101" class="zone-label" style="fill:#ff66cc;">SECTOR IZQUIERDO (semi-arena)</text>
+                  <rect x="290" y="88" width="190" height="18" fill="rgba(255,102,204,0.15)" stroke="#ff66cc" stroke-width="1" rx="3"/>
+                  <text x="385" y="101" class="zone-label" style="fill:#ff66cc;">SECTOR DERECHO (semi-arena)</text>
+
+                  <!-- Apoyos/almas adversario 5 zonas -->
+                  <rect x="80" y="114" width="76" height="48" fill="rgba(255,68,68,0.1)" stroke="#ff4444" stroke-width="1.5" rx="4"/>
+                  <text x="118" y="135" class="zone-label">APOYO/</text>
+                  <text x="118" y="147" class="zone-label">ALMA 1</text>
+                  <rect x="164" y="114" width="76" height="48" fill="rgba(255,68,68,0.1)" stroke="#ff4444" stroke-width="1.5" rx="4"/>
+                  <text x="202" y="135" class="zone-label">APOYO/</text>
+                  <text x="202" y="147" class="zone-label">ALMA 2</text>
+                  <rect x="248" y="114" width="64" height="48" fill="rgba(0,255,157,0.12)" stroke="#00ff9d" stroke-width="1.5" rx="4"/>
+                  <text x="280" y="135" class="zone-label">ARENA</text>
+                  <text x="280" y="147" class="zone-sub">central</text>
+                  <rect x="320" y="114" width="76" height="48" fill="rgba(255,68,68,0.1)" stroke="#ff4444" stroke-width="1.5" rx="4"/>
+                  <text x="358" y="135" class="zone-label">APOYO/</text>
+                  <text x="358" y="147" class="zone-label">ALMA 3</text>
+                  <rect x="404" y="114" width="76" height="48" fill="rgba(255,68,68,0.1)" stroke="#ff4444" stroke-width="1.5" rx="4"/>
+                  <text x="442" y="135" class="zone-label">APOYO/</text>
+                  <text x="442" y="147" class="zone-label">ALMA 4</text>
+
+                  <!-- Barajas adversario laterales -->
+                  <rect x="10" y="114" width="60" height="48" fill="rgba(0,207,255,0.12)" stroke="#00cfff" stroke-width="1.5" rx="4"/>
+                  <text x="40" y="135" class="zone-label">BARAJA</text>
+                  <text x="40" y="147" class="zone-label">ALMAS</text>
+                  <rect x="490" y="114" width="60" height="48" fill="rgba(245,166,35,0.12)" stroke="#f5a623" stroke-width="1.5" rx="4"/>
+                  <text x="520" y="135" class="zone-label">BARAJA</text>
+                  <text x="520" y="147" class="zone-label">PPAL.</text>
+
+                  <!-- ═══ CAMPO JUGADOR (abajo, espejo) ═══ -->
+                  <rect x="10" y="178" width="60" height="48" fill="rgba(245,166,35,0.12)" stroke="#f5a623" stroke-width="1.5" rx="4"/>
+                  <text x="40" y="199" class="zone-label">BARAJA</text>
+                  <text x="40" y="211" class="zone-label">PPAL.</text>
+                  <rect x="490" y="178" width="60" height="48" fill="rgba(0,207,255,0.12)" stroke="#00cfff" stroke-width="1.5" rx="4"/>
+                  <text x="520" y="199" class="zone-label">BARAJA</text>
+                  <text x="520" y="211" class="zone-label">ALMAS</text>
+
+                  <!-- Apoyos/almas jugador 5 zonas -->
+                  <rect x="80" y="178" width="76" height="48" fill="rgba(255,68,68,0.1)" stroke="#ff4444" stroke-width="1.5" rx="4"/>
+                  <text x="118" y="199" class="zone-label">APOYO/</text>
+                  <text x="118" y="211" class="zone-label">ALMA 1</text>
+                  <rect x="164" y="178" width="76" height="48" fill="rgba(255,68,68,0.1)" stroke="#ff4444" stroke-width="1.5" rx="4"/>
+                  <text x="202" y="199" class="zone-label">APOYO/</text>
+                  <text x="202" y="211" class="zone-label">ALMA 2</text>
+                  <rect x="248" y="178" width="64" height="48" fill="rgba(0,255,157,0.12)" stroke="#00ff9d" stroke-width="1.5" rx="4"/>
+                  <text x="280" y="199" class="zone-label">ARENA</text>
+                  <text x="280" y="211" class="zone-sub">central</text>
+                  <rect x="320" y="178" width="76" height="48" fill="rgba(255,68,68,0.1)" stroke="#ff4444" stroke-width="1.5" rx="4"/>
+                  <text x="358" y="199" class="zone-label">APOYO/</text>
+                  <text x="358" y="211" class="zone-label">ALMA 3</text>
+                  <rect x="404" y="178" width="76" height="48" fill="rgba(255,68,68,0.1)" stroke="#ff4444" stroke-width="1.5" rx="4"/>
+                  <text x="442" y="199" class="zone-label">APOYO/</text>
+                  <text x="442" y="211" class="zone-label">ALMA 4</text>
+
+                  <!-- Sectores jugador -->
+                  <rect x="80" y="234" width="190" height="18" fill="rgba(255,102,204,0.15)" stroke="#ff66cc" stroke-width="1" rx="3"/>
+                  <text x="175" y="247" class="zone-label" style="fill:#ff66cc;">SECTOR IZQUIERDO (semi-arena)</text>
+                  <rect x="290" y="234" width="190" height="18" fill="rgba(255,102,204,0.15)" stroke="#ff66cc" stroke-width="1" rx="3"/>
+                  <text x="385" y="247" class="zone-label" style="fill:#ff66cc;">SECTOR DERECHO (semi-arena)</text>
+
+                  <!-- Personajes jugador -->
+                  <rect x="80" y="260" width="90" height="60" fill="rgba(204,85,255,0.12)" stroke="#cc55ff" stroke-width="1.5" rx="4"/>
+                  <text x="125" y="286" class="zone-label">PERSONAJE</text>
+                  <text x="125" y="298" class="zone-sub">zona 1</text>
+                  <rect x="180" y="260" width="90" height="60" fill="rgba(204,85,255,0.12)" stroke="#cc55ff" stroke-width="1.5" rx="4"/>
+                  <text x="225" y="286" class="zone-label">PERSONAJE</text>
+                  <text x="225" y="298" class="zone-sub">zona 2</text>
+                  <rect x="290" y="260" width="90" height="60" fill="rgba(204,85,255,0.12)" stroke="#cc55ff" stroke-width="1.5" rx="4"/>
+                  <text x="335" y="286" class="zone-label">PERSONAJE</text>
+                  <text x="335" y="298" class="zone-sub">zona 3</text>
+                  <rect x="390" y="260" width="90" height="60" fill="rgba(204,85,255,0.12)" stroke="#cc55ff" stroke-width="1.5" rx="4"/>
+                  <text x="435" y="286" class="zone-label">PERSONAJE</text>
+                  <text x="435" y="298" class="zone-sub">zona 4</text>
+
+                  <!-- Baraja soporte jugador -->
+                  <rect x="10" y="260" width="60" height="60" fill="rgba(245,166,35,0.12)" stroke="#f5a623" stroke-width="1.5" rx="4"/>
+                  <text x="40" y="286" class="zone-label">BARAJA</text>
+                  <text x="40" y="298" class="zone-label">SOPORTE</text>
+
+                  <!-- Mictlán jugador -->
+                  <rect x="490" y="260" width="60" height="60" fill="rgba(255,68,68,0.12)" stroke="#ff4444" stroke-width="1.5" rx="4"/>
+                  <text x="520" y="286" class="zone-label">MICTLÁN</text>
+                  <text x="520" y="298" class="zone-label">AISLA.</text>
+                </svg>
+                <div class="field-legend">
+                  <div class="field-legend-item"><span class="field-legend-swatch" style="background:rgba(204,85,255,0.4);border:1px solid #cc55ff;"></span>Zona de personaje</div>
+                  <div class="field-legend-item"><span class="field-legend-swatch" style="background:rgba(255,68,68,0.35);border:1px solid #ff4444;"></span>Apoyo / Alma</div>
+                  <div class="field-legend-item"><span class="field-legend-swatch" style="background:rgba(0,255,157,0.35);border:1px solid #00ff9d;"></span>Arena central</div>
+                  <div class="field-legend-item"><span class="field-legend-swatch" style="background:rgba(255,102,204,0.4);border:1px solid #ff66cc;"></span>Sector (semi-arena)</div>
+                  <div class="field-legend-item"><span class="field-legend-swatch" style="background:rgba(0,207,255,0.4);border:1px solid #00cfff;"></span>Baraja de almas</div>
+                  <div class="field-legend-item"><span class="field-legend-swatch" style="background:rgba(245,166,35,0.4);border:1px solid #f5a623;"></span>Baraja principal / soporte</div>
+                </div>
+              </div>
+            </li>
             
             <li>Existen <strong>6 tipos de cartas:</strong> APOYO, SECTOR, ARENA, PERSONAJE, ALMA y AMALGAMA.</li>
             
@@ -804,7 +1343,22 @@
             
             <li>Si un personaje defiende a otro, no podrá declarar batalla el próximo turno (entra en DESCANSO).</li>
             
-            <li><strong>Las cadenas se resuelven de atrás hacia adelante:</strong> la última carta que se activó resuelve primero, así hasta llegar a la primera. Una CADENA es cuando una habilidad/efecto se activa en respuesta a otra carta, fase o llamado.</li>
+            <li><strong>Las cadenas se resuelven de atrás hacia adelante:</strong> la última carta que se activó resuelve primero, así hasta llegar a la primera. Una CADENA es cuando una habilidad/efecto se activa en respuesta a otra carta, fase o llamado.
+              <div class="chain-demo">
+                <div style="font-family:'Orbitron',sans-serif;font-size:12px;color:#f5a623;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:8px;">📖 Ejemplo interactivo — resolución LIFO</div>
+                <div style="font-size:13px;color:#b0b4b8;margin-bottom:6px;">Se activaron tres cartas en orden. Toca <strong>"Resolver"</strong> para ver el orden inverso en que se aplican:</div>
+                <div class="chain-steps" id="chainSteps">
+                  <div class="chain-step" data-step="1"><span class="chain-num">1</span><span class="chain-text">Jugador A activa un APOYO (inicia la cadena)</span></div>
+                  <div class="chain-step" data-step="2"><span class="chain-num">2</span><span class="chain-text">Jugador B responde con un APOYO de Uso Rápido</span></div>
+                  <div class="chain-step" data-step="3"><span class="chain-num">3</span><span class="chain-text">Jugador A responde con otro Uso Rápido (último en entrar)</span></div>
+                </div>
+                <div class="chain-controls">
+                  <button type="button" class="chain-btn" id="chainResolve">▶ Resolver</button>
+                  <button type="button" class="chain-btn" id="chainReset">↺ Reiniciar</button>
+                </div>
+                <div style="font-size:12px;color:#888;margin-top:10px;text-align:center;font-style:italic;">La carta #3 resuelve primero, luego la #2, y al final la #1.</div>
+              </div>
+            </li>
             
             <li>Si hay diferencia entre las reglas básicas y el efecto/habilidad de una carta, <strong>el efecto/habilidad de la carta tiene preferencia</strong>.</li>
           </ul>
@@ -824,7 +1378,26 @@
       </div>
       <div class="section-content">
         <div class="section-body">
-          
+
+          <!-- Filtros alfabéticos -->
+          <div class="filter-bar" id="glosarioFilters">
+            <button type="button" class="filter-chip active" data-letter="all">Todo</button>
+            <button type="button" class="filter-chip" data-letter="A">A</button>
+            <button type="button" class="filter-chip" data-letter="B">B</button>
+            <button type="button" class="filter-chip" data-letter="C">C</button>
+            <button type="button" class="filter-chip" data-letter="D">D</button>
+            <button type="button" class="filter-chip" data-letter="E">E</button>
+            <button type="button" class="filter-chip" data-letter="F">F</button>
+            <button type="button" class="filter-chip" data-letter="H">H</button>
+            <button type="button" class="filter-chip" data-letter="I">I</button>
+            <button type="button" class="filter-chip" data-letter="M">M</button>
+            <button type="button" class="filter-chip" data-letter="P">P</button>
+            <button type="button" class="filter-chip" data-letter="R">R</button>
+            <button type="button" class="filter-chip" data-letter="S">S</button>
+            <button type="button" class="filter-chip" data-letter="V">V</button>
+            <button type="button" class="filter-chip" data-letter="Z">Z</button>
+          </div>
+
           <div class="glosario-item">
             <div class="glosario-term">ACTIVAR</div>
             <div class="glosario-def">Poner en funcionamiento la habilidad o efecto de una carta.</div>
@@ -1067,6 +1640,14 @@
             <h3>Actualización: Junio 2026 <span style="color:#ff2266; font-size:12px; margin-left:6px;">● VIGENTE</span></h3>
             <p>Las siguientes cartas están sujetas a restricciones especiales en torneos oficiales de Choque de Héroes TCG. La lista incluye tres categorías: <strong style="color:#ff9933;">Limitada</strong> (1 copia por baraja), <strong style="color:#00cfff;">Semi Limitada</strong> (2 copias por baraja) y <strong style="color:#ff4444;">Condenada</strong> (ninguna copia permitida).</p>
 
+            <!-- Filtro por estatus -->
+            <div class="filter-bar" id="banlistFilters">
+              <button type="button" class="filter-chip active" data-status="all">Todas</button>
+              <button type="button" class="filter-chip" data-status="limitada">Limitada</button>
+              <button type="button" class="filter-chip" data-status="semilimitada">Semi Limitada</button>
+              <button type="button" class="filter-chip" data-status="condenada">Condenada</button>
+            </div>
+
             <div style="overflow-x: auto; margin: 20px 0;">
               <table style="width: 100%; border-collapse: collapse; background: rgba(55, 10, 80, 0.1); border: 1px solid rgba(204, 85, 255, 0.3);">
                 <thead>
@@ -1305,6 +1886,9 @@
   </div>
 </div>
 
+<!-- Botón flotante volver-arriba -->
+<button type="button" class="fab-top" id="fabTop" aria-label="Volver arriba">↑</button>
+
 <script>
 // ── Flags de tracking para badges (v3) ──
 try {
@@ -1380,6 +1964,215 @@ document.addEventListener('click', (e) => {
   const section = header.parentElement;
   section.classList.toggle('open');
 });
+
+// ═══════════════════════════════════════════════════════
+// MEJORAS v2 — Timeline, búsqueda, cadena, filtros, fab
+// ═══════════════════════════════════════════════════════
+
+// ── Timeline de fases interactivo ──
+const PHASE_DATA = {
+  1: { title: '🌅 Inicio de Turno', body: 'Marca el comienzo del turno del jugador activo. Se disparan efectos que se activan "al inicio del turno".' },
+  2: { title: '🕯️ Fase de Ofrenda', body: 'Se activa solo desde el <strong>segundo turno</strong> y únicamente si tienes <strong>4 o menos en valor de almas</strong> activas. Regresa tu mano a sus barajas de origen (almas a la de almas, resto a la principal), revuelve ambas, y roba el mismo número total de cartas — pero solo desde tu baraja principal.' },
+  3: { title: '✨ Robo de Alma', body: 'Roba la carta superior de tu <strong>baraja de almas</strong> y añádela a tu mano.' },
+  4: { title: '🎴 Robo de Turno', body: 'Roba la carta superior de tu <strong>baraja principal</strong>. <strong style="color:#ff4444;">Si no puedes robar porque tu baraja principal está vacía, pierdes el CHOQUE automáticamente.</strong>' },
+  5: { title: '⚡ Fase de Acción', body: 'Puedes: activar 1 carta ALMA, llamar hasta 2 personajes de forma normal, activar APOYO / SECTOR / ARENA, realizar llamados especiales. <br><br><em style="color:#00cfff;">💡 Recuerda: necesitas al menos una zona de apoyo libre para activar cualquier apoyo (incluyendo Uso Rápido).</em>' },
+  6: { title: '⚔️ Fase de Combate', body: 'Consta de 4 pasos: <strong>Inicio de Combate</strong> → <strong>Batalla</strong> (elige atacantes y objetivo) → <strong>Daño</strong> (ataque cruzado: fuerza vs resistencia) → <strong>Término del Combate</strong>. El jugador que inicia el CHOQUE no puede declarar batalla en su primer turno.' },
+  7: { title: '🌙 Final de Turno', body: 'Si tienes más de <strong>7 cartas</strong> en mano, envía el exceso al Mictlán. La <strong>resistencia</strong> de tus personajes en juego se restaura al valor impreso. Los corazones perdidos NO se regeneran.' }
+};
+
+const phaseTimeline = document.getElementById('phaseTimeline');
+const phaseDetail = document.getElementById('phaseDetail');
+if (phaseTimeline && phaseDetail) {
+  phaseTimeline.querySelectorAll('.phase-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const n = card.dataset.phase;
+      const wasActive = card.classList.contains('active');
+      phaseTimeline.querySelectorAll('.phase-card').forEach(c => c.classList.remove('active'));
+      if (wasActive) {
+        phaseDetail.classList.remove('visible');
+        phaseDetail.innerHTML = '';
+      } else {
+        card.classList.add('active');
+        const data = PHASE_DATA[n];
+        phaseDetail.innerHTML = `<h4>${data.title}</h4><p style="margin:0;line-height:1.7;">${data.body}</p>`;
+        phaseDetail.classList.add('visible');
+      }
+    });
+  });
+}
+
+// ── Visualizador de cadena LIFO ──
+const chainSteps = document.getElementById('chainSteps');
+const chainResolveBtn = document.getElementById('chainResolve');
+const chainResetBtn = document.getElementById('chainReset');
+if (chainSteps && chainResolveBtn && chainResetBtn) {
+  let chainTimer = null;
+  const resetChain = () => {
+    if (chainTimer) { clearTimeout(chainTimer); chainTimer = null; }
+    chainSteps.querySelectorAll('.chain-step').forEach(s => {
+      s.classList.remove('highlighted', 'resolved');
+    });
+  };
+  const resolveChain = () => {
+    resetChain();
+    const steps = Array.from(chainSteps.querySelectorAll('.chain-step')).reverse();
+    let i = 0;
+    const step = () => {
+      if (i > 0) steps[i - 1].classList.replace('highlighted', 'resolved');
+      if (i < steps.length) {
+        steps[i].classList.add('highlighted');
+        i++;
+        chainTimer = setTimeout(step, 1200);
+      } else {
+        chainTimer = null;
+      }
+    };
+    step();
+  };
+  chainResolveBtn.addEventListener('click', resolveChain);
+  chainResetBtn.addEventListener('click', resetChain);
+}
+
+// ── Filtros del glosario ──
+const glosarioFilters = document.getElementById('glosarioFilters');
+if (glosarioFilters) {
+  glosarioFilters.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const letter = chip.dataset.letter;
+      glosarioFilters.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      document.querySelectorAll('#tab-glosario .glosario-item').forEach(item => {
+        const term = (item.querySelector('.glosario-term')?.textContent || '').trim().toUpperCase();
+        item.style.display = (letter === 'all' || term.startsWith(letter)) ? '' : 'none';
+      });
+    });
+  });
+}
+
+// ── Filtros de banlist ──
+const banlistFilters = document.getElementById('banlistFilters');
+if (banlistFilters) {
+  banlistFilters.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const status = chip.dataset.status;
+      banlistFilters.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      const table = document.querySelector('#version-junio2026 table tbody');
+      if (!table) return;
+      table.querySelectorAll('tr').forEach(row => {
+        if (status === 'all') { row.style.display = ''; return; }
+        const pill = row.querySelector('.estatus-pill');
+        const cls = pill ? pill.className : '';
+        row.style.display = cls.includes('estatus-' + status) ? '' : 'none';
+      });
+    });
+  });
+}
+
+// ── Búsqueda global ──
+const searchInput = document.getElementById('globalSearch');
+const searchClear = document.getElementById('searchClear');
+const searchCount = document.getElementById('searchCount');
+
+function stripHighlights(root) {
+  root.querySelectorAll('.search-hit').forEach(h => {
+    const parent = h.parentNode;
+    parent.replaceChild(document.createTextNode(h.textContent), h);
+    parent.normalize();
+  });
+}
+
+function highlightIn(el, query) {
+  if (!query) return 0;
+  const rx = new RegExp('(' + query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+  let count = 0;
+  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, {
+    acceptNode: (n) => (n.parentElement && n.parentElement.closest('script,style,button,input')) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT
+  });
+  const toReplace = [];
+  let node;
+  while (node = walker.nextNode()) {
+    if (rx.test(node.textContent)) toReplace.push(node);
+    rx.lastIndex = 0;
+  }
+  toReplace.forEach(n => {
+    const frag = document.createDocumentFragment();
+    const parts = n.textContent.split(rx);
+    parts.forEach(p => {
+      if (rx.test(p)) {
+        const span = document.createElement('span');
+        span.className = 'search-hit';
+        span.textContent = p;
+        frag.appendChild(span);
+        count++;
+      } else {
+        frag.appendChild(document.createTextNode(p));
+      }
+      rx.lastIndex = 0;
+    });
+    n.parentNode.replaceChild(frag, n);
+  });
+  return count;
+}
+
+function runSearch() {
+  const q = (searchInput.value || '').trim();
+  const containers = document.querySelectorAll('.tab-content .section, .tab-content .glosario-item');
+
+  // Limpiar highlights previos
+  document.querySelectorAll('.tab-content').forEach(stripHighlights);
+
+  if (!q) {
+    containers.forEach(c => c.classList.remove('search-hidden'));
+    searchCount.textContent = '';
+    searchClear.classList.remove('visible');
+    return;
+  }
+  searchClear.classList.add('visible');
+
+  let totalHits = 0;
+  let visibleContainers = 0;
+  const qLower = q.toLowerCase();
+
+  containers.forEach(c => {
+    const text = c.textContent.toLowerCase();
+    if (text.includes(qLower)) {
+      c.classList.remove('search-hidden');
+      // Abrir la sección si es acordeón
+      if (c.classList.contains('section')) c.classList.add('open');
+      totalHits += highlightIn(c, q);
+      visibleContainers++;
+    } else {
+      c.classList.add('search-hidden');
+    }
+  });
+
+  searchCount.textContent = visibleContainers > 0
+    ? `${totalHits} coincidencia${totalHits !== 1 ? 's' : ''} en ${visibleContainers} sección${visibleContainers !== 1 ? 'es' : ''}`
+    : 'Sin resultados';
+}
+
+if (searchInput) {
+  let debounce;
+  searchInput.addEventListener('input', () => {
+    clearTimeout(debounce);
+    debounce = setTimeout(runSearch, 180);
+  });
+  searchClear.addEventListener('click', () => {
+    searchInput.value = '';
+    runSearch();
+    searchInput.focus();
+  });
+}
+
+// ── FAB volver-arriba ──
+const fabTop = document.getElementById('fabTop');
+if (fabTop) {
+  window.addEventListener('scroll', () => {
+    fabTop.classList.toggle('visible', window.scrollY > 400);
+  }, { passive: true });
+  fabTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+}
 </script>
 
 </body>

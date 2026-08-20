@@ -947,7 +947,7 @@ async function cargarSaldoHP() {
 async function cargarPacks() {
   const grid = document.getElementById('pack-grid');
   try {
-    const r = await fetch(`${HERO_PESOS_URL}?action=packs_disponibles`);
+    const r = await fetch(`${HERO_PESOS_URL}?action=packs_disponibles&playerid=${encodeURIComponent(jugador.id)}`);
     const d = await r.json();
     if (d.status !== 'ok' || !d.packs.length) {
       grid.innerHTML = '<div class="empty-tab">📦 No hay sobres disponibles por el momento.</div>';
@@ -1217,7 +1217,7 @@ async function cargarCatalogoCartas() {
   const grid = document.getElementById('cartas-grid');
   grid.innerHTML = '<div class="cartas-vacio">⏳ Cargando catálogo...</div>';
   try {
-    const r = await fetch(`${HERO_PESOS_URL}?action=packs_disponibles`);
+    const r = await fetch(`${HERO_PESOS_URL}?action=packs_disponibles&playerid=${encodeURIComponent(jugador.id)}`);
     const d = await r.json();
     if (d.status !== 'ok') throw new Error(d.message);
     // Filtrar solo los que tienen tipo=carta

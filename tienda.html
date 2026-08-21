@@ -259,7 +259,7 @@
     .reveal-cards.show{opacity:1;transform:scale(1);}
     .reveal-card{position:absolute;top:0;left:0;width:100%;max-height:60vh;background:var(--card);border:2px solid var(--border);border-radius:12px;overflow:hidden;text-align:center;cursor:pointer;transition:transform .4s ease,opacity .3s;display:flex;flex-direction:column;}
     .reveal-card.foil{border-color:var(--gold);box-shadow:0 0 24px rgba(245,166,35,.3);}
-    .reveal-card .rc-img{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+    .reveal-card .rc-img{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;}
     .reveal-card .rc-img img{width:100%;height:100%;object-fit:contain;}
     .reveal-card .rc-name{font-family:'Orbitron',sans-serif;font-size:.7rem;font-weight:700;padding:10px 8px 4px;letter-spacing:1px;color:var(--text);text-shadow:0 1px 4px rgba(0,0,0,.7);}
     .reveal-card .rc-rarity{font-size:.55rem;letter-spacing:2px;padding:2px 8px 12px;}
@@ -806,6 +806,7 @@ let jugador   = null;
 let totalPts  = 0;
 let hpSaldo   = 0;
 let sobreActual = null; // pack que se está abriendo
+let sobreImagen = null; // archivo de imagen del sobre en apertura
 
 // ════════════════════════════════════════════
 //  INIT
@@ -982,8 +983,9 @@ async function cargarPacks() {
       }
 
       // Sobres normales: imagen del sobre, acción iniciarApertura
-      return `<div class="pack-card" onclick="iniciarApertura('${p.pack_id}', ${p.costo})">
-        <div class="pack-img"><img src="${SOBRES_IMG_BASE}${p.imagen || p.pack_id + '.png'}" alt="${p.pack_id}" onerror="this.style.display='none';this.parentElement.textContent='📦'"/></div>
+      const sobreImg = p.imagen || p.pack_id + '.png';
+      return `<div class="pack-card" onclick="iniciarApertura('${p.pack_id}', ${p.costo}, '${sobreImg}')">
+        <div class="pack-img"><img src="${SOBRES_IMG_BASE}${sobreImg}" alt="${p.pack_id}" onerror="this.style.display='none';this.parentElement.textContent='📦'"/></div>
         <div class="pack-info">
           <div class="pack-name">${p.nombre || p.pack_id.replace(/_/g,' ').toUpperCase()}</div>
           <div class="pack-detail">${desc}</div>
@@ -1023,10 +1025,11 @@ const RAREZA_BORDER = {
   secreta: '#e040fb'
 };
 
-function iniciarApertura(packid, costo) {
+function iniciarApertura(packid, costo, imagen) {
   if (abriendo) return;
   if (hpSaldo < costo) { mostrarToast('Saldo insuficiente: ' + hpSaldo + ' / ' + costo + ' HP'); return; }
   sobreActual = packid;
+  sobreImagen = imagen || (packid + '.png');
   cartasReveladas = [];
   cartaActual = 0;
 
@@ -1045,7 +1048,7 @@ function iniciarApertura(packid, costo) {
   hint.textContent = '⚡ TOCA PARA ABRIR ⚡';
   hint.style.display = '';
 
-  document.getElementById('sobre-pack-img').src = `${SOBRES_IMG_BASE}${packid}.png`;
+  document.getElementById('sobre-pack-img').src = `${SOBRES_IMG_BASE}${sobreImagen}`;
   overlay.classList.add('active');
 }
 
@@ -1105,6 +1108,8 @@ async function cortarSobre() {
   const total = cartasReveladas.length;
 
   // Cartas de atrás a adelante (la primera es la de arriba)
+  const RAREZAS_HOLO = ['rara','foil','foil_poco_comun','secreta'];
+  const holoTpl = '<div class="cr-holo"></div><div class="cr-sparks"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>';
   let html = '';
   for (let i = total - 1; i >= 0; i--) {
     const c = cartasReveladas[i];
@@ -1114,11 +1119,12 @@ async function cortarSobre() {
     const isTop = (i === 0);
     const scale = isTop ? 1 : 0.93;
     const zIdx = total - i;
+    const holo = RAREZAS_HOLO.includes(c.rareza) ? holoTpl : '';
 
     html += `<div class="reveal-card rc-stacked" id="rc-${i}" data-idx="${i}"
       style="z-index:${zIdx};transform:scale(${scale});border-color:${border};"
       ${isTop ? 'onclick="avanzarCarta()"' : ''}>
-      <div class="rc-img"><img src="${CARTAS_IMG_BASE}${c.imagen}" alt="${c.nombre}" onerror="this.style.display='none';this.parentElement.textContent='🃏'"/></div>
+      <div class="rc-img"><img src="${CARTAS_IMG_BASE}${c.imagen}" alt="${c.nombre}" onerror="this.style.display='none';this.parentElement.textContent='🃏'"/>${holo}</div>
       <div class="rc-name">${c.nombre}</div>
       <div class="rc-rarity" style="color:${color};text-shadow:0 0 8px ${color}55;">${label.toUpperCase()}</div>
     </div>`;

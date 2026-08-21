@@ -323,12 +323,19 @@
     .cr-card.rareza-foil_poco_comun{border-color:#ff7043;box-shadow:0 0 28px rgba(255,112,67,.5),0 0 60px rgba(255,112,67,.15),0 8px 40px rgba(0,0,0,.8);}
     .cr-card.rareza-secreta{border-color:#e040fb;box-shadow:0 0 34px rgba(224,64,251,.6),0 0 90px rgba(224,64,251,.2),0 8px 40px rgba(0,0,0,.8);}
 
-    /* Efecto holográfico giratorio encima de la carta */
-    .cr-holo{position:absolute;inset:0;border-radius:12px;pointer-events:none;overflow:hidden;}
-    .cr-holo::before{content:'';position:absolute;inset:0;background:conic-gradient(from 0deg,transparent 0%,rgba(255,255,255,.07) 15%,transparent 30%,rgba(245,166,35,.06) 50%,transparent 65%,rgba(255,255,255,.05) 80%,transparent 100%);animation:holoSpin 3s linear infinite;}
-    .cr-holo::after{content:'';position:absolute;top:-60%;left:-60%;width:220%;height:220%;background:radial-gradient(ellipse at center,rgba(255,255,255,.08) 0%,transparent 60%);animation:holoPulse 2s ease-in-out infinite;}
+    /* Efecto holográfico tornasol/arcoíris encima de la carta */
+    .cr-holo{position:absolute;inset:0;border-radius:12px;pointer-events:none;overflow:hidden;mix-blend-mode:screen;}
+    /* Capa 1: barrido arcoíris tornasol diagonal */
+    .cr-holo::before{content:'';position:absolute;inset:-20%;background:linear-gradient(115deg,transparent 20%,rgba(255,0,128,.45) 30%,rgba(255,200,0,.5) 38%,rgba(0,255,180,.5) 46%,rgba(0,180,255,.5) 54%,rgba(180,0,255,.45) 62%,transparent 75%);background-size:200% 200%;animation:holoSweep 3.2s ease-in-out infinite;mix-blend-mode:color-dodge;}
+    /* Capa 2: cónico giratorio multicolor */
+    .cr-holo::after{content:'';position:absolute;inset:-10%;background:conic-gradient(from 0deg,rgba(255,0,150,.35),rgba(255,180,0,.35),rgba(0,255,200,.35),rgba(0,150,255,.35),rgba(180,0,255,.35),rgba(255,0,150,.35));animation:holoSpin 4s linear infinite;mix-blend-mode:overlay;filter:blur(8px);}
+    @keyframes holoSweep{0%{background-position:-100% -100%}50%{background-position:100% 100%}100%{background-position:-100% -100%}}
     @keyframes holoSpin{to{transform:rotate(360deg)}}
-    @keyframes holoPulse{0%,100%{opacity:.4;transform:scale(.9)}50%{opacity:1;transform:scale(1.05)}}
+
+    /* Sheen extra: barrido blanco brillante que cruza */
+    .cr-holo-sheen{position:absolute;inset:0;border-radius:12px;pointer-events:none;overflow:hidden;}
+    .cr-holo-sheen::before{content:'';position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(115deg,transparent,rgba(255,255,255,.6),transparent);transform:skewX(-20deg);animation:holoSheenPass 2.8s ease-in-out infinite;}
+    @keyframes holoSheenPass{0%{left:-60%}55%,100%{left:120%}}
 
     /* Partículas de brillo */
     .cr-sparks{position:absolute;inset:-20px;pointer-events:none;overflow:visible;}
@@ -1109,7 +1116,7 @@ async function cortarSobre() {
 
   // Cartas de atrás a adelante (la primera es la de arriba)
   const RAREZAS_HOLO = ['rara','foil','foil_poco_comun','secreta'];
-  const holoTpl = '<div class="cr-holo"></div><div class="cr-sparks"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>';
+  const holoTpl = '<div class="cr-holo"></div><div class="cr-holo-sheen"></div><div class="cr-sparks"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>';
   let html = '';
   for (let i = total - 1; i >= 0; i--) {
     const c = cartasReveladas[i];

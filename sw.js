@@ -1,6 +1,6 @@
 // ================================================================
-//  CHOQUE DE HÉROES TCG — Service Worker v6.1
-//  Con notificaciones locales de noticias y torneos
+//  CHOQUE DE HÉROES TCG — Service Worker v6.2
+//  Con notificaciones locales de noticias , torneos , fix hero pesos
 // ================================================================
 const CACHE_NAME    = 'chh-tcg-v29';
 const CACHE_DYNAMIC = 'chh-dynamic-v29';

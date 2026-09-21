@@ -1010,6 +1010,7 @@ async function cargarPacks() {
 //  ANIMACIÓN DE APERTURA (v2 — múltiples cartas)
 // ════════════════════════════════════════════
 let abriendo = false;
+let comprando = false;  // ← anti doble-tap: bloquea cualquier compra concurrente
 let cartasReveladas = [];
 let cartaActual = 0;
 
@@ -1033,8 +1034,9 @@ const RAREZA_BORDER = {
 };
 
 function iniciarApertura(packid, costo, imagen) {
-  if (abriendo) return;
+  if (abriendo || comprando) return;   // ← bloqueo antes de que se toque el sobre
   if (hpSaldo < costo) { mostrarToast('Saldo insuficiente: ' + hpSaldo + ' / ' + costo + ' HP'); return; }
+  comprando = true;                    // ← reserva el turno YA
   sobreActual = packid;
   sobreImagen = imagen || (packid + '.png');
   cartasReveladas = [];
@@ -1092,9 +1094,15 @@ async function cortarSobre() {
       return;
     }
     cartasReveladas = d.cartas;
-    hpSaldo = d.saldo_nuevo;
-    document.getElementById('hp-menu-val').textContent = d.saldo_nuevo;
-    document.getElementById('hp-saldo-val').textContent = d.saldo_nuevo;
+    // Guardarraíl: si el backend devolviera un saldo negativo por datos viejos,
+    // no lo pintamos — recargamos desde el servidor con calcularSaldo().
+    if (typeof d.saldo_nuevo === 'number' && d.saldo_nuevo >= 0) {
+      hpSaldo = d.saldo_nuevo;
+      document.getElementById('hp-menu-val').textContent = d.saldo_nuevo;
+      document.getElementById('hp-saldo-val').textContent = d.saldo_nuevo;
+    } else {
+      await cargarSaldoHP();
+    }
   } catch(e) {
     mostrarToast('Error de conexión');
     cerrarSobre();
@@ -1199,6 +1207,7 @@ function avanzarCarta() {
 
 function cerrarSobre() {
   abriendo = false;
+  comprando = false;   // ← libera el turno al cerrar el sobre
   cartasReveladas = [];
   cartaActual = 0;
   document.getElementById('sobre-overlay').classList.remove('active');
@@ -1295,7 +1304,13 @@ function renderCatalogoCartas() {
 }
 
 async function comprarCartaSuelta(packid, nombre, imgPath, rareza, precio) {
+  if (comprando) return;                                          // ← anti doble-tap
   if (hpSaldo < precio) { mostrarToast('Saldo insuficiente'); return; }
+  comprando = true;
+
+  // Deshabilita visualmente todos los botones de compra durante la petición
+  const btns = document.querySelectorAll('.carta-shop-btn, .pack-btn, .btn-comprar-carta');
+  btns.forEach(b => b.disabled = true);
 
   let cartaData = null;
   try {
@@ -1304,12 +1319,21 @@ async function comprarCartaSuelta(packid, nombre, imgPath, rareza, precio) {
     const d = await r.json();
     if (d.status !== 'ok') { mostrarToast(d.message || 'Error al comprar carta'); return; }
     cartaData = Array.isArray(d.cartas) ? d.cartas[0] : null;
-    hpSaldo = d.saldo_nuevo;
-    document.getElementById('hp-menu-val').textContent   = d.saldo_nuevo;
-    document.getElementById('hp-saldo-val').textContent  = d.saldo_nuevo;
-    document.getElementById('hp-cartas-val').textContent = d.saldo_nuevo;
+    // Guardarraíl: ignora saldo negativo (dato inconsistente) y recarga desde servidor
+    if (typeof d.saldo_nuevo === 'number' && d.saldo_nuevo >= 0) {
+      hpSaldo = d.saldo_nuevo;
+      document.getElementById('hp-menu-val').textContent   = d.saldo_nuevo;
+      document.getElementById('hp-saldo-val').textContent  = d.saldo_nuevo;
+      if (document.getElementById('hp-cartas-val'))
+        document.getElementById('hp-cartas-val').textContent = d.saldo_nuevo;
+    } else {
+      await cargarSaldoHP();
+    }
   } catch(e) {
     mostrarToast('Error de conexión'); return;
+  } finally {
+    comprando = false;
+    btns.forEach(b => b.disabled = false);
   }
 
   // Fallback local si el backend no devuelve la carta (no debería pasar)

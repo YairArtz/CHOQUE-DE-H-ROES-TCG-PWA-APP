@@ -2,8 +2,8 @@
 //  CHOQUE DE HÉROES TCG — Service Worker v6.2
 //  Con notificaciones locales de noticias , torneos , fix hero pesos
 // ================================================================
-const CACHE_NAME    = 'chh-tcg-v30';
-const CACHE_DYNAMIC = 'chh-dynamic-v30';
+const CACHE_NAME    = 'chh-tcg-v31';
+const CACHE_DYNAMIC = 'chh-dynamic-v31';
 
 const CACHE_CORE = [
   './', './boot.html', './index.html', './calculadora.html',
@@ -11,7 +11,7 @@ const CACHE_CORE = [
   './torneo-director.html', './noticias.html', './tienda.html',
   './ajustes.html', './intro.html', './intro_config.json',
   './manifest.json', './icon-192.png', './icon-512.png',
-  './ranking.html', './settings.js', './bgm.js',
+  './ranking.html', './coleccion.html', './settings.js', './bgm.js',
   './noticias.json', './comics.html', './lector.html', './comics_config.json',
   './mercado/banners/banner_1.jpg', './mercado/banners/banner_2.jpg',
   './mercado/banners/banner_3.jpg', './mercado/banners/banner_4.jpg'

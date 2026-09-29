@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="theme-color" content="#03050a">
+  <title>Mi Colección — Nexo de Héroes</title>
+  <link rel="manifest" href="manifest.json"/>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{
+      --gold:#f5a623; --purple:#cc55ff;
+      --bg:#03050a; --card:rgba(10,12,24,0.97);
+      --border:#1c1a2e; --text:#e0eeff; --muted:#6a7f9a;
+      --danger:#ff4d6d;
+    }
+    html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;-webkit-tap-highlight-color:transparent;}
+    body{min-height:100vh;overflow-x:hidden;position:relative;}
+    body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(245,166,35,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(204,85,255,.025) 1px,transparent 1px);background-size:44px 44px;pointer-events:none;z-index:0;}
+    body::after{content:'';position:fixed;top:-20%;left:50%;transform:translateX(-50%);width:700px;height:500px;background:radial-gradient(ellipse,rgba(204,85,255,.07) 0%,transparent 70%);pointer-events:none;z-index:0;}
+
+    /* NAV */
+    #chh-nav{position:sticky;top:0;z-index:50;background:rgba(3,5,10,.96);border-bottom:1px solid var(--border);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;align-items:center;padding:8px 14px;gap:10px;}
+    #chh-nav::after{content:'';position:absolute;bottom:0;left:5%;right:5%;height:1px;background:linear-gradient(90deg,transparent,var(--gold),var(--purple),transparent);opacity:.6;}
+    .nav-back{font-family:'Orbitron',sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;color:#fff;background:linear-gradient(135deg,#c0182f,#7a0d1d);border:1px solid #ff3b55;padding:6px 10px;border-radius:4px;text-decoration:none;white-space:nowrap;}
+    .nav-back:active{transform:scale(.96);}
+    .nav-title{flex:1;text-align:center;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:900;letter-spacing:2px;color:var(--gold);text-shadow:0 0 8px rgba(245,166,35,.6);text-transform:uppercase;}
+    .nav-spacer{width:62px;flex-shrink:0;}
+
+    .container{width:100%;max-width:520px;margin:0 auto;padding:16px 14px 90px;position:relative;z-index:1;}
+
+    /* HERO */
+    .hero{background:linear-gradient(135deg,rgba(245,166,35,.10),rgba(204,85,255,.10));border:1px solid rgba(245,166,35,.25);border-radius:12px;padding:16px;margin-bottom:14px;position:relative;overflow:hidden;}
+    .hero::before{content:'';position:absolute;top:-1px;left:10%;right:10%;height:2px;background:linear-gradient(90deg,transparent,var(--gold),var(--purple),transparent);}
+    .hero-name{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:900;letter-spacing:1.5px;color:#fff;text-transform:uppercase;}
+    .hero-id{font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:3px;color:var(--muted);margin-top:3px;}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px;}
+    .stat{background:rgba(0,0,0,.35);border:1px solid var(--border);border-radius:8px;padding:10px 4px;text-align:center;}
+    .stat-val{font-family:'Orbitron',sans-serif;font-size:18px;font-weight:900;color:var(--gold);}
+    .stat.p .stat-val{color:var(--purple);}
+    .stat-lbl{font-family:'Orbitron',sans-serif;font-size:7.5px;letter-spacing:1.5px;color:var(--muted);margin-top:4px;text-transform:uppercase;}
+
+    /* TABS */
+    .tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:10px;padding:5px;margin-bottom:14px;position:sticky;top:48px;z-index:20;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}
+    .tab{font-family:'Orbitron',sans-serif;font-size:10px;font-weight:900;letter-spacing:1.5px;padding:11px 6px;border-radius:7px;border:1px solid transparent;background:transparent;color:var(--muted);cursor:pointer;text-transform:uppercase;transition:all .15s;}
+    .tab.active[data-tab="digitales"]{background:rgba(245,166,35,.14);border-color:var(--gold);color:var(--gold);}
+    .tab.active[data-tab="fisicas"]{background:rgba(204,85,255,.14);border-color:var(--purple);color:var(--purple);}
+    .tab .cnt{opacity:.7;margin-left:4px;}
+
+    /* FILTROS */
+    .chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:10px;scrollbar-width:none;}
+    .chips::-webkit-scrollbar{display:none;}
+    .chip{flex-shrink:0;font-family:'Orbitron',sans-serif;font-size:8.5px;font-weight:700;letter-spacing:1px;padding:6px 11px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid var(--border);color:var(--muted);cursor:pointer;white-space:nowrap;}
+    .chip.active{color:#fff;border-color:var(--c,var(--gold));background:rgba(255,255,255,.06);box-shadow:0 0 10px rgba(245,166,35,.15);}
+
+    .search{width:100%;background:rgba(7,9,15,.85);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:11px 14px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:500;outline:none;margin-bottom:10px;}
+    .search:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(204,85,255,.1);}
+    select.search{appearance:none;-webkit-appearance:none;font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:1px;}
+
+    /* GRID */
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+    .ccard{position:relative;aspect-ratio:5/7;border-radius:7px;overflow:hidden;border:1px solid var(--border);background:var(--card);cursor:pointer;transition:transform .12s,border-color .15s;}
+    .ccard:active{transform:scale(.95);}
+    .ccard img{width:100%;height:100%;object-fit:cover;display:block;}
+    .ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;text-align:center;padding:6px;font-family:'Orbitron',sans-serif;font-size:8.5px;letter-spacing:.5px;color:var(--muted);line-height:1.3;}
+    .qty{position:absolute;top:5px;right:5px;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:900;padding:2px 7px;border-radius:4px;background:rgba(3,5,10,.85);border:1px solid var(--gold);color:var(--gold);box-shadow:0 0 8px rgba(0,0,0,.6);}
+    .fis .qty{border-color:var(--purple);color:var(--purple);}
+    .rbar{position:absolute;bottom:0;left:0;right:0;height:3px;}
+
+    .count-line{font-family:'Orbitron',sans-serif;font-size:8.5px;letter-spacing:2px;color:var(--muted);text-align:center;margin:4px 0 10px;text-transform:uppercase;}
+    .empty{text-align:center;color:var(--muted);padding:40px 14px;font-size:14px;line-height:1.5;}
+    .empty b{display:block;font-size:34px;margin-bottom:8px;}
+
+    .btn{display:block;width:100%;border:none;border-radius:9px;padding:13px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:900;letter-spacing:2px;cursor:pointer;text-transform:uppercase;text-align:center;text-decoration:none;}
+    .btn-gold{background:linear-gradient(135deg,var(--gold),#d4880a);color:#000;box-shadow:0 4px 18px rgba(245,166,35,.25);}
+    .btn-purple{background:linear-gradient(135deg,var(--purple),#8a2dbd);color:#fff;box-shadow:0 4px 18px rgba(204,85,255,.25);}
+    .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted);}
+    .btn-danger{background:transparent;border:1px solid rgba(255,77,109,.4);color:var(--danger);}
+    .btn:active{transform:scale(.98);}
+
+    .fab{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:30;width:calc(100% - 28px);max-width:492px;display:none;}
+    .fab.show{display:block;}
+
+    .spinner{width:26px;height:26px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;margin:40px auto 10px;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+
+    /* OVERLAYS */
+    .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:200;align-items:flex-end;justify-content:center;}
+    .overlay.active{display:flex;}
+    .sheet{background:var(--card);border:1px solid var(--border);border-bottom:none;border-radius:14px 14px 0 0;width:100%;max-width:520px;padding:18px 16px 28px;display:flex;flex-direction:column;align-items:center;gap:12px;max-height:92vh;overflow-y:auto;animation:up .25s ease;}
+    @keyframes up{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}
+    .sheet-img{width:220px;max-width:70vw;border-radius:9px;display:block;box-shadow:0 10px 40px rgba(0,0,0,.6);}
+    .sheet-name{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;letter-spacing:1.5px;text-align:center;color:#fff;text-transform:uppercase;}
+    .sheet-meta{font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:2px;padding:4px 12px;border-radius:4px;text-transform:uppercase;}
+    .sheet-sub{color:var(--muted);font-size:13px;text-align:center;}
+    .qctrl{display:flex;align-items:center;gap:18px;margin:4px 0;}
+    .qbtn{width:46px;height:46px;border-radius:50%;border:1px solid var(--purple);background:rgba(204,85,255,.1);color:var(--purple);font-family:'Orbitron',sans-serif;font-size:22px;font-weight:900;cursor:pointer;}
+    .qbtn:active{transform:scale(.92);}
+    .qnum{font-family:'Orbitron',sans-serif;font-size:26px;font-weight:900;color:#fff;min-width:60px;text-align:center;}
+
+    /* BUSCADOR */
+    #buscador{display:none;position:fixed;inset:0;background:var(--bg);z-index:150;flex-direction:column;}
+    #buscador.active{display:flex;}
+    .bus-head{padding:10px 14px;border-bottom:1px solid var(--border);background:rgba(3,5,10,.97);}
+    .bus-top{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+    .bus-title{flex:1;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:900;letter-spacing:2px;color:var(--purple);text-transform:uppercase;}
+    .bus-close{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:transparent;color:var(--text);font-size:18px;cursor:pointer;}
+    .bus-hint{font-size:12px;color:var(--muted);margin-top:-2px;}
+    .bus-body{flex:1;overflow-y:auto;padding:12px 14px 30px;max-width:520px;width:100%;margin:0 auto;}
+    .ccard.flash{animation:flash .4s ease;}
+    @keyframes flash{0%{box-shadow:0 0 0 0 rgba(204,85,255,.9);border-color:var(--purple)}100%{box-shadow:0 0 0 10px rgba(204,85,255,0);}}
+
+    #toast{position:fixed;bottom:84px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--purple);color:#fff;padding:10px 20px;border-radius:6px;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;z-index:500;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis;}
+    #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  </style>
+</head>
+<body>
+
+<nav id="chh-nav">
+  <a class="nav-back" href="index.html">← Menú</a>
+  <div class="nav-title">📚 Mi Colección</div>
+  <div class="nav-spacer"></div>
+</nav>
+
+<div class="container" id="app">
+  <div class="spinner"></div>
+</div>
+
+<button class="btn btn-purple fab" id="fabAgregar" onclick="abrirBuscador()">+ Registrar cartas físicas</button>
+
+<!-- BUSCADOR DE CATÁLOGO -->
+<div id="buscador">
+  <div class="bus-head">
+    <div class="bus-top">
+      <div class="bus-title">+ Registrar cartas físicas</div>
+      <button class="bus-close" onclick="cerrarBuscador()">✕</button>
+    </div>
+    <input class="search" id="busInput" type="text" placeholder="Buscar por nombre o tipo..." autocomplete="off"/>
+    <select class="search" id="busExp"></select>
+    <div class="bus-hint">Toca una carta para sumar +1 a tu colección física.</div>
+  </div>
+  <div class="bus-body">
+    <div class="count-line" id="busCount"></div>
+    <div class="grid" id="busGrid"></div>
+  </div>
+</div>
+
+<!-- MODAL CARTA -->
+<div class="overlay" id="modal" onclick="cerrarModal()">
+  <div class="sheet" id="sheet" onclick="event.stopPropagation()"></div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ════════════════════════════════════════
+// CONFIG
+// ════════════════════════════════════════
+const HERO_PESOS_URL  = 'https://script.google.com/macros/s/AKfycbwSrBH7yJiyTlPabzJ_WiXQDWPe7RpATmuTTWAe3uVRy6wuGh15QpuOMzSiZVixJK_S/exec';
+const CARTAS_IMG_BASE = 'cartas/';
+const CATALOGO_URL    = 'cartas.json';
+const LIMITE_BUSQUEDA = 90;
+
+const RAREZA_ORDEN = ['secreta','foil_poco_comun','foil','rara','poco_comun','comun'];
+const RAREZA_COLOR = { comun:'#6a7f9a', poco_comun:'#4fc3f7', rara:'#64c864', foil:'#f5a623', foil_poco_comun:'#ff7043', secreta:'#e040fb' };
+const RAREZA_LABEL = { comun:'COMÚN', poco_comun:'POCO COMÚN', rara:'RARA', foil:'FOIL', foil_poco_comun:'FOIL P.C.', secreta:'SECRETA' };
+
+// ════════════════════════════════════════
+// ESTADO
+// ════════════════════════════════════════
+let jugador = null;
+let digitales = [];          // [{nombre, rareza, imagen, qty}]
+let digitalesError = false;
+let catalogo = [];           // cartas.json (sin banners)
+let catalogoMap = {};        // id -> carta
+let catalogoError = false;
+let fisicas = {};            // id -> qty
+let tab = 'digitales';
+let filtroRareza = 'todas';
+let busquedaFis = '';
+let modalCtx = null;
+
+// ════════════════════════════════════════
+// UTILS
+// ════════════════════════════════════════
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtExp = e => String(e || '').split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+const imgDigital = im => !im ? '' : (im.startsWith('http') || im.includes('/') ? im : CARTAS_IMG_BASE + im);
+const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._tm); t._tm = setTimeout(() => t.classList.remove('show'), 1600);
+}
+
+function imgHTML(src, nombre){
+  return src
+    ? `<img src="${esc(src)}" alt="${esc(nombre)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="ph" style="display:none">${esc(nombre)}</div>`
+    : `<div class="ph">${esc(nombre)}</div>`;
+}
+
+// ════════════════════════════════════════
+// PERSISTENCIA FÍSICAS
+// ════════════════════════════════════════
+const keyFis = () => `nhColFisica_${jugador.id}`;
+function cargarFisicas(){
+  try { fisicas = JSON.parse(localStorage.getItem(keyFis()) || '{}') || {}; } catch(e){ fisicas = {}; }
+}
+function guardarFisicas(){
+  try { localStorage.setItem(keyFis(), JSON.stringify(fisicas)); } catch(e){}
+}
+function setFisica(id, qty){
+  if (qty <= 0) delete fisicas[id]; else fisicas[id] = qty;
+  guardarFisicas();
+}
+
+// ════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════
+window.addEventListener('load', async () => {
+  try {
+    const s = JSON.parse(localStorage.getItem('chh_secciones_visitadas') || '[]');
+    if (!s.includes('coleccion')) { s.push('coleccion'); localStorage.setItem('chh_secciones_visitadas', JSON.stringify(s)); }
+  } catch(e) {}
+
+  try { jugador = JSON.parse(localStorage.getItem('nhSesion') || 'null'); } catch(e) { jugador = null; }
+  const app = document.getElementById('app');
+
+  if (!jugador || !jugador.id) {
+    app.innerHTML = `<div class="empty"><b>🔒</b>Inicia sesión con tu ID de jugador para ver tu colección.</div>
+      <a class="btn btn-gold" href="perfil.html">IR A MI PERFIL</a>`;
+    return;
+  }
+  if (jugador.tipo === 'tienda') {
+    app.innerHTML = `<div class="empty"><b>🏪</b>Las cuentas de tienda no tienen colección.<br>Inicia sesión con un ID de jugador (CHH-XXXXX).</div>
+      <a class="btn btn-gold" href="perfil.html">IR A MI PERFIL</a>`;
+    return;
+  }
+
+  cargarFisicas();
+  await Promise.all([cargarDigitales(), cargarCatalogo()]);
+  render();
+
+  document.getElementById('busInput').addEventListener('input', renderBuscador);
+  document.getElementById('busExp').addEventListener('change', renderBuscador);
+});
+
+async function cargarDigitales(){
+  try {
+    const r = await fetch(`${HERO_PESOS_URL}?action=historial&playerid=${encodeURIComponent(jugador.id)}`);
+    const d = await r.json();
+    const mapa = {};
+    for (const sobre of (d.historial || [])) {
+      for (const c of (Array.isArray(sobre.cartas) ? sobre.cartas : [])) {
+        const rz = c.rareza || 'comun';
+        const k = c.nombre + '|' + rz;
+        if (!mapa[k]) mapa[k] = { nombre: c.nombre, rareza: rz, imagen: c.imagen || '', qty: 0 };
+        mapa[k].qty++;
+      }
+    }
+    digitales = Object.values(mapa).sort((a,b) =>
+      (RAREZA_ORDEN.indexOf(a.rareza) - RAREZA_ORDEN.indexOf(b.rareza)) || a.nombre.localeCompare(b.nombre));
+  } catch(e) {
+    digitalesError = true;
+  }
+}
+
+async function cargarCatalogo(){
+  try {
+    const r = await fetch(CATALOGO_URL);
+    if (!r.ok) throw new Error(r.status);
+    const data = await r.json();
+    catalogo = data.filter(c => c && c.id != null && c.tipo !== 'BANNER');
+    catalogoMap = {};
+    catalogo.forEach(c => { catalogoMap[String(c.id)] = c; });
+    // Llenar selector de expansiones
+    const exps = [...new Set(catalogo.map(c => c.expansion))];
+    document.getElementById('busExp').innerHTML =
+      `<option value="todas">TODAS LAS EXPANSIONES</option>` +
+      exps.map(e => `<option value="${esc(e)}">${esc(fmtExp(e).toUpperCase())}</option>`).join('');
+  } catch(e) {
+    catalogoError = true;
+  }
+}
+
+// ════════════════════════════════════════
+// RENDER PRINCIPAL
+// ════════════════════════════════════════
+function totalesFisicas(){
+  const ids = Object.keys(fisicas).filter(id => fisicas[id] > 0);
+  return { unicas: ids.length, copias: ids.reduce((s,id) => s + fisicas[id], 0) };
+}
+
+function render(){
+  const app = document.getElementById('app');
+  const digCopias = digitales.reduce((s,c) => s + c.qty, 0);
+  const fis = totalesFisicas();
+
+  app.innerHTML = `
+    <div class="hero">
+      <div class="hero-name">${esc(jugador.nick || jugador.nombre || 'Jugador')}</div>
+      <div class="hero-id">${esc(jugador.id)}</div>
+      <div class="stats">
+        <div class="stat"><div class="stat-val">${digitales.length}</div><div class="stat-lbl">Digitales</div></div>
+        <div class="stat p"><div class="stat-val">${fis.unicas}</div><div class="stat-lbl">Físicas</div></div>
+        <div class="stat"><div class="stat-val">${digCopias + fis.copias}</div><div class="stat-lbl">Copias totales</div></div>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab ${tab==='digitales'?'active':''}" data-tab="digitales" onclick="cambiarTab('digitales')">🎴 Digitales<span class="cnt">${digitales.length}</span></button>
+      <button class="tab ${tab==='fisicas'?'active':''}" data-tab="fisicas" onclick="cambiarTab('fisicas')">🃏 Físicas<span class="cnt">${fis.unicas}</span></button>
+    </div>
+    <div id="tabBody"></div>`;
+
+  document.getElementById('fabAgregar').classList.toggle('show', tab === 'fisicas' && !catalogoError);
+  tab === 'digitales' ? renderDigitales() : renderFisicas();
+}
+
+function cambiarTab(t){
+  tab = t;
+  render();
+  window.scrollTo({ top: 0 });
+}
+
+// ── DIGITALES ──
+function renderDigitales(){
+  const body = document.getElementById('tabBody');
+  if (digitalesError) { body.innerHTML = `<div class="empty"><b>⚠️</b>No se pudo cargar tu colección digital.<br>Revisa tu conexión.</div>`; return; }
+  if (!digitales.length) {
+    body.innerHTML = `<div class="empty"><b>📦</b>Aún no tienes cartas digitales.<br>Abre sobres en la Tienda para comenzar.</div>
+      <a class="btn btn-gold" href="tienda.html">IR A LA TIENDA</a>`;
+    return;
+  }
+  const presentes = RAREZA_ORDEN.filter(r => digitales.some(c => c.rareza === r));
+  const lista = filtroRareza === 'todas' ? digitales : digitales.filter(c => c.rareza === filtroRareza);
+
+  body.innerHTML = `
+    <div class="chips">
+      <button class="chip ${filtroRareza==='todas'?'active':''}" onclick="filtrarRareza('todas')">TODAS (${digitales.length})</button>
+      ${presentes.map(r => `<button class="chip ${filtroRareza===r?'active':''}" style="--c:${RAREZA_COLOR[r]};${filtroRareza===r?`color:${RAREZA_COLOR[r]}`:''}" onclick="filtrarRareza('${r}')">${RAREZA_LABEL[r]} (${digitales.filter(c=>c.rareza===r).length})</button>`).join('')}
+    </div>
+    <div class="grid">
+      ${lista.map(c => `
+        <div class="ccard" style="border-color:${RAREZA_COLOR[c.rareza]}66" onclick="abrirDigital(${digitales.indexOf(c)})">
+          ${imgHTML(imgDigital(c.imagen), c.nombre)}
+          ${c.qty > 1 ? `<span class="qty">X${c.qty}</span>` : ''}
+          <div class="rbar" style="background:${RAREZA_COLOR[c.rareza]}"></div>
+        </div>`).join('')}
+    </div>`;
+}
+
+function filtrarRareza(r){ filtroRareza = r; renderDigitales(); }
+
+function abrirDigital(i){
+  const c = digitales[i]; if (!c) return;
+  const col = RAREZA_COLOR[c.rareza] || '#6a7f9a';
+  const src = imgDigital(c.imagen);
+  modalCtx = null;
+  document.getElementById('sheet').innerHTML = `
+    ${src ? `<img class="sheet-img" src="${esc(src)}" alt="" onerror="this.style.display='none'"/>` : ''}
+    <div class="sheet-name">${esc(c.nombre)}</div>
+    <div class="sheet-meta" style="background:${col}22;color:${col};border:1px solid ${col}66">${RAREZA_LABEL[c.rareza] || esc(c.rareza)}</div>
+    <div class="sheet-sub">${c.qty} copia${c.qty!==1?'s':''} digital${c.qty!==1?'es':''}</div>
+    <button class="btn btn-ghost" onclick="cerrarModal()">CERRAR</button>`;
+  document.getElementById('modal').classList.add('active');
+}
+
+// ── FÍSICAS ──
+function listaFisicas(){
+  return Object.keys(fisicas)
+    .filter(id => fisicas[id] > 0 && catalogoMap[id])
+    .map(id => catalogoMap[id])
+    .sort((a,b) => String(a.expansion).localeCompare(String(b.expansion)) || String(a.nombre).localeCompare(String(b.nombre)));
+}
+
+function renderFisicas(){
+  const body = document.getElementById('tabBody');
+  if (catalogoError) { body.innerHTML = `<div class="empty"><b>⚠️</b>No se pudo cargar el catálogo de cartas.</div>`; return; }
+  const todas = listaFisicas();
+  if (!todas.length) {
+    body.innerHTML = `<div class="empty"><b>🃏</b>Aún no registras cartas físicas.<br>Toca <b style="display:inline;font-size:inherit;color:var(--purple)">+ Registrar</b> y búscalas en el catálogo.</div>`;
+    return;
+  }
+  body.innerHTML = `
+    <input class="search" id="fisSearch" type="text" placeholder="Filtrar mis cartas físicas..." value="${esc(busquedaFis)}" autocomplete="off"/>
+    <div class="count-line" id="fisCount"></div>
+    <div class="grid" id="fisGrid"></div>`;
+  document.getElementById('fisSearch').addEventListener('input', e => { busquedaFis = e.target.value; pintarFisicas(); });
+  pintarFisicas();
+}
+
+function pintarFisicas(){
+  const q = norm(busquedaFis.trim());
+  const lista = listaFisicas().filter(c => !q || norm(c.nombre).includes(q) || norm(c.tipo).includes(q) || norm(fmtExp(c.expansion)).includes(q));
+  const copias = lista.reduce((s,c) => s + fisicas[String(c.id)], 0);
+  document.getElementById('fisCount').textContent = `${lista.length} únicas · ${copias} copias`;
+  document.getElementById('fisGrid').innerHTML = lista.length
+    ? lista.map(c => {
+        const n = fisicas[String(c.id)];
+        return `<div class="ccard fis" onclick="abrirFisica('${esc(String(c.id))}')">
+          ${imgHTML(c.miniatura, c.nombre)}
+          ${n > 1 ? `<span class="qty">X${n}</span>` : ''}
+        </div>`;
+      }).join('')
+    : `<div class="empty" style="grid-column:1/-1">Sin resultados.</div>`;
+}
+
+function abrirFisica(id){
+  const c = catalogoMap[id]; if (!c) return;
+  modalCtx = id;
+  pintarModalFisica();
+  document.getElementById('modal').classList.add('active');
+}
+
+function pintarModalFisica(){
+  const id = modalCtx, c = catalogoMap[id], n = fisicas[id] || 0;
+  document.getElementById('sheet').innerHTML = `
+    ${(c.ampliada || c.miniatura) ? `<img class="sheet-img" src="${esc(c.ampliada || c.miniatura)}" alt="" onerror="this.style.display='none'"/>` : ''}
+    <div class="sheet-name">${esc(c.nombre)}</div>
+    <div class="sheet-meta" style="background:rgba(204,85,255,.12);color:var(--purple);border:1px solid rgba(204,85,255,.4)">${esc(fmtExp(c.expansion))}${c.tipo ? ' · ' + esc(c.tipo) : ''}</div>
+    <div class="qctrl">
+      <button class="qbtn" onclick="ajustarModal(-1)">−</button>
+      <div class="qnum">X${n}</div>
+      <button class="qbtn" onclick="ajustarModal(1)">+</button>
+    </div>
+    <button class="btn btn-danger" onclick="quitarModal()">QUITAR DE MI COLECCIÓN</button>
+    <button class="btn btn-ghost" onclick="cerrarModal()">LISTO</button>`;
+}
+
+function ajustarModal(d){
+  const id = modalCtx; if (!id) return;
+  const n = Math.max(0, (fisicas[id] || 0) + d);
+  if (n === 0) { quitarModal(); return; }
+  setFisica(id, n);
+  pintarModalFisica();
+}
+
+function quitarModal(){
+  const id = modalCtx; if (!id) return;
+  const nombre = catalogoMap[id]?.nombre || '';
+  setFisica(id, 0);
+  cerrarModal();
+  toast(`Quitada: ${nombre}`);
+}
+
+function cerrarModal(){
+  document.getElementById('modal').classList.remove('active');
+  if (modalCtx !== null) { modalCtx = null; render(); }
+}
+
+// ════════════════════════════════════════
+// BUSCADOR (registro de físicas)
+// ════════════════════════════════════════
+function abrirBuscador(){
+  document.getElementById('buscador').classList.add('active');
+  document.body.style.overflow = 'hidden';
+  renderBuscador();
+  setTimeout(() => document.getElementById('busInput').focus(), 50);
+}
+
+function cerrarBuscador(){
+  document.getElementById('buscador').classList.remove('active');
+  document.body.style.overflow = '';
+  render();
+}
+
+function renderBuscador(){
+  const q   = norm(document.getElementById('busInput').value.trim());
+  const exp = document.getElementById('busExp').value;
+  const res = catalogo.filter(c =>
+    (exp === 'todas' || c.expansion === exp) &&
+    (!q || norm(c.nombre).includes(q) || norm(c.tipo).includes(q)));
+  const vis = res.slice(0, LIMITE_BUSQUEDA);
+
+  document.getElementById('busCount').textContent = res.length > LIMITE_BUSQUEDA
+    ? `${res.length} cartas · mostrando ${LIMITE_BUSQUEDA}, refina la búsqueda`
+    : `${res.length} carta${res.length!==1?'s':''}`;
+
+  document.getElementById('busGrid').innerHTML = vis.length
+    ? vis.map(c => {
+        const id = String(c.id), n = fisicas[id] || 0;
+        return `<div class="ccard fis" data-id="${esc(id)}" onclick="sumarDesdeBuscador(this)">
+          ${imgHTML(c.miniatura, c.nombre)}
+          <span class="qty" style="${n?'':'display:none'}">X${n}</span>
+        </div>`;
+      }).join('')
+    : `<div class="empty" style="grid-column:1/-1">Sin resultados.</div>`;
+}
+
+function sumarDesdeBuscador(el){
+  const id = el.dataset.id, c = catalogoMap[id]; if (!c) return;
+  const n = (fisicas[id] || 0) + 1;
+  setFisica(id, n);
+  const badge = el.querySelector('.qty');
+  badge.textContent = 'X' + n; badge.style.display = '';
+  el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  toast(`+1 ${c.nombre} (X${n})`);
+}
+</script>
+<script src="settings.js"></script>
+</body>
+</html>

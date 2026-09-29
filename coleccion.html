@@ -79,23 +79,31 @@
     .btn-danger{background:transparent;border:1px solid rgba(255,77,109,.4);color:var(--danger);}
     .btn:active{transform:scale(.98);}
 
-    .fab{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:30;width:calc(100% - 28px);max-width:492px;display:none;}
+    .fab{position:fixed;bottom:18px;left:14px;right:14px;margin:0 auto;z-index:30;width:auto;max-width:492px;display:none;touch-action:manipulation;}
+    .fab:active{transform:scale(.98);}
     .fab.show{display:block;}
 
     .spinner{width:26px;height:26px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;margin:40px auto 10px;}
     @keyframes spin{to{transform:rotate(360deg);}}
 
-    /* OVERLAYS */
-    .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:200;align-items:flex-end;justify-content:center;}
-    .overlay.active{display:flex;}
-    .sheet{background:var(--card);border:1px solid var(--border);border-bottom:none;border-radius:14px 14px 0 0;width:100%;max-width:520px;padding:18px 16px 28px;display:flex;flex-direction:column;align-items:center;gap:12px;max-height:92vh;overflow-y:auto;animation:up .25s ease;}
-    @keyframes up{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}
-    .sheet-img{width:220px;max-width:70vw;border-radius:9px;display:block;box-shadow:0 10px 40px rgba(0,0,0,.6);}
-    .sheet-name{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;letter-spacing:1.5px;text-align:center;color:#fff;text-transform:uppercase;}
-    .sheet-meta{font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:2px;padding:4px 12px;border-radius:4px;text-transform:uppercase;}
-    .sheet-sub{color:var(--muted);font-size:13px;text-align:center;}
-    .qctrl{display:flex;align-items:center;gap:18px;margin:4px 0;}
-    .qbtn{width:46px;height:46px;border-radius:50%;border:1px solid var(--purple);background:rgba(204,85,255,.1);color:var(--purple);font-family:'Orbitron',sans-serif;font-size:22px;font-weight:900;cursor:pointer;}
+    /* MODAL VISTA AMPLIADA (mismo sistema que galería) */
+    .modal{display:none;position:fixed;inset:0;background:rgba(7,9,15,.98);z-index:1000;animation:fadeIn .3s;overflow-y:auto;}
+    .modal.active{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:76px 0 30px;}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    .modal-header{position:fixed;top:0;left:0;right:0;padding:16px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,rgba(7,9,15,.95) 0%,transparent 100%);z-index:10;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}
+    .expansion-badge{display:inline-block;font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:2px;color:var(--gold);background:rgba(245,166,35,.08);border:1px solid rgba(245,166,35,.25);padding:6px 14px;border-radius:4px;text-transform:uppercase;}
+    .close-btn{background:rgba(245,166,35,.08);border:1px solid rgba(245,166,35,.25);color:var(--gold);font-size:24px;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-family:'Orbitron',sans-serif;font-weight:700;}
+    .close-btn:active{transform:scale(.9);box-shadow:0 0 20px rgba(245,166,35,.4);}
+    .modal-card-container{width:90%;max-width:360px;display:flex;flex-direction:column;align-items:center;animation:scaleIn .4s cubic-bezier(.34,1.56,.64,1);}
+    @keyframes scaleIn{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
+    .modal-card-img{width:100%;max-width:360px;max-height:62vh;object-fit:contain;border-radius:12px;border:2px solid var(--mc,var(--gold));box-shadow:0 20px 60px rgba(245,166,35,.3),0 0 40px rgba(245,166,35,.2),0 8px 32px rgba(0,0,0,.6);}
+    .modal-card-info{margin-top:20px;text-align:center;padding:0 20px;width:100%;}
+    .modal-card-name{font-size:22px;font-weight:900;color:#fff;font-family:'Orbitron',sans-serif;letter-spacing:2px;text-shadow:0 0 20px rgba(245,166,35,.6);margin-bottom:8px;text-transform:uppercase;}
+    .modal-card-type{font-size:13px;color:var(--mc,var(--gold));text-transform:uppercase;letter-spacing:3px;font-weight:600;font-family:'Orbitron',sans-serif;}
+    .modal-sub{color:var(--muted);font-size:14px;margin-top:10px;}
+    .modal-actions{display:flex;flex-direction:column;gap:10px;margin-top:18px;width:100%;}
+    .qctrl{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:16px;}
+    .qbtn{width:46px;height:46px;border-radius:50%;border:1px solid var(--purple);background:rgba(204,85,255,.1);color:var(--purple);font-family:'Orbitron',sans-serif;font-size:22px;font-weight:900;cursor:pointer;touch-action:manipulation;}
     .qbtn:active{transform:scale(.92);}
     .qnum{font-family:'Orbitron',sans-serif;font-size:26px;font-weight:900;color:#fff;min-width:60px;text-align:center;}
 
@@ -147,8 +155,12 @@
 </div>
 
 <!-- MODAL CARTA -->
-<div class="overlay" id="modal" onclick="cerrarModal()">
-  <div class="sheet" id="sheet" onclick="event.stopPropagation()"></div>
+<div class="modal" id="modal" onclick="if(event.target===this)cerrarModal()">
+  <div class="modal-header">
+    <span class="expansion-badge" id="modalBadge"></span>
+    <button class="close-btn" onclick="cerrarModal()">×</button>
+  </div>
+  <div class="modal-card-container" id="modalBox"></div>
 </div>
 
 <div id="toast"></div>
@@ -353,18 +365,27 @@ function renderDigitales(){
 
 function filtrarRareza(r){ filtroRareza = r; renderDigitales(); }
 
+function abrirModal(badge, color, html){
+  const m = document.getElementById('modal');
+  document.getElementById('modalBadge').textContent = badge;
+  m.style.setProperty('--mc', color);
+  document.getElementById('modalBox').innerHTML = html;
+  m.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
 function abrirDigital(i){
   const c = digitales[i]; if (!c) return;
   const col = RAREZA_COLOR[c.rareza] || '#6a7f9a';
   const src = imgDigital(c.imagen);
   modalCtx = null;
-  document.getElementById('sheet').innerHTML = `
-    ${src ? `<img class="sheet-img" src="${esc(src)}" alt="" onerror="this.style.display='none'"/>` : ''}
-    <div class="sheet-name">${esc(c.nombre)}</div>
-    <div class="sheet-meta" style="background:${col}22;color:${col};border:1px solid ${col}66">${RAREZA_LABEL[c.rareza] || esc(c.rareza)}</div>
-    <div class="sheet-sub">${c.qty} copia${c.qty!==1?'s':''} digital${c.qty!==1?'es':''}</div>
-    <button class="btn btn-ghost" onclick="cerrarModal()">CERRAR</button>`;
-  document.getElementById('modal').classList.add('active');
+  abrirModal('COLECCIÓN DIGITAL', col, `
+    ${src ? `<img class="modal-card-img" src="${esc(src)}" alt="${esc(c.nombre)}" onerror="this.style.display='none'"/>` : ''}
+    <div class="modal-card-info">
+      <div class="modal-card-name">${esc(c.nombre)}</div>
+      <div class="modal-card-type">${RAREZA_LABEL[c.rareza] || esc(c.rareza)}</div>
+      <div class="modal-sub">${c.qty > 1 ? 'X' + c.qty + ' copias' : '1 copia'}</div>
+    </div>`);
 }
 
 // ── FÍSICAS ──
@@ -410,23 +431,27 @@ function pintarFisicas(){
 function abrirFisica(id){
   const c = catalogoMap[id]; if (!c) return;
   modalCtx = id;
+  const src = c.ampliada || c.miniatura;
+  abrirModal(fmtExp(c.expansion).toUpperCase(), 'var(--purple)', `
+    ${src ? `<img class="modal-card-img" src="${esc(src)}" alt="${esc(c.nombre)}" onerror="this.style.display='none'"/>` : ''}
+    <div class="modal-card-info">
+      <div class="modal-card-name">${esc(c.nombre)}</div>
+      <div class="modal-card-type">${esc(c.tipo || '')}</div>
+      <div class="qctrl">
+        <button class="qbtn" onclick="ajustarModal(-1)">−</button>
+        <div class="qnum" id="modalQty"></div>
+        <button class="qbtn" onclick="ajustarModal(1)">+</button>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-danger" onclick="quitarModal()">QUITAR DE MI COLECCIÓN</button>
+      </div>
+    </div>`);
   pintarModalFisica();
-  document.getElementById('modal').classList.add('active');
 }
 
 function pintarModalFisica(){
-  const id = modalCtx, c = catalogoMap[id], n = fisicas[id] || 0;
-  document.getElementById('sheet').innerHTML = `
-    ${(c.ampliada || c.miniatura) ? `<img class="sheet-img" src="${esc(c.ampliada || c.miniatura)}" alt="" onerror="this.style.display='none'"/>` : ''}
-    <div class="sheet-name">${esc(c.nombre)}</div>
-    <div class="sheet-meta" style="background:rgba(204,85,255,.12);color:var(--purple);border:1px solid rgba(204,85,255,.4)">${esc(fmtExp(c.expansion))}${c.tipo ? ' · ' + esc(c.tipo) : ''}</div>
-    <div class="qctrl">
-      <button class="qbtn" onclick="ajustarModal(-1)">−</button>
-      <div class="qnum">X${n}</div>
-      <button class="qbtn" onclick="ajustarModal(1)">+</button>
-    </div>
-    <button class="btn btn-danger" onclick="quitarModal()">QUITAR DE MI COLECCIÓN</button>
-    <button class="btn btn-ghost" onclick="cerrarModal()">LISTO</button>`;
+  const el = document.getElementById('modalQty');
+  if (el) el.textContent = 'X' + (fisicas[modalCtx] || 0);
 }
 
 function ajustarModal(d){
@@ -447,6 +472,7 @@ function quitarModal(){
 
 function cerrarModal(){
   document.getElementById('modal').classList.remove('active');
+  if (!document.getElementById('buscador').classList.contains('active')) document.body.style.overflow = '';
   if (modalCtx !== null) { modalCtx = null; render(); }
 }
 

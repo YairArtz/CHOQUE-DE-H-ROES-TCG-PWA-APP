@@ -173,6 +173,8 @@ const HERO_PESOS_URL  = 'https://script.google.com/macros/s/AKfycbwSrBH7yJiyTlPa
 const CARTAS_IMG_BASE = 'cartas/';
 const CATALOGO_URL    = 'cartas.json';
 const LIMITE_BUSQUEDA = 90;
+const TIMEOUT_DIG = 20000;   // ms máximo esperando a Apps Script
+const TIMEOUT_CAT = 12000;
 
 const RAREZA_ORDEN = ['secreta','foil_poco_comun','foil','rara','poco_comun','comun'];
 const RAREZA_COLOR = { comun:'#6a7f9a', poco_comun:'#4fc3f7', rara:'#64c864', foil:'#f5a623', foil_poco_comun:'#ff7043', secreta:'#e040fb' };
@@ -183,10 +185,11 @@ const RAREZA_LABEL = { comun:'COMÚN', poco_comun:'POCO COMÚN', rara:'RARA', fo
 // ════════════════════════════════════════
 let jugador = null;
 let digitales = [];          // [{nombre, rareza, imagen, qty}]
-let digitalesError = false;
+let digEstado = 'cargando';  // cargando | ok | error
+let digDesdeCache = false;
 let catalogo = [];           // cartas.json (sin banners)
 let catalogoMap = {};        // id -> carta
-let catalogoError = false;
+let catEstado = 'cargando';  // cargando | ok | error
 let fisicas = {};            // id -> qty
 let tab = 'digitales';
 let filtroRareza = 'todas';
@@ -217,6 +220,21 @@ function imgHTML(src, nombre){
 // PERSISTENCIA FÍSICAS
 // ════════════════════════════════════════
 const keyFis = () => `nhColFisica_${jugador.id}`;
+const keyDigCache = () => `nhColDigCache_${jugador.id}`;
+
+async function fetchTimeout(url, ms){
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), ms);
+  try { return await fetch(url, { signal: ctrl.signal }); }
+  finally { clearTimeout(t); }
+}
+
+// Re-render sin interrumpir si el usuario está escribiendo en el filtro
+function refrescar(){
+  const a = document.activeElement;
+  if (a && a.id === 'fisSearch') { actualizarStats(); return; }
+  render();
+}
 function cargarFisicas(){
   try { fisicas = JSON.parse(localStorage.getItem(keyFis()) || '{}') || {}; } catch(e){ fisicas = {}; }
 }
@@ -231,7 +249,7 @@ function setFisica(id, qty){
 // ════════════════════════════════════════
 // INIT
 // ════════════════════════════════════════
-window.addEventListener('load', async () => {
+function init(){
   try {
     const s = JSON.parse(localStorage.getItem('chh_secciones_visitadas') || '[]');
     if (!s.includes('coleccion')) { s.push('coleccion'); localStorage.setItem('chh_secciones_visitadas', JSON.stringify(s)); }
@@ -251,21 +269,35 @@ window.addEventListener('load', async () => {
     return;
   }
 
-  cargarFisicas();
-  await Promise.all([cargarDigitales(), cargarCatalogo()]);
-  render();
-
   document.getElementById('busInput').addEventListener('input', renderBuscador);
   document.getElementById('busExp').addEventListener('change', renderBuscador);
-});
+
+  cargarFisicas();
+  // Mostrar al instante la última colección digital guardada
+  try {
+    const c = JSON.parse(localStorage.getItem(keyDigCache()) || 'null');
+    if (Array.isArray(c)) { digitales = c; digDesdeCache = true; }
+  } catch(e) {}
+  render();
+
+  // Cargas en paralelo, cada una refresca cuando termina
+  cargarCatalogo().then(refrescar);
+  cargarDigitales().then(refrescar);
+}
+
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+else init();
 
 async function cargarDigitales(){
+  digEstado = 'cargando';
   try {
-    const r = await fetch(`${HERO_PESOS_URL}?action=historial&playerid=${encodeURIComponent(jugador.id)}`);
+    const r = await fetchTimeout(`${HERO_PESOS_URL}?action=historial&playerid=${encodeURIComponent(jugador.id)}&_t=${Date.now()}`, TIMEOUT_DIG);
     const d = await r.json();
+    if (!d || !Array.isArray(d.historial)) throw new Error('respuesta inválida');
     const mapa = {};
-    for (const sobre of (d.historial || [])) {
+    for (const sobre of d.historial) {
       for (const c of (Array.isArray(sobre.cartas) ? sobre.cartas : [])) {
+        if (!c || !c.nombre) continue;
         const rz = c.rareza || 'comun';
         const k = c.nombre + '|' + rz;
         if (!mapa[k]) mapa[k] = { nombre: c.nombre, rareza: rz, imagen: c.imagen || '', qty: 0 };
@@ -274,14 +306,21 @@ async function cargarDigitales(){
     }
     digitales = Object.values(mapa).sort((a,b) =>
       (RAREZA_ORDEN.indexOf(a.rareza) - RAREZA_ORDEN.indexOf(b.rareza)) || a.nombre.localeCompare(b.nombre));
+    digEstado = 'ok'; digDesdeCache = false;
+    try { localStorage.setItem(keyDigCache(), JSON.stringify(digitales)); } catch(e) {}
   } catch(e) {
-    digitalesError = true;
+    digEstado = 'error';
   }
+}
+
+function reintentarDigitales(){
+  digEstado = 'cargando'; render();
+  cargarDigitales().then(refrescar);
 }
 
 async function cargarCatalogo(){
   try {
-    const r = await fetch(CATALOGO_URL);
+    const r = await fetchTimeout(CATALOGO_URL, TIMEOUT_CAT);
     if (!r.ok) throw new Error(r.status);
     const data = await r.json();
     catalogo = data.filter(c => c && c.id != null && c.tipo !== 'BANNER');
@@ -293,8 +332,10 @@ async function cargarCatalogo(){
       `<option value="todas">TODAS LAS EXPANSIONES</option>` +
       exps.map(e => `<option value="${esc(e)}">${esc(fmtExp(e).toUpperCase())}</option>`).join('');
   } catch(e) {
-    catalogoError = true;
+    catEstado = 'error';
+    return;
   }
+  catEstado = 'ok';
 }
 
 // ════════════════════════════════════════
@@ -315,9 +356,9 @@ function render(){
       <div class="hero-name">${esc(jugador.nick || jugador.nombre || 'Jugador')}</div>
       <div class="hero-id">${esc(jugador.id)}</div>
       <div class="stats">
-        <div class="stat"><div class="stat-val">${digitales.length}</div><div class="stat-lbl">Digitales</div></div>
-        <div class="stat p"><div class="stat-val">${fis.unicas}</div><div class="stat-lbl">Físicas</div></div>
-        <div class="stat"><div class="stat-val">${digCopias + fis.copias}</div><div class="stat-lbl">Copias totales</div></div>
+        <div class="stat"><div class="stat-val" id="stDig">${digitales.length}</div><div class="stat-lbl">Digitales</div></div>
+        <div class="stat p"><div class="stat-val" id="stFis">${fis.unicas}</div><div class="stat-lbl">Físicas</div></div>
+        <div class="stat"><div class="stat-val" id="stTot">${digCopias + fis.copias}</div><div class="stat-lbl">Copias totales</div></div>
       </div>
     </div>
     <div class="tabs">
@@ -326,8 +367,14 @@ function render(){
     </div>
     <div id="tabBody"></div>`;
 
-  document.getElementById('fabAgregar').classList.toggle('show', tab === 'fisicas' && !catalogoError);
+  document.getElementById('fabAgregar').classList.toggle('show', tab === 'fisicas' && catEstado === 'ok');
   tab === 'digitales' ? renderDigitales() : renderFisicas();
+}
+
+function actualizarStats(){
+  const f = totalesFisicas(), dc = digitales.reduce((s,c) => s + c.qty, 0);
+  const set = (id,v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+  set('stDig', digitales.length); set('stFis', f.unicas); set('stTot', dc + f.copias);
 }
 
 function cambiarTab(t){
@@ -339,7 +386,13 @@ function cambiarTab(t){
 // ── DIGITALES ──
 function renderDigitales(){
   const body = document.getElementById('tabBody');
-  if (digitalesError) { body.innerHTML = `<div class="empty"><b>⚠️</b>No se pudo cargar tu colección digital.<br>Revisa tu conexión.</div>`; return; }
+  if (!digitales.length && digEstado === 'cargando') {
+    body.innerHTML = `<div class="spinner"></div><div class="count-line">Cargando tus cartas digitales…</div>`; return;
+  }
+  if (!digitales.length && digEstado === 'error') {
+    body.innerHTML = `<div class="empty"><b>⚠️</b>El servidor tardó demasiado en responder.</div>
+      <button class="btn btn-gold" onclick="reintentarDigitales()">REINTENTAR</button>`; return;
+  }
   if (!digitales.length) {
     body.innerHTML = `<div class="empty"><b>📦</b>Aún no tienes cartas digitales.<br>Abre sobres en la Tienda para comenzar.</div>
       <a class="btn btn-gold" href="tienda.html">IR A LA TIENDA</a>`;
@@ -348,7 +401,9 @@ function renderDigitales(){
   const presentes = RAREZA_ORDEN.filter(r => digitales.some(c => c.rareza === r));
   const lista = filtroRareza === 'todas' ? digitales : digitales.filter(c => c.rareza === filtroRareza);
 
-  body.innerHTML = `
+  const aviso = digEstado === 'cargando' ? `<div class="count-line">⟳ Actualizando…</div>`
+    : (digEstado === 'error' && digDesdeCache) ? `<div class="count-line" onclick="reintentarDigitales()" style="cursor:pointer">⚠️ Sin conexión al servidor · mostrando última copia · TOCA PARA REINTENTAR</div>` : '';
+  body.innerHTML = aviso + `
     <div class="chips">
       <button class="chip ${filtroRareza==='todas'?'active':''}" onclick="filtrarRareza('todas')">TODAS (${digitales.length})</button>
       ${presentes.map(r => `<button class="chip ${filtroRareza===r?'active':''}" style="--c:${RAREZA_COLOR[r]};${filtroRareza===r?`color:${RAREZA_COLOR[r]}`:''}" onclick="filtrarRareza('${r}')">${RAREZA_LABEL[r]} (${digitales.filter(c=>c.rareza===r).length})</button>`).join('')}
@@ -398,7 +453,9 @@ function listaFisicas(){
 
 function renderFisicas(){
   const body = document.getElementById('tabBody');
-  if (catalogoError) { body.innerHTML = `<div class="empty"><b>⚠️</b>No se pudo cargar el catálogo de cartas.</div>`; return; }
+  if (catEstado === 'cargando') { body.innerHTML = `<div class="spinner"></div><div class="count-line">Cargando catálogo…</div>`; return; }
+  if (catEstado === 'error') { body.innerHTML = `<div class="empty"><b>⚠️</b>No se pudo cargar el catálogo de cartas.</div>
+      <button class="btn btn-gold" onclick="catEstado='cargando';render();cargarCatalogo().then(refrescar)">REINTENTAR</button>`; return; }
   const todas = listaFisicas();
   if (!todas.length) {
     body.innerHTML = `<div class="empty"><b>🃏</b>Aún no registras cartas físicas.<br>Toca <b style="display:inline;font-size:inherit;color:var(--purple)">+ Registrar</b> y búscalas en el catálogo.</div>`;

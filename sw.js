@@ -1,10 +1,13 @@
 // ================================================================
-//  CHOQUE DE HÉROES TCG — Service Worker v7.0
-//  Fix: timeout de red, precache tolerante a fallos, fuentes en caché
+//  CHOQUE DE HÉROES TCG — Service Worker v8.0
+//  v8: shell cache-first (instantáneo) + revalidación en segundo plano,
+//      datos .json red-primero con timeout, fallbacks por tipo de archivo,
+//      caché dinámica con límite de tamaño.
 // ================================================================
-const CACHE_NAME    = 'chh-tcg-v34';
-const CACHE_DYNAMIC = 'chh-dynamic-v34';
-const NET_TIMEOUT   = 3000; // ms antes de servir desde caché si la red no responde
+const CACHE_NAME    = 'chh-tcg-v35';
+const CACHE_DYNAMIC = 'chh-dynamic-v35';
+const NET_TIMEOUT   = 3000;   // ms para datos .json antes de servir copia
+const DYNAMIC_MAX   = 350;    // máx. entradas en caché dinámica (imágenes de cartas, etc.)
 
 const CACHE_CORE = [
   './', './boot.html', './index.html', './calculadora.html',
@@ -50,26 +53,39 @@ self.addEventListener('message', event => {
 });
 
 self.addEventListener('fetch', event => {
-  if (event.request.method !== 'GET') return;
-  const url = new URL(event.request.url);
+  const req = event.request;
+  if (req.method !== 'GET') return;
+  const url = new URL(req.url);
 
   if (NO_CACHE_ORIGINS.some(o => url.hostname.includes(o))) return;
   if (FONT_ORIGINS.some(o => url.hostname.includes(o))) {
-    event.respondWith(staleWhileRevalidate(event.request));
+    event.respondWith(staleWhileRevalidate(req));
     return;
   }
   if (url.origin !== self.location.origin) return;
 
+  // Audio/video con Range: que lo maneje el navegador directo (evita cortes en iOS)
+  if (req.headers.has('range')) return;
+
   // Peticiones con cache-buster (?_t=) siempre van a red, con timeout
   if (url.searchParams.has('_t')) {
-    event.respondWith(networkOnlyTimeout(event.request));
+    event.respondWith(networkOnlyTimeout(req));
     return;
   }
 
-  const isShell = /\.(html|json|js)$/i.test(url.pathname) || url.pathname.endsWith('/');
-  if (isShell) event.respondWith(networkFirstTimeout(event.request));
-  else if (/\.(jpg|jpeg|png|gif|webp|svg|css|woff2?|ttf|mp3|pdf)$/i.test(url.pathname)) event.respondWith(staleWhileRevalidate(event.request));
-  else event.respondWith(networkFirstTimeout(event.request));
+  const path = url.pathname;
+  if (/\.json$/i.test(path)) {
+    // Datos: frescos si la red responde rápido, copia si no
+    event.respondWith(networkFirstTimeout(req, 'json'));
+  } else if (req.mode === 'navigate' || /\.(html|js|css)$/i.test(path) || path.endsWith('/')) {
+    // Shell: desde caché al instante, se actualiza en segundo plano.
+    // Las versiones nuevas llegan al subir CACHE_NAME (precache con cache:'reload').
+    event.respondWith(cacheFirstRevalidate(req));
+  } else if (/\.(jpg|jpeg|png|gif|webp|svg|woff2?|ttf|mp3|pdf)$/i.test(path)) {
+    event.respondWith(staleWhileRevalidate(req));
+  } else {
+    event.respondWith(networkFirstTimeout(req, 'other'));
+  }
 });
 
 self.addEventListener('notificationclick', event => {
@@ -157,7 +173,7 @@ function dbSet(db, key, val) {
   });
 }
 
-// ── Estrategias de caché ──
+// ── Utilidades de caché ──
 function fetchTimeout(req, ms) {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), ms);
@@ -168,23 +184,82 @@ function timeout(ms) {
   return new Promise(res => setTimeout(() => res(null), ms));
 }
 
-// Red primero, pero si en NET_TIMEOUT no responde y hay copia en caché, sirve la copia.
-// La descarga sigue en segundo plano y actualiza la caché para la próxima vez.
-async function networkFirstTimeout(req) {
-  const cached = await caches.match(req, { ignoreSearch: true });
-  const netPromise = fetch(req).then(async r => {
-    if (r && r.status === 200) (await caches.open(CACHE_DYNAMIC)).put(req, r.clone());
+// Busca primero en la dinámica (más reciente) y luego en el precache
+async function matchAny(req, opts) {
+  const dyn = await caches.open(CACHE_DYNAMIC);
+  const d = await dyn.match(req, opts);
+  if (d) return d;
+  const core = await caches.open(CACHE_NAME);
+  return core.match(req, opts);
+}
+
+let _putCount = 0;
+async function putDynamic(req, res) {
+  try {
+    const cache = await caches.open(CACHE_DYNAMIC);
+    await cache.put(req, res);
+    // Recorte periódico para no llenar la cuota del teléfono
+    if (++_putCount % 25 === 0) {
+      const keys = await cache.keys();
+      if (keys.length > DYNAMIC_MAX) {
+        await Promise.all(keys.slice(0, keys.length - DYNAMIC_MAX).map(k => cache.delete(k)));
+      }
+    }
+  } catch(e) { /* cuota llena u otro error: no rompe la respuesta */ }
+}
+
+// Respuesta de error acorde al tipo de archivo (nunca HTML dentro de un .js/.json)
+function fallbackFor(req, kind) {
+  const path = new URL(req.url).pathname;
+  if (kind === 'json' || /\.json$/i.test(path))
+    return new Response('{"status":"error","message":"sin_conexion"}', { status: 503, headers: { 'Content-Type': 'application/json' } });
+  if (/\.js$/i.test(path))
+    return new Response('/* sin conexión */', { status: 503, headers: { 'Content-Type': 'application/javascript' } });
+  if (/\.css$/i.test(path))
+    return new Response('', { status: 503, headers: { 'Content-Type': 'text/css' } });
+  return new Response('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
+    '<body style="background:#03050a;color:#e0eeff;font-family:sans-serif;text-align:center;padding:40px 20px">' +
+    '<h2>Sin conexión</h2><p>Revisa tu internet y vuelve a intentarlo.</p>' +
+    '<p><a href="./index.html" style="color:#f5a623">Volver al inicio</a></p></body>',
+    { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+}
+
+// ── Estrategias ──
+
+// Shell: responde desde caché al instante y actualiza en segundo plano.
+async function cacheFirstRevalidate(req) {
+  const cached = await matchAny(req, { ignoreSearch: true });
+  const netPromise = fetch(req).then(r => {
+    if (r && r.status === 200 && r.type === 'basic') putDynamic(req, r.clone());
+    return r;
+  }).catch(() => null);
+
+  if (cached) return cached;
+
+  const r = await Promise.race([netPromise, timeout(12000)]);
+  if (r) return r;
+  // Navegación sin copia: intenta el index cacheado antes de mostrar error
+  if (req.mode === 'navigate') {
+    const home = await matchAny('./index.html');
+    if (home) return home;
+  }
+  return fallbackFor(req);
+}
+
+// Datos: red primero; si tarda más de NET_TIMEOUT y hay copia, sirve la copia.
+async function networkFirstTimeout(req, kind) {
+  const cached = await matchAny(req, { ignoreSearch: true });
+  const netPromise = fetch(req).then(r => {
+    if (r && r.status === 200) putDynamic(req, r.clone());
     return r;
   }).catch(() => null);
 
   if (cached) {
     const r = await Promise.race([netPromise, timeout(NET_TIMEOUT)]);
-    return r || cached;
+    return (r && r.ok) ? r : cached;
   }
-  // Sin copia: esperar red, pero no para siempre
-  const r = await Promise.race([netPromise, timeout(15000)]);
-  return r || new Response('<h1>Sin conexión</h1><p>Revisa tu internet y vuelve a abrir la app.</p>',
-    { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+  const r = await Promise.race([netPromise, timeout(12000)]);
+  return r || fallbackFor(req, kind);
 }
 
 async function networkOnlyTimeout(req) {
@@ -193,10 +268,9 @@ async function networkOnlyTimeout(req) {
 }
 
 async function staleWhileRevalidate(req) {
-  const cache = await caches.open(CACHE_DYNAMIC);
-  const c = await caches.match(req);
+  const c = await matchAny(req);
   const fp = fetch(req).then(r => {
-    if (r && (r.status === 200 || r.type === 'opaque')) cache.put(req, r.clone());
+    if (r && (r.status === 200 || r.type === 'opaque')) putDynamic(req, r.clone());
     return r;
   }).catch(() => null);
   if (c) return c;

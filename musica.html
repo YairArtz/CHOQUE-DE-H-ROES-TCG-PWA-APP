@@ -295,7 +295,7 @@ footer p{font-family:'Rajdhani',sans-serif;font-size:12px;color:var(--border);le
       </div>
       <div class="player-track-info">
         <div class="player-track-name" id="p-name">—</div>
-        <div class="player-track-time"><span id="p-current">0:00</span> / <span id="p-total">0:00</span></div>
+        <div class="player-track-time"><span id="p-tiempo"><span id="p-current">0:00</span> / <span id="p-total">0:00</span></span><span id="p-estado" style="color:var(--gold)"></span></div>
       </div>
       <div class="player-controls">
         <button class="p-btn" id="btn-prev" title="Anterior" onclick="prevTrack()">
@@ -333,15 +333,35 @@ let CARPETA = 'musica_choque/';
 let CATALOGO_DATA = [];
 let TRACKS = [];
 
+const CFG_CACHE_KEY = 'chh_musica_config';
+
 async function cargarCatalogo(){
+  // Última configuración conocida: la lista aparece aunque la red esté lenta
   try {
-    const res = await fetch('musica_config.json?v=' + Date.now());
+    const prev = JSON.parse(localStorage.getItem(CFG_CACHE_KEY) || 'null');
+    if (prev && Array.isArray(prev.pistas) && prev.pistas.length) {
+      CARPETA = prev.carpeta || 'musica_choque/';
+      CATALOGO_DATA = prev.pistas;
+      TRACKS = buildTracks();
+      renderTracks();
+    }
+  } catch(e) {}
+
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 12000);
+  try {
+    const res = await fetch('musica_config.json?v=' + Date.now(), { signal: ctrl.signal });
     const cfg = await res.json();
+    if (!Array.isArray(cfg.pistas)) throw new Error('config inválida');
     CARPETA = cfg.carpeta || 'musica_choque/';
-    CATALOGO_DATA = cfg.pistas || [];
+    CATALOGO_DATA = cfg.pistas;
+    try { localStorage.setItem(CFG_CACHE_KEY, JSON.stringify({ carpeta: CARPETA, pistas: CATALOGO_DATA })); } catch(e) {}
   } catch(e) {
-    console.warn('musica_config.json no disponible');
-  }
+    console.warn('musica_config.json no disponible:', e.message);
+  } finally { clearTimeout(t); }
+
+  // No re-pintar si ya hay una pista sonando (evita perder el estado activo)
+  if (currentIndex >= 0 && TRACKS.length) return;
   TRACKS = buildTracks();
   renderTracks();
 }
@@ -406,19 +426,151 @@ function selectTrack(index) {
   document.querySelectorAll('.track-play-icon svg').forEach(svg => {
     svg.innerHTML = '<path d="M8 5v14l11-7z"/>';
   });
-  audio.src = CARPETA + track.file;
-  audio.loop = isLooping;
-  audio.play().then(() => { isPlaying = true; updatePlayUI(); showPlayer(); })
-    .catch(() => { isPlaying = false; updatePlayUI(); showPlayer(); });
   document.getElementById('p-name').textContent = track.title;
+  showPlayer();
+  reproducirPista(track, 0);
+}
+
+// ════════════════════════════════════════════════════════════════
+//  REPRODUCCIÓN ROBUSTA (datos móviles)
+//  1) Si la pista ya está guardada en el teléfono → se reproduce local.
+//  2) Si no, streaming normal. Si en 15 s no arranca o falla,
+//     se descarga completa (con % de progreso), se guarda y se reproduce.
+//     Las pistas guardadas suenan después incluso sin datos.
+// ════════════════════════════════════════════════════════════════
+const MUSIC_CACHE   = 'chh-musica-v1';
+const STREAM_WAIT   = 15000;
+let _playReq   = 0;
+let _modo      = 'stream';   // 'stream' | 'blob'
+let _blobURL   = null;
+let _watchdog  = null;
+let _descargaCtrl = null;
+
+function setEstado(msg) {
+  document.getElementById('p-estado').textContent = msg || '';
+  document.getElementById('p-tiempo').style.display = msg ? 'none' : '';
+}
+
+function urlPista(track) {
+  return new URL(CARPETA + track.file, location.href).href;
+}
+
+function limpiarCarga() {
+  clearTimeout(_watchdog);
+  if (_descargaCtrl) { try { _descargaCtrl.abort(); } catch(e) {} _descargaCtrl = null; }
+}
+
+function reproducirPista(track, desde) {
+  const req = ++_playReq;
+  limpiarCarga();
+  const url = urlPista(track);
+  setEstado('⏳ Cargando…');
+
+  // play() se llama DENTRO del toque del usuario: desbloquea el audio en iOS/Android
+  _modo = 'stream';
+  audio.src = url;
+  audio.loop = isLooping;
+  if (desde) { try { audio.currentTime = desde; } catch(e) {} }
+  audio.play().catch(err => {
+    if (req !== _playReq) return;
+    if (err && err.name === 'NotAllowedError') { setEstado('Toca ▶ para reproducir'); isPlaying = false; updatePlayUI(); }
+  });
+
+  // ¿Ya está guardada? → usar la copia local
+  if ('caches' in window) {
+    caches.open(MUSIC_CACHE).then(c => c.match(url)).then(res => {
+      if (!res || req !== _playReq || (isPlaying && audio.currentTime > 0)) return null;
+      return res.blob().then(b => { if (req === _playReq) usarBlob(b, desde, req); });
+    }).catch(() => {});
+  }
+
+  // Si el streaming no arranca a tiempo → descarga completa
+  _watchdog = setTimeout(() => {
+    if (req === _playReq && _modo === 'stream' && audio.readyState < 3) descargarYReproducir(track, desde, req);
+  }, STREAM_WAIT);
+}
+
+function usarBlob(blob, desde, req) {
+  clearTimeout(_watchdog);
+  if (_blobURL) URL.revokeObjectURL(_blobURL);
+  _blobURL = URL.createObjectURL(blob);
+  _modo = 'blob';
+  audio.src = _blobURL;
+  audio.loop = isLooping;
+  const arrancar = () => {
+    if (desde) { try { audio.currentTime = desde; } catch(e) {} }
+    audio.play().catch(err => {
+      if (req !== _playReq) return;
+      setEstado(err && err.name === 'NotAllowedError' ? 'Lista · toca ▶' : '⚠️ No se pudo reproducir');
+      isPlaying = false; updatePlayUI();
+    });
+  };
+  if (audio.readyState >= 1) arrancar();
+  else audio.addEventListener('loadedmetadata', arrancar, { once: true });
+}
+
+async function descargarYReproducir(track, desde, req) {
+  if (req !== _playReq) return;
+  limpiarCarga();
+  const url = urlPista(track);
+  const ctrl = new AbortController();
+  _descargaCtrl = ctrl;
+  let idle = setTimeout(() => ctrl.abort(), 20000);   // aborta si 20 s sin recibir datos
+  setEstado('⬇ Descargando…');
+  try {
+    const res = await fetch(url, { signal: ctrl.signal, cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const total = parseInt(res.headers.get('Content-Length') || '0', 10);
+    const reader = res.body.getReader();
+    const partes = []; let recibido = 0;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      partes.push(value); recibido += value.length;
+      clearTimeout(idle); idle = setTimeout(() => ctrl.abort(), 20000);
+      if (req !== _playReq) { ctrl.abort(); return; }
+      setEstado(total ? `⬇ Descargando ${Math.round(recibido / total * 100)}%` : `⬇ ${(recibido / 1048576).toFixed(1)} MB`);
+    }
+    clearTimeout(idle);
+    const blob = new Blob(partes, { type: 'audio/mpeg' });
+    if ('caches' in window) {
+      caches.open(MUSIC_CACHE).then(c => c.put(url, new Response(blob, { headers: { 'Content-Type': 'audio/mpeg' } }))).catch(() => {});
+    }
+    if (req !== _playReq) return;
+    setEstado('');
+    usarBlob(blob, desde, req);
+  } catch(e) {
+    clearTimeout(idle);
+    if (req !== _playReq) return;
+    console.warn('Descarga de pista falló:', e);
+    setEstado(/HTTP 404/.test(e.message) ? '⚠️ Pista no encontrada en el servidor' : '⚠️ Sin conexión · toca ▶ para reintentar');
+    isPlaying = false; updatePlayUI();
+  } finally {
+    if (_descargaCtrl === ctrl) _descargaCtrl = null;
+  }
 }
 
 function togglePlay() {
   if (currentIndex < 0) { selectTrack(0); return; }
-  if (isPlaying) { audio.pause(); isPlaying = false; }
-  else { audio.play().catch(() => {}); isPlaying = true; }
-  updatePlayUI();
+  if (isPlaying) { audio.pause(); return; }
+  // Si quedó en error o sin fuente, reintentar la pista desde donde iba
+  if (audio.error || !audio.src || document.getElementById('p-estado').textContent.startsWith('⚠️')) {
+    reproducirPista(TRACKS[currentIndex], audio.currentTime || 0);
+    return;
+  }
+  audio.play().catch(() => {});
 }
+
+// Estado real del reproductor (antes se marcaba "sonando" aunque fallara)
+audio.addEventListener('playing', () => { isPlaying = true; clearTimeout(_watchdog); setEstado(''); updatePlayUI(); });
+audio.addEventListener('pause',   () => { isPlaying = false; updatePlayUI(); });
+audio.addEventListener('waiting', () => { if (_modo === 'stream') setEstado('⏳ Cargando…'); });
+audio.addEventListener('error',   () => {
+  if (!audio.src || currentIndex < 0) return;
+  // Falla del streaming (corte de datos) → descarga completa desde donde iba
+  if (_modo === 'stream') descargarYReproducir(TRACKS[currentIndex], audio.currentTime || 0, _playReq);
+  else { setEstado('⚠️ Error de audio · toca ▶'); isPlaying = false; updatePlayUI(); }
+});
 
 function nextTrack() {
   if (!TRACKS.length) return;

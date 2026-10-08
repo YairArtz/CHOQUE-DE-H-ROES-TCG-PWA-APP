@@ -4,8 +4,9 @@
 //      datos .json red-primero con timeout, fallbacks por tipo de archivo,
 //      caché dinámica con límite de tamaño.
 // ================================================================
-const CACHE_NAME    = 'chh-tcg-v35';
-const CACHE_DYNAMIC = 'chh-dynamic-v35';
+const CACHE_NAME    = 'chh-tcg-v36';
+const CACHE_DYNAMIC = 'chh-dynamic-v36';
+const CACHE_MUSICA  = 'chh-musica-v1';   // pistas guardadas por musica.html (no se borra al actualizar)
 const NET_TIMEOUT   = 3000;   // ms para datos .json antes de servir copia
 const DYNAMIC_MAX   = 350;    // máx. entradas en caché dinámica (imágenes de cartas, etc.)
 
@@ -41,7 +42,7 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME && k !== CACHE_DYNAMIC).map(k => caches.delete(k))))
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME && k !== CACHE_DYNAMIC && k !== CACHE_MUSICA).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -64,8 +65,8 @@ self.addEventListener('fetch', event => {
   }
   if (url.origin !== self.location.origin) return;
 
-  // Audio/video con Range: que lo maneje el navegador directo (evita cortes en iOS)
-  if (req.headers.has('range')) return;
+  // Audio: siempre directo a la red (streaming con Range y descargas de musica.html)
+  if (req.headers.has('range') || /\.(mp3|m4a|ogg|wav)$/i.test(url.pathname)) return;
 
   // Peticiones con cache-buster (?_t=) siempre van a red, con timeout
   if (url.searchParams.has('_t')) {

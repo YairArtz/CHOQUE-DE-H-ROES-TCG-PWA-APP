@@ -1,10 +1,12 @@
 {
-  "version": 1,
+  "version": 2,
   "imgBase": "img/simulacion/",
   "imgMinBase": "img/simulacion/min/",
   "assets": {
     "reverso": "reverso.jpg",
-    "logo": "logo.png"
+    "logo": "logo.png",
+    "tablero": "tablero.jpg",
+    "tableroOscurecer": 0.45
   },
   "reglas": {
     "corazones": 10,
@@ -14,116 +16,382 @@
   },
   "cartas": [
     {
-      "id": "julian", "nombre": "Julián Tennek", "tipo": "pj", "rareza": "comun",
-      "coste": 1, "fue": 2, "res": 1, "cor": 1, "imp": 1,
+      "id": "julian",
+      "nombre": "Julián Tennek",
+      "tipo": "pj",
+      "rareza": "comun",
+      "coste": 1,
+      "fue": 2,
+      "res": 1,
+      "cor": 1,
+      "imp": 1,
       "img": "julian.jpg",
       "texto": "Al ser llamado: roba 1 carta de BA o BP (tú eliges).",
       "efectos": [
-        { "cuando": "al_llamar", "accion": "robar", "origen": ["ba", "bp"], "cantidad": 1, "elegir": true }
+        {
+          "cuando": "al_llamar",
+          "accion": "robar",
+          "origen": [
+            "ba",
+            "bp"
+          ],
+          "cantidad": 1,
+          "elegir": true
+        }
       ]
     },
     {
-      "id": "clio", "nombre": "La Musa Clío", "tipo": "pj", "rareza": "comun",
-      "coste": 2, "fue": 2, "res": 6, "cor": 2, "imp": 1,
+      "id": "clio",
+      "nombre": "La Musa Clío",
+      "tipo": "pj",
+      "rareza": "comun",
+      "coste": 2,
+      "fue": 2,
+      "res": 6,
+      "cor": 2,
+      "imp": 1,
       "img": "clio.jpg",
       "texto": "Sin habilidad activa.",
       "efectos": []
     },
     {
-      "id": "vulcar", "nombre": "Vulcar, Cab. Cristal", "tipo": "pj", "rareza": "comun",
-      "coste": 5, "fue": 7, "res": 3, "cor": 2, "imp": 1,
+      "id": "vulcar",
+      "nombre": "Vulcar, Cab. Cristal",
+      "tipo": "pj",
+      "rareza": "comun",
+      "coste": 5,
+      "fue": 7,
+      "res": 3,
+      "cor": 2,
+      "imp": 1,
       "img": "vulcar.jpg",
       "texto": "Habilidad al llamado normal.",
       "efectos": []
     },
     {
-      "id": "koatl", "nombre": "Koatl Def. Definitivo", "tipo": "pj", "rareza": "comun",
-      "coste": 7, "fue": 6, "res": 5, "cor": 2, "imp": 1,
+      "id": "koatl",
+      "nombre": "Koatl Def. Definitivo",
+      "tipo": "pj",
+      "rareza": "comun",
+      "coste": 7,
+      "fue": 6,
+      "res": 5,
+      "cor": 2,
+      "imp": 1,
       "img": "koatl.jpg",
       "texto": "Al ser llamado: añade 1 APOYO de tu BP a tu mano.",
       "efectos": [
-        { "cuando": "al_llamar", "accion": "buscar", "origen": "bp", "tipo": "apoyo", "cantidad": 1 }
+        {
+          "cuando": "al_llamar",
+          "accion": "buscar",
+          "origen": "bp",
+          "tipo": "apoyo",
+          "cantidad": 1
+        }
       ]
     },
     {
-      "id": "alma1", "nombre": "Alma Prehispánica", "tipo": "alma", "rareza": "comun",
-      "valor": 1, "img": "alma1.jpg", "texto": "Alma valor 1."
+      "id": "alma1",
+      "nombre": "Alma Prehispánica",
+      "tipo": "alma",
+      "rareza": "comun",
+      "valor": 1,
+      "img": "alma1.jpg",
+      "texto": "Alma valor 1."
     },
     {
-      "id": "alma2", "nombre": "Alma Difunta", "tipo": "alma", "rareza": "comun",
-      "valor": 2, "img": "alma2.jpg", "texto": "Alma valor 2."
+      "id": "alma2",
+      "nombre": "Alma Difunta",
+      "tipo": "alma",
+      "rareza": "comun",
+      "valor": 2,
+      "img": "alma2.jpg",
+      "texto": "Alma valor 2."
     },
     {
-      "id": "alma3", "nombre": "Alma Reencarnación", "tipo": "alma", "rareza": "comun",
-      "valor": 3, "img": "alma3.jpg", "texto": "Alma valor 3."
+      "id": "alma3",
+      "nombre": "Alma Reencarnación",
+      "tipo": "alma",
+      "rareza": "comun",
+      "valor": 3,
+      "img": "alma3.jpg",
+      "texto": "Alma valor 3."
     },
     {
-      "id": "sector", "nombre": "Batalla Entre Clanes", "tipo": "sector", "rareza": "comun",
+      "id": "sector",
+      "nombre": "Batalla Entre Clanes",
+      "tipo": "sector",
+      "rareza": "comun",
       "img": "sector.jpg",
       "texto": "Personajes aquí atacan sin descansar (exc. primer turno).",
       "efectos": [
-        { "cuando": "pasivo", "accion": "sin_descanso" }
+        {
+          "cuando": "pasivo",
+          "accion": "sin_descanso"
+        }
       ]
     },
     {
-      "id": "apoyo", "nombre": "Auxilio Ancestral", "tipo": "apoyo", "rareza": "comun",
+      "id": "apoyo",
+      "nombre": "Auxilio Ancestral",
+      "tipo": "apoyo",
+      "rareza": "comun",
       "img": "apoyo.jpg",
       "texto": "Pierde 1 corazón: roba 2 cartas de BP o BA (1 vez/turno).",
       "efectos": [
-        { "cuando": "activar", "costo": { "corazones": 1 }, "accion": "robar", "origen": "bp", "cantidad": 2, "limite": "1_por_turno" }
+        {
+          "cuando": "activar",
+          "costo": {
+            "corazones": 1
+          },
+          "accion": "robar",
+          "origen": "bp",
+          "cantidad": 2,
+          "limite": "1_por_turno"
+        }
       ]
     },
     {
-      "id": "apoyoR", "nombre": "Torneo de Héroes", "tipo": "apoyoR", "rareza": "comun",
+      "id": "apoyoR",
+      "nombre": "Torneo de Héroes",
+      "tipo": "apoyoR",
+      "rareza": "comun",
       "img": "apoyoR.jpg",
       "texto": "Solo turno rival: cuando activa APOYO, pierde 1 corazón, niega y destruye esa carta.",
       "efectos": [
-        { "cuando": "reaccion_apoyo_rival", "accion": "negar", "pendiente": true }
+        {
+          "cuando": "reaccion_apoyo_rival",
+          "accion": "negar",
+          "pendiente": true
+        }
+      ]
+    },
+    {
+      "id": "volkot",
+      "nombre": "Volkot, El Dragón Defensor",
+      "tipo": "amalgama",
+      "rareza": "comun",
+      "gama": 5,
+      "fue": 7,
+      "res": 8,
+      "cor": 2,
+      "imp": 1,
+      "img": "./cartas_2/series_002_full.jpg",
+      "imgMin": "./cartas_2/series_002.jpg",
+      "texto": "Mientras esta carta permanezca en tu lado del campo, personajes con \"CRISTAL\" y/o \"DEFENSOR\" en su nombre ganan 1 punto de fuerza y resistencia por cada carta en tu lado del campo. Una vez por turno durante tu Fase de Acción: un personaje en tu lado del campo gana BRUTALIDAD hasta el final del turno.",
+      "llamadoEspecial": {
+        "texto": "Manda de tu lado del campo y/o mano al Mictlán 2 personajes de valor 5.",
+        "materiales": [
+          {
+            "cantidad": 2,
+            "valor": 5
+          }
+        ],
+        "origen": [
+          "campo",
+          "mano"
+        ],
+        "destino": "mictlan"
+      },
+      "efectos": [
+        {
+          "cuando": "pasivo",
+          "accion": "bono_por_nombre",
+          "nombres": [
+            "CRISTAL",
+            "DEFENSOR"
+          ],
+          "pendiente": true
+        },
+        {
+          "cuando": "activar_1_por_turno",
+          "accion": "dar_habilidad",
+          "habilidad": "BRUTALIDAD",
+          "pendiente": true
+        }
+      ]
+    },
+    {
+      "id": "cipacdragon",
+      "nombre": "Cipacdragón, La Bestia Terrena",
+      "tipo": "amalgama",
+      "rareza": "comun",
+      "gama": 8,
+      "fue": 7,
+      "res": 10,
+      "cor": 2,
+      "imp": 1,
+      "img": "./cartas/carta_053_full.jpg",
+      "texto": "Solo puedes activar una de estas habilidades una vez por turno: confinar un personaje del campo; añadir un APOYO de tu Mictlán a tu mano; o descartar al azar de la mano rival tantas cartas como corazones tengas. EMBOSCADA: puede atacar los corazones del adversario directamente.",
+      "llamadoEspecial": {
+        "texto": "Confina 2 PERSONAJES de valor 8 o mayor de tu mano.",
+        "materiales": [
+          {
+            "cantidad": 2,
+            "valorMin": 8
+          }
+        ],
+        "origen": [
+          "mano"
+        ],
+        "destino": "confinar"
+      },
+      "efectos": [
+        {
+          "cuando": "pasivo",
+          "accion": "habilidad",
+          "habilidad": "EMBOSCADA",
+          "pendiente": true
+        }
       ]
     }
   ],
   "mazos": {
     "jugador": {
       "bp": [
-        { "id": "julian", "copias": 3 },
-        { "id": "clio", "copias": 4 },
-        { "id": "vulcar", "copias": 4 },
-        { "id": "koatl", "copias": 4 },
-        { "id": "apoyo", "copias": 4 },
-        { "id": "apoyoR", "copias": 4 },
-        { "id": "sector", "copias": 4 },
-        { "id": "alma1", "copias": 1 },
-        { "id": "alma2", "copias": 1 },
-        { "id": "alma3", "copias": 1 }
+        {
+          "id": "julian",
+          "copias": 3
+        },
+        {
+          "id": "clio",
+          "copias": 4
+        },
+        {
+          "id": "vulcar",
+          "copias": 4
+        },
+        {
+          "id": "koatl",
+          "copias": 4
+        },
+        {
+          "id": "apoyo",
+          "copias": 4
+        },
+        {
+          "id": "apoyoR",
+          "copias": 4
+        },
+        {
+          "id": "sector",
+          "copias": 4
+        },
+        {
+          "id": "alma1",
+          "copias": 1
+        },
+        {
+          "id": "alma2",
+          "copias": 1
+        },
+        {
+          "id": "alma3",
+          "copias": 1
+        }
       ],
       "ba": [
-        { "id": "alma1", "copias": 3 },
-        { "id": "alma2", "copias": 3 },
-        { "id": "alma3", "copias": 3 }
+        {
+          "id": "alma1",
+          "copias": 3
+        },
+        {
+          "id": "alma2",
+          "copias": 3
+        },
+        {
+          "id": "alma3",
+          "copias": 3
+        }
       ],
-      "manoInicial": ["julian", "clio", "apoyo", "alma1"],
-      "almasIniciales": ["alma3"]
+      "manoInicial": [
+        "julian",
+        "clio",
+        "apoyo",
+        "alma1"
+      ],
+      "almasIniciales": [],
+      "bs": [
+        {
+          "id": "volkot",
+          "copias": 2
+        },
+        {
+          "id": "cipacdragon",
+          "copias": 1
+        }
+      ]
     },
     "cpu": {
       "bp": [
-        { "id": "julian", "copias": 3 },
-        { "id": "clio", "copias": 4 },
-        { "id": "vulcar", "copias": 4 },
-        { "id": "koatl", "copias": 4 },
-        { "id": "apoyo", "copias": 4 },
-        { "id": "apoyoR", "copias": 4 },
-        { "id": "sector", "copias": 4 },
-        { "id": "alma1", "copias": 1 },
-        { "id": "alma2", "copias": 1 },
-        { "id": "alma3", "copias": 1 }
+        {
+          "id": "julian",
+          "copias": 3
+        },
+        {
+          "id": "clio",
+          "copias": 4
+        },
+        {
+          "id": "vulcar",
+          "copias": 4
+        },
+        {
+          "id": "koatl",
+          "copias": 4
+        },
+        {
+          "id": "apoyo",
+          "copias": 4
+        },
+        {
+          "id": "apoyoR",
+          "copias": 4
+        },
+        {
+          "id": "sector",
+          "copias": 4
+        },
+        {
+          "id": "alma1",
+          "copias": 1
+        },
+        {
+          "id": "alma2",
+          "copias": 1
+        },
+        {
+          "id": "alma3",
+          "copias": 1
+        }
       ],
       "ba": [
-        { "id": "alma1", "copias": 3 },
-        { "id": "alma2", "copias": 3 },
-        { "id": "alma3", "copias": 3 }
+        {
+          "id": "alma1",
+          "copias": 3
+        },
+        {
+          "id": "alma2",
+          "copias": 3
+        },
+        {
+          "id": "alma3",
+          "copias": 3
+        }
       ],
-      "manoInicial": ["julian", "vulcar", "apoyoR", "alma2"],
-      "almasIniciales": ["alma3"]
+      "manoInicial": [
+        "julian",
+        "vulcar",
+        "apoyoR",
+        "alma2"
+      ],
+      "almasIniciales": [],
+      "bs": [
+        {
+          "id": "volkot",
+          "copias": 2
+        }
+      ]
     }
   }
 }

@@ -125,7 +125,10 @@ html,body{
 }
 .bdiv{grid-column:1/-1;display:flex;align-items:center;gap:4px}
 .bdiv-line{flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(212,135,10,.5),transparent)}
-.bdiv-lbl{font-family:'Orbitron',sans-serif;font-size:7px;letter-spacing:2px;color:rgba(212,135,10,.6)}
+.bdiv-lbl{font-family:'Orbitron',sans-serif;font-size:7px;letter-spacing:2px;color:rgba(212,135,10,.75);text-shadow:0 0 4px #000,0 0 8px #000}
+/* Fondo de tablero personalizable (assets.tablero en el JSON) */
+.board.has-bg{background-size:cover;background-position:center;background-repeat:no-repeat}
+.board.has-bg .bc:not(.bc-fill):not(.occ):not(.has-alma){backdrop-filter:blur(1.5px);-webkit-backdrop-filter:blur(1.5px)}
 
 /* Celda universal */
 .bc{width:var(--cw);height:var(--ch);border-radius:4px;border:1px solid;position:relative;overflow:hidden;
@@ -136,7 +139,69 @@ html,body{
 .bc-deck.ba{border-color:rgba(45,184,224,0.5);background:rgba(4,20,28,0.7)}
 .bc-deck.mc{border-color:rgba(122,130,144,.3);background:rgba(8,6,4,0.6)}
 .bc-deck.mc img.ci{opacity:.45}
-.bc-deck.sop{border-color:rgba(200,180,20,.4);background:rgba(15,12,2,0.7);cursor:default}
+.bc-deck.sop{border-color:rgba(255,224,102,.45);background:rgba(15,12,2,0.7);cursor:pointer}
+.bc-deck.sop .dct,.bc-deck.sop .dlbl{color:#ffe066}
+.bc-deck.sop.sp-ready{box-shadow:0 0 12px #ffe066;animation:dpulse .9s ease infinite}
+.bc-pj.amal{border-color:#ffe066!important;box-shadow:inset 0 0 0 1px rgba(255,224,102,.5)}
+
+/* ── BARAJA DE SOPORTE / LLAMADO ESPECIAL ── */
+.bs-overlay{position:fixed;inset:0;z-index:820;background:rgba(0,0,0,.88);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:12px}
+.bs-overlay.show{display:flex}
+.bs-box{background:linear-gradient(160deg,#151006,#0a0604);border:1px solid #ffe066;border-radius:14px;padding:14px;width:100%;max-width:600px;box-shadow:0 0 30px rgba(255,224,102,.18)}
+.bs-title{font-family:'Orbitron',sans-serif;font-size:11px;color:#ffe066;letter-spacing:1px;text-align:center;margin-bottom:3px}
+.bs-sub{font-size:12px;color:var(--muted);text-align:center;margin-bottom:8px;line-height:1.35}
+.bs-req{font-size:12px;line-height:1.4;color:var(--text);background:rgba(255,224,102,.07);border:1px solid rgba(255,224,102,.25);border-radius:8px;padding:6px 9px;margin-bottom:8px}
+.bs-req:empty{display:none}
+.bs-cards{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 8px;scrollbar-width:thin}
+.bs-card{flex-shrink:0;width:78px;cursor:pointer;text-align:center;position:relative}
+.bs-card img{width:78px;height:109px;object-fit:contain;background:#000;border-radius:6px;border:2px solid rgba(255,255,255,.15);display:block}
+.bs-card.ok img{border-color:#ffe066;box-shadow:0 0 10px rgba(255,224,102,.45)}
+.bs-card.no img{opacity:.42}
+.bs-card.sel img{border-color:var(--green);box-shadow:0 0 12px rgba(0,232,122,.6)}
+.bs-n{font-family:'Orbitron',sans-serif;font-size:6.5px;color:var(--text);margin-top:3px;line-height:1.3}
+.bs-st{font-size:10px;margin-top:1px}
+.bs-tag{position:absolute;top:4px;left:4px;font-family:'Orbitron',sans-serif;font-size:6px;padding:1px 4px;border-radius:4px;background:rgba(0,0,0,.85);color:var(--gold2)}
+.bs-x{position:absolute;top:4px;right:4px;font-family:'Orbitron',sans-serif;font-size:8px;font-weight:900;background:rgba(0,0,0,.85);color:#ffe066;padding:1px 4px;border-radius:4px}
+.bs-btns{display:flex;gap:8px;margin-top:4px}
+.bs-btns button{flex:1;padding:10px;border-radius:8px;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;cursor:pointer;border:none}
+.bs-ok{background:linear-gradient(135deg,#ffe066,#c9a400);color:#0a0604}
+.bs-ok:disabled{opacity:.3;cursor:default}
+.bs-cancel{background:transparent;border:1px solid var(--border)!important;color:var(--muted)}
+.sector-cancel{display:block;width:100%;margin-top:8px;padding:8px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'Orbitron',sans-serif;font-size:9px;cursor:pointer}
+
+/* ── REPRODUCTOR (mismo catálogo que la calculadora) ── */
+.ibtn.playing{border-color:var(--purple);box-shadow:0 0 10px rgba(192,64,255,.6)}
+.mp-panel{position:fixed;top:36px;right:8px;z-index:650;width:250px;max-height:calc(var(--H) - 48px);
+  background:rgba(3,5,10,.97);border:1px solid rgba(180,70,255,.35);border-radius:10px;overflow:hidden;
+  box-shadow:0 6px 30px rgba(0,0,0,.7),0 0 20px rgba(180,70,255,.12);display:none;flex-direction:column}
+.mp-panel.open{display:flex}
+.mp-head{padding:7px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(180,70,255,.2);
+  font-family:'Orbitron',sans-serif;font-size:8px;font-weight:700;letter-spacing:2px;color:var(--purple)}
+.mp-head button{background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer}
+.mp-now{display:flex;align-items:center;gap:8px;padding:8px 10px 4px}
+.mp-viz{display:flex;align-items:flex-end;gap:2px;height:12px;width:14px}
+.mp-viz i{flex:1;background:var(--purple);height:3px;border-radius:1px}
+.mp-viz.on i{animation:mpv .8s ease-in-out infinite}
+.mp-viz.on i:nth-child(2){animation-delay:.15s}.mp-viz.on i:nth-child(3){animation-delay:.3s}.mp-viz.on i:nth-child(4){animation-delay:.45s}
+@keyframes mpv{0%,100%{height:3px}50%{height:12px}}
+.mp-info{flex:1;min-width:0}
+#mpName{font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mp-time{font-family:'Orbitron',sans-serif;font-size:7px;color:var(--muted);margin-top:1px}
+.mp-prog{height:4px;margin:4px 10px;background:rgba(255,255,255,.08);border-radius:2px;cursor:pointer;position:relative}
+#mpFill{height:100%;width:0;background:var(--purple);border-radius:2px;pointer-events:none}
+.mp-ctrl{display:flex;justify-content:center;gap:10px;padding:4px 0 6px}
+.mp-btn{width:30px;height:30px;border-radius:50%;border:1px solid rgba(180,70,255,.3);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.mp-btn svg{width:15px;height:15px;fill:var(--text)}
+.mp-btn.mp-play{background:rgba(180,70,255,.18)}
+.mp-btn.off svg{fill:var(--muted)}
+.mp-tracks{flex:1;min-height:0;overflow-y:auto;border-top:1px solid rgba(180,70,255,.15);scrollbar-width:thin}
+.mp-track{display:flex;align-items:center;gap:8px;padding:6px 10px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.03)}
+.mp-track.act{background:rgba(180,70,255,.12)}
+.mp-track.lock{opacity:.45}
+.mp-tn{font-family:'Orbitron',sans-serif;font-size:7px;color:var(--muted);width:14px}
+.mp-tt{flex:1;font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mp-track.act .mp-tt,.mp-track.act .mp-tn{color:var(--purple)}
+.mp-td{font-family:'Orbitron',sans-serif;font-size:7px;color:var(--muted)}
 .bc-ap{border-color:rgba(180,30,30,.35);background:rgba(180,30,30,.06)}
 .bc-ap.has-alma{border-color:rgba(45,184,224,.55);background:rgba(45,184,224,.1);cursor:pointer}
 .bc-sect{border-color:rgba(192,64,255,.35);background:rgba(192,64,255,.07)}
@@ -481,12 +546,12 @@ html,body{
       <div class="bc bc-sect" id="cSR"></div>
       <div class="bc bc-pj" id="cP0"></div><div class="bc bc-pj" id="cP1"></div><div class="bc bc-pj" id="cP2"></div><div class="bc bc-pj" id="cP3"></div>
       <div class="bc bc-sect" id="cSL"></div>
-      <div class="bc bc-deck sop"><div class="dct" style="color:rgba(255,220,0,.8)">15</div><div class="dlbl" style="color:rgba(255,220,0,.8)">B.SOP</div></div>
+      <div class="bc bc-deck sop" id="cpuSOP" onclick="openBS('cpu')"><img class="ci rev" alt=""><div class="dct" id="cpuSOPct">0</div><div class="dlbl">B.SOP</div></div>
 
       <div class="bdiv"><div class="bdiv-line"></div><div class="bdiv-lbl" id="centerLbl">CAMPO DE BATALLA</div><div class="bdiv-line"></div></div>
 
       <!-- JUGADOR fila C: B.Sop | Sect-Izq | PJ×4 | Sect-Der | BA -->
-      <div class="bc bc-deck sop"><div class="dct" style="color:rgba(255,220,0,.8)">15</div><div class="dlbl" style="color:rgba(255,220,0,.8)">B.SOP</div></div>
+      <div class="bc bc-deck sop" id="playerSOP" onclick="openBS('player')"><img class="ci rev" alt=""><div class="dct" id="playerSOPct">0</div><div class="dlbl">B.SOP</div></div>
       <div class="bc bc-sect" id="pSL"></div>
       <div class="bc bc-pj" id="pP0"></div><div class="bc bc-pj" id="pP1"></div><div class="bc bc-pj" id="pP2"></div><div class="bc bc-pj" id="pP3"></div>
       <div class="bc bc-sect" id="pSR"></div>
@@ -507,7 +572,8 @@ html,body{
   <aside class="panel side-r">
     <div class="sr-top">
       <div class="tpill p" id="tpill">T1 TÚ</div>
-      <button class="ibtn" id="btnMute" onclick="toggleMute()" title="Sonido">🔊</button>
+      <button class="ibtn" id="btnMusic" onclick="mpPanel()" title="Soundtrack">🎵</button>
+      <button class="ibtn" id="btnMute" onclick="toggleMute()" title="Efectos de sonido">🔊</button>
       <button class="ibtn" id="btnFlip" onclick="flipRot()" title="Voltear 180°">⟲</button>
       <button class="ibtn" onclick="enterLandscape()" title="Pantalla completa">⛶</button>
     </div>
@@ -562,6 +628,7 @@ html,body{
     <div class="sector-sub" id="sectorModalSub">¿En qué sector lo colocas?</div>
     <button class="sector-btn" id="sectorBtnIzq" onclick="confirmCall('left')">SECTOR IZQUIERDO<span class="sect-tag" id="sectorTagIzq"></span></button>
     <button class="sector-btn" id="sectorBtnDer" onclick="confirmCall('right')">SECTOR DERECHO<span class="sect-tag" id="sectorTagDer"></span></button>
+    <button class="sector-cancel" onclick="cancelCall()">CANCELAR</button>
   </div>
 </div>
 
@@ -581,13 +648,43 @@ html,body{
   </div>
 </div>
 
+<!-- MODAL BARAJA DE SOPORTE / MATERIALES -->
+<div class="bs-overlay" id="bsModal">
+  <div class="bs-box">
+    <div class="bs-title" id="bsTitle"></div>
+    <div class="bs-sub" id="bsSub"></div>
+    <div class="bs-req" id="bsReq"></div>
+    <div class="bs-cards" id="bsCards"></div>
+    <div class="bs-btns">
+      <button class="bs-cancel" onclick="closeBS()">CERRAR</button>
+      <button class="bs-ok" id="bsOk" style="display:none" disabled>LLAMAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- REPRODUCTOR -->
+<div class="mp-panel" id="mpPanel">
+  <div class="mp-head"><span>🎵 SOUNDTRACK</span><button onclick="mpPanel()">✕</button></div>
+  <div class="mp-now">
+    <div class="mp-viz" id="mpViz"><i></i><i></i><i></i><i></i></div>
+    <div class="mp-info"><div id="mpName">Selecciona una pista</div><div class="mp-time"><span id="mpCur">0:00</span> / <span id="mpTot">0:00</span></div></div>
+  </div>
+  <div class="mp-prog" id="mpProg" onclick="mpSeek(event)"><div id="mpFill"></div></div>
+  <div class="mp-ctrl">
+    <button class="mp-btn" onclick="mpPrev()"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
+    <button class="mp-btn mp-play" onclick="mpToggle()"><svg viewBox="0 0 24 24" id="mpIcon"><path d="M8 5v14l11-7z"/></svg></button>
+    <button class="mp-btn" onclick="mpNext()"><svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
+    <button class="mp-btn" id="mpLoopBtn" onclick="mpToggleLoop()"><svg viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg></button>
+  </div>
+  <div class="mp-tracks" id="mpTracks"></div>
+</div>
 </div><!-- /stage -->
 
 <script>
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v17.1';                          // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v18';                            // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -799,12 +896,13 @@ let DATA=null;          // JSON crudo
 let C={};               // catálogo normalizado: C[id] = {id,name,type,cost,fue,res,cor,imp,val,img,imgMin,eff,efectos}
 let REV='';             // reverso
 let R={corazones:10,manoMax:7,llamadosPorTurno:2,ofrendaSiAlmasMenorIgual:4};
-const TCOL={pj:'var(--ap)',alma:'var(--ac)',sector:'var(--as)',apoyo:'var(--ar)',apoyoR:'#ff9900'};
-const TNOM={pj:'PERSONAJE',alma:'ALMA',sector:'SECTOR',apoyo:'APOYO',apoyoR:'APOYO REACCIÓN'};
+const TCOL={pj:'var(--ap)',alma:'var(--ac)',sector:'var(--as)',apoyo:'var(--ar)',apoyoR:'#ff9900',amalgama:'#ffe066'};
+const TNOM={pj:'PERSONAJE',alma:'ALMA',sector:'SECTOR',apoyo:'APOYO',apoyoR:'APOYO REACCIÓN',amalgama:'AMALGAMA'};
 
 function resolveImg(base,f){
   if(!f) return '';
   if(/^(https?:|data:|blob:|\/)/.test(f)) return f;
+  if(f.startsWith('./')) return f;          // relativo a la raíz del sitio (ej. ./cartas/carta_053.jpg)
   return (base||'')+f;
 }
 
@@ -824,11 +922,21 @@ async function loadData(onProgress){
     C[c.id]={
       id:c.id, name:c.nombre||c.id, type:c.tipo, rareza:c.rareza||'comun',
       cost:c.coste??0, fue:c.fue??0, res:c.res??0, cor:c.cor??1, imp:c.imp??1, val:c.valor??0,
-      img, imgMin:c.imgMin?resolveImg(minBase||base,c.imgMin):(minBase&&c.img&&!/^(https?:|data:|\/)/.test(c.img)?minBase+c.img:img),
+      img, imgMin:c.imgMin?resolveImg(minBase||base,c.imgMin):(minBase&&c.img&&!/^(https?:|data:|\/|\.\/)/.test(c.img)?minBase+c.img:img),
+      gama:c.gama??0, esp:c.llamadoEspecial||null,
       eff:c.texto||'', efectos:Array.isArray(c.efectos)?c.efectos:[]
     };
   });
   REV=resolveImg(base,(DATA.assets||{}).reverso);
+  // Fondo del tablero (se reemplaza subiendo otra imagen o cambiando assets.tablero)
+  const tab=(DATA.assets||{}).tablero;
+  if(tab){
+    const url=resolveImg(base,tab), o=(DATA.assets.tableroOscurecer??0.45);
+    const im=new Image();
+    im.onload=()=>{const b=document.getElementById('board');
+      b.style.backgroundImage='linear-gradient(rgba(4,8,3,'+o+'),rgba(4,8,3,'+o+')),url("'+url+'")';b.classList.add('has-bg');};
+    im.src=url;
+  }
   const logo=resolveImg(base,(DATA.assets||{}).logo);
   if(logo){document.getElementById('bootLogo').src=logo;document.getElementById('hdrLogo').src=logo;}
   document.querySelectorAll('img.rev').forEach(i=>i.src=REV);
@@ -837,7 +945,8 @@ async function loadData(onProgress){
   const errs=[];
   ['jugador','cpu'].forEach(k=>{
     const m=DATA.mazos[k];
-    [...(m.bp||[]),...(m.ba||[])].forEach(e=>{if(!C[e.id])errs.push(k+': '+e.id);});
+    [...(m.bp||[]),...(m.ba||[]),...(m.bs||[])].forEach(e=>{if(!C[e.id])errs.push(k+': '+e.id);});
+    (m.bs||[]).forEach(e=>{if(C[e.id]&&C[e.id].type!=='amalgama')errs.push(k+' B.SOP solo admite AMALGAMAS: '+e.id);});
     [...(m.manoInicial||[]),...(m.almasIniciales||[])].forEach(id=>{if(!C[id])errs.push(k+': '+id);});
   });
   if(errs.length) throw new Error('Cartas inexistentes en mazos → '+errs.join(', '));
@@ -875,6 +984,8 @@ function mkSide(cfg){
     apoyo, pj:[null,null,null,null],
     sect:{left:null,right:null},
     mictlan:[],
+    bs:expandDeck(cfg.bs),   // Baraja de Soporte (Amalgamas)
+    conf:[],                 // cartas confinadas
   };
 }
 
@@ -963,31 +1074,45 @@ function openChoose(title,opts){
 // MODAL SECTOR
 // ════════════════════════════════════
 let _pendingCall=null;
-function openSectorModal(handIdx,cardName,cost){
-  _pendingCall={handIdx};
-  const freeIzq=[0,1].find(i=>G.player.pj[i]===null);
-  const freeDer=[2,3].find(i=>G.player.pj[i]===null);
+// Lados del campo: para el jugador los slots 0-1 son IZQ; la CPU está espejeada.
+function slotsOf(o,side){return o==='player'?(side==='left'?[0,1]:[2,3]):(side==='right'?[0,1]:[2,3]);}
+function freeIn(o,side,freed){return slotsOf(o,side).find(i=>G[o].pj[i]===null||(freed&&freed.has(i)));}
+function freedBy(sel){return new Set((sel||[]).filter(x=>x.src==='campo').map(x=>x.i));}
+
+// p = {kind:'normal', handIdx, cid}  |  {kind:'esp', cid, sel}
+function openSectorModal(p){
+  _pendingCall=p;
+  const card=C[p.cid];
+  const freed=p.kind==='esp'?freedBy(p.sel):null;
   const tag=side=>{
     const s=G.player.sect[side];
     if(!s) return '😴 Sin sector — descansa un turno';
     if(entersActive('player',side)) return '🔥 '+C[s].name+' — entra activo';
     return '😴 '+C[s].name+' — primer turno: descansa';
   };
-  document.getElementById('sectorModalSub').textContent='¿Dónde llamas a '+cardName+'? (costo: '+cost+')';
-  document.getElementById('sectorBtnIzq').disabled=(freeIzq===undefined);
-  document.getElementById('sectorBtnDer').disabled=(freeDer===undefined);
+  document.getElementById('sectorModalSub').textContent=p.kind==='esp'
+    ?'¿Dónde llamas de forma especial a '+card.name+'?'
+    :'¿Dónde llamas a '+card.name+'? (costo: '+card.cost+')';
+  document.getElementById('sectorBtnIzq').disabled=freeIn('player','left',freed)===undefined;
+  document.getElementById('sectorBtnDer').disabled=freeIn('player','right',freed)===undefined;
   document.getElementById('sectorTagIzq').textContent=tag('left');
   document.getElementById('sectorTagDer').textContent=tag('right');
   document.getElementById('sectorModal').classList.add('show');
 }
+function cancelCall(){
+  document.getElementById('sectorModal').classList.remove('show');
+  if(_pendingCall) lg('↩ Llamado cancelado.','var(--muted)');
+  _pendingCall=null;
+}
 function confirmCall(side){
   document.getElementById('sectorModal').classList.remove('show');
-  if(!_pendingCall) return;
-  const handIdx=_pendingCall.handIdx;
-  _pendingCall=null;
+  const p=_pendingCall; _pendingCall=null;
+  if(!p) return;
+  if(p.kind==='esp'){doSpecialCall('player',p.cid,p.sel,side);return;}
+  const handIdx=p.handIdx;
   const cid=G.player.hand[handIdx];
   const card=C[cid];
-  const slot=(side==='left'?[0,1]:[2,3]).find(i=>G.player.pj[i]===null);
+  const slot=freeIn('player',side);
   if(slot===undefined){lg('⚠ Sin zona libre en ese sector.','var(--red)');return;}
   const act=entersActive('player',side);
   G.player.pj[slot]={id:cid,fue:card.fue,res:card.res,resB:card.res,cor:card.cor,imp:card.imp,resting:!act,attacked:false};
@@ -999,6 +1124,182 @@ function confirmCall(side){
   renderAll();
   setTimeout(()=>animCall('pP'+slot),30);
   runEffects('player',cid,'al_llamar',()=>renderAll());
+}
+
+// ════════════════════════════════════
+// LLAMADOS ESPECIALES — AMALGAMAS
+// Las Amalgamas viven en la Baraja de Soporte (B.SOP), usan GAMA (no valor),
+// no gastan llamados normales y se pagan con los materiales que pida la carta:
+//   "llamadoEspecial": {
+//     "materiales": [ {"cantidad":2, "valor":5} ],   // también: valorMin, valorMax, nombreIncluye, id, tipo
+//     "origen": ["campo","mano"],                      // de dónde salen: mano | campo | mictlan
+//     "destino": "mictlan"                             // a dónde van: mictlan | confinar
+//   }
+// ════════════════════════════════════
+const SRC_TAG={mano:'MANO',campo:'CAMPO',mictlan:'MICTLÁN'};
+function matchReq(cid,g){
+  const c=C[cid];
+  if(!c) return false;
+  if((g.tipo||'pj')!==c.type) return false;
+  if(g.id&&cid!==g.id) return false;
+  if(g.valor!=null&&c.cost!==g.valor) return false;
+  if(g.valorMin!=null&&c.cost<g.valorMin) return false;
+  if(g.valorMax!=null&&c.cost>g.valorMax) return false;
+  if(g.nombreIncluye&&!c.name.toUpperCase().includes(String(g.nombreIncluye).toUpperCase())) return false;
+  return true;
+}
+function spTotal(sp){return (sp.materiales||[]).reduce((a,g)=>a+(g.cantidad||1),0);}
+function spResumen(sp){
+  const m=(sp.materiales||[]).map(g=>{
+    let t=(g.cantidad||1)+' '+(g.tipo&&g.tipo!=='pj'?g.tipo.toUpperCase():'personaje'+((g.cantidad||1)>1?'s':''));
+    if(g.id) t+=' "'+(C[g.id]?C[g.id].name:g.id)+'"';
+    if(g.valor!=null) t+=' de valor '+g.valor;
+    if(g.valorMin!=null) t+=' de valor '+g.valorMin+' o mayor';
+    if(g.valorMax!=null) t+=' de valor '+g.valorMax+' o menor';
+    if(g.nombreIncluye) t+=' con "'+g.nombreIncluye+'" en su nombre';
+    return t;
+  }).join(' + ');
+  return m+' · desde: '+[].concat(sp.origen||['mano']).map(x=>SRC_TAG[x]||x).join(' / ')+' → '+(sp.destino==='confinar'?'se CONFINAN':'van al MICTLÁN');
+}
+function spCandidates(o,sp){
+  const out=[], org=[].concat(sp.origen||['mano']);
+  if(org.includes('mano')) G[o].hand.forEach((cid,i)=>out.push({src:'mano',i,cid}));
+  if(org.includes('campo')) G[o].pj.forEach((p,i)=>{if(p)out.push({src:'campo',i,cid:p.id});});
+  if(org.includes('mictlan')) G[o].mictlan.forEach((cid,i)=>out.push({src:'mictlan',i,cid}));
+  return out.filter(x=>(sp.materiales||[]).some(g=>matchReq(x.cid,g)));
+}
+// ¿La selección cubre exactamente todos los grupos de materiales?
+function spAssign(sel,groups){
+  const need=groups.map(g=>g.cantidad||1);
+  if(sel.length!==need.reduce((a,b)=>a+b,0)) return false;
+  const go=k=>{
+    if(k===sel.length) return need.every(n=>n===0);
+    for(let j=0;j<groups.length;j++){
+      if(need[j]>0&&matchReq(sel[k].cid,groups[j])){need[j]--;if(go(k+1))return true;need[j]++;}
+    }
+    return false;
+  };
+  return go(0);
+}
+function spSlotOk(o,sel){return freePJ(o)!==-1||sel.some(x=>x.src==='campo');}
+function spValid(o,cid,sel){const sp=C[cid].esp;return !!sp&&spAssign(sel,sp.materiales||[])&&spSlotOk(o,sel);}
+// Busca una combinación válida de materiales (prefiere mano → Mictlán → campo)
+function spFind(o,cid){
+  const sp=C[cid].esp;
+  if(!sp) return null;
+  const ord={mano:0,mictlan:1,campo:2};
+  const cands=spCandidates(o,sp).sort((a,b)=>ord[a.src]-ord[b.src]);
+  const total=spTotal(sp), pick=[];
+  const go=start=>{
+    if(pick.length===total) return spValid(o,cid,pick);
+    for(let k=start;k<cands.length;k++){pick.push(cands[k]);if(go(k+1))return true;pick.pop();}
+    return false;
+  };
+  return go(0)?[...pick]:null;
+}
+function canSpecialNow(o){return !!G&&!G.over&&G.active===o&&(o==='cpu'||G.phase==='action');}
+
+function doSpecialCall(o,cid,sel,side){
+  const card=C[cid], sp=card.esp||{};
+  if(!spValid(o,cid,sel)){lg('⚠ Los materiales ya no cumplen el requisito.','var(--red)');renderAll();return false;}
+  const slot=freeIn(o,side,freedBy(sel));
+  if(slot===undefined){lg('⚠ Sin zona libre en ese sector.','var(--red)');return false;}
+  const dest=sp.destino==='confinar'?'conf':'mictlan';
+  const names=[];
+  // Quitar materiales (índices de mayor a menor para no desfasar)
+  ['mano','mictlan'].forEach(src=>{
+    const arr=src==='mano'?G[o].hand:G[o].mictlan;
+    sel.filter(x=>x.src===src).map(x=>x.i).sort((a,b)=>b-a).forEach(i=>{
+      const x=arr.splice(i,1)[0]; G[o][dest].push(x); names.push(C[x].name);
+    });
+  });
+  sel.filter(x=>x.src==='campo').forEach(x=>{
+    const p=G[o].pj[x.i];
+    if(p){G[o].pj[x.i]=null;G[o][dest].push(p.id);names.push(C[p.id].name);}
+  });
+  const bi=G[o].bs.indexOf(cid);
+  if(bi!==-1) G[o].bs.splice(bi,1);
+  const act=entersActive(o,side);
+  G[o].pj[slot]={id:cid,fue:card.fue,res:card.res,resB:card.res,cor:card.cor,imp:card.imp,resting:!act,attacked:false};
+  if(o==='player') clearSel();
+  lg('✨ <b>LLAMADO ESPECIAL'+(o==='cpu'?' (CPU)':'')+'</b>: '+names.map(n=>'<b>'+n+'</b>').join(' + ')+
+     (dest==='conf'?' quedan confinados':' van al Mictlán')+' → ¡<b>'+card.name+'</b> entra al campo!'+(act?' 🔥':' 😴'),'#ffe066');
+  showBanner('end','LLAMADO ESPECIAL',card.name.split(',')[0].toUpperCase(),1500);
+  playSound('call');
+  renderAll();
+  setTimeout(()=>animCall((o==='player'?'pP':'cP')+slot),30);
+  if(o==='player') showDetail(cid,{live:G[o].pj[slot],title:'TUYO'});
+  runEffects(o,cid,'al_llamar',()=>renderAll());
+  return true;
+}
+
+// ── Modal de Baraja de Soporte ──
+let BS={mode:null,cid:null,sel:[]};
+function closeBS(){document.getElementById('bsModal').classList.remove('show');BS={mode:null,cid:null,sel:[]};}
+function openBS(o){
+  if(!G) return;
+  if(o==='cpu'){
+    showDetail(null);
+    lg('🛡 B.SOP de la CPU: '+G.cpu.bs.length+' Amalgama(s) boca abajo.','var(--muted)');
+    return;
+  }
+  BS={mode:'list',cid:null,sel:[]};
+  const ids=[...new Set(G.player.bs)];
+  const myTurn=canSpecialNow('player');
+  document.getElementById('bsTitle').textContent='🛡 BARAJA DE SOPORTE · '+G.player.bs.length+' AMALGAMA(S)';
+  document.getElementById('bsSub').textContent=!ids.length?'Ya no te quedan Amalgamas.'
+    :myTurn?'Toca una Amalgama disponible para hacer su llamado especial. No gasta tus llamados normales.'
+    :'Los llamados especiales se hacen en tu Fase de Acción.';
+  document.getElementById('bsReq').textContent='';
+  document.getElementById('bsOk').style.display='none';
+  const box=document.getElementById('bsCards'); box.innerHTML='';
+  ids.forEach(cid=>{
+    const ok=myTurn&&!!spFind('player',cid);
+    const n=G.player.bs.filter(x=>x===cid).length;
+    const d=document.createElement('div');
+    d.className='bs-card '+(ok?'ok':'no');
+    d.innerHTML=imgTag(cid)+(n>1?'<span class="bs-x">×'+n+'</span>':'')+'<div class="bs-n">'+C[cid].name+'</div><div class="bs-st" style="color:'+(ok?'#ffe066':'var(--muted)')+'">'+(ok?'✨ Disponible':'✦ Gama '+C[cid].gama)+'</div>';
+    d.onclick=()=>{
+      showDetail(cid,{title:'B.SOP'});
+      if(ok) pickMaterials(cid);
+      else document.getElementById('bsReq').innerHTML='<b style="color:#ffe066">'+C[cid].name+'</b> — requisito: '+spResumen(C[cid].esp||{})+(myTurn?' <span style="color:var(--red)">· No lo cumples aún.</span>':'');
+    };
+    box.appendChild(d);
+  });
+  document.getElementById('bsModal').classList.add('show');
+}
+function pickMaterials(cid){
+  const sp=C[cid].esp;
+  BS={mode:'pick',cid,sel:[]};
+  const cands=spCandidates('player',sp);
+  const total=spTotal(sp);
+  document.getElementById('bsTitle').textContent='✨ LLAMADO ESPECIAL · '+C[cid].name.toUpperCase();
+  document.getElementById('bsReq').innerHTML=(sp.texto?'<i>'+sp.texto+'</i><br>':'')+'<span style="color:var(--muted)">'+spResumen(sp)+'</span>';
+  const ok=document.getElementById('bsOk');
+  ok.style.display='';ok.textContent='LLAMAR';
+  ok.onclick=()=>{
+    if(!spValid('player',cid,BS.sel)) return;
+    const sel=[...BS.sel]; closeBS();
+    openSectorModal({kind:'esp',cid,sel});
+  };
+  const draw=()=>{
+    document.getElementById('bsSub').textContent='Elige '+total+' material(es): '+BS.sel.length+'/'+total+' seleccionados';
+    ok.disabled=!spValid('player',cid,BS.sel);
+    const box=document.getElementById('bsCards'); box.innerHTML='';
+    cands.forEach(x=>{
+      const on=BS.sel.includes(x);
+      const d=document.createElement('div');
+      d.className='bs-card'+(on?' sel':' ok');
+      d.innerHTML=imgTag(x.cid)+'<span class="bs-tag">'+SRC_TAG[x.src]+'</span><div class="bs-n">'+C[x.cid].name+'</div><div class="bs-st" style="color:var(--gold2)">◆ Valor '+C[x.cid].cost+'</div>';
+      d.onclick=()=>{
+        if(on) BS.sel=BS.sel.filter(y=>y!==x);
+        else if(BS.sel.length<total) BS.sel.push(x);
+        playSound('card'); draw();
+      };
+      box.appendChild(d);
+    });
+  };
+  draw();
 }
 
 // ════════════════════════════════════
@@ -1092,13 +1393,14 @@ function showDetail(cid,opt){
   let h='<div class="dt-img"><img src="'+c.img+'" alt=""></div>';
   h+='<div class="dt-name">'+c.name+(opt.title?' · '+opt.title:'')+'<br><span class="dt-tag" style="color:'+(TCOL[c.type]||'#fff')+';border-color:'+(TCOL[c.type]||'#fff')+'">'+(TNOM[c.type]||c.type)+'</span></div>';
   h+='<div class="dt-acts" id="dtActs"></div>';
-  if(c.type==='pj'){
+  if(c.type==='pj'||c.type==='amalgama'){
     const f=live?live.fue:c.fue, r=live?live.res:c.res, k=live?live.cor:c.cor;
-    h+='<div class="dt-stats"><span style="color:var(--gold2)">◆'+c.cost+'</span><span class="sf">⚔'+f+'</span><span class="sr">🛡'+r+(live&&r!==live.resB?'/'+live.resB:'')+'</span><span class="sc">'+'❤'.repeat(Math.max(0,k))+'</span><span style="color:var(--muted)">IMP '+c.imp+'</span></div>';
+    h+='<div class="dt-stats">'+(c.type==='amalgama'?'<span style="color:#ffe066">✦ Gama '+c.gama+'</span>':'<span style="color:var(--gold2)">◆'+c.cost+'</span>')+'<span class="sf">⚔'+f+'</span><span class="sr">🛡'+r+(live&&r!==live.resB?'/'+live.resB:'')+'</span><span class="sc">'+'❤'.repeat(Math.max(0,k))+'</span><span style="color:var(--muted)">IMP '+c.imp+'</span></div>';
     if(live&&live.resting) h+='<div class="dt-text" style="color:var(--red)">😴 En descanso</div>';
   } else if(c.type==='alma'){
     h+='<div class="dt-stats"><span class="sr">💙 Valor '+c.val+'</span></div>';
   }
+  if(c.esp) h+='<div class="dt-text" style="color:#ffe066">✨ Llamado especial: '+(c.esp.texto||spResumen(c.esp))+'</div>';
   if(c.eff) h+='<div class="dt-text">'+c.eff+'</div>';
   el.innerHTML=h;
   const box=document.getElementById('dtActs');
@@ -1246,6 +1548,7 @@ function renderPJs(o){
     const card=G[o].pj[i];
     if(!card){el.innerHTML='<span class="zlbl">ZONA<br>PJ</span>';continue;}
     el.classList.add('occ');
+    if(C[card.id].type==='amalgama') el.classList.add('amal');
     if(card.resting) el.classList.add('rest');
     if(o==='cpu'&&ATK_SLOT!==null) el.classList.add('tgt');
     if(o==='player'&&ATK_SLOT===i) el.classList.add('atk-sel');
@@ -1383,9 +1686,17 @@ function renderDecks(){
       if(!im){mc.insertAdjacentHTML('afterbegin',imgTag(top,'ci'));}
       else if(im.dataset.full!==C[top].img){im.outerHTML=imgTag(top,'ci');}
       mc.style.cursor='pointer';
-      mc.onclick=()=>showDetail(top,{title:'MICTLÁN ('+G[o].mictlan.length+')'});
+      mc.onclick=()=>showDetail(top,{title:'MICTLÁN ('+G[o].mictlan.length+')'+(G[o].conf.length?' · CONFINADAS: '+G[o].conf.length:'')});
     } else {if(im)im.remove();mc.onclick=null;mc.style.cursor='';}
   });
+  // Baraja de Soporte
+  ['player','cpu'].forEach(o=>{
+    const el=document.getElementById(o+'SOP');
+    document.getElementById(o+'SOPct').textContent=G[o].bs.length;
+    el.querySelector('img.ci').style.display=G[o].bs.length?'':'none';
+  });
+  const ready=canSpecialNow('player')&&[...new Set(G.player.bs)].some(cid=>spFind('player',cid));
+  document.getElementById('playerSOP').classList.toggle('sp-ready',ready);
   const bpEl=document.getElementById('playerBP'), baEl=document.getElementById('playerBA');
   const drawing=G.phase==='draw'&&G.active==='player'&&!G.over;
   bpEl.classList.toggle('draw-pending',drawing&&!G.drewBP);
@@ -1468,7 +1779,7 @@ function doCall(handIdx){
   if(G.callsLeft<=0){lg('⚠ Sin llamados normales.','var(--red)');return;}
   if(card.cost>at){lg('⚠ Almas insuf.: necesitas '+card.cost+', tienes '+at+'.','var(--red)');return;}
   if(G.player.pj.every(x=>x!==null)){lg('⚠ Sin zonas PJ libres.','var(--red)');return;}
-  openSectorModal(handIdx,card.name,card.cost);
+  openSectorModal({kind:'normal',handIdx,cid});
 }
 
 function doAlma(handIdx){
@@ -1619,6 +1930,14 @@ function cpuTurn(){
     }
   },d);d+=800;
   later(()=>{
+    // Llamado especial: si puede pagar una Amalgama, la llama primero
+    for(const cid of [...new Set(G.cpu.bs)]){
+      const sel=spFind('cpu',cid);
+      if(!sel) continue;
+      const freed=freedBy(sel);
+      const side=['right','left'].find(sd=>freeIn('cpu',sd,freed)!==undefined);
+      if(side&&doSpecialCall('cpu',cid,sel,side)) break;
+    }
     const at=almaT('cpu');
     const fp=freePJ('cpu');
     // Sector: colócalo del lado donde va a llamar (slots 0-1 = DER, 2-3 = IZQ desde la vista de la CPU)
@@ -1720,6 +2039,129 @@ function cpuTurn(){
 function restartGame(){initGame();}
 
 // ════════════════════════════════════
+// REPRODUCTOR — mismo catálogo que musica.html / calculadora
+// Lee musica_config.json (carpeta + pistas). Las pistas con "pts" > 0 se
+// desbloquean en Tienda (nhMusica_<id>). Si la pista se descargó en
+// musica.html (caché chh-musica-v1) se usa esa copia: funciona sin internet.
+// ════════════════════════════════════
+const MP={carpeta:'musica_choque/',pistas:[],tracks:[],idx:-1,on:false,loop:true,blob:null,req:0};
+const mpAudio=new Audio();
+mpAudio.volume=.5;
+try{const st=JSON.parse(localStorage.getItem('cdh_sim_mp')||'{}');if(st.loop===false)MP.loop=false;}catch(e){}
+function mpSave(extra){
+  try{const st=JSON.parse(localStorage.getItem('cdh_sim_mp')||'{}');
+    localStorage.setItem('cdh_sim_mp',JSON.stringify(Object.assign(st,{loop:MP.loop},extra||{})));}catch(e){}
+}
+function mpJugadorId(){
+  for(const k of ['nhJugador','nhSesion']){
+    try{const j=JSON.parse(localStorage.getItem(k)||'null');if(j&&j.id)return j.id;}catch(e){}
+  }
+  return null;
+}
+function mpUnlocked(){
+  const id=mpJugadorId();
+  if(!id) return [];
+  try{return JSON.parse(localStorage.getItem('nhMusica_'+id)||'[]');}catch(e){return [];}
+}
+function mpBuild(){
+  const d=mpUnlocked();
+  MP.tracks=MP.pistas.map((p,i)=>({id:p.id,file:p.archivo||(p.id+'.mp3'),title:p.titulo||p.id,dur:p.duracion||'',
+    pts:p.pts||0,slot:i+1,libre:!p.pts||d.includes(p.id)}));
+}
+async function mpLoad(){
+  try{const prev=JSON.parse(localStorage.getItem('chh_musica_config')||'null');
+    if(prev&&Array.isArray(prev.pistas)){MP.carpeta=prev.carpeta||MP.carpeta;MP.pistas=prev.pistas;}}catch(e){}
+  mpBuild();mpRender();
+  try{
+    const r=await fetch('musica_config.json',{cache:'no-cache'});
+    if(r.ok){const cfg=await r.json();
+      if(Array.isArray(cfg.pistas)){MP.carpeta=cfg.carpeta||MP.carpeta;MP.pistas=cfg.pistas;
+        try{localStorage.setItem('chh_musica_config',JSON.stringify({carpeta:MP.carpeta,pistas:MP.pistas}));}catch(e){}}}
+  }catch(e){}
+  const cur=MP.tracks[MP.idx]&&MP.tracks[MP.idx].id;
+  mpBuild();
+  if(cur) MP.idx=MP.tracks.findIndex(t=>t.id===cur);
+  mpRender();
+}
+function mpRender(){
+  const box=document.getElementById('mpTracks');
+  box.innerHTML='';
+  if(!MP.tracks.length){box.innerHTML='<div class="mp-track"><span class="mp-tt" style="color:var(--muted)">Cargando pistas…</span></div>';return;}
+  MP.tracks.forEach((t,i)=>{
+    const d=document.createElement('div');
+    d.className='mp-track'+(i===MP.idx?' act':'')+(t.libre?'':' lock');
+    d.innerHTML='<span class="mp-tn">'+String(t.slot).padStart(2,'0')+'</span><span class="mp-tt">'+(t.libre?'':'🔒 ')+t.title+'</span><span class="mp-td">'+(t.libre?t.dur:t.pts+' pts')+'</span>';
+    d.onclick=()=>t.libre?mpSelect(i):lg('🔒 <b>'+t.title+'</b> · '+t.pts+' pts de liga · Desbloquéala en la Tienda.','var(--purple)');
+    box.appendChild(d);
+  });
+}
+function mpSelect(i){
+  const t=MP.tracks[i];
+  if(!t||!t.libre) return;
+  MP.idx=i;
+  const req=++MP.req;
+  const url=new URL(MP.carpeta+t.file,location.href).href;
+  mpAudio.src=url; mpAudio.loop=MP.loop;
+  mpAudio.play().then(()=>{MP.on=true;mpUI();}).catch(()=>{MP.on=false;mpUI();});
+  // Copia descargada en musica.html → úsala si el streaming aún no arrancó
+  if('caches' in window){
+    caches.open('chh-musica-v1').then(c=>c.match(url)).then(r=>r&&r.blob()).then(b=>{
+      if(!b||req!==MP.req||mpAudio.currentTime>0.5) return;
+      if(MP.blob) URL.revokeObjectURL(MP.blob);
+      MP.blob=URL.createObjectURL(b);
+      mpAudio.src=MP.blob; mpAudio.loop=MP.loop;
+      mpAudio.play().then(()=>{MP.on=true;mpUI();}).catch(()=>{});
+    }).catch(()=>{});
+  }
+  document.getElementById('mpName').textContent=t.title;
+  mpSave({id:t.id,auto:true});
+  mpRender();
+}
+function mpToggle(){
+  if(MP.idx<0){const f=MP.tracks.findIndex(t=>t.libre);if(f>=0)mpSelect(f);return;}
+  if(MP.on){mpAudio.pause();MP.on=false;mpSave({auto:false});}
+  else{mpAudio.play().catch(()=>{});MP.on=true;mpSave({auto:true});}
+  mpUI();
+}
+function mpStep(dir){
+  const free=MP.tracks.map((t,i)=>t.libre?i:-1).filter(i=>i>=0);
+  if(!free.length) return;
+  if(dir<0&&mpAudio.currentTime>3){mpAudio.currentTime=0;return;}
+  const k=free.indexOf(MP.idx);
+  mpSelect(free[(k+dir+free.length)%free.length]);
+}
+function mpNext(){mpStep(1);}
+function mpPrev(){mpStep(-1);}
+function mpToggleLoop(){MP.loop=!MP.loop;mpAudio.loop=MP.loop;mpSave();mpUI();}
+function mpUI(){
+  document.getElementById('mpIcon').innerHTML=MP.on?'<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>':'<path d="M8 5v14l11-7z"/>';
+  document.getElementById('mpViz').classList.toggle('on',MP.on);
+  document.getElementById('btnMusic').classList.toggle('playing',MP.on);
+  document.getElementById('mpLoopBtn').classList.toggle('off',!MP.loop);
+}
+function mpPanel(){document.getElementById('mpPanel').classList.toggle('open');}
+function mpFmt(x){if(!isFinite(x))return'0:00';return Math.floor(x/60)+':'+String(Math.floor(x%60)).padStart(2,'0');}
+function mpSeek(e){
+  if(!mpAudio.duration) return;
+  const el=document.getElementById('mpProg');
+  mpAudio.currentTime=Math.max(0,Math.min(1,e.offsetX/el.clientWidth))*mpAudio.duration;   // offsetX respeta el modo girado
+}
+mpAudio.addEventListener('timeupdate',()=>{
+  if(!mpAudio.duration) return;
+  document.getElementById('mpFill').style.width=(mpAudio.currentTime/mpAudio.duration*100)+'%';
+  document.getElementById('mpCur').textContent=mpFmt(mpAudio.currentTime);
+  document.getElementById('mpTot').textContent=mpFmt(mpAudio.duration);
+});
+mpAudio.addEventListener('ended',()=>{if(!MP.loop)mpNext();});
+// Si la Tienda desbloquea algo en otra pestaña
+window.addEventListener('storage',e=>{if(e.key==='nhMusica_updated'){const cur=MP.tracks[MP.idx]&&MP.tracks[MP.idx].id;mpBuild();MP.idx=MP.tracks.findIndex(t=>t.id===cur);mpRender();}});
+// Pausar al salir de la app
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&MP.on){mpAudio.pause();MP.on=false;MP._resume=true;mpUI();}
+  else if(!document.hidden&&MP._resume){MP._resume=false;mpAudio.play().then(()=>{MP.on=true;mpUI();}).catch(()=>{});}});
+mpLoad();
+mpUI();
+
+// ════════════════════════════════════
 // ORIENTACIÓN HORIZONTAL
 // requestFullscreen + screen.orientation.lock solo funcionan tras un toque
 // del usuario. Android/Chrome: bloquea en horizontal. iPhone/Safari no
@@ -1776,6 +2218,8 @@ window.addEventListener('pagehide',()=>{try{screen.orientation.unlock();}catch(e
   }
   btn.onclick=async()=>{
     getAC();                       // desbloquea audio con el mismo toque
+    try{const st=JSON.parse(localStorage.getItem('cdh_sim_mp')||'{}');
+      if(st.auto&&st.id){const i=MP.tracks.findIndex(t=>t.id===st.id&&t.libre);if(i>=0)mpSelect(i);}}catch(e){}
     await enterLandscape();
     document.getElementById('bootScreen').classList.add('hide');
     initGame();

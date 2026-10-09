@@ -1,65 +1,126 @@
-// ── BGM PERSISTENTE (v2) ─────────────────────────────────────────────────────
+// ── BGM PERSISTENTE (v3) ─────────────────────────────────────────────────────
 // Uso: incluir <script src="bgm.js"></script> en cada módulo.
 //      Desde subcarpetas (ej. /mercado/): <script src="../bgm.js"></script>
-// El audio se retoma desde el punto donde quedó al navegar entre páginas.
-// v2: la ruta de la pista se resuelve relativa a ESTE archivo, no a la página,
-//     por lo que funciona igual desde la raíz que desde cualquier subcarpeta.
+//      Pista propia por módulo: definir window.BGM_TRACK antes del script.
+// v3: · El audio se crea DESPUÉS de que la página terminó de cargar, para no
+//       competir por la red con imágenes y datos del módulo.
+//     · Si está en mute no se descarga nada hasta que el usuario lo active.
+//     · La posición se restaura al tener metadatos (antes se perdía en móvil).
+//     · Reintentos automáticos si la red falla y al recuperar conexión.
+//     · Desbloqueo de autoplay con touchend/click/keydown (touchstart no cuenta
+//       como interacción en Chrome y consumía el intento).
+// v2: ruta de la pista relativa a este archivo; posición guardada por pista.
 // ─────────────────────────────────────────────────────────────────────────────
 
 (function () {
-  // Resolver la pista relativa a la ubicación de bgm.js (raíz del proyecto)
   var scriptURL = (document.currentScript && document.currentScript.src) || location.href;
-  var TRACK = window.BGM_TRACK || new URL('assets/audio/bgm.mp3', scriptURL).href;
+  var TRACK = window.BGM_TRACK
+    ? new URL(window.BGM_TRACK, location.href).href
+    : new URL('assets/audio/bgm.mp3', scriptURL).href;
 
-  // Posición guardada POR PISTA: cada pista retoma en su propio punto
   var trackName = TRACK.split('/').pop();
-  const KEY_T = 'bgm_time::' + trackName;   // sessionStorage: currentTime de esta pista
-  const KEY_M = 'bgm_muted';                // localStorage:   preferencia mute (global)
+  var KEY_T = 'bgm_time::' + trackName;   // sessionStorage: posición de esta pista
+  var KEY_M = 'bgm_muted';                // localStorage: mute global
 
-  // ── Crear elemento de audio ──
-  const audio = document.createElement('audio');
-  audio.src = TRACK;
-  audio.loop = true;
-  audio.volume = 0.4;
-  audio.preload = 'auto';
-  document.body.appendChild(audio);
+  var muted = localStorage.getItem(KEY_M) === '1';
+  var audio = null;
+  var retries = 0;
+  var MAX_RETRIES = 4;
+  var UNLOCK_EVENTS = ['touchend', 'click', 'keydown'];
 
-  // ── Restaurar mute ──
-  const muted = localStorage.getItem(KEY_M) === '1';
-  audio.muted = muted;
+  function savedTime() {
+    var t = parseFloat(sessionStorage.getItem(KEY_T) || '0');
+    return isNaN(t) ? 0 : t;
+  }
 
-  // ── Restaurar posición y reproducir ──
-  const savedTime = parseFloat(sessionStorage.getItem(KEY_T) || '0');
-  audio.currentTime = isNaN(savedTime) ? 0 : savedTime;
+  function savePos() {
+    if (audio && !isNaN(audio.currentTime) && audio.currentTime > 0) {
+      sessionStorage.setItem(KEY_T, audio.currentTime.toFixed(2));
+    }
+  }
 
-  function tryPlay() {
-    audio.play().catch(() => {
-      // Autoplay bloqueado: esperar interacción del usuario
-      document.addEventListener('click', onFirstInteraction, { once: true });
-      document.addEventListener('touchstart', onFirstInteraction, { once: true });
+  function crearAudio() {
+    if (audio) return;
+    audio = new Audio();
+    audio.loop = true;
+    audio.volume = 0.4;
+    audio.preload = 'auto';
+    audio.muted = muted;
+
+    audio.addEventListener('loadedmetadata', function () {
+      var t = savedTime();
+      if (t > 0 && isFinite(audio.duration) && audio.duration > 0) {
+        try { audio.currentTime = t % audio.duration; } catch (e) {}
+      }
+    }, { once: true });
+
+    audio.addEventListener('playing', function () { retries = 0; });
+    audio.addEventListener('error', onError);
+
+    audio.src = TRACK;
+    intentar();
+  }
+
+  function intentar() {
+    if (!audio || audio.muted) return;
+    var p = audio.play();
+    if (p && p.catch) {
+      p.catch(function (err) {
+        if (err && err.name === 'NotAllowedError') esperarInteraccion();
+        // Otros errores (red): los maneja onError / 'online'
+      });
+    }
+  }
+
+  function esperarInteraccion() {
+    UNLOCK_EVENTS.forEach(function (ev) {
+      document.addEventListener(ev, desbloquear, { capture: true, passive: true });
     });
   }
 
-  function onFirstInteraction() {
-    audio.play().catch(() => {});
+  function desbloquear() {
+    UNLOCK_EVENTS.forEach(function (ev) {
+      document.removeEventListener(ev, desbloquear, { capture: true });
+    });
+    if (audio && audio.paused && !audio.muted) intentar();
   }
 
-  tryPlay();
+  function onError() {
+    if (retries >= MAX_RETRIES) return;
+    retries++;
+    setTimeout(function () {
+      if (!audio) return;
+      savePos();
+      audio.load();
+      intentar();
+    }, 1500 * retries);
+  }
 
-  // ── Guardar posición cada segundo ──
-  setInterval(function () {
-    if (!audio.paused) {
-      sessionStorage.setItem(KEY_T, audio.currentTime.toFixed(2));
+  window.addEventListener('online', function () {
+    if (audio && (audio.error || audio.networkState === 3)) {
+      retries = 0;
+      audio.load();
+      intentar();
     }
-  }, 1000);
-
-  // ── Guardar posición justo antes de navegar ──
-  window.addEventListener('beforeunload', function () {
-    sessionStorage.setItem(KEY_T, audio.currentTime.toFixed(2));
   });
 
+  // ── Guardar posición ──
+  setInterval(function () { if (audio && !audio.paused) savePos(); }, 1000);
+  window.addEventListener('pagehide', savePos);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'hidden') savePos();
+  });
+
+  // ── Arranque diferido: después de que la página cargó ──
+  function arrancar() {
+    if (muted) return;   // en mute no se descarga la pista
+    setTimeout(crearAudio, 300);
+  }
+  if (document.readyState === 'complete') arrancar();
+  else window.addEventListener('load', arrancar, { once: true });
+
   // ── Botón flotante de mute/unmute ──
-  const btn = document.createElement('button');
+  var btn = document.createElement('button');
   btn.id = 'bgm-btn';
   btn.setAttribute('aria-label', 'Música de fondo');
   btn.innerHTML = muted ? '🔇' : '🎵';
@@ -89,13 +150,17 @@
 
   btn.addEventListener('pointerenter', function () { btn.style.opacity = '1'; });
   btn.addEventListener('pointerleave', function () { btn.style.opacity = '0.55'; });
-  btn.addEventListener('click', function () {
-    audio.muted = !audio.muted;
-    localStorage.setItem(KEY_M, audio.muted ? '1' : '0');
-    btn.innerHTML = audio.muted ? '🔇' : '🎵';
+  btn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    muted = !muted;
+    localStorage.setItem(KEY_M, muted ? '1' : '0');
+    btn.innerHTML = muted ? '🔇' : '🎵';
     btn.style.transform = 'scale(0.88)';
     setTimeout(function () { btn.style.transform = 'scale(1)'; }, 150);
-    if (!audio.muted && audio.paused) audio.play().catch(() => {});
+
+    if (!audio) { if (!muted) crearAudio(); return; }
+    audio.muted = muted;
+    if (!muted && audio.paused) intentar();
   });
 
   document.body.appendChild(btn);

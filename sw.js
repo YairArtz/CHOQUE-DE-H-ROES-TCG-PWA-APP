@@ -1,18 +1,33 @@
 // ================================================================
-//  CHOQUE DE HÉROES TCG — Service Worker v8.2
-//  v8.2: las páginas HTML van RED-PRIMERO (con copia si no hay internet) y todas
-//        las revalidaciones saltan la caché HTTP de GitHub Pages (max-age=600).
-//        Antes una actualización tardaba 2 aperturas y hasta 10 min en verse.
-//  v8.1: precache de la Simulación v17 (HTML, JSON de cartas, miniaturas).
-//  v8: shell cache-first (instantáneo) + revalidación en segundo plano,
-//      datos .json red-primero con timeout, fallbacks por tipo de archivo,
-//      caché dinámica con límite de tamaño.
+//  CHOQUE DE HÉROES TCG — Service Worker v9
+//  v9:  · Audio: se sirve desde caché con soporte de Range (206). La primera vez
+//         va directo a la red y se descarga completo en segundo plano; desde la
+//         segunda reproducción carga al instante, también en datos móviles.
+//       · Imágenes y PDFs: caché-primero SIN revalidar (antes cada imagen se volvía
+//         a descargar en cada visita y saturaba la red móvil).
+//       · Imágenes y audio viven en cachés estables que NO se borran al subir
+//         CACHE_NAME (antes cada deploy obligaba a re-descargar todo).
+//       · HTML: red-primero con timeout de 1.5 s (antes 3 s).
+//       · Catálogos JSON pesados (cartas.json, etc.): caché al instante y
+//         actualización en segundo plano.
+//  v8.2: HTML red-primero, revalidaciones saltan la caché HTTP de GitHub Pages.
+//  v8.1: precache de la Simulación v17.
+//  v8:   shell cache-first + revalidación, JSON red-primero, fallbacks por tipo.
 // ================================================================
-const CACHE_NAME    = 'chh-tcg-v49';
-const CACHE_DYNAMIC = 'chh-dynamic-v49';
+const CACHE_NAME    = 'chh-tcg-v50';
+const CACHE_DYNAMIC = 'chh-dynamic-v50';
+const CACHE_IMG     = 'chh-img-v1';      // estable: imágenes, fuentes y PDFs. Subir SOLO si reemplazas imágenes con el mismo nombre
+const CACHE_AUDIO   = 'chh-audio-v1';    // estable: pistas de bgm.js. Subir SOLO si reemplazas un .mp3 con el mismo nombre
 const CACHE_MUSICA  = 'chh-musica-v1';   // pistas guardadas por musica.html (no se borra al actualizar)
+const KEEP_CACHES   = [CACHE_NAME, CACHE_DYNAMIC, CACHE_IMG, CACHE_AUDIO, CACHE_MUSICA];
+
+const HTML_TIMEOUT  = 1500;   // ms para páginas antes de servir copia
 const NET_TIMEOUT   = 3000;   // ms para datos .json antes de servir copia
-const DYNAMIC_MAX   = 350;    // máx. entradas en caché dinámica (imágenes de cartas, etc.)
+const DYNAMIC_MAX   = 200;    // máx. entradas en caché dinámica (html/json/js)
+const IMG_MAX       = 800;    // máx. entradas en caché de imágenes (480+ cartas + sobres + banners)
+
+// JSON de catálogo: cambian poco y pesan mucho → caché al instante + revalidación
+const CATALOG_JSON = /(cartas\.json|cartas_simulacion\.json|comics_config\.json|intro_config\.json)$/i;
 
 const CACHE_CORE = [
   './', './boot.html', './index.html', './calculadora.html',
@@ -25,8 +40,6 @@ const CACHE_CORE = [
   './noticias.json', './comics.html', './lector.html', './comics_config.json'
 ];
 
-// Simulación: HTML, datos y gráficos propios. Las imágenes de cartas salen de la
-// Galería (cartas.json): la simulación las precarga al abrir y quedan en la caché dinámica.
 const CACHE_SIM = [
   './simulacion.html',
   './data/cartas_simulacion.json',
@@ -36,16 +49,12 @@ const CACHE_SIM = [
   './img/simulacion/tablero.jpg'
 ];
 
-// Backend dinámico: nunca pasa por el SW
 const NO_CACHE_ORIGINS = ['script.google.com', 'script.googleusercontent.com', 'docs.google.com'];
-// Fuentes: se cachean para no depender de Google en cada arranque
-const FONT_ORIGINS = ['fonts.googleapis.com', 'fonts.gstatic.com'];
 
 self.addEventListener('install', event => {
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache =>
-      // Cada archivo por separado: si uno falla, los demás sí se guardan
       Promise.allSettled([...CACHE_CORE, ...CACHE_SIM].map(url =>
         fetch(new Request(url, { cache: 'reload' }))
           .then(r => { if (r.ok) return cache.put(url, r); })
@@ -57,7 +66,7 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME && k !== CACHE_DYNAMIC && k !== CACHE_MUSICA).map(k => caches.delete(k))))
+      .then(keys => Promise.all(keys.filter(k => !KEEP_CACHES.includes(k)).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -74,35 +83,39 @@ self.addEventListener('fetch', event => {
   const url = new URL(req.url);
 
   if (NO_CACHE_ORIGINS.some(o => url.hostname.includes(o))) return;
-  if (FONT_ORIGINS.some(o => url.hostname.includes(o))) {
-    event.respondWith(staleWhileRevalidate(req));
-    return;
-  }
+
+  // Fuentes: los .woff2 de gstatic son inmutables → caché-primero; el CSS se revalida
+  if (url.hostname.includes('fonts.gstatic.com')) { event.respondWith(cacheFirst(req)); return; }
+  if (url.hostname.includes('fonts.googleapis.com')) { event.respondWith(staleWhileRevalidate(req)); return; }
+
   if (url.origin !== self.location.origin) return;
 
-  // Audio: siempre directo a la red (streaming con Range y descargas de musica.html)
-  if (req.headers.has('range') || /\.(mp3|m4a|ogg|wav)$/i.test(url.pathname)) return;
+  const path = url.pathname;
 
-  // Peticiones con cache-buster (?_t=) siempre van a red, con timeout
+  // Audio: caché con soporte de Range; la primera vez, red + descarga en segundo plano
+  if (/\.(mp3|m4a|ogg|wav)$/i.test(path)) {
+    event.respondWith(audioResponse(event, req));
+    return;
+  }
+
+  // Otras peticiones parciales (PDF.js pide rangos del PDF): directo a la red
+  if (req.headers.has('range')) return;
+
   if (url.searchParams.has('_t')) {
     event.respondWith(networkOnlyTimeout(req));
     return;
   }
 
-  const path = url.pathname;
   if (/\.json$/i.test(path)) {
-    // Datos: frescos si la red responde rápido, copia si no
-    event.respondWith(networkFirstTimeout(req, 'json'));
+    event.respondWith(CATALOG_JSON.test(path) ? cacheFirstRevalidate(req) : networkFirstTimeout(req, 'json', NET_TIMEOUT));
   } else if (req.mode === 'navigate' || /\.html$/i.test(path) || path.endsWith('/')) {
-    // Páginas: siempre la versión publicada si hay red (≤3 s); si no, la copia.
-    event.respondWith(networkFirstTimeout(req, 'html'));
+    event.respondWith(networkFirstTimeout(req, 'html', HTML_TIMEOUT));
   } else if (/\.(js|css)$/i.test(path)) {
-    // JS/CSS: desde caché al instante, se actualiza en segundo plano.
     event.respondWith(cacheFirstRevalidate(req));
-  } else if (/\.(jpg|jpeg|png|gif|webp|svg|woff2?|ttf|mp3|pdf)$/i.test(path)) {
-    event.respondWith(staleWhileRevalidate(req));
+  } else if (/\.(jpg|jpeg|png|gif|webp|svg|woff2?|ttf|pdf)$/i.test(path)) {
+    event.respondWith(cacheFirst(req));
   } else {
-    event.respondWith(networkFirstTimeout(req, 'other'));
+    event.respondWith(networkFirstTimeout(req, 'other', NET_TIMEOUT));
   }
 });
 
@@ -202,7 +215,7 @@ function timeout(ms) {
   return new Promise(res => setTimeout(() => res(null), ms));
 }
 
-// Busca primero en la dinámica (más reciente) y luego en el precache
+// HTML/JSON/JS: primero la dinámica (más reciente), luego el precache
 async function matchAny(req, opts) {
   const dyn = await caches.open(CACHE_DYNAMIC);
   const d = await dyn.match(req, opts);
@@ -211,22 +224,22 @@ async function matchAny(req, opts) {
   return core.match(req, opts);
 }
 
-let _putCount = 0;
-async function putDynamic(req, res) {
+const _putCounts = {};
+async function putLimited(cacheName, max, req, res) {
   try {
-    const cache = await caches.open(CACHE_DYNAMIC);
+    const cache = await caches.open(cacheName);
     await cache.put(req, res);
-    // Recorte periódico para no llenar la cuota del teléfono
-    if (++_putCount % 25 === 0) {
+    _putCounts[cacheName] = (_putCounts[cacheName] || 0) + 1;
+    if (_putCounts[cacheName] % 25 === 0) {
       const keys = await cache.keys();
-      if (keys.length > DYNAMIC_MAX) {
-        await Promise.all(keys.slice(0, keys.length - DYNAMIC_MAX).map(k => cache.delete(k)));
+      if (keys.length > max) {
+        await Promise.all(keys.slice(0, keys.length - max).map(k => cache.delete(k)));
       }
     }
   } catch(e) { /* cuota llena u otro error: no rompe la respuesta */ }
 }
+function putDynamic(req, res) { return putLimited(CACHE_DYNAMIC, DYNAMIC_MAX, req, res); }
 
-// Respuesta de error acorde al tipo de archivo (nunca HTML dentro de un .js/.json)
 function fallbackFor(req, kind) {
   const path = new URL(req.url).pathname;
   if (kind === 'json' || /\.json$/i.test(path))
@@ -244,7 +257,7 @@ function fallbackFor(req, kind) {
 
 // ── Estrategias ──
 
-// Shell: responde desde caché al instante y actualiza en segundo plano.
+// JS/CSS/catálogos: caché al instante, se actualiza en segundo plano.
 async function cacheFirstRevalidate(req) {
   const cached = await matchAny(req, { ignoreSearch: true });
   const netPromise = fetch(req, { cache: 'no-cache' }).then(r => {
@@ -255,17 +268,11 @@ async function cacheFirstRevalidate(req) {
   if (cached) return cached;
 
   const r = await Promise.race([netPromise, timeout(12000)]);
-  if (r) return r;
-  // Navegación sin copia: intenta el index cacheado antes de mostrar error
-  if (req.mode === 'navigate') {
-    const home = await matchAny('./index.html');
-    if (home) return home;
-  }
-  return fallbackFor(req);
+  return r || fallbackFor(req);
 }
 
-// Datos: red primero; si tarda más de NET_TIMEOUT y hay copia, sirve la copia.
-async function networkFirstTimeout(req, kind) {
+// Páginas y datos: red primero; si tarda más de `ms` y hay copia, sirve la copia.
+async function networkFirstTimeout(req, kind, ms) {
   const cached = await matchAny(req, { ignoreSearch: true });
   const netPromise = fetch(req, { cache: 'no-cache' }).then(r => {
     if (r && r.status === 200) putDynamic(req, r.clone());
@@ -273,7 +280,7 @@ async function networkFirstTimeout(req, kind) {
   }).catch(() => null);
 
   if (cached) {
-    const r = await Promise.race([netPromise, timeout(NET_TIMEOUT)]);
+    const r = await Promise.race([netPromise, timeout(ms)]);
     return (r && r.ok) ? r : cached;
   }
   const r = await Promise.race([netPromise, timeout(12000)]);
@@ -285,18 +292,94 @@ async function networkFirstTimeout(req, kind) {
   return fallbackFor(req, kind === 'html' ? undefined : kind);
 }
 
+// Imágenes, fuentes y PDFs: si está en caché se usa sin volver a descargar.
+async function cacheFirst(req) {
+  const cached = await caches.match(req);
+  if (cached) return cached;
+  try {
+    const r = await fetch(req);
+    if (r && (r.status === 200 || r.type === 'opaque')) putLimited(CACHE_IMG, IMG_MAX, req, r.clone());
+    return r;
+  } catch(e) {
+    return new Response('', { status: 504 });
+  }
+}
+
 async function networkOnlyTimeout(req) {
   try { return await fetchTimeout(req, 10000); }
   catch { return new Response('{}', { status: 504, headers: { 'Content-Type': 'application/json' } }); }
 }
 
 async function staleWhileRevalidate(req) {
-  const c = await matchAny(req);
+  const c = await caches.match(req);
   const fp = fetch(req).then(r => {
-    if (r && (r.status === 200 || r.type === 'opaque')) putDynamic(req, r.clone());
+    if (r && (r.status === 200 || r.type === 'opaque')) putLimited(CACHE_IMG, IMG_MAX, req, r.clone());
     return r;
   }).catch(() => null);
   if (c) return c;
   const r = await fp;
   return r || new Response('', { status: 504 });
+}
+
+// ── Audio ──
+const _audioDownloads = new Set();
+const _audioMem = new Map();   // url → { buf, type } (última pista leída, evita releer la caché en cada rango)
+
+async function audioResponse(event, req) {
+  const key = req.url.split('?')[0].split('#')[0];
+  const range = req.headers.get('range');
+
+  try {
+    let entry = _audioMem.get(key);
+    if (!entry) {
+      const cached = await caches.match(key, { ignoreSearch: true, ignoreVary: true });
+      if (cached && cached.status === 200) {
+        entry = { buf: await cached.arrayBuffer(), type: cached.headers.get('Content-Type') || 'audio/mpeg' };
+        _audioMem.clear();            // solo una pista en memoria
+        _audioMem.set(key, entry);
+      }
+    }
+    if (entry) return rangeResponse(entry.buf, entry.type, range);
+  } catch(e) { /* si falla la caché, se va a la red */ }
+
+  // Sin copia: se descarga completa en segundo plano para la próxima vez
+  event.waitUntil(cacheAudio(key));
+  try { return await fetch(req); }
+  catch(e) { return new Response('', { status: 504 }); }
+}
+
+function cacheAudio(url) {
+  if (_audioDownloads.has(url)) return Promise.resolve();
+  _audioDownloads.add(url);
+  return fetch(url)
+    .then(r => { if (r && r.status === 200) return caches.open(CACHE_AUDIO).then(c => c.put(url, r)); })
+    .catch(() => {})
+    .finally(() => _audioDownloads.delete(url));
+}
+
+function rangeResponse(buf, type, range) {
+  const total = buf.byteLength;
+  if (!range) {
+    return new Response(buf, { status: 200, headers: {
+      'Content-Type': type, 'Content-Length': String(total), 'Accept-Ranges': 'bytes'
+    }});
+  }
+  const m = /bytes=(\d*)-(\d*)/.exec(range);
+  let start = 0, end = total - 1;
+  if (m) {
+    if (m[1] === '' && m[2] !== '') { start = Math.max(0, total - parseInt(m[2], 10)); }
+    else {
+      if (m[1] !== '') start = parseInt(m[1], 10);
+      if (m[2] !== '') end = Math.min(parseInt(m[2], 10), total - 1);
+    }
+  }
+  if (start >= total || start > end) {
+    return new Response('', { status: 416, headers: { 'Content-Range': 'bytes */' + total } });
+  }
+  return new Response(buf.slice(start, end + 1), { status: 206, headers: {
+    'Content-Type': type,
+    'Content-Length': String(end - start + 1),
+    'Content-Range': 'bytes ' + start + '-' + end + '/' + total,
+    'Accept-Ranges': 'bytes'
+  }});
 }

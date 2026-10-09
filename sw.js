@@ -1,12 +1,12 @@
 // ================================================================
-//  CHOQUE DE HÉROES TCG — Service Worker v8.1
+//  CHOQUE DE HÉROES TCG — Service Worker v8.2
 //  v8.1: precache de la Simulación v17 (HTML, JSON de cartas, miniaturas).
 //  v8: shell cache-first (instantáneo) + revalidación en segundo plano,
 //      datos .json red-primero con timeout, fallbacks por tipo de archivo,
 //      caché dinámica con límite de tamaño.
 // ================================================================
-const CACHE_NAME    = 'chh-tcg-v37';
-const CACHE_DYNAMIC = 'chh-dynamic-v37';
+const CACHE_NAME    = 'chh-tcg-v38';
+const CACHE_DYNAMIC = 'chh-dynamic-v38';
 const CACHE_MUSICA  = 'chh-musica-v1';   // pistas guardadas por musica.html (no se borra al actualizar)
 const NET_TIMEOUT   = 3000;   // ms para datos .json antes de servir copia
 const DYNAMIC_MAX   = 350;    // máx. entradas en caché dinámica (imágenes de cartas, etc.)

@@ -1110,6 +1110,8 @@
 
     let allCards = [];
     let cartasLimitadas = {};
+    // Normaliza nombres para comparar sin importar mayúsculas, acentos ni signos
+    const normNombre = t => String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]/g,'');
     
     // Cargar cartas limitadas primero
     fetch('cartas-limitadas.json')
@@ -1117,7 +1119,7 @@
       .then(data => {
         // Convertir array a objeto para búsqueda rápida
         data.forEach(carta => {
-          cartasLimitadas[carta.nombre] = carta.estado;
+          cartasLimitadas[normNombre(carta.nombre)] = carta.estado;
         });
       })
       .catch(err => console.error('Error cargando cartas limitadas:', err));
@@ -1212,7 +1214,7 @@
         }
         
         // Aplicar restricciones desde cartas-limitadas.json
-        const estado = cartasLimitadas[card.nombre];
+        const estado = cartasLimitadas[normNombre(card.nombre)];
         if (estado === 'limitada') {
           card.maxCopias = 1;
         } else if (estado === 'semi-limitada') {

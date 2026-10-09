@@ -134,6 +134,11 @@ html,body{
 .bc{width:var(--cw);height:var(--ch);border-radius:4px;border:1px solid;position:relative;overflow:hidden;
   display:flex;align-items:center;justify-content:center;transition:box-shadow .15s}
 .bc-fill{border:none!important;background:transparent!important}
+.bc-arz{border-color:rgba(0,232,122,.38);background:rgba(0,120,50,.10)}
+.bc-arz.occ{border-color:rgba(0,232,122,.75);box-shadow:0 0 8px rgba(0,232,122,.35);cursor:pointer}
+.bc-conf{border:1px dashed rgba(170,150,190,.45)!important;background:rgba(40,30,50,.35);cursor:pointer}
+.bc-conf img.ci{opacity:.4;filter:grayscale(.6)}
+.bc-conf .dct{color:#c9b8dc}
 .bc-deck{border-color:rgba(212,135,10,0.45);background:rgba(12,8,3,0.7);cursor:pointer}
 .bc-deck:active{opacity:.75}
 .bc-deck.ba{border-color:rgba(45,184,224,0.5);background:rgba(4,20,28,0.7)}
@@ -536,9 +541,9 @@ html,body{
     <div class="board" id="board">
       <!-- CPU fila A: BP | · | Ap×4 | · | Mictlán -->
       <div class="bc bc-deck" id="cpuBP"><img class="ci rev" alt=""><div class="dct" id="cpuBPct">0</div><div class="dlbl">BP</div></div>
-      <div class="bc bc-fill"></div>
+      <div class="bc bc-arz" id="cAR"><div class="dct" id="cARct"></div><span class="zlbl">ARENA</span></div>
       <div class="bc bc-ap" id="cA0"></div><div class="bc bc-ap" id="cA1"></div><div class="bc bc-ap" id="cA2"></div><div class="bc bc-ap" id="cA3"></div>
-      <div class="bc bc-fill"></div>
+      <div class="bc bc-conf" id="cCF"><div class="dct" id="cCFct"></div><span class="zlbl">CONFI-<br>NADAS</span></div>
       <div class="bc bc-deck mc" id="cpuMC"><div class="dct" id="cpuMCct">0</div><div class="dlbl">MICTLÁN</div></div>
 
       <!-- CPU fila B: BA | Sect-Der | PJ×4 | Sect-Izq | B.Sop -->
@@ -559,9 +564,9 @@ html,body{
 
       <!-- JUGADOR fila D: Mictlán | · | Ap×4 | · | BP -->
       <div class="bc bc-deck mc" id="playerMC"><div class="dct" id="playerMCct">0</div><div class="dlbl">MICTLÁN</div></div>
-      <div class="bc bc-fill"></div>
+      <div class="bc bc-conf" id="pCF"><div class="dct" id="pCFct"></div><span class="zlbl">CONFI-<br>NADAS</span></div>
       <div class="bc bc-ap" id="pA0"></div><div class="bc bc-ap" id="pA1"></div><div class="bc bc-ap" id="pA2"></div><div class="bc bc-ap" id="pA3"></div>
-      <div class="bc bc-fill"></div>
+      <div class="bc bc-arz" id="pAR"><div class="dct" id="pARct"></div><span class="zlbl">ARENA</span></div>
       <div class="bc bc-deck" id="playerBP" onclick="drawBP()"><img class="ci rev" alt=""><div class="dct" id="playerBPct">0</div><div class="dlbl">BARAJA</div></div>
     </div>
 
@@ -684,7 +689,7 @@ html,body{
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v19';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v20';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -896,8 +901,8 @@ let DATA=null;          // JSON crudo
 let C={};               // catálogo normalizado: C[id] = {id,name,type,cost,fue,res,cor,imp,val,img,imgMin,eff,efectos}
 let REV='';             // reverso
 let R={corazones:10,manoMax:7,manoInicial:4,llamadosPorTurno:2,ofrendaSiAlmasMenorIgual:4};
-const TCOL={pj:'var(--ap)',alma:'var(--ac)',sector:'var(--as)',apoyo:'var(--ar)',apoyoR:'#ff9900',amalgama:'#ffe066'};
-const TNOM={pj:'PERSONAJE',alma:'ALMA',sector:'SECTOR',apoyo:'APOYO',apoyoR:'APOYO REACCIÓN',amalgama:'AMALGAMA'};
+const TCOL={pj:'var(--ap)',alma:'var(--ac)',sector:'var(--as)',apoyo:'var(--ar)',apoyoR:'#ff9900',amalgama:'#ffe066',arena:'var(--green)'};
+const TNOM={pj:'PERSONAJE',alma:'ALMA',sector:'SECTOR',apoyo:'APOYO',apoyoR:'APOYO REACCIÓN',amalgama:'AMALGAMA',arena:'ARENA'};
 
 function resolveImg(base,f){
   if(!f) return '';
@@ -975,6 +980,28 @@ async function loadData(onProgress){
   errs.unshift(...galErrs);
   if(errs.length) throw new Error('Revisa el JSON → '+errs.join(' · '));
 
+  // Reglas de construcción: BP exacta, BA exacta, B.SOP opcional con máximo,
+  // y copias según cartas-limitadas.json (limitada 1 · semi-limitada 2 · condenada 0 · resto 3).
+  // No bloquea la partida: los avisos aparecen en el registro al empezar.
+  DATA._avisos=[];
+  let LIM={};
+  if(DATA.limitadas){
+    try{const lr=await fetch(DATA.limitadas,{cache:'no-cache'});if(lr.ok)(await lr.json()).forEach(x=>{LIM[K(x.nombre).replace(/[^A-Z0-9]/g,'')]=x.estado;});}catch(e){}
+  }
+  const MAXC={'limitada':1,'semi-limitada':2,'condenada':0};
+  ['jugador','cpu'].forEach(k=>{
+    const m=DATA.mazos[k], tot=l=>(l||[]).reduce((a,e)=>a+(e.copias||1),0);
+    const nBP=tot(m.bp), nBA=tot(m.ba), nBS=tot(m.bs);
+    if(R.barajaPrincipal&&nBP!==R.barajaPrincipal) DATA._avisos.push(k+': la BP tiene '+nBP+' cartas (deben ser '+R.barajaPrincipal+').');
+    if(R.barajaAlmas&&nBA!==R.barajaAlmas) DATA._avisos.push(k+': la BA tiene '+nBA+' cartas (deben ser '+R.barajaAlmas+').');
+    if(R.barajaSoporteMax!=null&&nBS>R.barajaSoporteMax) DATA._avisos.push(k+': la B.SOP tiene '+nBS+' cartas (máximo '+R.barajaSoporteMax+').');
+    const cnt={};[...(m.bp||[]),...(m.ba||[]),...(m.bs||[])].forEach(e=>{const n=C[e.id].name;cnt[n]=(cnt[n]||0)+(e.copias||1);});
+    Object.entries(cnt).forEach(([n,c])=>{
+      const est=LIM[K(n).replace(/[^A-Z0-9]/g,'')], max=est in MAXC?MAXC[est]:3;
+      if(c>max) DATA._avisos.push(k+': '+c+'× "'+n+'" supera el máximo de '+max+(est?' ('+est+')':'')+'.');
+    });
+  });
+
   // Precarga de miniaturas (no bloquea si alguna falla)
   const urls=[...new Set(Object.values(C).map(c=>c.imgMin).concat([REV]).filter(Boolean))];
   let done=0;
@@ -1008,7 +1035,8 @@ function mkSide(cfg){
     pj:[null,null,null,null],
     sect:{left:null,right:null},
     mictlan:[],
-    conf:[],                           // cartas confinadas / aisladas
+    conf:[],                           // cartas confinadas
+    arena:null,                        // ARENA activa (solo una)
   };
   (cfg.almasIniciales||[]).slice(0,4).forEach((id,i)=>{side.apoyo[i]={card:id,type:'alma',bonus:0,eot:false};});
   // Mano inicial: si el mazo no la define, se roban N cartas de la BP
@@ -1692,12 +1720,13 @@ function pickMaterials(cid){
 }
 
 // ── Visor del Mictlán (y habilidades que se activan desde ahí) ──
-function openMictlan(o){
+function openMictlan(o,zona){
   if(!G) return;
-  const list=G[o].mictlan, mine=o==='player';
+  const isConf=zona==='conf';
+  const list=isConf?G[o].conf:G[o].mictlan, mine=o==='player'&&!isConf;
   BS={mode:'mictlan'};
-  document.getElementById('bsTitle').textContent='💀 MICTLÁN'+(mine?'':' DE LA CPU')+' · '+list.length+' carta(s)'+(G[o].conf.length?' · '+G[o].conf.length+' confinada(s)':'');
-  document.getElementById('bsSub').textContent=list.length?'Toca una carta para verla'+(mine?' y usar sus habilidades desde el Mictlán':''):'Vacío.';
+  document.getElementById('bsTitle').textContent=(isConf?'⛓ CONFINADAS':'💀 MICTLÁN')+(o==='player'?'':' DE LA CPU')+' · '+list.length+' carta(s)';
+  document.getElementById('bsSub').textContent=list.length?'Toca una carta para verla'+(mine?' y usar sus habilidades desde el Mictlán':'')+(isConf?' · Las cartas confinadas quedan fuera del juego':''):'Vacío.';
   document.getElementById('bsReq').innerHTML='';
   document.getElementById('bsOk').style.display='none';
   const box=document.getElementById('bsCards');box.innerHTML='';
@@ -1707,7 +1736,7 @@ function openMictlan(o){
     d.className='bs-card '+(acts.some(a=>a.ok)?'ok':'');
     d.innerHTML=imgTag(cid)+'<div class="bs-n">'+C[cid].name+'</div>'+(acts.some(a=>a.ok)?'<div class="bs-st" style="color:#ffe066">✨ Habilidad</div>':'');
     d.onclick=()=>{
-      showDetail(cid,{title:'MICTLÁN'});
+      showDetail(cid,{title:isConf?'CONFINADA':'MICTLÁN'});
       const req=document.getElementById('bsReq');
       req.innerHTML='<b style="color:#ffe066">'+C[cid].name+'</b> — '+(C[cid].eff||'');
       acts.forEach(a=>{
@@ -1747,6 +1776,7 @@ function initGame(){
   renderAll();
   lg('⚔️ T1 · TU TURNO — Toca tu <b>B.ALMAS</b> y tu <b>BARAJA</b> (derecha) para robar.','var(--gold)');
   lg('ℹ Quien inicia el choque no puede declarar batalla en su primer turno.','var(--muted)');
+  (DATA._avisos||[]).forEach(a=>lg('⚠ Baraja · '+a,'var(--gold2)'));
 }
 
 function checkEnd(){
@@ -2077,6 +2107,10 @@ function buildMenuActions(cid,idx,at,card){
   if(card.type==='apoyoR'){
     acts.push({label:'⚡ Solo en turno del rival',ok:false,why:'Reacción automática: pendiente de implementar',fn:()=>{}});
   }
+  if(card.type==='arena'){
+    const ok=G.phase==='action';
+    acts.push({label:G.player.arena?'🟢 Activar ARENA (destruye '+C[G.player.arena].name+')':'🟢 Activar ARENA',ok,why:ok?'':phaseWhy(),fn:()=>doArena('player',idx)});
+  }
   if(card.type==='sector'){
     ['left','right'].forEach(side=>{
       const ok=G.phase==='action'&&G.player.sect[side]===null;
@@ -2110,6 +2144,17 @@ function renderDecks(){
     } else if(im) im.remove();
     mc.style.cursor='pointer';
     mc.onclick=()=>openMictlan(o);
+  });
+  // Arena y Confinamiento
+  ['player','cpu'].forEach(o=>{
+    const px=o==='player'?'p':'c';
+    const ar=document.getElementById(px+'AR'), a=G[o].arena;
+    ar.className='bc bc-arz'+(a?' occ':'');
+    ar.innerHTML=a?imgTag(a,'ci'):'<span class="zlbl">ARENA</span>';
+    ar.onclick=a?()=>showDetail(a,{title:'ARENA'+(o==='cpu'?' · CPU':'')}):null;
+    const cf=document.getElementById(px+'CF'), top=G[o].conf[G[o].conf.length-1];
+    cf.innerHTML=(top?imgTag(top,'ci'):'')+'<div class="dct">'+(G[o].conf.length||'')+'</div><span class="zlbl" style="position:relative">CONFI-<br>NADAS</span>';
+    cf.onclick=()=>openMictlan(o,'conf');
   });
   ['player','cpu'].forEach(o=>{
     const el=document.getElementById(o+'SOP');
@@ -2237,6 +2282,14 @@ async function activateApoyo(o,handIdx){
   G[o].mictlan.push(cid);
   renderAll();
   checkEnd();
+}
+function doArena(o,handIdx){
+  const cid=G[o].hand.splice(handIdx,1)[0];
+  if(G[o].arena){G[o].mictlan.push(G[o].arena);lg('💥 <b>'+C[G[o].arena].name+'</b>'+who(o)+' es reemplazada y va al Mictlán.','var(--muted)');}
+  G[o].arena=cid;
+  if(o==='player') clearSel(cid);
+  lg('🟢 '+(o==='player'?'Activas':'CPU activa')+' la ARENA <b>'+C[cid].name+'</b>.','var(--green)');
+  playSound('call');renderAll();
 }
 function doSector(handIdx,side){
   if(G.player.sect[side]!==null){lg('⚠ Sector ocupado.','var(--red)');return;}
@@ -2423,6 +2476,8 @@ async function cpuTurn(){
     P.hand.splice(P.hand.indexOf(cid),1);P.sect[side]=cid;
     lg('🟣 CPU coloca <b>'+C[cid].name+'</b> en Sector '+(side==='left'?'IZQ':'DER')+'.','var(--as)');playSound('call');renderAll();
   }
+  // 4b) Arena (si no tiene una activa)
+  if(!P.arena){const ai=P.hand.findIndex(c=>C[c].type==='arena');if(ai>=0){if(!await step(450)) return;doArena('cpu',ai);}}
   // 5) Llamados normales (los más caros que pueda pagar)
   for(let n=0;n<R.llamadosPorTurno;n++){
     if(!alive()) return;

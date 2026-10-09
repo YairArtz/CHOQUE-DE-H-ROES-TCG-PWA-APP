@@ -1,5 +1,12 @@
 // ================================================================
-//  CHOQUE DE HÉROES TCG — Service Worker v9
+//  CHOQUE DE HÉROES TCG — Service Worker v9.1
+//  v9.1: · Audio: el SW descarga la pista COMPLETA con fetch() y la sirve desde
+//          caché por rangos. Nunca se deja el audio al reproductor nativo: desde v8
+//          (cuando el audio dejó de pasar por el SW) dejó de sonar en datos móviles.
+//        · HTML: caché al instante + revalidación en segundo plano (como v8.0).
+//          La versión nueva se ve en la siguiente navegación, sin esperar a la red.
+//        · Precache con cache:'no-cache' (revalida con ETag): al subir CACHE_NAME
+//          solo se descargan los archivos que cambiaron, no los ~4 MB completos.
 //  v9:  · Audio: se sirve desde caché con soporte de Range (206). La primera vez
 //         va directo a la red y se descarga completo en segundo plano; desde la
 //         segunda reproducción carga al instante, también en datos móviles.
@@ -14,15 +21,15 @@
 //  v8.1: precache de la Simulación v17.
 //  v8:   shell cache-first + revalidación, JSON red-primero, fallbacks por tipo.
 // ================================================================
-const CACHE_NAME    = 'chh-tcg-v50';
-const CACHE_DYNAMIC = 'chh-dynamic-v50';
+const CACHE_NAME    = 'chh-tcg-v51';
+const CACHE_DYNAMIC = 'chh-dynamic-v51';
 const CACHE_IMG     = 'chh-img-v1';      // estable: imágenes, fuentes y PDFs. Subir SOLO si reemplazas imágenes con el mismo nombre
 const CACHE_AUDIO   = 'chh-audio-v1';    // estable: pistas de bgm.js. Subir SOLO si reemplazas un .mp3 con el mismo nombre
 const CACHE_MUSICA  = 'chh-musica-v1';   // pistas guardadas por musica.html (no se borra al actualizar)
 const KEEP_CACHES   = [CACHE_NAME, CACHE_DYNAMIC, CACHE_IMG, CACHE_AUDIO, CACHE_MUSICA];
 
-const HTML_TIMEOUT  = 1500;   // ms para páginas antes de servir copia
-const NET_TIMEOUT   = 3000;   // ms para datos .json antes de servir copia
+const NET_TIMEOUT   = 2500;   // ms para datos .json antes de servir copia
+const AUDIO_TIMEOUT = 60000;  // ms máx. para descargar una pista completa
 const DYNAMIC_MAX   = 200;    // máx. entradas en caché dinámica (html/json/js)
 const IMG_MAX       = 800;    // máx. entradas en caché de imágenes (480+ cartas + sobres + banners)
 
@@ -56,7 +63,7 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache =>
       Promise.allSettled([...CACHE_CORE, ...CACHE_SIM].map(url =>
-        fetch(new Request(url, { cache: 'reload' }))
+        fetch(new Request(url, { cache: 'no-cache' }))
           .then(r => { if (r.ok) return cache.put(url, r); })
       ))
     )
@@ -109,7 +116,7 @@ self.addEventListener('fetch', event => {
   if (/\.json$/i.test(path)) {
     event.respondWith(CATALOG_JSON.test(path) ? cacheFirstRevalidate(req) : networkFirstTimeout(req, 'json', NET_TIMEOUT));
   } else if (req.mode === 'navigate' || /\.html$/i.test(path) || path.endsWith('/')) {
-    event.respondWith(networkFirstTimeout(req, 'html', HTML_TIMEOUT));
+    event.respondWith(cacheFirstRevalidate(req, true));
   } else if (/\.(js|css)$/i.test(path)) {
     event.respondWith(cacheFirstRevalidate(req));
   } else if (/\.(jpg|jpeg|png|gif|webp|svg|woff2?|ttf|pdf)$/i.test(path)) {
@@ -257,8 +264,8 @@ function fallbackFor(req, kind) {
 
 // ── Estrategias ──
 
-// JS/CSS/catálogos: caché al instante, se actualiza en segundo plano.
-async function cacheFirstRevalidate(req) {
+// HTML/JS/CSS/catálogos: caché al instante, se actualiza en segundo plano.
+async function cacheFirstRevalidate(req, isPage) {
   const cached = await matchAny(req, { ignoreSearch: true });
   const netPromise = fetch(req, { cache: 'no-cache' }).then(r => {
     if (r && r.status === 200 && r.type === 'basic') putDynamic(req, r.clone());
@@ -268,7 +275,12 @@ async function cacheFirstRevalidate(req) {
   if (cached) return cached;
 
   const r = await Promise.race([netPromise, timeout(12000)]);
-  return r || fallbackFor(req);
+  if (r) return r;
+  if (isPage && req.mode === 'navigate') {
+    const home = await matchAny('./index.html');
+    if (home) return home;
+  }
+  return fallbackFor(req);
 }
 
 // Páginas y datos: red primero; si tarda más de `ms` y hay copia, sirve la copia.
@@ -322,39 +334,65 @@ async function staleWhileRevalidate(req) {
 }
 
 // ── Audio ──
-const _audioDownloads = new Set();
-const _audioMem = new Map();   // url → { buf, type } (última pista leída, evita releer la caché en cada rango)
+// El SW descarga la pista completa (fetch normal, igual que JSON o imágenes, que sí
+// funcionan en datos móviles), la guarda en CACHE_AUDIO y responde cada rango que
+// pide el reproductor desde memoria. Si la descarga falla, cae a la red directa.
+const _audioPending = new Map();   // url → Promise<{buf,type}|null> (evita descargas dobles)
+const _audioMem     = new Map();   // url → {buf,type}  (máx. 2 pistas en memoria)
 
-async function audioResponse(event, req) {
-  const key = req.url.split('?')[0].split('#')[0];
-  const range = req.headers.get('range');
-
-  try {
-    let entry = _audioMem.get(key);
-    if (!entry) {
-      const cached = await caches.match(key, { ignoreSearch: true, ignoreVary: true });
-      if (cached && cached.status === 200) {
-        entry = { buf: await cached.arrayBuffer(), type: cached.headers.get('Content-Type') || 'audio/mpeg' };
-        _audioMem.clear();            // solo una pista en memoria
-        _audioMem.set(key, entry);
-      }
-    }
-    if (entry) return rangeResponse(entry.buf, entry.type, range);
-  } catch(e) { /* si falla la caché, se va a la red */ }
-
-  // Sin copia: se descarga completa en segundo plano para la próxima vez
-  event.waitUntil(cacheAudio(key));
-  try { return await fetch(req); }
-  catch(e) { return new Response('', { status: 504 }); }
+function memPut(key, entry) {
+  _audioMem.delete(key);
+  _audioMem.set(key, entry);
+  while (_audioMem.size > 2) _audioMem.delete(_audioMem.keys().next().value);
 }
 
-function cacheAudio(url) {
-  if (_audioDownloads.has(url)) return Promise.resolve();
-  _audioDownloads.add(url);
-  return fetch(url)
-    .then(r => { if (r && r.status === 200) return caches.open(CACHE_AUDIO).then(c => c.put(url, r)); })
-    .catch(() => {})
-    .finally(() => _audioDownloads.delete(url));
+async function getAudioEntry(key) {
+  if (_audioMem.has(key)) return _audioMem.get(key);
+
+  const cached = await caches.match(key, { ignoreSearch: true, ignoreVary: true });
+  if (cached && cached.status === 200) {
+    const entry = { buf: await cached.arrayBuffer(), type: cached.headers.get('Content-Type') || 'audio/mpeg' };
+    memPut(key, entry);
+    return entry;
+  }
+
+  if (!_audioPending.has(key)) {
+    _audioPending.set(key, downloadAudio(key).finally(() => _audioPending.delete(key)));
+  }
+  return _audioPending.get(key);
+}
+
+async function downloadAudio(key) {
+  try {
+    const r = await fetchTimeout(key, AUDIO_TIMEOUT);
+    if (!r || r.status !== 200) return null;
+    const type = r.headers.get('Content-Type') || 'audio/mpeg';
+    const buf  = await r.arrayBuffer();
+    if (!buf.byteLength) return null;
+    const entry = { buf, type };
+    memPut(key, entry);
+    try {
+      const c = await caches.open(CACHE_AUDIO);
+      await c.put(key, new Response(buf.slice(0), { status: 200, headers: {
+        'Content-Type': type, 'Content-Length': String(buf.byteLength)
+      }}));
+    } catch(e) { /* cuota: igual se sirve desde memoria */ }
+    return entry;
+  } catch(e) {
+    return null;
+  }
+}
+
+async function audioResponse(event, req) {
+  const key = req.url.split('#')[0].split('?')[0];
+  const range = req.headers.get('range');
+  try {
+    const entry = await getAudioEntry(key);
+    if (entry) return rangeResponse(entry.buf, entry.type, range);
+  } catch(e) {}
+  // Último recurso: red directa
+  try { return await fetch(req); }
+  catch(e) { return new Response('', { status: 504 }); }
 }
 
 function rangeResponse(buf, type, range) {

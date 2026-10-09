@@ -1,11 +1,12 @@
 // ================================================================
-//  CHOQUE DE HÉROES TCG — Service Worker v8.0
+//  CHOQUE DE HÉROES TCG — Service Worker v8.1
+//  v8.1: precache de la Simulación v17 (HTML, JSON de cartas, miniaturas).
 //  v8: shell cache-first (instantáneo) + revalidación en segundo plano,
 //      datos .json red-primero con timeout, fallbacks por tipo de archivo,
 //      caché dinámica con límite de tamaño.
 // ================================================================
-const CACHE_NAME    = 'chh-tcg-v36';
-const CACHE_DYNAMIC = 'chh-dynamic-v36';
+const CACHE_NAME    = 'chh-tcg-v37';
+const CACHE_DYNAMIC = 'chh-dynamic-v37';
 const CACHE_MUSICA  = 'chh-musica-v1';   // pistas guardadas por musica.html (no se borra al actualizar)
 const NET_TIMEOUT   = 3000;   // ms para datos .json antes de servir copia
 const DYNAMIC_MAX   = 350;    // máx. entradas en caché dinámica (imágenes de cartas, etc.)
@@ -21,6 +22,17 @@ const CACHE_CORE = [
   './noticias.json', './comics.html', './lector.html', './comics_config.json'
 ];
 
+// Simulación: HTML + datos + miniaturas (~300 KB) para que abra sin conexión.
+// Las imágenes completas (600×840) se guardan solas en la caché dinámica al verlas.
+const SIM_CARTAS = ['julian','clio','vulcar','koatl','alma1','alma2','alma3','sector','apoyo','apoyoR'];
+const CACHE_SIM = [
+  './simulacion.html',
+  './data/cartas_simulacion.json',
+  './img/simulacion/reverso.jpg',
+  './img/simulacion/logo.png',
+  ...SIM_CARTAS.map(id => './img/simulacion/min/' + id + '.jpg')
+];
+
 // Backend dinámico: nunca pasa por el SW
 const NO_CACHE_ORIGINS = ['script.google.com', 'script.googleusercontent.com', 'docs.google.com'];
 // Fuentes: se cachean para no depender de Google en cada arranque
@@ -31,7 +43,7 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache =>
       // Cada archivo por separado: si uno falla, los demás sí se guardan
-      Promise.allSettled(CACHE_CORE.map(url =>
+      Promise.allSettled([...CACHE_CORE, ...CACHE_SIM].map(url =>
         fetch(new Request(url, { cache: 'reload' }))
           .then(r => { if (r.ok) return cache.put(url, r); })
       ))

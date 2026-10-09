@@ -1,5 +1,10 @@
 // ================================================================
-//  CHOQUE DE HÉROES TCG — Service Worker v9.1
+//  CHOQUE DE HÉROES TCG — Service Worker v9.2
+//  v9.2: FIX "Sin conexión" al entrar a módulos. Chrome lanza un TypeError con
+//        fetch(peticionDeNavegacion, {cache:'no-cache'}) ("Request whose mode is
+//        'navigate' and a non-empty RequestInit"). Ese error se tomaba como falta de
+//        red: las páginas sin copia mostraban "Sin conexión" y las páginas con copia
+//        nunca se actualizaban. Ahora las navegaciones se piden por URL (netFetch).
 //  v9.1: · Audio: el SW descarga la pista COMPLETA con fetch() y la sirve desde
 //          caché por rangos. Nunca se deja el audio al reproductor nativo: desde v8
 //          (cuando el audio dejó de pasar por el SW) dejó de sonar en datos móviles.
@@ -21,8 +26,8 @@
 //  v8.1: precache de la Simulación v17.
 //  v8:   shell cache-first + revalidación, JSON red-primero, fallbacks por tipo.
 // ================================================================
-const CACHE_NAME    = 'chh-tcg-v51';
-const CACHE_DYNAMIC = 'chh-dynamic-v51';
+const CACHE_NAME    = 'chh-tcg-v52';
+const CACHE_DYNAMIC = 'chh-dynamic-v52';
 const CACHE_IMG     = 'chh-img-v1';      // estable: imágenes, fuentes y PDFs. Subir SOLO si reemplazas imágenes con el mismo nombre
 const CACHE_AUDIO   = 'chh-audio-v1';    // estable: pistas de bgm.js. Subir SOLO si reemplazas un .mp3 con el mismo nombre
 const CACHE_MUSICA  = 'chh-musica-v1';   // pistas guardadas por musica.html (no se borra al actualizar)
@@ -218,6 +223,17 @@ function fetchTimeout(req, ms) {
   return fetch(req, { signal: ctrl.signal }).finally(() => clearTimeout(t));
 }
 
+// Petición a red saltando la caché HTTP de GitHub Pages (max-age=600).
+// Las navegaciones NO aceptan RequestInit en Chrome: se piden por URL.
+function netFetch(req) {
+  if (req.mode === 'navigate') {
+    return fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' })
+      .then(r => (r.redirected ? Response.redirect(r.url, 302) : r))
+      .catch(() => fetch(req));   // último intento: la petición original tal cual
+  }
+  return fetch(req, { cache: 'no-cache' }).catch(() => fetch(req));
+}
+
 function timeout(ms) {
   return new Promise(res => setTimeout(() => res(null), ms));
 }
@@ -267,7 +283,7 @@ function fallbackFor(req, kind) {
 // HTML/JS/CSS/catálogos: caché al instante, se actualiza en segundo plano.
 async function cacheFirstRevalidate(req, isPage) {
   const cached = await matchAny(req, { ignoreSearch: true });
-  const netPromise = fetch(req, { cache: 'no-cache' }).then(r => {
+  const netPromise = netFetch(req).then(r => {
     if (r && r.status === 200 && r.type === 'basic') putDynamic(req, r.clone());
     return r;
   }).catch(() => null);
@@ -286,7 +302,7 @@ async function cacheFirstRevalidate(req, isPage) {
 // Páginas y datos: red primero; si tarda más de `ms` y hay copia, sirve la copia.
 async function networkFirstTimeout(req, kind, ms) {
   const cached = await matchAny(req, { ignoreSearch: true });
-  const netPromise = fetch(req, { cache: 'no-cache' }).then(r => {
+  const netPromise = netFetch(req).then(r => {
     if (r && r.status === 200) putDynamic(req, r.clone());
     return r;
   }).catch(() => null);

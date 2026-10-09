@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "galeria": "cartas.json",
   "imgBase": "img/simulacion/",
   "assets": {
@@ -19,8 +19,8 @@
     "barajaSoporteMax": 15
   },
   "baraja": {
-    "nombre": "Receta Koatl Defensor (espejo funcional, 40)",
-    "nota": "BP completada a 40 con copias extra de cartas funcionales, respetando cartas-limitadas.json. Batalla entre Clanes es semi-limitada (máx. 2). Fuera hasta programarse: Cataclismo, Trazador de Pesadillas, Espada/Hacha/Lanza Divina, La Gran Tenochtitlán, Nexotlan, Sector Bloqueado, Elena Belmondo."
+    "nombre": "Receta Koatl Defensor (espejo, 40)",
+    "nota": "Incluye ARENAS, Trazador de Pesadillas y Cataclismo. Completada a 40 con copias extra respetando cartas-limitadas.json. Aún fuera hasta programarse: Espada/Hacha/Lanza Divina, Sector Bloqueado, Elena Belmondo."
   },
   "cartas": [
     {
@@ -40,9 +40,8 @@
       "texto": "Cuando tu adversario niega la activación o destruye una de tus cartas: puedes descartar esta carta de tu mano al Mictlán, selecciona un personaje Confinado y llámalo de forma especial a tu lado del campo. HEROÍSMO. EMBOSCADA.",
       "efectos": [
         {
-          "cuando": "reaccion",
-          "accion": "desde_mano_al_negar",
-          "pendiente": true
+          "cuando": "tras_negacion_o_destruccion",
+          "accion": "llamar_confinado"
         }
       ],
       "rareza": "comun"
@@ -150,9 +149,9 @@
       "texto": "Cuando un personaje es llamado de forma especial al campo: puedes llamar a este personaje de forma especial desde tu mano y por el resto del turno ningún jugador puede llamar personajes de forma especial (1 vez por turno, uso rápido). Una vez por turno durante tu Fase de Combate: selecciona un personaje en el campo y confina ese objetivo.",
       "efectos": [
         {
-          "cuando": "reaccion",
-          "accion": "al_llamado_especial",
-          "pendiente": true
+          "cuando": "tras_llamado_especial",
+          "accion": "llamar_y_bloquear",
+          "limite": "turno"
         },
         {
           "cuando": "combate",
@@ -181,9 +180,9 @@
       "texto": "Cuando una carta es activada que permita añadir o robar: puedes llamar a este personaje de forma especial desde tu mano; niega el efecto y retórnala al fondo de su baraja (1 vez por turno, uso rápido). Durante tu Fase de Acción, si controlas un personaje con \"DEFENSOR\" en su nombre: sacrifica este personaje y llama de forma especial un personaje con \"DEFENSOR\" desde tu BP, revuelve tu BP (1 vez por turno).",
       "efectos": [
         {
-          "cuando": "reaccion",
-          "accion": "negar_robo",
-          "pendiente": true
+          "cuando": "respuesta",
+          "accion": "llamar_y_negar",
+          "limite": "turno"
         },
         {
           "cuando": "accion",
@@ -392,8 +391,16 @@
       "efectos": [
         {
           "cuando": "pasivo",
-          "accion": "aura_nombre",
-          "pendiente": true
+          "accion": "aura",
+          "filtro": {
+            "nombreIncluye": [
+              "DEFENSOR",
+              "VIGILANTE",
+              "GUARDIAN"
+            ]
+          },
+          "fue": 1,
+          "res": 1
         }
       ],
       "rareza": "comun"
@@ -471,11 +478,18 @@
       "nombre": "Cataclismo",
       "tipo": "apoyo",
       "subtipo": "rapido",
-      "texto": "Destruye una carta TIERRA o SECTOR activa en el campo.",
+      "texto": "Destruye una carta TIERRA (ARENA) o SECTOR activa en el campo. (Uso Rápido: también como respuesta.)",
       "efectos": [
         {
           "cuando": "activar",
-          "pendiente": true
+          "condicion": {
+            "haySectorArena": true
+          },
+          "pasos": [
+            {
+              "accion": "destruir_sector_arena"
+            }
+          ]
         }
       ],
       "rareza": "comun"
@@ -647,8 +661,8 @@
       "texto": "Cuando un personaje fuera a ser llamado o la habilidad de un personaje o efecto de carta vaya a ser activada: niega ese llamado o activación y confina esa carta.",
       "efectos": [
         {
-          "cuando": "activar",
-          "pendiente": true
+          "cuando": "respuesta",
+          "accion": "negar_confinar"
         }
       ],
       "rareza": "comun"
@@ -714,8 +728,28 @@
       "efectos": [
         {
           "cuando": "pasivo",
-          "accion": "aura_arena",
-          "pendiente": true
+          "accion": "aura",
+          "filtro": {
+            "nombreIncluye": [
+              "DEFENSOR",
+              "VIGILANTE",
+              "GUARDIAN"
+            ]
+          },
+          "niveles": [
+            {
+              "min": 2,
+              "fue": 1
+            },
+            {
+              "min": 3,
+              "res": 1
+            },
+            {
+              "min": 4,
+              "cor": 1
+            }
+          ]
         }
       ],
       "rareza": "comun"
@@ -729,8 +763,32 @@
       "efectos": [
         {
           "cuando": "pasivo",
-          "accion": "arena_nexotlan",
-          "pendiente": true
+          "accion": "unica_en_campo"
+        },
+        {
+          "cuando": "pasivo",
+          "accion": "proteger_corazones"
+        },
+        {
+          "cuando": "pasivo",
+          "accion": "reemplazo_destruccion"
+        },
+        {
+          "cuando": "pasivo",
+          "accion": "redirigir_defensa"
+        },
+        {
+          "cuando": "accion",
+          "limite": "turno",
+          "texto": "Regresar un personaje al fondo de tu BP y llamar uno de valor igual o menor",
+          "condicion": {
+            "conPJPropio": true
+          },
+          "pasos": [
+            {
+              "accion": "retornar_y_llamar_menor"
+            }
+          ]
         }
       ],
       "rareza": "comun"
@@ -1088,8 +1146,11 @@
         },
         {
           "cuando": "pasivo",
-          "accion": "bono_invitados_mictlan",
-          "pendiente": true
+          "accion": "aura",
+          "alcance": "esta",
+          "porCada": "invitados_mictlan_distintos",
+          "fue": 1,
+          "res": 1
         },
         {
           "cuando": "accion",
@@ -1151,8 +1212,16 @@
       "efectos": [
         {
           "cuando": "pasivo",
-          "accion": "aura_nombre_mano",
-          "pendiente": true
+          "accion": "aura",
+          "filtro": {
+            "nombreIncluye": [
+              "CRISTAL",
+              "DEFENSOR"
+            ]
+          },
+          "porCada": "mano",
+          "fue": 1,
+          "res": 1
         }
       ],
       "rareza": "comun"
@@ -1185,8 +1254,16 @@
       "efectos": [
         {
           "cuando": "pasivo",
-          "accion": "aura_nombre_campo",
-          "pendiente": true
+          "accion": "aura",
+          "filtro": {
+            "nombreIncluye": [
+              "CRISTAL",
+              "DEFENSOR"
+            ]
+          },
+          "porCada": "cartas_campo",
+          "fue": 1,
+          "res": 1
         },
         {
           "cuando": "accion",
@@ -1208,7 +1285,7 @@
       "bp": [
         {
           "id": "acecho",
-          "copias": 3
+          "copias": 1
         },
         {
           "id": "auxilio",
@@ -1223,8 +1300,12 @@
           "copias": 3
         },
         {
+          "id": "cataclismo",
+          "copias": 1
+        },
+        {
           "id": "devastacion",
-          "copias": 3
+          "copias": 1
         },
         {
           "id": "koatl_dd",
@@ -1233,6 +1314,10 @@
         {
           "id": "koatl_esp",
           "copias": 3
+        },
+        {
+          "id": "tenochtitlan",
+          "copias": 1
         },
         {
           "id": "loto",
@@ -1251,12 +1336,16 @@
           "copias": 1
         },
         {
+          "id": "nexotlan_arena",
+          "copias": 1
+        },
+        {
           "id": "ofrenda_dioses",
           "copias": 3
         },
         {
           "id": "quetzal",
-          "copias": 3
+          "copias": 2
         },
         {
           "id": "rayah",
@@ -1269,6 +1358,10 @@
         {
           "id": "resurreccion",
           "copias": 1
+        },
+        {
+          "id": "trazador",
+          "copias": 2
         },
         {
           "id": "yao",
@@ -1341,7 +1434,7 @@
       "bp": [
         {
           "id": "acecho",
-          "copias": 3
+          "copias": 1
         },
         {
           "id": "auxilio",
@@ -1356,8 +1449,12 @@
           "copias": 3
         },
         {
+          "id": "cataclismo",
+          "copias": 1
+        },
+        {
           "id": "devastacion",
-          "copias": 3
+          "copias": 1
         },
         {
           "id": "koatl_dd",
@@ -1366,6 +1463,10 @@
         {
           "id": "koatl_esp",
           "copias": 3
+        },
+        {
+          "id": "tenochtitlan",
+          "copias": 1
         },
         {
           "id": "loto",
@@ -1384,12 +1485,16 @@
           "copias": 1
         },
         {
+          "id": "nexotlan_arena",
+          "copias": 1
+        },
+        {
           "id": "ofrenda_dioses",
           "copias": 3
         },
         {
           "id": "quetzal",
-          "copias": 3
+          "copias": 2
         },
         {
           "id": "rayah",
@@ -1402,6 +1507,10 @@
         {
           "id": "resurreccion",
           "copias": 1
+        },
+        {
+          "id": "trazador",
+          "copias": 2
         },
         {
           "id": "yao",

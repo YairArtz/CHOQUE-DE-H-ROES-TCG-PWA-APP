@@ -1,5 +1,11 @@
 // ================================================================
-//  CHOQUE DE HÉROES TCG — Service Worker v9.4
+//  CHOQUE DE HÉROES TCG — Service Worker v9.5
+//  v9.5: · FIX "me regresa al index": una página sin copia que tardaba >12 s se
+//          sustituía por index.html. Ahora se espera a la red (hasta 30 s) y, si
+//          falla, se muestra un aviso con REINTENTAR que reintenta solo al volver la red.
+//        · Todos los módulos del menú quedan guardados en el teléfono: tras activarse,
+//          el SW los descarga en segundo plano, uno por uno, sin competir con lo que
+//          estás viendo. Entrar a cualquier módulo ya no depende de la red.
 //  v9.4: · Se quitan los topes de tiempo de imágenes (10 s) y audio (60 s): el
 //          reloj corría desde que la petición entraba a la cola del navegador, así
 //          que en datos móviles las imágenes y pistas formadas se cancelaban antes
@@ -34,8 +40,8 @@
 //  v8.1: precache de la Simulación v17.
 //  v8:   shell cache-first + revalidación, JSON red-primero, fallbacks por tipo.
 // ================================================================
-const CACHE_NAME    = 'chh-tcg-v54';
-const CACHE_DYNAMIC = 'chh-dynamic-v54';
+const CACHE_NAME    = 'chh-tcg-v55';
+const CACHE_DYNAMIC = 'chh-dynamic-v55';
 const CACHE_IMG     = 'chh-img-v1';      // estable: imágenes, fuentes y PDFs. Subir SOLO si reemplazas imágenes con el mismo nombre
 const CACHE_AUDIO   = 'chh-audio-v1';    // estable: pistas de bgm.js. Subir SOLO si reemplazas un .mp3 con el mismo nombre
 const CACHE_MUSICA  = 'chh-musica-v1';   // pistas guardadas por musica.html (no se borra al actualizar)
@@ -60,6 +66,15 @@ const CACHE_CORE = [
   './noticias.json', './comics.html', './lector.html', './comics_config.json'
 ];
 
+// Resto de módulos del menú + sus datos: se guardan en segundo plano tras activar
+// (no en install, para que la versión nueva se active rápido).
+const CACHE_WARM = [
+  './galeria.html', './academia.html', './reglamento.html', './tutorial.html',
+  './mapa-tiendas.html', './registro-jugadores.html', './registro-tiendas.html',
+  './publicar-torneo.html', './videos.html', './musica.html', './mercado/mercado.html',
+  './musica_config.json', './videos.json', './cartas-limitadas.json', './mercado/precios.json'
+];
+
 const CACHE_SIM = [
   './simulacion.html',
   './data/cartas_simulacion.json',
@@ -76,7 +91,7 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache =>
       Promise.allSettled([...CACHE_CORE, ...CACHE_SIM].map(url =>
-        fetch(new Request(url, { cache: 'no-cache' }))
+        fetchTimeout(new Request(url, { cache: 'no-cache' }), 30000)
           .then(r => { if (r.ok) return cache.put(url, r); })
       ))
     )
@@ -100,6 +115,7 @@ self.addEventListener('message', event => {
 self.addEventListener('fetch', event => {
   const req = event.request;
   if (req.method !== 'GET') return;
+  if (!_warmStarted) { _warmStarted = true; event.waitUntil(warmPages()); }
   const url = new URL(req.url);
 
   if (NO_CACHE_ORIGINS.some(o => url.hostname.includes(o))) return;
@@ -281,8 +297,10 @@ function fallbackFor(req, kind) {
     return new Response('', { status: 503, headers: { 'Content-Type': 'text/css' } });
   return new Response('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
     '<body style="background:#03050a;color:#e0eeff;font-family:sans-serif;text-align:center;padding:40px 20px">' +
-    '<h2>Sin conexión</h2><p>Revisa tu internet y vuelve a intentarlo.</p>' +
-    '<p><a href="./index.html" style="color:#f5a623">Volver al inicio</a></p></body>',
+    '<h2>La red no respondió</h2><p>No se pudo cargar esta sección. Se reintentará sola al volver la conexión.</p>' +
+    '<p><button onclick="location.reload()" style="background:#f5a623;color:#03050a;border:0;border-radius:8px;padding:12px 22px;font-weight:700;font-size:15px">REINTENTAR</button></p>' +
+    '<p><a href="./index.html" style="color:#cc55ff">Volver al inicio</a></p>' +
+    '<script>addEventListener("online",function(){location.reload()})</script></body>',
     { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } });
 }
 
@@ -306,13 +324,24 @@ async function cacheFirstRevalidate(req, isPage) {
 
   if (cached) return cached;
 
-  const r = await Promise.race([netPromise, timeout(12000)]);
+  // Sin copia: se espera a la red (nunca se sustituye por otra página)
+  const r = await Promise.race([netPromise, timeout(isPage ? 30000 : 12000)]);
   if (r) return r;
-  if (isPage && req.mode === 'navigate') {
-    const home = await matchAny('./index.html');
-    if (home) return home;
-  }
   return fallbackFor(req);
+}
+
+// ── Precarga en segundo plano de los módulos (uno por uno) ──
+let _warmStarted = false;
+async function warmPages() {
+  await timeout(4000);   // deja pasar primero lo que la página actual necesita
+  const cache = await caches.open(CACHE_NAME);
+  for (const url of CACHE_WARM) {
+    try {
+      if (await matchAny(url, { ignoreSearch: true })) continue;
+      const r = await fetchTimeout(new Request(url, { cache: 'no-cache' }), 30000);
+      if (r && r.ok) await cache.put(url, r);
+    } catch(e) { /* se reintenta en la próxima activación del SW */ _warmStarted = false; }
+  }
 }
 
 // Páginas y datos: red primero; si tarda más de `ms` y hay copia, sirve la copia.

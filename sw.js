@@ -1,60 +1,18 @@
 // ================================================================
-//  CHOQUE DE HÉROES TCG — Service Worker v9.6
-//  v9.6: imágenes de la Tienda (moneda HP, banner, sobres) en la precarga de segundo plano.
-//  v9.5: · FIX "me regresa al index": una página sin copia que tardaba >12 s se
-//          sustituía por index.html. Ahora se espera a la red (hasta 30 s) y, si
-//          falla, se muestra un aviso con REINTENTAR que reintenta solo al volver la red.
-//        · Todos los módulos del menú quedan guardados en el teléfono: tras activarse,
-//          el SW los descarga en segundo plano, uno por uno, sin competir con lo que
-//          estás viendo. Entrar a cualquier módulo ya no depende de la red.
-//  v9.4: · Se quitan los topes de tiempo de imágenes (10 s) y audio (60 s): el
-//          reloj corría desde que la petición entraba a la cola del navegador, así
-//          que en datos móviles las imágenes y pistas formadas se cancelaban antes
-//          de empezar a descargar (imágenes rotas, canciones que no cargaban).
-//        · Revalidación en segundo plano limitada: cada HTML/JS/catálogo se revisa
-//          con la red como máximo cada 2 min, no en cada navegación. Menos
-//          peticiones compitiendo con imágenes y audio en red móvil.
-//  v9.3: imágenes sin copia con tope de 10 s (no bloquean el 'load' de la página).
-//  v9.2: FIX "Sin conexión" al entrar a módulos. Chrome lanza un TypeError con
-//        fetch(peticionDeNavegacion, {cache:'no-cache'}) ("Request whose mode is
-//        'navigate' and a non-empty RequestInit"). Ese error se tomaba como falta de
-//        red: las páginas sin copia mostraban "Sin conexión" y las páginas con copia
-//        nunca se actualizaban. Ahora las navegaciones se piden por URL (netFetch).
-//  v9.1: · Audio: el SW descarga la pista COMPLETA con fetch() y la sirve desde
-//          caché por rangos. Nunca se deja el audio al reproductor nativo: desde v8
-//          (cuando el audio dejó de pasar por el SW) dejó de sonar en datos móviles.
-//        · HTML: caché al instante + revalidación en segundo plano (como v8.0).
-//          La versión nueva se ve en la siguiente navegación, sin esperar a la red.
-//        · Precache con cache:'no-cache' (revalida con ETag): al subir CACHE_NAME
-//          solo se descargan los archivos que cambiaron, no los ~4 MB completos.
-//  v9:  · Audio: se sirve desde caché con soporte de Range (206). La primera vez
-//         va directo a la red y se descarga completo en segundo plano; desde la
-//         segunda reproducción carga al instante, también en datos móviles.
-//       · Imágenes y PDFs: caché-primero SIN revalidar (antes cada imagen se volvía
-//         a descargar en cada visita y saturaba la red móvil).
-//       · Imágenes y audio viven en cachés estables que NO se borran al subir
-//         CACHE_NAME (antes cada deploy obligaba a re-descargar todo).
-//       · HTML: red-primero con timeout de 1.5 s (antes 3 s).
-//       · Catálogos JSON pesados (cartas.json, etc.): caché al instante y
-//         actualización en segundo plano.
-//  v8.2: HTML red-primero, revalidaciones saltan la caché HTTP de GitHub Pages.
-//  v8.1: precache de la Simulación v17.
-//  v8:   shell cache-first + revalidación, JSON red-primero, fallbacks por tipo.
+//  CHOQUE DE HÉROES TCG — Service Worker v8.2
+//  v8.2: las páginas HTML van RED-PRIMERO (con copia si no hay internet) y todas
+//        las revalidaciones saltan la caché HTTP de GitHub Pages (max-age=600).
+//        Antes una actualización tardaba 2 aperturas y hasta 10 min en verse.
+//  v8.1: precache de la Simulación v17 (HTML, JSON de cartas, miniaturas).
+//  v8: shell cache-first (instantáneo) + revalidación en segundo plano,
+//      datos .json red-primero con timeout, fallbacks por tipo de archivo,
+//      caché dinámica con límite de tamaño.
 // ================================================================
-const CACHE_NAME    = 'chh-tcg-v56';
-const CACHE_DYNAMIC = 'chh-dynamic-v56';
-const CACHE_IMG     = 'chh-img-v1';      // estable: imágenes, fuentes y PDFs. Subir SOLO si reemplazas imágenes con el mismo nombre
-const CACHE_AUDIO   = 'chh-audio-v1';    // estable: pistas de bgm.js. Subir SOLO si reemplazas un .mp3 con el mismo nombre
+const CACHE_NAME    = 'chh-tcg-v51';
+const CACHE_DYNAMIC = 'chh-dynamic-v51';
 const CACHE_MUSICA  = 'chh-musica-v1';   // pistas guardadas por musica.html (no se borra al actualizar)
-const KEEP_CACHES   = [CACHE_NAME, CACHE_DYNAMIC, CACHE_IMG, CACHE_AUDIO, CACHE_MUSICA];
-
-const NET_TIMEOUT   = 2500;   // ms para datos .json antes de servir copia
-const REVALIDATE_EVERY = 120000;  // ms mínimos entre revalidaciones de un mismo archivo
-const DYNAMIC_MAX   = 200;    // máx. entradas en caché dinámica (html/json/js)
-const IMG_MAX       = 800;    // máx. entradas en caché de imágenes (480+ cartas + sobres + banners)
-
-// JSON de catálogo: cambian poco y pesan mucho → caché al instante + revalidación
-const CATALOG_JSON = /(cartas\.json|cartas_simulacion\.json|comics_config\.json|intro_config\.json)$/i;
+const NET_TIMEOUT   = 3000;   // ms para datos .json antes de servir copia
+const DYNAMIC_MAX   = 350;    // máx. entradas en caché dinámica (imágenes de cartas, etc.)
 
 const CACHE_CORE = [
   './', './boot.html', './index.html', './calculadora.html',
@@ -67,20 +25,8 @@ const CACHE_CORE = [
   './noticias.json', './comics.html', './lector.html', './comics_config.json'
 ];
 
-// Resto de módulos del menú + sus datos: se guardan en segundo plano tras activar
-// (no en install, para que la versión nueva se active rápido).
-const CACHE_WARM = [
-  './galeria.html', './academia.html', './reglamento.html', './tutorial.html',
-  './mapa-tiendas.html', './registro-jugadores.html', './registro-tiendas.html',
-  './publicar-torneo.html', './videos.html', './musica.html', './mercado/mercado.html',
-  './musica_config.json', './videos.json', './cartas-limitadas.json', './mercado/precios.json',
-  // Tienda: moneda, banner y sobres (agrega aquí cada sobre nuevo)
-  './hero_pesos/hp_coin.png', './hero_pesos/banner_sobres.jpg',
-  './hero_pesos/sobres/sobre_difunto.jpg', './hero_pesos/sobres/sobre_dimensional.png',
-  './hero_pesos/sobres/sobre_mx26.jpg', './hero_pesos/sobres/sobre_nexo.png',
-  './hero_pesos/sobres/sobre_omniversal.png'
-];
-
+// Simulación: HTML, datos y gráficos propios. Las imágenes de cartas salen de la
+// Galería (cartas.json): la simulación las precarga al abrir y quedan en la caché dinámica.
 const CACHE_SIM = [
   './simulacion.html',
   './data/cartas_simulacion.json',
@@ -90,14 +36,18 @@ const CACHE_SIM = [
   './img/simulacion/tablero.jpg'
 ];
 
+// Backend dinámico: nunca pasa por el SW
 const NO_CACHE_ORIGINS = ['script.google.com', 'script.googleusercontent.com', 'docs.google.com'];
+// Fuentes: se cachean para no depender de Google en cada arranque
+const FONT_ORIGINS = ['fonts.googleapis.com', 'fonts.gstatic.com'];
 
 self.addEventListener('install', event => {
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache =>
+      // Cada archivo por separado: si uno falla, los demás sí se guardan
       Promise.allSettled([...CACHE_CORE, ...CACHE_SIM].map(url =>
-        fetchTimeout(new Request(url, { cache: 'no-cache' }), 30000)
+        fetch(new Request(url, { cache: 'reload' }))
           .then(r => { if (r.ok) return cache.put(url, r); })
       ))
     )
@@ -107,7 +57,7 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => !KEEP_CACHES.includes(k)).map(k => caches.delete(k))))
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME && k !== CACHE_DYNAMIC && k !== CACHE_MUSICA).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -121,43 +71,38 @@ self.addEventListener('message', event => {
 self.addEventListener('fetch', event => {
   const req = event.request;
   if (req.method !== 'GET') return;
-  if (!_warmStarted) { _warmStarted = true; event.waitUntil(warmPages()); }
   const url = new URL(req.url);
 
   if (NO_CACHE_ORIGINS.some(o => url.hostname.includes(o))) return;
-
-  // Fuentes: los .woff2 de gstatic son inmutables → caché-primero; el CSS se revalida
-  if (url.hostname.includes('fonts.gstatic.com')) { event.respondWith(cacheFirst(req)); return; }
-  if (url.hostname.includes('fonts.googleapis.com')) { event.respondWith(staleWhileRevalidate(req)); return; }
-
-  if (url.origin !== self.location.origin) return;
-
-  const path = url.pathname;
-
-  // Audio: caché con soporte de Range; la primera vez, red + descarga en segundo plano
-  if (/\.(mp3|m4a|ogg|wav)$/i.test(path)) {
-    event.respondWith(audioResponse(event, req));
+  if (FONT_ORIGINS.some(o => url.hostname.includes(o))) {
+    event.respondWith(staleWhileRevalidate(req));
     return;
   }
+  if (url.origin !== self.location.origin) return;
 
-  // Otras peticiones parciales (PDF.js pide rangos del PDF): directo a la red
-  if (req.headers.has('range')) return;
+  // Audio: siempre directo a la red (streaming con Range y descargas de musica.html)
+  if (req.headers.has('range') || /\.(mp3|m4a|ogg|wav)$/i.test(url.pathname)) return;
 
+  // Peticiones con cache-buster (?_t=) siempre van a red, con timeout
   if (url.searchParams.has('_t')) {
     event.respondWith(networkOnlyTimeout(req));
     return;
   }
 
+  const path = url.pathname;
   if (/\.json$/i.test(path)) {
-    event.respondWith(CATALOG_JSON.test(path) ? cacheFirstRevalidate(req) : networkFirstTimeout(req, 'json', NET_TIMEOUT));
+    // Datos: frescos si la red responde rápido, copia si no
+    event.respondWith(networkFirstTimeout(req, 'json'));
   } else if (req.mode === 'navigate' || /\.html$/i.test(path) || path.endsWith('/')) {
-    event.respondWith(cacheFirstRevalidate(req, true));
+    // Páginas: siempre la versión publicada si hay red (≤3 s); si no, la copia.
+    event.respondWith(networkFirstTimeout(req, 'html'));
   } else if (/\.(js|css)$/i.test(path)) {
+    // JS/CSS: desde caché al instante, se actualiza en segundo plano.
     event.respondWith(cacheFirstRevalidate(req));
-  } else if (/\.(jpg|jpeg|png|gif|webp|svg|woff2?|ttf|pdf)$/i.test(path)) {
-    event.respondWith(cacheFirst(req));
+  } else if (/\.(jpg|jpeg|png|gif|webp|svg|woff2?|ttf|mp3|pdf)$/i.test(path)) {
+    event.respondWith(staleWhileRevalidate(req));
   } else {
-    event.respondWith(networkFirstTimeout(req, 'other', NET_TIMEOUT));
+    event.respondWith(networkFirstTimeout(req, 'other'));
   }
 });
 
@@ -253,22 +198,11 @@ function fetchTimeout(req, ms) {
   return fetch(req, { signal: ctrl.signal }).finally(() => clearTimeout(t));
 }
 
-// Petición a red saltando la caché HTTP de GitHub Pages (max-age=600).
-// Las navegaciones NO aceptan RequestInit en Chrome: se piden por URL.
-function netFetch(req) {
-  if (req.mode === 'navigate') {
-    return fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' })
-      .then(r => (r.redirected ? Response.redirect(r.url, 302) : r))
-      .catch(() => fetch(req));   // último intento: la petición original tal cual
-  }
-  return fetch(req, { cache: 'no-cache' }).catch(() => fetch(req));
-}
-
 function timeout(ms) {
   return new Promise(res => setTimeout(() => res(null), ms));
 }
 
-// HTML/JSON/JS: primero la dinámica (más reciente), luego el precache
+// Busca primero en la dinámica (más reciente) y luego en el precache
 async function matchAny(req, opts) {
   const dyn = await caches.open(CACHE_DYNAMIC);
   const d = await dyn.match(req, opts);
@@ -277,22 +211,22 @@ async function matchAny(req, opts) {
   return core.match(req, opts);
 }
 
-const _putCounts = {};
-async function putLimited(cacheName, max, req, res) {
+let _putCount = 0;
+async function putDynamic(req, res) {
   try {
-    const cache = await caches.open(cacheName);
+    const cache = await caches.open(CACHE_DYNAMIC);
     await cache.put(req, res);
-    _putCounts[cacheName] = (_putCounts[cacheName] || 0) + 1;
-    if (_putCounts[cacheName] % 25 === 0) {
+    // Recorte periódico para no llenar la cuota del teléfono
+    if (++_putCount % 25 === 0) {
       const keys = await cache.keys();
-      if (keys.length > max) {
-        await Promise.all(keys.slice(0, keys.length - max).map(k => cache.delete(k)));
+      if (keys.length > DYNAMIC_MAX) {
+        await Promise.all(keys.slice(0, keys.length - DYNAMIC_MAX).map(k => cache.delete(k)));
       }
     }
   } catch(e) { /* cuota llena u otro error: no rompe la respuesta */ }
 }
-function putDynamic(req, res) { return putLimited(CACHE_DYNAMIC, DYNAMIC_MAX, req, res); }
 
+// Respuesta de error acorde al tipo de archivo (nunca HTML dentro de un .js/.json)
 function fallbackFor(req, kind) {
   const path = new URL(req.url).pathname;
   if (kind === 'json' || /\.json$/i.test(path))
@@ -303,63 +237,43 @@ function fallbackFor(req, kind) {
     return new Response('', { status: 503, headers: { 'Content-Type': 'text/css' } });
   return new Response('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
     '<body style="background:#03050a;color:#e0eeff;font-family:sans-serif;text-align:center;padding:40px 20px">' +
-    '<h2>La red no respondió</h2><p>No se pudo cargar esta sección. Se reintentará sola al volver la conexión.</p>' +
-    '<p><button onclick="location.reload()" style="background:#f5a623;color:#03050a;border:0;border-radius:8px;padding:12px 22px;font-weight:700;font-size:15px">REINTENTAR</button></p>' +
-    '<p><a href="./index.html" style="color:#cc55ff">Volver al inicio</a></p>' +
-    '<script>addEventListener("online",function(){location.reload()})</script></body>',
+    '<h2>Sin conexión</h2><p>Revisa tu internet y vuelve a intentarlo.</p>' +
+    '<p><a href="./index.html" style="color:#f5a623">Volver al inicio</a></p></body>',
     { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } });
 }
 
 // ── Estrategias ──
 
-// HTML/JS/CSS/catálogos: caché al instante, se actualiza en segundo plano.
-const _lastCheck = new Map();   // url → última revalidación (se reinicia si el SW duerme)
-
-async function cacheFirstRevalidate(req, isPage) {
+// Shell: responde desde caché al instante y actualiza en segundo plano.
+async function cacheFirstRevalidate(req) {
   const cached = await matchAny(req, { ignoreSearch: true });
-  const key = req.url.split('?')[0];
-
-  // Con copia y revisado hace poco: no se toca la red
-  if (cached && Date.now() - (_lastCheck.get(key) || 0) < REVALIDATE_EVERY) return cached;
-  _lastCheck.set(key, Date.now());
-
-  const netPromise = netFetch(req).then(r => {
+  const netPromise = fetch(req, { cache: 'no-cache' }).then(r => {
     if (r && r.status === 200 && r.type === 'basic') putDynamic(req, r.clone());
     return r;
-  }).catch(() => { _lastCheck.delete(key); return null; });
+  }).catch(() => null);
 
   if (cached) return cached;
 
-  // Sin copia: se espera a la red (nunca se sustituye por otra página)
-  const r = await Promise.race([netPromise, timeout(isPage ? 30000 : 12000)]);
+  const r = await Promise.race([netPromise, timeout(12000)]);
   if (r) return r;
+  // Navegación sin copia: intenta el index cacheado antes de mostrar error
+  if (req.mode === 'navigate') {
+    const home = await matchAny('./index.html');
+    if (home) return home;
+  }
   return fallbackFor(req);
 }
 
-// ── Precarga en segundo plano de los módulos (uno por uno) ──
-let _warmStarted = false;
-async function warmPages() {
-  await timeout(4000);   // deja pasar primero lo que la página actual necesita
-  const cache = await caches.open(CACHE_NAME);
-  for (const url of CACHE_WARM) {
-    try {
-      if (await matchAny(url, { ignoreSearch: true })) continue;
-      const r = await fetchTimeout(new Request(url, { cache: 'no-cache' }), 30000);
-      if (r && r.ok) await cache.put(url, r);
-    } catch(e) { /* se reintenta en la próxima activación del SW */ _warmStarted = false; }
-  }
-}
-
-// Páginas y datos: red primero; si tarda más de `ms` y hay copia, sirve la copia.
-async function networkFirstTimeout(req, kind, ms) {
+// Datos: red primero; si tarda más de NET_TIMEOUT y hay copia, sirve la copia.
+async function networkFirstTimeout(req, kind) {
   const cached = await matchAny(req, { ignoreSearch: true });
-  const netPromise = netFetch(req).then(r => {
+  const netPromise = fetch(req, { cache: 'no-cache' }).then(r => {
     if (r && r.status === 200) putDynamic(req, r.clone());
     return r;
   }).catch(() => null);
 
   if (cached) {
-    const r = await Promise.race([netPromise, timeout(ms)]);
+    const r = await Promise.race([netPromise, timeout(NET_TIMEOUT)]);
     return (r && r.ok) ? r : cached;
   }
   const r = await Promise.race([netPromise, timeout(12000)]);
@@ -371,120 +285,18 @@ async function networkFirstTimeout(req, kind, ms) {
   return fallbackFor(req, kind === 'html' ? undefined : kind);
 }
 
-// Imágenes, fuentes y PDFs: si está en caché se usa sin volver a descargar.
-async function cacheFirst(req) {
-  const cached = await caches.match(req);
-  if (cached) return cached;
-  try {
-    const r = await fetch(req);
-    if (r && (r.status === 200 || r.type === 'opaque')) putLimited(CACHE_IMG, IMG_MAX, req, r.clone());
-    return r;
-  } catch(e) {
-    return new Response('', { status: 504 });
-  }
-}
-
 async function networkOnlyTimeout(req) {
   try { return await fetchTimeout(req, 10000); }
   catch { return new Response('{}', { status: 504, headers: { 'Content-Type': 'application/json' } }); }
 }
 
 async function staleWhileRevalidate(req) {
-  const c = await caches.match(req);
+  const c = await matchAny(req);
   const fp = fetch(req).then(r => {
-    if (r && (r.status === 200 || r.type === 'opaque')) putLimited(CACHE_IMG, IMG_MAX, req, r.clone());
+    if (r && (r.status === 200 || r.type === 'opaque')) putDynamic(req, r.clone());
     return r;
   }).catch(() => null);
   if (c) return c;
   const r = await fp;
   return r || new Response('', { status: 504 });
-}
-
-// ── Audio ──
-// El SW descarga la pista completa (fetch normal, igual que JSON o imágenes, que sí
-// funcionan en datos móviles), la guarda en CACHE_AUDIO y responde cada rango que
-// pide el reproductor desde memoria. Si la descarga falla, cae a la red directa.
-const _audioPending = new Map();   // url → Promise<{buf,type}|null> (evita descargas dobles)
-const _audioMem     = new Map();   // url → {buf,type}  (máx. 2 pistas en memoria)
-
-function memPut(key, entry) {
-  _audioMem.delete(key);
-  _audioMem.set(key, entry);
-  while (_audioMem.size > 2) _audioMem.delete(_audioMem.keys().next().value);
-}
-
-async function getAudioEntry(key) {
-  if (_audioMem.has(key)) return _audioMem.get(key);
-
-  const cached = await caches.match(key, { ignoreSearch: true, ignoreVary: true });
-  if (cached && cached.status === 200) {
-    const entry = { buf: await cached.arrayBuffer(), type: cached.headers.get('Content-Type') || 'audio/mpeg' };
-    memPut(key, entry);
-    return entry;
-  }
-
-  if (!_audioPending.has(key)) {
-    _audioPending.set(key, downloadAudio(key).finally(() => _audioPending.delete(key)));
-  }
-  return _audioPending.get(key);
-}
-
-async function downloadAudio(key) {
-  try {
-    const r = await fetch(key);
-    if (!r || r.status !== 200) return null;
-    const type = r.headers.get('Content-Type') || 'audio/mpeg';
-    const buf  = await r.arrayBuffer();
-    if (!buf.byteLength) return null;
-    const entry = { buf, type };
-    memPut(key, entry);
-    try {
-      const c = await caches.open(CACHE_AUDIO);
-      await c.put(key, new Response(buf.slice(0), { status: 200, headers: {
-        'Content-Type': type, 'Content-Length': String(buf.byteLength)
-      }}));
-    } catch(e) { /* cuota: igual se sirve desde memoria */ }
-    return entry;
-  } catch(e) {
-    return null;
-  }
-}
-
-async function audioResponse(event, req) {
-  const key = req.url.split('#')[0].split('?')[0];
-  const range = req.headers.get('range');
-  try {
-    const entry = await getAudioEntry(key);
-    if (entry) return rangeResponse(entry.buf, entry.type, range);
-  } catch(e) {}
-  // Último recurso: red directa
-  try { return await fetch(req); }
-  catch(e) { return new Response('', { status: 504 }); }
-}
-
-function rangeResponse(buf, type, range) {
-  const total = buf.byteLength;
-  if (!range) {
-    return new Response(buf, { status: 200, headers: {
-      'Content-Type': type, 'Content-Length': String(total), 'Accept-Ranges': 'bytes'
-    }});
-  }
-  const m = /bytes=(\d*)-(\d*)/.exec(range);
-  let start = 0, end = total - 1;
-  if (m) {
-    if (m[1] === '' && m[2] !== '') { start = Math.max(0, total - parseInt(m[2], 10)); }
-    else {
-      if (m[1] !== '') start = parseInt(m[1], 10);
-      if (m[2] !== '') end = Math.min(parseInt(m[2], 10), total - 1);
-    }
-  }
-  if (start >= total || start > end) {
-    return new Response('', { status: 416, headers: { 'Content-Range': 'bytes */' + total } });
-  }
-  return new Response(buf.slice(start, end + 1), { status: 206, headers: {
-    'Content-Type': type,
-    'Content-Length': String(end - start + 1),
-    'Content-Range': 'bytes ' + start + '-' + end + '/' + total,
-    'Accept-Ranges': 'bytes'
-  }});
 }

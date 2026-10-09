@@ -1,5 +1,12 @@
 // ================================================================
-//  CHOQUE DE HÉROES TCG — Service Worker v9.3
+//  CHOQUE DE HÉROES TCG — Service Worker v9.4
+//  v9.4: · Se quitan los topes de tiempo de imágenes (10 s) y audio (60 s): el
+//          reloj corría desde que la petición entraba a la cola del navegador, así
+//          que en datos móviles las imágenes y pistas formadas se cancelaban antes
+//          de empezar a descargar (imágenes rotas, canciones que no cargaban).
+//        · Revalidación en segundo plano limitada: cada HTML/JS/catálogo se revisa
+//          con la red como máximo cada 2 min, no en cada navegación. Menos
+//          peticiones compitiendo con imágenes y audio en red móvil.
 //  v9.3: imágenes sin copia con tope de 10 s (no bloquean el 'load' de la página).
 //  v9.2: FIX "Sin conexión" al entrar a módulos. Chrome lanza un TypeError con
 //        fetch(peticionDeNavegacion, {cache:'no-cache'}) ("Request whose mode is
@@ -27,16 +34,15 @@
 //  v8.1: precache de la Simulación v17.
 //  v8:   shell cache-first + revalidación, JSON red-primero, fallbacks por tipo.
 // ================================================================
-const CACHE_NAME    = 'chh-tcg-v53';
-const CACHE_DYNAMIC = 'chh-dynamic-v53';
+const CACHE_NAME    = 'chh-tcg-v54';
+const CACHE_DYNAMIC = 'chh-dynamic-v54';
 const CACHE_IMG     = 'chh-img-v1';      // estable: imágenes, fuentes y PDFs. Subir SOLO si reemplazas imágenes con el mismo nombre
 const CACHE_AUDIO   = 'chh-audio-v1';    // estable: pistas de bgm.js. Subir SOLO si reemplazas un .mp3 con el mismo nombre
 const CACHE_MUSICA  = 'chh-musica-v1';   // pistas guardadas por musica.html (no se borra al actualizar)
 const KEEP_CACHES   = [CACHE_NAME, CACHE_DYNAMIC, CACHE_IMG, CACHE_AUDIO, CACHE_MUSICA];
 
 const NET_TIMEOUT   = 2500;   // ms para datos .json antes de servir copia
-const AUDIO_TIMEOUT = 60000;  // ms máx. para descargar una pista completa
-const IMG_TIMEOUT   = 10000;  // ms máx. para una imagen/fuente/PDF sin copia
+const REVALIDATE_EVERY = 120000;  // ms mínimos entre revalidaciones de un mismo archivo
 const DYNAMIC_MAX   = 200;    // máx. entradas en caché dinámica (html/json/js)
 const IMG_MAX       = 800;    // máx. entradas en caché de imágenes (480+ cartas + sobres + banners)
 
@@ -283,12 +289,20 @@ function fallbackFor(req, kind) {
 // ── Estrategias ──
 
 // HTML/JS/CSS/catálogos: caché al instante, se actualiza en segundo plano.
+const _lastCheck = new Map();   // url → última revalidación (se reinicia si el SW duerme)
+
 async function cacheFirstRevalidate(req, isPage) {
   const cached = await matchAny(req, { ignoreSearch: true });
+  const key = req.url.split('?')[0];
+
+  // Con copia y revisado hace poco: no se toca la red
+  if (cached && Date.now() - (_lastCheck.get(key) || 0) < REVALIDATE_EVERY) return cached;
+  _lastCheck.set(key, Date.now());
+
   const netPromise = netFetch(req).then(r => {
     if (r && r.status === 200 && r.type === 'basic') putDynamic(req, r.clone());
     return r;
-  }).catch(() => null);
+  }).catch(() => { _lastCheck.delete(key); return null; });
 
   if (cached) return cached;
 
@@ -327,9 +341,7 @@ async function cacheFirst(req) {
   const cached = await caches.match(req);
   if (cached) return cached;
   try {
-    // Con tope de tiempo: una imagen atorada en datos móviles retrasaba el evento
-    // 'load' de la página (y todo lo que espera a ese evento).
-    const r = await fetchTimeout(req, IMG_TIMEOUT);
+    const r = await fetch(req);
     if (r && (r.status === 200 || r.type === 'opaque')) putLimited(CACHE_IMG, IMG_MAX, req, r.clone());
     return r;
   } catch(e) {
@@ -384,7 +396,7 @@ async function getAudioEntry(key) {
 
 async function downloadAudio(key) {
   try {
-    const r = await fetchTimeout(key, AUDIO_TIMEOUT);
+    const r = await fetch(key);
     if (!r || r.status !== 200) return null;
     const type = r.headers.get('Content-Type') || 'audio/mpeg';
     const buf  = await r.arrayBuffer();

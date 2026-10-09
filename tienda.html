@@ -655,6 +655,40 @@ const HERO_PESOS_URL = 'https://script.google.com/macros/s/AKfycbwSrBH7yJiyTlPab
 // Ruta de imágenes de sobres en GitHub
 const SOBRES_IMG_BASE = 'hero_pesos/sobres/';
 
+// Ruta de la imagen de un sobre: acepta solo nombre ("sobre_nexo.png"),
+// ruta ("hero_pesos/sobres/x.png") o URL completa.
+function sobreImgSrc(nombre) {
+  const v = String(nombre || '').trim();
+  if (!v) return '';
+  if (/^(https?:|data:|blob:)/i.test(v) || v.includes('/')) return v;
+  return SOBRES_IMG_BASE + v;
+}
+// Alternativas si la imagen falla: 1 reintento (red móvil), extensión .png↔.jpg,
+// y el nombre del pack. Cubre nombres en la hoja que no coinciden con el archivo.
+function sobreImgAlternativas(nombre, packId) {
+  const src  = sobreImgSrc(nombre);
+  const out  = [];
+  if (src) out.push(src + (src.includes('?') ? '&' : '?') + 'r=1');
+  const base = src.replace(/\.(png|jpe?g|webp)$/i, '');
+  ['png', 'jpg', 'jpeg', 'webp'].forEach(ext => { const c = base + '.' + ext; if (base && c !== src) out.push(c); });
+  if (packId) ['png', 'jpg'].forEach(ext => out.push(SOBRES_IMG_BASE + packId + '.' + ext));
+  return [...new Set(out)];
+}
+function sobreImgFallback(img, enApertura) {
+  const alt  = (img.dataset.alt || '').split('|').filter(Boolean);
+  const paso = Number(img.dataset.paso || 0);
+  if (paso < alt.length) {
+    img.dataset.paso = String(paso + 1);
+    // El primer reintento espera un poco por si fue un corte de red
+    setTimeout(() => { img.src = alt[paso]; }, paso === 0 ? 1200 : 0);
+    return;
+  }
+  img.onerror = null;
+  if (enApertura) { img.style.display = 'none'; return; }
+  img.style.display = 'none';
+  if (img.parentElement) img.parentElement.textContent = '📦';
+}
+
 // ════════════════════════════════════════════
 //  CATÁLOGO (sin cambios)
 // ════════════════════════════════════════════
@@ -820,7 +854,7 @@ let sobreImagen = null; // archivo de imagen del sobre en apertura
 // ════════════════════════════════════════════
 //  INIT
 // ════════════════════════════════════════════
-window.addEventListener('load', async () => {
+document.addEventListener('DOMContentLoaded', async () => {
   const saved = localStorage.getItem('nhSesion');
   if (!saved) { document.getElementById('login-required').style.display = 'block'; return; }
   try { jugador = JSON.parse(saved); } catch(e) { document.getElementById('login-required').style.display = 'block'; return; }
@@ -1067,7 +1101,7 @@ function renderPacks(packs) {
 
       const sobreImg = String(p.imagen ?? '').trim() || packId + '.png';
       return `<div class="pack-card" onclick="iniciarApertura('${_jsq(packId)}', ${costo}, '${_jsq(sobreImg)}')">
-        <div class="pack-img"><img src="${SOBRES_IMG_BASE}${_esc(sobreImg)}" alt="${_esc(packId)}" loading="lazy" onerror="this.style.display='none';this.parentElement.textContent='📦'"/></div>
+        <div class="pack-img"><img src="${_esc(sobreImgSrc(sobreImg))}" data-alt="${_esc(sobreImgAlternativas(sobreImg, packId).join('|'))}" alt="${_esc(packId)}" decoding="async" onerror="sobreImgFallback(this)"/></div>
         <div class="pack-info">
           <div class="pack-name">${_esc(nombre || packId.replace(/_/g,' ').toUpperCase())}</div>
           <div class="pack-detail">${_esc(desc)}</div>
@@ -1135,7 +1169,12 @@ function iniciarApertura(packid, costo, imagen) {
   hint.textContent = '⚡ TOCA PARA ABRIR ⚡';
   hint.style.display = '';
 
-  document.getElementById('sobre-pack-img').src = `${SOBRES_IMG_BASE}${sobreImagen}`;
+  const packImgEl = document.getElementById('sobre-pack-img');
+  packImgEl.style.display = '';
+  packImgEl.dataset.alt = sobreImgAlternativas(sobreImagen, '').join('|');
+  packImgEl.dataset.paso = '0';
+  packImgEl.onerror = () => sobreImgFallback(packImgEl, true);
+  packImgEl.src = sobreImgSrc(sobreImagen);
   overlay.classList.add('active');
 }
 

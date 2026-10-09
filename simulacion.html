@@ -448,7 +448,7 @@ html,body{
 <div class="boot" id="bootScreen">
   <img class="boot-logo" id="bootLogo" alt="">
   <div class="boot-title">CHOQUE DE HÉROES</div>
-  <div class="boot-sub">SIMULACIÓN DE COMBATE</div>
+  <div class="boot-sub">SIMULACIÓN DE COMBATE · <span id="simVer"></span></div>
   <div class="boot-status" id="bootStatus">Cargando cartas…</div>
   <button class="boot-btn" id="bootBtn" disabled>⚔ ENTRAR A LA BATALLA</button>
   <div class="boot-note" id="bootNote">Se abrirá en pantalla completa y en horizontal</div>
@@ -587,6 +587,7 @@ html,body{
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
+const SIM_VERSION='v17.1';                          // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -1759,6 +1760,7 @@ window.addEventListener('pagehide',()=>{try{screen.orientation.unlock();}catch(e
 // ARRANQUE
 // ════════════════════════════════════
 (async function boot(){
+  document.getElementById('simVer').textContent=SIM_VERSION;
   document.getElementById('btnMute').textContent=MUTED?'🔇':'🔊';
   const st=document.getElementById('bootStatus'), btn=document.getElementById('bootBtn');
   if(!canLock) document.getElementById('bootNote').textContent='Gira tu dispositivo a horizontal para jugar';

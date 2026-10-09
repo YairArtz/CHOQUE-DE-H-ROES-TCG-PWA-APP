@@ -1,12 +1,15 @@
 // ================================================================
 //  CHOQUE DE HÉROES TCG — Service Worker v8.2
+//  v8.2: las páginas HTML van RED-PRIMERO (con copia si no hay internet) y todas
+//        las revalidaciones saltan la caché HTTP de GitHub Pages (max-age=600).
+//        Antes una actualización tardaba 2 aperturas y hasta 10 min en verse.
 //  v8.1: precache de la Simulación v17 (HTML, JSON de cartas, miniaturas).
 //  v8: shell cache-first (instantáneo) + revalidación en segundo plano,
 //      datos .json red-primero con timeout, fallbacks por tipo de archivo,
 //      caché dinámica con límite de tamaño.
 // ================================================================
-const CACHE_NAME    = 'chh-tcg-v38';
-const CACHE_DYNAMIC = 'chh-dynamic-v38';
+const CACHE_NAME    = 'chh-tcg-v39';
+const CACHE_DYNAMIC = 'chh-dynamic-v39';
 const CACHE_MUSICA  = 'chh-musica-v1';   // pistas guardadas por musica.html (no se borra al actualizar)
 const NET_TIMEOUT   = 3000;   // ms para datos .json antes de servir copia
 const DYNAMIC_MAX   = 350;    // máx. entradas en caché dinámica (imágenes de cartas, etc.)
@@ -90,9 +93,11 @@ self.addEventListener('fetch', event => {
   if (/\.json$/i.test(path)) {
     // Datos: frescos si la red responde rápido, copia si no
     event.respondWith(networkFirstTimeout(req, 'json'));
-  } else if (req.mode === 'navigate' || /\.(html|js|css)$/i.test(path) || path.endsWith('/')) {
-    // Shell: desde caché al instante, se actualiza en segundo plano.
-    // Las versiones nuevas llegan al subir CACHE_NAME (precache con cache:'reload').
+  } else if (req.mode === 'navigate' || /\.html$/i.test(path) || path.endsWith('/')) {
+    // Páginas: siempre la versión publicada si hay red (≤3 s); si no, la copia.
+    event.respondWith(networkFirstTimeout(req, 'html'));
+  } else if (/\.(js|css)$/i.test(path)) {
+    // JS/CSS: desde caché al instante, se actualiza en segundo plano.
     event.respondWith(cacheFirstRevalidate(req));
   } else if (/\.(jpg|jpeg|png|gif|webp|svg|woff2?|ttf|mp3|pdf)$/i.test(path)) {
     event.respondWith(staleWhileRevalidate(req));
@@ -242,7 +247,7 @@ function fallbackFor(req, kind) {
 // Shell: responde desde caché al instante y actualiza en segundo plano.
 async function cacheFirstRevalidate(req) {
   const cached = await matchAny(req, { ignoreSearch: true });
-  const netPromise = fetch(req).then(r => {
+  const netPromise = fetch(req, { cache: 'no-cache' }).then(r => {
     if (r && r.status === 200 && r.type === 'basic') putDynamic(req, r.clone());
     return r;
   }).catch(() => null);
@@ -262,7 +267,7 @@ async function cacheFirstRevalidate(req) {
 // Datos: red primero; si tarda más de NET_TIMEOUT y hay copia, sirve la copia.
 async function networkFirstTimeout(req, kind) {
   const cached = await matchAny(req, { ignoreSearch: true });
-  const netPromise = fetch(req).then(r => {
+  const netPromise = fetch(req, { cache: 'no-cache' }).then(r => {
     if (r && r.status === 200) putDynamic(req, r.clone());
     return r;
   }).catch(() => null);
@@ -272,7 +277,12 @@ async function networkFirstTimeout(req, kind) {
     return (r && r.ok) ? r : cached;
   }
   const r = await Promise.race([netPromise, timeout(12000)]);
-  return r || fallbackFor(req, kind);
+  if (r) return r;
+  if (kind === 'html' && req.mode === 'navigate') {
+    const home = await matchAny('./index.html');
+    if (home) return home;
+  }
+  return fallbackFor(req, kind === 'html' ? undefined : kind);
 }
 
 async function networkOnlyTimeout(req) {

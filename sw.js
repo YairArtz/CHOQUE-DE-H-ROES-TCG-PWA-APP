@@ -1,5 +1,6 @@
 // ================================================================
-//  CHOQUE DE HÉROES TCG — Service Worker v9.2
+//  CHOQUE DE HÉROES TCG — Service Worker v9.3
+//  v9.3: imágenes sin copia con tope de 10 s (no bloquean el 'load' de la página).
 //  v9.2: FIX "Sin conexión" al entrar a módulos. Chrome lanza un TypeError con
 //        fetch(peticionDeNavegacion, {cache:'no-cache'}) ("Request whose mode is
 //        'navigate' and a non-empty RequestInit"). Ese error se tomaba como falta de
@@ -26,8 +27,8 @@
 //  v8.1: precache de la Simulación v17.
 //  v8:   shell cache-first + revalidación, JSON red-primero, fallbacks por tipo.
 // ================================================================
-const CACHE_NAME    = 'chh-tcg-v52';
-const CACHE_DYNAMIC = 'chh-dynamic-v52';
+const CACHE_NAME    = 'chh-tcg-v53';
+const CACHE_DYNAMIC = 'chh-dynamic-v53';
 const CACHE_IMG     = 'chh-img-v1';      // estable: imágenes, fuentes y PDFs. Subir SOLO si reemplazas imágenes con el mismo nombre
 const CACHE_AUDIO   = 'chh-audio-v1';    // estable: pistas de bgm.js. Subir SOLO si reemplazas un .mp3 con el mismo nombre
 const CACHE_MUSICA  = 'chh-musica-v1';   // pistas guardadas por musica.html (no se borra al actualizar)
@@ -35,6 +36,7 @@ const KEEP_CACHES   = [CACHE_NAME, CACHE_DYNAMIC, CACHE_IMG, CACHE_AUDIO, CACHE_
 
 const NET_TIMEOUT   = 2500;   // ms para datos .json antes de servir copia
 const AUDIO_TIMEOUT = 60000;  // ms máx. para descargar una pista completa
+const IMG_TIMEOUT   = 10000;  // ms máx. para una imagen/fuente/PDF sin copia
 const DYNAMIC_MAX   = 200;    // máx. entradas en caché dinámica (html/json/js)
 const IMG_MAX       = 800;    // máx. entradas en caché de imágenes (480+ cartas + sobres + banners)
 
@@ -325,7 +327,9 @@ async function cacheFirst(req) {
   const cached = await caches.match(req);
   if (cached) return cached;
   try {
-    const r = await fetch(req);
+    // Con tope de tiempo: una imagen atorada en datos móviles retrasaba el evento
+    // 'load' de la página (y todo lo que espera a ese evento).
+    const r = await fetchTimeout(req, IMG_TIMEOUT);
     if (r && (r.status === 200 || r.type === 'opaque')) putLimited(CACHE_IMG, IMG_MAX, req, r.clone());
     return r;
   } catch(e) {

@@ -1,5 +1,6 @@
 // ================================================================
-//  CHOQUE DE HÉROES TCG — Service Worker v9.5
+//  CHOQUE DE HÉROES TCG — Service Worker v9.6
+//  v9.6: imágenes de la Tienda (moneda HP, banner, sobres) en la precarga de segundo plano.
 //  v9.5: · FIX "me regresa al index": una página sin copia que tardaba >12 s se
 //          sustituía por index.html. Ahora se espera a la red (hasta 30 s) y, si
 //          falla, se muestra un aviso con REINTENTAR que reintenta solo al volver la red.
@@ -40,8 +41,8 @@
 //  v8.1: precache de la Simulación v17.
 //  v8:   shell cache-first + revalidación, JSON red-primero, fallbacks por tipo.
 // ================================================================
-const CACHE_NAME    = 'chh-tcg-v55';
-const CACHE_DYNAMIC = 'chh-dynamic-v55';
+const CACHE_NAME    = 'chh-tcg-v56';
+const CACHE_DYNAMIC = 'chh-dynamic-v56';
 const CACHE_IMG     = 'chh-img-v1';      // estable: imágenes, fuentes y PDFs. Subir SOLO si reemplazas imágenes con el mismo nombre
 const CACHE_AUDIO   = 'chh-audio-v1';    // estable: pistas de bgm.js. Subir SOLO si reemplazas un .mp3 con el mismo nombre
 const CACHE_MUSICA  = 'chh-musica-v1';   // pistas guardadas por musica.html (no se borra al actualizar)
@@ -72,7 +73,12 @@ const CACHE_WARM = [
   './galeria.html', './academia.html', './reglamento.html', './tutorial.html',
   './mapa-tiendas.html', './registro-jugadores.html', './registro-tiendas.html',
   './publicar-torneo.html', './videos.html', './musica.html', './mercado/mercado.html',
-  './musica_config.json', './videos.json', './cartas-limitadas.json', './mercado/precios.json'
+  './musica_config.json', './videos.json', './cartas-limitadas.json', './mercado/precios.json',
+  // Tienda: moneda, banner y sobres (agrega aquí cada sobre nuevo)
+  './hero_pesos/hp_coin.png', './hero_pesos/banner_sobres.jpg',
+  './hero_pesos/sobres/sobre_difunto.jpg', './hero_pesos/sobres/sobre_dimensional.png',
+  './hero_pesos/sobres/sobre_mx26.jpg', './hero_pesos/sobres/sobre_nexo.png',
+  './hero_pesos/sobres/sobre_omniversal.png'
 ];
 
 const CACHE_SIM = [

@@ -58,6 +58,53 @@ html,body{
   background:linear-gradient(135deg,var(--gold2),var(--gold));box-shadow:0 0 24px rgba(212,135,10,.5)}
 .boot-btn:disabled{opacity:.3;box-shadow:none;cursor:default}
 .boot-note{font-size:11px;color:var(--muted);opacity:.8}
+.boot{justify-content:safe center;overflow-y:auto}
+/* Selector de barajas */
+.deck-sel{width:100%;max-width:560px;display:flex;flex-direction:column;gap:6px;text-align:left}
+.deck-sel[hidden]{display:none}
+.ds-lbl{font-family:'Orbitron',sans-serif;font-size:8px;letter-spacing:2px;color:var(--gold);opacity:.85}
+.ds-row{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 4px;scrollbar-width:thin}
+.ds-deck{flex:0 0 132px;display:flex;gap:7px;align-items:center;padding:6px;border-radius:9px;cursor:pointer;
+  background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text);font:inherit;text-align:left;position:relative}
+.ds-deck img{width:38px;height:53px;object-fit:cover;border-radius:4px;flex:0 0 auto;background:#000}
+.ds-deck b{display:block;font-size:11px;line-height:1.15;color:var(--gold2)}
+.ds-deck small{display:block;font-size:9px;color:var(--muted);line-height:1.25;margin-top:2px}
+.ds-deck .ds-n{font-family:'Orbitron',sans-serif;font-size:8px;color:var(--blue);margin-top:3px}
+.ds-deck.on{border-color:var(--gold2);background:rgba(245,166,35,.13);box-shadow:0 0 12px rgba(245,166,35,.35)}
+.ds-deck:disabled{opacity:.35;cursor:not-allowed}
+.ds-deck .ds-warn{position:absolute;top:3px;right:5px;font-size:10px}
+.ds-info{font-size:11px;color:var(--muted);line-height:1.4;background:rgba(0,0,0,.25);border-radius:8px;padding:6px 8px}
+.ds-info .ds-comp{font-family:'Orbitron',sans-serif;font-size:8px;letter-spacing:1px;color:var(--blue);margin-top:3px}
+.ds-info .ds-av{color:var(--gold2);font-size:10px;margin-top:3px}
+.ds-info button{margin-top:4px;background:none;border:1px solid var(--border);color:var(--gold2);border-radius:6px;
+  padding:3px 8px;font-size:10px;cursor:pointer}
+.ds-chips{display:flex;flex-wrap:wrap;gap:6px}
+.ds-chip{padding:6px 10px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,.04);
+  color:var(--text);font-size:11px;cursor:pointer}
+.ds-chip.on{border-color:var(--gold2);color:#0a0604;background:linear-gradient(135deg,var(--gold2),var(--gold));font-weight:700}
+.ds-chip:disabled{opacity:.35}
+.ds-list{position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,.88);display:none;align-items:center;justify-content:center;padding:16px}
+.ds-list.show{display:flex}
+.ds-list-box{background:#140b06;border:1px solid var(--border);border-radius:12px;padding:12px 14px;
+  width:100%;max-width:520px;max-height:100%;overflow-y:auto;text-align:left}
+.ds-list-box h3{font-family:'Orbitron',sans-serif;font-size:12px;color:var(--gold2);margin:0 0 6px;letter-spacing:1px}
+.ds-list-box h4{font-family:'Orbitron',sans-serif;font-size:9px;color:var(--blue);margin:8px 0 3px;letter-spacing:1px}
+.ds-list-box ul{margin:0;padding-left:16px;columns:2;column-gap:14px;font-size:11px;color:var(--text);line-height:1.45}
+.ds-list-box .ds-close{float:right;background:none;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:2px 8px;cursor:pointer}
+@media (max-height:520px){
+  .boot{gap:7px;padding:10px 16px}
+  .boot-logo{display:none}
+  .boot-title{font-size:13px}
+  .boot-status{font-size:11px;min-height:0}
+  .deck-sel{gap:4px}
+  .ds-deck{padding:4px 6px}
+  .ds-deck img{width:30px;height:42px}
+  .ds-info{padding:4px 8px;font-size:10px}
+  .ds-chip{padding:4px 10px}
+  .boot-btn{padding:10px 22px}
+  .boot-note{display:none}
+}
+@media (max-width:420px){.ds-list-box ul{columns:1}}
 
 /* ── ESCENARIO ──
    Si el teléfono/PWA se queda en vertical (p. ej. manifest con orientation:portrait),
@@ -487,6 +534,7 @@ html,body{
   letter-spacing:1px;cursor:pointer;box-shadow:0 0 24px rgba(212,135,10,.45);
   animation:victoryPulse 1.5s ease infinite}
 
+.endgame-btn.alt{margin-top:8px;animation:none;box-shadow:none;background:transparent;color:var(--gold2);border:1px solid var(--gold)}
 .sector-overlay{position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.84);
   backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:20px}
 .sector-overlay.show{display:flex}
@@ -520,8 +568,18 @@ html,body{
   <div class="boot-title">CHOQUE DE HÉROES</div>
   <div class="boot-sub">SIMULACIÓN DE COMBATE · <span id="simVer"></span></div>
   <div class="boot-status" id="bootStatus">Cargando cartas…</div>
+  <div class="deck-sel" id="deckSel" hidden>
+    <div class="ds-lbl">TU BARAJA</div>
+    <div class="ds-row" id="dsPlayer"></div>
+    <div class="ds-info" id="dsInfo"></div>
+    <div class="ds-lbl">RIVAL (CPU)</div>
+    <div class="ds-chips" id="dsCpu"></div>
+  </div>
   <button class="boot-btn" id="bootBtn" disabled>⚔ ENTRAR A LA BATALLA</button>
   <div class="boot-note" id="bootNote">Se abrirá en pantalla completa y en horizontal</div>
+</div>
+<div class="ds-list" id="dsList" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="ds-list-box" id="dsListBox"></div>
 </div>
 
 <div id="stage">
@@ -615,6 +673,7 @@ html,body{
     <div class="endgame-title" id="endgameTitle">¡VICTORIA!</div>
     <div class="endgame-reason" id="endgameReason"></div>
     <button class="endgame-btn" onclick="restartGame()">↺ NUEVA PARTIDA</button>
+    <button class="endgame-btn alt" onclick="showDeckSelect()">🃏 CAMBIAR BARAJAS</button>
   </div>
 </div>
 
@@ -689,7 +748,7 @@ html,body{
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v21';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v22';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -916,7 +975,14 @@ async function loadData(onProgress){
   if(!r.ok) throw new Error('HTTP '+r.status+' al leer '+SIM_DATA_URL);
   DATA=await r.json();
   if(!Array.isArray(DATA.cartas)||!DATA.cartas.length) throw new Error('El JSON no tiene "cartas".');
-  if(!DATA.mazos||!DATA.mazos.jugador||!DATA.mazos.cpu) throw new Error('El JSON no tiene "mazos.jugador" y "mazos.cpu".');
+  // Barajas preconstruidas. Compatibilidad: un JSON antiguo con "mazos" se convierte en barajas.
+  if(!Array.isArray(DATA.barajas)||!DATA.barajas.length){
+    if(DATA.mazos&&DATA.mazos.jugador){
+      DATA.barajas=[Object.assign({id:'jugador',nombre:(DATA.baraja&&DATA.baraja.nombre)||'Baraja principal'},DATA.mazos.jugador)];
+      if(DATA.mazos.cpu) DATA.barajas.push(Object.assign({id:'cpu',nombre:'Baraja del rival'},DATA.mazos.cpu));
+    } else throw new Error('El JSON no tiene "barajas".');
+  }
+  DATA.barajas.forEach((b,i)=>{if(!b.id)b.id='baraja'+(i+1);b.nombre=b.nombre||b.id;});
 
   R=Object.assign({},R,DATA.reglas||{});
   const base=DATA.imgBase||'', minBase=DATA.imgMinBase||'';
@@ -969,36 +1035,41 @@ async function loadData(onProgress){
   if(logo){document.getElementById('bootLogo').src=logo;document.getElementById('hdrLogo').src=logo;}
   document.querySelectorAll('img.rev').forEach(i=>i.src=REV);
 
-  // Validar que los mazos solo usen cartas existentes
-  const errs=[];
-  ['jugador','cpu'].forEach(k=>{
-    const m=DATA.mazos[k];
-    [...(m.bp||[]),...(m.ba||[]),...(m.bs||[])].forEach(e=>{if(!C[e.id])errs.push(k+': '+e.id);});
-    (m.bs||[]).forEach(e=>{if(C[e.id]&&C[e.id].type!=='amalgama')errs.push(k+' B.SOP solo admite AMALGAMAS: '+e.id);});
-    [...(m.manoInicial||[]),...(m.almasIniciales||[])].forEach(id=>{if(!C[id])errs.push(k+': '+id);});
+  // Validar que cada baraja solo use cartas existentes (una baraja con errores queda deshabilitada)
+  if(galErrs.length) throw new Error('Revisa el JSON → '+galErrs.join(' · '));
+  DATA.barajas.forEach(m=>{
+    const e=[];
+    [...(m.bp||[]),...(m.ba||[]),...(m.bs||[])].forEach(x=>{if(!C[x.id])e.push('no existe "'+x.id+'"');});
+    (m.bs||[]).forEach(x=>{if(C[x.id]&&C[x.id].type!=='amalgama')e.push('B.SOP solo admite AMALGAMAS: '+x.id);});
+    (m.ba||[]).forEach(x=>{if(C[x.id]&&C[x.id].type!=='alma')e.push('la BA solo admite ALMAS: '+x.id);});
+    (m.bp||[]).forEach(x=>{if(C[x.id]&&(C[x.id].type==='alma'||C[x.id].type==='amalgama'))e.push('la BP no admite '+C[x.id].type.toUpperCase()+': '+x.id);});
+    [...(m.manoInicial||[]),...(m.almasIniciales||[])].forEach(id=>{if(!C[id])e.push('no existe "'+id+'"');});
+    m._error=e.length?e.join(' · '):null;
+    if(m._error) console.warn('[sim] baraja '+m.id+': '+m._error);
   });
-  errs.unshift(...galErrs);
-  if(errs.length) throw new Error('Revisa el JSON → '+errs.join(' · '));
+  if(!DATA.barajas.some(b=>!b._error)) throw new Error('Ninguna baraja es válida → '+DATA.barajas.map(b=>b.nombre+': '+b._error).join(' | '));
 
   // Reglas de construcción: BP exacta, BA exacta, B.SOP opcional con máximo,
   // y copias según cartas-limitadas.json (limitada 1 · semi-limitada 2 · condenada 0 · resto 3).
   // No bloquea la partida: los avisos aparecen en el registro al empezar.
-  DATA._avisos=[];
   let LIM={};
   if(DATA.limitadas){
     try{const lr=await fetch(DATA.limitadas,{cache:'no-cache'});if(lr.ok)(await lr.json()).forEach(x=>{LIM[K(x.nombre).replace(/[^A-Z0-9]/g,'')]=x.estado;});}catch(e){}
   }
   const MAXC={'limitada':1,'semi-limitada':2,'condenada':0};
-  ['jugador','cpu'].forEach(k=>{
-    const m=DATA.mazos[k], tot=l=>(l||[]).reduce((a,e)=>a+(e.copias||1),0);
-    const nBP=tot(m.bp), nBA=tot(m.ba), nBS=tot(m.bs);
-    if(R.barajaPrincipal&&nBP!==R.barajaPrincipal) DATA._avisos.push(k+': la BP tiene '+nBP+' cartas (deben ser '+R.barajaPrincipal+').');
-    if(R.barajaAlmas&&nBA!==R.barajaAlmas) DATA._avisos.push(k+': la BA tiene '+nBA+' cartas (deben ser '+R.barajaAlmas+').');
-    if(R.barajaSoporteMax!=null&&nBS>R.barajaSoporteMax) DATA._avisos.push(k+': la B.SOP tiene '+nBS+' cartas (máximo '+R.barajaSoporteMax+').');
+  DATA.barajas.forEach(m=>{
+    const av=m._avisos=[], tot=l=>(l||[]).reduce((a,e)=>a+(e.copias||1),0);
+    m._n={bp:tot(m.bp),ba:tot(m.ba),bs:tot(m.bs)};
+    if(m._error) return;
+    const tipos={};(m.bp||[]).forEach(e=>{const t=C[e.id].type;tipos[t]=(tipos[t]||0)+(e.copias||1);});
+    m._tipos=tipos;
+    if(R.barajaPrincipal&&m._n.bp!==R.barajaPrincipal) av.push('la BP tiene '+m._n.bp+' cartas (deben ser '+R.barajaPrincipal+').');
+    if(R.barajaAlmas&&m._n.ba!==R.barajaAlmas) av.push('la BA tiene '+m._n.ba+' cartas (deben ser '+R.barajaAlmas+').');
+    if(R.barajaSoporteMax!=null&&m._n.bs>R.barajaSoporteMax) av.push('la B.SOP tiene '+m._n.bs+' cartas (máximo '+R.barajaSoporteMax+').');
     const cnt={};[...(m.bp||[]),...(m.ba||[]),...(m.bs||[])].forEach(e=>{const n=C[e.id].name;cnt[n]=(cnt[n]||0)+(e.copias||1);});
     Object.entries(cnt).forEach(([n,c])=>{
       const est=LIM[K(n).replace(/[^A-Z0-9]/g,'')], max=est in MAXC?MAXC[est]:3;
-      if(c>max) DATA._avisos.push(k+': '+c+'× "'+n+'" supera el máximo de '+max+(est?' ('+est+')':'')+'.');
+      if(c>max) av.push(c+'× "'+n+'" supera el máximo de '+max+(est?' ('+est+')':'')+'.');
     });
   });
 
@@ -2059,8 +2130,84 @@ let SEL_IDX=-1;      // carta seleccionada en la mano
 let ATK_SLOT=null;   // PJ propio elegido para atacar
 let _pendingLeaves=[];
 
+// ════════════════════════════════════
+// SELECTOR DE BARAJAS PRECONSTRUIDAS
+// ════════════════════════════════════
+// DSEL guarda la elección (id de baraja del jugador; rival: 'espejo' | 'aleatoria' | id).
+// DK guarda las barajas resueltas para la partida en curso.
+let DSEL={jugador:null,cpu:'aleatoria'}, DK=null;
+const deckById=id=>DATA.barajas.find(b=>b.id===id&&!b._error);
+function initDeckSelect(){
+  const ok=DATA.barajas.filter(b=>!b._error), def=DATA.barajaPorDefecto||{};
+  let saved={};try{saved=JSON.parse(localStorage.getItem('cdh_sim_decks')||'{}');}catch(e){}
+  DSEL.jugador=[saved.jugador,def.jugador].find(id=>deckById(id))||ok[0].id;
+  const cpuOk=id=>id==='espejo'||id==='aleatoria'||deckById(id);
+  DSEL.cpu=[saved.cpu,def.cpu].find(cpuOk)||'aleatoria';
+  document.getElementById('deckSel').hidden=false;
+  renderDeckSelect();
+}
+function saveDeckSelect(){try{localStorage.setItem('cdh_sim_decks',JSON.stringify(DSEL));}catch(e){}}
+function renderDeckSelect(){
+  const esc=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const rowP=document.getElementById('dsPlayer');
+  rowP.innerHTML=DATA.barajas.map(b=>{
+    const por=C[b.portada]||C[(b.bp||[])[0]&&b.bp[0].id];
+    return '<button class="ds-deck'+(b.id===DSEL.jugador?' on':'')+'" data-id="'+esc(b.id)+'"'+(b._error?' disabled title="'+esc(b._error)+'"':'')+'>'+
+      (por?'<img src="'+por.imgMin+'" alt="">':'')+
+      '<span><b>'+esc(b.nombre)+'</b><small>'+esc(b._error?'Con errores en el JSON':(b.estilo||''))+'</small>'+
+      '<span class="ds-n">'+b._n.bp+' · '+b._n.ba+' · '+b._n.bs+'</span></span>'+
+      ((b._avisos||[]).length?'<span class="ds-warn" title="Fuera de reglas">⚠</span>':'')+'</button>';
+  }).join('');
+  rowP.querySelectorAll('.ds-deck').forEach(el=>el.onclick=()=>{DSEL.jugador=el.dataset.id;saveDeckSelect();renderDeckSelect();});
+  const b=deckById(DSEL.jugador), t=b._tipos||{};
+  document.getElementById('dsInfo').innerHTML=esc(b.descripcion||'')+
+    '<div class="ds-comp">BP '+b._n.bp+': '+['pj','apoyo','sector','arena'].filter(k=>t[k]).map(k=>(k==='pj'?'PERSONAJES':k.toUpperCase())+' '+t[k]).join(' · ')+
+    ' &nbsp;|&nbsp; BA '+b._n.ba+' &nbsp;|&nbsp; B.SOP '+b._n.bs+'</div>'+
+    (b._avisos.length?'<div class="ds-av">⚠ '+b._avisos.map(esc).join('<br>⚠ ')+'</div>':'')+
+    '<button onclick="showDeckList(\''+esc(b.id)+'\')">📜 Ver lista completa</button>';
+  const opts=[['espejo','🪞 Espejo'],['aleatoria','🎲 Al azar']].concat(DATA.barajas.filter(x=>!x._error).map(x=>[x.id,x.nombre]));
+  const rowC=document.getElementById('dsCpu');
+  rowC.innerHTML=opts.map(([id,n])=>'<button class="ds-chip'+(id===DSEL.cpu?' on':'')+'" data-id="'+esc(id)+'">'+esc(n)+'</button>').join('');
+  rowC.querySelectorAll('.ds-chip').forEach(el=>el.onclick=()=>{DSEL.cpu=el.dataset.id;saveDeckSelect();renderDeckSelect();});
+}
+function showDeckList(id){
+  const b=deckById(id); if(!b) return;
+  const grp=(l,f)=>(l||[]).filter(e=>!f||f(C[e.id])).sort((x,y)=>C[x.id].name.localeCompare(C[y.id].name))
+    .map(e=>'<li>'+(e.copias||1)+'× '+C[e.id].name+'</li>').join('');
+  const sec=(tit,l,f)=>{const h=grp(l,f);return h?'<h4>'+tit+'</h4><ul>'+h+'</ul>':'';};
+  const t=b._tipos||{};
+  document.getElementById('dsListBox').innerHTML='<button class="ds-close" onclick="document.getElementById(\'dsList\').classList.remove(\'show\')">✕</button>'+
+    '<h3>'+b.nombre+'</h3>'+
+    sec('PERSONAJES ('+(t.pj||0)+')',b.bp,c=>c.type==='pj')+
+    sec('APOYO ('+(t.apoyo||0)+')',b.bp,c=>c.type==='apoyo')+
+    sec('SECTOR ('+(t.sector||0)+')',b.bp,c=>c.type==='sector')+
+    sec('ARENA ('+(t.arena||0)+')',b.bp,c=>c.type==='arena')+
+    sec('BARAJA DE ALMAS ('+b._n.ba+')',b.ba)+
+    sec('B.SOP · AMALGAMAS ('+b._n.bs+')',b.bs);
+  document.getElementById('dsList').classList.add('show');
+}
+function resolveDecks(){
+  const ok=DATA.barajas.filter(b=>!b._error);
+  const jug=deckById(DSEL.jugador)||ok[0];
+  let cpu, modo=DSEL.cpu;
+  if(modo==='espejo') cpu=jug;
+  else if(modo==='aleatoria') cpu=ok[Math.floor(Math.random()*ok.length)];
+  else cpu=deckById(modo)||jug;
+  DK={jugador:jug,cpu,cpuModo:modo};
+}
+function showDeckSelect(){
+  document.getElementById('endgameModal').classList.remove('show');
+  if(G) G.over=true;
+  GEN++;
+  renderDeckSelect();
+  document.getElementById('bootBtn').textContent='⚔ JUGAR';
+  document.getElementById('bootStatus').textContent='Elige las barajas para la siguiente partida';
+  document.getElementById('bootScreen').classList.remove('hide');
+}
+
 function initGame(){
   GEN++;
+  resolveDecks();
   ['combatMod','chooseModal','sectorModal','discardModal','endgameModal','bsModal'].forEach(id=>document.getElementById(id).classList.remove('show'));
   if(_pickResolve){const r=_pickResolve;_pickResolve=null;r(null);}
   document.getElementById('logwrap').innerHTML='';
@@ -2070,14 +2217,15 @@ function initGame(){
     callsLeft:R.llamadosPorTurno, almaUsed:false,
     drewBA:false, drewBP:false,
     used:{player:{},cpu:{}}, chain:[], bloqEsp:null, skipResp:null,
-    player:mkSide(DATA.mazos.jugador),
-    cpu:mkSide(DATA.mazos.cpu),
+    player:mkSide(DK.jugador),
+    cpu:mkSide(DK.cpu),
   };
   showDetail(null);
   renderAll();
   lg('⚔️ T1 · TU TURNO — Toca tu <b>B.ALMAS</b> y tu <b>BARAJA</b> (derecha) para robar.','var(--gold)');
   lg('ℹ Quien inicia el choque no puede declarar batalla en su primer turno.','var(--muted)');
-  (DATA._avisos||[]).forEach(a=>lg('⚠ Baraja · '+a,'var(--gold2)'));
+  lg('🃏 Tú: <b>'+DK.jugador.nombre+'</b> · Rival: <b>'+DK.cpu.nombre+'</b>'+(DK.cpuModo==='espejo'?' (espejo)':DK.cpuModo==='aleatoria'?' (al azar)':''),'var(--blue)');
+  [['Tu baraja',DK.jugador],['Baraja rival',DK.cpu]].forEach(([q,b])=>(b._avisos||[]).forEach(a=>lg('⚠ '+q+' · '+a,'var(--gold2)')));
 }
 
 function checkEnd(){
@@ -3114,7 +3262,8 @@ window.addEventListener('pagehide',()=>{try{screen.orientation.unlock();}catch(e
   if(!canLock) document.getElementById('bootNote').textContent='Gira tu dispositivo a horizontal para jugar';
   try{
     await loadData((n,t)=>{st.textContent='Cargando imágenes '+n+'/'+t+'…';});
-    st.textContent=Object.keys(C).length+' cartas listas';
+    st.textContent=Object.keys(C).length+' cartas listas · elige tus barajas';
+    initDeckSelect();
     btn.disabled=false;
   }catch(e){
     console.error(e);

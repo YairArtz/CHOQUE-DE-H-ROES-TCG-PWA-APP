@@ -8,8 +8,8 @@
 //      datos .json red-primero con timeout, fallbacks por tipo de archivo,
 //      caché dinámica con límite de tamaño.
 // ================================================================
-const CACHE_NAME    = 'chh-tcg-v41';
-const CACHE_DYNAMIC = 'chh-dynamic-v41';
+const CACHE_NAME    = 'chh-tcg-v43';
+const CACHE_DYNAMIC = 'chh-dynamic-v43';
 const CACHE_MUSICA  = 'chh-musica-v1';   // pistas guardadas por musica.html (no se borra al actualizar)
 const NET_TIMEOUT   = 3000;   // ms para datos .json antes de servir copia
 const DYNAMIC_MAX   = 350;    // máx. entradas en caché dinámica (imágenes de cartas, etc.)
@@ -25,16 +25,15 @@ const CACHE_CORE = [
   './noticias.json', './comics.html', './lector.html', './comics_config.json'
 ];
 
-// Simulación: HTML + datos + miniaturas (~300 KB) para que abra sin conexión.
-// Las imágenes completas (600×840) se guardan solas en la caché dinámica al verlas.
-const SIM_CARTAS = ['julian','clio','vulcar','koatl','alma1','alma2','alma3','sector','apoyo','apoyoR'];
+// Simulación: HTML, datos y gráficos propios. Las imágenes de cartas salen de la
+// Galería (cartas.json): la simulación las precarga al abrir y quedan en la caché dinámica.
 const CACHE_SIM = [
   './simulacion.html',
   './data/cartas_simulacion.json',
+  './cartas.json',
   './img/simulacion/reverso.jpg',
   './img/simulacion/logo.png',
-  './img/simulacion/tablero.jpg',
-  ...SIM_CARTAS.map(id => './img/simulacion/min/' + id + '.jpg')
+  './img/simulacion/tablero.jpg'
 ];
 
 // Backend dinámico: nunca pasa por el SW

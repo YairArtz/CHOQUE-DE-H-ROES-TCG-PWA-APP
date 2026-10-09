@@ -1,7 +1,7 @@
 {
-  "version": 2,
+  "version": 3,
+  "galeria": "cartas.json",
   "imgBase": "img/simulacion/",
-  "imgMinBase": "img/simulacion/min/",
   "assets": {
     "reverso": "reverso.jpg",
     "logo": "logo.png",
@@ -11,174 +11,1160 @@
   "reglas": {
     "corazones": 10,
     "manoMax": 7,
+    "manoInicial": 4,
     "llamadosPorTurno": 2,
     "ofrendaSiAlmasMenorIgual": 4
   },
+  "baraja": {
+    "nombre": "Receta Koatl Defensor (espejo funcional)",
+    "nota": "Fuera del mazo hasta programarse: Cataclismo, Trazador de Pesadillas x2, Espada/Hacha/Lanza Divina, La Gran Tenochtitlán, Nexotlan, Sector Bloqueado, Elena Belmondo."
+  },
   "cartas": [
     {
-      "id": "julian",
-      "nombre": "Julián Tennek",
+      "id": "bebe_balam",
+      "galeriaId": "1401",
+      "nombre": "Bebé Balam, Defensor en Pañales",
       "tipo": "pj",
-      "rareza": "comun",
       "coste": 1,
-      "fue": 2,
-      "res": 1,
+      "imp": 2,
       "cor": 1,
-      "imp": 1,
-      "img": "julian.jpg",
-      "texto": "Al ser llamado: roba 1 carta de BA o BP (tú eliges).",
+      "fue": 1,
+      "res": 1,
+      "habilidades": [
+        "HEROISMO",
+        "EMBOSCADA"
+      ],
+      "texto": "Cuando tu adversario niega la activación o destruye una de tus cartas: puedes descartar esta carta de tu mano al Mictlán, selecciona un personaje Confinado y llámalo de forma especial a tu lado del campo. HEROÍSMO. EMBOSCADA.",
       "efectos": [
         {
-          "cuando": "al_llamar",
-          "accion": "robar",
-          "origen": [
-            "ba",
-            "bp"
-          ],
-          "cantidad": 1,
-          "elegir": true
+          "cuando": "reaccion",
+          "accion": "desde_mano_al_negar",
+          "pendiente": true
         }
-      ]
+      ],
+      "rareza": "comun"
     },
     {
-      "id": "clio",
-      "nombre": "La Musa Clío",
+      "id": "koatl_dd",
+      "galeriaId": "046",
+      "nombre": "Koatl, Defensor Definitivo",
       "tipo": "pj",
-      "rareza": "comun",
-      "coste": 2,
-      "fue": 2,
-      "res": 6,
-      "cor": 2,
-      "imp": 1,
-      "img": "clio.jpg",
-      "texto": "Sin habilidad activa.",
-      "efectos": []
-    },
-    {
-      "id": "vulcar",
-      "nombre": "Vulcar, Cab. Cristal",
-      "tipo": "pj",
-      "rareza": "comun",
-      "coste": 5,
-      "fue": 7,
-      "res": 3,
-      "cor": 2,
-      "imp": 1,
-      "img": "vulcar.jpg",
-      "texto": "Habilidad al llamado normal.",
-      "efectos": []
-    },
-    {
-      "id": "koatl",
-      "nombre": "Koatl Def. Definitivo",
-      "tipo": "pj",
-      "rareza": "comun",
       "coste": 7,
+      "imp": 1,
+      "cor": 2,
       "fue": 6,
       "res": 5,
-      "cor": 2,
-      "imp": 1,
-      "img": "koatl.jpg",
-      "texto": "Al ser llamado: añade 1 APOYO de tu BP a tu mano.",
+      "texto": "Cuando este personaje es llamado a tu lado del campo: añade a tu mano una carta APOYO desde tu BP; llama de forma especial a un personaje con \"JULIAN TENNEK\" en su nombre desde tu BP, revuelve tu BP. Cuando este personaje es retirado del campo: llama de forma especial un personaje con \"KOATL\" en su nombre desde tu BP, revuelve tu BP.",
       "efectos": [
         {
           "cuando": "al_llamar",
-          "accion": "buscar",
-          "origen": "bp",
-          "tipo": "apoyo",
-          "cantidad": 1
+          "pasos": [
+            {
+              "accion": "buscar",
+              "origen": "bp",
+              "filtro": {
+                "tipo": "apoyo"
+              }
+            },
+            {
+              "accion": "llamar_especial",
+              "origen": "bp",
+              "filtro": {
+                "nombreIncluye": "JULIAN TENNEK"
+              }
+            }
+          ]
+        },
+        {
+          "cuando": "al_salir",
+          "pasos": [
+            {
+              "accion": "llamar_especial",
+              "origen": "bp",
+              "filtro": {
+                "nombreIncluye": "KOATL"
+              }
+            }
+          ]
         }
-      ]
+      ],
+      "rareza": "comun"
     },
     {
-      "id": "alma1",
-      "nombre": "Alma Prehispánica",
-      "tipo": "alma",
-      "rareza": "comun",
-      "valor": 1,
-      "img": "alma1.jpg",
-      "texto": "Alma valor 1."
+      "id": "koatl_esp",
+      "galeriaId": "031_R7",
+      "nombre": "Koatl, Espíritu del Defensor",
+      "tipo": "pj",
+      "coste": 5,
+      "imp": 1,
+      "cor": 1,
+      "fue": 3,
+      "res": 2,
+      "habilidades": [
+        "VALENTIA"
+      ],
+      "texto": "Sacrifica a este personaje en tu lado del campo y llama de forma especial a tu lado del campo a un personaje con \"Koatl\" en su nombre desde tu BP, revuelve tu BP. VALENTÍA: puedes llamar de forma especial a este personaje a tu lado del campo desde tu mano.",
+      "efectos": [
+        {
+          "cuando": "accion",
+          "texto": "Sacrificar y llamar un \"Koatl\" desde tu BP",
+          "condicion": {
+            "hay": {
+              "origen": "bp",
+              "filtro": {
+                "nombreIncluye": "KOATL"
+              },
+              "texto": "No hay personajes \"Koatl\" en tu BP"
+            }
+          },
+          "pasos": [
+            {
+              "accion": "sacrificar_esta"
+            },
+            {
+              "accion": "llamar_especial",
+              "origen": "bp",
+              "filtro": {
+                "nombreIncluye": "KOATL"
+              }
+            }
+          ]
+        }
+      ],
+      "rareza": "comun"
     },
     {
-      "id": "alma2",
-      "nombre": "Alma Difunta",
-      "tipo": "alma",
-      "rareza": "comun",
-      "valor": 2,
-      "img": "alma2.jpg",
-      "texto": "Alma valor 2."
+      "id": "m",
+      "galeriaId": "018_H9",
+      "nombre": "\"M\"",
+      "tipo": "pj",
+      "coste": 6,
+      "imp": 1,
+      "cor": 2,
+      "fue": 6,
+      "res": 6,
+      "invitado": true,
+      "texto": "Cuando un personaje es llamado de forma especial al campo: puedes llamar a este personaje de forma especial desde tu mano y por el resto del turno ningún jugador puede llamar personajes de forma especial (1 vez por turno, uso rápido). Una vez por turno durante tu Fase de Combate: selecciona un personaje en el campo y confina ese objetivo.",
+      "efectos": [
+        {
+          "cuando": "reaccion",
+          "accion": "al_llamado_especial",
+          "pendiente": true
+        },
+        {
+          "cuando": "combate",
+          "limite": "turno",
+          "texto": "Confinar un personaje del campo",
+          "pasos": [
+            {
+              "accion": "confinar_objetivo",
+              "lado": "ambos"
+            }
+          ]
+        }
+      ],
+      "rareza": "comun"
     },
     {
-      "id": "alma3",
-      "nombre": "Alma Reencarnación",
-      "tipo": "alma",
-      "rareza": "comun",
-      "valor": 3,
-      "img": "alma3.jpg",
-      "texto": "Alma valor 3."
+      "id": "mokozo",
+      "galeriaId": "SERIES_012",
+      "nombre": "MO-KOZO, Koatl",
+      "tipo": "pj",
+      "coste": 5,
+      "imp": 1,
+      "cor": 1,
+      "fue": 6,
+      "res": 4,
+      "texto": "Cuando una carta es activada que permita añadir o robar: puedes llamar a este personaje de forma especial desde tu mano; niega el efecto y retórnala al fondo de su baraja (1 vez por turno, uso rápido). Durante tu Fase de Acción, si controlas un personaje con \"DEFENSOR\" en su nombre: sacrifica este personaje y llama de forma especial un personaje con \"DEFENSOR\" desde tu BP, revuelve tu BP (1 vez por turno).",
+      "efectos": [
+        {
+          "cuando": "reaccion",
+          "accion": "negar_robo",
+          "pendiente": true
+        },
+        {
+          "cuando": "accion",
+          "limite": "turno",
+          "texto": "Sacrificar y llamar un \"DEFENSOR\" desde tu BP",
+          "condicion": {
+            "controlas": {
+              "filtro": {
+                "nombreIncluye": "DEFENSOR"
+              },
+              "excluirEsta": true,
+              "texto": "No controlas un personaje con \"DEFENSOR\""
+            },
+            "hay": {
+              "origen": "bp",
+              "filtro": {
+                "nombreIncluye": "DEFENSOR"
+              },
+              "texto": "No hay \"DEFENSOR\" en tu BP"
+            }
+          },
+          "pasos": [
+            {
+              "accion": "sacrificar_esta"
+            },
+            {
+              "accion": "llamar_especial",
+              "origen": "bp",
+              "filtro": {
+                "nombreIncluye": "DEFENSOR"
+              }
+            }
+          ]
+        }
+      ],
+      "rareza": "comun"
     },
     {
-      "id": "sector",
-      "nombre": "Batalla Entre Clanes",
+      "id": "mojito",
+      "galeriaId": "1027",
+      "nombre": "Mojito",
+      "tipo": "pj",
+      "coste": 1,
+      "imp": 1,
+      "cor": 2,
+      "fue": 0,
+      "res": 1,
+      "invitado": true,
+      "texto": "Descarta esta carta al Mictlán; selecciona una carta PERSONAJE \"Héroe Invitado\" que se encuentre en tu Mictlán, añade ese objetivo a tu mano.",
+      "efectos": [
+        {
+          "cuando": "mano",
+          "texto": "Descartar y recuperar un Héroe Invitado del Mictlán",
+          "condicion": {
+            "hay": {
+              "origen": "mictlan",
+              "filtro": {
+                "tipo": "pj",
+                "invitado": true
+              },
+              "texto": "No hay Héroes Invitados en tu Mictlán"
+            }
+          },
+          "pasos": [
+            {
+              "accion": "descartar_esta"
+            },
+            {
+              "accion": "buscar",
+              "origen": "mictlan",
+              "filtro": {
+                "tipo": "pj",
+                "invitado": true
+              }
+            }
+          ]
+        }
+      ],
+      "rareza": "comun"
+    },
+    {
+      "id": "quetzal",
+      "galeriaId": "022_H9",
+      "nombre": "Quetzalcoatl, Divinidad del Oeste",
+      "tipo": "pj",
+      "coste": 9,
+      "imp": 1,
+      "cor": 1,
+      "fue": 10,
+      "res": 10,
+      "dios": true,
+      "habilidades": [
+        "BRUTALIDAD"
+      ],
+      "texto": "Cuando este personaje es llamado a tu lado del campo: puedes retornar todas las cartas ALMA de tu Mictlán o confinadas al fondo de su baraja y ganas corazones de jugador iguales al número de cartas retornadas. Una vez por turno durante tu Fase de Acción: puedes revolver a tu BP cualquier cantidad de cartas de tu mano y robar la misma cantidad. BRUTALIDAD.",
+      "efectos": [
+        {
+          "cuando": "al_llamar",
+          "opcional": true,
+          "texto": "¿Retornar tus ALMAS del Mictlán y confinadas para ganar corazones?",
+          "pasos": [
+            {
+              "accion": "retornar_almas_mictlan"
+            }
+          ]
+        },
+        {
+          "cuando": "accion",
+          "limite": "turno",
+          "texto": "Revolver cartas de tu mano y robar",
+          "pasos": [
+            {
+              "accion": "barajear_mano"
+            }
+          ]
+        }
+      ],
+      "rareza": "comun"
+    },
+    {
+      "id": "rayah",
+      "galeriaId": "017_C8",
+      "nombre": "Rayah, La Genio",
+      "tipo": "pj",
+      "coste": 5,
+      "imp": 1,
+      "cor": 2,
+      "fue": 3,
+      "res": 4,
+      "invitado": true,
+      "texto": "Descarta esta carta al Mictlán; añade a tu mano una carta ARENA o SECTOR desde tu BP, revuelve tu BP. Si esta carta se encuentra en tu Mictlán: confina esta carta; añade a tu mano una carta ALMA o PERSONAJE desde su respectiva baraja, revuelve esa baraja. (Cada habilidad 1 vez por turno.)",
+      "efectos": [
+        {
+          "cuando": "mano",
+          "limite": "turno",
+          "texto": "Descartar y buscar ARENA o SECTOR",
+          "condicion": {
+            "hay": {
+              "origen": "bp",
+              "filtro": {
+                "tipos": [
+                  "arena",
+                  "sector"
+                ]
+              },
+              "texto": "No hay ARENA ni SECTOR en tu BP"
+            }
+          },
+          "pasos": [
+            {
+              "accion": "descartar_esta"
+            },
+            {
+              "accion": "buscar",
+              "origen": "bp",
+              "filtro": {
+                "tipos": [
+                  "arena",
+                  "sector"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "cuando": "mictlan",
+          "limite": "turno",
+          "texto": "Confinar y buscar ALMA o PERSONAJE",
+          "pasos": [
+            {
+              "accion": "confinar_esta"
+            },
+            {
+              "accion": "buscar",
+              "origen": [
+                "ba",
+                "bp"
+              ],
+              "filtro": {
+                "tipos": [
+                  "alma",
+                  "pj"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "rareza": "comun"
+    },
+    {
+      "id": "yao",
+      "galeriaId": "007_C8",
+      "nombre": "Yao, Gran Vigilante del Tiempo",
+      "tipo": "pj",
+      "coste": 8,
+      "imp": 2,
+      "cor": 2,
+      "fue": 8,
+      "res": 6,
+      "habilidades": [
+        "VALENTIA",
+        "BASTION"
+      ],
+      "texto": "Mientras esta carta permanezca en el campo, personajes con \"DESATADO\" y/o \"NAHUAL\" no pueden ser llamados de forma especial ni activar sus habilidades, y todos tus personajes con \"DEFENSOR\", \"VIGILANTE\" y/o \"GUARDIAN\" en el nombre ganan un punto más de fuerza y resistencia. VALENTÍA. BASTIÓN: mientras esta carta permanezca en el campo, cartas en tu lado del campo no pueden ser destruidas por habilidades de personajes o efectos de cartas.",
+      "efectos": [
+        {
+          "cuando": "pasivo",
+          "accion": "aura_nombre",
+          "pendiente": true
+        }
+      ],
+      "rareza": "comun"
+    },
+    {
+      "id": "elena",
+      "galeriaId": "018_C8",
+      "nombre": "Elena Belmondo",
+      "tipo": "pj",
+      "coste": 4,
+      "imp": 1,
+      "cor": 2,
+      "fue": 6,
+      "res": 2,
+      "invitado": true,
+      "texto": "Puedes mostrar esta carta en tu mano y colocarla en una zona SECTOR en el campo; es tratada como carta SECTOR. Mientras sea tratada como SECTOR, niega todas las habilidades de los personajes que se encuentren en este SECTOR.",
+      "efectos": [
+        {
+          "cuando": "mano",
+          "accion": "como_sector",
+          "pendiente": true
+        }
+      ],
+      "rareza": "comun"
+    },
+    {
+      "id": "acecho",
+      "galeriaId": "017_R7",
+      "nombre": "Acecho del Cazarecompensas",
+      "tipo": "apoyo",
+      "texto": "Retorna todos los personajes en el campo al fondo de su respectiva BP, en cualquier orden.",
+      "efectos": [
+        {
+          "cuando": "activar",
+          "pasos": [
+            {
+              "accion": "retornar_campo_bp"
+            }
+          ]
+        }
+      ],
+      "rareza": "comun"
+    },
+    {
+      "id": "auxilio",
+      "galeriaId": "1236",
+      "nombre": "Auxilio Ancestral",
+      "tipo": "apoyo",
+      "texto": "Pierde un corazón: roba dos cartas de tu baraja principal o de tu baraja de almas. (Solo podrás activar un \"Auxilio Ancestral\" por turno.)",
+      "efectos": [
+        {
+          "cuando": "activar",
+          "limite": "turno",
+          "costo": {
+            "corazones": 1
+          },
+          "pasos": [
+            {
+              "accion": "robar",
+              "origen": [
+                "bp",
+                "ba"
+              ],
+              "cantidad": 2,
+              "elegir": true
+            }
+          ]
+        }
+      ],
+      "rareza": "comun"
+    },
+    {
+      "id": "cataclismo",
+      "galeriaId": "1126",
+      "nombre": "Cataclismo",
+      "tipo": "apoyo",
+      "subtipo": "rapido",
+      "texto": "Destruye una carta TIERRA o SECTOR activa en el campo.",
+      "efectos": [
+        {
+          "cuando": "activar",
+          "pendiente": true
+        }
+      ],
+      "rareza": "comun"
+    },
+    {
+      "id": "devastacion",
+      "galeriaId": "1130",
+      "nombre": "Devastación",
+      "tipo": "apoyo",
+      "texto": "Pierde 2 corazones: destruye todos los personajes que se encuentren en el campo de tu adversario.",
+      "efectos": [
+        {
+          "cuando": "activar",
+          "costo": {
+            "corazones": 2
+          },
+          "pasos": [
+            {
+              "accion": "destruir_campo_rival"
+            }
+          ]
+        }
+      ],
+      "rareza": "comun"
+    },
+    {
+      "id": "espada_divina",
+      "galeriaId": "1182",
+      "nombre": "Espada Divina",
+      "tipo": "apoyo",
+      "subtipo": "equipo",
+      "texto": "Equipa esta carta a un personaje de tu lado del campo: ese personaje gana 1 punto de fuerza y resistencia por cada personaje en el campo.",
+      "efectos": [
+        {
+          "cuando": "activar",
+          "pendiente": true
+        }
+      ],
+      "rareza": "comun"
+    },
+    {
+      "id": "hacha_divina",
+      "galeriaId": "1184",
+      "nombre": "Hacha Divina",
+      "tipo": "apoyo",
+      "subtipo": "equipo",
+      "texto": "Equipa esta carta a un personaje de tu lado del campo: ese personaje gana 1 punto de fuerza y resistencia por cada carta en tu mano.",
+      "efectos": [
+        {
+          "cuando": "activar",
+          "pendiente": true
+        }
+      ],
+      "rareza": "comun"
+    },
+    {
+      "id": "lanza_divina",
+      "galeriaId": "1183",
+      "nombre": "Lanza Divina",
+      "tipo": "apoyo",
+      "subtipo": "equipo",
+      "texto": "Equipa esta carta a un personaje de tu lado del campo: ese personaje gana 1 punto de fuerza y resistencia por cada carta ALMA activa en el campo.",
+      "efectos": [
+        {
+          "cuando": "activar",
+          "pendiente": true
+        }
+      ],
+      "rareza": "comun"
+    },
+    {
+      "id": "loto",
+      "galeriaId": "1097",
+      "nombre": "Loto Mágico de la Oscuridad",
+      "tipo": "apoyo",
+      "texto": "Selecciona una carta APOYO que se encuentre en tu Mictlán y confina esa carta; esta carta gana el efecto de ese objetivo. (Solo podrás activar el efecto de \"Loto Mágico de la Oscuridad\" una vez por turno.)",
+      "efectos": [
+        {
+          "cuando": "activar",
+          "limite": "turno",
+          "condicion": {
+            "hay": {
+              "origen": "mictlan",
+              "filtro": {
+                "tipo": "apoyo"
+              },
+              "texto": "No hay APOYO en tu Mictlán"
+            }
+          },
+          "pasos": [
+            {
+              "accion": "copiar_apoyo_mictlan"
+            }
+          ]
+        }
+      ],
+      "rareza": "comun"
+    },
+    {
+      "id": "refuerzo",
+      "galeriaId": "SERIES_013",
+      "nombre": "Refuerzo Heroico",
+      "tipo": "apoyo",
+      "texto": "Añade a tu mano un personaje desde tu BP, revuelve tu BP. (Solo puedes activar el efecto de \"Refuerzo Heroico\" una vez por turno.)",
+      "efectos": [
+        {
+          "cuando": "activar",
+          "limite": "turno",
+          "condicion": {
+            "hay": {
+              "origen": "bp",
+              "filtro": {
+                "tipo": "pj"
+              },
+              "texto": "No hay personajes en tu BP"
+            }
+          },
+          "pasos": [
+            {
+              "accion": "buscar",
+              "origen": "bp",
+              "filtro": {
+                "tipo": "pj"
+              }
+            }
+          ]
+        }
+      ],
+      "rareza": "comun"
+    },
+    {
+      "id": "resurreccion",
+      "galeriaId": "1071",
+      "nombre": "Resurrección Ancestral",
+      "tipo": "apoyo",
+      "texto": "Selecciona un personaje que se encuentre en tu Mictlán; llama de forma especial a ese personaje a tu lado del campo.",
+      "efectos": [
+        {
+          "cuando": "activar",
+          "condicion": {
+            "zonaLibre": true,
+            "hay": {
+              "origen": "mictlan",
+              "filtro": {
+                "tipos": [
+                  "pj",
+                  "amalgama"
+                ]
+              },
+              "texto": "No hay personajes en tu Mictlán"
+            }
+          },
+          "pasos": [
+            {
+              "accion": "llamar_especial",
+              "origen": "mictlan"
+            }
+          ]
+        }
+      ],
+      "rareza": "comun"
+    },
+    {
+      "id": "trazador",
+      "galeriaId": "022_C8",
+      "nombre": "Trazador de Pesadillas",
+      "tipo": "apoyo",
+      "subtipo": "rapido",
+      "texto": "Cuando un personaje fuera a ser llamado o la habilidad de un personaje o efecto de carta vaya a ser activada: niega ese llamado o activación y confina esa carta.",
+      "efectos": [
+        {
+          "cuando": "activar",
+          "pendiente": true
+        }
+      ],
+      "rareza": "comun"
+    },
+    {
+      "id": "batalla",
+      "galeriaId": "1162",
+      "nombre": "Batalla entre Clanes",
       "tipo": "sector",
-      "rareza": "comun",
-      "img": "sector.jpg",
       "texto": "Personajes aquí atacan sin descansar (exc. primer turno).",
       "efectos": [
         {
           "cuando": "pasivo",
           "accion": "sin_descanso"
         }
-      ]
+      ],
+      "rareza": "comun"
     },
     {
-      "id": "apoyo",
-      "nombre": "Auxilio Ancestral",
-      "tipo": "apoyo",
-      "rareza": "comun",
-      "img": "apoyo.jpg",
-      "texto": "Pierde 1 corazón: roba 2 cartas de BP o BA (1 vez/turno).",
+      "id": "ofrenda_dioses",
+      "galeriaId": "033_R7",
+      "nombre": "Ofrenda a los Dioses",
+      "tipo": "sector",
+      "texto": "Sacrifica un personaje que se encuentre en este sector y envíalo al Mictlán, suma sus corazones a los tuyos como jugador. (Solo podrás activar el efecto de \"Ofrenda a los Dioses\" una vez por turno.)",
       "efectos": [
         {
-          "cuando": "activar",
+          "cuando": "sector",
+          "limite": "turno",
+          "texto": "Sacrificar un personaje de este sector y sumar sus corazones",
+          "condicion": {
+            "sectorConPJ": true
+          },
+          "pasos": [
+            {
+              "accion": "sacrificar_pj_sector"
+            }
+          ]
+        }
+      ],
+      "rareza": "comun"
+    },
+    {
+      "id": "sector_bloqueado",
+      "galeriaId": "012_R7",
+      "nombre": "Sector Bloqueado",
+      "tipo": "sector",
+      "texto": "Activa esta carta en una zona SECTOR vacía u ocupada de tu adversario. Mientras esta carta se encuentre activa, los personajes de este sector pierden fuerza y resistencia igual al número de corazones de jugador que tenga tu adversario.",
+      "efectos": [
+        {
+          "cuando": "pasivo",
+          "accion": "debilitar_sector",
+          "pendiente": true
+        }
+      ],
+      "rareza": "comun"
+    },
+    {
+      "id": "tenochtitlan",
+      "galeriaId": "1069",
+      "nombre": "La Gran Tenochtitlán",
+      "tipo": "arena",
+      "texto": "Los personajes con \"Defensor\", \"Vigilante\" y \"Guardián\" en su nombre en tu lado del campo incrementan sus puntajes según la cantidad que controles (no acumulable): 2 o más: +1 fuerza. 3 o más: +1 resistencia. 4 o más: +1 corazón extra.",
+      "efectos": [
+        {
+          "cuando": "pasivo",
+          "accion": "aura_arena",
+          "pendiente": true
+        }
+      ],
+      "rareza": "comun"
+    },
+    {
+      "id": "nexotlan_arena",
+      "galeriaId": "1397",
+      "nombre": "Nexotlan",
+      "tipo": "arena",
+      "texto": "Solo puede existir una ARENA \"NEXOTLAN\" en el campo. Mientras esté activa, tus corazones de jugador no pueden ser disminuidos por ataque, habilidad o efecto. Si fuera a ser destruida, puedes pagar 1 corazón de uno de tus personajes en su lugar. En tu Fase de Acción puedes retornar 1 personaje al fondo de tu BP y llamar de forma especial uno del mismo valor o menor desde tu BP. Si uno de tus personajes fuera a ser atacado, puedes elegir otro para responder al choque.",
+      "efectos": [
+        {
+          "cuando": "pasivo",
+          "accion": "arena_nexotlan",
+          "pendiente": true
+        }
+      ],
+      "rareza": "comun"
+    },
+    {
+      "id": "alma_caballero",
+      "galeriaId": "1050",
+      "nombre": "Alma de Caballero",
+      "tipo": "alma",
+      "valor": 2,
+      "texto": "Alma continua de valor 2.",
+      "rareza": "comun"
+    },
+    {
+      "id": "alma_defensor",
+      "galeriaId": "1049",
+      "nombre": "Alma de Defensor",
+      "tipo": "alma",
+      "valor": 3,
+      "texto": "Alma continua de valor 3.",
+      "rareza": "comun"
+    },
+    {
+      "id": "alma_lector",
+      "galeriaId": "051",
+      "nombre": "Alma de Lector",
+      "tipo": "alma",
+      "valor": 0,
+      "texto": "Cuando esta carta ALMA es activada: confina desde tu mano una carta de PERSONAJE, suma el valor del PERSONAJE confinado a esta carta. Destruye esta carta al final del turno en que fue activada. Mientras esta carta se encuentre en tu Mictlán: puedes pagar 1 corazón de jugador para retornarla al fondo de tu BA.",
+      "efectos": [
+        {
+          "cuando": "alma",
+          "pasos": [
+            {
+              "accion": "alma_confinar_pj_mano"
+            }
+          ]
+        },
+        {
+          "cuando": "fin_turno_alma",
+          "pasos": []
+        },
+        {
+          "cuando": "mictlan",
+          "texto": "Pagar 1 corazón y regresarla al fondo de tu BA",
           "costo": {
             "corazones": 1
           },
-          "accion": "robar",
-          "origen": "bp",
-          "cantidad": 2,
-          "limite": "1_por_turno"
+          "pasos": [
+            {
+              "accion": "alma_retornar_ba"
+            }
+          ]
         }
-      ]
+      ],
+      "rareza": "comun"
     },
     {
-      "id": "apoyoR",
-      "nombre": "Torneo de Héroes",
-      "tipo": "apoyoR",
-      "rareza": "comun",
-      "img": "apoyoR.jpg",
-      "texto": "Solo turno rival: cuando activa APOYO, pierde 1 corazón, niega y destruye esa carta.",
+      "id": "alma_quetzal",
+      "galeriaId": "1096",
+      "nombre": "Alma de Quetzal",
+      "tipo": "alma",
+      "valor": 1,
+      "texto": "Cuando esta carta ALMA es activada: revela la carta del tope de tu baraja de almas y envíala al Mictlán; suma el valor de la carta revelada a esta carta y gana corazones igual al valor de la carta revelada. Al final del turno, destruye esta carta ALMA.",
       "efectos": [
         {
-          "cuando": "reaccion_apoyo_rival",
-          "accion": "negar",
+          "cuando": "alma",
+          "pasos": [
+            {
+              "accion": "alma_revelar_ba",
+              "aMictlan": true,
+              "ganarCorazones": true
+            }
+          ]
+        },
+        {
+          "cuando": "fin_turno_alma",
+          "pasos": []
+        }
+      ],
+      "rareza": "comun"
+    },
+    {
+      "id": "alma_difunta",
+      "galeriaId": "002_R7",
+      "nombre": "Alma Difunta",
+      "tipo": "alma",
+      "valor": 2,
+      "texto": "Alma continua de valor 2.",
+      "rareza": "comun"
+    },
+    {
+      "id": "alma_enmax",
+      "galeriaId": "037_R7",
+      "nombre": "Alma Enmaxkarada",
+      "tipo": "alma",
+      "valor": 3,
+      "texto": "Alma continua de valor 3.",
+      "rareza": "comun"
+    },
+    {
+      "id": "alma_nexotlan",
+      "galeriaId": "1396",
+      "nombre": "Alma Nexotlan",
+      "tipo": "alma",
+      "valor": 0,
+      "texto": "Esta carta ALMA adquiere el valor igual al número de cartas de PERSONAJE en tu mano. Destruye esta carta ALMA al final del turno en que fue activada; roba una carta de tu BP o BA.",
+      "efectos": [
+        {
+          "cuando": "alma",
+          "pasos": [
+            {
+              "accion": "alma_valor_pj_mano"
+            }
+          ]
+        },
+        {
+          "cuando": "fin_turno_alma",
+          "pasos": [
+            {
+              "accion": "robar",
+              "origen": [
+                "bp",
+                "ba"
+              ],
+              "cantidad": 1,
+              "elegir": true
+            }
+          ]
+        }
+      ],
+      "rareza": "comun"
+    },
+    {
+      "id": "alma_reenc",
+      "galeriaId": "001_R7",
+      "nombre": "Alma Reencarnación",
+      "tipo": "alma",
+      "valor": 3,
+      "texto": "Alma continua de valor 3.",
+      "rareza": "comun"
+    },
+    {
+      "id": "anima",
+      "galeriaId": "1131",
+      "nombre": "Ánima del Destructor",
+      "tipo": "alma",
+      "valor": 1,
+      "texto": "Cuando esta carta ALMA es activada: pierde un corazón; revela la carta del tope de tu baraja de almas, suma su valor a esta carta, retórnala al fondo de tu BA y revuelve. Al final del turno destruye esta carta y, si tu adversario tiene una o más cartas en su mano, pierde un corazón.",
+      "efectos": [
+        {
+          "cuando": "alma",
+          "costo": {
+            "corazones": 1
+          },
+          "pasos": [
+            {
+              "accion": "alma_revelar_ba",
+              "aMictlan": false
+            }
+          ]
+        },
+        {
+          "cuando": "fin_turno_alma",
+          "pasos": [
+            {
+              "accion": "rival_pierde_si_mano"
+            }
+          ]
+        }
+      ],
+      "rareza": "comun"
+    },
+    {
+      "id": "cipacdragon",
+      "galeriaId": "005_C8",
+      "nombre": "Cipacdragón, La Bestia Terrena",
+      "tipo": "amalgama",
+      "gama": 8,
+      "imp": 1,
+      "cor": 2,
+      "fue": 10,
+      "res": 7,
+      "habilidades": [
+        "EMBOSCADA"
+      ],
+      "texto": "Solo puedes activar una de estas habilidades una vez por turno: confina un personaje del campo; añade a tu mano un APOYO de tu Mictlán; o descarta al azar de la mano rival tantas cartas como corazones tengas (si su mano tiene igual o más cartas que tus corazones). EMBOSCADA.",
+      "llamadoEspecial": {
+        "texto": "Confina/aísla 2 personajes de valor 8 o mayor de tu mano.",
+        "materiales": [
+          {
+            "cantidad": 2,
+            "valorMin": 8
+          }
+        ],
+        "origen": [
+          "mano"
+        ],
+        "destino": "confinar"
+      },
+      "efectos": [
+        {
+          "cuando": "accion",
+          "limite": "turno",
+          "texto": "Usar una habilidad de Cipacdragón",
+          "pasos": [
+            {
+              "accion": "elegir_una",
+              "opciones": [
+                {
+                  "texto": "⛓ Confinar un personaje del campo",
+                  "pasos": [
+                    {
+                      "accion": "confinar_objetivo",
+                      "lado": "ambos"
+                    }
+                  ]
+                },
+                {
+                  "texto": "🔴 Añadir un APOYO de tu Mictlán",
+                  "condicion": {
+                    "hay": {
+                      "origen": "mictlan",
+                      "filtro": {
+                        "tipo": "apoyo"
+                      }
+                    }
+                  },
+                  "pasos": [
+                    {
+                      "accion": "buscar",
+                      "origen": "mictlan",
+                      "filtro": {
+                        "tipo": "apoyo"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "texto": "🃏 Descartar al azar de la mano rival",
+                  "condicion": {
+                    "manoRivalMinCorazones": true
+                  },
+                  "pasos": [
+                    {
+                      "accion": "descartar_azar_rival"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "rareza": "comun"
+    },
+    {
+      "id": "xodhan",
+      "galeriaId": "004_R7",
+      "nombre": "EX-Pada Encantadora, Xo-Dhan",
+      "tipo": "amalgama",
+      "gama": 5,
+      "imp": 1,
+      "cor": 3,
+      "fue": 8,
+      "res": 6,
+      "habilidades": [
+        "EMBOSCADA"
+      ],
+      "texto": "Cuando este personaje es llamado a tu lado del campo: selecciona una carta PERSONAJE de tu Mictlán, añádela a tu mano y roba una carta de tu BP. EMBOSCADA.",
+      "llamadoEspecial": {
+        "texto": "Aísla dos personajes de valor 5 de tu mano (boca abajo).",
+        "materiales": [
+          {
+            "cantidad": 2,
+            "valor": 5
+          }
+        ],
+        "origen": [
+          "mano"
+        ],
+        "destino": "confinar"
+      },
+      "efectos": [
+        {
+          "cuando": "al_llamar",
+          "pasos": [
+            {
+              "accion": "buscar",
+              "origen": "mictlan",
+              "filtro": {
+                "tipo": "pj"
+              }
+            },
+            {
+              "accion": "robar",
+              "origen": "bp",
+              "cantidad": 1
+            }
+          ]
+        }
+      ],
+      "rareza": "comun"
+    },
+    {
+      "id": "vika",
+      "galeriaId": "002_H9",
+      "nombre": "Vika, Hechicera Oscura",
+      "tipo": "amalgama",
+      "gama": 5,
+      "imp": 1,
+      "cor": 2,
+      "fue": 6,
+      "res": 5,
+      "texto": "Cuando este personaje es llamado desde tu BS: puedes añadir a tu mano un personaje HÉROE INVITADO desde tu BP, revuelve tu BP. Gana 1 punto de fuerza y resistencia por cada personaje HÉROE INVITADO con diferente nombre en tu Mictlán. Una vez por turno en tu Fase de Acción: puedes llamar un personaje HÉROE INVITADO de valor 4 o menor de forma especial desde tu BP.",
+      "llamadoEspecial": {
+        "texto": "Manda de tu lado del campo y/o mano al Mictlán 2 personajes HÉROE INVITADO con diferente nombre.",
+        "materiales": [
+          {
+            "cantidad": 2,
+            "invitado": true,
+            "distintos": true
+          }
+        ],
+        "origen": [
+          "campo",
+          "mano"
+        ],
+        "destino": "mictlan"
+      },
+      "efectos": [
+        {
+          "cuando": "al_llamar",
+          "opcional": true,
+          "texto": "¿Añadir un HÉROE INVITADO de tu BP a tu mano?",
+          "condicion": {
+            "hay": {
+              "origen": "bp",
+              "filtro": {
+                "tipo": "pj",
+                "invitado": true
+              }
+            }
+          },
+          "pasos": [
+            {
+              "accion": "buscar",
+              "origen": "bp",
+              "filtro": {
+                "tipo": "pj",
+                "invitado": true
+              }
+            }
+          ]
+        },
+        {
+          "cuando": "pasivo",
+          "accion": "bono_invitados_mictlan",
+          "pendiente": true
+        },
+        {
+          "cuando": "accion",
+          "limite": "turno",
+          "texto": "Llamar un HÉROE INVITADO (valor ≤4) desde tu BP",
+          "condicion": {
+            "zonaLibre": true,
+            "hay": {
+              "origen": "bp",
+              "filtro": {
+                "tipo": "pj",
+                "invitado": true,
+                "valorMax": 4
+              }
+            }
+          },
+          "pasos": [
+            {
+              "accion": "llamar_especial",
+              "origen": "bp",
+              "filtro": {
+                "tipo": "pj",
+                "invitado": true,
+                "valorMax": 4
+              }
+            }
+          ]
+        }
+      ],
+      "rareza": "comun"
+    },
+    {
+      "id": "volkot_cristal",
+      "galeriaId": "001_C8",
+      "nombre": "Volkot, El Defensor de Cristal",
+      "tipo": "amalgama",
+      "gama": 5,
+      "imp": 1,
+      "cor": 3,
+      "fue": 8,
+      "res": 6,
+      "habilidades": [
+        "EMBOSCADA"
+      ],
+      "texto": "Mientras esta carta permanezca en tu lado del campo, todos los personajes con \"CRISTAL\" y/o \"DEFENSOR\" en su nombre ganan un punto más de fuerza y resistencia por cada carta en tu mano. EMBOSCADA.",
+      "llamadoEspecial": {
+        "texto": "Confina/aísla 2 personajes de valor 5 de tu mano.",
+        "materiales": [
+          {
+            "cantidad": 2,
+            "valor": 5
+          }
+        ],
+        "origen": [
+          "mano"
+        ],
+        "destino": "confinar"
+      },
+      "efectos": [
+        {
+          "cuando": "pasivo",
+          "accion": "aura_nombre_mano",
           "pendiente": true
         }
-      ]
+      ],
+      "rareza": "comun"
     },
     {
       "id": "volkot",
+      "galeriaId": "SERIES_002",
       "nombre": "Volkot, El Dragón Defensor",
       "tipo": "amalgama",
-      "rareza": "comun",
       "gama": 5,
-      "fue": 7,
-      "res": 8,
-      "cor": 2,
       "imp": 1,
-      "img": "./cartas_2/series_002_full.jpg",
-      "imgMin": "./cartas_2/series_002.jpg",
-      "texto": "Mientras esta carta permanezca en tu lado del campo, personajes con \"CRISTAL\" y/o \"DEFENSOR\" en su nombre ganan 1 punto de fuerza y resistencia por cada carta en tu lado del campo. Una vez por turno durante tu Fase de Acción: un personaje en tu lado del campo gana BRUTALIDAD hasta el final del turno.",
+      "cor": 2,
+      "fue": 8,
+      "res": 7,
+      "texto": "Mientras esta carta permanezca en tu lado del campo, personajes con \"CRISTAL\" y/o \"DEFENSOR\" en su nombre ganan un punto más de fuerza y resistencia por cada carta en tu lado del campo. Una vez por turno durante tu Fase de Acción: selecciona un personaje en tu lado del campo y ese objetivo gana BRUTALIDAD hasta el final del turno.",
       "llamadoEspecial": {
         "texto": "Manda de tu lado del campo y/o mano al Mictlán 2 personajes de valor 5.",
         "materiales": [
@@ -196,202 +1182,290 @@
       "efectos": [
         {
           "cuando": "pasivo",
-          "accion": "bono_por_nombre",
-          "nombres": [
-            "CRISTAL",
-            "DEFENSOR"
-          ],
+          "accion": "aura_nombre_campo",
           "pendiente": true
         },
         {
-          "cuando": "activar_1_por_turno",
-          "accion": "dar_habilidad",
-          "habilidad": "BRUTALIDAD",
-          "pendiente": true
+          "cuando": "accion",
+          "limite": "turno",
+          "texto": "Dar BRUTALIDAD a un personaje",
+          "pasos": [
+            {
+              "accion": "dar_habilidad",
+              "habilidad": "BRUTALIDAD"
+            }
+          ]
         }
-      ]
-    },
-    {
-      "id": "cipacdragon",
-      "nombre": "Cipacdragón, La Bestia Terrena",
-      "tipo": "amalgama",
-      "rareza": "comun",
-      "gama": 8,
-      "fue": 7,
-      "res": 10,
-      "cor": 2,
-      "imp": 1,
-      "img": "./cartas/carta_053_full.jpg",
-      "texto": "Solo puedes activar una de estas habilidades una vez por turno: confinar un personaje del campo; añadir un APOYO de tu Mictlán a tu mano; o descartar al azar de la mano rival tantas cartas como corazones tengas. EMBOSCADA: puede atacar los corazones del adversario directamente.",
-      "llamadoEspecial": {
-        "texto": "Confina 2 PERSONAJES de valor 8 o mayor de tu mano.",
-        "materiales": [
-          {
-            "cantidad": 2,
-            "valorMin": 8
-          }
-        ],
-        "origen": [
-          "mano"
-        ],
-        "destino": "confinar"
-      },
-      "efectos": [
-        {
-          "cuando": "pasivo",
-          "accion": "habilidad",
-          "habilidad": "EMBOSCADA",
-          "pendiente": true
-        }
-      ]
+      ],
+      "rareza": "comun"
     }
   ],
   "mazos": {
     "jugador": {
       "bp": [
         {
-          "id": "julian",
+          "id": "acecho",
+          "copias": 1
+        },
+        {
+          "id": "auxilio",
+          "copias": 2
+        },
+        {
+          "id": "batalla",
           "copias": 3
         },
         {
-          "id": "clio",
-          "copias": 4
+          "id": "bebe_balam",
+          "copias": 2
         },
         {
-          "id": "vulcar",
-          "copias": 4
-        },
-        {
-          "id": "koatl",
-          "copias": 4
-        },
-        {
-          "id": "apoyo",
-          "copias": 4
-        },
-        {
-          "id": "apoyoR",
-          "copias": 4
-        },
-        {
-          "id": "sector",
-          "copias": 4
-        },
-        {
-          "id": "alma1",
+          "id": "devastacion",
           "copias": 1
         },
         {
-          "id": "alma2",
+          "id": "koatl_dd",
+          "copias": 3
+        },
+        {
+          "id": "koatl_esp",
+          "copias": 3
+        },
+        {
+          "id": "loto",
           "copias": 1
         },
         {
-          "id": "alma3",
+          "id": "m",
           "copias": 1
+        },
+        {
+          "id": "mokozo",
+          "copias": 2
+        },
+        {
+          "id": "mojito",
+          "copias": 1
+        },
+        {
+          "id": "ofrenda_dioses",
+          "copias": 2
+        },
+        {
+          "id": "quetzal",
+          "copias": 1
+        },
+        {
+          "id": "rayah",
+          "copias": 1
+        },
+        {
+          "id": "refuerzo",
+          "copias": 1
+        },
+        {
+          "id": "resurreccion",
+          "copias": 1
+        },
+        {
+          "id": "yao",
+          "copias": 3
         }
       ],
       "ba": [
         {
-          "id": "alma1",
-          "copias": 3
-        },
-        {
-          "id": "alma2",
-          "copias": 3
-        },
-        {
-          "id": "alma3",
-          "copias": 3
-        }
-      ],
-      "manoInicial": [
-        "julian",
-        "clio",
-        "apoyo",
-        "alma1"
-      ],
-      "almasIniciales": [],
-      "bs": [
-        {
-          "id": "volkot",
+          "id": "alma_caballero",
           "copias": 2
         },
         {
-          "id": "cipacdragon",
+          "id": "alma_defensor",
+          "copias": 3
+        },
+        {
+          "id": "alma_lector",
+          "copias": 2
+        },
+        {
+          "id": "alma_quetzal",
+          "copias": 2
+        },
+        {
+          "id": "alma_difunta",
+          "copias": 1
+        },
+        {
+          "id": "alma_enmax",
+          "copias": 1
+        },
+        {
+          "id": "alma_nexotlan",
+          "copias": 2
+        },
+        {
+          "id": "alma_reenc",
+          "copias": 1
+        },
+        {
+          "id": "anima",
           "copias": 1
         }
-      ]
+      ],
+      "bs": [
+        {
+          "id": "cipacdragon",
+          "copias": 1
+        },
+        {
+          "id": "xodhan",
+          "copias": 2
+        },
+        {
+          "id": "vika",
+          "copias": 1
+        },
+        {
+          "id": "volkot_cristal",
+          "copias": 1
+        },
+        {
+          "id": "volkot",
+          "copias": 2
+        }
+      ],
+      "almasIniciales": []
     },
     "cpu": {
       "bp": [
         {
-          "id": "julian",
+          "id": "acecho",
+          "copias": 1
+        },
+        {
+          "id": "auxilio",
+          "copias": 2
+        },
+        {
+          "id": "batalla",
           "copias": 3
         },
         {
-          "id": "clio",
-          "copias": 4
+          "id": "bebe_balam",
+          "copias": 2
         },
         {
-          "id": "vulcar",
-          "copias": 4
-        },
-        {
-          "id": "koatl",
-          "copias": 4
-        },
-        {
-          "id": "apoyo",
-          "copias": 4
-        },
-        {
-          "id": "apoyoR",
-          "copias": 4
-        },
-        {
-          "id": "sector",
-          "copias": 4
-        },
-        {
-          "id": "alma1",
+          "id": "devastacion",
           "copias": 1
         },
         {
-          "id": "alma2",
+          "id": "koatl_dd",
+          "copias": 3
+        },
+        {
+          "id": "koatl_esp",
+          "copias": 3
+        },
+        {
+          "id": "loto",
           "copias": 1
         },
         {
-          "id": "alma3",
+          "id": "m",
           "copias": 1
+        },
+        {
+          "id": "mokozo",
+          "copias": 2
+        },
+        {
+          "id": "mojito",
+          "copias": 1
+        },
+        {
+          "id": "ofrenda_dioses",
+          "copias": 2
+        },
+        {
+          "id": "quetzal",
+          "copias": 1
+        },
+        {
+          "id": "rayah",
+          "copias": 1
+        },
+        {
+          "id": "refuerzo",
+          "copias": 1
+        },
+        {
+          "id": "resurreccion",
+          "copias": 1
+        },
+        {
+          "id": "yao",
+          "copias": 3
         }
       ],
       "ba": [
         {
-          "id": "alma1",
+          "id": "alma_caballero",
+          "copias": 2
+        },
+        {
+          "id": "alma_defensor",
           "copias": 3
         },
         {
-          "id": "alma2",
-          "copias": 3
+          "id": "alma_lector",
+          "copias": 2
         },
         {
-          "id": "alma3",
-          "copias": 3
+          "id": "alma_quetzal",
+          "copias": 2
+        },
+        {
+          "id": "alma_difunta",
+          "copias": 1
+        },
+        {
+          "id": "alma_enmax",
+          "copias": 1
+        },
+        {
+          "id": "alma_nexotlan",
+          "copias": 2
+        },
+        {
+          "id": "alma_reenc",
+          "copias": 1
+        },
+        {
+          "id": "anima",
+          "copias": 1
         }
       ],
-      "manoInicial": [
-        "julian",
-        "vulcar",
-        "apoyoR",
-        "alma2"
-      ],
-      "almasIniciales": [],
       "bs": [
+        {
+          "id": "cipacdragon",
+          "copias": 1
+        },
+        {
+          "id": "xodhan",
+          "copias": 2
+        },
+        {
+          "id": "vika",
+          "copias": 1
+        },
+        {
+          "id": "volkot_cristal",
+          "copias": 1
+        },
         {
           "id": "volkot",
           "copias": 2
         }
-      ]
+      ],
+      "almasIniciales": []
     }
   }
 }

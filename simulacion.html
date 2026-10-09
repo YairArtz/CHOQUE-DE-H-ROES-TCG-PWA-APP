@@ -748,7 +748,7 @@ html,body{
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v25';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v26';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -1016,7 +1016,7 @@ async function loadData(onProgress){
       id:c.id, name:c.nombre||c.id, type:c.tipo, rareza:c.rareza||'comun',
       cost:c.coste??0, fue:c.fue??0, res:c.res??0, cor:c.cor??1, imp:c.imp??1, val:c.valor??0,
       img, imgMin:c.imgMin?resolveImg(minBase||base,c.imgMin):(minBase&&c.img&&!/^(https?:|data:|\/|\.\/)/.test(c.img)?minBase+c.img:img),
-      gama:c.gama??0, esp:c.llamadoEspecial||null, subtipo:c.subtipo||'normal', colocar:c.colocar||null, sustituto:c.sustitutoAmalgama||null,
+      gama:c.gama??0, esp:c.llamadoEspecial||null, subtipo:c.subtipo||'normal', colocar:c.colocar||null, sustituto:c.sustitutoAmalgama||null, noNormal:!!c.noNormal, soloPor:c.soloPor||null,
       invitado:!!c.invitado, dios:!!c.dios, hab:(c.habilidades||[]).map(h=>String(h).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase()),
       eff:c.texto||'', efectos:Array.isArray(c.efectos)?c.efectos:[]
     };
@@ -1152,7 +1152,18 @@ function who(o){return o==='player'?'':' (CPU)';}
 function almaVal(s){return s?((C[s.card].val||0)+(s.bonus||0)+(s.cont||0)):0;}
 // Contadores ALMA: se colocan sobre cartas ALMA activas y suman +1 a su valor mientras estén ahí
 function contAlma(o){return G[o].apoyo.reduce((t,x)=>t+(x&&x.type==='alma'?(x.cont||0):0),0);}
-function almaT(o){return G[o].apoyo.reduce((t,x)=>t+(x&&x.type==='alma'?almaVal(x):0),0);}
+function almaT(o){return G[o].apoyo.reduce((t,x)=>t+(x&&x.type==='alma'?almaEf(o,x):0),0);}
+// COPAL ENVOKATETL (APOYO CONTINUO): en tu Fase de Acción cada ALMA activa vale 9
+function copalDe(o){const a=G[o].apoyo.find(x=>x&&x.type==='continuo'&&hasPassive(x.card,'almas_valor'));return a?a.card:null;}
+function copalOn(o){return !!copalDe(o)&&G.active===o&&(o==='cpu'?G.phase==='cpu':G.phase==='action');}
+function almaEf(o,s){if(!s)return 0;if(G&&copalOn(o)){const e=(C[copalDe(o)].efectos||[]).find(x=>x.accion==='almas_valor');return e.valor+(s.cont||0);}return almaVal(s);}
+// ¿Puede llamarse de forma normal? (Primigenios no; con Copal solo DIOS/ENVOKATETL)
+function puedeNormal(o,cid){
+  if(C[cid].noNormal) return 'No puede ser llamado de forma normal';
+  const cp=copalDe(o);
+  if(cp){const e=(C[cp].efectos||[]).find(x=>x.accion==='almas_valor');if(e&&e.restringeNormal&&!matchF(cid,e.restringeNormal))return 'Con Copal solo llamas de forma normal DIOSES y ENVOKATETL';}
+  return '';
+}
 function freeApo(o){return G[o].apoyo.findIndex(x=>x===null);}
 function freePJ(o){return G[o].pj.findIndex(x=>x===null);}
 function bastion(o){return G[o].pj.some(p=>p&&hasKw(p,'BASTION'));}
@@ -1182,6 +1193,8 @@ function matchF(cid,f){
   if(f.nombreIncluye&&![].concat(f.nombreIncluye).some(n=>K(c.name).includes(K(n)))) return false;
   if(f.nombreTodos&&![].concat(f.nombreTodos).every(n=>K(c.name).includes(K(n)))) return false;
   if(f.excluirId&&cid===f.excluirId) return false;
+  if(f.dios&&!c.dios) return false;
+  if(f.alguno&&!f.alguno.some(g=>matchF(cid,g))) return false;
   if(f.subtipo&&c.subtipo!==f.subtipo) return false;
   if(f.invitado&&!c.invitado) return false;
   if(f.valor!=null&&c.cost!==f.valor) return false;
@@ -1295,7 +1308,7 @@ const PASOS={
     const n=st.cantidad||1, nombres=new Set();
     let hechos=0;
     for(let k=0;k<n;k++){
-      let list=cands(ctx.o,st.origen||'bp',Object.assign({tipos:['pj','amalgama']},st.filtro));
+      let list=cands(ctx.o,st.origen||'bp',Object.assign({tipos:['pj','amalgama']},st.filtro)).filter(x=>!C[x.cid].soloPor||C[x.cid].soloPor.some(k=>ctx.cid===k||String(ctx.cid).startsWith(k)));
       if(st.distintos) list=list.filter(x=>!nombres.has(K(C[x.cid].name)));
       if(!list.length){if(!k)lg('✨ '+C[ctx.cid].name+': no hay personajes válidos en '+[].concat(st.origen||'bp').map(z=>SRC_NOM[z]).join('/')+'.','var(--muted)');break;}
       const side=st.mismoSector&&ctx.slot!=null?sideOfSlot(ctx.o,ctx.slot):null;
@@ -1310,6 +1323,7 @@ const PASOS={
       if([].concat(st.origen||'bp').includes('bp')) sh(G[ctx.o].bp);
       nombres.add(K(C[cid].name));hechos++;
       await placeChar(ctx.o,cid,{via:'especial',from:SRC_NOM[x.z],por:ctx.cid,otorgar:st.otorgar,side});
+      if(st.alFinal){const q=G[ctx.o].pj.find(p=>p&&p.id===cid&&p.turnoLlamado===turnKey());if(q){q.alFinal=st.alFinal;lg('⏳ <b>'+C[cid].name+'</b> será confinado al finalizar el turno.','var(--muted)');}}
       if(st.otorgar) lg('⚡ <b>'+C[cid].name+'</b> gana <b>'+(KW_NOM[st.otorgar]||st.otorgar)+'</b> hasta el final del turno.','#ffe066');
       if(!G||G.over) return false;
     }
@@ -1730,8 +1744,126 @@ const PASOS={
   },
   async cor_a_filtro(ctx,st){
     let n=0;
-    G[ctx.o].pj.forEach(p=>{if(p&&matchF(p.id,st.filtro)){p.cor+=st.cor||1;n++;}});
+    G[ctx.o].pj.forEach((p,i)=>{if(p&&matchF(p.id,st.filtro||{})&&!(st.excluirEsta&&i===ctx.slot)){p.cor+=st.cor||1;n++;}});
     if(n) lg('💚 '+n+' personaje(s)'+who(ctx.o)+' recuperan +'+(st.cor||1)+' corazón.','var(--green)');
+    return true;
+  },
+  // ── DIOSES ──
+  async berserker_quetzal(ctx){
+    const o=ctx.o, r=opp(o);
+    let k=0;G[o].apoyo.forEach((a,i)=>{if(a&&a.type==='alma'){G[o].apoyo[i]=null;G[o].ba.push(a.card);k++;}});
+    const n=G[o].ba.filter(c=>C[c].type==='alma').length;
+    lg('🐍 <b>MODO BERSERKER</b>'+who(o)+': '+k+' ALMA(s) activas regresan al fondo de la BA · BA con <b>'+n+'</b> ALMAS.','#ffe066');
+    renderAll();
+    const ops=[];
+    if(n>=6&&G[o].hand.length) ops.push({t:'6+: retorna 1 carta de tu mano al fondo de su baraja y roba 2 de tu BP',f:async()=>{
+      const list=G[o].hand.map((c,i)=>({z:'mano',i,cid:c}));
+      const [x]=await choose(ctx,list,1,{sub:'Elige la carta que regresa al fondo de su baraja',score:y=>-SCORE(y.cid)});
+      if(x){const c=takeFrom(o,x);(C[c].type==='alma'?G[o].ba:G[o].bp).push(c);}
+      await PASOS.robar(ctx,{origen:'bp',cantidad:2});}});
+    if(n>=11) ops.push({t:'11+: retorna a su mano hasta 3 cartas del campo',f:()=>PASOS.cartas_campo(ctx,{modo:'mano',cantidad:3})});
+    if(n>=15) ops.push({t:'15+: tu adversario descarta toda su mano al Mictlán',f:async()=>{
+      const m=G[r].hand.length;G[r].mictlan.push(...G[r].hand.splice(0));
+      lg('🗑 '+(r==='player'?'Descartas':'La CPU descarta')+' toda su mano ('+m+' cartas) al Mictlán.','var(--red)');}});
+    if(!ops.length){lg('🐍 No alcanza ningún efecto (necesita 6 o más ALMAS en la BA).','var(--muted)');return true;}
+    let op=ops[ops.length-1];
+    if(ctx.interactive){const i=await askChoice('🐍 MODO BERSERKER<br>Tienes '+n+' ALMAS en tu BA. Elige un efecto:',ops.map(x=>x.t));op=ops[i??ops.length-1];}
+    await op.f();
+    return true;
+  },
+  async berserker_mictlan(ctx){
+    const o=ctx.o, r=opp(o);
+    let n=0;
+    ['player','cpu'].forEach(s=>{n+=G[s].mictlan.length+G[s].hand.length;G[s].conf.push(...G[s].mictlan.splice(0),...G[s].hand.splice(0));});
+    lg('💀 <b>MODO BERSERKER</b>'+who(o)+': se confinan <b>'+n+'</b> cartas del Mictlán y de las manos.','#ffe066');
+    renderAll();
+    if(n>=1) await PASOS.robar(ctx,{origen:'bp',cantidad:2});
+    if(n>=5&&hurt(r,2,'efecto')){lg('💔 '+(r==='player'?'Pierdes':'La CPU pierde')+' 2 corazones.','var(--red)');playSound('damage');}
+    if(checkEnd()) return false;
+    if(n>=15){
+      const list=campoTargets(ctx,'conf').filter(x=>!(x.z==='campo'&&x.o===o&&x.i===ctx.slot));
+      let m=0;
+      for(const x of list){await quitarDelCampo(o,x,'conf');m++;if(!G||G.over)return false;}
+      if(hurt(r,m,'efecto')) lg('💔 '+(r==='player'?'Pierdes':'La CPU pierde')+' '+m+' corazón(es) por las cartas confinadas.','var(--red)');
+    }
+    return true;
+  },
+  async almas_mictlan_a_ba(ctx,st){
+    const list=cands(ctx.o,'mictlan',{tipo:'alma'});
+    if(!list.length) return true;
+    const pick=await choose(ctx,list,Math.min(st.max||3,list.length),{sub:'Elige hasta '+(st.max||3)+' ALMAS que regresan a tu BA',min:0,score:y=>C[y.cid].val||0});
+    pick.sort((a,b)=>b.i-a.i).forEach(x=>{const c=G[ctx.o].mictlan.splice(x.i,1)[0];G[ctx.o].ba.push(c);});
+    sh(G[ctx.o].ba);
+    lg('🪶 <b>'+C[ctx.cid].name+'</b>'+who(ctx.o)+': '+pick.length+' ALMA(s) regresan a la BA.','var(--ac)');
+    return true;
+  },
+  async confinar_propio(ctx){
+    const list=G[ctx.o].pj.map((p,i)=>p&&i!==ctx.slot?{z:'campo',i,cid:p.id,o:ctx.o}:null).filter(Boolean);
+    if(!list.length) return false;
+    const [x]=await choose(ctx,list,1,{sub:'Elige el personaje tuyo que se confina',score:y=>-SCORE(y.cid)});
+    if(!x) return false;
+    leaveField(ctx.o,x.i,'conf');
+    lg('⛓ <b>'+C[ctx.cid].name+'</b>'+who(ctx.o)+' confina a <b>'+C[x.cid].name+'</b>.','var(--purple)');
+    renderAll();await fireLeave(ctx.o,x.cid);
+    return true;
+  },
+  async rival_pierde(ctx,st){
+    const r=opp(ctx.o);
+    if(hurt(r,st.n||1,'efecto')){lg('💔 <b>'+C[ctx.cid].name+'</b>: '+(r==='player'?'pierdes':'la CPU pierde')+' '+(st.n||1)+' corazón(es).','var(--red)');playSound('damage');}
+    return true;
+  },
+  async pj_rival_pierden_cor(ctx,st){
+    const r=opp(ctx.o), n=st.n||1, leaves=[];
+    G[r].pj.forEach((p,i)=>{
+      if(!p||inmune(r,i,ctx.o,'afectar')) return;
+      p.cor-=n;
+      if(p.cor<=0){animDestroy((r==='player'?'pP':'cP')+i);leaveField(r,i,'mictlan');leaves.push(p.id);}
+    });
+    lg('💀 <b>'+C[ctx.cid].name+'</b>: los personajes del rival pierden '+n+' corazones'+(leaves.length?' · '+leaves.length+' destruido(s)':'')+'.','var(--red)');
+    renderAll();
+    for(const c of leaves) await fireLeave(r,c);
+    return true;
+  },
+  async mictlan_vacio_castigo(ctx){
+    const r=opp(ctx.o);let n=0;
+    if(!G[ctx.o].mictlan.length){n=1;if(!G[r].mictlan.length)n=2;}
+    if(!n){lg('💀 <b>'+C[ctx.cid].name+'</b>: tienes cartas en tu Mictlán, no hay castigo.','var(--muted)');return true;}
+    if(hurt(r,n,'efecto')){lg('💀 <b>'+C[ctx.cid].name+'</b>: '+(r==='player'?'pierdes':'la CPU pierde')+' '+n+' corazón(es).','var(--red)');playSound('damage');}
+    return true;
+  },
+  async destruir_todo_rival(ctx){
+    const r=opp(ctx.o);
+    if(bastion(r)){lg('🛡 BASTIÓN: las cartas del rival no pueden ser destruidas.','var(--gold2)');return true;}
+    const list=campoTargets(ctx,'destruir').filter(x=>x.o===r);
+    lg('🐉 <b>'+C[ctx.cid].name+'</b>'+who(ctx.o)+' destruye '+list.length+' carta(s) del rival.','var(--red)');
+    for(const x of list){await quitarDelCampo(ctx.o,x,'destruir');if(!G||G.over)return false;}
+    return true;
+  },
+  async retornar_propio_fondo(ctx,st){
+    const list=G[ctx.o].pj.map((p,i)=>p&&matchF(p.id,st.filtro||{})?{z:'campo',i,cid:p.id,o:ctx.o}:null).filter(Boolean);
+    if(!list.length) return false;
+    const [x]=await choose(ctx,list,1,{sub:'Elige el personaje que regresa al fondo de tu BP'});
+    if(!x) return false;
+    leaveField(ctx.o,x.i,'bp_fondo');
+    lg('↩ <b>'+C[x.cid].name+'</b>'+who(ctx.o)+' regresa al fondo de su baraja.','var(--muted)');
+    renderAll();await fireLeave(ctx.o,x.cid);
+    return true;
+  },
+  async esta_a_bp_fondo(ctx){
+    const i=G[ctx.o].mictlan.lastIndexOf(ctx.cid); if(i<0) return false;
+    G[ctx.o].mictlan.splice(i,1);G[ctx.o].bp.push(ctx.cid);
+    lg('↩ <b>'+C[ctx.cid].name+'</b>'+who(ctx.o)+' regresa al fondo de la BP.','var(--ac)');
+    return true;
+  },
+  async destruir_propia(ctx){
+    const o=ctx.o, list=[];
+    G[o].pj.forEach((p,i)=>{if(p)list.push({o,z:'campo',i,cid:p.id});});
+    ['left','right'].forEach(side=>{if(G[o].sect[side]&&sectOwner(o,side)===o)list.push({o,z:'sector',side,cid:G[o].sect[side]});});
+    G[o].apoyo.forEach((a,i)=>{if(a)list.push({o,z:'apoyo',i,cid:a.card});});
+    if(!list.length) return false;
+    const [x]=await choose(ctx,list,1,{sub:'Elige otra carta tuya a destruir',score:y=>-(y.z==='campo'?SCORE(y.cid)+20:y.z==='apoyo'&&C[y.cid].type==='alma'?almaVal(G[o].apoyo[y.i]):10)});
+    if(!x) return false;
+    await quitarDelCampo(o,x,'destruir');
     return true;
   },
   // Cartas del campo: destruir / regresar a la mano / al fondo de su baraja
@@ -1743,7 +1875,7 @@ const PASOS={
     const verbo={destruir:'destruir',mano:'regresar a la mano de su dueño',fondo:'regresar al fondo de su baraja'}[modo];
     let hechos=0;
     for(let k=0;k<n;k++){
-      const list=campoTargets(ctx,modo);
+      const list=campoTargets(ctx,modo).filter(x=>!st.soloRival||x.o===r);
       if(!list.length) break;
       const [x]=await choose(ctx,list,1,{sub:'Elige la carta a '+verbo+(n>1?' ('+(k+1)+'/'+n+')':''),min:k>0?0:1,
         score:y=>(y.o===r?1000:-1000)+(y.z==='campo'?SCORE(y.cid)+50:y.z==='arena'?60:y.z==='sector'?40:20)});
@@ -1842,6 +1974,7 @@ function condWhy(o,cid,cond,src){
   if(cond.sectorPropioLibre&&G[o].sect.left&&G[o].sect.right) return 'Tus zonas SECTOR están ocupadas';
   if(cond.haySector&&!sectorArenaTargets().some(t=>t.z==='sector')) return 'No hay SECTORES activos en el campo';
   if(cond.hayArena&&!sectorArenaTargets().some(t=>t.z==='arena')) return 'No hay ARENAS activas en el campo';
+  if(cond.cartaPropia&&!G[o].pj.some(Boolean)&&!G[o].apoyo.some(Boolean)&&!G[o].sect.left&&!G[o].sect.right) return 'No tienes otras cartas en tu campo';
   if(cond.equipoPropio&&!G[o].apoyo.some(a=>a&&a.type==='equipo')) return 'No tienes un APOYO/EQUIPO activo';
   if(cond.hayPJ&&!G.player.pj.some(Boolean)&&!G.cpu.pj.some(Boolean)) return 'No hay personajes en el campo';
   if(cond.material){const q=src.slot!=null&&G[o].pj[src.slot];if(!q||!(q.mats||[]).includes(cond.material))return 'Requiere haber usado '+(C[cond.material]?C[cond.material].name:cond.material)+' como material';}
@@ -2152,27 +2285,28 @@ async function quitarDelCampo(by,x,modo){
   const o=x.o;
   const dest=c=>{
     if(modo==='destruir') return G[o].mictlan;
+    if(modo==='conf') return G[o].conf;
     if(modo==='mano') return C[c].type==='amalgama'?G[o].bs:G[o].hand;
     return C[c].type==='alma'?G[o].ba:C[c].type==='amalgama'?G[o].bs:G[o].bp;
   };
-  const txt={destruir:' es destruida.',mano:' regresa a la mano de su dueño.',fondo:' regresa al fondo de su baraja.'}[modo];
+  const txt={destruir:' es destruida.',mano:' regresa a la mano de su dueño.',fondo:' regresa al fondo de su baraja.',conf:' queda confinada.'}[modo];
   if(x.z==='campo'){
     const p=G[o].pj[x.i]; if(!p) return;
     if(modo==='destruir') animDestroy((o==='player'?'pP':'cP')+x.i);
-    leaveField(o,x.i,modo==='destruir'?'mictlan':modo==='mano'?'mano':'bp_fondo');
-    lg((modo==='destruir'?'💥 ':'↩ ')+'<b>'+C[p.id].name+'</b>'+who(o)+txt,modo==='destruir'?'var(--red)':'var(--ar)');
+    leaveField(o,x.i,modo==='destruir'?'mictlan':modo==='mano'?'mano':modo==='conf'?'conf':'bp_fondo');
+    lg((modo==='destruir'?'💥 ':modo==='conf'?'⛓ ':'↩ ')+'<b>'+C[p.id].name+'</b>'+who(o)+txt,modo==='destruir'?'var(--red)':'var(--ar)');
     renderAll();await fireLeave(o,p.id);
   } else if(x.z==='sector'||x.z==='arena'){
     if(modo==='destruir'){await destroyFieldCard({o,z:x.z,side:x.side,cid:x.cid},by);return;}
     let d=o;
     if(x.z==='sector'){if(G[o].sect[x.side]!==x.cid)return;d=sectOwner(o,x.side);setSect(o,x.side,null);}
     else{if(G[o].arena!==x.cid)return;G[o].arena=null;}
-    (modo==='mano'?G[d].hand:(C[x.cid].type==='pj'?G[d].bp:G[d].bp)).push(x.cid);
-    lg('↩ <b>'+C[x.cid].name+'</b>'+who(d)+txt,'var(--ar)');
+    (modo==='mano'?G[d].hand:modo==='conf'?G[d].conf:G[d].bp).push(x.cid);
+    lg((modo==='conf'?'⛓ ':'↩ ')+'<b>'+C[x.cid].name+'</b>'+who(d)+txt,'var(--ar)');
   } else if(x.z==='apoyo'){
     const a=G[o].apoyo[x.i]; if(!a) return;
     G[o].apoyo[x.i]=null; dest(a.card).push(a.card);
-    lg((modo==='destruir'?'💥 ':'↩ ')+'<b>'+C[a.card].name+'</b>'+who(o)+txt,modo==='destruir'?'var(--red)':'var(--ar)');
+    lg((modo==='destruir'?'💥 ':modo==='conf'?'⛓ ':'↩ ')+'<b>'+C[a.card].name+'</b>'+who(o)+txt,modo==='destruir'?'var(--red)':'var(--ar)');
   }
   playSound(modo==='destruir'?'destroy':'card');
   if(modo==='destruir'&&by!==o) await offerTrasNegar(o);
@@ -2246,6 +2380,8 @@ function auraBonus(o){
       else if(e.porCada==='arenas_mictlan') mult=both(x=>G[x].mictlan.filter(c=>C[c].type==='arena').length);
       else if(e.porCada==='mictlan_filtro') mult=P.mictlan.filter(c=>matchF(c,e.filtroCuenta)).length;
       else if(e.porCada==='corazones_lado') mult=P.hp;
+      else if(e.porCada==='almas_ba') mult=P.ba.filter(c=>C[c].type==='alma').length;
+      else if(e.porCada==='confinadas') mult=G.player.conf.length+G.cpu.conf.length;
       const v={f:(e.fue||0)*mult,r:(e.res||0)*mult,c:(e.cor||0)*mult,i:(e.imp||0)*mult,kw:e.hab?[].concat(e.hab):[],inm:e.inmune||null};
       if(e.niveles){const n=tgt.length;e.niveles.forEach(nv=>{if(n>=nv.min){v.f+=nv.fue||0;v.r+=nv.res||0;v.c+=nv.cor||0;v.i+=nv.imp||0;if(nv.hab)v.kw.push(...[].concat(nv.hab));if(nv.inmune)v.inm=nv.inmune==='total'||v.inm==='total'?'total':nv.inmune;}});}
       const neg=v.f<0||v.r<0||v.c<0||v.i<0;
@@ -2332,6 +2468,7 @@ async function placeChar(o,cid,opt){
   const side=sideOfSlot(o,slot), live=mkLive(cid);
   const firstTurnBlock=G.turn===1&&o==='player';
   G[o].pj[slot]=live;
+  live.turnoLlamado=turnKey();
   if(opt.otorgar) live.tmp[opt.otorgar]=true;
   live.resting=!((entersActive(o,side)||hasKw(live,'BRUTALIDAD'))&&!firstTurnBlock);
   lg((opt.via==='especial'?'✨ <b>Llamado especial</b>'+who(o)+': ':(o==='player'?'✅ ':'🔴 CPU llama ')+'')+'<b>'+C[cid].name+'</b>'+
@@ -2378,7 +2515,34 @@ function leaveField(o,slot,dest){
   else G[o].mictlan.push(p.id);
   return p.id;
 }
-async function fireLeave(o,cid){await runTrigger(o,cid,'al_salir',{zone:'fuera'});renderAll();}
+async function fireLeave(o,cid){await runTrigger(o,cid,'al_salir',{zone:'fuera'});renderAll();await offerAliadoSale(o,cid);}
+async function offerAliadoSale(o,cidSale){
+  if(!G||G.over) return;
+  const vistos=new Set();
+  for(const z of ['hand','mictlan','bp']){
+    for(const w of [...new Set(G[o][z])]){
+      if(vistos.has(w)) continue;
+      const idx=(C[w].efectos||[]).findIndex(x=>x.cuando==='aliado_sale'&&!x.pendiente&&matchF(cidSale,x.filtro||{}));
+      if(idx<0) continue;
+      vistos.add(w);
+      const e=C[w].efectos[idx];
+      if(G.used[o][effKey(w,idx)]||freePJ(o)===-1||espBloqueado()) continue;
+      let yes=o==='cpu';
+      if(o==='player') yes=(await askChoice('✨ '+C[w].name.toUpperCase()+'<br><b>'+C[cidSale].name+'</b> dejó tu campo. ¿Llamas de forma especial a '+C[w].name+' desde '+(z==='hand'?'tu mano':SRC_NOM[z])+'?',['✅ Sí','✖ No']))===0;
+      if(!yes) continue;
+      G.used[o][effKey(w,idx)]=true;
+      if(!await announce(o,w,'llamado',{z:z==='hand'?'mano':z},{especial:true})) continue;
+      const arr=G[o][z], i=arr.lastIndexOf(w);
+      if(i<0||freePJ(o)===-1) continue;
+      arr.splice(i,1); if(z==='bp') sh(G[o].bp);
+      await placeChar(o,w,{via:'especial',from:z==='hand'?'la mano':SRC_NOM[z],por:w});
+      const sl=G[o].pj.findIndex(p=>p&&p.id===w);
+      if(sl>=0) await runEffect(o,w,{pasos:e.pasos},-1,{zone:'campo',slot:sl},{sinLimite:true});
+      renderAll();
+      return;
+    }
+  }
+}
 
 // ════════════════════════════════════
 // MODAL ELEGIR (genérico)
@@ -2808,7 +2972,7 @@ function checkDrawDone(){
 // ════════════════════════════════════
 // PANEL DE DETALLE (izquierda)
 // ════════════════════════════════════
-const KW_NOM={EMBOSCADA:'EMBOSCADA',HEROISMO:'HEROÍSMO',BRUTALIDAD:'BRUTALIDAD',VALENTIA:'VALENTÍA',BASTION:'BASTIÓN',ELITE:'ÉLITE','PRIMER DANO':'PRIMER DAÑO',GUARDA:'GUARDA',BARBARIE:'BARBARIE'};
+const KW_NOM={COSMO:'COSMO',EMBOSCADA:'EMBOSCADA',HEROISMO:'HEROÍSMO',BRUTALIDAD:'BRUTALIDAD',VALENTIA:'VALENTÍA',BASTION:'BASTIÓN',ELITE:'ÉLITE','PRIMER DANO':'PRIMER DAÑO',GUARDA:'GUARDA',BARBARIE:'BARBARIE'};
 function showDetail(cid,opt){
   opt=opt||{};
   const el=document.getElementById('detail');
@@ -2943,6 +3107,7 @@ function drawBP(){
   lg('🃏 Robaste <b>'+C[x].name+'</b> de tu BP.','var(--text)');
   playSound('card');
   renderAll(); checkDrawDone();
+  if(hasKw(x,'COSMO')) void cosmo('player',x);
 }
 
 // ════════════════════════════════════
@@ -2975,14 +3140,18 @@ function renderApos(o){
     const el=document.getElementById(px+i);
     const d=G[o].apoyo[i];
     el.className='bc bc-ap'; el.onclick=null;
-    if(d&&d.type==='equipo'){
+    if(d&&d.type==='continuo'){
+      el.classList.add('has-alma');
+      el.innerHTML=imgTag(d.card,'ci')+'<div class="rest-tag" style="background:rgba(232,90,0,.85)">CONTINUO</div>';
+      el.onclick=()=>showDetail(d.card,{title:'APOYO CONTINUO'});
+    } else if(d&&d.type==='equipo'){
       el.classList.add('has-alma');
       const to=d.tgt||d.host;
       el.innerHTML=imgTag(d.card,'ci')+'<div class="rest-tag" style="background:rgba(232,90,0,.85)">⚙ '+(to?C[to.id].name.split(',')[0]:'EQUIPO')+'</div>';
       el.onclick=()=>showDetail(d.card,{title:'EQUIPO'+(to?' → '+C[to.id].name:''),equipo:d,owner:o});
     } else if(d){
       el.classList.add('has-alma');
-      el.innerHTML=imgTag(d.card,'ci')+'<span class="av">'+almaVal(d)+'</span>'+(d.cont?'<div class="rest-tag" style="top:0;bottom:auto;background:rgba(45,184,224,.85)">◆×'+d.cont+'</div>':'')+(d.eot?'<div class="rest-tag" style="background:rgba(45,184,224,.85)">FIN DE TURNO</div>':'');
+      el.innerHTML=imgTag(d.card,'ci')+'<span class="av"'+(copalOn(o)?' style="color:#ffe066"':'')+'>'+almaEf(o,d)+'</span>'+(d.cont?'<div class="rest-tag" style="top:0;bottom:auto;background:rgba(45,184,224,.85)">◆×'+d.cont+'</div>':'')+(d.eot?'<div class="rest-tag" style="background:rgba(45,184,224,.85)">FIN DE TURNO</div>':'');
       el.onclick=()=>showDetail(d.card,{alma:d});
     } else el.innerHTML='<span class="zlbl">ALMA<br>/AP</span>';
   }
@@ -3108,10 +3277,12 @@ function buildMenuActions(cid,idx,at,card){
   const acts=[];
   const phaseWhy=()=>G.phase==='draw'?'Primero roba BA y BP':G.phase==='ofrenda'?'Primero ejecuta la Ofrenda':G.phase==='combat'?'Solo en Fase de Acción':'';
   if(card.type==='pj'){
-    const ok=G.phase==='action'&&G.callsLeft>0&&card.cost<=at&&freePJ('player')!==-1;
+    const pn=puedeNormal('player',cid);
+    const ok=G.phase==='action'&&G.callsLeft>0&&card.cost<=at&&freePJ('player')!==-1&&!pn;
     let why='';
     if(!ok){
       if(G.phase!=='action') why=phaseWhy();
+      else if(pn) why=pn;
       else if(G.callsLeft<=0) why='Sin llamados normales (0)';
       else if(card.cost>at) why='Almas insuficientes: tienes '+at+', necesitas '+card.cost;
       else why='Sin zonas PJ libres';
@@ -3343,13 +3514,15 @@ async function activateApoyo(o,handIdx){
   lg('🔴 '+(o==='player'?'Activas':'CPU activa')+' <b>'+C[cid].name+'</b>.','var(--ar)');
   playSound('call');
   renderAll();
+  let slotC=-1;
+  if(C[cid].subtipo==='continuo'){slotC=freeApo(o);if(slotC>=0){G[o].apoyo[slotC]={card:cid,type:'continuo'};lg('🔶 <b>'+C[cid].name+'</b>'+who(o)+' queda activa en la zona de apoyo.','var(--ar)');renderAll();}}
   for(const {e,i} of activarEff(cid)){
     if(e.pendiente) continue;
     const why=effWhy(o,cid,e,i,{zone:'mano'});
     if(why){lg('⚠ '+C[cid].name+': '+why+'.','var(--red)');continue;}
     await runEffect(o,cid,e,i,{zone:'mano'});
   }
-  G[o].mictlan.push(cid);
+  if(slotC<0) G[o].mictlan.push(cid);
   renderAll();
   checkEnd();
 }
@@ -3382,6 +3555,8 @@ async function doArena(o,handIdx){
   if(o==='player') clearSel(cid);
   lg('🟢 '+(o==='player'?'Activas':'CPU activa')+' la ARENA <b>'+C[cid].name+'</b>.','var(--green)');
   playSound('call');renderAll();
+  await runTrigger(o,cid,'al_activar',{zone:'arena'});
+  renderAll();
 }
 async function doSector(handIdx,side,tgtO){
   tgtO=tgtO||'player';
@@ -3568,7 +3743,26 @@ async function closeCombat(){
 // ════════════════════════════════════
 // FIN DE TURNO
 // ════════════════════════════════════
+async function retirosFinTurno(){
+  for(const s of ['player','cpu']){
+    for(let i=0;i<4;i++){
+      const p=G[s].pj[i];
+      if(!p||p.turnoLlamado!==turnKey()) continue;
+      if(p.alFinal==='confinar'){
+        leaveField(s,i,'conf');lg('⛓ <b>'+C[p.id].name+'</b>'+who(s)+' es confinado al finalizar el turno.','var(--muted)');
+        renderAll();await fireLeave(s,p.id);if(!G||G.over)return;continue;
+      }
+      if(hasPassive(p.id,'se_retira')){
+        if(G[s].arena&&hasPassive(G[s].arena,'dioses_permanecen')&&C[p.id].dios){lg('🏛 <b>'+C[G[s].arena].name+'</b>: '+C[p.id].name+who(s)+' permanece en el campo.','var(--green)');continue;}
+        leaveField(s,i,'mictlan');lg('🌅 <b>'+C[p.id].name+'</b>'+who(s)+' se retira del campo al final del turno.','var(--muted)');
+        renderAll();await fireLeave(s,p.id);if(!G||G.over)return;
+      }
+    }
+  }
+}
 async function runEOT(o){
+  await retirosFinTurno();
+  if(!G||G.over) return;
   for(let i=0;i<4;i++){
     const s=G[o].apoyo[i];
     if(!s||!s.eot) continue;
@@ -3581,6 +3775,7 @@ async function runEOT(o){
   }
   G[o].pj.forEach(p=>{if(p)p.tmp={};});
   ['player','cpu'].forEach(x=>G[x].pj.forEach(p=>{if(p)p.neg=false;}));
+  renderAll();
 }
 async function endTurn(){
   if(G.active!=='player'||G.phase==='draw'||G.phase==='end') return;
@@ -3605,6 +3800,15 @@ function finishTurn(){
   later(cpuTurn,1700);
 }
 
+// COSMO: si se roba en la Fase de Robo, puede llamarse de forma especial
+async function cosmo(o,cid){
+  if(!G||G.over||freePJ(o)===-1||espBloqueado()||G[o].hand.indexOf(cid)<0) return;
+  let yes=o==='cpu';
+  if(o==='player') yes=(await askChoice('🌌 COSMO<br>Robaste <b>'+C[cid].name+'</b>. ¿Lo llamas de forma especial ahora?',['✅ Sí','✖ No']))===0;
+  if(!yes) return;
+  lg('🌌 <b>COSMO</b>'+who(o)+': '+C[cid].name+' responde al llamado.','#ffe066');
+  await callFromHand(o,cid,{via:'especial',from:'la mano (COSMO)'});
+}
 // ════════════════════════════════════
 // CPU IA
 // ════════════════════════════════════
@@ -3620,6 +3824,7 @@ function cpuQuiereMano(cid,e){
   }
   if(acc.has('llamar_especial')&&acc.has('confinar_esta')) return freePJ('cpu')!==-1;  // Vulcar Caballero desde el Mictlán
   if(acc.has('llamarse_especial')&&(e.pasos||[]).some(s=>s.costo==='retornar_equipo')) return true;
+  if(acc.has('esta_a_bp_fondo')) return true;                                          // Copal desde el Mictlán
   return false;
 }
 async function cpuTurn(){
@@ -3630,7 +3835,8 @@ async function cpuTurn(){
   if(P.ba.length){drawFrom('cpu','ba');lg('💙 CPU roba de su B.Almas.','var(--ac)');playSound('card');renderAll();}
   if(!await step(500)) return;
   if(!P.bp.length){endGame(true,'BP de CPU agotada');return;}
-  drawFrom('cpu','bp');lg('🃏 CPU roba de su Baraja.','var(--muted)');playSound('card');renderAll();
+  {const x=drawFrom('cpu','bp');lg('🃏 CPU roba de su Baraja.','var(--muted)');playSound('card');renderAll();
+   if(x&&hasKw(x,'COSMO')){await W(400);if(!alive())return;await cosmo('cpu',x);}}
   G.callsLeft=R.llamadosPorTurno; // contador de la CPU (se reinicia para el jugador al volver)
 
   // 1) ALMA: la de mayor valor estimado
@@ -3699,7 +3905,7 @@ async function cpuTurn(){
   for(let n=0;n<R.llamadosPorTurno;n++){
     if(!alive()) return;
     const at=almaT('cpu');
-    const best=P.hand.map((c,i)=>({c,i})).filter(x=>C[x.c].type==='pj'&&C[x.c].cost<=at).sort((a,b)=>C[b.c].cost-C[a.c].cost)[0];
+    const best=P.hand.map((c,i)=>({c,i})).filter(x=>C[x.c].type==='pj'&&C[x.c].cost<=at&&!puedeNormal('cpu',x.c)).sort((a,b)=>C[b.c].cost-C[a.c].cost)[0];
     if(!best||freePJ('cpu')===-1) break;
     if(!await step(550)) return;
     await callFromHand('cpu',best.c,{via:'normal'});
@@ -3708,6 +3914,7 @@ async function cpuTurn(){
   const pCount=()=>G.player.pj.filter(Boolean).length, cCount=()=>P.pj.filter(Boolean).length;
   const wantApoyo=cid=>{
     if(C[cid].subtipo==='equipo') return P.pj.some(Boolean);
+    if(C[cid].subtipo==='continuo') return !P.apoyo.some(a=>a&&a.card===cid);
     const acts=(C[cid].efectos||[]).filter(e=>e.cuando==='activar'&&!e.pendiente);
     if(!acts.length) return false;
     const a=new Set(acts.flatMap(e=>(e.pasos||[e]).map(s=>s.accion)));
@@ -3740,7 +3947,11 @@ async function cpuTurn(){
       if(effWhy('cpu',p.id,e,k,{zone:'campo',slot:i})) continue;
       const acc=new Set((e.pasos||[e]).map(s=>s.accion));
       if(acc.has('barajear_mano')) continue;
-      if(acc.has('sacrificar_esta')&&!cands('cpu','bp',{nombreIncluye:['DEFENSOR DEFINITIVO','KOATL, DEFENSOR']}).length) continue;
+      if(acc.has('sacrificar_esta')){
+        const ll=(e.pasos||[]).find(x=>x.accion==='llamar_especial');
+        if(!ll||!cands('cpu',ll.origen||'bp',Object.assign({tipos:['pj','amalgama']},ll.filtro)).filter(x=>x.cid!==p.id&&SCORE(x.cid)>SCORE(p.id)).length) continue;
+      }
+      if(acc.has('confinar_propio')&&P.pj.filter(Boolean).length<2) continue;
       if(acc.has('retornar_alma_propia_ba')&&P.arena) continue;
       if(acc.has('ganar_habilidad')&&!canAtk('cpu',i)) continue;
       if(!await step(550)) return;
@@ -3757,6 +3968,15 @@ async function cpuTurn(){
       if(!await step(500)) return;
       await useAbility('cpu',cid,e,k,{zone:'mano'});
       break;
+    }
+  }
+  // 7a) Habilidad de la ARENA (Tamoanchan)
+  if(P.arena&&alive()){
+    for(const {e,k} of (C[P.arena].efectos||[]).map((e,k)=>({e,k})).filter(x=>x.e.cuando==='accion'&&!x.e.pendiente)){
+      if(!(e.pasos||[]).some(s=>s.accion==='destruir_propia')) continue;
+      if(effWhy('cpu',P.arena,e,k,{zone:'arena'})) continue;
+      if(!await step(500)) return;
+      await useAbility('cpu',P.arena,e,k,{zone:'arena'});
     }
   }
   // 7b) Habilidades desde el Mictlán (Vulcar Caballero, Amatista, Esmeralda)

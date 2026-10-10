@@ -108,6 +108,158 @@ html,body{
   .boot-note{display:none}
 }
 @media (max-width:420px){.ds-list-box ul{columns:1}}
+</style>
+<style>
+/* ═══════════════════════════════════════════════════════
+   v34 · ESTÉTICA DE INICIO (alineada con el Nexo de Héroes)
+   Solo presentación: no cambia ninguna regla ni función del juego.
+═══════════════════════════════════════════════════════ */
+:root{--nx-bg:#03050a;--nx-neon:#00ff9d;--nx-blue:#00cfff;--nx-purple:#cc55ff;--nx-gold:#f5a623}
+.boot{background:var(--nx-bg);isolation:isolate}
+.boot-bg{position:fixed;inset:0;z-index:-3;background:
+   radial-gradient(ellipse 70% 45% at 15% 8%,rgba(245,166,35,.16) 0%,transparent 60%),
+   radial-gradient(ellipse 70% 45% at 85% 92%,rgba(0,207,255,.12) 0%,transparent 60%),
+   radial-gradient(ellipse 55% 55% at 50% 45%,rgba(180,70,255,.10) 0%,transparent 65%),
+   radial-gradient(ellipse at center,#1d0e06 0%,#0a0604 75%);background-size:cover;background-position:center}
+.boot-bg.img{animation:kenburns 38s ease-in-out infinite alternate}
+.boot-bg.img::after{content:'';position:absolute;inset:0;background:
+   linear-gradient(180deg,rgba(3,5,10,.55) 0%,rgba(3,5,10,.35) 40%,rgba(3,5,10,.85) 100%)}
+@keyframes kenburns{from{transform:scale(1.02) translate(0,0)}to{transform:scale(1.14) translate(-1.5%,-1%)}}
+.boot-grecas{position:fixed;inset:0;z-index:-2;pointer-events:none;opacity:.07;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cpath d='M0 0h15v5H5v10H0zm45 0h15v15h-5V5h-10zm0 45h10v10H45v-5h-5v5h-5zm-45 0h5v5h10v5H0zm20 5h20v5H20zm0-55h20v5H20zM5 20h5v20H5zm45 0h5v20h-5zM15 15h5v5h-5zm0 25h5v5h-5zm25 0h5v5h-5zm0-25h5v5h-5zM22 22h16v16H22z' fill='%23d4870a'/%3E%3C/svg%3E");
+  -webkit-mask-image:radial-gradient(ellipse at center,transparent 25%,#000 85%);mask-image:radial-gradient(ellipse at center,transparent 25%,#000 85%)}
+.boot-fx{position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.08) 3px,rgba(0,0,0,.08) 4px),
+             radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.65) 100%)}
+.boot-ember{position:fixed;bottom:-10px;width:3px;height:3px;border-radius:50%;z-index:-1;pointer-events:none;
+  background:#ffcf6b;box-shadow:0 0 6px #f5a623,0 0 12px rgba(245,166,35,.6);opacity:0;animation:ember linear infinite}
+.boot-ember.b{background:#7fe9ff;box-shadow:0 0 6px #00cfff,0 0 12px rgba(0,207,255,.6)}
+@keyframes ember{0%{transform:translate(0,0);opacity:0}10%{opacity:.9}100%{transform:translate(var(--dx,20px),-105vh);opacity:0}}
+.boot-top{position:fixed;top:max(10px,env(safe-area-inset-top));left:max(10px,env(safe-area-inset-left));right:max(10px,env(safe-area-inset-right));
+  display:flex;justify-content:space-between;align-items:center;z-index:2;pointer-events:none}
+.boot-top>*{pointer-events:auto}
+.boot-pill{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px;border-radius:8px;cursor:pointer;
+  background:rgba(11,14,24,.78);border:1px solid #141c2a;color:#9fb3cc;text-decoration:none;
+  font-family:'Orbitron',sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  transition:all .25s cubic-bezier(.4,0,.2,1)}
+.boot-pill:hover,.boot-pill:active{color:var(--nx-neon);border-color:var(--nx-neon);box-shadow:0 0 6px #00ff9d,0 0 18px rgba(0,255,157,.35)}
+.boot-pill.cfg:hover,.boot-pill.cfg:active{color:var(--nx-gold);border-color:var(--nx-gold);box-shadow:0 0 8px #f5a623,0 0 20px rgba(245,166,35,.4)}
+.boot-card{position:relative;width:100%;max-width:640px;display:flex;flex-direction:column;align-items:center;gap:12px;
+  padding:18px 18px 16px;border-radius:14px;background:linear-gradient(180deg,rgba(11,14,24,.72),rgba(7,9,15,.82));
+  border:1px solid rgba(245,166,35,.18);box-shadow:0 20px 60px rgba(0,0,0,.6),inset 0 0 40px rgba(0,0,0,.35);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);animation:cardIn .6s cubic-bezier(.2,.8,.2,1) both}
+@keyframes cardIn{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+.boot-card .hbk{position:absolute;width:16px;height:16px;opacity:.7}
+.boot-card .hbk.tl{top:-1px;left:-1px;border-top:2px solid var(--nx-gold);border-left:2px solid var(--nx-gold);border-top-left-radius:14px}
+.boot-card .hbk.tr{top:-1px;right:-1px;border-top:2px solid var(--nx-gold);border-right:2px solid var(--nx-gold);border-top-right-radius:14px}
+.boot-card .hbk.bl{bottom:-1px;left:-1px;border-bottom:2px solid var(--nx-blue);border-left:2px solid var(--nx-blue);border-bottom-left-radius:14px}
+.boot-card .hbk.br{bottom:-1px;right:-1px;border-bottom:2px solid var(--nx-blue);border-right:2px solid var(--nx-blue);border-bottom-right-radius:14px}
+.boot-logo{width:auto;height:auto;max-width:min(300px,70%);max-height:110px;object-fit:contain;
+  filter:drop-shadow(0 0 18px rgba(0,207,255,.45)) drop-shadow(0 0 40px rgba(245,166,35,.25));
+  animation:logoIn .7s cubic-bezier(.175,.885,.32,1.275) both,logoFloat 6s ease-in-out .7s infinite}
+@keyframes logoIn{from{opacity:0;transform:scale(.75) translateY(10px)}to{opacity:1;transform:none}}
+@keyframes logoFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.boot-title{font-size:20px;letter-spacing:6px;background:linear-gradient(180deg,#fff3c4 0%,#f5c842 45%,#d4870a 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 10px rgba(245,166,35,.45))}
+.boot-sub{color:var(--nx-blue);opacity:.8;text-shadow:0 0 8px rgba(0,207,255,.5)}
+.boot-sub::before,.boot-sub::after{content:'';display:inline-block;width:28px;height:1px;vertical-align:middle;margin:0 10px;
+  background:linear-gradient(90deg,transparent,var(--nx-blue))}
+.boot-sub::after{background:linear-gradient(90deg,var(--nx-blue),transparent)}
+.boot-status{color:#9fb3cc}
+.ds-lbl{color:var(--nx-gold);display:flex;align-items:center;gap:8px}
+.ds-lbl::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(245,166,35,.45),transparent)}
+.ds-deck{background:rgba(11,14,24,.6);border-color:#1b2433;transition:transform .18s ease,box-shadow .18s ease,border-color .18s}
+.ds-deck:hover{transform:translateY(-2px);border-color:rgba(0,207,255,.5);box-shadow:0 6px 18px rgba(0,0,0,.45),0 0 10px rgba(0,207,255,.25)}
+.ds-deck.on{border-color:var(--gold2);background:linear-gradient(135deg,rgba(245,166,35,.18),rgba(11,14,24,.7));
+  box-shadow:0 0 0 1px rgba(245,200,66,.35),0 0 16px rgba(245,166,35,.45)}
+.ds-deck img{box-shadow:0 2px 8px rgba(0,0,0,.6)}
+.ds-deck.on img{box-shadow:0 0 10px rgba(245,200,66,.6)}
+.ds-info{background:rgba(3,5,10,.55);border:1px solid #141c2a}
+.ds-chip{background:rgba(11,14,24,.6);border-color:#1b2433;transition:all .18s}
+.ds-chip:hover{border-color:rgba(0,207,255,.5);color:#cfefff}
+.ds-chip.on{box-shadow:0 0 12px rgba(245,166,35,.45)}
+.boot-vs{display:flex;align-items:center;justify-content:center;gap:14px;width:100%}
+.boot-vs .vs-side{display:flex;align-items:center;gap:8px;min-width:0;flex:1}
+.boot-vs .vs-side.r{flex-direction:row-reverse;text-align:right}
+.boot-vs img,.boot-vs .vs-ico{width:42px;height:59px;border-radius:5px;object-fit:cover;flex:0 0 auto;background:#000;
+  border:1px solid rgba(245,200,66,.55);box-shadow:0 0 12px rgba(245,166,35,.35)}
+.boot-vs .vs-side.r img,.boot-vs .vs-side.r .vs-ico{border-color:rgba(0,207,255,.6);box-shadow:0 0 12px rgba(0,207,255,.35)}
+.boot-vs .vs-ico{display:flex;align-items:center;justify-content:center;font-size:22px}
+.boot-vs small{display:block;font-family:'Orbitron',sans-serif;font-size:7px;letter-spacing:2px;color:#6a7f9a}
+.boot-vs b{display:block;font-size:13px;color:var(--gold2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.boot-vs .vs-side.r b{color:#7fe9ff}
+.boot-vs .vs-x{font-family:'Orbitron',sans-serif;font-weight:900;font-size:18px;color:#fff;letter-spacing:1px;
+  text-shadow:0 0 8px #ff2244,0 0 20px rgba(255,34,68,.6);animation:vsPulse 1.6s ease-in-out infinite}
+@keyframes vsPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+.boot-btn{position:relative;overflow:hidden;letter-spacing:3px;transition:transform .15s,box-shadow .2s}
+.boot-btn:not(:disabled){animation:btnGlow 2.2s ease-in-out infinite}
+.boot-btn:not(:disabled):hover{transform:translateY(-1px) scale(1.02)}
+.boot-btn::after{content:'';position:absolute;top:0;left:-60%;width:40%;height:100%;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-20deg)}
+.boot-btn:not(:disabled)::after{animation:sheen 3.2s ease-in-out infinite}
+@keyframes sheen{0%,60%{left:-60%}100%{left:130%}}
+@keyframes btnGlow{0%,100%{box-shadow:0 0 18px rgba(212,135,10,.45)}50%{box-shadow:0 0 30px rgba(245,200,66,.75),0 0 60px rgba(245,166,35,.25)}}
+/* Panel de apariencia */
+.ap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-top:6px}
+.ap-opt{display:flex;flex-direction:column;gap:5px;padding:6px;border-radius:9px;cursor:pointer;text-align:left;
+  background:rgba(11,14,24,.6);border:1px solid #1b2433;color:var(--text);font:inherit}
+.ap-opt .ap-prev{height:56px;border-radius:6px;border:1px solid rgba(255,255,255,.08);background-size:cover;background-position:center}
+.ap-opt b{font-size:11px;color:var(--gold2)}
+.ap-opt small{font-size:9px;color:var(--muted);line-height:1.2}
+.ap-opt.on{border-color:var(--gold2);box-shadow:0 0 12px rgba(245,166,35,.4)}
+.ap-opt:disabled{opacity:.35;cursor:not-allowed}
+.ap-note{font-size:10px;color:var(--muted);margin-top:8px;line-height:1.4}
+.ap-note code{color:#7fe9ff}
+/* Fondos de mesa (detrás del tablero) */
+html[data-mesa="nexo"],html[data-mesa="nexo"] body{background:#03050a}
+html[data-mesa="nexo"] .aztec-bg{opacity:1;background:
+  linear-gradient(rgba(0,207,255,.06) 1px,transparent 1px) 0 0/40px 40px,
+  linear-gradient(90deg,rgba(0,207,255,.06) 1px,transparent 1px) 0 0/40px 40px,
+  radial-gradient(ellipse 60% 40% at 15% 10%,rgba(0,255,157,.08),transparent 60%),
+  radial-gradient(ellipse 60% 40% at 85% 90%,rgba(204,85,255,.09),transparent 60%)}
+html[data-mesa="obsidiana"],html[data-mesa="obsidiana"] body{background:#07060a}
+html[data-mesa="obsidiana"] .aztec-bg{opacity:1;background:radial-gradient(ellipse at center,#15101c 0%,#07060a 70%)}
+html[data-mesa="jade"],html[data-mesa="jade"] body{background:#04110c}
+html[data-mesa="jade"] .aztec-bg{opacity:.09;filter:hue-rotate(95deg) saturate(1.4)}
+html[data-mesa="imagen"] .aztec-bg{opacity:1;background-size:cover;background-position:center}
+@media (max-height:520px){
+  .boot{padding-top:48px}
+  .boot-card{padding:10px 12px;gap:6px}
+  .boot-logo{display:block;max-height:46px}
+  .boot-vs img,.boot-vs .vs-ico{width:30px;height:42px}
+  .boot-vs b{font-size:11px}
+  .boot-pill{height:30px;font-size:8px;padding:0 10px}
+}
+
+/* Lobby en dos columnas: horizontal en teléfono y pantallas anchas */
+@media (max-height:520px) and (min-width:600px), (min-width:1000px) and (min-height:521px){
+  .boot{justify-content:center}
+  .boot-card{display:grid;grid-template-columns:minmax(200px,30%) minmax(0,1fr);column-gap:18px;row-gap:6px;max-width:1080px;
+    grid-template-areas:"logo sel" "title sel" "sub sel" "status sel" "vs sel" "btn sel" "note sel";align-content:center;justify-items:center}
+  .boot-card>.boot-logo{grid-area:logo}.boot-card>.boot-title{grid-area:title;text-align:center}.boot-card>.boot-sub{grid-area:sub}
+  .boot-card>.boot-status{grid-area:status;text-align:center}.boot-card>.boot-vs{grid-area:vs;flex-direction:column;gap:6px}
+  .boot-card>.boot-btn{grid-area:btn;width:100%}.boot-card>.boot-note{grid-area:note}
+  .boot-card>.deck-sel>*{flex-shrink:0}
+  .boot-card>.deck-sel{grid-area:sel;max-width:none;align-self:stretch;overflow-y:auto;padding-right:4px;scrollbar-width:thin;scrollbar-color:rgba(245,166,35,.35) transparent}
+  .boot-vs .vs-side,.boot-vs .vs-side.r{width:100%;flex-direction:row;text-align:left}
+  .boot-vs .vs-x{font-size:14px}
+  .boot-sub::before,.boot-sub::after{width:14px;margin:0 6px}
+}
+@media (max-height:520px) and (min-width:600px){
+  .boot{padding:46px max(12px,env(safe-area-inset-right)) 8px max(12px,env(safe-area-inset-left))}
+  .boot-card{height:calc(var(--vh) - 56px);padding:10px 12px}
+  .boot-title{font-size:13px;letter-spacing:3px}
+  .boot-sub{font-size:7px;letter-spacing:2px}
+  .boot-logo{max-height:56px}
+  .boot-btn{padding:10px 12px;font-size:11px;letter-spacing:2px}
+}
+@media (min-width:1000px) and (min-height:521px){
+  .boot-card{height:min(680px,calc(var(--vh) - 90px));padding:22px 24px}
+  .boot-logo{max-height:150px}
+}
+@media (prefers-reduced-motion:reduce){
+  .boot-bg.img,.boot-ember,.boot-logo,.boot-btn,.boot-btn::after,.boot-vs .vs-x,.boot-card{animation:none!important}
+}
 
 /* ── ESCENARIO ──
    Si el teléfono/PWA se queda en vertical (p. ej. manifest con orientation:portrait),
@@ -567,6 +719,15 @@ html,body{
 
 <!-- PANTALLA DE ENTRADA: el toque habilita pantalla completa, bloqueo horizontal y audio -->
 <div class="boot" id="bootScreen">
+  <div class="boot-bg" id="bootBg"></div>
+  <div class="boot-grecas"></div>
+  <div class="boot-fx"></div>
+  <div class="boot-top">
+    <a class="boot-pill" href="index.html" id="bootHome" title="Volver al menú principal">← MENÚ</a>
+    <button class="boot-pill cfg" id="bootCfg" type="button" title="Fondo de mesa">🎨 APARIENCIA</button>
+  </div>
+  <div class="boot-card">
+  <span class="hbk tl"></span><span class="hbk tr"></span><span class="hbk bl"></span><span class="hbk br"></span>
   <img class="boot-logo" id="bootLogo" alt="">
   <div class="boot-title">CHOQUE DE HÉROES</div>
   <div class="boot-sub">SIMULACIÓN DE COMBATE · <span id="simVer"></span></div>
@@ -580,8 +741,10 @@ html,body{
     <div class="ds-lbl">RIVAL (CPU)</div>
     <div class="ds-chips" id="dsCpu"></div>
   </div>
+  <div class="boot-vs" id="bootVs" hidden></div>
   <button class="boot-btn" id="bootBtn" disabled>⚔ ENTRAR A LA BATALLA</button>
   <div class="boot-note" id="bootNote">Se abrirá en pantalla completa y en horizontal</div>
+  </div>
 </div>
 <div class="ds-list" id="dsList" onclick="if(event.target===this)this.classList.remove('show')">
   <div class="ds-list-box" id="dsListBox"></div>
@@ -753,7 +916,7 @@ html,body{
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v33';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v34';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -1040,7 +1203,7 @@ async function loadData(onProgress){
     im.src=url;
   }
   const logo=resolveImg(base,(DATA.assets||{}).logo);
-  if(logo){document.getElementById('bootLogo').src=logo;document.getElementById('hdrLogo').src=logo;}
+  if(logo){if(!window._logoInicio)document.getElementById('bootLogo').src=logo;document.getElementById('hdrLogo').src=logo;}
   document.querySelectorAll('img.rev').forEach(i=>i.src=REV);
 
   // Índice para traducir cartas de la Galería (Constructor) a cartas del simulador:
@@ -5390,6 +5553,79 @@ window.addEventListener('pagehide',()=>{try{screen.orientation.unlock();}catch(e
 // ════════════════════════════════════
 // ARRANQUE
 // ════════════════════════════════════
+
+// ════════════════════════════════════
+// v34 · APARIENCIA (solo visual)
+// Imágenes opcionales en el repositorio, carpeta assets/simulacion/:
+//   inicio_fondo.(jpg|png|webp) → fondo de la pantalla de inicio
+//   inicio_logo.(png|webp)      → logo de la pantalla de inicio
+//   mesa_fondo.(jpg|png|webp)   → opción "Imagen" del fondo de mesa
+// Si no existen o no cargan, se usan los de siempre.
+// ════════════════════════════════════
+const AP_DIR='assets/simulacion/';
+const AP_FILES={fondo:['inicio_fondo.jpg','inicio_fondo.png','inicio_fondo.webp'],logo:['inicio_logo.png','inicio_logo.webp','inicio_logo.jpg'],mesa:['mesa_fondo.jpg','mesa_fondo.png','mesa_fondo.webp']};
+const AP={mesaImg:null};
+function apProbar(lista){
+  return new Promise(res=>{let i=0;const next=()=>{if(i>=lista.length)return res(null);const u=lista[i++],im=new Image();
+    im.onload=()=>res(u);im.onerror=next;im.src=u;};next();});
+}
+const MESAS=[
+  {id:'grecas',nom:'Grecas',desc:'El clásico prehispánico dorado',prev:"#12080a url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Cpath d='M0 0h8v3H3v5H0zm22 0h8v8h-3V3h-5zM10 10h10v10H10z' fill='%23d4870a' fill-opacity='.35'/%3E%3C/svg%3E\")"},
+  {id:'jade',nom:'Grecas de jade',desc:'Las grecas en verde jade',prev:"#04110c url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Cpath d='M0 0h8v3H3v5H0zm22 0h8v8h-3V3h-5zM10 10h10v10H10z' fill='%2300c48a' fill-opacity='.35'/%3E%3C/svg%3E\")"},
+  {id:'nexo',nom:'Nexo neón',desc:'Rejilla neón del Nexo de Héroes',prev:"linear-gradient(rgba(0,207,255,.25) 1px,transparent 1px) 0 0/12px 12px,linear-gradient(90deg,rgba(0,207,255,.25) 1px,transparent 1px) 0 0/12px 12px,#03050a"},
+  {id:'obsidiana',nom:'Obsidiana',desc:'Liso y oscuro, sin distracciones',prev:"radial-gradient(ellipse at center,#2a2033,#07060a)"},
+  {id:'imagen',nom:'Imagen',desc:'assets/simulacion/mesa_fondo',prev:null}
+];
+function apMesaGuardada(){try{return localStorage.getItem('cdh_sim_mesa')||'grecas';}catch(e){return 'grecas';}}
+function apAplicarMesa(id){
+  if(id==='imagen'&&!AP.mesaImg) id='grecas';
+  document.documentElement.dataset.mesa=id;
+  const bg=document.querySelector('.aztec-bg');
+  if(bg) bg.style.backgroundImage=id==='imagen'?'linear-gradient(rgba(5,4,8,.55),rgba(5,4,8,.55)),url("'+AP.mesaImg+'")':'';
+}
+function apAbrir(){
+  const act=apMesaGuardada();
+  const box=document.getElementById('dsListBox');
+  box.innerHTML='<button class="ds-close" onclick="document.getElementById(\'dsList\').classList.remove(\'show\')">✕</button>'+
+    '<h3>🎨 APARIENCIA</h3><h4>FONDO DE MESA (detrás del tablero)</h4><div class="ap-grid">'+
+    MESAS.map(m=>{const dis=m.id==='imagen'&&!AP.mesaImg;const pv=m.id==='imagen'?(AP.mesaImg?'url("'+AP.mesaImg+'") center/cover':'repeating-linear-gradient(45deg,#111,#111 6px,#1a1a1a 6px,#1a1a1a 12px)'):m.prev;
+      return '<button class="ap-opt'+(m.id===act&&!dis?' on':'')+'" data-mesa="'+m.id+'"'+(dis?' disabled':'')+'><span class="ap-prev" style="background:'+pv.replace(/"/g,'&quot;')+'"></span><b>'+m.nom+'</b><small>'+(dis?'No se encontró la imagen':m.desc)+'</small></button>';}).join('')+
+    '</div><div class="ap-note">Personaliza desde el repositorio subiendo a <code>assets/simulacion/</code>: <code>inicio_fondo.jpg</code> (fondo de esta pantalla), <code>inicio_logo.png</code> (logo) y <code>mesa_fondo.jpg</code> (opción "Imagen"). Si no existen, se usan los de siempre.</div>';
+  box.querySelectorAll('.ap-opt').forEach(b=>b.onclick=()=>{try{localStorage.setItem('cdh_sim_mesa',b.dataset.mesa);}catch(e){}apAplicarMesa(b.dataset.mesa);
+    box.querySelectorAll('.ap-opt').forEach(x=>x.classList.toggle('on',x===b));});
+  document.getElementById('dsList').classList.add('show');
+}
+function apBrasas(){
+  if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const boot=document.getElementById('bootScreen');
+  for(let i=0;i<16;i++){const e=document.createElement('span');e.className='boot-ember'+(i%4===0?' b':'');
+    e.style.left=(Math.random()*100)+'%';e.style.animationDuration=(9+Math.random()*10)+'s';e.style.animationDelay=(-Math.random()*15)+'s';
+    e.style.setProperty('--dx',(Math.random()*80-40)+'px');boot.appendChild(e);}
+}
+function apVS(){
+  const el=document.getElementById('bootVs'); if(!el||typeof DSEL==='undefined'||!DATA) return;
+  const esc=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const por=b=>b&&(C[b.portada]||C[(b.bp||[])[0]&&b.bp[0].id]);
+  const j=deckById(DSEL.jugador);
+  const lado=(b,lbl,ico,nom,r)=>'<div class="vs-side'+(r?' r':'')+'">'+(b&&por(b)?'<img src="'+por(b).imgMin+'" alt="">':'<span class="vs-ico">'+ico+'</span>')+
+    '<span style="min-width:0"><small>'+lbl+'</small><b>'+esc(nom)+'</b></span></div>';
+  const c=DSEL.cpu==='espejo'?j:DSEL.cpu==='aleatoria'?null:deckById(DSEL.cpu);
+  el.innerHTML=lado(j,'TÚ','🛡',j?j.nombre:'—')+'<span class="vs-x">VS</span>'+
+    lado(c,'CPU',DSEL.cpu==='aleatoria'?'🎲':'🤖',DSEL.cpu==='aleatoria'?'Al azar':DSEL.cpu==='espejo'?(j?j.nombre+' (espejo)':'Espejo'):(c?c.nombre:'—'),true);
+  el.hidden=false;
+}
+// La vista previa VS se actualiza cada vez que se redibuja el selector (sin cambiar su lógica)
+{const _rds=renderDeckSelect;renderDeckSelect=function(){_rds.apply(this,arguments);try{apVS();}catch(e){}};}
+(async function apInit(){
+  apAplicarMesa(apMesaGuardada());
+  document.getElementById('bootCfg').onclick=apAbrir;
+  apBrasas();
+  const [fondo,logo,mesa]=await Promise.all([apProbar(AP_FILES.fondo.map(f=>AP_DIR+f)),apProbar(AP_FILES.logo.map(f=>AP_DIR+f)),apProbar(AP_FILES.mesa.map(f=>AP_DIR+f))]);
+  if(fondo){const b=document.getElementById('bootBg');b.style.backgroundImage='url("'+fondo+'")';b.classList.add('img');}
+  if(logo){window._logoInicio=logo;document.getElementById('bootLogo').src=logo;}
+  if(mesa){AP.mesaImg=mesa;apAplicarMesa(apMesaGuardada());}
+})();
+
 (async function boot(){
   document.getElementById('simVer').textContent=SIM_VERSION;
   document.getElementById('btnMute').textContent=MUTED?'🔇':'🔊';

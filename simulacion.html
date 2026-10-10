@@ -257,6 +257,97 @@ html[data-mesa="imagen"] .aztec-bg{opacity:1;background-size:cover;background-po
   .boot-card{height:min(680px,calc(var(--vh) - 90px));padding:22px 24px}
   .boot-logo{max-height:150px}
 }
+</style>
+<style>
+/* ═══════════════════════════════════════════════════════
+   v35 · EFECTOS VISUALES (solo presentación)
+═══════════════════════════════════════════════════════ */
+#fxLayer{position:absolute;inset:0;z-index:9000;pointer-events:none;overflow:hidden}
+:root.fx-off #fxLayer{display:none}
+.fx-num{position:absolute;font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(14px,calc(var(--ch) * .22),30px);
+  color:#fff;white-space:nowrap;transform:translate(-50%,-50%);animation:fxNum 1.05s cubic-bezier(.2,.8,.2,1) forwards;
+  text-shadow:0 0 2px #000,0 0 6px #000,0 0 14px currentColor}
+.fx-num.red{color:#ff4d6d}.fx-num.gold{color:#ffd166}.fx-num.blue{color:#7fe9ff}.fx-num.green{color:#5dffb0}
+@keyframes fxNum{0%{opacity:0;transform:translate(-50%,-30%) scale(.5)}15%{opacity:1;transform:translate(-50%,-60%) scale(1.25)}
+  70%{opacity:1;transform:translate(-50%,-120%) scale(1)}100%{opacity:0;transform:translate(-50%,-160%) scale(.9)}}
+.fx-hit{position:absolute;border-radius:6px;pointer-events:none;animation:fxHit .45s ease-out forwards;
+  background:radial-gradient(circle,rgba(255,255,255,.9) 0%,rgba(255,200,90,.55) 35%,transparent 70%)}
+@keyframes fxHit{0%{opacity:0;transform:scale(.4)}25%{opacity:1;transform:scale(1.1)}100%{opacity:0;transform:scale(1.5)}}
+.fx-vig{position:absolute;inset:0;pointer-events:none;animation:fxVig .6s ease-out forwards}
+.fx-vig.red{box-shadow:inset 0 0 calc(var(--H) * .25) rgba(255,20,50,.75)}
+.fx-vig.gold{box-shadow:inset 0 0 calc(var(--H) * .22) rgba(245,166,35,.6)}
+@keyframes fxVig{0%{opacity:0}20%{opacity:1}100%{opacity:0}}
+.game.fx-shake{animation:fxShake .45s cubic-bezier(.36,.07,.19,.97)}
+@keyframes fxShake{10%,90%{transform:translate(-1px,1px)}20%,80%{transform:translate(3px,-2px)}30%,50%,70%{transform:translate(-5px,2px)}40%,60%{transform:translate(5px,-1px)}}
+.bc.attacking{animation:attackFlash .35s ease,fxLunge .35s ease;z-index:5}
+@keyframes fxLunge{0%{transform:none;filter:brightness(1)}40%{transform:scale(1.12);filter:brightness(1.8) drop-shadow(0 0 10px #fff)}100%{transform:none;filter:brightness(1)}}
+/* Llamado especial / Amalgama a pantalla completa */
+.fx-show{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;
+  background:radial-gradient(ellipse at center,rgba(0,0,0,.25),rgba(0,0,0,.7));animation:fxShowBg 1.25s ease forwards}
+@keyframes fxShowBg{0%{opacity:0}12%{opacity:1}75%{opacity:1}100%{opacity:0}}
+.fx-show .rays{position:absolute;width:calc(var(--H) * 1.1);height:calc(var(--H) * 1.1);border-radius:50%;opacity:.28;
+  background:repeating-conic-gradient(from 0deg,var(--fxc) 0deg 6deg,transparent 6deg 18deg);
+  -webkit-mask-image:radial-gradient(circle,#000 0%,transparent 65%);mask-image:radial-gradient(circle,#000 0%,transparent 65%);animation:fxSpin 3s linear infinite}
+@keyframes fxSpin{to{transform:rotate(360deg)}}
+.fx-show img{position:relative;height:calc(var(--H) * .62);aspect-ratio:5/7;object-fit:contain;border-radius:10px;
+  box-shadow:0 0 0 2px var(--fxc),0 0 30px var(--fxc),0 0 80px var(--fxc);animation:fxCardIn 1.25s cubic-bezier(.2,.9,.25,1.2) forwards}
+@keyframes fxCardIn{0%{transform:scale(.3) rotate(-8deg);opacity:0}18%{transform:scale(1.06) rotate(1deg);opacity:1}30%{transform:scale(1) rotate(0)}
+  78%{transform:scale(1);opacity:1}100%{transform:scale(.35) translateY(30%);opacity:0}}
+.fx-show .lbl{position:relative;font-family:'Orbitron',sans-serif;font-weight:900;letter-spacing:4px;font-size:clamp(11px,calc(var(--H) * .035),20px);
+  color:#fff;text-shadow:0 0 8px var(--fxc),0 0 20px var(--fxc);animation:fxShowBg 1.25s ease forwards}
+/* Cartas que vuelan */
+.fx-fly{position:absolute;border-radius:4px;background:#000 center/cover no-repeat;box-shadow:0 4px 14px rgba(0,0,0,.6),0 0 10px rgba(245,166,35,.45);
+  transition:transform .55s cubic-bezier(.3,.7,.3,1),opacity .55s ease;will-change:transform}
+/* Turno: luz que recorre el borde del tablero */
+@property --fxang{syntax:'<angle>';inherits:false;initial-value:0deg}
+.board::after{content:'';position:absolute;inset:-5px;border-radius:10px;padding:3px;pointer-events:none;opacity:0;transition:opacity .4s;
+  background:conic-gradient(from var(--fxang),transparent 0 62%,var(--turnc,#00ff9d) 80%,#fff 84%,var(--turnc,#00ff9d) 88%,transparent 100%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;
+  animation:fxRing 3.2s linear infinite}
+.board.turn-p::after{opacity:1;--turnc:#00ff9d}
+.board.turn-c::after{opacity:1;--turnc:#ff2244;animation-duration:2.2s}
+.board.turn-p{box-shadow:0 0 18px rgba(0,255,157,.18)}
+.board.turn-c{box-shadow:0 0 18px rgba(255,34,68,.2)}
+@keyframes fxRing{to{--fxang:360deg}}
+:root.fx-off .board::after{display:none}
+/* Pantalla final */
+.eg-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:8px 0 6px;width:100%}
+.eg-stat{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:6px 4px;text-align:center}
+.eg-stat b{display:block;font-family:'Orbitron',sans-serif;font-size:16px;color:#ffd166}
+.eg-stat small{font-size:9px;color:#9fb3cc;letter-spacing:1px}
+.eg-mvp{display:flex;align-items:center;gap:10px;margin:4px 0 8px;padding:6px 8px;border-radius:9px;width:100%;
+  background:linear-gradient(90deg,rgba(245,166,35,.18),rgba(245,166,35,.03));border:1px solid rgba(245,166,35,.35)}
+.eg-mvp img{width:38px;height:53px;object-fit:cover;border-radius:4px;box-shadow:0 0 10px rgba(245,166,35,.6)}
+.eg-mvp small{display:block;font-family:'Orbitron',sans-serif;font-size:8px;letter-spacing:2px;color:#f5a623}
+.eg-mvp b{font-size:13px;color:#fff}
+.eg-mvp span.d{display:block;font-size:10px;color:#9fb3cc}
+/* Temas de mesa adicionales */
+html[data-mesa="mar"],html[data-mesa="mar"] body{background:#021018}
+html[data-mesa="mar"] .aztec-bg{opacity:1;background:
+  radial-gradient(ellipse 80% 50% at 50% 110%,rgba(0,140,200,.28),transparent 60%),
+  radial-gradient(ellipse 60% 40% at 10% 0%,rgba(0,207,255,.12),transparent 60%),
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='20'%3E%3Cpath d='M0 10 Q20 0 40 10 T80 10' fill='none' stroke='%2300cfff' stroke-opacity='.10' stroke-width='2'/%3E%3C/svg%3E"),#021018}
+html[data-mesa="fuego"],html[data-mesa="fuego"] body{background:#120503}
+html[data-mesa="fuego"] .aztec-bg{opacity:1;background:
+  radial-gradient(ellipse 90% 50% at 50% 115%,rgba(255,90,0,.35),transparent 60%),
+  radial-gradient(ellipse 50% 35% at 85% 10%,rgba(255,40,40,.12),transparent 60%),
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cpath d='M0 0h15v5H5v10H0zm45 0h15v15h-5V5h-10zm0 45h10v10H45v-5h-5v5h-5zm-45 0h5v5h10v5H0zM22 22h16v16H22z' fill='%23ff5a1f' fill-opacity='.07'/%3E%3C/svg%3E"),#120503}
+html[data-mesa="cristal"],html[data-mesa="cristal"] body{background:#050b14}
+html[data-mesa="cristal"] .aztec-bg{opacity:1;background:
+  repeating-linear-gradient(135deg,rgba(140,210,255,.05) 0 2px,transparent 2px 26px),
+  radial-gradient(ellipse 60% 45% at 20% 15%,rgba(120,200,255,.18),transparent 60%),
+  radial-gradient(ellipse 60% 45% at 80% 90%,rgba(190,140,255,.14),transparent 60%),#050b14}
+html[data-mesa="mictlan"],html[data-mesa="mictlan"] body{background:#0b0610}
+html[data-mesa="mictlan"] .aztec-bg{opacity:1;background:
+  radial-gradient(ellipse 70% 50% at 50% 50%,rgba(150,80,220,.16),transparent 65%),
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cpath d='M0 0h15v5H5v10H0zm45 0h15v15h-5V5h-10zm0 45h10v10H45v-5h-5v5h-5zm-45 0h5v5h10v5H0zm20 5h20v5H20zm0-55h20v5H20zM22 22h16v16H22z' fill='%23b48cff' fill-opacity='.07'/%3E%3C/svg%3E"),#0b0610}
+html[data-mesa="metal"],html[data-mesa="metal"] body{background:#080a0d}
+html[data-mesa="metal"] .aztec-bg{opacity:1;background:
+  repeating-linear-gradient(45deg,rgba(255,255,255,.025) 0 1px,transparent 1px 9px),
+  repeating-linear-gradient(-45deg,rgba(255,255,255,.02) 0 1px,transparent 1px 9px),
+  radial-gradient(ellipse 70% 50% at 50% 0%,rgba(120,170,220,.16),transparent 60%),#080a0d}
+@media (prefers-reduced-motion:reduce){.board::after{animation:none}.fx-show .rays{animation:none}}
+
 @media (prefers-reduced-motion:reduce){
   .boot-bg.img,.boot-ember,.boot-logo,.boot-btn,.boot-btn::after,.boot-vs .vs-x,.boot-card{animation:none!important}
 }
@@ -751,6 +842,7 @@ html[data-mesa="imagen"] .aztec-bg{opacity:1;background-size:cover;background-po
 </div>
 
 <div id="stage">
+<div id="fxLayer"></div>
 <div class="game" id="game">
 
   <!-- ═══ PANEL IZQUIERDO: DETALLE DE CARTA ═══ -->
@@ -840,7 +932,8 @@ html[data-mesa="imagen"] .aztec-bg{opacity:1;background-size:cover;background-po
     <div class="endgame-icon" id="endgameIcon">🏆</div>
     <div class="endgame-title" id="endgameTitle">¡VICTORIA!</div>
     <div class="endgame-reason" id="endgameReason"></div>
-    <button class="endgame-btn" onclick="restartGame()">↺ NUEVA PARTIDA</button>
+    <div id="endgameStats"></div>
+    <button class="endgame-btn" onclick="restartGame()">↺ REVANCHA</button>
     <button class="endgame-btn alt" onclick="showDeckSelect()">🃏 CAMBIAR BARAJAS</button>
   </div>
 </div>
@@ -916,7 +1009,7 @@ html[data-mesa="imagen"] .aztec-bg{opacity:1;background-size:cover;background-po
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v34';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v35';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -1402,6 +1495,7 @@ function mictlanArr(o){
       lg('🌀 Mictlán cerrado: '+xs.map(c=>'<b>'+C[c].name+'</b>').join(', ')+who(o)+' regresa al fondo de su baraja.','var(--muted)');
       return this.length;
     }
+    try{fxMictlan(o,xs);}catch(e){}
     return Array.prototype.push.apply(this,xs);
   }});
   return a;
@@ -5574,10 +5668,20 @@ const MESAS=[
   {id:'jade',nom:'Grecas de jade',desc:'Las grecas en verde jade',prev:"#04110c url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Cpath d='M0 0h8v3H3v5H0zm22 0h8v8h-3V3h-5zM10 10h10v10H10z' fill='%2300c48a' fill-opacity='.35'/%3E%3C/svg%3E\")"},
   {id:'nexo',nom:'Nexo neón',desc:'Rejilla neón del Nexo de Héroes',prev:"linear-gradient(rgba(0,207,255,.25) 1px,transparent 1px) 0 0/12px 12px,linear-gradient(90deg,rgba(0,207,255,.25) 1px,transparent 1px) 0 0/12px 12px,#03050a"},
   {id:'obsidiana',nom:'Obsidiana',desc:'Liso y oscuro, sin distracciones',prev:"radial-gradient(ellipse at center,#2a2033,#07060a)"},
+  {id:'mar',nom:'Mar profundo',desc:'Olas y azul abisal',prev:"radial-gradient(ellipse at 50% 120%,rgba(0,140,200,.6),#021018 70%)"},
+  {id:'fuego',nom:'Fuego',desc:'Brasas y grecas encendidas',prev:"radial-gradient(ellipse at 50% 120%,rgba(255,90,0,.7),#120503 70%)"},
+  {id:'cristal',nom:'Cristal',desc:'Destellos helados',prev:"repeating-linear-gradient(135deg,rgba(140,210,255,.25) 0 2px,transparent 2px 12px),#050b14"},
+  {id:'mictlan',nom:'Mictlán',desc:'Violeta del inframundo',prev:"radial-gradient(ellipse at center,rgba(150,80,220,.6),#0b0610 70%)"},
+  {id:'metal',nom:'Metal',desc:'Acero cepillado',prev:"repeating-linear-gradient(45deg,rgba(255,255,255,.12) 0 1px,transparent 1px 6px),#11151b"},
   {id:'imagen',nom:'Imagen',desc:'assets/simulacion/mesa_fondo',prev:null}
 ];
-function apMesaGuardada(){try{return localStorage.getItem('cdh_sim_mesa')||'grecas';}catch(e){return 'grecas';}}
+MESAS.unshift({id:'auto',nom:'Según tu baraja',desc:'Cambia con el tema de la baraja que juegas',prev:"conic-gradient(#d4870a 0 25%,#00c48a 0 50%,#00cfff 0 75%,#ff5a1f 0)"});
+const MESA_BARAJA={metalurgicos:'metal',caballero_cristal:'cristal',mictlan:'mictlan',evolotl:'jade',legion_mar:'mar',
+  ornamentum_khalet:'obsidiana',nexotlan:'nexo',herederos:'fuego',hell_riders:'fuego',dioses:'grecas'};
+function mesaDeBaraja(){const id=(typeof DK!=='undefined'&&DK&&DK.jugador&&DK.jugador.id)||(typeof DSEL!=='undefined'&&DSEL.jugador)||'';return MESA_BARAJA[id]||'grecas';}
+function apMesaGuardada(){try{return localStorage.getItem('cdh_sim_mesa')||'auto';}catch(e){return 'auto';}}
 function apAplicarMesa(id){
+  if(id==='auto') id=mesaDeBaraja();
   if(id==='imagen'&&!AP.mesaImg) id='grecas';
   document.documentElement.dataset.mesa=id;
   const bg=document.querySelector('.aztec-bg');
@@ -5590,7 +5694,11 @@ function apAbrir(){
     '<h3>🎨 APARIENCIA</h3><h4>FONDO DE MESA (detrás del tablero)</h4><div class="ap-grid">'+
     MESAS.map(m=>{const dis=m.id==='imagen'&&!AP.mesaImg;const pv=m.id==='imagen'?(AP.mesaImg?'url("'+AP.mesaImg+'") center/cover':'repeating-linear-gradient(45deg,#111,#111 6px,#1a1a1a 6px,#1a1a1a 12px)'):m.prev;
       return '<button class="ap-opt'+(m.id===act&&!dis?' on':'')+'" data-mesa="'+m.id+'"'+(dis?' disabled':'')+'><span class="ap-prev" style="background:'+pv.replace(/"/g,'&quot;')+'"></span><b>'+m.nom+'</b><small>'+(dis?'No se encontró la imagen':m.desc)+'</small></button>';}).join('')+
+    '</div><h4>EFECTOS VISUALES</h4><div class="ds-chips" id="apFx">'+
+    [['on','✨ Completos'],['off','🔋 Reducidos']].map(([v,t])=>'<button class="ds-chip'+(fxModo()===v?' on':'')+'" data-fx="'+v+'">'+t+'</button>').join('')+
     '</div><div class="ap-note">Personaliza desde el repositorio subiendo a <code>assets/simulacion/</code>: <code>inicio_fondo.jpg</code> (fondo de esta pantalla), <code>inicio_logo.png</code> (logo) y <code>mesa_fondo.jpg</code> (opción "Imagen"). Si no existen, se usan los de siempre.</div>';
+  box.querySelectorAll('#apFx .ds-chip').forEach(b=>b.onclick=()=>{try{localStorage.setItem('cdh_sim_fx',b.dataset.fx);}catch(e){}fxAplicar();
+    box.querySelectorAll('#apFx .ds-chip').forEach(x=>x.classList.toggle('on',x===b));});
   box.querySelectorAll('.ap-opt').forEach(b=>b.onclick=()=>{try{localStorage.setItem('cdh_sim_mesa',b.dataset.mesa);}catch(e){}apAplicarMesa(b.dataset.mesa);
     box.querySelectorAll('.ap-opt').forEach(x=>x.classList.toggle('on',x===b));});
   document.getElementById('dsList').classList.add('show');
@@ -5625,6 +5733,138 @@ function apVS(){
   if(logo){window._logoInicio=logo;document.getElementById('bootLogo').src=logo;}
   if(mesa){AP.mesaImg=mesa;apAplicarMesa(apMesaGuardada());}
 })();
+
+// ════════════════════════════════════
+// v35 · EFECTOS VISUALES — envuelven funciones existentes sin cambiar su resultado
+// ════════════════════════════════════
+function fxModo(){try{return localStorage.getItem('cdh_sim_fx')||'on';}catch(e){return 'on';}}
+function fxOn(){return fxModo()!=='off'&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)&&!document.hidden;}
+function fxAplicar(){document.documentElement.classList.toggle('fx-off',fxModo()==='off');}
+fxAplicar();
+let FXS={};
+function fxReset(){FXS={dmgHecho:0,dmgRecibido:0,destP:0,destC:0,esp:0,kills:{},dmgBy:{},vistos:{}};}
+fxReset();
+function fxLayer(){return document.getElementById('fxLayer');}
+function fxPos(el){                       // posición dentro del escenario (funciona aunque esté girado)
+  let x=0,y=0,e=el;
+  while(e&&e.id!=='stage'){x+=e.offsetLeft;y+=e.offsetTop;e=e.offsetParent;}
+  return {x,y,w:el.offsetWidth,h:el.offsetHeight};
+}
+function fxEl(id){return typeof id==='string'?document.getElementById(id):id;}
+function fxNum(target,txt,cls){
+  if(!fxOn()) return;
+  const el=fxEl(target), L=fxLayer(); if(!el||!L) return;
+  const p=fxPos(el), n=document.createElement('div');
+  n.className='fx-num '+(cls||'red'); n.textContent=txt;
+  n.style.left=(p.x+p.w/2)+'px'; n.style.top=(p.y+p.h/2)+'px';
+  L.appendChild(n); setTimeout(()=>n.remove(),1100);
+}
+function fxHit(target){
+  if(!fxOn()) return;
+  const el=fxEl(target), L=fxLayer(); if(!el||!L) return;
+  const p=fxPos(el), h=document.createElement('div'); h.className='fx-hit';
+  h.style.cssText='left:'+(p.x-p.w*.2)+'px;top:'+(p.y-p.h*.2)+'px;width:'+(p.w*1.4)+'px;height:'+(p.h*1.4)+'px';
+  L.appendChild(h); setTimeout(()=>h.remove(),480);
+}
+function fxVig(cls){
+  if(!fxOn()) return;
+  const L=fxLayer(); if(!L) return;
+  const v=document.createElement('div'); v.className='fx-vig '+cls; L.appendChild(v); setTimeout(()=>v.remove(),650);
+  if(cls==='red'){const g=document.getElementById('game');if(g){g.classList.remove('fx-shake');void g.offsetWidth;g.classList.add('fx-shake');setTimeout(()=>g.classList.remove('fx-shake'),480);}}
+}
+let _fxShowT=0;
+function fxShowcase(cid,etiqueta,color){
+  if(!fxOn()||!C[cid]) return;
+  const L=fxLayer(); if(!L) return;
+  const now=Date.now(); if(now-_fxShowT<900) return; _fxShowT=now;
+  const w=document.createElement('div'); w.className='fx-show'; w.style.setProperty('--fxc',color);
+  w.innerHTML='<div class="rays"></div><img src="'+(C[cid].img||C[cid].imgMin)+'" onerror="this.onerror=null;this.src=\''+C[cid].imgMin+'\'" alt=""><div class="lbl">'+etiqueta+'</div>';
+  L.appendChild(w); setTimeout(()=>w.remove(),1300);
+}
+let _fxFlying=0;
+function fxFly(fromEl,toEl,img,back){
+  if(!fxOn()||_fxFlying>=4) return;
+  const a=fxEl(fromEl), b=fxEl(toEl), L=fxLayer(); if(!a||!b||!L) return;
+  const pa=fxPos(a), pb=fxPos(b);
+  const ch=a.offsetHeight||60, cw=ch*2/3;
+  const f=document.createElement('div'); f.className='fx-fly';
+  f.style.cssText='left:'+(pa.x+pa.w/2-cw/2)+'px;top:'+(pa.y+pa.h/2-ch/2)+'px;width:'+cw+'px;height:'+ch+'px;background-image:url("'+(back?REV:img)+'")';
+  L.appendChild(f); _fxFlying++;
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    f.style.transform='translate('+((pb.x+pb.w/2)-(pa.x+pa.w/2))+'px,'+((pb.y+pb.h/2)-(pa.y+pa.h/2))+'px) scale(.75) rotate('+(back?6:-6)+'deg)';
+    f.style.opacity='.15';
+  }));
+  setTimeout(()=>{f.remove();_fxFlying--;},620);
+}
+let _fxManoAntes=[];
+function fxMictlan(o,xs){
+  if(!G||!fxOn()) return;
+  const dest=o==='player'?'playerMC':'cpuMC';
+  xs.slice(0,3).forEach(c=>{
+    if(!C[c]) return;
+    const deMano=o==='player'&&_fxManoAntes.includes(c);
+    fxFly(deMano?'handrow':'board',dest,C[c].imgMin||C[c].img,false);
+  });
+}
+// Robar: la carta vuela de la baraja a la mano
+{const _df=drawFrom;drawFrom=function(o,src){const x=_df.apply(this,arguments);
+  try{if(x&&G&&o==='player'&&(src==='bp'||src==='ba'))fxFly(src==='ba'?'playerBA':'playerBP','handrow',null,true);
+      else if(x&&G&&o==='cpu'&&(src==='bp'||src==='ba'))fxFly(src==='ba'?'cpuBA':'cpuBP','cpuhand',null,true);}catch(e){}
+  return x;};}
+// Daño a corazones: número flotante, destello y sacudida
+{const _h=hurt;hurt=function(o,n,why){const r=_h.apply(this,arguments);
+  try{if(r>0&&G){fxNum(o==='player'?'playerHB':'cpuHB','−'+r+' ❤',o==='player'?'red':'gold');fxVig(o==='player'?'red':'gold');
+    if(why!=='costo'){if(o==='cpu')FXS.dmgHecho+=r;else FXS.dmgRecibido+=r;}}}catch(e){}
+  return r;};}
+// Choques entre personajes: impacto y números de fuerza
+{const _b=battle;battle=async function(o,as,ds){
+  const r=opp(o), ea=(o==='player'?'pP':'cP')+as, ed=(r==='player'?'pP':'cP')+ds;
+  const res=await _b.apply(this,arguments);
+  try{if(res&&res.first&&G){
+    fxHit(ed);fxNum(ed,'−'+res.first.a.f,'red');
+    setTimeout(()=>{fxHit(ea);fxNum(ea,'−'+res.first.d.f,'gold');},180);
+    if(res.killed&&o==='player') FXS.kills[res.atkId]=(FXS.kills[res.atkId]||0)+1;
+  }}catch(e){}
+  return res;};}
+{const _ah=attackHearts;attackHearts=async function(o,slot){
+  const card=G&&G[o].pj[slot], hp0=G?G[opp(o)].hp:0;
+  const r=await _ah.apply(this,arguments);
+  try{if(card&&o==='player'&&G){const d=hp0-G.cpu.hp;if(d>0)FXS.dmgBy[card.id]=(FXS.dmgBy[card.id]||0)+d;}}catch(e){}
+  return r;};}
+// Llamados especiales y Amalgamas a pantalla completa
+{const _pc=placeChar;placeChar=async function(o,cid,opt){
+  try{opt=opt||{};
+    if(G&&C[cid]&&(opt.via==='especial'||C[cid].type==='amalgama')){
+      if(o==='player') FXS.esp++;
+      const am=C[cid].type==='amalgama';
+      fxShowcase(cid,(am?'✦ AMALGAMA':'✨ LLAMADO ESPECIAL')+(o==='cpu'?' · CPU':''),am?'#ffe066':(C[cid].dios?'#ff8c42':o==='player'?'#00ff9d':'#cc55ff'));
+    }}catch(e){}
+  return await _pc.apply(this,arguments);};}
+// Cartas destruidas (para el resumen)
+{const _md=marcaDestruida;marcaDestruida=function(o,cid,how){_md.apply(this,arguments);try{if(G&&cid){if(o==='cpu')FXS.destC++;else FXS.destP++;}}catch(e){}};}
+// Turno: luz alrededor del tablero
+{const _ra=renderAll;renderAll=function(){_ra.apply(this,arguments);
+  try{const b=document.getElementById('board');if(b&&G){b.classList.toggle('turn-p',!G.over&&G.active==='player');b.classList.toggle('turn-c',!G.over&&G.active==='cpu');}
+    if(G) _fxManoAntes=[...G.player.hand];}catch(e){}};}
+// Nueva partida: reinicia el resumen y aplica el fondo de la baraja
+{const _ig=initGame;initGame=function(){fxReset();const r=_ig.apply(this,arguments);try{apAplicarMesa(apMesaGuardada());}catch(e){}return r;};}
+// Pantalla final con resumen y MVP
+{const _eg=endGame;endGame=function(won,reason){
+  const ya=G&&G.over;
+  _eg.apply(this,arguments);
+  if(ya) return;
+  try{
+    const box=document.getElementById('endgameStats'); if(!box) return;
+    const pts={};Object.entries(FXS.kills).forEach(([k,v])=>pts[k]=(pts[k]||0)+v*3);Object.entries(FXS.dmgBy).forEach(([k,v])=>pts[k]=(pts[k]||0)+v*2);
+    let mvp=Object.entries(pts).sort((a,b)=>b[1]-a[1])[0];
+    if(!mvp){const vivos=G.player.pj.filter(Boolean).sort((a,b)=>SCORE(b.id)-SCORE(a.id));if(vivos[0])mvp=[vivos[0].id,0];}
+    const st=(v,t)=>'<div class="eg-stat"><b>'+v+'</b><small>'+t+'</small></div>';
+    box.innerHTML='<div class="eg-stats">'+st(G.turn,'TURNOS')+st(FXS.dmgHecho,'DAÑO ❤')+st(FXS.destC,'DESTRUIDAS')+st(FXS.esp,'ESPECIALES')+'</div>'+
+      (mvp&&C[mvp[0]]?'<div class="eg-mvp"><img src="'+C[mvp[0]].imgMin+'" alt=""><div><small>⭐ CARTA MÁS VALIOSA</small><b>'+C[mvp[0]].name+'</b><span class="d">'+
+        [(FXS.kills[mvp[0]]?FXS.kills[mvp[0]]+' victoria(s) en combate':''),(FXS.dmgBy[mvp[0]]?FXS.dmgBy[mvp[0]]+' corazón(es) directos':'')].filter(Boolean).join(' · ')+'</span></div></div>':'')+
+      '<div style="font-size:10px;color:#9fb3cc;margin-bottom:6px">Corazones perdidos: '+FXS.dmgRecibido+' · Tus cartas destruidas: '+FXS.destP+'</div>';
+  }catch(e){}
+};}
 
 (async function boot(){
   document.getElementById('simVer').textContent=SIM_VERSION;

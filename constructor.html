@@ -933,6 +933,9 @@
       <button class="action-btn primary" id="exportBtn">Exportar</button>
     </div>
 
+    <!-- SIMULACIÓN: prueba esta baraja contra la CPU -->
+    <button class="action-btn primary" id="simBtn" style="width:100%;margin-top:8px;">⚔ Probar en Simulación</button>
+
     <!-- ACADEMIA — solo visible para admins -->
     <button class="action-btn academia-btn" id="shareAcademiaBtn" style="display:none;width:100%;margin-top:8px;background:linear-gradient(135deg,#cc55ff,#8033cc);color:#000;border:none;">📚 COMPARTIR EN ACADEMIA</button>
 
@@ -1264,6 +1267,7 @@
       clearBtn.addEventListener('click', clearDeck);
       loadBtn.addEventListener('click', openLoadModal);
       exportBtn.addEventListener('click', openExportModal);
+      document.getElementById('simBtn').addEventListener('click', probarEnSimulacion);
     }
 
     // ═══════════════════════════════════════════════════════
@@ -1667,6 +1671,18 @@
       saved.splice(index, 1);
       localStorage.setItem('chh_decks', JSON.stringify(saved));
       openLoadModal();
+    }
+
+    // ── Enlace con la Simulación: la baraja actual se guarda en "chh_sim_probar"
+    //    y simulacion.html la ofrece como "🧪 Baraja del Constructor" (las barajas
+    //    guardadas en "chh_decks" también aparecen allá en "Mis barajas").
+    function probarEnSimulacion() {
+      if (deckState.BP.length !== 40) { customAlert('Para jugarla en la Simulación la Baraja Principal debe tener 40 cartas (tienes ' + deckState.BP.length + ')', '📦'); return; }
+      if (deckState.BA.length !== 15) { customAlert('Para jugarla en la Simulación la Baraja de Almas debe tener 15 cartas (tienes ' + deckState.BA.length + ')', '👻'); return; }
+      try {
+        localStorage.setItem('chh_sim_probar', JSON.stringify({ name: 'Baraja del Constructor', date: new Date().toISOString(), decks: deckState }));
+      } catch (e) { customAlert('No se pudo preparar la baraja para la Simulación', '⚠️'); return; }
+      window.location.href = 'simulacion.html?baraja=probar';
     }
 
     function openExportModal() {

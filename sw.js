@@ -8,8 +8,8 @@
 //      datos .json red-primero con timeout, fallbacks por tipo de archivo,
 //      caché dinámica con límite de tamaño.
 // ================================================================
-const CACHE_NAME    = 'chh-tcg-v52';
-const CACHE_DYNAMIC = 'chh-dynamic-v52';
+const CACHE_NAME    = 'chh-tcg-v53';
+const CACHE_DYNAMIC = 'chh-dynamic-v53';
 const CACHE_MUSICA  = 'chh-musica-v1';   // pistas guardadas por musica.html (no se borra al actualizar)
 const NET_TIMEOUT   = 3000;   // ms para datos .json antes de servir copia
 const DYNAMIC_MAX   = 350;    // máx. entradas en caché dinámica (imágenes de cartas, etc.)

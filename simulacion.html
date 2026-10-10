@@ -753,7 +753,7 @@ html,body{
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v32';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v33';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -4947,7 +4947,7 @@ async function cosmo(o,cid){
 // ¿Le conviene a la CPU usar esta habilidad desde la mano o el Mictlán?
 function cpuQuiereMano(cid,e){
   const acc=new Set((e.pasos||[e]).map(s=>s.accion));
-  if(acc.has('oxkotetl')){const ps=G.player.pj.filter(Boolean);return ps.length>=2&&ps.reduce((t,p)=>t+SCORE(p.id),0)>P_SCORE_OX(); }
+  if(acc.has('oxkotetl')){const ps=G.player.pj.filter(Boolean);return ps.length>=2&&ps.reduce((t,p)=>t+SCORE(p.id),0)>P_SCORE_OX()-40||ps.length>=3; }
   if((e.pasos||[]).some(s=>s.filtro&&s.filtro.invitado)) return true;                 // Mojito
   if(cid==='nina_pinata') return G.cpu.hand.length<=4;
   if(acc.has('llamarse_especial')&&(e.pasos||[]).some(s=>s.costo==='ninguno')) return true;
@@ -5013,6 +5013,8 @@ async function cpuTurn(){
     if(!alive()) return;
     const sel=spFind('cpu',cid);
     if(!sel) continue;
+    // No sacrifica personajes del campo que valen más que la Amalgama
+    if(sel.filter(x=>x.src==='campo').reduce((t,x)=>t+SCORE(x.cid),0)>SCORE(cid)) continue;
     const side=['right','left'].find(sd=>freeIn('cpu',sd,freedBy(sel))!==undefined);
     if(side){if(!await step(500)) return;await doSpecialCall('cpu',cid,sel,side);}
   }
@@ -5051,10 +5053,11 @@ async function cpuTurn(){
   // 4b) Arena (si no tiene una activa)
   if(!P.arena){const ai=P.hand.findIndex(c=>C[c].type==='arena'&&!(hasPassive(c,'unica_en_campo')&&G.player.arena===c));if(ai>=0){if(!await step(450)) return;await doArena('cpu',ai);}}
   // 5) Llamados normales (los más caros que pueda pagar)
-  for(let n=0;n<R.llamadosPorTurno;n++){
+  for(let n=0;n<6&&G.callsLeft>0;n++){
     if(!alive()) return;
     const at=almaT('cpu');
-    const best=P.hand.map((c,i)=>({c,i})).filter(x=>C[x.c].type==='pj'&&C[x.c].cost<=at&&!puedeNormal('cpu',x.c)).sort((a,b)=>C[b.c].cost-C[a.c].cost)[0];
+    // Oxkotetl se guarda para revelarlo (salvo que el rival no tenga personajes)
+    const best=P.hand.map((c,i)=>({c,i})).filter(x=>C[x.c].type==='pj'&&C[x.c].cost<=at&&!puedeNormal('cpu',x.c)&&!(x.c==='oxkotetl'&&G.player.pj.some(Boolean))).sort((a,b)=>C[b.c].cost-C[a.c].cost)[0];
     if(!best||freePJ('cpu')===-1) break;
     if(!await step(550)) return;
     await callFromHand('cpu',best.c,{via:'normal'});

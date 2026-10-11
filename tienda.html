@@ -202,6 +202,20 @@
 
     /* Pack cards */
     .pack-grid{display:grid;grid-template-columns:1fr;gap:12px;}
+    /* Micas y playmats */
+    .cosm-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:18px;}
+    .cosm-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;}
+    .cosm-card.tuyo{border-color:rgba(0,255,157,.45);}
+    .cosm-prev{position:relative;background:#06080e center/cover no-repeat;display:flex;align-items:center;justify-content:center;font-size:2rem;}
+    .cosm-prev.mica{aspect-ratio:5/7;margin:10px auto 0;width:62%;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.5);}
+    .cosm-prev.playmat{aspect-ratio:4/3;}
+    .cosm-prev .tag{position:absolute;top:6px;left:6px;font-family:'Orbitron',monospace;font-size:.5rem;letter-spacing:1px;padding:3px 6px;border-radius:4px;background:rgba(0,0,0,.75);color:var(--accent);}
+    .cosm-info{padding:10px;display:flex;flex-direction:column;gap:6px;flex:1;}
+    .cosm-nombre{font-family:'Orbitron',monospace;font-size:.7rem;font-weight:700;color:#fff;}
+    .cosm-sub{font-size:.7rem;color:var(--muted);}
+    .cosm-btn{margin-top:auto;font-family:'Orbitron',monospace;font-size:.6rem;font-weight:700;letter-spacing:1px;padding:9px;border-radius:8px;border:1px solid var(--gold-d);background:linear-gradient(135deg,rgba(245,166,35,.25),rgba(245,166,35,.08));color:var(--gold);cursor:pointer;}
+    .cosm-btn:disabled{opacity:.45;cursor:default;}
+    .cosm-btn.ok{border-color:rgba(0,255,157,.5);background:rgba(0,255,157,.08);color:#00ff9d;}
     .pack-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;align-items:center;gap:14px;padding:14px 16px;cursor:pointer;transition:border-color .2s,transform .12s;}
     .pack-card:active{transform:scale(.98);}
     .pack-card:hover{border-color:var(--gold);}
@@ -454,6 +468,11 @@
           <div class="cat-name">CARTAS</div>
           <div class="cat-desc">Compra cartas sueltas con HP</div>
         </div>
+        <div class="cat-card" onclick="abrirSeccion('cosmeticos')" style="--cat-color:#00cfff;--cat-dim:rgba(0,207,255,.1)">
+          <div class="cat-icon">🎴</div>
+          <div class="cat-name">MICAS Y PLAYMATS</div>
+          <div class="cat-desc">Personaliza tus cartas y tu tablero en el Simulador</div>
+        </div>
         <div class="cat-card" onclick="abrirSeccion('musica')" style="--cat-color:#cc55ff;--cat-dim:rgba(180,70,255,.1)">
           <div class="cat-icon">🎵</div>
           <div class="cat-name">MÚSICA</div>
@@ -525,6 +544,20 @@
         <button class="filtro-btn" data-rareza="secreta" onclick="setFiltroRareza(this)">SECRETA</button>
       </div>
       <div class="cartas-grid" id="cartas-grid"><div class="cartas-vacio">⏳ Cargando catálogo...</div></div>
+    </div>
+
+    <!-- ═══ SECCIÓN MICAS Y PLAYMATS ═══ -->
+    <div id="sec-cosmeticos" class="section-panel">
+      <button class="sec-back" onclick="volverMenu()">◀ TIENDA</button>
+      <div class="hp-balance" style="background-image:url('hero_pesos/banner_hp.jpg')">
+        <div class="hp-coin"><img src="hero_pesos/hp_coin.png" alt="HP" onerror="this.style.display='none';this.parentElement.textContent='💰'"/></div>
+        <div class="hp-info">
+          <div class="hp-label">HERO PESOS</div>
+          <div class="hp-amount" id="hp-cosm-val">—</div>
+          <div class="hp-sub">Micas y playmats para el Simulador y el Arcade</div>
+        </div>
+      </div>
+      <div id="cosm-cont"><div class="empty-tab">⏳ Cargando...</div></div>
     </div>
 
     <!-- ═══ SECCIÓN CANJEAR QR ═══ -->
@@ -964,6 +997,7 @@ function abrirSeccion(sec) {
   else if (sec === 'cartas') { cargarCatalogoCartas(); }
   else if (sec === 'canjear') { abrirCanjear(); }
   else if (sec === 'musica') { renderMusica(); }
+  else if (sec === 'cosmeticos') { cargarCosmeticos(); }
 }
 
 function volverMenu() {
@@ -984,6 +1018,7 @@ async function cargarSaldoHP() {
       document.getElementById('hp-menu-val').textContent = d.saldo;
       document.getElementById('hp-saldo-val').textContent = d.saldo;
       if (document.getElementById('hp-cartas-val')) document.getElementById('hp-cartas-val').textContent = d.saldo;
+      if (document.getElementById('hp-cosm-val')) document.getElementById('hp-cosm-val').textContent = d.saldo;
       const ds = d.desglose || {};
       const parts = [`Ranking: ${ds.hp_ranking ?? 0}`, `Torneos: ${ds.hp_torneos ?? 0}`, `Badges: ${ds.hp_badges ?? 0}`];
       if (ds.hp_bonus) parts.push(`Bonus: ${ds.hp_bonus}`);
@@ -1065,6 +1100,7 @@ function _esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;'
 function _jsq(s) { return String(s ?? '').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
 
 function renderPacks(packs) {
+  packs = (packs || []).filter(p => !esTipoCosmetico(p.tipo));   // micas/playmats van en su propia sección
   const grid = document.getElementById('pack-grid');
   const est = document.getElementById('packs-estado');
   if (est) est.style.display = 'none';
@@ -1701,6 +1737,112 @@ function formatFecha(f) {
 }
 
 // ════════════════════════════════════════════
+//  MICAS Y PLAYMATS
+//  Venta: filas de Packs_Config con tipo 'mica' o 'playmat' (precio en HP).
+//  Recompensas: data/cosmeticos.json (se ganan con logros del Arcade).
+//  Se equipan desde Simulación → APARIENCIA (o con USAR aquí).
+// ════════════════════════════════════════════
+function esTipoCosmetico(t) { t = String(t || '').toLowerCase().trim(); return t === 'mica' || t === 'playmat'; }
+let _cosmVenta = null;
+
+async function cargarCosmeticos() {
+  const cont = document.getElementById('cosm-cont');
+  document.getElementById('hp-cosm-val').textContent = hpSaldo;
+  if (!window.CHH_COSM) { cont.innerHTML = '<div class="empty-tab">⚠ No se pudo cargar el módulo de cosméticos.</div>'; return; }
+  if (_packsCache) { _cosmVenta = _packsCache.filter(p => esTipoCosmetico(p.tipo)); await renderCosmeticos(); }
+  try {
+    const [d] = await Promise.all([
+      fetchJSON(`${HERO_PESOS_URL}?action=packs_disponibles&playerid=${encodeURIComponent(jugador.id)}`, 25000),
+      CHH_COSM.sincronizar(15000)
+    ]);
+    if (d && d.status === 'ok') {
+      _packsCache = Array.isArray(d.packs) ? d.packs : [];
+      _cosmVenta = _packsCache.filter(p => esTipoCosmetico(p.tipo));
+    }
+  } catch (e) { console.warn('cosméticos:', e); }
+  await renderCosmeticos();
+}
+
+async function renderCosmeticos() {
+  const cont = document.getElementById('cosm-cont');
+  const venta = _cosmVenta || [];
+  const mios = new Set(CHH_COSM.cache().items.map(x => x.id));
+  const logros = CHH_COSM.logros();
+  const cat = await CHH_COSM.catalogo();
+  const eq = { mica: CHH_COSM.equipado('mica'), playmat: CHH_COSM.equipado('playmat') };
+
+  const tarjeta = (x, modo) => {
+    const tipo = x.tipo, img = x.img;
+    const tuyo = modo === 'tienda' ? mios.has(x.id) : logros.has(x.logro) || !x.logro;
+    const usando = eq[tipo] === x.id;
+    let btn;
+    if (tuyo) btn = usando ? `<button class="cosm-btn ok" disabled>✓ EN USO</button>`
+                           : `<button class="cosm-btn ok" onclick="usarCosmetico('${_jsq(tipo)}','${_jsq(x.id)}')">USAR EN SIMULADOR</button>`;
+    else if (modo === 'tienda') {
+      const puede = hpSaldo >= x.costo;
+      btn = `<button class="cosm-btn" ${puede ? '' : 'disabled'} onclick="comprarCosmetico('${_jsq(x.id)}')">${puede ? 'COMPRAR · ' + x.costo + ' HP' : '🔒 ' + x.costo + ' HP'}</button>`;
+    } else btn = `<button class="cosm-btn" disabled>🏆 LOGRO DEL ARCADE</button>`;
+    const sub = modo === 'tienda' ? (tuyo ? 'Comprada' : (x.descripcion || 'Tienda')) : (tuyo ? 'Recompensa obtenida' : 'Se gana con un logro del Arcade');
+    return `<div class="cosm-card${tuyo ? ' tuyo' : ''}">
+      <div class="cosm-prev ${tipo}" style="background-image:url('${_esc(img)}')"><span class="tag">${tipo === 'mica' ? 'MICA' : 'PLAYMAT'}</span></div>
+      <div class="cosm-info"><div class="cosm-nombre">${_esc(x.nombre)}</div><div class="cosm-sub">${_esc(sub)}</div>${btn}</div>
+    </div>`;
+  };
+
+  const ventaItems = venta.map(p => ({ id: String(p.pack_id), tipo: String(p.tipo).toLowerCase(), nombre: p.nombre, costo: Number(p.costo) || 0,
+    descripcion: p.descripcion, img: CHH_COSM.ruta(String(p.tipo).toLowerCase(), p.imagen) }));
+  // Recompensas: solo las que ya tienen imagen
+  const ok = await Promise.all(cat.map(x => new Promise(r => { const i = new Image(); i.onload = () => r(true); i.onerror = () => r(false); i.src = x.img; })));
+  const premios = cat.filter((x, i) => ok[i]);
+
+  let html = '';
+  ['mica', 'playmat'].forEach(t => {
+    const v = ventaItems.filter(x => x.tipo === t);
+    if (v.length) html += `<div class="seccion-label">${t === 'mica' ? '🎴 MICAS A LA VENTA' : '🟫 PLAYMATS A LA VENTA'}</div><div class="cosm-grid">${v.map(x => tarjeta(x, 'tienda')).join('')}</div>`;
+  });
+  if (premios.length) html += `<div class="seccion-label">🏆 RECOMPENSAS DEL ARCADE</div><div class="cosm-grid">${premios.map(x => tarjeta(x, 'logro')).join('')}</div>`;
+  cont.innerHTML = html || '<div class="empty-tab">🎴 Próximamente micas y playmats.</div>';
+}
+
+async function comprarCosmetico(id) {
+  if (comprando) return;
+  const p = (_cosmVenta || []).find(x => String(x.pack_id) === id);
+  if (!p) return;
+  const costo = Number(p.costo) || 0, tipo = String(p.tipo).toLowerCase();
+  if (hpSaldo < costo) { mostrarToast('Saldo insuficiente'); return; }
+  if (!confirm(`¿Comprar ${tipo === 'mica' ? 'la mica' : 'el playmat'} "${p.nombre}" por ${costo} HP?`)) return;
+  comprando = true;
+  document.querySelectorAll('.cosm-btn').forEach(b => b.disabled = true);
+  try {
+    const r = await fetch(`${HERO_PESOS_URL}?action=comprar_sobre&playerid=${encodeURIComponent(jugador.id)}&packid=${encodeURIComponent(id)}`);
+    const d = await r.json();
+    if (d.status !== 'ok') {
+      if (d.ya) CHH_COSM.guardarCompra({ id, tipo, nombre: p.nombre, img: CHH_COSM.ruta(tipo, p.imagen), origen: 'tienda' });
+      mostrarToast(d.message || 'No se pudo comprar'); return;
+    }
+    const c = d.cosmetico || { id, tipo, nombre: p.nombre, imagen: p.imagen };
+    CHH_COSM.guardarCompra({ id: c.id, tipo: c.tipo, nombre: c.nombre, img: CHH_COSM.ruta(c.tipo, c.imagen), origen: 'tienda' });
+    CHH_COSM.equipar(c.tipo, c.id);
+    if (typeof d.saldo_nuevo === 'number' && d.saldo_nuevo >= 0) {
+      hpSaldo = d.saldo_nuevo;
+      ['hp-menu-val', 'hp-saldo-val', 'hp-cartas-val', 'hp-cosm-val'].forEach(k => { const el = document.getElementById(k); if (el) el.textContent = d.saldo_nuevo; });
+    } else { await cargarSaldoHP(); }
+    mostrarToast(`¡${c.nombre} es tuy${tipo === 'mica' ? 'a' : 'o'}! Ya está equipad${tipo === 'mica' ? 'a' : 'o'} en el Simulador.`);
+  } catch (e) {
+    mostrarToast('Error de conexión');
+  } finally {
+    comprando = false;
+    renderCosmeticos();
+  }
+}
+
+function usarCosmetico(tipo, id) {
+  CHH_COSM.equipar(tipo, id);
+  mostrarToast('¡Listo! Se usará en el Simulador y el Arcade.');
+  renderCosmeticos();
+}
+
+// ════════════════════════════════════════════
 //  CANJEAR QR
 // ════════════════════════════════════════════
 let qrStream = null;
@@ -1937,5 +2079,6 @@ abrirSeccion = function(tab) {
 };
 </script>
 <script src="settings.js"></script>
+<script src="cosmeticos.js"></script>
 </body>
 </html>

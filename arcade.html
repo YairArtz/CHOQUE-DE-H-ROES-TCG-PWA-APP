@@ -251,6 +251,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 .lg b{display:block;font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:1px;color:var(--gold2)}
 .lg small{display:block;font-size:12px;color:#9fb3cc;line-height:1.25}
 .lg i{display:block;font-style:normal;font-size:10px;color:var(--neon);margin-top:2px}
+.lg .rw{display:block;font-size:10px;color:#ffcf6b;margin-top:2px}
 .lg.off{opacity:.55}.lg.off .ic{filter:grayscale(1);border-color:#2a3446;box-shadow:none}.lg.off b{color:#7d90aa}
 .lg-cat{grid-column:1/-1;font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:2px;color:var(--gold);display:flex;align-items:center;gap:8px;margin-top:6px}
 .lg-cat::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(245,166,35,.45),transparent)}
@@ -348,6 +349,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 
 <button class="pill" id="flip" title="Girar al otro lado" style="position:fixed;bottom:max(10px,env(safe-area-inset-bottom));left:calc(max(10px,env(safe-area-inset-left)) + 46px);z-index:60;width:38px;justify-content:center;padding:0">⟲</button>
 </div>
+<script src="cosmeticos.js"></script>
 <script>
 // ════════════════════════════════════
 // MODO ARCADE — v1
@@ -356,7 +358,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 // Combate: escribe "chh_arcade_match" y abre simulacion.html?modo=arcade;
 //          la simulación escribe "chh_arcade_result" y regresa a arcade.html?r=<id>
 // ════════════════════════════════════
-const ARC_VERSION='Arcade v1.5';
+const ARC_VERSION='Arcade v1.6';
 const STAGE=document.getElementById('stage');
 // ── Orientación horizontal ──
 const MOVIL=matchMedia('(pointer:coarse)').matches;
@@ -835,6 +837,7 @@ const _lgCola=[];let _lgVis=false;
 function lgToast(b){_lgCola.push(b);if(!_lgVis)_lgSig();}
 function _lgSig(){const b=_lgCola.shift();if(!b){_lgVis=false;return;}_lgVis=true;
   $('lgtIc').textContent=b.emoji;$('lgtN').textContent=b.nombre;$('lgtC').textContent=b.cond;
+  if(window.CHH_COSM) CHH_COSM.recompensasDe(b.id).then(R=>{if(R.length&&$('lgtN').textContent===b.nombre)$('lgtC').textContent='🎁 Ganaste: '+R.map(r=>(r.tipo==='mica'?'Mica':'Playmat')+' «'+r.nombre+'»').join(' · ')+' — úsala en Apariencia';}).catch(()=>{});
   const t=$('lgToast');t.classList.add('on');try{playLg();}catch(e){}
   setTimeout(()=>{t.classList.remove('on');setTimeout(_lgSig,500);},3600);}
 function playLg(){const A=window.AudioContext||window.webkitAudioContext;if(!A||MUTE)return;const c=new A(),t=c.currentTime;
@@ -920,9 +923,13 @@ function renderLogros(){
   const st=L.st||{}; st.nBarajas=(st.barajas||[]).length;
   const card=b=>{const x=L.l[b.id];
     const pr=!x&&b.prog?'<i style="color:#9fb3cc">'+Math.min(st[b.prog[0]]||0,b.prog[1])+' / '+b.prog[1]+'</i>':'';
-    return '<div class="lg'+(x?'':' off')+'"><div class="ic"><img src="badges/'+b.id+'.png" alt="" onerror="this.remove()"><span>'+b.emoji+'</span></div><div style="min-width:0"><b>'+esc(b.nombre)+'</b><small>'+esc(b.cond)+'</small>'+
+    return '<div class="lg'+(x?'':' off')+'" data-lg="'+b.id+'"><div class="ic"><img src="badges/'+b.id+'.png" alt="" onerror="this.remove()"><span>'+b.emoji+'</span></div><div style="min-width:0"><b>'+esc(b.nombre)+'</b><small>'+esc(b.cond)+'</small>'+
       (x?'<i>✔ '+fecha(x.ts)+(x.sync?' · en tu Perfil':'')+'</i>':pr)+'</div></div>';};
   $('lgGrid').innerHTML=Object.keys(LG_CAT).map(c=>'<div class="lg-cat">'+LG_CAT[c]+'</div>'+LOGROS.filter(b=>b.cat===c).map(card).join('')).join('');
+  // Recompensas (micas / playmats de data/cosmeticos.json cuya imagen ya existe)
+  if(window.CHH_COSM) LOGROS.forEach(async b=>{const R=await CHH_COSM.recompensasDe(b.id);if(!R.length)return;
+    const el=document.querySelector('#lgGrid [data-lg="'+b.id+'"] > div:last-child');
+    if(el) el.insertAdjacentHTML('beforeend','<span class="rw">🎁 '+R.map(r=>(r.tipo==='mica'?'Mica':'Playmat')+' «'+esc(r.nombre)+'»').join(' · ')+'</span>');});
 }
 addEventListener('online',()=>sincronizarLogros());
 

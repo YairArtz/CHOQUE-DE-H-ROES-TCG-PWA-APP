@@ -12,7 +12,7 @@
 //      datos .json red-primero con timeout, fallbacks por tipo de archivo,
 //      caché dinámica con límite de tamaño.
 // ================================================================
-const CACHE_NAME    = 'chh-tcg-v67';
+const CACHE_NAME    = 'chh-tcg-v68';
 const CACHE_DYNAMIC = 'chh-dynamic-v63';
 const CACHE_MUSICA  = 'chh-musica-v1';
 const CACHE_CARTAS  = 'chh-cartas-v1';   // imágenes de cartas (permanente, compartida con simulacion.html)
@@ -38,6 +38,8 @@ const CACHE_SIM = [
   './simulacion.html',
   './arcade.html',
   './assets/arcade/rivales.txt',
+  './cosmeticos.js',
+  './data/cosmeticos.json',
   './data/cartas_simulacion.json',
   './cartas.json',
   './img/simulacion/reverso.jpg',

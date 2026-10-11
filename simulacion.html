@@ -200,6 +200,9 @@ html,body{
 @keyframes sheen{0%,60%{left:-60%}100%{left:130%}}
 @keyframes btnGlow{0%,100%{box-shadow:0 0 18px rgba(212,135,10,.45)}50%{box-shadow:0 0 30px rgba(245,200,66,.75),0 0 60px rgba(245,166,35,.25)}}
 /* Panel de apariencia */
+.ap-opt.mica .ap-prev{height:auto;aspect-ratio:5/7;width:62%;margin:0 auto}
+.ap-opt.lock{opacity:.45;cursor:default}
+#board.pm{background-image:var(--pm-img)!important;background-size:cover!important;background-position:center!important}
 .ap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-top:6px}
 .ap-opt{display:flex;flex-direction:column;gap:5px;padding:6px;border-radius:9px;cursor:pointer;text-align:left;
   background:rgba(11,14,24,.6);border:1px solid #1b2433;color:var(--text);font:inherit}
@@ -1017,11 +1020,12 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 </div>
 </div><!-- /stage -->
 
+<script src="cosmeticos.js"></script>
 <script>
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v43';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v44';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -6115,7 +6119,7 @@ function apAbrir(){
     '<h3>🎨 APARIENCIA</h3><h4>FONDO DE MESA (detrás del tablero)</h4><div class="ap-grid">'+
     MESAS.map(m=>{const dis=m.id==='imagen'&&!AP.mesaImg;const pv=m.id==='imagen'?(AP.mesaImg?'url("'+AP.mesaImg+'") center/cover':'repeating-linear-gradient(45deg,#111,#111 6px,#1a1a1a 6px,#1a1a1a 12px)'):m.prev;
       return '<button class="ap-opt'+(m.id===act&&!dis?' on':'')+'" data-mesa="'+m.id+'"'+(dis?' disabled':'')+'><span class="ap-prev" style="background:'+pv.replace(/"/g,'&quot;')+'"></span><b>'+m.nom+'</b><small>'+(dis?'No se encontró la imagen':m.desc)+'</small></button>';}).join('')+
-    '</div><h4>EFECTOS VISUALES</h4><div class="ds-chips" id="apFx">'+
+    '</div><div id="apCosm"></div><h4>EFECTOS VISUALES</h4><div class="ds-chips" id="apFx">'+
     [['on','✨ Completos'],['off','🔋 Reducidos']].map(([v,t])=>'<button class="ds-chip'+(fxModo()===v?' on':'')+'" data-fx="'+v+'">'+t+'</button>').join('')+
     '</div><div class="ap-note">Personaliza desde el repositorio subiendo a <code>assets/simulacion/</code>: <code>inicio_fondo.jpg</code> (fondo de esta pantalla), <code>inicio_logo.png</code> (logo) y <code>mesa_fondo.jpg</code> (opción "Imagen"). Si no existen, se usan los de siempre.</div>';
   box.querySelectorAll('#apFx .ds-chip').forEach(b=>b.onclick=()=>{try{localStorage.setItem('cdh_sim_fx',b.dataset.fx);}catch(e){}fxAplicar();
@@ -6123,6 +6127,44 @@ function apAbrir(){
   box.querySelectorAll('.ap-opt').forEach(b=>b.onclick=()=>{try{localStorage.setItem('cdh_sim_mesa',b.dataset.mesa);}catch(e){}apAplicarMesa(b.dataset.mesa);
     box.querySelectorAll('.ap-opt').forEach(x=>x.classList.toggle('on',x===b));});
   document.getElementById('dsList').classList.add('show');
+  cosmPanel();
+}
+// ── v44 · MICAS y PLAYMATS (cosmeticos.js) ──
+async function cosmAplicar(){
+  if(!window.CHH_COSM) return;
+  try{
+    const [mica,pm]=await Promise.all([CHH_COSM.imagenEquipada('mica'),CHH_COSM.imagenEquipada('playmat')]);
+    const esMica=mica&&mica!==CHH_COSM.CLASICO.mica.img;
+    window.MICA_P=esMica?mica:null;
+    ['playerBP','playerBA','playerSOP'].forEach(id=>{const im=document.querySelector('#'+id+' img.rev');if(im)im.src=esMica?mica:REV;});
+    const b=document.getElementById('board');
+    if(b){const esPm=pm&&pm!==CHH_COSM.CLASICO.playmat.img;
+      b.classList.toggle('pm',!!esPm);
+      if(esPm)b.style.setProperty('--pm-img','linear-gradient(rgba(4,8,3,.35),rgba(4,8,3,.35)),url("'+pm+'")');}
+  }catch(e){}
+}
+async function cosmPanel(){
+  const box=document.getElementById('apCosm'); if(!box||!window.CHH_COSM) return;
+  const esc=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const nomLogro=id=>{try{const m={arc_primera_victoria:'Primer Crédito',arc_campeon:'Campeón Arcade',arc_fenix:'Fénix',arc_un_credito:'Un Solo Crédito',arc_forjador:'Forjador de Amalgamas',arc_centurion:'Centurión',arc_mitad:'Media Ruta',arc_jefe_intacto:'Verdugo del Jefe',arc_maestro_barajas:'Maestro de Barajas',arc_destructor:'Destructor',arc_gran_maestro:'Señor de las Barajas'};return m[id]||id;}catch(e){return id;}};
+  const seccion=async(tipo,titulo)=>{
+    const disp=await CHH_COSM.disponibles(tipo), todos=await CHH_COSM.todos(tipo), eq=CHH_COSM.equipado(tipo);
+    const okIds=new Set(disp.map(x=>x.id));
+    const bloq=[];for(const x of todos){if(!x.tuyo&&x.logro){const ok=await new Promise(r=>{const i=new Image();i.onload=()=>r(1);i.onerror=()=>r(0);i.src=x.img;});if(ok)bloq.push(x);}}
+    const act=okIds.has(eq)?eq:CHH_COSM.CLASICO[tipo].id;
+    return '<h4>'+titulo+'</h4><div class="ap-grid">'+
+      disp.map(x=>'<button class="ap-opt'+(tipo==='mica'?' mica':'')+(x.id===act?' on':'')+'" data-cosm="'+tipo+'" data-id="'+esc(x.id)+'"><span class="ap-prev" style="background-image:url(&quot;'+esc(x.img)+'&quot;)"></span><b>'+esc(x.nombre)+'</b><small>'+(x.origen==='tienda'?'Tienda':x.origen==='logro'?'Logro':'Incluida')+'</small></button>').join('')+
+      bloq.map(x=>'<button class="ap-opt lock'+(tipo==='mica'?' mica':'')+'" disabled><span class="ap-prev" style="background-image:url(&quot;'+esc(x.img)+'&quot;);filter:grayscale(1) brightness(.5)"></span><b>🔒 '+esc(x.nombre)+'</b><small>Logro: '+esc(nomLogro(x.logro))+'</small></button>').join('')+'</div>';
+  };
+  const pinta=async()=>{
+    box.innerHTML=(await seccion('mica','MICA (reverso de tus cartas)'))+(await seccion('playmat','PLAYMAT (tablero)'))+
+      '<div class="ap-note">Consigue más micas y playmats en la <b>Tienda</b> con Hero Pesos o con los <b>logros del Arcade</b>.</div>';
+    box.querySelectorAll('[data-cosm]').forEach(b=>b.onclick=()=>{CHH_COSM.equipar(b.dataset.cosm,b.dataset.id);
+      box.querySelectorAll('[data-cosm="'+b.dataset.cosm+'"]').forEach(x=>x.classList.toggle('on',x===b));cosmAplicar();});
+  };
+  box.innerHTML='<h4>MICA Y PLAYMAT</h4><div class="ap-note">Cargando…</div>';
+  await pinta();
+  CHH_COSM.sincronizar(8000).then(()=>{if(document.getElementById('apCosm'))pinta();cosmAplicar();});
 }
 function apBrasas(){
   if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -6268,7 +6310,7 @@ function fxMictlan(o,xs){
   try{const b=document.getElementById('board');if(b&&G){b.classList.toggle('turn-p',!G.over&&G.active==='player');b.classList.toggle('turn-c',!G.over&&G.active==='cpu');}
     if(G) _fxManoAntes=[...G.player.hand];}catch(e){}};}
 // Nueva partida: reinicia el resumen y aplica el fondo de la baraja
-{const _ig=initGame;initGame=function(){fxReset();const r=_ig.apply(this,arguments);try{apAplicarMesa(apMesaGuardada());}catch(e){}return r;};}
+{const _ig=initGame;initGame=function(){fxReset();const r=_ig.apply(this,arguments);try{cosmAplicar();}catch(e){}try{apAplicarMesa(apMesaGuardada());}catch(e){}return r;};}
 // Pantalla final con resumen y MVP
 {const _eg=endGame;endGame=function(won,reason){
   const ya=G&&G.over;
@@ -6380,6 +6422,7 @@ function arsResumen(){
   if(!canLock) document.getElementById('bootNote').textContent='Gira tu dispositivo a horizontal para jugar';
   try{
     await loadData();
+    cosmAplicar(); if(window.CHH_COSM) CHH_COSM.sincronizar(8000).then(cosmAplicar);
     let _ok=false;
     await precargarMiniaturas((n,t,ya)=>{_ok=ya;st.textContent=ya?'Imágenes guardadas en el dispositivo':'Guardando imágenes en el dispositivo '+n+'/'+t+'…';});
     st.textContent=Object.keys(C).length+' cartas listas · elige tus barajas'+(_ok?' · 📲 sin red OK':'');

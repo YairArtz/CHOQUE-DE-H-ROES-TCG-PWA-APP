@@ -252,6 +252,8 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 .lg small{display:block;font-size:12px;color:#9fb3cc;line-height:1.25}
 .lg i{display:block;font-style:normal;font-size:10px;color:var(--neon);margin-top:2px}
 .lg.off{opacity:.55}.lg.off .ic{filter:grayscale(1);border-color:#2a3446;box-shadow:none}.lg.off b{color:#7d90aa}
+.lg-cat{grid-column:1/-1;font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:2px;color:var(--gold);display:flex;align-items:center;gap:8px;margin-top:6px}
+.lg-cat::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(245,166,35,.45),transparent)}
 .lg-sync{width:100%;max-width:1100px;font-size:13px;color:#9fb3cc;padding:0 12px}
 .lg-sync b{color:var(--neon)}
 #lgToast{position:fixed;top:max(14px,env(safe-area-inset-top));left:50%;transform:translate(-50%,-140%);z-index:120;display:flex;gap:10px;align-items:center;
@@ -354,7 +356,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 // Combate: escribe "chh_arcade_match" y abre simulacion.html?modo=arcade;
 //          la simulación escribe "chh_arcade_result" y regresa a arcade.html?r=<id>
 // ════════════════════════════════════
-const ARC_VERSION='Arcade v1.4';
+const ARC_VERSION='Arcade v1.5';
 const STAGE=document.getElementById('stage');
 // ── Orientación horizontal ──
 const MOVIL=matchMedia('(pointer:coarse)').matches;
@@ -790,18 +792,42 @@ let FINAL_MUS=null;
 // Perfil.html los muestra junto al resto de logros y cuentan para el nivel del jugador.
 // ════════════════════════════════════
 const LOGROS_URL='https://script.google.com/macros/s/AKfycbwSrBH7yJiyTlPabzJ_WiXQDWPe7RpATmuTTWAe3uVRy6wuGh15QpuOMzSiZVixJK_S/exec';
+// cat: ruta · combate (no cuenta en dificultad FÁCIL) · trayectoria (acumulado)
+// prog: progreso visible para logros acumulados [clave en L.st, meta]
 const LOGROS=[
-  {id:'arc_primera_victoria',nombre:'Primer Crédito',     emoji:'🕹️',cond:'Gana tu primer combate en el Modo Arcade.'},
-  {id:'arc_intacto',         nombre:'Intocable',          emoji:'🛡️',cond:'Gana un combate del Arcade sin perder ningún corazón.'},
-  {id:'arc_relampago',       nombre:'Relámpago',          emoji:'⚡',cond:'Gana un combate del Arcade antes del turno 9.'},
-  {id:'arc_mitad',           nombre:'Media Ruta',         emoji:'🗺️',cond:'Vence a 8 rivales en una misma ruta del Arcade.'},
-  {id:'arc_campeon',         nombre:'Campeón Arcade',     emoji:'👑',cond:'Completa la ruta Arcade y derrota al jefe final.'},
-  {id:'arc_un_credito',      nombre:'Un Solo Crédito',    emoji:'🪙',cond:'Completa la ruta Arcade sin perder un solo combate.'},
-  {id:'arc_fenix',           nombre:'Fénix',              emoji:'🔥',cond:'Completa la ruta Arcade después de sufrir un GAME OVER en ella.'},
-  {id:'arc_veterano',        nombre:'Veterano del Arcade',emoji:'🔁',cond:'Completa la ruta Arcade 3 veces.'},
-  {id:'arc_maestro_barajas', nombre:'Maestro de Barajas', emoji:'🃏',cond:'Completa la ruta Arcade con 5 barajas diferentes.'},
-  {id:'arc_revancha',        nombre:'Sed de Revancha',    emoji:'⚔️',cond:'Gana 10 revanchas en el Arcade.'}
+  // — Ruta —
+  {id:'arc_primera_victoria',cat:'ruta',nombre:'Primer Crédito',       emoji:'🕹️',cond:'Gana tu primer combate en el Modo Arcade.'},
+  {id:'arc_mitad',           cat:'ruta',nombre:'Media Ruta',           emoji:'🗺️',cond:'Vence a 8 rivales en una misma ruta.'},
+  {id:'arc_campeon',         cat:'ruta',nombre:'Campeón Arcade',       emoji:'👑',cond:'Completa la ruta y derrota al jefe final.'},
+  {id:'arc_fenix',           cat:'ruta',nombre:'Fénix',                emoji:'🔥',cond:'Completa la ruta después de sufrir un GAME OVER en ella.'},
+  {id:'arc_jefe_intacto',    cat:'ruta',nombre:'Verdugo del Jefe',     emoji:'💀',cond:'Derrota al jefe final sin perder ningún corazón.'},
+  {id:'arc_un_credito',      cat:'ruta',nombre:'Un Solo Crédito',      emoji:'🪙',cond:'Completa la ruta sin perder un solo combate.'},
+  {id:'arc_veterano',        cat:'ruta',nombre:'Veterano del Arcade',  emoji:'🔁',cond:'Completa la ruta 3 veces.',prog:['rutas',3]},
+  {id:'arc_maestro_barajas', cat:'ruta',nombre:'Maestro de Barajas',   emoji:'🃏',cond:'Completa la ruta con 5 barajas diferentes.',prog:['nBarajas',5]},
+  {id:'arc_gran_maestro',    cat:'ruta',nombre:'Señor de las Barajas', emoji:'🏛️',cond:'Completa la ruta con 10 barajas diferentes.',prog:['nBarajas',10]},
+  // — Combate (dificultad Medio o superior) —
+  {id:'arc_intacto',         cat:'combate',nombre:'Intocable',         emoji:'🛡️',cond:'Gana un combate sin perder ningún corazón.'},
+  {id:'arc_relampago',       cat:'combate',nombre:'Relámpago',         emoji:'⚡',cond:'Gana un combate antes del turno 8.'},
+  {id:'arc_al_limite',       cat:'combate',nombre:'Al Límite',         emoji:'❤️‍🔥',cond:'Gana un combate con un solo corazón restante.'},
+  {id:'arc_remontada',       cat:'combate',nombre:'Gran Remontada',    emoji:'📈',cond:'Gana un combate después de ir 5 corazones abajo.'},
+  {id:'arc_muralla',         cat:'combate',nombre:'Muralla',           emoji:'🧱',cond:'Gana un combate sin que destruyan ninguna de tus cartas.'},
+  {id:'arc_arrasador',       cat:'combate',nombre:'Arrasador',         emoji:'💥',cond:'Destruye 6 cartas rivales en un mismo combate.'},
+  {id:'arc_aniquilador',     cat:'combate',nombre:'Aniquilador',       emoji:'☄️',cond:'Destruye 10 cartas rivales en un mismo combate.'},
+  {id:'arc_golpe',           cat:'combate',nombre:'Golpe Devastador',  emoji:'🔨',cond:'Quita 3 o más corazones con un solo ataque.'},
+  {id:'arc_alquimista',      cat:'combate',nombre:'Alquimista',        emoji:'⚗️',cond:'Llama 3 AMALGAMAS en un mismo combate.'},
+  {id:'arc_invocador',       cat:'combate',nombre:'Invocador',         emoji:'✨',cond:'Realiza 4 llamados especiales en un mismo combate.'},
+  {id:'arc_divino',          cat:'combate',nombre:'Favor Divino',      emoji:'🌞',cond:'Llama a un DIOS y gana ese combate.'},
+  {id:'arc_estratega',       cat:'combate',nombre:'Estratega',         emoji:'♟️',cond:'Activa 5 cartas APOYO en un mismo combate.'},
+  {id:'arc_terraformador',   cat:'combate',nombre:'Terraformador',     emoji:'🌋',cond:'Activa 2 SECTORES y 1 ARENA en un mismo combate.'},
+  {id:'arc_ejercito',        cat:'combate',nombre:'Ejército Completo', emoji:'⚔️',cond:'Ten 4 personajes en tu campo al mismo tiempo.'},
+  // — Trayectoria (acumulado) —
+  {id:'arc_revancha',        cat:'trayectoria',nombre:'Sed de Revancha',      emoji:'↩️',cond:'Gana 10 revanchas.',prog:['revanchas',10]},
+  {id:'arc_cazador',         cat:'trayectoria',nombre:'Cazador',              emoji:'🏹',cond:'Gana 30 combates en el Arcade.',prog:['victorias',30]},
+  {id:'arc_centurion',       cat:'trayectoria',nombre:'Centurión',            emoji:'🏆',cond:'Gana 100 combates en el Arcade.',prog:['victorias',100]},
+  {id:'arc_destructor',      cat:'trayectoria',nombre:'Destructor',           emoji:'🔥',cond:'Destruye 150 cartas rivales en total.',prog:['destC',150]},
+  {id:'arc_forjador',        cat:'trayectoria',nombre:'Forjador de Amalgamas',emoji:'🧬',cond:'Llama 40 AMALGAMAS en total.',prog:['amal',40]}
 ];
+const LG_CAT={ruta:'RUTA',combate:'EN COMBATE · no cuentan en dificultad FÁCIL',trayectoria:'TRAYECTORIA · acumulado'};
 function sesionId(){try{const s=JSON.parse(localStorage.getItem('nhSesion')||'null');return s&&s.tipo!=='tienda'&&s.id?String(s.id).trim().toUpperCase():null;}catch(e){return null;}}
 function loadLg(){let L=null;try{L=JSON.parse(localStorage.getItem('chh_arcade_logros')||'null');}catch(e){}L=L||{};L.l=L.l||{};L.st=L.st||{rutas:0,barajas:[],revanchas:0};return L;}
 function saveLg(L){try{localStorage.setItem('chh_arcade_logros',JSON.stringify(L));}catch(e){}}
@@ -819,21 +845,50 @@ function desbloquear(L,id){
   const b=LOGROS.find(x=>x.id===id); if(b) setTimeout(()=>lgToast(b),1400);
 }
 function evaluarLogros(g,res,replay,i){
-  const L=loadLg(), st=L.st, N=RIV.length;
-  if(res.won) desbloquear(L,'arc_primera_victoria');
-  if(res.won&&res.intacto) desbloquear(L,'arc_intacto');
-  if(res.won&&res.turnos&&res.turnos<=8) desbloquear(L,'arc_relampago');
-  if(!replay&&res.won&&g.ronda>=8) desbloquear(L,'arc_mitad');
-  if(!replay&&res.won&&i>=N-1&&g.completado){
+  const L=loadLg(), st=L.st, N=RIV.length, A=res.st||{}, ok=id=>desbloquear(L,id);
+  const lv=RIV[i]?nivelDe(RIV[i],i,N):'medio', jefe=i>=N-1;
+  // Acumulados (cualquier dificultad)
+  st.destC=(st.destC||0)+(A.destC||0); st.amal=(st.amal||0)+(A.amal||0);
+  if(res.won) st.victorias=(st.victorias||0)+1;
+  // Ruta
+  if(res.won) ok('arc_primera_victoria');
+  if(!replay&&res.won&&g.ronda>=8) ok('arc_mitad');
+  if(!replay&&res.won&&jefe&&g.completado){
     st.rutas=(st.rutas||0)+1;
     if(g.baraja&&!st.barajas.includes(g.baraja)) st.barajas.push(g.baraja);
-    desbloquear(L,'arc_campeon');
-    if(creditos(g)===CREDITOS&&!g.goRuta) desbloquear(L,'arc_un_credito');
-    if(g.goRuta) desbloquear(L,'arc_fenix');
-    if(st.rutas>=3) desbloquear(L,'arc_veterano');
-    if(st.barajas.length>=5) desbloquear(L,'arc_maestro_barajas');
+    ok('arc_campeon');
+    if(creditos(g)===CREDITOS&&!g.goRuta) ok('arc_un_credito');
+    if(g.goRuta) ok('arc_fenix');
   }
-  if(replay&&res.won){st.revanchas=(st.revanchas||0)+1;if(st.revanchas>=10) desbloquear(L,'arc_revancha');}
+  if(res.won&&jefe&&res.intacto) ok('arc_jefe_intacto');
+  st.nBarajas=st.barajas.length;
+  if(st.rutas>=3) ok('arc_veterano');
+  if(st.nBarajas>=5) ok('arc_maestro_barajas');
+  if(st.nBarajas>=10) ok('arc_gran_maestro');
+  // En combate (Medio o superior)
+  if(lv!=='facil'){
+    if(res.won&&res.intacto) ok('arc_intacto');
+    if(res.won&&res.turnos&&res.turnos<=7) ok('arc_relampago');
+    if(res.won&&A.hpFin===1) ok('arc_al_limite');
+    if(res.won&&(A.maxDef||0)>=5) ok('arc_remontada');
+    if(res.won&&A.destP===0) ok('arc_muralla');
+    if((A.destC||0)>=6) ok('arc_arrasador');
+    if((A.destC||0)>=10) ok('arc_aniquilador');
+    if((A.maxGolpe||0)>=3) ok('arc_golpe');
+    if((A.amal||0)>=3) ok('arc_alquimista');
+    if((A.esp||0)>=4) ok('arc_invocador');
+    if(res.won&&(A.dios||0)>=1) ok('arc_divino');
+    if((A.apoyos||0)>=5) ok('arc_estratega');
+    if((A.sectores||0)>=2&&(A.arenas||0)>=1) ok('arc_terraformador');
+    if((A.pjMax||0)>=4) ok('arc_ejercito');
+  }
+  // Trayectoria
+  if(replay&&res.won){st.revanchas=(st.revanchas||0)+1;}
+  if((st.revanchas||0)>=10) ok('arc_revancha');
+  if((st.victorias||0)>=30) ok('arc_cazador');
+  if((st.victorias||0)>=100) ok('arc_centurion');
+  if((st.destC||0)>=150) ok('arc_destructor');
+  if((st.amal||0)>=40) ok('arc_forjador');
   saveLg(L); sincronizarLogros();
 }
 let _sincr=false;
@@ -862,9 +917,12 @@ function renderLogros(){
   const pend=Object.values(L.l).filter(x=>!x.sync).length;
   $('lgSync').innerHTML=yo?('Jugador <b>'+esc(yo)+'</b> · '+(pend?pend+' logro(s) por enviar a tu registro (se envían al tener internet)':'tus logros están guardados en tu registro y aparecen en tu Perfil'))
     :'Inicia sesión en <b>Mi Perfil</b> con tu ID de jugador para que estos logros se guarden en tu registro y cuenten para tu nivel.';
-  $('lgGrid').innerHTML=LOGROS.map(b=>{const x=L.l[b.id];
+  const st=L.st||{}; st.nBarajas=(st.barajas||[]).length;
+  const card=b=>{const x=L.l[b.id];
+    const pr=!x&&b.prog?'<i style="color:#9fb3cc">'+Math.min(st[b.prog[0]]||0,b.prog[1])+' / '+b.prog[1]+'</i>':'';
     return '<div class="lg'+(x?'':' off')+'"><div class="ic"><img src="badges/'+b.id+'.png" alt="" onerror="this.remove()"><span>'+b.emoji+'</span></div><div style="min-width:0"><b>'+esc(b.nombre)+'</b><small>'+esc(b.cond)+'</small>'+
-      (x?'<i>✔ '+fecha(x.ts)+(x.sync?' · en tu Perfil':'')+'</i>':'')+'</div></div>';}).join('');
+      (x?'<i>✔ '+fecha(x.ts)+(x.sync?' · en tu Perfil':'')+'</i>':pr)+'</div></div>';};
+  $('lgGrid').innerHTML=Object.keys(LG_CAT).map(c=>'<div class="lg-cat">'+LG_CAT[c]+'</div>'+LOGROS.filter(b=>b.cat===c).map(card).join('')).join('');
 }
 addEventListener('online',()=>sincronizarLogros());
 

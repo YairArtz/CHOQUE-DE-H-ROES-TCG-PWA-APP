@@ -1021,7 +1021,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v42';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v43';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -6322,6 +6322,7 @@ function arcadePreparar(){
   if(ARCADE){DSEL.jugador=ARCADE.jugador;DSEL.cpu=ARCADE.cpu;}
   const r=_ig.apply(this,arguments);
   if(ARCADE&&G){
+    arsReset();
     G.cpuNivel=ARCADE.nivel||'medio';
     const extra=(ARCADE.nivel==='muy_dificil'?3:0)+(ARCADE.corazonesExtra||0);
     if(extra){G.cpu.hp+=extra;lg('🕹 '+arcadeEsc(ARCADE.nombre)+' empieza con '+G.cpu.hp+' corazones.','#ff4d6d');}
@@ -6331,12 +6332,40 @@ function arcadePreparar(){
     renderAll();
   }
   return r;};}
+// Estadísticas de la partida para los logros del Arcade (solo cuentan tus acciones)
+let ARS=null;
+function arsReset(){ARS={amal:0,esp:0,dios:0,sectores:0,arenas:0,pjMax:0,maxGolpe:0,maxDef:0};}
+if(ARCADE){
+  {const _pc=placeChar;placeChar=async function(o,cid,opt){
+    const r=await _pc.apply(this,arguments);
+    try{if(ARS&&G&&o==='player'&&r!==false&&C[cid]){
+      if(C[cid].type==='amalgama')ARS.amal++;else if(opt&&opt.via==='especial')ARS.esp++;
+      if(C[cid].dios)ARS.dios++;
+      ARS.pjMax=Math.max(ARS.pjMax,G.player.pj.filter(Boolean).length);}}catch(e){}
+    return r;};}
+  {const _ps=placeSector;placeSector=async function(owner,cid,o,side){
+    const r=await _ps.apply(this,arguments);try{if(ARS&&owner==='player')ARS.sectores++;}catch(e){}return r;};}
+  {const _da=doArena;doArena=async function(o,idx){
+    const a0=G&&G[o].arena;const r=await _da.apply(this,arguments);
+    try{if(ARS&&G&&o==='player'&&G.player.arena&&G.player.arena!==a0)ARS.arenas++;}catch(e){}return r;};}
+  {const _ah=attackHearts;attackHearts=async function(o,slot){
+    const h0=G?G.cpu.hp:0;const r=await _ah.apply(this,arguments);
+    try{if(ARS&&G&&o==='player')ARS.maxGolpe=Math.max(ARS.maxGolpe,h0-G.cpu.hp);}catch(e){}return r;};}
+  {const _hu=hurt;hurt=function(o,n,why){
+    const r=_hu.apply(this,arguments);
+    try{if(ARS&&G)ARS.maxDef=Math.max(ARS.maxDef,G.cpu.hp-G.player.hp);}catch(e){}return r;};}
+}
+function arsResumen(){
+  const apo=Object.entries((G&&G.apTurno)||{}).filter(([k])=>k.startsWith('player:')).reduce((t,[,v])=>t+(v||0),0);
+  const F=typeof FXS!=='undefined'?FXS:{};
+  return Object.assign({},ARS||{},{apoyos:apo,destC:F.destC||0,destP:F.destP||0,dmg:F.dmgHecho||0,hpFin:G?G.player.hp:0});
+}
 {const _eg=endGame;endGame=function(won,reason){
   const ya=G&&G.over;
   _eg.apply(this,arguments);
   if(!ARCADE||ya) return;
   try{localStorage.setItem('chh_arcade_result',JSON.stringify({id:ARCADE.id,slot:ARCADE.slot,ronda:ARCADE.ronda,won:!!won,turnos:G.turn,
-    corazones:G.player.hp,intacto:G.player.hp>=R.corazones,danio:(typeof FXS!=='undefined'?FXS.dmgHecho:0),ts:Date.now()}));}catch(e){}
+    corazones:G.player.hp,intacto:G.player.hp>=R.corazones,danio:(typeof FXS!=='undefined'?FXS.dmgHecho:0),st:arsResumen(),ts:Date.now()}));}catch(e){}
   const box=document.getElementById('endgameBox');
   box.querySelectorAll('.endgame-btn').forEach(b=>b.style.display='none');
   const go=document.createElement('button');go.className='endgame-btn';go.textContent='🕹 CONTINUAR';

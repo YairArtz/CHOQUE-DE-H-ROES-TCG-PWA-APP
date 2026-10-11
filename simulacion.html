@@ -1015,7 +1015,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v38';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v39';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -6264,6 +6264,8 @@ function arcadePreparar(){
     const extra=(ARCADE.nivel==='muy_dificil'?3:0)+(ARCADE.corazonesExtra||0);
     if(extra){G.cpu.hp+=extra;lg('🕹 '+arcadeEsc(ARCADE.nombre)+' empieza con '+G.cpu.hp+' corazones.','#ff4d6d');}
     lg('🕹 <b>ARCADE</b> · Combate '+ARCADE.ronda+'/'+ARCADE.total+' contra <b>'+arcadeEsc(ARCADE.nombre)+'</b>.','var(--gold2)');
+    if(ARCADE.musica){try{MP.req++;mpAudio.src=ARCADE.musica;mpAudio.loop=true;
+      mpAudio.play().then(()=>{MP.on=true;MP.idx=-1;document.getElementById('mpName').textContent='🕹 Tema de '+ARCADE.nombre;mpUI();}).catch(()=>{});}catch(e){}}
     renderAll();
   }
   return r;};}

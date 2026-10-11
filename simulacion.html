@@ -358,6 +358,12 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
   .boot-bg.img,.boot-ember,.boot-logo,.boot-btn,.boot-btn::after,.boot-vs .vs-x,.boot-card{animation:none!important}
 }
 
+/* Sector de Apoyo: espacio extra sobre el sector */
+.bc-sect .apx{position:absolute!important;right:4%;bottom:4%;width:58%!important;height:auto!important;aspect-ratio:5/7;z-index:3;
+  border:1.5px dashed rgba(232,90,0,.9)!important;border-radius:6px;background:rgba(10,6,4,.85);box-shadow:0 0 10px rgba(232,90,0,.6);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.bc-sect .apx.has-alma{border-style:solid!important}
+.bc-sect .apx .zlbl{font-size:8px}
+.bc-sect .apx .rest-tag{font-size:6px}
 /* ── ESCENARIO ──
    Si el teléfono/PWA se queda en vertical (p. ej. manifest con orientation:portrait),
    el juego se dibuja girado 90° para jugarse con el teléfono de lado. Nunca se bloquea. */
@@ -1015,7 +1021,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v40';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v41';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -1603,7 +1609,27 @@ function puedeNormal(o,cid){
   if(cp){const e=(C[cp].efectos||[]).find(x=>x.accion==='almas_valor');if(e&&e.restringeNormal&&!matchF(cid,e.restringeNormal))return 'Con Copal solo llamas de forma normal DIOSES y ENVOKATETL';}
   return '';
 }
-function freeApo(o){return G[o].apoyo.findIndex(x=>x===null);}
+function freeApo(o){for(let k=0;k<4;k++)if(G[o].apoyo[k]===null)return k;return -1;}
+// v40 · SECTOR DE APOYO: cada copia en tu zona SECTOR da un espacio extra solo para cartas APOYO
+// (índice 4 = sector izquierdo, 5 = derecho). Si el sector deja el campo, el APOYO va al Mictlán.
+const APO_EXTRA={4:'left',5:'right'};
+function apoExtraOn(o,k){const sd=APO_EXTRA[k];return !!sd&&hasPassive(G[o].sect[sd],'apoyo_extra')&&sectOwner(o,sd)===o;}
+function freeApoAp(o){for(const k of [4,5])if(apoExtraOn(o,k)&&!G[o].apoyo[k])return k;return freeApo(o);}
+function limpiaApoExtra(){
+  ['player','cpu'].forEach(o=>[4,5].forEach(k=>{
+    const a=G[o].apoyo[k];
+    if(a&&!apoExtraOn(o,k)){G[o].apoyo[k]=null;G[a.duenio||o].mictlan.push(a.card);
+      lg('🧱 Sin <b>Sector de Apoyo</b>, <b>'+C[a.card].name+'</b>'+who(o)+' va al Mictlán.','var(--muted)');}
+    else if(!a&&k in G[o].apoyo&&!apoExtraOn(o,k)) delete G[o].apoyo[k];
+  }));
+}
+// v40 · BATALLA ENTRE CLANES: los personajes en ese sector pueden atacar el turno en que llegan
+// y no necesitan descansar para volver a atacar (ignora descansos como el de la Espada de Cristal).
+function enSinDescanso(o,i){const sd=sideOfSlot(o,i);return !!sd&&hasPassive(G[o].sect[sd],'sin_descanso');}
+function despiertaClanes(){
+  if(G.turn<=1) return;
+  ['player','cpu'].forEach(o=>G[o].pj.forEach((p,i)=>{if(p&&!p.attacked&&(p.resting||p.lock>0)&&enSinDescanso(o,i)){p.resting=false;p.lock=0;}}));
+}
 function freePJ(o){return G[o].pj.findIndex(x=>x===null);}
 function bastion(o){return G[o].pj.some(p=>p&&hasKw(p,'BASTION'));}
 function lg(msg,col){
@@ -3315,7 +3341,7 @@ function condWhy(o,cid,cond,src){
   if(cond.almaPropia&&!almasActivas(o)) return 'No tienes cartas ALMA activas';
   if(cond.almaCampo&&!almasActivas(o)&&!almasActivas(opp(o))) return 'No hay cartas ALMA activas en el campo';
   if(cond.manoMin&&G[o].hand.length-(src.zone==='mano'&&G[o].hand.includes(cid)?1:0)<cond.manoMin) return 'No tienes cartas suficientes en la mano';
-  if(cond.apoyoLibre&&freeApo(o)===-1) return 'Sin zonas de apoyo libres (necesitas una zona de APOYO vacía; las ALMAS activas las ocupan)';
+  if(cond.apoyoLibre&&(C[cid]&&C[cid].type==='apoyo'?freeApoAp(o):freeApo(o))===-1) return 'Sin zonas de apoyo libres (necesitas una zona de APOYO vacía; las ALMAS activas las ocupan)';
   if(cond.sectorLibre&&!sectoresLibres().length) return 'No hay zonas SECTOR vacías';
   if(cond.sectorPropioLibre&&G[o].sect.left&&G[o].sect.right) return 'Tus zonas SECTOR están ocupadas';
   if(cond.haySector&&!sectorArenaTargets().some(t=>t.z==='sector')) return 'No hay SECTORES activos en el campo';
@@ -3996,6 +4022,7 @@ function equipStats(o,a){
 function equiposDe(o,p){return G[o].apoyo.filter(a=>a&&a.type==='equipo'&&a.tgt===p);}
 function applyMods(){
   if(!G) return;
+  limpiaApoExtra(); despiertaClanes();
   ['player','cpu'].forEach(o=>{
     const B=auraBonus(o);
     G[o].pj.forEach((p,i)=>{
@@ -4794,8 +4821,10 @@ function renderHP(o){
 }
 function renderApos(o){
   const px=o==='player'?'pA':'cA';
-  for(let i=0;i<4;i++){
-    const el=document.getElementById(px+i);
+  for(let i=0;i<4;i++) pintaApo(document.getElementById(px+i),o,i);
+}
+function pintaApo(el,o,i){
+  {
     const d=G[o].apoyo[i];
     el.className='bc bc-ap'; el.onclick=null;
     if(d&&d.type==='continuo'){
@@ -4842,6 +4871,7 @@ function canAttack(i){
 // ¿Puede declarar ataque? (descanso, bloqueo de Nitrógeno, Neón sin compañero)
 function canAtk(o,i){
   const p=G[o].pj[i];
+  if(p&&G.turn>1&&!p.attacked&&(p.resting||p.lock>0)&&enSinDescanso(o,i)){p.resting=false;p.lock=0;}
   if(!p||p.resting||p.attacked||p.bloq>0) return false;
   if(G.noAtk&&G.noAtk.o===o&&G.noAtk.k===turnKey()) return false;
   if(p.noAtk===turnKey()||p.sinAtk) return false;
@@ -4862,6 +4892,7 @@ function porQueNoAtaca(o,i){
 function defensores(o){return G[o].pj.map((p,i)=>p&&!(p.bloq>0)?i:-1).filter(i=>i>=0);}
 function puedeDirecto(o,i){return !defensores(opp(o)).length||hasKw(G[o].pj[i],'EMBOSCADA');}
 function markLock(o,p){
+  {const L=locate(p);if(L&&enSinDescanso(L.o,L.i))return;}
   const e=equiposDe(o,p).map(a=>equipEff(a.card)).find(x=>x&&x.descansoTrasAtacar);
   if(e) p.lock=e.descansoTrasAtacar;
 }
@@ -4911,6 +4942,15 @@ function renderSects(o){
     if(cid&&sectOwner(o,side)!==o) el.insertAdjacentHTML('beforeend','<div class="rest-tag" style="background:rgba(192,64,255,.85)">'+(sectOwner(o,side)==='player'?'TUYA':'CPU')+'</div>');
     el.onclick=cid?()=>showDetail(cid,{title:'SECTOR '+(side==='left'?'IZQ':'DER'),
       acts:sectOwner(o,side)==='player'&&o==='player'&&myAction()?activables('player',cid,'sector',{zone:'sector',side}):[]}):null;
+    // Sector de Apoyo: espacio extra para un APOYO, dibujado sobre la carta del sector
+    const k=side==='left'?4:5;
+    if(apoExtraOn(o,k)){
+      const mini=document.createElement('div');mini.className='bc bc-ap apx';
+      if(G[o].apoyo[k]){pintaApo(mini,o,k);const fn=mini.onclick;mini.onclick=e=>{e.stopPropagation();fn&&fn();};}
+      else{mini.innerHTML='<span class="zlbl">+AP</span>';mini.onclick=e=>{e.stopPropagation();showDetail(cid,{title:'SECTOR DE APOYO · espacio extra libre (solo cartas APOYO)'});};}
+      mini.className+=' apx';
+      el.appendChild(mini);
+    }
   });
 }
 function renderHand(){
@@ -4975,14 +5015,14 @@ function buildMenuActions(cid,idx,at,card){
     if(card.subtipo==='equipo'){
       const ee=equipEff(cid)||{};
       const hayObj=ee.desdeMictlan?cands('player','mictlan',Object.assign({tipos:['pj','amalgama']},ee.desdeMictlan)).length&&freePJ('player')!==-1:G.player.pj.some(p=>p&&(!ee.filtroObjetivo||matchF(p.id,ee.filtroObjetivo)));
-      const ok=G.phase==='action'&&freeApo('player')!==-1&&!!hayObj;
-      acts.push({label:'⚙ Equipar a un personaje',ok,why:ok?'':(G.phase!=='action'?phaseWhy():freeApo('player')===-1?'Necesitas una zona de apoyo libre':'No tienes un personaje válido para equiparla'),fn:()=>doApoyo(idx)});
+      const ok=G.phase==='action'&&freeApoAp('player')!==-1&&!!hayObj;
+      acts.push({label:'⚙ Equipar a un personaje',ok,why:ok?'':(G.phase!=='action'?phaseWhy():freeApoAp('player')===-1?'Necesitas una zona de apoyo libre':'No tienes un personaje válido para equiparla'),fn:()=>doApoyo(idx)});
       return acts;
     }
     const pend=effs.length&&effs.every(x=>x.e.pendiente);
     const firstWhy=effs.map(x=>effWhy('player',cid,x.e,x.i,{zone:'mano'})).find(w=>w)||'';
     const fase=card.faseCombate?G.phase==='combat':G.phase==='action';
-    const zonaOk=card.colocarApoyoRival?freeApo('cpu')!==-1:freeApo('player')!==-1;
+    const zonaOk=card.colocarApoyoRival?freeApo('cpu')!==-1:freeApoAp('player')!==-1;
     const ok=fase&&!pend&&zonaOk&&!firstWhy;
     const cost=effs.reduce((t,x)=>t+((x.e.costo&&x.e.costo.corazones)||0),0);
     let why='';
@@ -5167,7 +5207,7 @@ async function activateAlma(o,handIdx,slot){
 }
 async function doApoyo(handIdx){
   const cid=G.player.hand[handIdx];
-  if(freeApo('player')===-1){lg('⚠ Necesitas una zona de apoyo libre para activar un APOYO.','var(--red)');return;}
+  if(freeApoAp('player')===-1){lg('⚠ Necesitas una zona de apoyo libre para activar un APOYO.','var(--red)');return;}
   await activateApoyo('player',handIdx);
 }
 async function activateApoyo(o,handIdx){
@@ -5185,7 +5225,7 @@ async function activateApoyo(o,handIdx){
   renderAll();
   let slotC=-1;
   if(C[cid].colocarApoyoRival){const r=opp(o),k=freeApo(r);if(k>=0){G[r].apoyo[k]={card:cid,type:'continuo',duenio:o,turnosRival:C[cid].colocarApoyoRival};slotC=99;lg('🕳 <b>'+C[cid].name+'</b>'+who(o)+' bloquea una zona de apoyo '+(r==='player'?'tuya':'de la CPU')+' durante sus próximos '+C[cid].colocarApoyoRival+' turnos.','var(--purple)');renderAll();}}
-  else if(C[cid].subtipo==='continuo'){slotC=freeApo(o);if(slotC>=0){G[o].apoyo[slotC]={card:cid,type:'continuo'};lg('🔶 <b>'+C[cid].name+'</b>'+who(o)+' queda activa en la zona de apoyo.','var(--ar)');renderAll();}}
+  else if(C[cid].subtipo==='continuo'){slotC=freeApoAp(o);if(slotC>=0){G[o].apoyo[slotC]={card:cid,type:'continuo'};lg('🔶 <b>'+C[cid].name+'</b>'+who(o)+' queda activa en la zona de apoyo.','var(--ar)');renderAll();}}
   for(const {e,i} of activarEff(cid)){
     if(e.pendiente) continue;
     const why=effWhy(o,cid,e,i,{zone:'mano'});
@@ -5201,10 +5241,10 @@ async function activateEquipo(o,cid0){
   const e=equipEff(cid0)||{};
   const desdeM=e.desdeMictlan;
   const objetivos=()=>desdeM?cands(o,'mictlan',Object.assign({tipos:['pj','amalgama']},desdeM)):G[o].pj.map((p,i)=>p&&(!e.filtroObjetivo||matchF(p.id,e.filtroObjetivo))?{z:'campo',i,cid:p.id,o}:null).filter(Boolean);
-  if(freeApo(o)===-1||!objetivos().length||(desdeM&&freePJ(o)===-1)) return;
+  if(freeApoAp(o)===-1||!objetivos().length||(desdeM&&freePJ(o)===-1)) return;
   if(!await announce(o,cid0,'activacion',{z:'mano'})){renderAll();return;}
   const list=objetivos();
-  const k=freeApo(o);
+  const k=freeApoAp(o);
   if(!list.length||k===-1) return;
   const [x]=await choose({o,cid:cid0,interactive:o==='player'},list,1,{sub:'¿A qué personaje equipas '+C[cid0].name+'?',
     score:y=>{if(y.z!=='campo')return SCORE(y.cid);const q=G[o].pj[y.i];return (q.resting&&e.descansoTrasAtacar?-50:0)+eF(q)+eR(q)+(C[y.cid].type==='amalgama'?5:0);}});
@@ -5220,7 +5260,7 @@ async function activateEquipo(o,cid0){
     slot=G[o].pj.findIndex(p=>p&&p.id===c&&p.turnoLlamado===turnKey());
     if(slot<0){G[o].mictlan.push(cid0);return;}
   }
-  const kk=freeApo(o); if(kk===-1){G[o].mictlan.push(cid0);return;}
+  const kk=freeApoAp(o); if(kk===-1){G[o].mictlan.push(cid0);return;}
   G[o].apoyo[kk]={card:cid0,type:'equipo',tgt:G[o].pj[slot]};
   lg('⚙ '+(o==='player'?'Equipas':'CPU equipa')+' <b>'+C[cid0].name+'</b> a <b>'+C[G[o].pj[slot].id].name+'</b>.','var(--ar)');
   playSound('call');renderAll();
@@ -5567,7 +5607,7 @@ async function cosmo(o,cid){
 // ¿Le conviene a la CPU usar esta habilidad desde la mano o el Mictlán?
 // ¿Le sirve a la CPU activar otra ALMA? Evita llenar sus 4 zonas de apoyo sin necesidad.
 function cpuNecesitaAlma(cid){
-  const P=G.cpu, at=almaT('cpu'), n=almasActivas('cpu'), libres=P.apoyo.filter(x=>x===null).length;
+  const P=G.cpu, at=almaT('cpu'), n=almasActivas('cpu'), libres=P.apoyo.slice(0,4).filter(x=>x===null).length+[4,5].filter(k=>apoExtraOn('cpu',k)&&!P.apoyo[k]).length;
   const v=Math.max(1,C[cid].val||0);
   const pjs=P.hand.filter(c=>C[c].type==='pj'&&!puedeNormal('cpu',c));
   const caro=pjs.length?Math.max(...pjs.map(c=>C[c].cost)):0;
@@ -5723,7 +5763,7 @@ async function cpuTurn(){
   };
   for(const cid of [...P.hand]){
     if(!alive()) return;
-    if(C[cid].type!=='apoyo'||(freeApo('cpu')===-1&&!C[cid].colocarApoyoRival)||!wantApoyo(cid)||cpuFalla(.6)) continue;
+    if(C[cid].type!=='apoyo'||(freeApoAp('cpu')===-1&&!C[cid].colocarApoyoRival)||!wantApoyo(cid)||cpuFalla(.6)) continue;
     const effs=activarEff(cid);
     if(effs.some(x=>effWhy('cpu',cid,x.e,x.i,{zone:'mano'}))) continue;
     if(!await step(550)) return;
@@ -5763,7 +5803,7 @@ async function cpuTurn(){
     }
   }
   // 7a') Acciones de APOYOS CONTINUOS (Hell Riders)
-  for(let k=0;k<4;k++){
+  for(let k=0;k<P.apoyo.length;k++){
     if(!alive()) return;
     const a=P.apoyo[k]; if(!a||a.type!=='continuo'||a.duenio) continue;
     for(const {e,i} of (C[a.card].efectos||[]).map((e,i)=>({e,i})).filter(x=>x.e.cuando==='accion'&&!x.e.pendiente)){

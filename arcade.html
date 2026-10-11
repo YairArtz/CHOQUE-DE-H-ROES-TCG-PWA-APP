@@ -15,9 +15,18 @@
   --bg:#03050a;--bg2:#07090f;--panel:rgba(11,14,24,.78);--line:#1b2433;
   --gold:#f5a623;--gold2:#f5c842;--gold-d:#d4870a;--neon:#00ff9d;--blue:#00cfff;--purple:#cc55ff;--red:#ff2244;
   --text:#e0eeff;--muted:#7d90aa;--acc:#f5a623;
-  --vh:100vh;
+  --vh:100vh;--W:100vw;--H:var(--vh);
 }
 @supports (height:100dvh){:root{--vh:100dvh}}
+/* ── Vista horizontal ──
+   El Arcade se juega de lado, igual que la Simulación. En Android se bloquea en horizontal al primer toque;
+   si el teléfono sigue en vertical (iPhone o PWA fijada en vertical), todo se dibuja girado 90°. */
+#stage{position:fixed;inset:0;overflow:hidden}
+:root.rot{--W:var(--vh);--H:100vw}
+:root.rot #stage{inset:auto;top:0;left:0;width:var(--vh);height:100vw;transform-origin:top left;transform:rotate(90deg) translateY(-100%)}
+:root.rot.flip #stage{transform:rotate(-90deg) translateX(-100%)}
+#flip{display:none}
+:root.rot #flip{display:inline-flex}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;overflow:hidden;user-select:none;-webkit-user-select:none}
 button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
@@ -40,7 +49,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 .ember{position:fixed;bottom:-10px;width:3px;height:3px;border-radius:50%;z-index:1;pointer-events:none;background:#ffcf6b;
   box-shadow:0 0 6px #f5a623,0 0 12px rgba(245,166,35,.6);opacity:0;animation:ember linear infinite}
 .ember.b{background:#7fe9ff;box-shadow:0 0 6px #00cfff}
-@keyframes ember{0%{transform:translate(0,0);opacity:0}10%{opacity:.9}100%{transform:translate(var(--dx,20px),-105vh);opacity:0}}
+@keyframes ember{0%{transform:translate(0,0);opacity:0}10%{opacity:.9}100%{transform:translate(var(--dx,20px),calc(var(--H)*-1.05));opacity:0}}
 
 /* ── Pantallas ── */
 .scr{position:fixed;inset:0;z-index:5;display:none;flex-direction:column;align-items:center;
@@ -79,11 +88,11 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 
 /* ── Portada ── */
 #sTitle{justify-content:center;gap:16px;text-align:center}
-#sTitle .logo{max-width:min(420px,78vw);max-height:30vh;object-fit:contain;filter:drop-shadow(0 0 18px rgba(0,207,255,.45)) drop-shadow(0 0 40px rgba(245,166,35,.25));
+#sTitle .logo{max-width:min(420px,calc(var(--W)*78/100));max-height:calc(var(--H)*30/100);object-fit:contain;filter:drop-shadow(0 0 18px rgba(0,207,255,.45)) drop-shadow(0 0 40px rgba(245,166,35,.25));
   animation:logoIn .8s cubic-bezier(.175,.885,.32,1.275) both,flt 6s ease-in-out .8s infinite}
 @keyframes logoIn{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:none}}
 @keyframes flt{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
-#sTitle .h1{font-size:clamp(30px,7vw,64px);letter-spacing:clamp(6px,1.6vw,16px)}
+#sTitle .h1{font-size:clamp(30px,calc(var(--W)*7/100),64px);letter-spacing:clamp(6px,calc(var(--W)*1.6/100),16px)}
 #sTitle .press{font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:4px;color:#fff;animation:blink 1.4s steps(2) infinite}
 @keyframes blink{50%{opacity:.25}}
 .ver{position:fixed;bottom:8px;right:12px;font-family:'Orbitron',sans-serif;font-size:8px;color:#3d4a5e;letter-spacing:1px;z-index:6}
@@ -158,31 +167,31 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 #vsBg::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(3,5,10,.92) 0%,rgba(3,5,10,.55) 45%,rgba(3,5,10,.15) 70%,rgba(3,5,10,.35) 100%)}
 .vs-rays{position:absolute;inset:-30%;opacity:.18;background:repeating-conic-gradient(from 0deg at 72% 50%,var(--acc) 0deg 5deg,transparent 5deg 16deg);animation:spin 40s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-#vsChar{position:absolute;right:max(2vw,8px);bottom:0;height:min(96%,calc(var(--vh) * .96));max-width:58vw;object-fit:contain;object-position:bottom right;
+#vsChar{position:absolute;right:max(calc(var(--W)*2/100),8px);bottom:0;height:min(96%,calc(var(--H) * .96));max-width:calc(var(--W)*58/100);object-fit:contain;object-position:bottom right;
   filter:drop-shadow(0 0 30px rgba(0,0,0,.8)) drop-shadow(0 0 22px var(--acc));animation:charIn .7s cubic-bezier(.2,.9,.25,1.1) both}
-#vsChar.card{height:auto;width:min(36vw,360px);bottom:50%;transform:translateY(50%) rotate(3deg);border-radius:14px;
+#vsChar.card{height:auto;width:min(calc(var(--W)*36/100),360px);bottom:50%;transform:translateY(50%) rotate(3deg);border-radius:14px;
   box-shadow:0 0 0 2px var(--acc),0 0 40px var(--acc);animation:charInC .7s cubic-bezier(.2,.9,.25,1.1) both}
 @keyframes charIn{from{opacity:0;transform:translateX(18%)}to{opacity:1;transform:none}}
 @keyframes charInC{from{opacity:0;transform:translate(18%,50%) rotate(8deg)}to{opacity:1;transform:translateY(50%) rotate(3deg)}}
-.vs-l{position:absolute;left:max(3vw,12px);top:50%;transform:translateY(-50%);width:min(52vw,560px);display:flex;flex-direction:column;gap:10px;z-index:2}
+.vs-l{position:absolute;left:max(calc(var(--W)*3/100),12px);top:50%;transform:translateY(-50%);width:min(calc(var(--W)*52/100),560px);display:flex;flex-direction:column;gap:10px;z-index:2}
 .vs-tag{font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:4px;color:var(--acc);text-shadow:0 0 10px var(--acc)}
-.vs-name{font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(24px,5vw,54px);line-height:1;letter-spacing:2px;color:#fff;
+.vs-name{font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(24px,calc(var(--W)*5/100),54px);line-height:1;letter-spacing:2px;color:#fff;
   text-shadow:0 0 2px #000,0 0 18px var(--acc),0 4px 0 rgba(0,0,0,.6);animation:nameIn .6s .15s both}
 @keyframes nameIn{from{opacity:0;letter-spacing:20px}to{opacity:1}}
 .vs-title{font-size:15px;font-weight:700;color:#cfd8e6;letter-spacing:1px}
 .vs-say{position:relative;padding:14px 16px;border-radius:12px;background:rgba(3,5,10,.78);border:1px solid rgba(255,255,255,.08);border-left:3px solid var(--acc);
-  font-size:clamp(15px,2.2vw,20px);font-weight:600;line-height:1.35;min-height:70px;color:#fff;white-space:pre-line}
+  font-size:clamp(15px,calc(var(--W)*2.2/100),20px);font-weight:600;line-height:1.35;min-height:70px;color:#fff;white-space:pre-line}
 .vs-say .cur{display:inline-block;width:8px;height:1em;background:var(--acc);vertical-align:-2px;margin-left:2px;animation:blink 1s steps(2) infinite}
 .vs-meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .vs-me{display:flex;gap:8px;align-items:center;font-size:12px;color:#9fb3cc}
 .vs-me img{width:34px;height:48px;border-radius:4px;object-fit:cover;background:#000}
 .vs-btns{display:flex;gap:10px;flex-wrap:wrap}
-.vs-big{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(70px,18vw,200px);color:transparent;
+.vs-big{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(70px,calc(var(--W)*18/100),200px);color:transparent;
   -webkit-text-stroke:2px rgba(255,255,255,.12);pointer-events:none;letter-spacing:-6px;z-index:1}
 .vs-top{position:absolute;top:max(12px,env(safe-area-inset-top));left:max(12px,env(safe-area-inset-left));z-index:3}
 
 /* ── Resultado ── */
-.res-title{font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(28px,6vw,60px);letter-spacing:6px}
+.res-title{font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(28px,calc(var(--W)*6/100),60px);letter-spacing:6px}
 .res-title.win{background:linear-gradient(180deg,#fff3c4,#f5c842 45%,#d4870a);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 12px rgba(245,166,35,.6))}
 .res-title.lose{color:#ff4d6d;text-shadow:0 0 14px rgba(255,34,68,.7)}
 
@@ -194,7 +203,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 .end-stats b{display:block;font-family:'Orbitron',sans-serif;font-size:20px;color:var(--gold2)}
 .end-stats small{font-size:10px;color:var(--muted);letter-spacing:1px}
 .confetti{position:fixed;top:-12px;width:8px;height:12px;z-index:40;pointer-events:none;animation:fall linear forwards}
-@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+@keyframes fall{to{transform:translateY(calc(var(--H)*1.1)) rotate(720deg)}}
 
 /* ── Modal ── */
 #modal{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.8);display:none;align-items:center;justify-content:center;padding:16px}
@@ -212,25 +221,31 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 .vs-cr{display:inline-flex;align-items:center}
 .node.pick{cursor:pointer}.node.pick:hover .med{transform:scale(1.12);border-color:var(--gold2);box-shadow:0 0 18px rgba(245,200,66,.8)}
 .hint{font-size:13px;color:var(--gold2);font-weight:700;letter-spacing:.5px}
-@media (max-width:760px){
-  .slots{grid-template-columns:1fr}
-  .slot{min-height:0}
-  #vsChar{max-width:80vw;opacity:.55}
-  #vsChar.card{width:min(52vw,260px);opacity:.5}
-  .vs-l{width:calc(100% - 24px)}
-}
-@media (max-height:520px){
-  #sTitle .logo{max-height:34vh}
-  .slot{min-height:0;padding:10px;gap:7px}
-  .slot .deck img{width:42px;height:58px}
-  .node .med{width:52px;height:52px}
-  .node.boss .med{width:66px;height:66px}
-  .vs-say{min-height:56px;padding:10px 12px}
-}
+/* (antes @media max-width:760px) */
+:root.narrow .slots{grid-template-columns:1fr}
+:root.narrow .slot{min-height:0}
+:root.narrow #vsChar{max-width:calc(var(--W)*80/100);opacity:.55}
+:root.narrow #vsChar.card{width:min(calc(var(--W)*52/100),260px);opacity:.5}
+:root.narrow .vs-l{width:calc(100% - 24px)}
+/* (antes @media max-height:520px) */
+:root.short #sTitle .logo{max-height:calc(var(--H)*34/100)}
+:root.short .slot{min-height:0;padding:10px;gap:7px}
+:root.short .slot .deck img{width:42px;height:58px}
+:root.short .node .med{width:52px;height:52px}
+:root.short .node.boss .med{width:66px;height:66px}
+:root.short .vs-say{min-height:56px;padding:10px 12px}
+:root.short .vs-l{gap:6px;top:calc(50% + 14px)}
+:root.short .vs-name{font-size:clamp(22px,calc(var(--H)*.1),44px)}
+:root.short .vs-title{font-size:13px}
+:root.short .vs-say{font-size:14px;line-height:1.3}
+:root.short .vs-tag{font-size:9px;letter-spacing:3px}
+:root.short #vsChar.card{width:min(calc(var(--W)*.36),calc(var(--H)*.6))}
+:root.short .btn{padding:10px 18px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 </style>
 </head>
 <body>
+<div id="stage">
 <div id="bg"></div><div id="grecas"></div><div id="scan"></div>
 
 <!-- PORTADA -->
@@ -289,7 +304,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 <!-- FINAL -->
 <section class="scr" id="sEnd">
   <div class="crown">👑</div>
-  <div class="h1" style="font-size:clamp(26px,6vw,56px)">¡CAMPEÓN!</div>
+  <div class="h1" style="font-size:clamp(26px,calc(var(--W)*.06),56px)">¡CAMPEÓN!</div>
   <div class="sub" id="eSub"></div>
   <div class="end-stats" id="eStats"></div>
   <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center"><button class="btn" data-go="sSlots">🕹 PARTIDAS</button><a class="btn ghost" href="index.html">← MENÚ</a></div>
@@ -300,6 +315,8 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 <div class="ver" id="ver"></div>
 <button class="pill" id="mute" style="position:fixed;bottom:max(10px,env(safe-area-inset-bottom));left:max(10px,env(safe-area-inset-left));z-index:60;width:38px;justify-content:center;padding:0">🔊</button>
 
+<button class="pill" id="flip" title="Girar al otro lado" style="position:fixed;bottom:max(10px,env(safe-area-inset-bottom));left:calc(max(10px,env(safe-area-inset-left)) + 46px);z-index:60;width:38px;justify-content:center;padding:0">⟲</button>
+</div>
 <script>
 // ════════════════════════════════════
 // MODO ARCADE — v1
@@ -308,7 +325,31 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 // Combate: escribe "chh_arcade_match" y abre simulacion.html?modo=arcade;
 //          la simulación escribe "chh_arcade_result" y regresa a arcade.html?r=<id>
 // ════════════════════════════════════
-const ARC_VERSION='Arcade v1.2';
+const ARC_VERSION='Arcade v1.3';
+const STAGE=document.getElementById('stage');
+// ── Orientación horizontal ──
+const MOVIL=matchMedia('(pointer:coarse)').matches;
+function ajustaVista(){
+  const R=document.documentElement, port=MOVIL&&innerHeight>innerWidth;
+  R.classList.toggle('rot',port);
+  const W=port?innerHeight:innerWidth, H=port?innerWidth:innerHeight;
+  R.classList.toggle('narrow',W<=760); R.classList.toggle('short',H<=520);
+}
+async function bloqueaHorizontal(){
+  if(!MOVIL) return;
+  const el=document.documentElement;
+  try{if(!(document.fullscreenElement||document.webkitFullscreenElement)){
+    if(el.requestFullscreen) await el.requestFullscreen({navigationUI:'hide'}); else if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();}}catch(e){}
+  try{if(screen.orientation&&screen.orientation.lock) await screen.orientation.lock('landscape');}catch(e){}
+  setTimeout(ajustaVista,250);
+}
+try{if(localStorage.getItem('cdh_sim_flip')==='1')document.documentElement.classList.add('flip');}catch(e){}
+addEventListener('resize',ajustaVista);
+addEventListener('orientationchange',()=>setTimeout(ajustaVista,300));
+addEventListener('pointerdown',function primero(){removeEventListener('pointerdown',primero,true);bloqueaHorizontal();},true);
+addEventListener('pagehide',()=>{try{screen.orientation.unlock();}catch(e){}});
+document.getElementById('flip').onclick=()=>{const f=!document.documentElement.classList.contains('flip');document.documentElement.classList.toggle('flip',f);try{localStorage.setItem('cdh_sim_flip',f?'1':'0');}catch(e){}};
+ajustaVista();
 const DIR='assets/arcade/';
 const NSLOTS=3;
 const CREDITOS=5;                    // créditos por ruta (estilo arcade)
@@ -621,7 +662,7 @@ function showVS(i,modo,res,opt){
   ch.style.animation='none';void ch.offsetWidth;ch.style.animation='';
   $('vsTag').textContent=modo==='intro'?((opt.replay?'↺ REVANCHA · ':'')+(jefe?'☠ JEFE FINAL':'COMBATE '+(i+1)+' DE '+N)):(res.won?'¡VICTORIA!':(opt.gameover?'GAME OVER':'DERROTA'));
   $('vsTag').className='vs-tag'+(modo!=='intro'?' res-title '+(res.won?'win':'lose'):'');
-  if(modo!=='intro'){$('vsTag').style.fontSize='clamp(22px,4vw,40px)';$('vsTag').style.letterSpacing='5px';}else{$('vsTag').style.fontSize='';$('vsTag').style.letterSpacing='';}
+  if(modo!=='intro'){$('vsTag').style.fontSize='clamp(22px,calc(var(--W)*.04),40px)';$('vsTag').style.letterSpacing='5px';}else{$('vsTag').style.fontSize='';$('vsTag').style.letterSpacing='';}
   $('vsName').textContent=r.nombre;
   $('vsTitle').textContent=r.titulo||'';
   const b=DECKS.find(d=>d.id===g.baraja);
@@ -691,7 +732,7 @@ function finalArcade(){
   go('sEnd');
   for(let k=0;k<70;k++){const c=document.createElement('div');c.className='confetti';c.style.left=Math.random()*100+'vw';
     c.style.background=['#f5c842','#ff8c42','#00cfff','#00ff9d','#cc55ff','#fff'][k%6];c.style.animationDuration=(2.5+Math.random()*3)+'s';c.style.animationDelay=(Math.random()*1.5)+'s';
-    document.body.appendChild(c);setTimeout(()=>c.remove(),7000);}
+    STAGE.appendChild(c);setTimeout(()=>c.remove(),7000);}
 }
 
 // ── Música (assets/arcade/musica/) ──
@@ -714,7 +755,7 @@ let FINAL_MUS=null;
 // ── Brasas ──
 for(let i=0;i<18;i++){const e=document.createElement('span');e.className='ember'+(i%4===0?' b':'');
   e.style.left=(Math.random()*100)+'%';e.style.animationDuration=(9+Math.random()*10)+'s';e.style.animationDelay=(-Math.random()*15)+'s';
-  e.style.setProperty('--dx',(Math.random()*80-40)+'px');document.body.appendChild(e);}
+  e.style.setProperty('--dx',(Math.random()*80-40)+'px');STAGE.appendChild(e);}
 
 // ── Arranque ──
 let PLAYER_IMG=null;

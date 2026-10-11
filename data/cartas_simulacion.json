@@ -1,5 +1,5 @@
 {
- "version": 12,
+ "version": 13,
  "galeria": "cartas.json",
  "imgBase": "img/simulacion/",
  "assets": {
@@ -2236,6 +2236,160 @@
     },
     {
      "id": "cipacdragon",
+     "copias": 1
+    }
+   ],
+   "almasIniciales": []
+  },
+  {
+   "id": "vika_cosplay",
+   "nombre": "Vika Cosplay",
+   "portada": "vc_karma",
+   "estilo": "Mímica · Héroes Invitados",
+   "descripcion": "Las VIKA COSPLAY se buscan entre sí, copian habilidades de cualquier personaje y no pueden ser elegidas por habilidades de personajes rivales. Vika Colorada las protege y suma corazones; Karma-Chica limpia el campo. La Musa Clío detiene Amalgamas y Tuna Chan Toon sirve como material de cualquier Amalgama.",
+   "bp": [
+    {
+     "id": "vc_koatl",
+     "copias": 3
+    },
+    {
+     "id": "vc_kali",
+     "copias": 3
+    },
+    {
+     "id": "vc_colorada",
+     "copias": 3
+    },
+    {
+     "id": "vc_karma",
+     "copias": 2
+    },
+    {
+     "id": "vika_inv",
+     "copias": 2
+    },
+    {
+     "id": "evangeline",
+     "copias": 2
+    },
+    {
+     "id": "musa_clio",
+     "copias": 2
+    },
+    {
+     "id": "tuna_toon",
+     "copias": 2
+    },
+    {
+     "id": "mojito",
+     "copias": 1
+    },
+    {
+     "id": "rayah",
+     "copias": 1
+    },
+    {
+     "id": "el_monito",
+     "copias": 2
+    },
+    {
+     "id": "kitty",
+     "copias": 1
+    },
+    {
+     "id": "centella_azul",
+     "copias": 1
+    },
+    {
+     "id": "benji",
+     "copias": 1
+    },
+    {
+     "id": "sonia",
+     "copias": 1
+    },
+    {
+     "id": "oxkotetl",
+     "copias": 1
+    },
+    {
+     "id": "trazador",
+     "copias": 2
+    },
+    {
+     "id": "acecho",
+     "copias": 1
+    },
+    {
+     "id": "auxilio",
+     "copias": 2
+    },
+    {
+     "id": "refuerzo",
+     "copias": 2
+    },
+    {
+     "id": "resurreccion",
+     "copias": 1
+    },
+    {
+     "id": "torneo_heroes",
+     "copias": 1
+    },
+    {
+     "id": "mitos_sepultados",
+     "copias": 1
+    },
+    {
+     "id": "elena",
+     "copias": 1
+    },
+    {
+     "id": "xmaster",
+     "copias": 1
+    }
+   ],
+   "ba": [
+    {
+     "id": "alma_cosplay",
+     "copias": 3
+    },
+    {
+     "id": "alma_invitado",
+     "copias": 3
+    },
+    {
+     "id": "alma_defensor",
+     "copias": 3
+    },
+    {
+     "id": "alma_reenc",
+     "copias": 3
+    },
+    {
+     "id": "alma_enmax",
+     "copias": 3
+    }
+   ],
+   "bs": [
+    {
+     "id": "vika",
+     "copias": 1
+    },
+    {
+     "id": "quetzalli",
+     "copias": 2
+    },
+    {
+     "id": "infernity",
+     "copias": 2
+    },
+    {
+     "id": "hestia",
+     "copias": 1
+    },
+    {
+     "id": "volkot",
      "copias": 1
     }
    ],
@@ -12894,7 +13048,10 @@
      ]
     }
    ],
-   "rareza": "comun"
+   "rareza": "comun",
+   "alias": [
+    "Encantadora Bruxa, Naddezdha"
+   ]
   },
   {
    "id": "energia_negativa",
@@ -13209,6 +13366,31 @@
       {
        "accion": "llamarse_especial",
        "costo": "ninguno"
+      }
+     ]
+    },
+    {
+     "cuando": "accion",
+     "limite": "turno",
+     "texto": "Sacrificarlo y llamar a Cuetlachtli Nahual desde tu BP",
+     "condicion": {
+      "hay": {
+       "origen": "bp",
+       "filtro": {
+        "id": "cuetlachtli"
+       }
+      }
+     },
+     "pasos": [
+      {
+       "accion": "sacrificar_esta"
+      },
+      {
+       "accion": "llamar_especial",
+       "origen": "bp",
+       "filtro": {
+        "id": "cuetlachtli"
+       }
       }
      ]
     }
@@ -14715,6 +14897,665 @@
     }
    ],
    "rareza": "comun"
+  },
+  {
+   "id": "julian_tennek",
+   "galeriaId": "005",
+   "nombre": "Julián Tennek",
+   "tipo": "pj",
+   "coste": 1,
+   "imp": 1,
+   "cor": 1,
+   "fue": 2,
+   "res": 1,
+   "texto": "Cuando es llamado: roba una carta de tu BA o de tu BP (tú eliges). (Una vez por turno.)",
+   "efectos": [
+    {
+     "cuando": "al_llamar",
+     "limite": "turno",
+     "pasos": [
+      {
+       "accion": "robar",
+       "origen": [
+        "bp",
+        "ba"
+       ],
+       "elegir": true
+      }
+     ]
+    }
+   ],
+   "rareza": "comun"
+  },
+  {
+   "id": "cuetlachtli",
+   "galeriaId": "009",
+   "nombre": "Cuetlachtli Nahual",
+   "tipo": "pj",
+   "coste": 5,
+   "imp": 1,
+   "cor": 2,
+   "fue": 7,
+   "res": 3,
+   "texto": "Cuando es llamado de forma normal: destruye una de tus cartas ALMA activas. Puede ser llamado de forma especial desde tu mano, BP o Mictlán sacrificando un personaje con \"NAHUAL\" y \"OSCURO\" en su nombre. Puedes enviar una carta ALMA activa de tu lado al Mictlán para sumar su valor a los IMPACTOS de este personaje. (Una vez por turno.)",
+   "efectos": [
+    {
+     "cuando": "al_llamar",
+     "condicion": {
+      "via": "normal",
+      "almaPropia": true
+     },
+     "pasos": [
+      {
+       "accion": "alma_propia_a_mictlan"
+      }
+     ]
+    },
+    {
+     "cuando": "mano",
+     "limite": "turno",
+     "sinAnuncio": true,
+     "texto": "Llamarlo sacrificando un Nahual Oscuro",
+     "condicion": {
+      "controlas": {
+       "filtro": {
+        "nombreTodos": [
+         "NAHUAL",
+         "OSCURO"
+        ]
+       },
+       "texto": "No controlas un personaje NAHUAL OSCURO"
+      }
+     },
+     "pasos": [
+      {
+       "accion": "llamarse_especial",
+       "costo": "sacrificar",
+       "filtro": {
+        "nombreTodos": [
+         "NAHUAL",
+         "OSCURO"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "cuando": "mictlan",
+     "limite": "turno",
+     "sinAnuncio": true,
+     "texto": "Llamarlo desde el Mictlán sacrificando un Nahual Oscuro",
+     "condicion": {
+      "controlas": {
+       "filtro": {
+        "nombreTodos": [
+         "NAHUAL",
+         "OSCURO"
+        ]
+       },
+       "texto": "No controlas un personaje NAHUAL OSCURO"
+      }
+     },
+     "pasos": [
+      {
+       "accion": "llamarse_especial",
+       "costo": "sacrificar",
+       "filtro": {
+        "nombreTodos": [
+         "NAHUAL",
+         "OSCURO"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "cuando": "accion",
+     "limite": "turno",
+     "texto": "Enviar un ALMA y sumar su valor a sus IMPACTOS",
+     "condicion": {
+      "almaPropia": true
+     },
+     "pasos": [
+      {
+       "accion": "alma_a_impacto"
+      }
+     ]
+    }
+   ],
+   "rareza": "comun"
+  },
+  {
+   "id": "bruxa_hanna",
+   "galeriaId": "022",
+   "nombre": "Encantadora Bruxa, Hanna",
+   "tipo": "pj",
+   "coste": 5,
+   "imp": 1,
+   "cor": 1,
+   "fue": 6,
+   "res": 5,
+   "texto": "Cuando es llamada de forma normal: envía una carta ALMA activa de tu lado del campo al Mictlán; llama de forma especial un personaje con \"ENCANTADORA APPRENTIZ\" a una zona vacía del campo de tu adversario desde tu mano.",
+   "efectos": [
+    {
+     "cuando": "al_llamar",
+     "opcional": true,
+     "texto": "Enviar un ALMA y llamar un Apprentiz al campo rival",
+     "condicion": {
+      "via": "normal",
+      "almaPropia": true,
+      "hay": {
+       "origen": "mano",
+       "filtro": {
+        "nombreIncluye": "ENCANTADORA APPRENTIZ"
+       }
+      }
+     },
+     "pasos": [
+      {
+       "accion": "alma_propia_a_mictlan"
+      },
+      {
+       "accion": "llamar_especial",
+       "origen": "mano",
+       "filtro": {
+        "nombreIncluye": "ENCANTADORA APPRENTIZ"
+       },
+       "aRival": true
+      }
+     ]
+    }
+   ],
+   "rareza": "comun"
+  },
+  {
+   "id": "bruxa_amelye",
+   "galeriaId": "023",
+   "nombre": "Encantadora Bruxa, Amelye",
+   "tipo": "pj",
+   "coste": 5,
+   "imp": 1,
+   "cor": 1,
+   "fue": 5,
+   "res": 4,
+   "texto": "Cuando es llamada de forma normal: envía una carta ALMA activa de tu lado del campo al Mictlán; llama de forma especial un personaje con \"ENCANTADORA APPRENTIZ\" a una zona vacía del campo de tu adversario desde tu lado del campo.",
+   "efectos": [
+    {
+     "cuando": "al_llamar",
+     "opcional": true,
+     "texto": "Enviar un ALMA y llamar un Apprentiz al campo rival",
+     "condicion": {
+      "via": "normal",
+      "almaPropia": true,
+      "controlas": {
+       "filtro": {
+        "nombreIncluye": "ENCANTADORA APPRENTIZ"
+       },
+       "texto": "No controlas un Encantadora Apprentiz"
+      }
+     },
+     "pasos": [
+      {
+       "accion": "alma_propia_a_mictlan"
+      },
+      {
+       "accion": "mover_apprentiz_rival"
+      }
+     ]
+    }
+   ],
+   "rareza": "comun"
+  },
+  {
+   "id": "bruxa_lenna",
+   "galeriaId": "024",
+   "nombre": "Encantadora Bruxa, Lenna",
+   "tipo": "pj",
+   "coste": 5,
+   "imp": 1,
+   "cor": 1,
+   "fue": 6,
+   "res": 4,
+   "texto": "Cuando es llamada de forma normal: envía una carta ALMA activa de tu lado del campo al Mictlán; llama de forma especial un personaje con \"ENCANTADORA APPRENTIZ\" a una zona vacía del campo de tu adversario desde tu Mictlán.",
+   "efectos": [
+    {
+     "cuando": "al_llamar",
+     "opcional": true,
+     "texto": "Enviar un ALMA y llamar un Apprentiz al campo rival",
+     "condicion": {
+      "via": "normal",
+      "almaPropia": true,
+      "hay": {
+       "origen": "mictlan",
+       "filtro": {
+        "nombreIncluye": "ENCANTADORA APPRENTIZ"
+       }
+      }
+     },
+     "pasos": [
+      {
+       "accion": "alma_propia_a_mictlan"
+      },
+      {
+       "accion": "llamar_especial",
+       "origen": "mictlan",
+       "filtro": {
+        "nombreIncluye": "ENCANTADORA APPRENTIZ"
+       },
+       "aRival": true
+      }
+     ]
+    }
+   ],
+   "rareza": "comun"
+  },
+  {
+   "id": "bruxa_sandyel",
+   "galeriaId": "025",
+   "nombre": "Encantadora Bruxa, Sandyel",
+   "tipo": "pj",
+   "coste": 5,
+   "imp": 1,
+   "cor": 1,
+   "fue": 5,
+   "res": 6,
+   "texto": "Cuando es llamada de forma normal: envía una carta ALMA activa de tu lado del campo al Mictlán; llama de forma especial un personaje con \"ENCANTADORA APPRENTIZ\" a una zona vacía del campo de tu adversario desde tu BP.",
+   "efectos": [
+    {
+     "cuando": "al_llamar",
+     "opcional": true,
+     "texto": "Enviar un ALMA y llamar un Apprentiz al campo rival",
+     "condicion": {
+      "via": "normal",
+      "almaPropia": true,
+      "hay": {
+       "origen": "bp",
+       "filtro": {
+        "nombreIncluye": "ENCANTADORA APPRENTIZ"
+       }
+      }
+     },
+     "pasos": [
+      {
+       "accion": "alma_propia_a_mictlan"
+      },
+      {
+       "accion": "llamar_especial",
+       "origen": "bp",
+       "filtro": {
+        "nombreIncluye": "ENCANTADORA APPRENTIZ"
+       },
+       "aRival": true
+      }
+     ]
+    }
+   ],
+   "rareza": "comun"
+  },
+  {
+   "id": "musa_clio",
+   "galeriaId": "040",
+   "nombre": "La Musa Clío",
+   "tipo": "pj",
+   "coste": 2,
+   "imp": 1,
+   "cor": 2,
+   "fue": 2,
+   "res": 6,
+   "texto": "Cuando un personaje AMALGAMA vaya a ser llamado de forma especial al campo: puedes confinar esta carta de tu mano o Mictlán; niega el llamado especial y destruye ese objetivo. Mientras este personaje se encuentre en el campo, no pueden realizarse llamados especiales mediante habilidades o efectos de cartas.",
+   "efectos": [
+    {
+     "cuando": "respuesta",
+     "accion": "clio"
+    },
+    {
+     "cuando": "pasivo",
+     "accion": "clio_bloqueo"
+    }
+   ],
+   "rareza": "comun",
+   "invitado": true
+  },
+  {
+   "id": "vc_koatl",
+   "galeriaId": "041",
+   "nombre": "VIKA Cosplay, Koatl el Defensor",
+   "tipo": "pj",
+   "coste": 1,
+   "imp": 1,
+   "cor": 2,
+   "fue": 3,
+   "res": 2,
+   "texto": "No es afectada por habilidades de personajes del adversario que la elijan como objetivo. Cuando es llamada: añade a tu mano 1 \"VIKA COSPLAY\" desde tu BP. MÍMICA: cuando es llamada de forma normal, confina un personaje de tu Mictlán; gana su habilidad. Si gana una habilidad que no es suya: puede llamar 1 \"VIKA COSPLAY\" de valor 2 o menor desde tu mano al mismo SECTOR.",
+   "efectos": [
+    {
+     "cuando": "pasivo",
+     "accion": "inm_obj_pj"
+    },
+    {
+     "cuando": "al_llamar",
+     "opcional": true,
+     "texto": "Añadir un VIKA COSPLAY desde tu BP",
+     "condicion": {
+      "hay": {
+       "origen": "bp",
+       "filtro": {
+        "nombreIncluye": "VIKA COSPLAY",
+        "excluirId": "vc_koatl"
+       }
+      }
+     },
+     "pasos": [
+      {
+       "accion": "buscar",
+       "origen": "bp",
+       "filtro": {
+        "nombreIncluye": "VIKA COSPLAY",
+        "excluirId": "vc_koatl"
+       }
+      }
+     ]
+    },
+    {
+     "cuando": "al_llamar",
+     "opcional": true,
+     "texto": "MÍMICA: confinar un personaje de tu Mictlán y copiar su habilidad",
+     "condicion": {
+      "via": "normal",
+      "hay": {
+       "origen": "mictlan",
+       "filtro": {
+        "tipo": "pj"
+       }
+      }
+     },
+     "pasos": [
+      {
+       "accion": "mimica"
+      },
+      {
+       "accion": "llamar_especial",
+       "origen": "mano",
+       "filtro": {
+        "nombreIncluye": "VIKA COSPLAY",
+        "valorMax": 2
+       },
+       "mismoSector": true,
+       "hasta": true,
+       "siMimic": true
+      }
+     ]
+    }
+   ],
+   "rareza": "comun",
+   "invitado": true
+  },
+  {
+   "id": "vc_kali",
+   "galeriaId": "042",
+   "nombre": "VIKA Cosplay, Kali-Chica",
+   "tipo": "pj",
+   "coste": 2,
+   "imp": 1,
+   "cor": 2,
+   "fue": 4,
+   "res": 3,
+   "texto": "No es afectada por habilidades de personajes del adversario que la elijan como objetivo. Cuando es llamada: añade a tu mano 1 \"VIKA COSPLAY\" desde tu BP. COSMO. Una vez por turno: elige un personaje en el campo; esta carta gana su habilidad hasta el final del turno. Si ganó una habilidad este turno: puedes llamar 1 \"VIKA COSPLAY\" desde tu mano en el otro SECTOR pagando 1 menos.",
+   "efectos": [
+    {
+     "cuando": "pasivo",
+     "accion": "inm_obj_pj"
+    },
+    {
+     "cuando": "al_llamar",
+     "opcional": true,
+     "texto": "Añadir un VIKA COSPLAY desde tu BP",
+     "condicion": {
+      "hay": {
+       "origen": "bp",
+       "filtro": {
+        "nombreIncluye": "VIKA COSPLAY",
+        "excluirId": "vc_kali"
+       }
+      }
+     },
+     "pasos": [
+      {
+       "accion": "buscar",
+       "origen": "bp",
+       "filtro": {
+        "nombreIncluye": "VIKA COSPLAY",
+        "excluirId": "vc_kali"
+       }
+      }
+     ]
+    },
+    {
+     "cuando": "accion",
+     "limite": "turno",
+     "texto": "Ganar la habilidad de un personaje del campo (este turno)",
+     "condicion": {
+      "pjCampoMin": 2
+     },
+     "pasos": [
+      {
+       "accion": "mimica_campo",
+       "temporal": true
+      }
+     ]
+    },
+    {
+     "cuando": "accion",
+     "limite": "turno",
+     "texto": "Llamar un VIKA COSPLAY al otro sector pagando 1 menos",
+     "condicion": {
+      "mimicEsteTurno": true
+     },
+     "pasos": [
+      {
+       "accion": "llamado_descuento",
+       "filtro": {
+        "nombreIncluye": "VIKA COSPLAY"
+       },
+       "descuento": 1,
+       "otroSector": true
+      }
+     ]
+    }
+   ],
+   "rareza": "comun",
+   "invitado": true,
+   "habilidades": [
+    "COSMO"
+   ]
+  },
+  {
+   "id": "vc_karma",
+   "galeriaId": "043",
+   "nombre": "VIKA Cosplay, Karma-Chica",
+   "tipo": "pj",
+   "coste": 7,
+   "imp": 2,
+   "cor": 2,
+   "fue": 8,
+   "res": 6,
+   "texto": "No es afectada por habilidades de personajes del adversario que la elijan como objetivo. Cuando es llamada: elige 1 personaje en el campo o en cualquier Mictlán; gana sus habilidades. Mientras controles otro \"VIKA COSPLAY\", no puede ser destruida por efectos. Una vez por turno: retorna a su BP cartas del campo igual al número de \"VIKA COSPLAY\" que controles. Si deja el campo: confínala y puedes llamar un \"VIKA COSPLAY\" de valor 4 o menor desde tu BP.",
+   "efectos": [
+    {
+     "cuando": "pasivo",
+     "accion": "inm_obj_pj"
+    },
+    {
+     "cuando": "pasivo",
+     "accion": "aura",
+     "alcance": "esta",
+     "inmune": "destruccion",
+     "cond": "otroPropio",
+     "condFiltro": {
+      "nombreIncluye": "VIKA COSPLAY"
+     }
+    },
+    {
+     "cuando": "al_llamar",
+     "opcional": true,
+     "texto": "Copiar las habilidades de un personaje del campo o de un Mictlán",
+     "pasos": [
+      {
+       "accion": "mimica_campo",
+       "mictlan": true
+      }
+     ]
+    },
+    {
+     "cuando": "accion",
+     "limite": "turno",
+     "texto": "Retornar a su BP cartas del campo (una por cada VIKA COSPLAY)",
+     "pasos": [
+      {
+       "accion": "cartas_campo",
+       "modo": "fondo",
+       "porCada": "filtro_propios",
+       "filtroCuenta": {
+        "nombreIncluye": "VIKA COSPLAY"
+       },
+       "excluirEsta": true
+      }
+     ]
+    },
+    {
+     "cuando": "al_salir",
+     "pasos": [
+      {
+       "accion": "confinar_esta"
+      },
+      {
+       "accion": "llamar_especial",
+       "origen": "bp",
+       "filtro": {
+        "nombreIncluye": "VIKA COSPLAY",
+        "valorMax": 4
+       },
+       "hasta": true
+      }
+     ]
+    }
+   ],
+   "rareza": "comun",
+   "invitado": true
+  },
+  {
+   "id": "vc_colorada",
+   "galeriaId": "044",
+   "nombre": "VIKA Cosplay, Vika Colorada",
+   "tipo": "pj",
+   "coste": 4,
+   "imp": 2,
+   "cor": 2,
+   "fue": 5,
+   "res": 4,
+   "texto": "No es afectada por habilidades de personajes del adversario que la elijan como objetivo. Cuando es llamada: retorna a tu mano 1 \"VIKA COSPLAY\" desde tu Mictlán. CORAZONADA: si derrota a otro personaje en batalla, suma los corazones del personaje vencido a tus corazones de jugador. Si un \"VIKA COSPLAY\" fuera a ser destruido por un efecto, envía 1 carta de tu mano al Mictlán en su lugar.",
+   "efectos": [
+    {
+     "cuando": "pasivo",
+     "accion": "inm_obj_pj"
+    },
+    {
+     "cuando": "pasivo",
+     "accion": "reemplazo_vika"
+    },
+    {
+     "cuando": "al_llamar",
+     "opcional": true,
+     "texto": "Recuperar un VIKA COSPLAY del Mictlán",
+     "condicion": {
+      "hay": {
+       "origen": "mictlan",
+       "filtro": {
+        "nombreIncluye": "VIKA COSPLAY"
+       }
+      }
+     },
+     "pasos": [
+      {
+       "accion": "buscar",
+       "origen": "mictlan",
+       "filtro": {
+        "nombreIncluye": "VIKA COSPLAY"
+       }
+      }
+     ]
+    },
+    {
+     "cuando": "vence",
+     "pasos": [
+      {
+       "accion": "corazonada"
+      }
+     ]
+    }
+   ],
+   "rareza": "comun",
+   "invitado": true
+  },
+  {
+   "id": "alma_cosplay",
+   "galeriaId": "045",
+   "nombre": "Alma Cosplay",
+   "tipo": "alma",
+   "valor": 0,
+   "rareza": "comun",
+   "texto": "Envía al Mictlán las 2 cartas del tope de tu BA para activar esta carta ALMA; estará activa en tu zona de APOYO tus próximos 2 turnos. Tira un dado de 6 caras: el resultado será su valor en ALMAS.",
+   "efectos": [
+    {
+     "cuando": "alma",
+     "pasos": [
+      {
+       "accion": "alma_cosplay"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "tuna_toon",
+   "galeriaId": "049",
+   "nombre": "Tuna Chan Toon",
+   "tipo": "pj",
+   "coste": 3,
+   "imp": 1,
+   "cor": 1,
+   "fue": 3,
+   "res": 3,
+   "texto": "Puede ser utilizada como suplente de material, tanto en nombre como en VALOR, para llamar un personaje AMALGAMA desde tu BS. Si está en tu Mictlán: puedes confinarla para retornar una carta confinada a tu BS. (Una de sus habilidades, una vez por turno.)",
+   "efectos": [
+    {
+     "cuando": "mictlan",
+     "limite": "turno",
+     "texto": "Confinarla y regresar una Amalgama confinada a tu BS",
+     "condicion": {
+      "hay": {
+       "origen": "conf",
+       "filtro": {
+        "tipo": "amalgama"
+       }
+      }
+     },
+     "pasos": [
+      {
+       "accion": "confinar_esta"
+      },
+      {
+       "accion": "conf_a_bs"
+      }
+     ]
+    }
+   ],
+   "rareza": "comun",
+   "invitado": true,
+   "sustitutoAmalgama": "*",
+   "alias": [
+    "Tuna Chan Toon"
+   ]
   }
  ],
  "expansionesProhibidas": [

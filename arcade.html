@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#03050a">
+<title>Modo Arcade — Choque de Héroes</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════
+   MODO ARCADE — Choque de Héroes
+   Todo lo editable vive en assets/arcade/ (ver readme.txt).
+═══════════════════════════════════════════════════════ */
+:root{
+  --bg:#03050a;--bg2:#07090f;--panel:rgba(11,14,24,.78);--line:#1b2433;
+  --gold:#f5a623;--gold2:#f5c842;--gold-d:#d4870a;--neon:#00ff9d;--blue:#00cfff;--purple:#cc55ff;--red:#ff2244;
+  --text:#e0eeff;--muted:#7d90aa;--acc:#f5a623;
+  --vh:100vh;
+}
+@supports (height:100dvh){:root{--vh:100dvh}}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;overflow:hidden;user-select:none;-webkit-user-select:none}
+button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
+.orb{font-family:'Orbitron',sans-serif}
+
+/* ── Fondo general ── */
+#bg{position:fixed;inset:0;z-index:0;background:
+  radial-gradient(ellipse 70% 45% at 15% 8%,rgba(245,166,35,.16),transparent 60%),
+  radial-gradient(ellipse 70% 45% at 85% 92%,rgba(0,207,255,.12),transparent 60%),
+  radial-gradient(ellipse 55% 55% at 50% 45%,rgba(180,70,255,.10),transparent 65%),
+  radial-gradient(ellipse at center,#120a06 0%,#03050a 75%);background-size:cover;background-position:center}
+#bg.img{animation:kb 40s ease-in-out infinite alternate}
+#bg.img::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(3,5,10,.55),rgba(3,5,10,.35) 40%,rgba(3,5,10,.9))}
+@keyframes kb{from{transform:scale(1.02)}to{transform:scale(1.14) translate(-1.5%,-1%)}}
+#grecas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.045;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cpath d='M0 0h15v5H5v10H0zm45 0h15v15h-5V5h-10zm0 45h10v10H45v-5h-5v5h-5zm-45 0h5v5h10v5H0zm20 5h20v5H20zm0-55h20v5H20zM5 20h5v20H5zm45 0h5v20h-5zM15 15h5v5h-5zm0 25h5v5h-5zm25 0h5v5h-5zm0-25h5v5h-5zM22 22h16v16H22z' fill='%23d4870a'/%3E%3C/svg%3E");
+  -webkit-mask-image:radial-gradient(ellipse at center,transparent 25%,#000 85%);mask-image:radial-gradient(ellipse at center,transparent 25%,#000 85%)}
+#scan{position:fixed;inset:0;z-index:50;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.08) 3px,rgba(0,0,0,.08) 4px),radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.6) 100%)}
+.ember{position:fixed;bottom:-10px;width:3px;height:3px;border-radius:50%;z-index:1;pointer-events:none;background:#ffcf6b;
+  box-shadow:0 0 6px #f5a623,0 0 12px rgba(245,166,35,.6);opacity:0;animation:ember linear infinite}
+.ember.b{background:#7fe9ff;box-shadow:0 0 6px #00cfff}
+@keyframes ember{0%{transform:translate(0,0);opacity:0}10%{opacity:.9}100%{transform:translate(var(--dx,20px),-105vh);opacity:0}}
+
+/* ── Pantallas ── */
+.scr{position:fixed;inset:0;z-index:5;display:none;flex-direction:column;align-items:center;
+  padding:max(14px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));
+  overflow-y:auto}
+.scr.on{display:flex;animation:scrIn .45s cubic-bezier(.2,.8,.2,1)}
+@keyframes scrIn{from{opacity:0;transform:scale(.985)}to{opacity:1;transform:none}}
+.topbar{width:100%;max-width:1100px;display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+.pill{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px;border-radius:8px;
+  background:rgba(11,14,24,.78);border:1px solid #141c2a;color:#9fb3cc;text-decoration:none;
+  font-family:'Orbitron',sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:all .25s}
+.pill:hover,.pill:active{color:var(--neon);border-color:var(--neon);box-shadow:0 0 6px #00ff9d,0 0 18px rgba(0,255,157,.35)}
+.pill.gold:hover,.pill.gold:active{color:var(--gold);border-color:var(--gold);box-shadow:0 0 8px #f5a623,0 0 20px rgba(245,166,35,.4)}
+.h1{font-family:'Orbitron',sans-serif;font-weight:900;letter-spacing:5px;text-align:center;
+  background:linear-gradient(180deg,#fff3c4 0%,#f5c842 45%,#d4870a 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 10px rgba(245,166,35,.45))}
+.sub{font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:3px;color:var(--blue);opacity:.85;text-align:center;text-shadow:0 0 8px rgba(0,207,255,.5)}
+.btn{position:relative;overflow:hidden;padding:13px 24px;border-radius:10px;font-family:'Orbitron',sans-serif;font-size:12px;font-weight:900;letter-spacing:2.5px;
+  color:#0a0604;background:linear-gradient(135deg,var(--gold2),var(--gold-d));box-shadow:0 0 22px rgba(212,135,10,.5);transition:transform .15s,box-shadow .2s}
+.btn:hover{transform:translateY(-1px) scale(1.02)}
+.btn:active{transform:scale(.97)}
+.btn::after{content:'';position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-20deg);animation:sheen 3.2s ease-in-out infinite}
+@keyframes sheen{0%,60%{left:-60%}100%{left:130%}}
+.btn.red{background:linear-gradient(135deg,#ff5d74,#c4102c);color:#fff;box-shadow:0 0 22px rgba(255,34,68,.5)}
+.btn.ghost{background:rgba(11,14,24,.7);color:var(--text);border:1px solid #243046;box-shadow:none}
+.btn.ghost::after{display:none}
+.btn.sm{padding:8px 12px;font-size:9px;letter-spacing:1.5px}
+.btn:disabled{opacity:.35;pointer-events:none}
+.panel{position:relative;background:linear-gradient(180deg,rgba(11,14,24,.74),rgba(7,9,15,.86));border:1px solid rgba(245,166,35,.18);border-radius:14px;
+  box-shadow:0 20px 60px rgba(0,0,0,.55),inset 0 0 40px rgba(0,0,0,.35);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.panel .hb{position:absolute;width:16px;height:16px;opacity:.75;pointer-events:none}
+.hb.tl{top:-1px;left:-1px;border-top:2px solid var(--gold);border-left:2px solid var(--gold);border-top-left-radius:14px}
+.hb.tr{top:-1px;right:-1px;border-top:2px solid var(--gold);border-right:2px solid var(--gold);border-top-right-radius:14px}
+.hb.bl{bottom:-1px;left:-1px;border-bottom:2px solid var(--blue);border-left:2px solid var(--blue);border-bottom-left-radius:14px}
+.hb.br{bottom:-1px;right:-1px;border-bottom:2px solid var(--blue);border-right:2px solid var(--blue);border-bottom-right-radius:14px}
+
+/* ── Portada ── */
+#sTitle{justify-content:center;gap:16px;text-align:center}
+#sTitle .logo{max-width:min(420px,78vw);max-height:30vh;object-fit:contain;filter:drop-shadow(0 0 18px rgba(0,207,255,.45)) drop-shadow(0 0 40px rgba(245,166,35,.25));
+  animation:logoIn .8s cubic-bezier(.175,.885,.32,1.275) both,flt 6s ease-in-out .8s infinite}
+@keyframes logoIn{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:none}}
+@keyframes flt{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+#sTitle .h1{font-size:clamp(30px,7vw,64px);letter-spacing:clamp(6px,1.6vw,16px)}
+#sTitle .press{font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:4px;color:#fff;animation:blink 1.4s steps(2) infinite}
+@keyframes blink{50%{opacity:.25}}
+.ver{position:fixed;bottom:8px;right:12px;font-family:'Orbitron',sans-serif;font-size:8px;color:#3d4a5e;letter-spacing:1px;z-index:6}
+
+/* ── Slots ── */
+.slots{width:100%;max-width:1100px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-content:start}
+.slot{padding:14px;display:flex;flex-direction:column;gap:10px;min-height:250px;transition:transform .2s,box-shadow .2s}
+.slot:hover{transform:translateY(-3px);box-shadow:0 24px 60px rgba(0,0,0,.6),0 0 18px rgba(245,166,35,.18)}
+.slot .num{font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:3px;color:var(--gold)}
+.slot .empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--muted);border:1px dashed #2a3446;border-radius:10px;padding:18px;text-align:center}
+.slot .empty b{font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:2px;color:#9fb3cc}
+.slot .deck{display:flex;gap:10px;align-items:center}
+.slot .deck img{width:56px;height:78px;border-radius:6px;object-fit:cover;background:#000;box-shadow:0 0 12px rgba(245,166,35,.35)}
+.slot .deck b{display:block;font-size:16px;color:var(--gold2);line-height:1.1}
+.slot .deck small{display:block;font-size:11px;color:var(--muted)}
+.prog{height:8px;border-radius:5px;background:#0d1320;border:1px solid #1b2433;overflow:hidden}
+.prog i{display:block;height:100%;background:linear-gradient(90deg,var(--gold-d),var(--gold2));box-shadow:0 0 10px rgba(245,166,35,.7)}
+.slot .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.slot .stats div{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:5px;text-align:center}
+.slot .stats b{display:block;font-family:'Orbitron',sans-serif;font-size:14px;color:#fff}
+.slot .stats small{font-size:9px;letter-spacing:1px;color:var(--muted)}
+.slot .acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto}
+.slot .acts .btn{flex:1}
+.badge{display:inline-block;font-family:'Orbitron',sans-serif;font-size:8px;letter-spacing:1.5px;padding:3px 7px;border-radius:5px;border:1px solid currentColor}
+.lv-facil{color:#5dffb0}.lv-medio{color:#7fe9ff}.lv-dificil{color:#ffb84d}.lv-muy_dificil{color:#ff4d6d}
+
+/* ── Elegir baraja ── */
+.decks{width:100%;max-width:1100px;display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;padding:12px}
+.dk{display:flex;gap:9px;align-items:center;padding:8px;border-radius:10px;background:rgba(11,14,24,.62);border:1px solid #1b2433;text-align:left;transition:all .18s}
+.dk:hover{transform:translateY(-2px);border-color:rgba(0,207,255,.5)}
+.dk.on{border-color:var(--gold2);background:linear-gradient(135deg,rgba(245,166,35,.18),rgba(11,14,24,.7));box-shadow:0 0 16px rgba(245,166,35,.45)}
+.dk img{width:42px;height:59px;border-radius:5px;object-fit:cover;background:#000;flex:0 0 auto}
+.dk b{display:block;font-size:13px;color:var(--gold2);line-height:1.1}
+.dk small{display:block;font-size:10px;color:var(--muted);line-height:1.2}
+.lbl{width:100%;max-width:1100px;font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:2px;color:var(--gold);display:flex;align-items:center;gap:8px;margin:6px 0 2px}
+.lbl::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(245,166,35,.45),transparent)}
+.inp{background:rgba(3,5,10,.7);border:1px solid #243046;border-radius:8px;color:var(--text);padding:9px 12px;font:600 15px 'Rajdhani',sans-serif;width:min(320px,100%)}
+.inp:focus{outline:none;border-color:var(--gold)}
+
+/* ── Ruta ── */
+#sRuta{gap:8px}
+.ruta-head{width:100%;max-width:1100px;display:flex;gap:12px;align-items:center;padding:10px 14px}
+.ruta-head img{width:44px;height:62px;border-radius:5px;object-fit:cover;background:#000}
+.ruta-head .info{flex:1;min-width:0}
+.ruta-head b{font-size:16px;color:var(--gold2)}
+.ruta-head small{display:block;font-size:11px;color:var(--muted)}
+.map{width:100%;max-width:1100px;flex:1;min-height:250px;position:relative;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;scrollbar-color:rgba(245,166,35,.4) transparent}
+.map-in{position:relative;height:100%;min-height:250px}
+.map svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.node{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:4px;width:92px}
+.node .med{width:64px;height:64px;border-radius:50%;overflow:hidden;border:2px solid #2a3446;background:#0b0e18 center/cover no-repeat;position:relative;
+  box-shadow:0 6px 18px rgba(0,0,0,.6);transition:transform .2s}
+.node .med::after{content:attr(data-n);position:absolute;bottom:-1px;right:-1px;font-family:'Orbitron',sans-serif;font-size:9px;font-weight:900;color:#0a0604;
+  background:var(--gold2);border-radius:8px;padding:2px 5px}
+.node.lock .med{filter:grayscale(1) brightness(.35)}
+.node.lock .med::before{content:'?';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:900 26px 'Orbitron',sans-serif;color:#556}
+.node.done .med{border-color:#5dffb0;box-shadow:0 0 12px rgba(93,255,176,.45)}
+.node.done .med::before{content:'✔';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:26px;color:#5dffb0;background:rgba(0,0,0,.45);text-shadow:0 0 8px #000}
+.node.cur .med{border-color:var(--gold2);transform:scale(1.12);animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 10px rgba(245,200,66,.6)}50%{box-shadow:0 0 26px rgba(245,200,66,1),0 0 50px rgba(245,166,35,.4)}}
+.node.boss .med{width:84px;height:84px;border-color:var(--red)}
+.node.boss.cur .med{animation:pulseR 1.4s ease-in-out infinite}
+@keyframes pulseR{0%,100%{box-shadow:0 0 12px rgba(255,34,68,.6)}50%{box-shadow:0 0 30px rgba(255,34,68,1),0 0 60px rgba(255,34,68,.35)}}
+.node .nm{font-size:11px;font-weight:700;text-align:center;line-height:1.1;color:#cfd8e6;text-shadow:0 0 4px #000,0 0 8px #000}
+.node.lock .nm{color:#556}
+.node .lv{font-size:7px}
+.ruta-foot{width:100%;max-width:1100px;display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap}
+
+/* ── VS ── */
+#sVS{padding:0;overflow:hidden}
+#vsBg{position:absolute;inset:0;background:#0b0e18 center/cover no-repeat}
+#vsBg::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(3,5,10,.92) 0%,rgba(3,5,10,.55) 45%,rgba(3,5,10,.15) 70%,rgba(3,5,10,.35) 100%)}
+.vs-rays{position:absolute;inset:-30%;opacity:.18;background:repeating-conic-gradient(from 0deg at 72% 50%,var(--acc) 0deg 5deg,transparent 5deg 16deg);animation:spin 40s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#vsChar{position:absolute;right:max(2vw,8px);bottom:0;height:min(96%,calc(var(--vh) * .96));max-width:58vw;object-fit:contain;object-position:bottom right;
+  filter:drop-shadow(0 0 30px rgba(0,0,0,.8)) drop-shadow(0 0 22px var(--acc));animation:charIn .7s cubic-bezier(.2,.9,.25,1.1) both}
+#vsChar.card{height:auto;width:min(36vw,360px);bottom:50%;transform:translateY(50%) rotate(3deg);border-radius:14px;
+  box-shadow:0 0 0 2px var(--acc),0 0 40px var(--acc);animation:charInC .7s cubic-bezier(.2,.9,.25,1.1) both}
+@keyframes charIn{from{opacity:0;transform:translateX(18%)}to{opacity:1;transform:none}}
+@keyframes charInC{from{opacity:0;transform:translate(18%,50%) rotate(8deg)}to{opacity:1;transform:translateY(50%) rotate(3deg)}}
+.vs-l{position:absolute;left:max(3vw,12px);top:50%;transform:translateY(-50%);width:min(52vw,560px);display:flex;flex-direction:column;gap:10px;z-index:2}
+.vs-tag{font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:4px;color:var(--acc);text-shadow:0 0 10px var(--acc)}
+.vs-name{font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(24px,5vw,54px);line-height:1;letter-spacing:2px;color:#fff;
+  text-shadow:0 0 2px #000,0 0 18px var(--acc),0 4px 0 rgba(0,0,0,.6);animation:nameIn .6s .15s both}
+@keyframes nameIn{from{opacity:0;letter-spacing:20px}to{opacity:1}}
+.vs-title{font-size:15px;font-weight:700;color:#cfd8e6;letter-spacing:1px}
+.vs-say{position:relative;padding:14px 16px;border-radius:12px;background:rgba(3,5,10,.78);border:1px solid rgba(255,255,255,.08);border-left:3px solid var(--acc);
+  font-size:clamp(15px,2.2vw,20px);font-weight:600;line-height:1.35;min-height:70px;color:#fff;white-space:pre-line}
+.vs-say .cur{display:inline-block;width:8px;height:1em;background:var(--acc);vertical-align:-2px;margin-left:2px;animation:blink 1s steps(2) infinite}
+.vs-meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.vs-me{display:flex;gap:8px;align-items:center;font-size:12px;color:#9fb3cc}
+.vs-me img{width:34px;height:48px;border-radius:4px;object-fit:cover;background:#000}
+.vs-btns{display:flex;gap:10px;flex-wrap:wrap}
+.vs-big{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(70px,18vw,200px);color:transparent;
+  -webkit-text-stroke:2px rgba(255,255,255,.12);pointer-events:none;letter-spacing:-6px;z-index:1}
+.vs-top{position:absolute;top:max(12px,env(safe-area-inset-top));left:max(12px,env(safe-area-inset-left));z-index:3}
+
+/* ── Resultado ── */
+.res-title{font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(28px,6vw,60px);letter-spacing:6px}
+.res-title.win{background:linear-gradient(180deg,#fff3c4,#f5c842 45%,#d4870a);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 12px rgba(245,166,35,.6))}
+.res-title.lose{color:#ff4d6d;text-shadow:0 0 14px rgba(255,34,68,.7)}
+
+/* ── Final ── */
+#sEnd{justify-content:center;gap:14px;text-align:center}
+#sEnd .crown{font-size:64px;filter:drop-shadow(0 0 20px rgba(245,166,35,.8));animation:flt 3s ease-in-out infinite}
+.end-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;width:min(560px,100%)}
+.end-stats div{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:8px}
+.end-stats b{display:block;font-family:'Orbitron',sans-serif;font-size:20px;color:var(--gold2)}
+.end-stats small{font-size:10px;color:var(--muted);letter-spacing:1px}
+.confetti{position:fixed;top:-12px;width:8px;height:12px;z-index:40;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+
+/* ── Modal ── */
+#modal{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.8);display:none;align-items:center;justify-content:center;padding:16px}
+#modal.on{display:flex}
+#modal .box{width:min(440px,100%);padding:18px;display:flex;flex-direction:column;gap:12px;text-align:center}
+#modal h3{font-family:'Orbitron',sans-serif;font-size:13px;letter-spacing:2px;color:var(--gold2)}
+#modal p{font-size:15px;color:#cfd8e6;line-height:1.4}
+#modal .row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+
+@media (max-width:760px){
+  .slots{grid-template-columns:1fr}
+  .slot{min-height:0}
+  #vsChar{max-width:80vw;opacity:.55}
+  #vsChar.card{width:min(52vw,260px);opacity:.5}
+  .vs-l{width:calc(100% - 24px)}
+}
+@media (max-height:520px){
+  #sTitle .logo{max-height:34vh}
+  .slot{min-height:0;padding:10px;gap:7px}
+  .slot .deck img{width:42px;height:58px}
+  .node .med{width:52px;height:52px}
+  .node.boss .med{width:66px;height:66px}
+  .vs-say{min-height:56px;padding:10px 12px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<div id="bg"></div><div id="grecas"></div><div id="scan"></div>
+
+<!-- PORTADA -->
+<section class="scr on" id="sTitle">
+  <div class="topbar" style="position:fixed;top:max(12px,env(safe-area-inset-top));left:0;right:0;margin:auto;padding:0 14px">
+    <a class="pill" href="index.html">← MENÚ</a>
+    <a class="pill gold" href="simulacion.html">🤖 SIMULACIÓN LIBRE</a>
+  </div>
+  <img class="logo" id="tLogo" alt="">
+  <div class="h1">ARCADE</div>
+  <div class="sub">15 RIVALES · UN SOLO CAMPEÓN</div>
+  <button class="btn" id="tStart" style="margin-top:10px">⚔ JUGAR</button>
+  <div class="press" id="tStatus">CARGANDO…</div>
+</section>
+
+<!-- PARTIDAS -->
+<section class="scr" id="sSlots">
+  <div class="topbar"><button class="pill" data-go="sTitle">← ATRÁS</button><div class="h1" style="font-size:18px">PARTIDAS</div><span style="width:70px"></span></div>
+  <div class="slots" id="slots"></div>
+</section>
+
+<!-- NUEVA PARTIDA -->
+<section class="scr" id="sNew">
+  <div class="topbar"><button class="pill" data-go="sSlots">← ATRÁS</button><div class="h1" style="font-size:16px">NUEVA PARTIDA</div><span style="width:70px"></span></div>
+  <div class="lbl">NOMBRE DEL HÉROE</div>
+  <div style="width:100%;max-width:1100px"><input class="inp" id="nName" maxlength="20" placeholder="Jugador"></div>
+  <div class="lbl">ELIGE TU BARAJA PARA TODA LA RUTA</div>
+  <div class="panel decks" id="nDecks"><span class="hb tl"></span><span class="hb tr"></span><span class="hb bl"></span><span class="hb br"></span></div>
+  <div style="margin:12px 0"><button class="btn" id="nGo" disabled>COMENZAR RUTA ➜</button></div>
+</section>
+
+<!-- RUTA -->
+<section class="scr" id="sRuta">
+  <div class="topbar"><button class="pill" data-go="sSlots">← PARTIDAS</button><div class="h1" style="font-size:16px">RUTA ARCADE</div><button class="pill gold" id="rDeck">🃏 BARAJA</button></div>
+  <div class="panel ruta-head" id="rHead"></div>
+  <div class="map" id="map"><div class="map-in" id="mapIn"></div></div>
+  <div class="ruta-foot"><button class="btn" id="rFight">⚔ SIGUIENTE COMBATE</button></div>
+</section>
+
+<!-- VS / RESULTADO -->
+<section class="scr" id="sVS">
+  <div id="vsBg"><div class="vs-rays"></div></div>
+  <div class="vs-big">VS</div>
+  <img id="vsChar" alt="">
+  <div class="vs-top"><button class="pill" id="vsBack">← RUTA</button></div>
+  <div class="vs-l">
+    <div class="vs-tag" id="vsTag"></div>
+    <div class="vs-name" id="vsName"></div>
+    <div class="vs-title" id="vsTitle"></div>
+    <div class="vs-meta" id="vsMeta"></div>
+    <div class="vs-say" id="vsSay"></div>
+    <div class="vs-btns" id="vsBtns"></div>
+  </div>
+</section>
+
+<!-- FINAL -->
+<section class="scr" id="sEnd">
+  <div class="crown">👑</div>
+  <div class="h1" style="font-size:clamp(26px,6vw,56px)">¡CAMPEÓN!</div>
+  <div class="sub" id="eSub"></div>
+  <div class="end-stats" id="eStats"></div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center"><button class="btn" data-go="sSlots">🕹 PARTIDAS</button><a class="btn ghost" href="index.html">← MENÚ</a></div>
+</section>
+
+<div id="modal"><div class="panel box"><span class="hb tl"></span><span class="hb tr"></span><span class="hb bl"></span><span class="hb br"></span>
+  <h3 id="mT"></h3><p id="mP"></p><div class="row" id="mB"></div></div></div>
+<div class="ver" id="ver"></div>
+
+<script>
+// ════════════════════════════════════
+// MODO ARCADE — v1
+// Archivos editables: assets/arcade/rivales.txt + imágenes (ver assets/arcade/readme.txt)
+// Partidas: localStorage "chh_arcade_slots" (3 slots)
+// Combate: escribe "chh_arcade_match" y abre simulacion.html?modo=arcade;
+//          la simulación escribe "chh_arcade_result" y regresa a arcade.html?r=<id>
+// ════════════════════════════════════
+const ARC_VERSION='Arcade v1';
+const DIR='assets/arcade/';
+const NSLOTS=3;
+const NIV={facil:'FÁCIL',medio:'MEDIO',dificil:'DIFÍCIL',muy_dificil:'MUY DIFÍCIL'};
+const RIVALES_DEFAULT=`[1]
+nombre = Vika Cosplay
+baraja = vika_cosplay
+carta = vc_kali
+color = #ff5fa2
+entrada = ¡Hoy vengo vestida de Koatl! Si me ganas, te firmo un autógrafo.
+victoria = ¡Nooo, mi cosplay!
+derrota = ¡Ja! Hasta disfrazada soy mejor que tú.
+[2]
+nombre = Jo Ann Hendrix
+titulo = HELL-RIDER
+baraja = hell_riders
+carta = hr_joann
+color = #ff6a2b
+entrada = El escuadrón Hell Rider no se detiene por nadie.
+victoria = El escuadrón volverá.
+derrota = Te dije que te quitaras del camino.
+[3]
+nombre = Évolotl, Kostli
+baraja = evolotl
+carta = evo_kostli
+color = #3ad6a0
+entrada = Cada derrota me hace evolucionar.
+victoria = Esta forma no era suficiente.
+derrota = Tu estrategia se quedó en su primera forma.
+[4]
+nombre = Aurora
+titulo = Heredera del Fuego
+baraja = herederos
+carta = hdf_aurora
+color = #ff4d2e
+entrada = Cada carta que cae alimenta mi fuego.
+victoria = Las brasas nunca se apagan del todo.
+derrota = Cenizas.
+[5]
+nombre = Violet Barbosa
+baraja = legion_mar
+carta = violet
+color = #2db8e0
+entrada = En mi barco no se llama de forma especial sin mi permiso.
+victoria = ¡Arrr! Has ganado esta batalla.
+derrota = Al fondo del mar.
+[6]
+nombre = Naddezhda
+baraja = encantadoras
+carta = naddezhda
+color = #a46bff
+entrada = Mis aprendices ya están en tu campo.
+victoria = Les falta práctica a mis Apprentiz.
+derrota = Una lección de magia gratis.
+[7]
+nombre = EX-Pada Dragón
+baraja = expadaz
+carta = exr_dragon
+color = #c9a227
+entrada = Morir no es el final para un EX-Pada.
+victoria = Regresaré del Mictlán.
+derrota = Te desollé con mi espada dragón.
+[8]
+nombre = Alquimista Metalúrgico
+baraja = metalurgicos
+carta = metal_alquimista
+color = #9fb3cc
+entrada = Los Metalúrgicos somos familia.
+victoria = Debo recalcular la fórmula.
+derrota = Experimento exitoso.
+[9]
+nombre = Vulcar
+titulo = El Caballero de Cristal
+baraja = caballero_cristal
+carta = vulcar_caballero
+color = #7fe9ff
+entrada = Los Dragones de Cristal responden a mi llamado.
+victoria = Mi espada te reconoce.
+derrota = Ni siquiera vales el filo de mi espada.
+[10]
+nombre = Madatzin
+baraja = nexotlan
+carta = madatzin
+color = #00ff9d
+entrada = Ya vi cómo termina este combate.
+victoria = Ninguna visión mostraba esto.
+derrota = Lo vi antes de que llegaras.
+[11]
+nombre = Hellw Khalet
+baraja = ornamentum_khalet
+carta = hellw_khalet
+color = #cc55ff
+entrada = Nada de lo que hagas puede afectarme.
+victoria = Así que algo sí podía tocarme.
+derrota = Tus personajes ahora me pertenecen.
+[12]
+nombre = Mictecacihuatl
+baraja = mictlan
+carta = mictecacihuatl
+color = #b48cff
+entrada = Todos llegan al Mictlán tarde o temprano.
+victoria = El Mictlán puede esperar.
+derrota = Bienvenido a mi reino.
+[13]
+nombre = Yao
+titulo = Gran Vigilante del Tiempo
+baraja = guardianes_tiempo
+carta = yao
+color = #f5c842
+entrada = He visto mil batallas como esta.
+victoria = El tiempo ha cambiado de dirección.
+derrota = El tiempo siempre gana.
+[14]
+nombre = Quetzalcoatl
+titulo = Encarnado
+baraja = defensores_ancestrales
+carta = quetzal_encarnado
+color = #3ad6a0
+entrada = Solo quien supere a los Defensores Ancestrales podrá seguir.
+victoria = Eres digno.
+derrota = Aún no estás listo.
+[15]
+nombre = Mictlantecuhtli
+titulo = JEFE FINAL
+baraja = dioses
+carta = mictlan_primigenio
+color = #ff2244
+dificultad = muy_dificil
+corazones = 5
+entrada = Los dioses no juegan, mortal. Los dioses deciden.
+victoria = Imposible… Un mortal ha vencido a los dioses…
+derrota = Tu alma ya me pertenece.`;
+
+const $=id=>document.getElementById(id);
+const esc=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let RIV=[], DATA=null, CARD={}, GALI={}, DECKS=[], NEWSEL=null;
+
+// ── Rivales: formato de texto simple ──
+function parseRivales(txt){
+  const out=[];let cur=null;
+  String(txt).replace(/\r/g,'').split('\n').forEach(l=>{
+    const t=l.trim();
+    if(!t||t.startsWith('#')||t.startsWith(';')) return;
+    const h=t.match(/^\[(.+)\]$/);
+    if(h){cur={_n:h[1]};out.push(cur);return;}
+    const i=t.indexOf('=');
+    if(i>0&&cur){const k=t.slice(0,i).trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''),v=t.slice(i+1).trim();cur[k]=v.replace(/\s*\|\s*/g,'\n');}
+  });
+  return out.filter(r=>r.nombre&&r.baraja);
+}
+function nivelDe(r,i,total){
+  const d=(r.dificultad||'auto').toLowerCase().replace(/\s+/g,'_').normalize('NFD').replace(/[̀-ͯ]/g,'');
+  if(NIV[d]) return d;
+  const q=i/Math.max(1,total);           // reparto progresivo en cuartos
+  return q<4/15?'facil':q<8/15?'medio':q<12/15?'dificil':'muy_dificil';
+}
+async function fetchTxt(u){try{const r=await fetch(u,{cache:'no-cache'});if(r.ok)return await r.text();}catch(e){}return null;}
+async function fetchJson(u){try{const r=await fetch(u,{cache:'no-cache'});if(r.ok)return await r.json();}catch(e){}return null;}
+function probarImg(u){return new Promise(res=>{if(!u)return res(null);const im=new Image();im.onload=()=>res(u);im.onerror=()=>res(null);im.src=u;});}
+const galPath=f=>!f?'':(/^(https?:|data:|\/|\.\/)/.test(f)?f:'./'+f);
+function cartaImg(id,grande){const c=CARD[id];if(!c)return '';const g=GALI[String(c.galeriaId)];if(!g)return '';return galPath(grande?(g.ampliada||g.miniatura):(g.miniatura||g.ampliada));}
+function deckPortada(b){return b?cartaImg(b.portada||(b.bp&&b.bp[0]&&b.bp[0].id)):'';}
+
+// ── Partidas (3 slots) ──
+function loadSlots(){let s=[];try{s=JSON.parse(localStorage.getItem('chh_arcade_slots')||'[]')||[];}catch(e){}while(s.length<NSLOTS)s.push(null);return s.slice(0,NSLOTS);}
+function saveSlots(s){try{localStorage.setItem('chh_arcade_slots',JSON.stringify(s));}catch(e){}}
+let CUR=null;   // índice del slot activo
+function slot(){return loadSlots()[CUR];}
+function setSlot(fn){const s=loadSlots();fn(s[CUR]);s[CUR].ultimo=Date.now();saveSlots(s);}
+function fecha(ts){if(!ts)return '';const d=new Date(ts);return d.toLocaleDateString('es-MX',{day:'2-digit',month:'short'})+' '+d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});}
+
+// ── Navegación ──
+function go(id){document.querySelectorAll('.scr').forEach(s=>s.classList.toggle('on',s.id===id));
+  if(id==='sSlots')renderSlots(); if(id==='sRuta')renderRuta(); if(id==='sNew')renderNew();}
+document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
+function modal(t,p,btns){$('mT').textContent=t;$('mP').innerHTML=p;const B=$('mB');B.innerHTML='';
+  btns.forEach(([txt,cls,fn])=>{const b=document.createElement('button');b.className='btn sm '+(cls||'');b.textContent=txt;b.onclick=()=>{$('modal').classList.remove('on');fn&&fn();};B.appendChild(b);});
+  $('modal').classList.add('on');}
+
+// ── Pantalla: partidas ──
+function renderSlots(){
+  const s=loadSlots(), box=$('slots'); box.innerHTML='';
+  s.forEach((g,i)=>{
+    const el=document.createElement('div');el.className='panel slot';
+    el.innerHTML='<span class="hb tl"></span><span class="hb tr"></span><span class="hb bl"></span><span class="hb br"></span><div class="num">PARTIDA '+(i+1)+'</div>';
+    if(!g){
+      el.innerHTML+='<div class="empty"><div style="font-size:30px">✦</div><b>VACÍA</b><span>Comienza una nueva ruta de '+RIV.length+' combates</span></div>'+
+        '<div class="acts"><button class="btn sm" data-a="new">⚔ NUEVA PARTIDA</button></div>';
+    } else {
+      const b=DECKS.find(d=>d.id===g.baraja), r=RIV[Math.min(g.ronda,RIV.length-1)], lv=nivelDe(r||{},Math.min(g.ronda,RIV.length-1),RIV.length);
+      const pct=Math.round(100*Math.min(g.ronda,RIV.length)/RIV.length);
+      el.innerHTML+='<div class="deck"><img src="'+esc(deckPortada(b))+'" alt=""><div style="min-width:0"><b>'+esc(g.nombre||'Jugador')+'</b><small>'+esc(b?b.nombre:g.barajaNombre||g.baraja)+'</small>'+
+        '<small>'+(g.completado?'👑 RUTA COMPLETADA':'Siguiente: <b style="font-size:12px;color:#fff">'+esc(r?r.nombre:'')+'</b> <span class="badge lv-'+lv+'">'+NIV[lv]+'</span>')+'</small></div></div>'+
+        '<div class="prog"><i style="width:'+pct+'%"></i></div>'+
+        '<div class="stats"><div><b>'+Math.min(g.ronda,RIV.length)+'/'+RIV.length+'</b><small>RIVALES</small></div><div><b>'+(g.victorias||0)+'</b><small>VICTORIAS</small></div><div><b>'+(g.derrotas||0)+'</b><small>DERROTAS</small></div></div>'+
+        '<small style="color:var(--muted);font-size:10px">Última vez: '+fecha(g.ultimo)+'</small>'+
+        '<div class="acts"><button class="btn sm" data-a="play">'+(g.completado?'👑 VER RUTA':'▶ CONTINUAR')+'</button>'+
+        '<button class="btn sm ghost" data-a="copy">⧉ COPIAR</button><button class="btn sm ghost" data-a="reset">↺ REINICIAR</button><button class="btn sm red" data-a="del">✕ BORRAR</button></div>';
+    }
+    el.querySelectorAll('[data-a]').forEach(bt=>bt.onclick=()=>slotAccion(i,bt.dataset.a));
+    box.appendChild(el);
+  });
+}
+function slotAccion(i,a){
+  const s=loadSlots();
+  if(a==='new'){CUR=i;NEWSEL=null;go('sNew');}
+  else if(a==='play'){CUR=i;go('sRuta');}
+  else if(a==='del') modal('BORRAR PARTIDA '+(i+1),'Se perderá todo el progreso de esta partida. ¿Seguro?',[['✕ BORRAR','red',()=>{s[i]=null;saveSlots(s);renderSlots();}],['CANCELAR','ghost']]);
+  else if(a==='reset') modal('REINICIAR PARTIDA '+(i+1),'Volverás al combate 1 con la misma baraja. ¿Continuar?',[['↺ REINICIAR','red',()=>{Object.assign(s[i],{ronda:0,victorias:0,derrotas:0,completado:false,historial:[],inicio:Date.now(),ultimo:Date.now(),pendiente:null});saveSlots(s);renderSlots();}],['CANCELAR','ghost']]);
+  else if(a==='copy'){
+    const dest=[0,1,2].filter(j=>j!==i);
+    modal('COPIAR PARTIDA '+(i+1),'¿A qué ranura la copias? Si está ocupada, se reemplaza.',dest.map(j=>['→ PARTIDA '+(j+1)+(s[j]?' (ocupada)':''),s[j]?'red':'',()=>{s[j]=JSON.parse(JSON.stringify(s[i]));s[j].pendiente=null;saveSlots(s);renderSlots();}]).concat([['CANCELAR','ghost']]));
+  }
+}
+
+// ── Pantalla: nueva partida ──
+function propias(){const out=[];try{(JSON.parse(localStorage.getItem('chh_decks')||'[]')||[]).forEach((d,i)=>{if(d&&d.decks)out.push({id:'mis:'+i+':'+(d.date||''),nombre:d.name||('Baraja '+(i+1)),estilo:'Tu baraja del Constructor',propia:true});});}catch(e){}return out;}
+function renderNew(){
+  const box=$('nDecks');box.querySelectorAll('.dk,.lbl').forEach(x=>x.remove());
+  const all=DECKS.concat(propias());
+  all.forEach(b=>{
+    const el=document.createElement('button');el.className='dk'+(NEWSEL===b.id?' on':'');
+    el.innerHTML=(b.propia?'<span style="width:42px;height:59px;display:flex;align-items:center;justify-content:center;font-size:22px;background:#0b0e18;border-radius:5px">⭐</span>':'<img src="'+esc(deckPortada(b))+'" alt="">')+'<span style="min-width:0"><b>'+esc(b.nombre)+'</b><small>'+esc(b.estilo||'')+'</small></span>';
+    el.onclick=()=>{NEWSEL=b.id;renderNew();};
+    box.appendChild(el);
+  });
+  $('nGo').disabled=!NEWSEL;
+}
+$('nGo').onclick=()=>{
+  const s=loadSlots(), b=DECKS.concat(propias()).find(x=>x.id===NEWSEL);
+  s[CUR]={nombre:($('nName').value||'').trim()||'Jugador',baraja:NEWSEL,barajaNombre:b?b.nombre:NEWSEL,ronda:0,victorias:0,derrotas:0,completado:false,historial:[],inicio:Date.now(),ultimo:Date.now(),pendiente:null};
+  saveSlots(s);go('sRuta');
+};
+
+// ── Pantalla: ruta ──
+function retratoUrl(r,grande){return r._img||cartaImg(r.carta,grande);}
+function renderRuta(){
+  const g=slot(); if(!g){go('sSlots');return;}
+  const b=DECKS.find(d=>d.id===g.baraja);
+  $('rHead').innerHTML='<span class="hb tl"></span><span class="hb tr"></span><span class="hb bl"></span><span class="hb br"></span><img src="'+esc(deckPortada(b))+'" alt=""><div class="info"><b>'+esc(g.nombre)+'</b><small>'+esc(b?b.nombre:g.barajaNombre)+' · '+Math.min(g.ronda,RIV.length)+'/'+RIV.length+' rivales · '+(g.victorias||0)+' victorias · '+(g.derrotas||0)+' derrotas</small></div>';
+  const N=RIV.length, map=$('map'), inn=$('mapIn');
+  const W=Math.max(map.clientWidth,N*104+40), H=Math.max(map.clientHeight,250);
+  inn.style.width=W+'px';
+  const pts=RIV.map((r,i)=>({x:52+i*(W-104)/Math.max(1,N-1),y:H/2+Math.sin(i*1.1)*(H*0.22)}));
+  let path='';pts.forEach((p,i)=>{path+=(i?' L':'M')+p.x.toFixed(1)+' '+p.y.toFixed(1);});
+  const done=Math.min(g.ronda,N);
+  let donePath='';pts.slice(0,done+1).forEach((p,i)=>{donePath+=(i?' L':'M')+p.x.toFixed(1)+' '+p.y.toFixed(1);});
+  inn.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none"><path d="'+path+'" stroke="#2a3446" stroke-width="3" fill="none" stroke-dasharray="6 7"/>'+
+    (done?'<path d="'+donePath+'" stroke="#f5c842" stroke-width="3" fill="none" style="filter:drop-shadow(0 0 6px #f5a623)"/>':'')+'</svg>';
+  RIV.forEach((r,i)=>{
+    const st=i<g.ronda?'done':i===g.ronda&&!g.completado?'cur':'lock', lv=nivelDe(r,i,N);
+    const el=document.createElement('div');el.className='node '+st+(i===N-1?' boss':'');
+    el.style.left=pts[i].x+'px';el.style.top=pts[i].y+'px';
+    const img=st==='lock'?'':retratoUrl(r);
+    el.innerHTML='<div class="med" data-n="'+(i===N-1?'JEFE':i+1)+'" style="'+(img?'background-image:url(&quot;'+esc(img)+'&quot;);background-position:'+(r._img?'center top':'center 20%'):'')+'"></div>'+
+      '<div class="nm">'+(st==='lock'?'???':esc(r.nombre))+'</div><span class="badge lv lv-'+lv+'">'+NIV[lv]+'</span>';
+    inn.appendChild(el);
+  });
+  const cur=inn.querySelector('.node.cur'); if(cur) map.scrollLeft=Math.max(0,parseFloat(cur.style.left)-map.clientWidth/2);
+  $('rFight').textContent=g.completado?'👑 RUTA COMPLETADA · VOLVER A JUGAR':(g.ronda===N-1?'☠ ENFRENTAR AL JEFE FINAL':'⚔ SIGUIENTE COMBATE');
+}
+$('rFight').onclick=()=>{
+  const g=slot(); if(!g) return;
+  if(g.completado){modal('NUEVA VUELTA','Tu ruta ya está completa. ¿Quieres reiniciarla desde el combate 1? Se conserva tu historial de victorias.',[['↺ REINICIAR RUTA','',()=>{setSlot(x=>{x.ronda=0;x.completado=false;x.vueltas=(x.vueltas||0)+1;});renderRuta();}],['CANCELAR','ghost']]);return;}
+  showVS(g.ronda,'intro');
+};
+$('rDeck').onclick=()=>{
+  const g=slot(); if(!g) return;
+  modal('CAMBIAR BARAJA','Puedes cambiar tu baraja sin perder el progreso de la ruta.',[['🃏 ELEGIR OTRA','',()=>{NEWSEL=g.baraja;$('nName').value=g.nombre;go('sNew');$('nGo').textContent='GUARDAR BARAJA ➜';
+    $('nGo').onclick=()=>{const b=DECKS.concat(propias()).find(x=>x.id===NEWSEL);setSlot(x=>{x.baraja=NEWSEL;x.barajaNombre=b?b.nombre:NEWSEL;x.nombre=($('nName').value||'').trim()||x.nombre;});restaurarNew();go('sRuta');};}],['CANCELAR','ghost']]);
+};
+const _newGo=$('nGo').onclick;
+function restaurarNew(){$('nGo').textContent='COMENZAR RUTA ➜';$('nGo').onclick=_newGo;}
+document.querySelector('#sNew [data-go]').addEventListener('click',restaurarNew);
+
+// ── Pantalla: VS / resultado ──
+let _typeT=null;
+function typeText(el,txt){
+  clearInterval(_typeT);el.innerHTML='';let i=0;const cur='<span class="cur"></span>';
+  if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches){el.innerHTML=esc(txt);return;}
+  _typeT=setInterval(()=>{i+=2;el.innerHTML=esc(txt.slice(0,i))+cur;if(i>=txt.length){clearInterval(_typeT);el.innerHTML=esc(txt)+cur;}},22);
+  el.onclick=()=>{clearInterval(_typeT);el.innerHTML=esc(txt)+cur;};
+}
+function showVS(i,modo,res){
+  const r=RIV[i], g=slot(), N=RIV.length, lv=nivelDe(r,i,N), jefe=i===N-1, acc=r.color||(jefe?'#ff2244':'#f5a623');
+  const sec=$('sVS');sec.style.setProperty('--acc',acc);
+  const bg=$('vsBg');bg.style.backgroundImage=r._fondo?'url("'+r._fondo+'")':'radial-gradient(ellipse at 70% 50%,'+acc+'55,transparent 60%),linear-gradient(135deg,#0b0e18,#03050a)';
+  const ch=$('vsChar');
+  if(r._img){ch.className='';ch.src=r._img;}else{ch.className='card';ch.src=cartaImg(r.carta,true);}
+  ch.style.display=ch.src?'':'none';
+  ch.style.animation='none';void ch.offsetWidth;ch.style.animation='';
+  $('vsTag').textContent=modo==='intro'?(jefe?'☠ JEFE FINAL':'COMBATE '+(i+1)+' DE '+N):(res.won?'¡VICTORIA!':'DERROTA');
+  $('vsTag').className='vs-tag'+(modo!=='intro'?' res-title '+(res.won?'win':'lose'):'');
+  if(modo!=='intro'){$('vsTag').style.fontSize='clamp(22px,4vw,40px)';$('vsTag').style.letterSpacing='5px';}else{$('vsTag').style.fontSize='';$('vsTag').style.letterSpacing='';}
+  $('vsName').textContent=r.nombre;
+  $('vsTitle').textContent=r.titulo||'';
+  const b=DECKS.find(d=>d.id===g.baraja);
+  $('vsMeta').innerHTML='<span class="badge lv-'+lv+'">'+NIV[lv]+'</span>'+(r.corazones?'<span class="badge" style="color:#ff4d6d">+'+esc(r.corazones)+' ❤</span>':'')+
+    '<span class="vs-me">'+(PLAYER_IMG?'<img src="'+PLAYER_IMG+'" alt="">':'<img src="'+esc(deckPortada(b))+'" alt="">')+esc(g.nombre)+' · '+esc(b?b.nombre:g.barajaNombre)+'</span>'+
+    (modo!=='intro'&&res&&res.turnos?'<span class="badge" style="color:#9fb3cc">'+res.turnos+' TURNOS</span>':'');
+  const frase=modo==='intro'?(r.entrada||'¡En guardia!'):(res.won?(r.victoria||'…'):(r.derrota||'…'));
+  typeText($('vsSay'),frase);
+  const B=$('vsBtns');B.innerHTML='';
+  const add=(t,cls,fn)=>{const x=document.createElement('button');x.className='btn '+(cls||'');x.textContent=t;x.onclick=fn;B.appendChild(x);};
+  if(modo==='intro'){add('⚔ ¡PELEAR!','',()=>iniciarCombate(i));$('vsBack').onclick=()=>go('sRuta');}
+  else if(res.won){
+    if(i>=N-1) add('👑 CONTINUAR','',()=>finalArcade());
+    else add('➜ SIGUIENTE COMBATE','',()=>go('sRuta'));
+    $('vsBack').onclick=()=>i>=N-1?finalArcade():go('sRuta');
+  } else {
+    add('↺ REINTENTAR','red',()=>showVS(i,'intro'));
+    add('RUTA','ghost',()=>go('sRuta'));
+    $('vsBack').onclick=()=>go('sRuta');
+  }
+  go('sVS');
+}
+function iniciarCombate(i){
+  const r=RIV[i], g=slot(), N=RIV.length, id='a'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  setSlot(x=>{x.pendiente={id,ronda:i};});
+  const m={id,slot:CUR,ronda:i+1,total:N,jefe:i===N-1,jugador:g.baraja,cpu:r.baraja,nivel:nivelDe(r,i,N),
+    corazonesExtra:parseInt(r.corazones,10)||0,nombre:r.nombre,retrato:retratoUrl(r)||''};
+  try{localStorage.setItem('chh_arcade_match',JSON.stringify(m));}catch(e){}
+  location.href='simulacion.html?modo=arcade';
+}
+// Regreso de la simulación con el resultado
+function procesarResultado(){
+  const q=new URLSearchParams(location.search).get('r'); if(!q) return false;
+  history.replaceState(null,'',location.pathname);
+  let res=null;try{res=JSON.parse(localStorage.getItem('chh_arcade_result')||'null');}catch(e){}
+  if(!res||res.id!==q) return false;
+  const s=loadSlots(), g=s[res.slot]; if(!g||!g.pendiente||g.pendiente.id!==q) return false;
+  CUR=res.slot;
+  const i=g.pendiente.ronda;
+  g.pendiente=null;g.ultimo=Date.now();
+  (g.historial=g.historial||[]).push({ronda:i+1,won:res.won,turnos:res.turnos,ts:res.ts});
+  if(res.won){g.victorias=(g.victorias||0)+1;if(g.ronda===i)g.ronda=i+1;if(g.ronda>=RIV.length)g.completado=true;}
+  else g.derrotas=(g.derrotas||0)+1;
+  saveSlots(s);
+  try{localStorage.removeItem('chh_arcade_result');}catch(e){}
+  showVS(i,'res',res);
+  return true;
+}
+function finalArcade(){
+  const g=slot();
+  const h=g.historial||[], tt=h.filter(x=>x.won).reduce((t,x)=>t+(x.turnos||0),0);
+  $('eSub').textContent=(g.nombre||'Jugador').toUpperCase()+' VENCIÓ A LOS '+RIV.length+' RIVALES';
+  $('eStats').innerHTML=[[g.victorias||0,'VICTORIAS'],[g.derrotas||0,'DERROTAS'],[tt,'TURNOS'],[(g.vueltas||0)+1,'VUELTA']].map(([v,t])=>'<div><b>'+v+'</b><small>'+t+'</small></div>').join('');
+  go('sEnd');
+  for(let k=0;k<70;k++){const c=document.createElement('div');c.className='confetti';c.style.left=Math.random()*100+'vw';
+    c.style.background=['#f5c842','#ff8c42','#00cfff','#00ff9d','#cc55ff','#fff'][k%6];c.style.animationDuration=(2.5+Math.random()*3)+'s';c.style.animationDelay=(Math.random()*1.5)+'s';
+    document.body.appendChild(c);setTimeout(()=>c.remove(),7000);}
+}
+
+// ── Brasas ──
+for(let i=0;i<18;i++){const e=document.createElement('span');e.className='ember'+(i%4===0?' b':'');
+  e.style.left=(Math.random()*100)+'%';e.style.animationDuration=(9+Math.random()*10)+'s';e.style.animationDelay=(-Math.random()*15)+'s';
+  e.style.setProperty('--dx',(Math.random()*80-40)+'px');document.body.appendChild(e);}
+
+// ── Arranque ──
+let PLAYER_IMG=null;
+(async function init(){
+  $('ver').textContent=ARC_VERSION;
+  const [txt,data,gal,logo,portada,jug]=await Promise.all([
+    fetchTxt(DIR+'rivales.txt'),fetchJson('data/cartas_simulacion.json'),fetchJson('cartas.json'),
+    (async()=>await probarImg(DIR+'logo.png')||await probarImg('assets/simulacion/inicio_logo.png')||await probarImg('logo-hd.png')||await probarImg('img/simulacion/logo.png'))(),
+    (async()=>await probarImg(DIR+'portada.jpg')||await probarImg(DIR+'portada.png')||await probarImg('assets/simulacion/inicio_fondo.jpg'))(),
+    probarImg(DIR+'personajes/jugador.png')]);
+  if(logo) $('tLogo').src=logo; else $('tLogo').style.display='none';
+  if(portada){$('bg').style.backgroundImage='url("'+portada+'")';$('bg').classList.add('img');}
+  PLAYER_IMG=jug;
+  RIV=parseRivales(txt||'');
+  if(!RIV.length) RIV=parseRivales(RIVALES_DEFAULT);
+  DATA=data||{cartas:[],barajas:[]};
+  DATA.cartas.forEach(c=>CARD[c.id]=c);
+  (Array.isArray(gal)?gal:(gal&&Object.values(gal).find(Array.isArray))||[]).forEach(x=>{if(x&&x.id!=null)GALI[String(x.id)]=x;});
+  DECKS=(DATA.barajas||[]);
+  // Imágenes de cada rival (si no existen, se usa el arte de su carta)
+  await Promise.all(RIV.map(async r=>{
+    r._img=r.imagen?await probarImg(DIR+'personajes/'+r.imagen):null;
+    r._fondo=r.fondo?await probarImg(DIR+'fondos/'+r.fondo):null;
+  }));
+  $('tStatus').textContent=data?'TOCA JUGAR':'⚠ NO SE PUDIERON LEER LAS BARAJAS';
+  $('tStart').onclick=()=>go('sSlots');
+  if(!procesarResultado()&&new URLSearchParams(location.search).get('slots')) go('sSlots');
+  window.addEventListener('resize',()=>{if($('sRuta').classList.contains('on'))renderRuta();});
+})();
+</script>
+</body>
+</html>

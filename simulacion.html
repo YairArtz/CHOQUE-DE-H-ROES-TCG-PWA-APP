@@ -348,6 +348,12 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
   radial-gradient(ellipse 70% 50% at 50% 0%,rgba(120,170,220,.16),transparent 60%),#080a0d}
 @media (prefers-reduced-motion:reduce){.board::after{animation:none}.fx-show .rays{animation:none}}
 
+
+/* Modo Arcade: tarjeta de una sola columna */
+.boot.arcade .boot-card{display:flex!important;max-width:560px!important;height:auto!important}
+.boot.arcade .boot-card>.boot-vs{flex-direction:row!important}
+.boot.arcade .boot-vs .vs-side.r{flex-direction:row-reverse!important;text-align:right!important}
+.boot.arcade .boot-vs img,.boot.arcade .boot-vs .vs-ico{width:54px;height:76px}
 @media (prefers-reduced-motion:reduce){
   .boot-bg.img,.boot-ember,.boot-logo,.boot-btn,.boot-btn::after,.boot-vs .vs-x,.boot-card{animation:none!important}
 }
@@ -1009,7 +1015,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v37';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v38';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -3647,6 +3653,7 @@ async function offerResponses(ev){
     pick=opts[i];
   } else {
     pick=opts.find(x=>x.cpu)||null;
+    if(pick&&cpuFalla()) pick=null;
     if(pick) await new Promise(res=>setTimeout(res,350));
   }
   if(pick&&G&&!G.over) await pick.run();
@@ -5536,6 +5543,22 @@ async function cosmo(o,cid){
 // CPU IA
 // ════════════════════════════════════
 // ¿Le conviene a la CPU usar esta habilidad desde la mano o el Mictlán?
+// ¿Le sirve a la CPU activar otra ALMA? Evita llenar sus 4 zonas de apoyo sin necesidad.
+function cpuNecesitaAlma(cid){
+  const P=G.cpu, at=almaT('cpu'), n=almasActivas('cpu'), libres=P.apoyo.filter(x=>x===null).length;
+  const v=Math.max(1,C[cid].val||0);
+  const pjs=P.hand.filter(c=>C[c].type==='pj'&&!puedeNormal('cpu',c));
+  const caro=pjs.length?Math.max(...pjs.map(c=>C[c].cost)):0;
+  const apoyos=P.hand.filter(c=>C[c].type==='apoyo').length;
+  if(n<2) return true;                                 // base mínima
+  if(caro>at&&caro<=at+v+1) return true;               // le permite llamar algo de su mano ya
+  if(libres<=1&&apoyos>0) return false;                // reserva una zona para jugar APOYOS
+  if(libres<=1) return false;                          // nunca llena la última zona sin motivo
+  if(caro>at) return true;                             // avanza hacia su personaje más caro
+  return n<3&&at<6;                                    // con 3 almas o valor 6 ya no hace falta más
+}
+// Dificultad de la CPU (Arcade): fácil y medio cometen errores; muy difícil empieza con más corazones
+function cpuFalla(f){const lv={facil:.45,medio:.2}[G&&G.cpuNivel]||0;return Math.random()<lv*(f||1);}
 function cpuQuiereMano(cid,e){
   const acc=new Set((e.pasos||[e]).map(s=>s.accion));
   if(acc.has('oxkotetl')){const ps=G.player.pj.filter(Boolean);return ps.length>=2&&ps.reduce((t,p)=>t+SCORE(p.id),0)>P_SCORE_OX()-40||ps.length>=3; }
@@ -5588,7 +5611,7 @@ async function cpuTurn(){
       return (C[cid].val||0)+0.1;
     };
     const al=P.hand.map((c,i)=>({c,i})).filter(x=>C[x.c].type==='alma').sort((a,b)=>est(b.c)-est(a.c))[0];
-    if(al&&est(al.c)>=0) await activateAlma('cpu',al.i,fs);
+    if(al&&est(al.c)>=0&&cpuNecesitaAlma(al.c)) await activateAlma('cpu',al.i,fs);
   }
   if(!alive()) return;
 
@@ -5605,7 +5628,7 @@ async function cpuTurn(){
   for(const cid of [...new Set(P.bs)]){
     if(!alive()) return;
     const sel=spFind('cpu',cid);
-    if(!sel) continue;
+    if(!sel||cpuFalla(.6)) continue;
     // No sacrifica personajes del campo que valen más que la Amalgama
     if(sel.filter(x=>x.src==='campo').reduce((t,x)=>t+SCORE(x.cid),0)>SCORE(cid)) continue;
     const side=['right','left'].find(sd=>freeIn('cpu',sd,freedBy(sel))!==undefined);
@@ -5678,7 +5701,7 @@ async function cpuTurn(){
   };
   for(const cid of [...P.hand]){
     if(!alive()) return;
-    if(C[cid].type!=='apoyo'||(freeApo('cpu')===-1&&!C[cid].colocarApoyoRival)||!wantApoyo(cid)) continue;
+    if(C[cid].type!=='apoyo'||(freeApo('cpu')===-1&&!C[cid].colocarApoyoRival)||!wantApoyo(cid)||cpuFalla(.6)) continue;
     const effs=activarEff(cid);
     if(effs.some(x=>effWhy('cpu',cid,x.e,x.i,{zone:'mano'}))) continue;
     if(!await step(550)) return;
@@ -5691,7 +5714,7 @@ async function cpuTurn(){
     const p=P.pj[i];if(!p) continue;
     const effs=(C[p.id].efectos||[]).map((e,k)=>({e,k})).filter(x=>x.e.cuando==='accion'&&!x.e.pendiente);
     for(const {e,k} of effs){
-      if(effWhy('cpu',p.id,e,k,{zone:'campo',slot:i})) continue;
+      if(effWhy('cpu',p.id,e,k,{zone:'campo',slot:i})||cpuFalla(.6)) continue;
       const acc=new Set((e.pasos||[e]).map(s=>s.accion));
       if(acc.has('barajear_mano')) continue;
       if(acc.has('sacrificar_esta')){
@@ -6200,6 +6223,61 @@ function fxMictlan(o,xs){
         [(FXS.kills[mvp[0]]?FXS.kills[mvp[0]]+' victoria(s) en combate':''),(FXS.dmgBy[mvp[0]]?FXS.dmgBy[mvp[0]]+' corazón(es) directos':'')].filter(Boolean).join(' · ')+'</span></div></div>':'')+
       '<div style="font-size:10px;color:#9fb3cc;margin-bottom:6px">Corazones perdidos: '+FXS.dmgRecibido+' · Tus cartas destruidas: '+FXS.destP+'</div>';
   }catch(e){}
+};}
+
+// ════════════════════════════════════
+// MODO ARCADE — solo se activa con simulacion.html?modo=arcade (lo abre arcade.html)
+// arcade.html deja el combate en localStorage "chh_arcade_match" y lee el resultado de "chh_arcade_result".
+// ════════════════════════════════════
+const ARCADE=(()=>{try{if(new URLSearchParams(location.search).get('modo')!=='arcade')return null;
+  const m=JSON.parse(localStorage.getItem('chh_arcade_match')||'null');return m&&m.id?m:null;}catch(e){return null;}})();
+function arcadeEsc(t){return String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function arcadePreparar(){
+  if(!ARCADE) return;
+  const home=document.getElementById('bootHome'); if(home){home.href='arcade.html';home.textContent='← ARCADE';}
+  document.querySelectorAll('.hdr-back').forEach(a=>{a.href='arcade.html';a.textContent='← ARCADE';});
+  const cfg=document.getElementById('bootCfg'); if(cfg) cfg.style.display='none';
+  if(!deckById(ARCADE.jugador)){const b=DATA.barajas.find(x=>!x._error);ARCADE.jugador=b.id;}
+  if(!deckById(ARCADE.cpu)){const b=DATA.barajas.find(x=>!x._error);ARCADE.cpu=b.id;}
+  DSEL.jugador=ARCADE.jugador; DSEL.cpu=ARCADE.cpu;
+  document.getElementById('deckSel').hidden=true;
+  document.getElementById('bootScreen').classList.add('arcade');
+  const NIV={facil:'FÁCIL',medio:'MEDIO',dificil:'DIFÍCIL',muy_dificil:'MUY DIFÍCIL'};
+  document.getElementById('bootStatus').innerHTML='🕹 <b style="color:var(--gold2)">MODO ARCADE</b> · Combate '+ARCADE.ronda+'/'+ARCADE.total+(ARCADE.jefe?' · <b style="color:#ff4d6d">JEFE FINAL</b>':'')+' · Dificultad '+(NIV[ARCADE.nivel]||ARCADE.nivel);
+  const vs=document.getElementById('bootVs');
+  if(vs){
+    const j=deckById(ARCADE.jugador), por=b=>b&&(C[b.portada]||C[(b.bp||[])[0]&&b.bp[0].id]);
+    vs.innerHTML='<div class="vs-side">'+(por(j)?'<img src="'+por(j).imgMin+'" alt="">':'<span class="vs-ico">🛡</span>')+'<span style="min-width:0"><small>TÚ</small><b>'+arcadeEsc(j?j.nombre:'')+'</b></span></div>'+
+      '<span class="vs-x">VS</span><div class="vs-side r">'+(ARCADE.retrato?'<img src="'+arcadeEsc(ARCADE.retrato)+'" alt="" style="object-fit:cover;object-position:top">':'<span class="vs-ico">🤖</span>')+
+      '<span style="min-width:0"><small>'+(ARCADE.jefe?'JEFE FINAL':'RIVAL')+'</small><b>'+arcadeEsc(ARCADE.nombre)+'</b></span></div>';
+    vs.hidden=false;
+  }
+  document.getElementById('bootBtn').textContent='⚔ ¡A PELEAR!';
+}
+{const _rds=renderDeckSelect;renderDeckSelect=function(){_rds.apply(this,arguments);if(ARCADE)try{arcadePreparar();}catch(e){}};}
+{const _sv=saveDeckSelect;saveDeckSelect=function(){if(!ARCADE)_sv.apply(this,arguments);};}
+{const _ig=initGame;initGame=function(){
+  if(ARCADE){DSEL.jugador=ARCADE.jugador;DSEL.cpu=ARCADE.cpu;}
+  const r=_ig.apply(this,arguments);
+  if(ARCADE&&G){
+    G.cpuNivel=ARCADE.nivel||'medio';
+    const extra=(ARCADE.nivel==='muy_dificil'?3:0)+(ARCADE.corazonesExtra||0);
+    if(extra){G.cpu.hp+=extra;lg('🕹 '+arcadeEsc(ARCADE.nombre)+' empieza con '+G.cpu.hp+' corazones.','#ff4d6d');}
+    lg('🕹 <b>ARCADE</b> · Combate '+ARCADE.ronda+'/'+ARCADE.total+' contra <b>'+arcadeEsc(ARCADE.nombre)+'</b>.','var(--gold2)');
+    renderAll();
+  }
+  return r;};}
+{const _eg=endGame;endGame=function(won,reason){
+  const ya=G&&G.over;
+  _eg.apply(this,arguments);
+  if(!ARCADE||ya) return;
+  try{localStorage.setItem('chh_arcade_result',JSON.stringify({id:ARCADE.id,slot:ARCADE.slot,ronda:ARCADE.ronda,won:!!won,turnos:G.turn,
+    corazones:G.player.hp,danio:(typeof FXS!=='undefined'?FXS.dmgHecho:0),ts:Date.now()}));}catch(e){}
+  const box=document.getElementById('endgameBox');
+  box.querySelectorAll('.endgame-btn').forEach(b=>b.style.display='none');
+  const go=document.createElement('button');go.className='endgame-btn';go.textContent='🕹 CONTINUAR';
+  go.onclick=()=>{location.href='arcade.html?r='+encodeURIComponent(ARCADE.id);};
+  box.appendChild(go);
 };}
 
 (async function boot(){

@@ -898,6 +898,18 @@ const BADGES_CATALOGO = [
   { id:'arq_tuneles',       nombre:'Almas Perdidas',       tipo:'manual', emoji:'🕯️', img:'badges/arq_tuneles.png',       condicion:'Ganar un torneo con baraja Los Túneles Perdidos.' },
   { id:'arq_purista',       nombre:'Purista',              tipo:'manual', emoji:'☯️', img:'badges/arq_purista.png',       condicion:'Ganar un torneo con baraja mono-arquetipo.' },
 
+  // — Modo Arcade (arcade.html) —
+  { id:'arc_primera_victoria', nombre:'Primer Crédito',      tipo:'auto', emoji:'🕹️', img:'badges/arc_primera_victoria.png', condicion:'Ganar tu primer combate en el Modo Arcade.' },
+  { id:'arc_intacto',          nombre:'Intocable',           tipo:'auto', emoji:'🛡️', img:'badges/arc_intacto.png',          condicion:'Ganar un combate del Arcade sin perder ningún corazón.' },
+  { id:'arc_relampago',        nombre:'Relámpago',           tipo:'auto', emoji:'⚡', img:'badges/arc_relampago.png',        condicion:'Ganar un combate del Arcade antes del turno 9.' },
+  { id:'arc_mitad',            nombre:'Media Ruta',          tipo:'auto', emoji:'🗺️', img:'badges/arc_mitad.png',            condicion:'Vencer a 8 rivales en una misma ruta del Arcade.' },
+  { id:'arc_campeon',          nombre:'Campeón Arcade',      tipo:'auto', emoji:'👑', img:'badges/arc_campeon.png',          condicion:'Completar la ruta Arcade y derrotar al jefe final.' },
+  { id:'arc_un_credito',       nombre:'Un Solo Crédito',     tipo:'auto', emoji:'🪙', img:'badges/arc_un_credito.png',       condicion:'Completar la ruta Arcade sin perder un solo combate.' },
+  { id:'arc_fenix',            nombre:'Fénix',               tipo:'auto', emoji:'🔥', img:'badges/arc_fenix.png',            condicion:'Completar la ruta Arcade después de sufrir un GAME OVER en ella.' },
+  { id:'arc_veterano',         nombre:'Veterano del Arcade', tipo:'auto', emoji:'🔁', img:'badges/arc_veterano.png',         condicion:'Completar la ruta Arcade 3 veces.' },
+  { id:'arc_maestro_barajas',  nombre:'Maestro de Barajas',  tipo:'auto', emoji:'🃏', img:'badges/arc_maestro_barajas.png',  condicion:'Completar la ruta Arcade con 5 barajas diferentes.' },
+  { id:'arc_revancha',         nombre:'Sed de Revancha',     tipo:'auto', emoji:'⚔️', img:'badges/arc_revancha.png',         condicion:'Ganar 10 revanchas en el Arcade.' },
+
   // — Modo Crisis —
   { id:'crisis_vigilante',  nombre:'Vigilante del Umbral', tipo:'manual', emoji:'🌀', img:'badges/crisis_vigilante.png',  condicion:'Completar Modo Crisis por primera vez.' },
   { id:'crisis_coloso',     nombre:'Coloso Vencido',       tipo:'manual', emoji:'⛰️', img:'badges/crisis_coloso.png',     condicion:'Derrotar a El Coloso del Umbral en Modo Crisis.' },
@@ -1001,6 +1013,14 @@ function calcularBadgesAuto(historial, totalPts, posGlobal, datosHP) {
     if (totalQR >= 10) ganados.add('qr_10');
     if (totalQR >= 25) ganados.add('qr_25');
   }
+
+  // — Modo Arcade: logros ganados en este dispositivo con esta sesión —
+  // (también se guardan en la columna F del registro mediante Apps Script; aquí aparecen al instante)
+  try {
+    const arc = JSON.parse(localStorage.getItem('chh_arcade_logros') || 'null');
+    const miId = (jugador?.id || '').trim().toUpperCase();
+    if (arc && arc.l && miId) Object.entries(arc.l).forEach(([bid, x]) => { if (x && x.por === miId) ganados.add(bid); });
+  } catch(e) {}
 
   if (!historial || !historial.length) return ganados;
 
@@ -1114,6 +1134,7 @@ function calcularBadgesAuto(historial, totalPts, posGlobal, datosHP) {
       }
     }
   }
+
 
   return ganados;
 }

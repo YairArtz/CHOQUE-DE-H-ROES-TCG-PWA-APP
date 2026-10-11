@@ -1021,7 +1021,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v41';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v42';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -6336,7 +6336,7 @@ function arcadePreparar(){
   _eg.apply(this,arguments);
   if(!ARCADE||ya) return;
   try{localStorage.setItem('chh_arcade_result',JSON.stringify({id:ARCADE.id,slot:ARCADE.slot,ronda:ARCADE.ronda,won:!!won,turnos:G.turn,
-    corazones:G.player.hp,danio:(typeof FXS!=='undefined'?FXS.dmgHecho:0),ts:Date.now()}));}catch(e){}
+    corazones:G.player.hp,intacto:G.player.hp>=R.corazones,danio:(typeof FXS!=='undefined'?FXS.dmgHecho:0),ts:Date.now()}));}catch(e){}
   const box=document.getElementById('endgameBox');
   box.querySelectorAll('.endgame-btn').forEach(b=>b.style.display='none');
   const go=document.createElement('button');go.className='endgame-btn';go.textContent='🕹 CONTINUAR';

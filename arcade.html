@@ -241,6 +241,27 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 :root.short .vs-tag{font-size:9px;letter-spacing:3px}
 :root.short #vsChar.card{width:min(calc(var(--W)*.36),calc(var(--H)*.6))}
 :root.short .btn{padding:10px 18px}
+/* ── Logros ── */
+.lg-grid{width:100%;max-width:1100px;display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;padding:12px}
+.lg{display:flex;gap:10px;align-items:center;padding:10px;border-radius:10px;background:rgba(11,14,24,.62);border:1px solid #1b2433}
+.lg .ic{width:52px;height:52px;flex:0 0 auto;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;
+  background:radial-gradient(circle at 35% 30%,rgba(245,200,66,.35),rgba(11,14,24,.9) 70%);border:2px solid var(--gold);box-shadow:0 0 14px rgba(245,166,35,.45);overflow:hidden}
+.lg .ic img{width:100%;height:100%;object-fit:cover}
+.lg .ic img+span{display:none}
+.lg b{display:block;font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:1px;color:var(--gold2)}
+.lg small{display:block;font-size:12px;color:#9fb3cc;line-height:1.25}
+.lg i{display:block;font-style:normal;font-size:10px;color:var(--neon);margin-top:2px}
+.lg.off{opacity:.55}.lg.off .ic{filter:grayscale(1);border-color:#2a3446;box-shadow:none}.lg.off b{color:#7d90aa}
+.lg-sync{width:100%;max-width:1100px;font-size:13px;color:#9fb3cc;padding:0 12px}
+.lg-sync b{color:var(--neon)}
+#lgToast{position:fixed;top:max(14px,env(safe-area-inset-top));left:50%;transform:translate(-50%,-140%);z-index:120;display:flex;gap:10px;align-items:center;
+  padding:10px 16px;border-radius:12px;background:linear-gradient(135deg,rgba(3,8,20,.97),rgba(16,12,4,.97));border:1px solid var(--gold);
+  box-shadow:0 0 26px rgba(245,166,35,.55);transition:transform .45s cubic-bezier(.2,.9,.25,1.2);min-width:240px;max-width:90%}
+#lgToast.on{transform:translate(-50%,0)}
+#lgToast .ic{font-size:28px}
+#lgToast small{display:block;font-family:'Orbitron',sans-serif;font-size:8px;letter-spacing:2px;color:var(--neon)}
+#lgToast b{display:block;font-family:'Orbitron',sans-serif;font-size:13px;color:#fff}
+#lgToast span{display:block;font-size:12px;color:#9fb3cc}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 </style>
 </head>
@@ -252,7 +273,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 <section class="scr on" id="sTitle">
   <div class="topbar" style="position:fixed;top:max(12px,env(safe-area-inset-top));left:0;right:0;margin:auto;padding:0 14px">
     <a class="pill" href="index.html">← MENÚ</a>
-    <a class="pill gold" href="simulacion.html">🤖 SIMULACIÓN LIBRE</a>
+    <span style="display:flex;gap:8px"><button class="pill gold" data-go="sLogros">🏅 LOGROS</button><a class="pill gold" href="simulacion.html">🤖 SIMULACIÓN LIBRE</a></span>
   </div>
   <img class="logo" id="tLogo" alt="">
   <div class="h1">ARCADE</div>
@@ -263,7 +284,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 
 <!-- PARTIDAS -->
 <section class="scr" id="sSlots">
-  <div class="topbar"><button class="pill" data-go="sTitle">← ATRÁS</button><div class="h1" style="font-size:18px">PARTIDAS</div><span style="width:70px"></span></div>
+  <div class="topbar"><button class="pill" data-go="sTitle">← ATRÁS</button><div class="h1" style="font-size:18px">PARTIDAS</div><button class="pill gold" data-go="sLogros">🏅 LOGROS</button></div>
   <div class="slots" id="slots"></div>
 </section>
 
@@ -301,6 +322,13 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
   </div>
 </section>
 
+<!-- LOGROS -->
+<section class="scr" id="sLogros">
+  <div class="topbar"><button class="pill" data-go="sTitle">← ATRÁS</button><div class="h1" style="font-size:18px">LOGROS</div><span id="lgCount" class="pill gold" style="pointer-events:none"></span></div>
+  <div class="lg-sync" id="lgSync"></div>
+  <div class="lg-grid" id="lgGrid"></div>
+</section>
+
 <!-- FINAL -->
 <section class="scr" id="sEnd">
   <div class="crown">👑</div>
@@ -313,6 +341,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 <div id="modal"><div class="panel box"><span class="hb tl"></span><span class="hb tr"></span><span class="hb bl"></span><span class="hb br"></span>
   <h3 id="mT"></h3><p id="mP"></p><div class="row" id="mB"></div></div></div>
 <div class="ver" id="ver"></div>
+<div id="lgToast"><div class="ic" id="lgtIc">🏅</div><div><small>🔓 LOGRO DESBLOQUEADO</small><b id="lgtN"></b><span id="lgtC"></span></div></div>
 <button class="pill" id="mute" style="position:fixed;bottom:max(10px,env(safe-area-inset-bottom));left:max(10px,env(safe-area-inset-left));z-index:60;width:38px;justify-content:center;padding:0">🔊</button>
 
 <button class="pill" id="flip" title="Girar al otro lado" style="position:fixed;bottom:max(10px,env(safe-area-inset-bottom));left:calc(max(10px,env(safe-area-inset-left)) + 46px);z-index:60;width:38px;justify-content:center;padding:0">⟲</button>
@@ -325,7 +354,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 // Combate: escribe "chh_arcade_match" y abre simulacion.html?modo=arcade;
 //          la simulación escribe "chh_arcade_result" y regresa a arcade.html?r=<id>
 // ════════════════════════════════════
-const ARC_VERSION='Arcade v1.3';
+const ARC_VERSION='Arcade v1.4';
 const STAGE=document.getElementById('stage');
 // ── Orientación horizontal ──
 const MOVIL=matchMedia('(pointer:coarse)').matches;
@@ -539,7 +568,7 @@ function fecha(ts){if(!ts)return '';const d=new Date(ts);return d.toLocaleDateSt
 
 // ── Navegación ──
 function go(id){document.querySelectorAll('.scr').forEach(s=>s.classList.toggle('on',s.id===id));
-  if(id==='sSlots')renderSlots(); if(id==='sRuta')renderRuta(); if(id==='sNew')renderNew();}
+  if(id==='sSlots')renderSlots(); if(id==='sRuta')renderRuta(); if(id==='sNew')renderNew(); if(id==='sLogros')renderLogros();}
 document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
 function modal(t,p,btns){$('mT').textContent=t;$('mP').innerHTML=p;const B=$('mB');B.innerHTML='';
   btns.forEach(([txt,cls,fn])=>{const b=document.createElement('button');b.className='btn sm '+(cls||'');b.textContent=txt;b.onclick=()=>{$('modal').classList.remove('on');fn&&fn();};B.appendChild(b);});
@@ -574,7 +603,7 @@ function slotAccion(i,a){
   if(a==='new'){CUR=i;NEWSEL=null;go('sNew');}
   else if(a==='play'){CUR=i;go('sRuta');}
   else if(a==='del') modal('BORRAR PARTIDA '+(i+1),'Se perderá todo el progreso de esta partida. ¿Seguro?',[['✕ BORRAR','red',()=>{s[i]=null;saveSlots(s);renderSlots();}],['CANCELAR','ghost']]);
-  else if(a==='reset') modal('REINICIAR PARTIDA '+(i+1),'Volverás al combate 1 con la misma baraja. ¿Continuar?',[['↺ REINICIAR','red',()=>{Object.assign(s[i],{ronda:0,victorias:0,derrotas:0,creditos:CREDITOS,gameovers:0,completado:false,historial:[],inicio:Date.now(),ultimo:Date.now(),pendiente:null});saveSlots(s);renderSlots();}],['CANCELAR','ghost']]);
+  else if(a==='reset') modal('REINICIAR PARTIDA '+(i+1),'Volverás al combate 1 con la misma baraja. ¿Continuar?',[['↺ REINICIAR','red',()=>{Object.assign(s[i],{ronda:0,victorias:0,derrotas:0,creditos:CREDITOS,gameovers:0,goRuta:false,completado:false,historial:[],inicio:Date.now(),ultimo:Date.now(),pendiente:null});saveSlots(s);renderSlots();}],['CANCELAR','ghost']]);
   else if(a==='copy'){
     const dest=[0,1,2].filter(j=>j!==i);
     modal('COPIAR PARTIDA '+(i+1),'¿A qué ranura la copias? Si está ocupada, se reemplaza.',dest.map(j=>['→ PARTIDA '+(j+1)+(s[j]?' (ocupada)':''),s[j]?'red':'',()=>{s[j]=JSON.parse(JSON.stringify(s[i]));s[j].pendiente=null;saveSlots(s);renderSlots();}]).concat([['CANCELAR','ghost']]));
@@ -631,7 +660,7 @@ function renderRuta(){
 }
 $('rFight').onclick=()=>{
   const g=slot(); if(!g) return;
-  if(g.completado){modal('NUEVA VUELTA','Tu ruta ya está completa. ¿Quieres reiniciarla desde el combate 1? Se conserva tu historial de victorias.',[['↺ REINICIAR RUTA','',()=>{setSlot(x=>{x.ronda=0;x.completado=false;x.creditos=CREDITOS;x.vueltas=(x.vueltas||0)+1;});renderRuta();}],['CANCELAR','ghost']]);return;}
+  if(g.completado){modal('NUEVA VUELTA','Tu ruta ya está completa. ¿Quieres reiniciarla desde el combate 1? Se conserva tu historial de victorias.',[['↺ REINICIAR RUTA','',()=>{setSlot(x=>{x.ronda=0;x.completado=false;x.creditos=CREDITOS;x.vueltas=(x.vueltas||0)+1;x.goRuta=false;});renderRuta();}],['CANCELAR','ghost']]);return;}
   showVS(g.ronda,'intro');
 };
 $('rDeck').onclick=()=>{
@@ -716,12 +745,13 @@ function procesarResultado(){
     else{
       g.derrotas=(g.derrotas||0)+1;
       g.creditos=creditos(g)-1;
-      if(g.creditos<=0){gameover=true;g.gameovers=(g.gameovers||0)+1;g.ronda=0;g.creditos=CREDITOS;}
+      if(g.creditos<=0){gameover=true;g.gameovers=(g.gameovers||0)+1;g.goRuta=true;g.ronda=0;g.creditos=CREDITOS;}
     }
   }
   saveSlots(s);
   try{localStorage.removeItem('chh_arcade_result');}catch(e){}
   showVS(i,'res',res,{replay,gameover});
+  evaluarLogros(g,res,replay,i);
   return true;
 }
 function finalArcade(){
@@ -730,7 +760,7 @@ function finalArcade(){
   $('eSub').textContent=(g.nombre||'Jugador').toUpperCase()+' VENCIÓ A LOS '+RIV.length+' RIVALES';
   $('eStats').innerHTML=[[g.victorias||0,'VICTORIAS'],[g.derrotas||0,'DERROTAS'],[tt,'TURNOS'],[(g.vueltas||0)+1,'VUELTA']].map(([v,t])=>'<div><b>'+v+'</b><small>'+t+'</small></div>').join('');
   go('sEnd');
-  for(let k=0;k<70;k++){const c=document.createElement('div');c.className='confetti';c.style.left=Math.random()*100+'vw';
+  for(let k=0;k<70;k++){const c=document.createElement('div');c.className='confetti';c.style.left=Math.random()*100+'%';
     c.style.background=['#f5c842','#ff8c42','#00cfff','#00ff9d','#cc55ff','#fff'][k%6];c.style.animationDuration=(2.5+Math.random()*3)+'s';c.style.animationDelay=(Math.random()*1.5)+'s';
     STAGE.appendChild(c);setTimeout(()=>c.remove(),7000);}
 }
@@ -751,6 +781,92 @@ function muteUI(){$('mute').textContent=MUTE?'🔇':'🔊';}
 $('mute').onclick=()=>{MUTE=!MUTE;try{localStorage.setItem('chh_arcade_mute',MUTE?'1':'0');}catch(e){}muteUI();if(MUTE)AUD.pause();else if(_musUrl)AUD.play().catch(()=>{});};
 {const _go=go;go=function(id){_go(id);if(['sTitle','sSlots','sNew','sRuta'].includes(id)&&TITULO_MUS)musica(TITULO_MUS);if(id==='sEnd')musica(FINAL_MUS||TITULO_MUS,true);};}
 let FINAL_MUS=null;
+
+// ════════════════════════════════════
+// LOGROS DEL ARCADE
+// Se guardan en el dispositivo ("chh_arcade_logros") y, si hay sesión de jugador en Perfil
+// (localStorage "nhSesion"), se envían a la hoja de Registro de Jugadores (columna F, badges)
+// por medio de Apps Script: ?action=logro_arcade&playerid=CHH-…&badge=arc_…
+// Perfil.html los muestra junto al resto de logros y cuentan para el nivel del jugador.
+// ════════════════════════════════════
+const LOGROS_URL='https://script.google.com/macros/s/AKfycbwSrBH7yJiyTlPabzJ_WiXQDWPe7RpATmuTTWAe3uVRy6wuGh15QpuOMzSiZVixJK_S/exec';
+const LOGROS=[
+  {id:'arc_primera_victoria',nombre:'Primer Crédito',     emoji:'🕹️',cond:'Gana tu primer combate en el Modo Arcade.'},
+  {id:'arc_intacto',         nombre:'Intocable',          emoji:'🛡️',cond:'Gana un combate del Arcade sin perder ningún corazón.'},
+  {id:'arc_relampago',       nombre:'Relámpago',          emoji:'⚡',cond:'Gana un combate del Arcade antes del turno 9.'},
+  {id:'arc_mitad',           nombre:'Media Ruta',         emoji:'🗺️',cond:'Vence a 8 rivales en una misma ruta del Arcade.'},
+  {id:'arc_campeon',         nombre:'Campeón Arcade',     emoji:'👑',cond:'Completa la ruta Arcade y derrota al jefe final.'},
+  {id:'arc_un_credito',      nombre:'Un Solo Crédito',    emoji:'🪙',cond:'Completa la ruta Arcade sin perder un solo combate.'},
+  {id:'arc_fenix',           nombre:'Fénix',              emoji:'🔥',cond:'Completa la ruta Arcade después de sufrir un GAME OVER en ella.'},
+  {id:'arc_veterano',        nombre:'Veterano del Arcade',emoji:'🔁',cond:'Completa la ruta Arcade 3 veces.'},
+  {id:'arc_maestro_barajas', nombre:'Maestro de Barajas', emoji:'🃏',cond:'Completa la ruta Arcade con 5 barajas diferentes.'},
+  {id:'arc_revancha',        nombre:'Sed de Revancha',    emoji:'⚔️',cond:'Gana 10 revanchas en el Arcade.'}
+];
+function sesionId(){try{const s=JSON.parse(localStorage.getItem('nhSesion')||'null');return s&&s.tipo!=='tienda'&&s.id?String(s.id).trim().toUpperCase():null;}catch(e){return null;}}
+function loadLg(){let L=null;try{L=JSON.parse(localStorage.getItem('chh_arcade_logros')||'null');}catch(e){}L=L||{};L.l=L.l||{};L.st=L.st||{rutas:0,barajas:[],revanchas:0};return L;}
+function saveLg(L){try{localStorage.setItem('chh_arcade_logros',JSON.stringify(L));}catch(e){}}
+const _lgCola=[];let _lgVis=false;
+function lgToast(b){_lgCola.push(b);if(!_lgVis)_lgSig();}
+function _lgSig(){const b=_lgCola.shift();if(!b){_lgVis=false;return;}_lgVis=true;
+  $('lgtIc').textContent=b.emoji;$('lgtN').textContent=b.nombre;$('lgtC').textContent=b.cond;
+  const t=$('lgToast');t.classList.add('on');try{playLg();}catch(e){}
+  setTimeout(()=>{t.classList.remove('on');setTimeout(_lgSig,500);},3600);}
+function playLg(){const A=window.AudioContext||window.webkitAudioContext;if(!A||MUTE)return;const c=new A(),t=c.currentTime;
+  [523,659,784,1047].forEach((f,k)=>{const o=c.createOscillator(),g=c.createGain();o.type='triangle';o.frequency.value=f;g.gain.setValueAtTime(.0001,t+k*.09);g.gain.exponentialRampToValueAtTime(.18,t+k*.09+.02);g.gain.exponentialRampToValueAtTime(.0001,t+k*.09+.35);o.connect(g);g.connect(c.destination);o.start(t+k*.09);o.stop(t+k*.09+.4);});}
+function desbloquear(L,id){
+  if(L.l[id]) return;
+  L.l[id]={ts:Date.now(),por:sesionId(),sync:false};
+  const b=LOGROS.find(x=>x.id===id); if(b) setTimeout(()=>lgToast(b),1400);
+}
+function evaluarLogros(g,res,replay,i){
+  const L=loadLg(), st=L.st, N=RIV.length;
+  if(res.won) desbloquear(L,'arc_primera_victoria');
+  if(res.won&&res.intacto) desbloquear(L,'arc_intacto');
+  if(res.won&&res.turnos&&res.turnos<=8) desbloquear(L,'arc_relampago');
+  if(!replay&&res.won&&g.ronda>=8) desbloquear(L,'arc_mitad');
+  if(!replay&&res.won&&i>=N-1&&g.completado){
+    st.rutas=(st.rutas||0)+1;
+    if(g.baraja&&!st.barajas.includes(g.baraja)) st.barajas.push(g.baraja);
+    desbloquear(L,'arc_campeon');
+    if(creditos(g)===CREDITOS&&!g.goRuta) desbloquear(L,'arc_un_credito');
+    if(g.goRuta) desbloquear(L,'arc_fenix');
+    if(st.rutas>=3) desbloquear(L,'arc_veterano');
+    if(st.barajas.length>=5) desbloquear(L,'arc_maestro_barajas');
+  }
+  if(replay&&res.won){st.revanchas=(st.revanchas||0)+1;if(st.revanchas>=10) desbloquear(L,'arc_revancha');}
+  saveLg(L); sincronizarLogros();
+}
+let _sincr=false;
+async function sincronizarLogros(){
+  if(_sincr||!navigator.onLine) return; _sincr=true;
+  try{
+    const L=loadLg(), yo=sesionId();
+    // Logros ganados sin sesión: se asignan al jugador que inicie sesión en este dispositivo
+    if(yo) Object.values(L.l).forEach(x=>{if(!x.por)x.por=yo;});
+    saveLg(L);
+    for(const [id,x] of Object.entries(L.l)){
+      if(x.sync||!x.por) continue;
+      try{
+        const ctrl=new AbortController(), t=setTimeout(()=>ctrl.abort(),12000);
+        const r=await fetch(LOGROS_URL+'?action=logro_arcade&playerid='+encodeURIComponent(x.por)+'&badge='+encodeURIComponent(id),{signal:ctrl.signal});
+        clearTimeout(t);
+        const j=await r.json().catch(()=>null);
+        if(j&&j.ok){const L2=loadLg();if(L2.l[id]){L2.l[id].sync=true;saveLg(L2);}}
+      }catch(e){}
+    }
+  }finally{_sincr=false;if($('sLogros').classList.contains('on'))renderLogros();}
+}
+function renderLogros(){
+  const L=loadLg(), yo=sesionId(), n=LOGROS.filter(b=>L.l[b.id]).length;
+  $('lgCount').textContent=n+' / '+LOGROS.length;
+  const pend=Object.values(L.l).filter(x=>!x.sync).length;
+  $('lgSync').innerHTML=yo?('Jugador <b>'+esc(yo)+'</b> · '+(pend?pend+' logro(s) por enviar a tu registro (se envían al tener internet)':'tus logros están guardados en tu registro y aparecen en tu Perfil'))
+    :'Inicia sesión en <b>Mi Perfil</b> con tu ID de jugador para que estos logros se guarden en tu registro y cuenten para tu nivel.';
+  $('lgGrid').innerHTML=LOGROS.map(b=>{const x=L.l[b.id];
+    return '<div class="lg'+(x?'':' off')+'"><div class="ic"><img src="badges/'+b.id+'.png" alt="" onerror="this.remove()"><span>'+b.emoji+'</span></div><div style="min-width:0"><b>'+esc(b.nombre)+'</b><small>'+esc(b.cond)+'</small>'+
+      (x?'<i>✔ '+fecha(x.ts)+(x.sync?' · en tu Perfil':'')+'</i>':'')+'</div></div>';}).join('');
+}
+addEventListener('online',()=>sincronizarLogros());
 
 // ── Brasas ──
 for(let i=0;i<18;i++){const e=document.createElement('span');e.className='ember'+(i%4===0?' b':'');
@@ -783,6 +899,7 @@ let PLAYER_IMG=null;
   }));
   TITULO_MUS=musPath('titulo.mp3'); FINAL_MUS=musPath('final.mp3');
   muteUI();
+  sincronizarLogros();
   $('tStatus').textContent=data?'TOCA JUGAR':'⚠ NO SE PUDIERON LEER LAS BARAJAS';
   $('tStart').onclick=()=>{go('sSlots');musica(TITULO_MUS);};
   if(!procesarResultado()&&new URLSearchParams(location.search).get('slots')) go('sSlots');

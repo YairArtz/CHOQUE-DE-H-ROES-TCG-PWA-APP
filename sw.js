@@ -1,5 +1,9 @@
 // ================================================================
-//  CHOQUE DE HÉROES TCG — Service Worker v8.2
+//  CHOQUE DE HÉROES TCG — Service Worker v8.3
+//  v8.3: las imágenes de cartas (cartas/, cartas_2/…) van a su propia caché permanente
+//        "chh-cartas-v1": no se borra al actualizar la app ni cuenta para el límite de
+//        la dinámica. Se sirven desde el dispositivo sin tocar la red y se revisan
+//        en segundo plano solo cada 7 días. Simulación, Arcade y Galería funcionan sin red.
 //  v8.2: las páginas HTML van RED-PRIMERO (con copia si no hay internet) y todas
 //        las revalidaciones saltan la caché HTTP de GitHub Pages (max-age=600).
 //        Antes una actualización tardaba 2 aperturas y hasta 10 min en verse.
@@ -8,11 +12,14 @@
 //      datos .json red-primero con timeout, fallbacks por tipo de archivo,
 //      caché dinámica con límite de tamaño.
 // ================================================================
-const CACHE_NAME    = 'chh-tcg-v63';
+const CACHE_NAME    = 'chh-tcg-v64';
 const CACHE_DYNAMIC = 'chh-dynamic-v63';
-const CACHE_MUSICA  = 'chh-musica-v1';   // pistas guardadas por musica.html (no se borra al actualizar)
+const CACHE_MUSICA  = 'chh-musica-v1';
+const CACHE_CARTAS  = 'chh-cartas-v1';   // imágenes de cartas (permanente, compartida con simulacion.html)
+const CARTAS_MAX    = 2500;
+const CARTAS_REVISAR = 7 * 24 * 3600 * 1000;   // revalidación en segundo plano cada 7 días   // pistas guardadas por musica.html (no se borra al actualizar)
 const NET_TIMEOUT   = 3000;   // ms para datos .json antes de servir copia
-const DYNAMIC_MAX   = 350;    // máx. entradas en caché dinámica (imágenes de cartas, etc.)
+const DYNAMIC_MAX   = 500;    // máx. entradas en caché dinámica (las cartas ya no cuentan aquí)
 
 const CACHE_CORE = [
   './', './boot.html', './index.html', './calculadora.html',
@@ -59,7 +66,7 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME && k !== CACHE_DYNAMIC && k !== CACHE_MUSICA).map(k => caches.delete(k))))
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME && k !== CACHE_DYNAMIC && k !== CACHE_MUSICA && k !== CACHE_CARTAS).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -92,6 +99,11 @@ self.addEventListener('fetch', event => {
   }
 
   const path = url.pathname;
+  if (/\/cartas(_\d+)?\/[^/]+\.(jpe?g|png|webp|gif)$/i.test(path)) {
+    // Imágenes de cartas: del dispositivo primero, siempre
+    event.respondWith(cartaCacheFirst(req, url));
+    return;
+  }
   if (/\.json$/i.test(path)) {
     // Datos: frescos si la red responde rápido, copia si no
     event.respondWith(networkFirstTimeout(req, 'json'));
@@ -202,6 +214,38 @@ function fetchTimeout(req, ms) {
 
 function timeout(ms) {
   return new Promise(res => setTimeout(() => res(null), ms));
+}
+
+// Imágenes de cartas: caché permanente primero; red solo si falta (o revisión cada 7 días)
+let _cartasPut = 0;
+async function cartaCacheFirst(req, url) {
+  const key = url.origin + url.pathname;
+  const cache = await caches.open(CACHE_CARTAS);
+  let c = await cache.match(key);
+  const desdeRed = () => fetch(key, { cache: 'no-cache' }).then(async r => {
+    if (r && r.ok) {
+      try {
+        await cache.put(key, r.clone());
+        if (++_cartasPut % 50 === 0) {
+          const keys = await cache.keys();
+          if (keys.length > CARTAS_MAX) await Promise.all(keys.slice(0, keys.length - CARTAS_MAX).map(k => cache.delete(k)));
+        }
+      } catch(e) {}
+    }
+    return r;
+  }).catch(() => null);
+  if (!c) {
+    // Migración: copia que haya quedado en la caché dinámica o en la de la versión anterior
+    const old = await matchAny(req, { ignoreSearch: true });
+    if (old) { try { await cache.put(key, old.clone()); } catch(e) {} c = old; }
+  }
+  if (c) {
+    const d = Date.parse(c.headers.get('date') || '');
+    if (!d || Date.now() - d > CARTAS_REVISAR) desdeRed();
+    return c;
+  }
+  const r = await desdeRed();
+  return r || new Response('', { status: 504 });
 }
 
 // Busca primero en la dinámica (más reciente) y luego en el precache

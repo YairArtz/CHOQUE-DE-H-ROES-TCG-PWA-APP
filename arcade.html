@@ -748,5 +748,9 @@ let PLAYER_IMG=null;
   window.addEventListener('resize',()=>{if($('sRuta').classList.contains('on'))renderRuta();});
 })();
 </script>
+<script>
+// Registra el Service Worker también desde aquí (por si se abre directo, sin pasar por el index)
+if('serviceWorker' in navigator&&location.protocol!=='file:'){addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{});});}
+</script>
 </body>
 </html>

@@ -1015,7 +1015,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v39';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v40';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -1356,15 +1356,37 @@ function validarReglas(m){
     });
   }
 }
+// v40 · Las miniaturas se guardan en el dispositivo (caché "chh-cartas-v1", compartida con el
+// Service Worker). Solo se descargan las que falten; las siguientes veces el arranque es inmediato
+// y el simulador funciona sin red. Si una imagen grande no está guardada y no hay red, se usa la miniatura.
+const CACHE_CARTAS='chh-cartas-v1';
+const _absKey=u=>{const x=new URL(u,location.href);return x.origin+x.pathname;};
 async function precargarMiniaturas(onProgress){
-  // Precarga de miniaturas (no bloquea si alguna falla)
   const urls=[...new Set(Object.values(C).map(c=>c.imgMin).concat([REV]).filter(Boolean))];
-  let done=0;
-  await Promise.all(urls.map(u=>new Promise(res=>{
-    const im=new Image();
-    const fin=()=>{done++;onProgress&&onProgress(done,urls.length);res();};
-    im.onload=fin;im.onerror=fin;im.src=u;
-  })));
+  // Respaldo global: imagen grande sin red → miniatura de la misma carta
+  if(!window._fbImg){window._fbImg=1;const F2M={};Object.values(C).forEach(c=>{if(c.img&&c.imgMin&&c.img!==c.imgMin)F2M[_absKey(c.img)]=c.imgMin;});
+    document.addEventListener('error',e=>{const t=e.target;if(!t||t.tagName!=='IMG'||t.dataset.fbm)return;
+      let k='';try{k=_absKey(t.src);}catch(_){}const m=F2M[k];if(m){t.dataset.fbm=1;t.src=m;}},true);}
+  try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});}catch(e){}
+  let cache=null,faltan=urls;
+  if('caches' in window&&location.protocol!=='file:'){
+    try{cache=await caches.open(CACHE_CARTAS);
+      const ya=new Set((await cache.keys()).map(r=>_absKey(r.url)));
+      faltan=urls.filter(u=>!ya.has(_absKey(u)));
+    }catch(e){cache=null;faltan=urls;}
+  }
+  if(!faltan.length){onProgress&&onProgress(urls.length,urls.length,true);return;}
+  let done=urls.length-faltan.length;
+  const uno=async u=>{
+    try{
+      if(cache){const r=await fetch(u,{cache:'no-cache'});if(r.ok)await cache.put(_absKey(u),r);}
+      else await new Promise(res=>{const im=new Image();im.onload=im.onerror=res;im.src=u;});
+    }catch(e){}
+    done++;onProgress&&onProgress(done,urls.length,false);
+  };
+  // Descarga en tandas (mejor para teléfonos que 380 peticiones a la vez)
+  let i=0;const hilo=async()=>{while(i<faltan.length)await uno(faltan[i++]);};
+  await Promise.all(Array.from({length:8},hilo));
 }
 
 // <img> con miniatura y respaldo a la imagen completa
@@ -6289,8 +6311,9 @@ function arcadePreparar(){
   if(!canLock) document.getElementById('bootNote').textContent='Gira tu dispositivo a horizontal para jugar';
   try{
     await loadData();
-    await precargarMiniaturas((n,t)=>{st.textContent='Cargando imágenes '+n+'/'+t+'…';});
-    st.textContent=Object.keys(C).length+' cartas listas · elige tus barajas';
+    let _ok=false;
+    await precargarMiniaturas((n,t,ya)=>{_ok=ya;st.textContent=ya?'Imágenes guardadas en el dispositivo':'Guardando imágenes en el dispositivo '+n+'/'+t+'…';});
+    st.textContent=Object.keys(C).length+' cartas listas · elige tus barajas'+(_ok?' · 📲 sin red OK':'');
     initDeckSelect();
     btn.disabled=false;
   }catch(e){
@@ -6309,6 +6332,10 @@ function arcadePreparar(){
     checkOrientation();
   };
 })();
+</script>
+<script>
+// Registra el Service Worker también desde aquí (por si se abre directo, sin pasar por el index)
+if('serviceWorker' in navigator&&location.protocol!=='file:'){addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{});});}
 </script>
 </body>
 </html>

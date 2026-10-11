@@ -241,6 +241,25 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 :root.short .vs-tag{font-size:9px;letter-spacing:3px}
 :root.short #vsChar.card{width:min(calc(var(--W)*.36),calc(var(--H)*.6))}
 :root.short .btn{padding:10px 18px}
+/* ── Apariencia (mismas opciones que la Simulación) ── */
+#apM{position:fixed;inset:0;z-index:110;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;padding:14px}
+#apM.on{display:flex}
+#apM .box{width:min(760px,100%);max-height:100%;overflow-y:auto;padding:16px 16px 18px;text-align:left}
+#apM h3{font-family:'Orbitron',sans-serif;font-size:13px;letter-spacing:2px;color:var(--gold2);margin-bottom:4px}
+#apM h4{font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:2px;color:var(--blue);margin:12px 0 6px}
+#apM .x{position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:8px;border:1px solid #243046;color:#9fb3cc}
+.apg{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}
+.apo{display:flex;flex-direction:column;gap:4px;padding:6px;border-radius:9px;text-align:left;background:rgba(11,14,24,.7);border:1px solid #1b2433;transition:border-color .15s}
+.apo:hover{border-color:rgba(0,207,255,.5)}
+.apo.on{border-color:var(--gold2);box-shadow:0 0 12px rgba(245,166,35,.45)}
+.apo .pv{height:52px;border-radius:6px;border:1px solid rgba(255,255,255,.08);background-size:cover;background-position:center}
+.apo.mica .pv{height:auto;aspect-ratio:5/7;width:58%;margin:0 auto}
+.apo b{font-size:12px;color:var(--gold2);line-height:1.1}
+.apo small{font-size:10px;color:var(--muted);line-height:1.15}
+.apo.lock{opacity:.45;cursor:default}
+.apo.lock .pv{filter:grayscale(1) brightness(.5)}
+.apchips{display:flex;gap:8px;flex-wrap:wrap}
+.apnote{font-size:12px;color:#9fb3cc;margin-top:12px;line-height:1.35}
 /* ── Logros ── */
 .lg-grid{width:100%;max-width:1100px;display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;padding:12px}
 .lg{display:flex;gap:10px;align-items:center;padding:10px;border-radius:10px;background:rgba(11,14,24,.62);border:1px solid #1b2433}
@@ -303,7 +322,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 
 <!-- RUTA -->
 <section class="scr" id="sRuta">
-  <div class="topbar"><button class="pill" data-go="sSlots">← PARTIDAS</button><div class="h1" style="font-size:16px">RUTA ARCADE</div><button class="pill gold" id="rDeck">🃏 BARAJA</button></div>
+  <div class="topbar"><button class="pill" data-go="sSlots">← PARTIDAS</button><div class="h1" style="font-size:16px">RUTA ARCADE</div><span style="display:flex;gap:8px"><button class="pill gold" id="rAp">🎨 APARIENCIA</button><button class="pill gold" id="rDeck">🃏 BARAJA</button></span></div>
   <div class="panel ruta-head" id="rHead"></div>
   <div class="map" id="map"><div class="map-in" id="mapIn"></div></div>
   <div class="ruta-foot"><span class="hint" id="rHint" style="display:none">👑 Toca cualquier rival para volver a enfrentarlo</span><button class="btn" id="rFight">⚔ SIGUIENTE COMBATE</button></div>
@@ -344,6 +363,8 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 <div id="modal"><div class="panel box"><span class="hb tl"></span><span class="hb tr"></span><span class="hb bl"></span><span class="hb br"></span>
   <h3 id="mT"></h3><p id="mP"></p><div class="row" id="mB"></div></div></div>
 <div class="ver" id="ver"></div>
+<div id="apM"><div class="panel box"><span class="hb tl"></span><span class="hb tr"></span><span class="hb bl"></span><span class="hb br"></span>
+  <button class="x" id="apX">✕</button><h3>🎨 APARIENCIA</h3><div id="apBody"></div></div></div>
 <div id="lgToast"><div class="ic" id="lgtIc">🏅</div><div><small>🔓 LOGRO DESBLOQUEADO</small><b id="lgtN"></b><span id="lgtC"></span></div></div>
 <button class="pill" id="mute" style="position:fixed;bottom:max(10px,env(safe-area-inset-bottom));left:max(10px,env(safe-area-inset-left));z-index:60;width:38px;justify-content:center;padding:0">🔊</button>
 
@@ -358,7 +379,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 // Combate: escribe "chh_arcade_match" y abre simulacion.html?modo=arcade;
 //          la simulación escribe "chh_arcade_result" y regresa a arcade.html?r=<id>
 // ════════════════════════════════════
-const ARC_VERSION='Arcade v1.6';
+const ARC_VERSION='Arcade v1.7';
 const STAGE=document.getElementById('stage');
 // ── Orientación horizontal ──
 const MOVIL=matchMedia('(pointer:coarse)').matches;
@@ -932,6 +953,64 @@ function renderLogros(){
     if(el) el.insertAdjacentHTML('beforeend','<span class="rw">🎁 '+R.map(r=>(r.tipo==='mica'?'Mica':'Playmat')+' «'+esc(r.nombre)+'»').join(' · ')+'</span>');});
 }
 addEventListener('online',()=>sincronizarLogros());
+
+// ════════════════════════════════════
+// APARIENCIA — mismas preferencias que la Simulación (se aplican en los combates)
+//   mica / playmat → cosmeticos.js · fondo de mesa → "cdh_sim_mesa" · efectos → "cdh_sim_fx"
+// ════════════════════════════════════
+const AP_MESAS=[
+  {id:'auto',nom:'Según tu baraja',desc:'Cambia con el tema de tu baraja',prev:"conic-gradient(#d4870a 0 25%,#00c48a 0 50%,#00cfff 0 75%,#ff5a1f 0)"},
+  {id:'grecas',nom:'Grecas',desc:'El clásico prehispánico dorado',prev:"#12080a url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Cpath d='M0 0h8v3H3v5H0zm22 0h8v8h-3V3h-5zM10 10h10v10H10z' fill='%23d4870a' fill-opacity='.35'/%3E%3C/svg%3E\")"},
+  {id:'jade',nom:'Grecas de jade',desc:'Las grecas en verde jade',prev:"#04110c url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Cpath d='M0 0h8v3H3v5H0zm22 0h8v8h-3V3h-5zM10 10h10v10H10z' fill='%2300c48a' fill-opacity='.35'/%3E%3C/svg%3E\")"},
+  {id:'nexo',nom:'Nexo neón',desc:'Rejilla neón del Nexo',prev:"linear-gradient(rgba(0,207,255,.25) 1px,transparent 1px) 0 0/12px 12px,linear-gradient(90deg,rgba(0,207,255,.25) 1px,transparent 1px) 0 0/12px 12px,#03050a"},
+  {id:'obsidiana',nom:'Obsidiana',desc:'Liso y oscuro',prev:"radial-gradient(ellipse at center,#2a2033,#07060a)"},
+  {id:'mar',nom:'Mar profundo',desc:'Olas y azul abisal',prev:"radial-gradient(ellipse at 50% 120%,rgba(0,140,200,.6),#021018 70%)"},
+  {id:'fuego',nom:'Fuego',desc:'Brasas encendidas',prev:"radial-gradient(ellipse at 50% 120%,rgba(255,90,0,.7),#120503 70%)"},
+  {id:'cristal',nom:'Cristal',desc:'Destellos helados',prev:"repeating-linear-gradient(135deg,rgba(140,210,255,.25) 0 2px,transparent 2px 12px),#050b14"},
+  {id:'mictlan',nom:'Mictlán',desc:'Violeta del inframundo',prev:"radial-gradient(ellipse at center,rgba(150,80,220,.6),#0b0610 70%)"},
+  {id:'metal',nom:'Metal',desc:'Acero cepillado',prev:"repeating-linear-gradient(45deg,rgba(255,255,255,.12) 0 1px,transparent 1px 6px),#11151b"},
+  {id:'imagen',nom:'Imagen',desc:'assets/simulacion/mesa_fondo',prev:null}
+];
+const apLs={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:v;}catch(e){return d;}},set(k,v){try{localStorage.setItem(k,v);}catch(e){}}};
+let AP_MESA_IMG;
+async function apMesaImg(){if(AP_MESA_IMG!==undefined)return AP_MESA_IMG;
+  for(const f of ['mesa_fondo.jpg','mesa_fondo.png','mesa_fondo.webp']){if(await probarImg('assets/simulacion/'+f)){AP_MESA_IMG='assets/simulacion/'+f;return AP_MESA_IMG;}}
+  return AP_MESA_IMG=null;}
+async function apCosmSeccion(tipo,titulo){
+  if(!window.CHH_COSM) return '';
+  const disp=await CHH_COSM.disponibles(tipo), todos=await CHH_COSM.todos(tipo), eq=CHH_COSM.equipado(tipo);
+  const okIds=new Set(disp.map(x=>x.id)), act=okIds.has(eq)?eq:CHH_COSM.CLASICO[tipo].id;
+  const bloq=[];for(const x of todos){if(!x.tuyo&&x.logro&&await probarImg(x.img))bloq.push(x);}
+  const nomL=id=>{const b=LOGROS.find(y=>y.id===id);return b?b.nombre:id;};
+  const cls='apo'+(tipo==='mica'?' mica':'');
+  return '<h4>'+titulo+'</h4><div class="apg">'+
+    disp.map(x=>'<button class="'+cls+(x.id===act?' on':'')+'" data-cosm="'+tipo+'" data-id="'+esc(x.id)+'"><span class="pv" style="background-image:url(&quot;'+esc(x.img)+'&quot;)"></span><b>'+esc(x.nombre)+'</b><small>'+(x.origen==='tienda'?'Tienda':x.origen==='logro'?'Logro':'Incluida')+'</small></button>').join('')+
+    bloq.map(x=>'<button class="'+cls+' lock" disabled><span class="pv" style="background-image:url(&quot;'+esc(x.img)+'&quot;)"></span><b>🔒 '+esc(x.nombre)+'</b><small>Logro: '+esc(nomL(x.logro))+'</small></button>').join('')+'</div>';
+}
+async function abrirApariencia(){
+  const body=$('apBody'); $('apM').classList.add('on');
+  body.innerHTML='<div class="apnote">Cargando…</div>';
+  const pinta=async()=>{
+    const img=await apMesaImg(), mesa=apLs.get('cdh_sim_mesa','auto'), fx=apLs.get('cdh_sim_fx','on');
+    body.innerHTML=(await apCosmSeccion('mica','MICA (reverso de tus cartas)'))+(await apCosmSeccion('playmat','PLAYMAT (tablero)'))+
+      '<h4>FONDO DE MESA (detrás del tablero)</h4><div class="apg">'+AP_MESAS.map(m=>{const dis=m.id==='imagen'&&!img;
+        const pv=m.id==='imagen'?(img?'url(&quot;'+img+'&quot;) center/cover':'repeating-linear-gradient(45deg,#111,#111 6px,#1a1a1a 6px,#1a1a1a 12px)'):m.prev.replace(/"/g,'&quot;');
+        return '<button class="apo'+(m.id===mesa&&!dis?' on':'')+'" data-mesa="'+m.id+'"'+(dis?' disabled':'')+'><span class="pv" style="background:'+pv+'"></span><b>'+m.nom+'</b><small>'+(dis?'No se encontró la imagen':m.desc)+'</small></button>';}).join('')+'</div>'+
+      '<h4>EFECTOS VISUALES</h4><div class="apchips">'+[['on','✨ Completos'],['off','🔋 Reducidos']].map(([v,t])=>'<button class="btn sm '+(fx===v?'':'ghost')+'" data-fx="'+v+'">'+t+'</button>').join('')+'</div>'+
+      '<div class="apnote">Se aplica en tus combates del Arcade y en la Simulación. Consigue más micas y playmats en la <b>Tienda</b> con Hero Pesos o con los <b>logros del Arcade</b>.</div>';
+    body.querySelectorAll('[data-cosm]').forEach(b=>b.onclick=()=>{CHH_COSM.equipar(b.dataset.cosm,b.dataset.id);
+      body.querySelectorAll('[data-cosm="'+b.dataset.cosm+'"]').forEach(x=>x.classList.toggle('on',x===b));});
+    body.querySelectorAll('[data-mesa]').forEach(b=>b.onclick=()=>{apLs.set('cdh_sim_mesa',b.dataset.mesa);
+      body.querySelectorAll('[data-mesa]').forEach(x=>x.classList.toggle('on',x===b));});
+    body.querySelectorAll('[data-fx]').forEach(b=>b.onclick=()=>{apLs.set('cdh_sim_fx',b.dataset.fx);
+      body.querySelectorAll('[data-fx]').forEach(x=>x.classList.toggle('ghost',x!==b));});
+  };
+  await pinta();
+  if(window.CHH_COSM) CHH_COSM.sincronizar(8000).then(()=>{if($('apM').classList.contains('on'))pinta();});
+}
+$('rAp').onclick=abrirApariencia;
+$('apX').onclick=()=>$('apM').classList.remove('on');
+$('apM').onclick=e=>{if(e.target.id==='apM')$('apM').classList.remove('on');};
 
 // ── Brasas ──
 for(let i=0;i<18;i++){const e=document.createElement('span');e.className='ember'+(i%4===0?' b':'');

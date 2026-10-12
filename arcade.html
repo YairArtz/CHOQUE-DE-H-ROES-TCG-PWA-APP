@@ -322,10 +322,10 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 
 <!-- RUTA -->
 <section class="scr" id="sRuta">
-  <div class="topbar"><button class="pill" data-go="sSlots">← PARTIDAS</button><div class="h1" style="font-size:16px">RUTA ARCADE</div><span style="display:flex;gap:8px"><button class="pill gold" id="rAp">🎨 APARIENCIA</button><button class="pill gold" id="rDeck">🃏 BARAJA</button></span></div>
+  <div class="topbar"><button class="pill" data-go="sSlots">← PARTIDAS</button><div class="h1" style="font-size:16px" id="rTitle">RUTA ARCADE</div><span style="display:flex;gap:8px"><button class="pill gold" id="rAp">🎨 APARIENCIA</button><button class="pill gold" id="rDeck">🃏 BARAJA</button></span></div>
   <div class="panel ruta-head" id="rHead"></div>
   <div class="map" id="map"><div class="map-in" id="mapIn"></div></div>
-  <div class="ruta-foot"><span class="hint" id="rHint" style="display:none">👑 Toca cualquier rival para volver a enfrentarlo</span><button class="btn" id="rFight">⚔ SIGUIENTE COMBATE</button></div>
+  <div class="ruta-foot"><span id="rRutas" style="display:flex;gap:6px"></span><span class="hint" id="rHint" style="display:none">👑 Toca cualquier rival para volver a enfrentarlo</span><button class="btn" id="rFight">⚔ SIGUIENTE COMBATE</button></div>
 </section>
 
 <!-- VS / RESULTADO -->
@@ -379,7 +379,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 // Combate: escribe "chh_arcade_match" y abre simulacion.html?modo=arcade;
 //          la simulación escribe "chh_arcade_result" y regresa a arcade.html?r=<id>
 // ════════════════════════════════════
-const ARC_VERSION='Arcade v1.9';
+const ARC_VERSION='Arcade v2.0';
 const STAGE=document.getElementById('stage');
 // ── Orientación horizontal ──
 const MOVIL=matchMedia('(pointer:coarse)').matches;
@@ -410,6 +410,232 @@ const CREDITOS=5;                    // créditos por ruta (estilo arcade)
 function creditos(g){return g&&g.creditos!=null?g.creditos:CREDITOS;}
 function monedas(g){const n=creditos(g);return '<span class="coins" title="Créditos">'+'<i></i>'.repeat(n)+'<i class="off"></i>'.repeat(Math.max(0,CREDITOS-n))+'</span>';}
 const NIV={facil:'FÁCIL',medio:'MEDIO',dificil:'DIFÍCIL',muy_dificil:'MUY DIFÍCIL'};
+const RIVALES2_DEFAULT=`# ════════════════════════════════════════════════════════════════════
+#  MODO ARCADE · RUTA LEGENDARIA (RUTA II)
+#  Se desbloquea al completar la Ruta I en esa partida.
+#  Mismo formato que rivales.txt. Dificultad "auto" en esta ruta:
+#  combates 1-7 DIFÍCIL · 8-15 MUY DIFÍCIL.
+#  Las barajas r2_… son exclusivas del Arcade (solo las usan los rivales).
+# ════════════════════════════════════════════════════════════════════
+
+[1]
+nombre = Noth
+titulo = Dragón Alfa de Cristal
+baraja = r2_dragones
+carta = noth
+imagen = rival2_01.png
+fondo = fondo2_01.jpg
+musica = musica_choque/pista_2.mp3
+color = #7fe9ff
+dificultad = auto
+entrada = Del Mictlán regresan mis dragones. | De tres en tres.
+victoria = Mi manada… vencida. Respeto tu fuerza.
+derrota = Ningún dragón cae para siempre.
+
+[2]
+nombre = Defensor Jaguar
+titulo = La Muralla Viviente
+baraja = r2_muralla
+carta = defensor_jaguar
+imagen = rival2_02.png
+fondo = fondo2_02.jpg
+musica = musica_choque/pista_12.mp3
+color = #3ad6a0
+dificultad = auto
+entrada = Ataca si te atreves. | Cada golpe que des, te lo devolveré.
+victoria = Lograste atravesar la muralla. Eres digno.
+derrota = La muralla sigue en pie.
+
+[3]
+nombre = Ballerina MK-34
+titulo = La Ladrona de Héroes
+baraja = r2_ladrones
+carta = ballerina
+imagen = rival2_03.png
+fondo = fondo2_03.jpg
+musica = musica_choque/pista_3.mp3
+color = #ff6fb1
+dificultad = auto
+entrada = Bonitos personajes… | ¿te molesta si me los llevo prestados?
+victoria = Hmph. Los devolveré… algún día.
+derrota = Gracias por tu colección. La cuidaré mejor que tú.
+
+[4]
+nombre = Ryugi
+titulo = El Sanguinario Celeste
+baraja = r2_escuadron
+carta = ryugi
+imagen = rival2_04.png
+fondo = fondo2_04.jpg
+musica = musica_choque/pista_1.mp3
+color = #d42b4a
+dificultad = auto
+entrada = Cada arma que me des… es una herida que te devuelvo.
+victoria = Mis armas… no fueron suficientes.
+derrota = Las Hell Riders me enseñaron bien.
+
+[5]
+nombre = Meteorix
+titulo = Señor de los Sectores
+baraja = r2_asedio
+carta = meteorix
+imagen = rival2_05.png
+fondo = fondo2_05.jpg
+musica = musica_choque/pista_7.mp3
+color = #ffcf3a
+dificultad = auto
+entrada = Tu campo ya es mío. | Cada paso que des, te costará.
+victoria = Encontraste la salida del laberinto…
+derrota = Te dije que no pisaras mis sectores.
+
+[6]
+nombre = Temak Desatado
+titulo = Líder de los Desatados
+baraja = r2_desatados
+carta = temak_desatado
+imagen = rival2_06.png
+fondo = fondo2_06.jpg
+musica = musica_choque/pista_11.mp3
+color = #7a2bd4
+dificultad = auto
+entrada = La Energía Negativa me liberó. | Ahora nadie me detiene.
+victoria = Me encadenaste… pero los Desatados volveremos.
+derrota = El más débil cae primero. Y ese eras tú.
+
+[7]
+nombre = Mictlantecuhtli
+titulo = Amo de los Muertos
+baraja = r2_sangre
+carta = mictlan_muertos
+imagen = rival2_07.png
+fondo = fondo2_07.jpg
+musica = musica_choque/pista_8.mp3
+color = #ff2244
+dificultad = auto
+entrada = No necesito vencerte en combate. | Tu sangre ya me pertenece.
+victoria = Te dejaré vivir… un poco más.
+derrota = Otra alma para el Mictlán.
+
+[8]
+nombre = Angie
+titulo = La Hechicera Carcelera
+baraja = r2_prision
+carta = angie
+imagen = rival2_08.png
+fondo = fondo2_08.jpg
+musica = musica_choque/pista_5.mp3
+color = #b48cff
+dificultad = auto
+entrada = Cada carta que confino me hace más fuerte. | Y tú tienes muchas.
+victoria = Escapaste de mi prisión… nadie lo había hecho.
+derrota = Tu celda ya está lista.
+
+[9]
+nombre = Cihuacoatl
+titulo = La Llorona
+baraja = r2_llorona
+carta = cihuacoatl
+imagen = rival2_09.png
+fondo = fondo2_09.jpg
+musica = musica_choque/pista_8.mp3
+color = #9fd6ff
+dificultad = auto
+entrada = Aaay… mis hijos… | Aquí nadie usa sus poderes. Solo yo lloro.
+victoria = Mi lamento se apaga… por ahora.
+derrota = Tu voz también se perderá en el río.
+
+[10]
+nombre = Taiyō
+titulo = Gladiador del Coliseo
+baraja = r2_gladiadores
+carta = taiyo
+imagen = rival2_10.png
+fondo = fondo2_10.jpg
+musica = musica_choque/pista_10.mp3
+color = #ff9a2b
+dificultad = auto
+entrada = En el Coliseo nadie descansa. | ¡Ataca o cae!
+victoria = Buen combate… el público te ovaciona a ti.
+derrota = ¡La arena es mía! ¡Que pase el siguiente!
+
+[11]
+nombre = Max-Kara, El Sagrado
+titulo = Maestro del Dojo
+baraja = r2_maxkara
+carta = mk_sagrado
+imagen = rival2_11.png
+fondo = fondo2_11.jpg
+musica = musica_choque/pista_13.mp3
+color = #f5c842
+dificultad = auto
+entrada = Tus guerreros pelearán por mí. | Así es el camino del Max-Kara.
+victoria = El alumno superó al maestro.
+derrota = Inclínate ante el Dojo.
+
+[12]
+nombre = Quetzalcoatl
+titulo = Divinidad del Oeste
+baraja = r2_ocaso
+carta = quetzal
+imagen = rival2_12.png
+fondo = fondo2_12.jpg
+musica = musica_choque/pista_12.mp3
+color = #3ad6ff
+dificultad = auto
+entrada = He visto el ocaso de mil eras. | Hoy veré el tuyo.
+victoria = Un nuevo amanecer… comienza contigo.
+derrota = Todo termina. Incluso tú.
+
+[13]
+nombre = Infernity
+titulo = La Heredera Hell-rider
+baraja = r2_forja
+carta = infernity
+imagen = rival2_13.png
+fondo = fondo2_13.jpg
+musica = musica_choque/pista_9.mp3
+color = #ff5a1f
+dificultad = auto
+corazones = 3
+entrada = Dos cuerpos, una forma. | Mi forja nunca se apaga.
+victoria = Me fundiste… interesante.
+derrota = Una amalgama más para mi colección.
+
+[14]
+nombre = Nikkon Trolas
+titulo = Dragón de Nexotlan
+baraja = r2_nexotlan
+carta = nikkon
+imagen = rival2_14.png
+fondo = fondo2_14.jpg
+musica = musica_choque/pista_14.mp3
+color = #00ff9d
+dificultad = auto
+corazones = 4
+entrada = Mientras Nexotlan esté de pie, | mis corazones no caerán.
+victoria = Derribaste la ciudadela… imposible.
+derrota = Nexotlan es eterna.
+
+[15]
+nombre = Fafnir
+titulo = Dios Dragón de Wulfenita
+baraja = r2_wulfenita
+carta = fafnir
+imagen = rival2_15.png
+fondo = fondo2_15.jpg
+musica = musica_choque/pista_15.mp3
+color = #ff7b00
+dificultad = auto
+corazones = 6
+entrada = Has llegado al final de la leyenda. | Ahora todo lo que tienes… arderá.
+victoria = Imposible… un mortal… | ¡Tú eres la verdadera leyenda!
+derrota = Cenizas. Solo cenizas.
+
+# ── BARAJAS DE ESTA RUTA (exclusivas del Arcade) ────────────────────
+# r2_dragones · r2_muralla · r2_ladrones · r2_escuadron · r2_asedio
+# r2_desatados · r2_sangre · r2_prision · r2_llorona · r2_gladiadores
+# r2_maxkara · r2_ocaso · r2_forja · r2_nexotlan · r2_wulfenita
+`;
 const RIVALES_DEFAULT=`[1]
 nombre = Vika Cosplay
 baraja = vika_cosplay
@@ -541,6 +767,22 @@ derrota = Tu alma ya me pertenece.`;
 
 const $=id=>document.getElementById(id);
 const esc=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+// ── Rutas: I (rivales.txt) y II · Legendaria (rivales2.txt, se desbloquea al completar la I) ──
+let RUTAS={1:[],2:[]};
+const CAMPOS_RUTA=['ronda','victorias','derrotas','creditos','completado','historial','gameovers','goRuta','vueltas','rejugadas'];
+function rutaN(g){return g&&g.ruta===2&&RUTAS[2].length?2:1;}
+function rutaDe(g){return RUTAS[rutaN(g)];}
+function usarRuta(g){RIV=rutaDe(g);}
+function r2Desbloqueada(g){return !!g&&RUTAS[2].length>0&&(g.r1Completa||rutaN(g)===2||!!g.completado||(g.vueltas||0)>0);}
+function cambiarRuta(n){
+  setSlot(g=>{const cur=g.ruta||1;if(cur===n)return;
+    if(n===2&&!r2Desbloqueada(g))return;
+    if(cur===1&&(g.completado||(g.vueltas||0)>0))g.r1Completa=true;
+    g.rutas=g.rutas||{};const a={};CAMPOS_RUTA.forEach(k=>a[k]=g[k]);g.rutas[cur]=a;
+    const b=g.rutas[n]||{ronda:0,victorias:0,derrotas:0,creditos:CREDITOS,completado:false,historial:[],gameovers:0,goRuta:false,vueltas:0,rejugadas:[]};
+    CAMPOS_RUTA.forEach(k=>g[k]=b[k]);g.ruta=n;});
+  renderRuta();
+}
 let RIV=[], DATA=null, CARD={}, GALI={}, DECKS=[], NEWSEL=null;
 
 // ── Rivales: formato de texto simple ──
@@ -559,6 +801,7 @@ function parseRivales(txt){
 function nivelDe(r,i,total){
   const d=(r.dificultad||'auto').toLowerCase().replace(/\s+/g,'_').normalize('NFD').replace(/[̀-ͯ]/g,'');
   if(NIV[d]) return d;
+  if(r._ruta===2) return i<7?'dificil':'muy_dificil';      // Ruta Legendaria
   const q=i/Math.max(1,total);           // reparto progresivo en cuartos
   return q<4/15?'facil':q<8/15?'medio':q<12/15?'dificil':'muy_dificil';
 }
@@ -609,10 +852,11 @@ function renderSlots(){
       el.innerHTML+='<div class="empty"><div style="font-size:30px">✦</div><b>VACÍA</b><span>Comienza una nueva ruta de '+RIV.length+' combates</span></div>'+
         '<div class="acts"><button class="btn sm" data-a="new">⚔ NUEVA PARTIDA</button></div>';
     } else {
+      const RIV=rutaDe(g);
       const b=DECKS.find(d=>d.id===g.baraja), r=RIV[Math.min(g.ronda,RIV.length-1)], lv=nivelDe(r||{},Math.min(g.ronda,RIV.length-1),RIV.length);
       const pct=Math.round(100*Math.min(g.ronda,RIV.length)/RIV.length);
       el.innerHTML+='<div class="deck"><img src="'+esc(deckPortada(b))+'" alt=""><div style="min-width:0"><b>'+esc(g.nombre||'Jugador')+'</b><small>'+esc(b?b.nombre:g.barajaNombre||g.baraja)+'</small>'+
-        '<small>'+(g.completado?'👑 RUTA COMPLETADA':'Siguiente: <b style="font-size:12px;color:#fff">'+esc(r?r.nombre:'')+'</b> <span class="badge lv-'+lv+'">'+NIV[lv]+'</span>')+'</small></div></div>'+
+        (rutaN(g)===2?'<small style="color:#ff4d6d;font-family:Orbitron,sans-serif;font-size:8px;letter-spacing:2px">★ RUTA LEGENDARIA</small>':'')+'<small>'+(g.completado?'👑 RUTA COMPLETADA':'Siguiente: <b style="font-size:12px;color:#fff">'+esc(r?r.nombre:'')+'</b> <span class="badge lv-'+lv+'">'+NIV[lv]+'</span>')+'</small></div></div>'+
         '<div class="prog"><i style="width:'+pct+'%"></i></div>'+
         '<div class="stats"><div><b>'+Math.min(g.ronda,RIV.length)+'/'+RIV.length+'</b><small>RIVALES</small></div><div><b>'+(g.victorias||0)+'</b><small>VICTORIAS</small></div><div><b>'+creditos(g)+'</b><small>CRÉDITOS</small></div></div>'+
         '<small style="color:var(--muted);font-size:10px">Última vez: '+fecha(g.ultimo)+'</small>'+
@@ -658,6 +902,16 @@ $('nGo').onclick=()=>{
 function retratoUrl(r,grande){return r._img||cartaImg(r.carta,grande);}
 function renderRuta(){
   const g=slot(); if(!g){go('sSlots');return;}
+  usarRuta(g);
+  const rn=rutaN(g);
+  $('rTitle').textContent=rn===2?'RUTA LEGENDARIA':'RUTA ARCADE';
+  if(RUTAS[2].length){
+    const libre=r2Desbloqueada(g);
+    $('rRutas').innerHTML='<button class="pill'+(rn===1?' gold on':'')+'" data-ruta="1">I · ARCADE</button><button class="pill'+(rn===2?' gold on':'')+'" data-ruta="2">'+(libre?'II · LEGENDARIA':'🔒 II · LEGENDARIA')+'</button>';
+    $('rRutas').querySelectorAll('[data-ruta]').forEach(b=>b.onclick=()=>{const n=+b.dataset.ruta;
+      if(n===2&&!libre){modal('RUTA LEGENDARIA','Completa la Ruta I (vence al jefe final) para desbloquear 15 rivales nuevos con barajas devastadoras en dificultad DIFÍCIL y MUY DIFÍCIL.',[['ENTENDIDO','']]);return;}
+      cambiarRuta(n);});
+  } else $('rRutas').innerHTML='';
   const b=DECKS.find(d=>d.id===g.baraja);
   $('rHead').innerHTML='<span class="hb tl"></span><span class="hb tr"></span><span class="hb bl"></span><span class="hb br"></span><img src="'+esc(deckPortada(b))+'" alt=""><div class="info"><b>'+esc(g.nombre)+'</b><small>'+esc(b?b.nombre:g.barajaNombre)+' · '+Math.min(g.ronda,RIV.length)+'/'+RIV.length+' rivales · '+(g.victorias||0)+' victorias · '+(g.derrotas||0)+' derrotas</small></div><div class="cred"><small>CRÉDITOS</small>'+monedas(g)+'</div>';
   const N=RIV.length, map=$('map'), inn=$('mapIn');
@@ -759,14 +1013,14 @@ function procesarResultado(){
   let res=null;try{res=JSON.parse(localStorage.getItem('chh_arcade_result')||'null');}catch(e){}
   if(!res||res.id!==q) return false;
   const s=loadSlots(), g=s[res.slot]; if(!g||!g.pendiente||g.pendiente.id!==q) return false;
-  CUR=res.slot;
+  CUR=res.slot; usarRuta(g);
   const i=g.pendiente.ronda, replay=!!g.pendiente.replay;
   let gameover=false;
   g.pendiente=null;g.ultimo=Date.now();
   if(replay){(g.rejugadas=g.rejugadas||[]).push({ronda:i+1,won:res.won,turnos:res.turnos,ts:res.ts});}
   else{
     (g.historial=g.historial||[]).push({ronda:i+1,won:res.won,turnos:res.turnos,ts:res.ts});
-    if(res.won){g.victorias=(g.victorias||0)+1;if(g.ronda===i)g.ronda=i+1;if(g.ronda>=RIV.length)g.completado=true;}
+    if(res.won){g.victorias=(g.victorias||0)+1;if(g.ronda===i)g.ronda=i+1;if(g.ronda>=RIV.length){g.completado=true;if(rutaN(g)===1){g._r2nueva=!g.r1Completa&&RUTAS[2].length>0;g.r1Completa=true;}}}
     else{
       g.derrotas=(g.derrotas||0)+1;
       g.creditos=creditos(g)-1;
@@ -782,7 +1036,8 @@ function procesarResultado(){
 function finalArcade(){
   const g=slot();
   const h=g.historial||[], tt=h.filter(x=>x.won).reduce((t,x)=>t+(x.turnos||0),0);
-  $('eSub').textContent=(g.nombre||'Jugador').toUpperCase()+' VENCIÓ A LOS '+RIV.length+' RIVALES';
+  $('eSub').textContent=(g.nombre||'Jugador').toUpperCase()+' VENCIÓ A LOS '+RIV.length+' RIVALES'+(rutaN(g)===2?' DE LA RUTA LEGENDARIA':'');
+  if(g._r2nueva){setSlot(x=>{delete x._r2nueva;});setTimeout(()=>modal('🔓 RUTA LEGENDARIA DESBLOQUEADA','15 rivales nuevos con barajas devastadoras te esperan en dificultad DIFÍCIL y MUY DIFÍCIL. Elígela en la pantalla de Ruta: «II · LEGENDARIA».',[['¡A PELEAR!','']]),2200);}
   $('eStats').innerHTML=[[g.victorias||0,'VICTORIAS'],[g.derrotas||0,'DERROTAS'],[tt,'TURNOS'],[(g.vueltas||0)+1,'VUELTA']].map(([v,t])=>'<div><b>'+v+'</b><small>'+t+'</small></div>').join('');
   go('sEnd');
   for(let k=0;k<70;k++){const c=document.createElement('div');c.className='confetti';c.style.left=Math.random()*100+'%';
@@ -1031,12 +1286,16 @@ let PLAYER_IMG=null;
   PLAYER_IMG=jug;
   RIV=parseRivales(txt||'');
   if(!RIV.length) RIV=parseRivales(RIVALES_DEFAULT);
+  const txt2=await fetchTxt(DIR+'rivales2.txt');
+  let R2=parseRivales(txt2||''); if(!R2.length) R2=parseRivales(RIVALES2_DEFAULT);
+  R2.forEach(r=>r._ruta=2);
+  RUTAS={1:RIV,2:R2};
   DATA=data||{cartas:[],barajas:[]};
   DATA.cartas.forEach(c=>CARD[c.id]=c);
   (Array.isArray(gal)?gal:(gal&&Object.values(gal).find(Array.isArray))||[]).forEach(x=>{if(x&&x.id!=null)GALI[String(x.id)]=x;});
   DECKS=(DATA.barajas||[]);
   // Imágenes de cada rival (si no existen, se usa el arte de su carta)
-  await Promise.all(RIV.map(async r=>{
+  await Promise.all(RUTAS[1].concat(RUTAS[2]).map(async r=>{
     r._img=r.imagen?await probarImg(DIR+'personajes/'+r.imagen):null;
     r._fondo=r.fondo?await probarImg(DIR+'fondos/'+r.fondo):null;
     r._musica=musPath(r.musica);

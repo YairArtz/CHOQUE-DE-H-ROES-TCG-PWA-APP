@@ -1025,7 +1025,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v44';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v45';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -1347,6 +1347,9 @@ async function loadData(onProgress){
   }
   DATA._LIM=LIM;
   DATA.barajas.forEach(validarReglas);
+  // v45 · Barajas exclusivas del Arcade (soloArcade): solo las usa la CPU en la ruta, no aparecen en los selectores
+  DATA.barajasArcade=DATA.barajas.filter(b=>b.soloArcade);
+  DATA.barajas=DATA.barajas.filter(b=>!b.soloArcade);
 }
 function validarReglas(m){
   const LIM=DATA._LIM||{}, MAXC={'limitada':1,'semi-limitada':2,'condenada':0};
@@ -4502,7 +4505,7 @@ function cargarBarajasPropias(){
   DATA.propias=out;
 }
 function todasBarajas(){return DATA.barajas.concat(DATA.propias||[]);}
-const deckById=id=>todasBarajas().find(b=>b.id===id&&!b._error);
+const deckById=id=>todasBarajas().concat(DATA.barajasArcade||[]).find(b=>b.id===id&&!b._error);
 function initDeckSelect(){
   cargarBarajasPropias();
   const ok=DATA.barajas.filter(b=>!b._error), def=DATA.barajaPorDefecto||{};

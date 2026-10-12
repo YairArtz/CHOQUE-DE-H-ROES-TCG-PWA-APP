@@ -379,7 +379,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 // Combate: escribe "chh_arcade_match" y abre simulacion.html?modo=arcade;
 //          la simulación escribe "chh_arcade_result" y regresa a arcade.html?r=<id>
 // ════════════════════════════════════
-const ARC_VERSION='Arcade v1.7';
+const ARC_VERSION='Arcade v1.8';
 const STAGE=document.getElementById('stage');
 // ── Orientación horizontal ──
 const MOVIL=matchMedia('(pointer:coarse)').matches;
@@ -639,7 +639,7 @@ function slotAccion(i,a){
 function propias(){const out=[];try{(JSON.parse(localStorage.getItem('chh_decks')||'[]')||[]).forEach((d,i)=>{if(d&&d.decks)out.push({id:'mis:'+i+':'+(d.date||''),nombre:d.name||('Baraja '+(i+1)),estilo:'Tu baraja del Constructor',propia:true});});}catch(e){}return out;}
 function renderNew(){
   const box=$('nDecks');box.querySelectorAll('.dk,.lbl').forEach(x=>x.remove());
-  const all=DECKS.concat(propias());
+  const all=DECKS.filter(b=>!b.soloArcade).concat(propias());   // las exclusivas del Arcade son solo para rivales
   all.forEach(b=>{
     const el=document.createElement('button');el.className='dk'+(NEWSEL===b.id?' on':'');
     el.innerHTML=(b.propia?'<span style="width:42px;height:59px;display:flex;align-items:center;justify-content:center;font-size:22px;background:#0b0e18;border-radius:5px">⭐</span>':'<img src="'+esc(deckPortada(b))+'" alt="">')+'<span style="min-width:0"><b>'+esc(b.nombre)+'</b><small>'+esc(b.estilo||'')+'</small></span>';

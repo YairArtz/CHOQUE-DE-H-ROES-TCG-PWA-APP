@@ -711,6 +711,38 @@
     <button class="back-to-gallery-btn" id="backFromBarajas">← Volver a Galería</button>
   </div>
 
+  <!-- SUBMENÚ: SOBRES ESPECIALES -->
+  <div class="submenu-view" id="especialesSubmenu">
+    <div class="submenu-header">
+      <div class="submenu-title">✨ Sobres Especiales</div>
+      <div class="submenu-subtitle">Ediciones de evento y torneo</div>
+    </div>
+
+    <div class="submenu-grid">
+      <div class="submenu-card" data-expansion="sobre_anima">
+        <img src="cartas_3/sobre_anima_000.jpg" alt="Sobre Anima" class="submenu-card-img" onerror="this.style.display='none'">
+        <div class="submenu-card-name">Sobre Anima</div>
+      </div>
+
+      <div class="submenu-card" data-expansion="sobre_patrio">
+        <img src="cartas_3/sobre_patrio_000.jpg" alt="Sobre Patrio" class="submenu-card-img" onerror="this.style.display='none'">
+        <div class="submenu-card-name">Sobre Patrio</div>
+      </div>
+
+      <div class="submenu-card" data-expansion="sobre_otakon">
+        <img src="cartas_3/sobre_otakon_000.jpg" alt="Sobre Otakon" class="submenu-card-img" onerror="this.style.display='none'">
+        <div class="submenu-card-name">Sobre Otakon</div>
+      </div>
+
+      <div class="submenu-card" data-expansion="sobre_torneo_1">
+        <img src="cartas/carta_052.jpg" alt="Sobre de Torneo" class="submenu-card-img" onerror="this.style.display='none'">
+        <div class="submenu-card-name">Sobre de Torneo 2026-1</div>
+      </div>
+    </div>
+
+    <button class="back-to-gallery-btn" id="backFromEspeciales">← Volver a Galería</button>
+  </div>
+
   <!-- SUBMENÚ: EXPANSIONES AGOTADAS -->
   <div class="submenu-view" id="agotadasSubmenu">
     <div class="submenu-header">
@@ -877,7 +909,8 @@
         'azote_del_mictlan',
         'ancestros'
       ];
-      const ordenEspecifico = ['reliquias del multiverso','variantes', 'sobre_torneo_1'];
+      const especiales = ['sobre_anima', 'sobre_patrio', 'sobre_otakon', 'sobre_torneo_1'];
+      const ordenEspecifico = ['reliquias del multiverso','variantes'];
       
       // Agregar primero las expansiones en orden específico
       ordenEspecifico.forEach(exp => {
@@ -896,6 +929,17 @@
         }
       });
       
+      // Botón especial: Sobres Especiales (Anima, Patrio, Otakon y Torneo)
+      if (expansions.some(e => especiales.includes(e))) {
+        const espBtn = document.createElement('button');
+        espBtn.className = 'filter-btn';
+        espBtn.dataset.submenu = 'especiales';
+        espBtn.textContent = '✨ Sobres Especiales';
+        espBtn.style.background = 'linear-gradient(135deg, rgba(245,166,35,0.18), rgba(0,255,157,0.12))';
+        espBtn.style.borderColor = 'rgba(245,166,35,0.5)';
+        expansionFilters.appendChild(espBtn);
+      }
+
       // Botón especial: Barajas de Inicio
       if (expansions.some(e => barajasInicio.includes(e))) {
         const barajasBtn = document.createElement('button');
@@ -920,7 +964,7 @@
       
       // Agregar resto de expansiones (que no estén en los grupos especiales)
       expansions.forEach(exp => {
-        if (!ordenEspecifico.includes(exp) && !barajasInicio.includes(exp) && !agotadas.includes(exp)) {
+        if (!ordenEspecifico.includes(exp) && !barajasInicio.includes(exp) && !agotadas.includes(exp) && !especiales.includes(exp)) {
           const btn = document.createElement('button');
           btn.className = 'filter-btn';
           btn.dataset.expansion = exp;
@@ -960,6 +1004,8 @@
 
         if (card.miniatura) {
           cardEl.innerHTML = `<img src="${card.miniatura}" alt="${card.nombre}" loading="lazy" decoding="async">`;
+          const im = cardEl.querySelector('img');
+          im.onerror = () => { cardEl.innerHTML = `<div class="card-placeholder">${card.nombre}</div>`; };
         } else {
           cardEl.innerHTML = `<div class="card-placeholder">${card.nombre}</div>`;
         }
@@ -1032,6 +1078,8 @@
     const agotadasSubmenu = document.getElementById('agotadasSubmenu');
     const backFromBarajas = document.getElementById('backFromBarajas');
     const backFromAgotadas = document.getElementById('backFromAgotadas');
+    const especialesSubmenu = document.getElementById('especialesSubmenu');
+    const backFromEspeciales = document.getElementById('backFromEspeciales');
 
     expansionFilters.addEventListener('click', (e) => {
       if (e.target.classList.contains('filter-btn')) {
@@ -1039,6 +1087,10 @@
         if (e.target.dataset.submenu === 'barajas') {
           mainGalleryView.style.display = 'none';
           barajasSubmenu.classList.add('active');
+          return;
+        } else if (e.target.dataset.submenu === 'especiales') {
+          mainGalleryView.style.display = 'none';
+          especialesSubmenu.classList.add('active');
           return;
         } else if (e.target.dataset.submenu === 'agotadas') {
           mainGalleryView.style.display = 'none';
@@ -1086,7 +1138,23 @@
       }
     });
     
+    especialesSubmenu.addEventListener('click', (e) => {
+      const card = e.target.closest('.submenu-card');
+      if (card) {
+        currentExpansion = card.dataset.expansion;
+        filterCards();
+        especialesSubmenu.classList.remove('active');
+        mainGalleryView.style.display = 'block';
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      }
+    });
+
     // Botones de regreso
+    backFromEspeciales.addEventListener('click', () => {
+      especialesSubmenu.classList.remove('active');
+      mainGalleryView.style.display = 'block';
+    });
+
     backFromBarajas.addEventListener('click', () => {
       barajasSubmenu.classList.remove('active');
       mainGalleryView.style.display = 'block';

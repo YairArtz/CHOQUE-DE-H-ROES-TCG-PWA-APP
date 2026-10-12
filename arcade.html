@@ -379,7 +379,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 // Combate: escribe "chh_arcade_match" y abre simulacion.html?modo=arcade;
 //          la simulación escribe "chh_arcade_result" y regresa a arcade.html?r=<id>
 // ════════════════════════════════════
-const ARC_VERSION='Arcade v1.8';
+const ARC_VERSION='Arcade v1.9';
 const STAGE=document.getElementById('stage');
 // ── Orientación horizontal ──
 const MOVIL=matchMedia('(pointer:coarse)').matches;
@@ -1050,6 +1050,22 @@ let PLAYER_IMG=null;
   window.addEventListener('resize',()=>{if($('sRuta').classList.contains('on'))renderRuta();});
 })();
 </script>
+<script>
+// ── Control (gamepad.js): qué hace cada botón en el Arcade ──
+window.GP_CFG={
+  principalTxt:'Continuar',
+  inicial:()=>window.GP_CFG.principal(),
+  principal:()=>{const v=e=>window.GP&&GP.valido(e);
+    return [document.querySelector('#modal.on #mB .btn'),document.getElementById('tStart'),document.querySelector('#vsBtns .btn'),
+      document.getElementById('rFight'),document.getElementById('nGo'),document.querySelector('#sEnd .btn')].find(v)||null;},
+  start:()=>{const v=e=>window.GP&&GP.valido(e);const a=document.getElementById('rAp');if(v(a))return a;
+    return document.querySelector('.scr.on [data-go="sLogros"]');},
+  select:()=>document.getElementById('mute'),
+  // En la portada B no hace nada (no sale al menú por accidente)
+  atras:()=>{const t=document.getElementById('sTitle');return !!(t&&t.classList.contains('on')&&!document.querySelector('#modal.on,#apM.on'));}
+};
+</script>
+<script src="gamepad.js"></script>
 <script>
 // Registra el Service Worker también desde aquí (por si se abre directo, sin pasar por el index)
 if('serviceWorker' in navigator&&location.protocol!=='file:'){addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{});});}

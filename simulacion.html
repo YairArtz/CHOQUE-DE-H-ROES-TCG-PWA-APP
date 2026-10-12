@@ -1025,7 +1025,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v45';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v46';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -6448,6 +6448,35 @@ function arsResumen(){
   };
 })();
 </script>
+<script>
+// ── Control (gamepad.js): qué hace cada botón en la Simulación ──
+window.GP_CFG={
+  principalTxt:'Fase / Turno',
+  zonas:['#handrow','#board','#detail','#btnMain'],
+  scroll:'#logwrap',
+  inicial:()=>{const b=document.getElementById('bootBtn');if(window.GP&&GP.valido(b))return b;return document.querySelector('#handrow .hcard')||document.getElementById('btnMain');},
+  principal:()=>{const v=e=>window.GP&&GP.valido(e);
+    const eg=[...document.querySelectorAll('#endgameModal .endgame-btn')].find(v); if(eg) return eg;
+    const b=document.getElementById('bootBtn'); if(v(b)) return b;
+    return document.getElementById('btnMain');},
+  acciones:()=>[...document.querySelectorAll('#dtActs button,#dtActs .dt-btn')].find(e=>!e.disabled&&!e.classList.contains('off')&&window.GP&&GP.valido(e)),
+  start:()=>{const c=document.getElementById('bootCfg');return (window.GP&&GP.valido(c))?c:document.getElementById('btnMusic');},
+  select:()=>document.getElementById('btnMute'),
+  // B sin ventana abierta: cancela el ataque elegido o la selección (nunca sale de la partida)
+  atras:()=>{
+    if(document.querySelector('#bsModal.show,#chooseModal.show,#sectorModal.show,#combatMod.show,#discardModal.show,#dsList.show,#endgameModal.show')) return false;
+    if(typeof G!=='undefined'&&G&&!G.over){
+      try{if(typeof ATK_SLOT!=='undefined'&&ATK_SLOT!==null){ATK_SLOT=null;renderAll();return true;}
+        if(typeof SEL_IDX!=='undefined'&&SEL_IDX>=0){SEL_IDX=-1;showDetail(null);renderAll();return true;}}catch(e){}
+      return true;
+    }
+    return false;
+  }
+};
+// Vibración del control al recibir daño
+try{const _gpH=hurt;hurt=function(o,n,why){const r=_gpH.apply(this,arguments);try{if(r>0&&o==='player'&&window.GP&&GP.activo())GP.vibrar(220,.8);}catch(e){}return r;};}catch(e){}
+</script>
+<script src="gamepad.js"></script>
 <script>
 // Registra el Service Worker también desde aquí (por si se abre directo, sin pasar por el index)
 if('serviceWorker' in navigator&&location.protocol!=='file:'){addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{});});}

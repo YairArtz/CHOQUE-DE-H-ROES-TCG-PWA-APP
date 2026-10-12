@@ -4,7 +4,9 @@
 //
 //  De dónde salen:
 //   · Clásicos: el reverso y el tablero de siempre (siempre disponibles).
-//   · Recompensas por logro: data/cosmeticos.json (campo "logro").
+//   · Recompensas por logro: data/cosmeticos.json (campo "logro"). Cada logro del Arcade
+//     tiene una mica y un playmat: assets/cosmeticos/micas/<clave>.jpg y
+//     assets/cosmeticos/playmats/<clave>.jpg (ej. arc_campeon.jpg).
 //   · Tienda: filas de Packs_Config con tipo "mica" o "playmat" (precio en HP).
 //     Lo comprado se guarda en la hoja "Cosmeticos" del Apps Script de Hero Pesos
 //     y aquí en caché (localStorage "chh_cosmeticos") para jugar sin red.
@@ -34,8 +36,12 @@
     if (!img) return '';
     return /^(https?:|data:|\.\/|\/)/.test(img) || img.indexOf('/') >= 0 ? img : (CARPETA[tipo] || '') + img;
   }
+  // Cada imagen se revisa una sola vez por página (el catálogo tiene muchas opciones aún sin arte)
+  const _prob = {};
   function probar(u) {
-    return new Promise(res => { if (!u) return res(false); const im = new Image(); im.onload = () => res(true); im.onerror = () => res(false); im.src = u; });
+    if (!u) return Promise.resolve(false);
+    if (!_prob[u]) _prob[u] = new Promise(res => { const im = new Image(); im.onload = () => res(true); im.onerror = () => res(false); im.src = u; });
+    return _prob[u];
   }
 
   // ── Catálogo de recompensas (data/cosmeticos.json) ──
@@ -122,5 +128,5 @@
     return L.filter((x, i) => ok[i]);
   }
 
-  window.CHH_COSM = { HP_URL, CARPETA, CLASICO, ruta, sesionId, catalogo, cache, guardarCompra, sincronizar, logros, todos, disponibles, equipado, equipar, imagenEquipada, recompensasDe };
+  window.CHH_COSM = { HP_URL, CARPETA, CLASICO, ruta, sesionId, catalogo, cache, guardarCompra, sincronizar, logros, todos, disponibles, equipado, equipar, imagenEquipada, recompensasDe, probar };
 })();

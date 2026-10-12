@@ -1025,7 +1025,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v47';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v48';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -1322,6 +1322,11 @@ async function loadData(onProgress){
   Object.values(C).forEach(c=>{if(!c.proto)IDX.nom[NK(c.name)]=c.id;});
   DATA.cartas.forEach(c=>{if(c.galeriaId&&C[c.id])IDX.gal[String(c.galeriaId)]=c.id;});
   _alias.forEach(([a,id])=>{if(C[id])IDX.nom[NK(a)]=id;});
+  // v48 · Cartas prototipo publicadas en la Galería (sobres especiales): se reconocen por su imagen,
+  // así una baraja del Constructor puede usarlas aunque el nombre en cartas.json cambie un poco.
+  {const imgK=f=>String(f||'').replace(/\s+/g,'').replace(/^\.\//,'').replace(/_full(?=\.\w+$)/,'').toLowerCase();
+   const porImg={};DATA.cartas.forEach(c=>{if(c.prototipo&&C[c.id])porImg[imgK(c.imgMin||c.img)]=c.id;});
+   Object.values(GAL).forEach(g=>{const id=porImg[imgK(g.miniatura)]||porImg[imgK(g.ampliada)];if(id)IDX.gal[String(g.id)]=id;});}
   Object.values(GAL).forEach(g=>{const id=IDX.nom[NK(g.nombre)];if(id&&!IDX.gal[String(g.id)])IDX.gal[String(g.id)]=id;});
   DATA._idx=IDX; DATA._NK=NK;
   // Validar que cada baraja solo use cartas existentes (una baraja con errores queda deshabilitada)
@@ -5063,7 +5068,7 @@ function openMictlan(o,zona){
   document.getElementById('bsOk').style.display='none';
   const box=document.getElementById('bsCards');box.innerHTML='';
   [...list].map((cid,i)=>({cid,i})).reverse().forEach(({cid})=>{
-    const acts=mine&&G.active==='player'&&G.phase==='action'?activables('player',cid,'mictlan',{zone:'mictlan'}):[];
+    const acts=o==='player'&&G.active==='player'&&G.phase==='action'?(isConf?activables('player',cid,'confinada',{zone:'conf'}):activables('player',cid,'mictlan',{zone:'mictlan'})):[];
     const d=document.createElement('div');
     d.className='bs-card '+(acts.some(a=>a.ok)?'ok':'');
     d.innerHTML=imgTag(cid)+'<div class="bs-n">'+C[cid].name+'</div>'+(acts.some(a=>a.ok)?'<div class="bs-st" style="color:#ffe066">✨ Habilidad</div>':'');

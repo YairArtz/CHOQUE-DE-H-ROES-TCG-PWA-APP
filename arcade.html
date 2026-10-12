@@ -63,6 +63,24 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
   font-family:'Orbitron',sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:all .25s}
 .pill:hover,.pill:active{color:var(--neon);border-color:var(--neon);box-shadow:0 0 6px #00ff9d,0 0 18px rgba(0,255,157,.35)}
 .pill.gold:hover,.pill.gold:active{color:var(--gold);border-color:var(--gold);box-shadow:0 0 8px #f5a623,0 0 20px rgba(245,166,35,.4)}
+/* Botón Ruta Legendaria: carmesí/púrpura con brillo; late cuando está disponible y no activa */
+.pill.leg{height:38px;padding:0 16px;font-size:10px;color:#fff;border:1px solid #ff3b6b;letter-spacing:2px;
+  background:linear-gradient(135deg,rgba(150,10,50,.92),rgba(90,20,150,.92));text-shadow:0 0 6px rgba(255,80,130,.9);
+  box-shadow:0 0 8px rgba(255,59,107,.7),0 0 22px rgba(160,60,255,.45),inset 0 0 10px rgba(255,255,255,.12)}
+.pill.leg:hover,.pill.leg:active{color:#fff;border-color:#ff8fb0;box-shadow:0 0 12px #ff3b6b,0 0 30px rgba(160,60,255,.7)}
+.pill.leg.pulse{animation:legPulse 1.6s ease-in-out infinite}
+.pill.leg.on{border-color:#ffd166;box-shadow:0 0 10px #ff3b6b,0 0 26px rgba(160,60,255,.7),0 0 0 2px rgba(255,209,102,.55)}
+.pill.leg.lock{background:rgba(40,10,25,.85);color:#ff9db5;border-color:#7a2a44;box-shadow:0 0 8px rgba(255,59,107,.25);text-shadow:none}
+@keyframes legPulse{0%,100%{transform:scale(1);box-shadow:0 0 8px rgba(255,59,107,.7),0 0 22px rgba(160,60,255,.45)}50%{transform:scale(1.07);box-shadow:0 0 16px #ff3b6b,0 0 40px rgba(160,60,255,.85)}}
+/* Fondo de la Ruta Legendaria (si no hay portada2, tiñe la portada normal de carmesí) */
+#bg.leg::before{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse at 50% 30%,rgba(200,20,70,.28),transparent 65%),linear-gradient(180deg,rgba(80,0,40,.35),rgba(30,0,60,.45))}
+/* Progreso por ruta en Partidas */
+.slot .rts{display:flex;flex-direction:column;gap:6px}
+.slot .rt{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;font-size:11px;color:var(--muted)}
+.slot .rt b{font-family:'Orbitron',sans-serif;font-size:8px;letter-spacing:1.5px;color:#9fb3cc;white-space:nowrap}
+.slot .rt.r2 b{color:#ff4d6d}.slot .rt.act b::before{content:'▶ '}
+.slot .rt .prog{height:6px}.slot .rt.r2 .prog i{background:linear-gradient(90deg,#ff3b6b,#a03cff)}
+.slot .rt span{white-space:nowrap}
 .h1{font-family:'Orbitron',sans-serif;font-weight:900;letter-spacing:5px;text-align:center;
   background:linear-gradient(180deg,#fff3c4 0%,#f5c842 45%,#d4870a 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
   filter:drop-shadow(0 0 10px rgba(245,166,35,.45))}
@@ -379,7 +397,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 // Combate: escribe "chh_arcade_match" y abre simulacion.html?modo=arcade;
 //          la simulación escribe "chh_arcade_result" y regresa a arcade.html?r=<id>
 // ════════════════════════════════════
-const ARC_VERSION='Arcade v2.0';
+const ARC_VERSION='Arcade v2.1';
 const STAGE=document.getElementById('stage');
 // ── Orientación horizontal ──
 const MOVIL=matchMedia('(pointer:coarse)').matches;
@@ -427,7 +445,7 @@ imagen = rival2_01.png
 fondo = fondo2_01.jpg
 musica = musica_choque/pista_2.mp3
 color = #7fe9ff
-dificultad = auto
+dificultad = muy_dificil
 entrada = Del Mictlán regresan mis dragones. | De tres en tres.
 victoria = Mi manada… vencida. Respeto tu fuerza.
 derrota = Ningún dragón cae para siempre.
@@ -441,7 +459,7 @@ imagen = rival2_02.png
 fondo = fondo2_02.jpg
 musica = musica_choque/pista_12.mp3
 color = #3ad6a0
-dificultad = auto
+dificultad = muy_dificil
 entrada = Ataca si te atreves. | Cada golpe que des, te lo devolveré.
 victoria = Lograste atravesar la muralla. Eres digno.
 derrota = La muralla sigue en pie.
@@ -455,7 +473,7 @@ imagen = rival2_03.png
 fondo = fondo2_03.jpg
 musica = musica_choque/pista_3.mp3
 color = #ff6fb1
-dificultad = auto
+dificultad = muy_dificil
 entrada = Bonitos personajes… | ¿te molesta si me los llevo prestados?
 victoria = Hmph. Los devolveré… algún día.
 derrota = Gracias por tu colección. La cuidaré mejor que tú.
@@ -469,7 +487,7 @@ imagen = rival2_04.png
 fondo = fondo2_04.jpg
 musica = musica_choque/pista_1.mp3
 color = #d42b4a
-dificultad = auto
+dificultad = muy_dificil
 entrada = Cada arma que me des… es una herida que te devuelvo.
 victoria = Mis armas… no fueron suficientes.
 derrota = Las Hell Riders me enseñaron bien.
@@ -483,7 +501,7 @@ imagen = rival2_05.png
 fondo = fondo2_05.jpg
 musica = musica_choque/pista_7.mp3
 color = #ffcf3a
-dificultad = auto
+dificultad = muy_dificil
 entrada = Tu campo ya es mío. | Cada paso que des, te costará.
 victoria = Encontraste la salida del laberinto…
 derrota = Te dije que no pisaras mis sectores.
@@ -497,7 +515,7 @@ imagen = rival2_06.png
 fondo = fondo2_06.jpg
 musica = musica_choque/pista_11.mp3
 color = #7a2bd4
-dificultad = auto
+dificultad = muy_dificil
 entrada = La Energía Negativa me liberó. | Ahora nadie me detiene.
 victoria = Me encadenaste… pero los Desatados volveremos.
 derrota = El más débil cae primero. Y ese eras tú.
@@ -511,7 +529,7 @@ imagen = rival2_07.png
 fondo = fondo2_07.jpg
 musica = musica_choque/pista_8.mp3
 color = #ff2244
-dificultad = auto
+dificultad = muy_dificil
 entrada = No necesito vencerte en combate. | Tu sangre ya me pertenece.
 victoria = Te dejaré vivir… un poco más.
 derrota = Otra alma para el Mictlán.
@@ -525,7 +543,7 @@ imagen = rival2_08.png
 fondo = fondo2_08.jpg
 musica = musica_choque/pista_5.mp3
 color = #b48cff
-dificultad = auto
+dificultad = muy_dificil
 entrada = Cada carta que confino me hace más fuerte. | Y tú tienes muchas.
 victoria = Escapaste de mi prisión… nadie lo había hecho.
 derrota = Tu celda ya está lista.
@@ -539,7 +557,7 @@ imagen = rival2_09.png
 fondo = fondo2_09.jpg
 musica = musica_choque/pista_8.mp3
 color = #9fd6ff
-dificultad = auto
+dificultad = muy_dificil
 entrada = Aaay… mis hijos… | Aquí nadie usa sus poderes. Solo yo lloro.
 victoria = Mi lamento se apaga… por ahora.
 derrota = Tu voz también se perderá en el río.
@@ -553,7 +571,7 @@ imagen = rival2_10.png
 fondo = fondo2_10.jpg
 musica = musica_choque/pista_10.mp3
 color = #ff9a2b
-dificultad = auto
+dificultad = muy_dificil
 entrada = En el Coliseo nadie descansa. | ¡Ataca o cae!
 victoria = Buen combate… el público te ovaciona a ti.
 derrota = ¡La arena es mía! ¡Que pase el siguiente!
@@ -567,7 +585,7 @@ imagen = rival2_11.png
 fondo = fondo2_11.jpg
 musica = musica_choque/pista_13.mp3
 color = #f5c842
-dificultad = auto
+dificultad = muy_dificil
 entrada = Tus guerreros pelearán por mí. | Así es el camino del Max-Kara.
 victoria = El alumno superó al maestro.
 derrota = Inclínate ante el Dojo.
@@ -581,7 +599,7 @@ imagen = rival2_12.png
 fondo = fondo2_12.jpg
 musica = musica_choque/pista_12.mp3
 color = #3ad6ff
-dificultad = auto
+dificultad = muy_dificil
 entrada = He visto el ocaso de mil eras. | Hoy veré el tuyo.
 victoria = Un nuevo amanecer… comienza contigo.
 derrota = Todo termina. Incluso tú.
@@ -595,7 +613,7 @@ imagen = rival2_13.png
 fondo = fondo2_13.jpg
 musica = musica_choque/pista_9.mp3
 color = #ff5a1f
-dificultad = auto
+dificultad = muy_dificil
 corazones = 3
 entrada = Dos cuerpos, una forma. | Mi forja nunca se apaga.
 victoria = Me fundiste… interesante.
@@ -610,7 +628,7 @@ imagen = rival2_14.png
 fondo = fondo2_14.jpg
 musica = musica_choque/pista_14.mp3
 color = #00ff9d
-dificultad = auto
+dificultad = muy_dificil
 corazones = 4
 entrada = Mientras Nexotlan esté de pie, | mis corazones no caerán.
 victoria = Derribaste la ciudadela… imposible.
@@ -625,7 +643,7 @@ imagen = rival2_15.png
 fondo = fondo2_15.jpg
 musica = musica_choque/pista_15.mp3
 color = #ff7b00
-dificultad = auto
+dificultad = muy_dificil
 corazones = 6
 entrada = Has llegado al final de la leyenda. | Ahora todo lo que tienes… arderá.
 victoria = Imposible… un mortal… | ¡Tú eres la verdadera leyenda!
@@ -782,7 +800,11 @@ function cambiarRuta(n){
     const b=g.rutas[n]||{ronda:0,victorias:0,derrotas:0,creditos:CREDITOS,completado:false,historial:[],gameovers:0,goRuta:false,vueltas:0,rejugadas:[]};
     CAMPOS_RUTA.forEach(k=>g[k]=b[k]);g.ruta=n;});
   renderRuta();
+  if($('sRuta').classList.contains('on')){ambiente('sRuta');musica(musMenu('sRuta'));}
 }
+// Datos de una ruta del slot (la activa vive arriba; la otra en g.rutas[n])
+function datosRuta(g,n){return rutaN(g)===n?g:(g.rutas&&g.rutas[n])||null;}
+function r2Iniciada(g){return !!g&&RUTAS[2].length>0&&(rutaN(g)===2||!!(g.rutas&&g.rutas[2]));}
 let RIV=[], DATA=null, CARD={}, GALI={}, DECKS=[], NEWSEL=null;
 
 // ── Rivales: formato de texto simple ──
@@ -857,7 +879,9 @@ function renderSlots(){
       const pct=Math.round(100*Math.min(g.ronda,RIV.length)/RIV.length);
       el.innerHTML+='<div class="deck"><img src="'+esc(deckPortada(b))+'" alt=""><div style="min-width:0"><b>'+esc(g.nombre||'Jugador')+'</b><small>'+esc(b?b.nombre:g.barajaNombre||g.baraja)+'</small>'+
         (rutaN(g)===2?'<small style="color:#ff4d6d;font-family:Orbitron,sans-serif;font-size:8px;letter-spacing:2px">★ RUTA LEGENDARIA</small>':'')+'<small>'+(g.completado?'👑 RUTA COMPLETADA':'Siguiente: <b style="font-size:12px;color:#fff">'+esc(r?r.nombre:'')+'</b> <span class="badge lv-'+lv+'">'+NIV[lv]+'</span>')+'</small></div></div>'+
-        '<div class="prog"><i style="width:'+pct+'%"></i></div>'+
+        (r2Iniciada(g)?'<div class="rts">'+[1,2].map(n=>{const d=datosRuta(g,n)||{},L=RUTAS[n].length,k=Math.min(d.ronda||0,L);
+            return '<div class="rt r'+n+(rutaN(g)===n?' act':'')+'"><b>'+(n===1?'I · ARCADE':'II · LEGENDARIA')+'</b><div class="prog"><i style="width:'+Math.round(100*k/L)+'%"></i></div><span>'+(d.completado?'👑 ':'')+k+'/'+L+' · '+(d.victorias||0)+'V · '+creditos(d)+'🪙</span></div>';}).join('')+'</div>'
+          :'<div class="prog"><i style="width:'+pct+'%"></i></div>')+
         '<div class="stats"><div><b>'+Math.min(g.ronda,RIV.length)+'/'+RIV.length+'</b><small>RIVALES</small></div><div><b>'+(g.victorias||0)+'</b><small>VICTORIAS</small></div><div><b>'+creditos(g)+'</b><small>CRÉDITOS</small></div></div>'+
         '<small style="color:var(--muted);font-size:10px">Última vez: '+fecha(g.ultimo)+'</small>'+
         '<div class="acts"><button class="btn sm" data-a="play">'+(g.completado?'👑 VER RUTA':'▶ CONTINUAR')+'</button>'+
@@ -907,7 +931,7 @@ function renderRuta(){
   $('rTitle').textContent=rn===2?'RUTA LEGENDARIA':'RUTA ARCADE';
   if(RUTAS[2].length){
     const libre=r2Desbloqueada(g);
-    $('rRutas').innerHTML='<button class="pill'+(rn===1?' gold on':'')+'" data-ruta="1">I · ARCADE</button><button class="pill'+(rn===2?' gold on':'')+'" data-ruta="2">'+(libre?'II · LEGENDARIA':'🔒 II · LEGENDARIA')+'</button>';
+    $('rRutas').innerHTML='<button class="pill'+(rn===1?' gold on':'')+'" data-ruta="1">I · ARCADE</button><button class="pill leg'+(rn===2?' on':'')+(!libre?' lock':(rn!==2?' pulse':''))+'" data-ruta="2">'+(libre?'★ II · LEGENDARIA':'🔒 II · LEGENDARIA')+'</button>';
     $('rRutas').querySelectorAll('[data-ruta]').forEach(b=>b.onclick=()=>{const n=+b.dataset.ruta;
       if(n===2&&!libre){modal('RUTA LEGENDARIA','Completa la Ruta I (vence al jefe final) para desbloquear 15 rivales nuevos con barajas devastadoras en dificultad DIFÍCIL y MUY DIFÍCIL.',[['ENTENDIDO','']]);return;}
       cambiarRuta(n);});
@@ -1059,7 +1083,17 @@ function musica(url,reiniciar){
 AUD.addEventListener('error',()=>{_musUrl=null;});
 function muteUI(){$('mute').textContent=MUTE?'🔇':'🔊';}
 $('mute').onclick=()=>{MUTE=!MUTE;try{localStorage.setItem('chh_arcade_mute',MUTE?'1':'0');}catch(e){}muteUI();if(MUTE)AUD.pause();else if(_musUrl)AUD.play().catch(()=>{});};
-{const _go=go;go=function(id){_go(id);if(['sTitle','sSlots','sNew','sRuta'].includes(id)&&TITULO_MUS)musica(TITULO_MUS);if(id==='sEnd')musica(FINAL_MUS||TITULO_MUS,true);};}
+// Ruta Legendaria: fondo y canción propios (assets/arcade/portada2.jpg y musica/legendaria.mp3)
+let LEG_MUS=null, LEG_FALLA=false, BG_NORMAL=null, BG_LEG=null;
+function enLegendaria(id){if(id!=='sRuta')return false;const g=slot();return !!g&&rutaN(g)===2;}
+function musMenu(id){return enLegendaria(id)&&LEG_MUS&&!LEG_FALLA?LEG_MUS:TITULO_MUS;}
+function ambiente(id){
+  const bg=$('bg'),leg=enLegendaria(id),img=leg?(BG_LEG||BG_NORMAL):BG_NORMAL;
+  bg.style.backgroundImage=img?'url("'+img+'")':'';bg.classList.toggle('img',!!img);
+  bg.classList.toggle('leg',leg&&!BG_LEG);
+}
+AUD.addEventListener('error',()=>{if(LEG_MUS&&AUD.src&&AUD.src.indexOf('legendaria')>=0&&!LEG_FALLA){LEG_FALLA=true;if($('sRuta').classList.contains('on'))musica(TITULO_MUS);}});
+{const _go=go;go=function(id){_go(id);ambiente(id);if(['sTitle','sSlots','sNew','sRuta'].includes(id)&&TITULO_MUS)musica(musMenu(id));if(id==='sEnd')musica(FINAL_MUS||TITULO_MUS,true);};}
 let FINAL_MUS=null;
 
 // ════════════════════════════════════
@@ -1283,6 +1317,8 @@ let PLAYER_IMG=null;
     probarImg(DIR+'personajes/jugador.png')]);
   if(logo) $('tLogo').src=logo; else $('tLogo').style.display='none';
   if(portada){$('bg').style.backgroundImage='url("'+portada+'")';$('bg').classList.add('img');}
+  BG_NORMAL=portada||null;
+  BG_LEG=await probarImg(DIR+'portada2.jpg')||await probarImg(DIR+'portada2.png')||await probarImg(DIR+'fondos/legendaria.jpg')||null;
   PLAYER_IMG=jug;
   RIV=parseRivales(txt||'');
   if(!RIV.length) RIV=parseRivales(RIVALES_DEFAULT);
@@ -1300,7 +1336,7 @@ let PLAYER_IMG=null;
     r._fondo=r.fondo?await probarImg(DIR+'fondos/'+r.fondo):null;
     r._musica=musPath(r.musica);
   }));
-  TITULO_MUS=musPath('titulo.mp3'); FINAL_MUS=musPath('final.mp3');
+  TITULO_MUS=musPath('titulo.mp3'); FINAL_MUS=musPath('final.mp3'); LEG_MUS=musPath('legendaria.mp3');
   muteUI();
   sincronizarLogros();
   $('tStatus').textContent=data?'TOCA JUGAR':'⚠ NO SE PUDIERON LEER LAS BARAJAS';

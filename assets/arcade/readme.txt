@@ -24,3 +24,8 @@ RUTA LEGENDARIA (RUTA II)
                          Dificultad auto: combates 1-7 DIFÍCIL, 8-15 MUY DIFÍCIL.
   personajes/rival2_01.png … rival2_15.png   (900×1350 px)
   fondos/fondo2_01.jpg … fondo2_15.jpg        (1920×1080 px)
+  portada2.jpg           Fondo de la pantalla de ruta mientras juegas la Ruta Legendaria (1920×1080 px).
+                         También sirve portada2.png o fondos/legendaria.jpg.
+                         Si no existe, se usa portada.jpg teñida de carmesí.
+  musica/legendaria.mp3  Canción de la pantalla de ruta en la Ruta Legendaria.
+                         Si no existe, suena titulo.mp3.

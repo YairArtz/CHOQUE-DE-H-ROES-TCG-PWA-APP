@@ -22,6 +22,9 @@ RUTA LEGENDARIA (RUTA II)
   rivales2.txt           Los 15 rivales de la Ruta II (mismo formato que rivales.txt).
                          Se desbloquea en cada partida al vencer al jefe de la Ruta I.
                          Dificultad auto: combates 1-7 DIFÍCIL, 8-15 MUY DIFÍCIL.
+                         Rivales 9-15: sus barajas usan las cartas PROTOTIPO de la carpeta
+                         cartas_3 (prototipos_001…039). Solo existen en la Ruta Legendaria:
+                         no están en la Galería ni en el Constructor, así que el jugador no puede usarlas.
   personajes/rival2_01.png … rival2_15.png   (900×1350 px)
   fondos/fondo2_01.jpg … fondo2_15.jpg        (1920×1080 px)
   portada2.jpg           Fondo de la pantalla de ruta mientras juegas la Ruta Legendaria (1920×1080 px).

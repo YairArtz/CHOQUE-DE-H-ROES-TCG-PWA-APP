@@ -65,8 +65,27 @@ RUTA CAÓTICA (RUTA IV)
   musica/caotica.mp3     Canción de la pantalla de ruta en la Ruta Caótica.
                          Si no existe, suena epica.mp3.
 
+RUTA HEROICA (RUTA V)
+  rivales5.txt           Los 16 rivales de la Ruta V (mismo formato que rivales.txt).
+                         Se desbloquea en cada partida al completar la Ruta Caótica.
+                         REGLA HEROICA: tu baraja solo puede llevar 1 copia de cada carta en la BP y la B.SOP,
+                         respetando la banlist (cartas-limitadas.json). La Baraja de Almas es la única excepción.
+                         Antes de pelear, el LOBBY HEROICO revisa tu baraja (botón «🛡 LOBBY» en la pantalla de ruta).
+                         Rivales en dificultad CAÓTICA; el jefe final usa la dificultad CREADOR.
+                         Campos extra (opcionales) para jefes:
+                           borrador = 2   → niega hasta 2 cartas, habilidades o llamados tuyos en el combate
+                           revivir = 10   → la primera vez que llega a 0 corazones, regresa con 10
+  personajes/rival5_01.png … rival5_16.png   (900×1350 px · el 16 es Yair Artz, el Creador)
+  fondos/fondo5_01.jpg … fondo5_16.jpg        (1920×1080 px)
+                         Si un rival no tiene fondo, se usa un fondo dorado de rayos automático.
+  portada5.jpg           Fondo de la pantalla de ruta en la Ruta Heroica (1920×1080 px).
+                         También sirve portada5.png o fondos/heroica.jpg.
+                         Si no existe: fondo dorado con rayos de sol girando.
+  musica/heroica.mp3     Canción de la pantalla de ruta y del lobby en la Ruta Heroica.
+                         Si no existe, suena caotica.mp3 (o titulo.mp3).
+
 CRÉDITOS
-  Cada ruta tiene sus propios créditos: I = 5 · II = 5 · III = 3 · IV = 3.
+  Cada ruta tiene sus propios créditos: I = 5 · II = 5 · III = 3 · IV = 3 · V = 3.
   Al completar una ruta por primera vez, los créditos que te sobren (máx. 3) se suman como bonus
-  a la siguiente ruta. Rutas Épica y Caótica: al vencer al rival 5 ganas un SELLO; si después haces GAME OVER
+  a la siguiente ruta. Rutas Épica, Caótica y Heroica: al vencer al rival 5 ganas un SELLO; si después haces GAME OVER
   vuelves al combate 6 en lugar del 1.

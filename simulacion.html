@@ -1028,7 +1028,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v56';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v57';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -4443,7 +4443,7 @@ async function announce(o,cid,kind,where,extra){
 function cpuThreat(ev){
   const c=C[ev.cid];
   if(ev.kind==='ataque') return true;
-  if(ev.kind==='llamado') return c.type==='amalgama'||(c.cost||0)>=(G&&nivelAlto()?5:6)||(G&&nivelAlto()&&!!ev.especial&&SCORE(ev.cid)>=45);
+  if(ev.kind==='llamado') return c.type==='amalgama'||(c.cost||0)>=(G&&nivelCreador()?4:G&&nivelAlto()?5:6)||(G&&nivelAlto()&&!!ev.especial&&SCORE(ev.cid)>=45);
   if(G&&nivelAlto()&&ev.kind==='habilidad'&&isChar(c.id)&&SCORE(c.id)>=60) return true;
   const a=ev.accs||new Set();
   return ['destruir_campo_rival','retornar_campo_bp','confinar_objetivo','descartar_azar_rival','llamar_especial','retornar_almas_mictlan','destruir_sector_arena'].some(x=>a.has(x));
@@ -4685,6 +4685,13 @@ async function offerResponses(ev){
   if(G._noNeg) return;
   if(C[ev.cid]&&C[ev.cid].noNeg&&ev.kind==='activacion'){lg('💎 <b>'+C[ev.cid].name+'</b>: su efecto no puede ser negado.','var(--muted)');return;}
   let opts=responsesFor(r,ev);
+  if(r==='cpu'&&G.borrador>0&&ev.o==='player'&&['llamado','activacion','habilidad'].includes(ev.kind)&&!ev.negated){
+    const vale=cpuThreat(ev)&&(ev.kind!=='llamado'||C[ev.cid].type==='amalgama'||SCORE(ev.cid)>=45||G.cpu.hp<=6);
+    opts=opts.concat([{label:'✒️ Borrador del Creador',cpu:vale,run:async()=>{
+      if(ev.negated||!(G.borrador>0))return;G.borrador--;ev.negated=true;ev.fate=ev.kind==='habilidad'?'queda':'mictlan';ev.by='cpu';
+      bannerCreador('✒️ BORRADOR DEL CREADOR',(ARCADE&&ARCADE.nombre||'El rival')+' borra '+(ev.kind==='llamado'?'el llamado de ':'')+C[ev.cid].name);
+      lg('✒️ <b>BORRADOR DEL CREADOR</b>: '+arcadeEsc(ARCADE&&ARCADE.nombre||'CPU')+' borra <b>'+C[ev.cid].name+'</b> de la historia. (Le quedan '+G.borrador+')','#ffd166');playSound('destroy');}}]);
+  }
   if(C[ev.cid]&&C[ev.cid].costoNegar&&r==='cpu'&&G.cpu.hp<=C[ev.cid].costoNegar+1) opts=[];
   if(!opts.length) return;
   let pick=null;
@@ -5652,6 +5659,14 @@ function initGame(){
 function checkEnd(){
   if(!G) return true;
   if(G.over) return true;
+  if(G.cpu.hp<=0&&G.revivir>0&&!G._revivio){
+    G._revivio=true;G.cpu.hp=G.revivir;
+    for(let k=0;k<2&&G.cpu.bp.length;k++)drawFrom('cpu','bp');
+    G.player.pj.forEach(p=>{if(p){p.resting=true;p.attacked=true;}});
+    bannerCreador('📖 SEGUNDA EDICIÓN',(ARCADE&&ARCADE.nombre||'El rival')+' reescribe su historia: vuelve con '+G.revivir+' corazones');
+    lg('📖 <b>SEGUNDA EDICIÓN</b>: '+arcadeEsc(ARCADE&&ARCADE.nombre||'CPU')+' se niega a perder. Regresa con <b>'+G.revivir+'</b> corazones, roba 2 cartas y tus personajes quedan agotados este turno.','#ffd166');
+    playSound('victory');renderAll();return false;
+  }
   if(G.cpu.hp<=0){endGame(true,'Redujiste los corazones de CPU a 0');return true;}
   if(G.player.hp<=0){endGame(false,'CPU redujo tus corazones a 0');return true;}
   if(!G.cpu.bp.length&&G.active==='cpu'&&G.phase==='cpu'){/* se revisa al robar */}
@@ -6697,7 +6712,8 @@ function cpuNecesitaAlma(cid){
   return n<3&&at<6;                                    // con 3 almas o valor 6 ya no hace falta más
 }
 // Dificultad de la CPU (Arcade): fácil y medio cometen errores; muy difícil empieza con más corazones
-function nivelAlto(){return !!G&&(G.cpuNivel==='epico'||G.cpuNivel==='caotico');}
+function nivelAlto(){return !!G&&(G.cpuNivel==='epico'||G.cpuNivel==='caotico'||G.cpuNivel==='creador');}
+function nivelCreador(){return !!G&&G.cpuNivel==='creador';}
 function cpuFalla(f){const lv={facil:.45,medio:.2}[G&&G.cpuNivel]||0;return Math.random()<lv*(f||1);}
 function cpuQuiereMano(cid,e){
   const acc=new Set((e.pasos||[e]).map(s=>s.accion));
@@ -7475,7 +7491,7 @@ function arcadePreparar(){
   DSEL.jugador=ARCADE.jugador; DSEL.cpu=ARCADE.cpu;
   document.getElementById('deckSel').hidden=true;
   document.getElementById('bootScreen').classList.add('arcade');
-  const NIV={facil:'FÁCIL',medio:'MEDIO',dificil:'DIFÍCIL',muy_dificil:'MUY DIFÍCIL',epico:'☠ ÉPICO',caotico:'🌀 CAÓTICO'};
+  const NIV={facil:'FÁCIL',medio:'MEDIO',dificil:'DIFÍCIL',muy_dificil:'MUY DIFÍCIL',epico:'☠ ÉPICO',caotico:'🌀 CAÓTICO',creador:'👑 CREADOR'};
   document.getElementById('bootStatus').innerHTML='🕹 <b style="color:var(--gold2)">MODO ARCADE</b> · Combate '+ARCADE.ronda+'/'+ARCADE.total+(ARCADE.jefe?' · <b style="color:#ff4d6d">JEFE FINAL</b>':'')+' · Dificultad '+(NIV[ARCADE.nivel]||ARCADE.nivel);
   const vs=document.getElementById('bootVs');
   if(vs){
@@ -7495,7 +7511,10 @@ function arcadePreparar(){
   if(ARCADE&&G){
     arsReset();
     G.cpuNivel=ARCADE.nivel||'medio';
-    const extra=(['muy_dificil','epico','caotico'].includes(ARCADE.nivel)?3:0)+(ARCADE.corazonesExtra||0);
+    G.borrador=+ARCADE.borrador||0; G.revivir=+ARCADE.revivir||0;
+    if(G.borrador||G.revivir){const pw=[G.borrador?'✒️ Borrador del Creador ×'+G.borrador+' (niega tus cartas, habilidades o llamados)':'',G.revivir?'📖 Segunda Edición (la primera vez que llegue a 0 corazones, regresa con '+G.revivir+')':''].filter(Boolean);
+      lg('👑 <b>PODERES DEL JEFE</b> · '+pw.join(' · ')+'.','#ffd166');}
+    const extra=(['muy_dificil','epico','caotico','creador'].includes(ARCADE.nivel)?3:0)+(ARCADE.corazonesExtra||0);
     if(extra){G.cpu.hp+=extra;lg('🕹 '+arcadeEsc(ARCADE.nombre)+' empieza con '+G.cpu.hp+' corazones.','#ff4d6d');}
     // v52 · Ruta Épica: poderes del rival (mano extra, almas activas desde el inicio, robo extra por turno)
     {const me=+ARCADE.manoExtra||0, ae=+ARCADE.almasExtra||0;
@@ -7509,6 +7528,12 @@ function arcadePreparar(){
     renderAll();
   }
   return r;};}
+function bannerCreador(t,sub){try{
+  let b=document.getElementById('creadorBanner');
+  if(!b){b=document.createElement('div');b.id='creadorBanner';b.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;background:radial-gradient(ellipse at center,rgba(255,209,102,.35),rgba(0,0,0,.75) 70%);opacity:0;transition:opacity .35s';document.body.appendChild(b);}
+  b.innerHTML='<div style="font-family:Orbitron,sans-serif;font-weight:900;font-size:clamp(20px,5vw,44px);color:#ffe9a8;letter-spacing:3px;text-shadow:0 0 12px #ffb300,0 0 30px #ff7a00,0 2px 0 #000;text-align:center;padding:0 16px">'+t+'</div><div style="margin-top:10px;font-size:clamp(12px,2.6vw,18px);color:#fff;text-shadow:0 1px 4px #000;text-align:center;padding:0 16px">'+arcadeEsc(sub||'')+'</div>';
+  b.style.opacity='1';clearTimeout(b._t);b._t=setTimeout(()=>{b.style.opacity='0';},2200);
+}catch(e){}}
 // Estadísticas de la partida para los logros del Arcade (solo cuentan tus acciones)
 let ARS=null;
 function arsReset(){ARS={amal:0,esp:0,dios:0,sectores:0,arenas:0,pjMax:0,maxGolpe:0,maxDef:0};}

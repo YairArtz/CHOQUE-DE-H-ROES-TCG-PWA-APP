@@ -99,6 +99,33 @@ html.epica .ember.b{background:#ffb3b3;box-shadow:0 0 6px #ff4d6d}
 html.epica #grecas{opacity:.07;filter:hue-rotate(-40deg) saturate(2)}
 html.epica .h1{background:linear-gradient(180deg,#ffd6d6 0%,#ff2244 50%,#6b0010 100%);-webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 0 12px rgba(255,0,40,.6))}
 html.epica .node.done .med{filter:grayscale(.3) sepia(.3) hue-rotate(-30deg)}
+/* v2.5 · Ruta CAÓTICA: colores que mutan, glitch y fractura */
+.pill.cao{height:38px;padding:0 16px;font-size:10px;color:#e8fffb;border:1px solid #00ffd0;letter-spacing:2px;
+  background:linear-gradient(120deg,rgba(60,0,90,.95),rgba(0,70,80,.95),rgba(90,0,60,.95));background-size:300% 300%;animation:caoFondo 4s ease infinite;
+  text-shadow:2px 0 #ff00c8,-2px 0 #00ffe1;box-shadow:0 0 10px rgba(0,255,208,.6),0 0 24px rgba(200,0,255,.5)}
+.pill.cao.pulse{animation:caoFondo 4s ease infinite,caoGlitch 1.8s steps(1) infinite}
+.pill.cao.on{border-color:#ffe066;box-shadow:0 0 12px #00ffd0,0 0 30px rgba(200,0,255,.75),0 0 0 2px rgba(255,224,102,.55)}
+.pill.cao.lock{background:rgba(10,10,20,.9);color:#5c7a78;border-color:#20363a;box-shadow:none;text-shadow:none;animation:none}
+@keyframes caoFondo{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+@keyframes caoGlitch{0%,86%,100%{transform:none}88%{transform:translate(2px,-1px) skewX(-6deg)}91%{transform:translate(-2px,1px) skewX(5deg)}94%{transform:translate(1px,0)}}
+#bg.cao{filter:saturate(1.3) contrast(1.15) brightness(.7);animation:caoHue 14s linear infinite}
+#bg.cao::before{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(ellipse 50% 40% at 25% 30%,rgba(200,0,255,.32),transparent 70%),radial-gradient(ellipse 50% 40% at 75% 70%,rgba(0,255,200,.26),transparent 70%),
+  repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 3px),radial-gradient(ellipse at center,transparent 35%,rgba(0,0,0,.9) 100%);animation:caoParpadeo 3.2s steps(1) infinite}
+#bg.cao.noimg{background:conic-gradient(from 0deg at 50% 55%,#1a0030,#002a2a,#2a0020,#001a33,#1a0030)}
+@keyframes caoHue{from{filter:saturate(1.3) contrast(1.15) brightness(.7) hue-rotate(0deg)}to{filter:saturate(1.3) contrast(1.15) brightness(.7) hue-rotate(360deg)}}
+@keyframes caoParpadeo{0%,92%,100%{opacity:1;transform:none}93%{opacity:.6;transform:translateX(6px)}95%{opacity:.9;transform:translateX(-4px)}97%{opacity:.7}}
+#grieta{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0;transition:opacity 1s;
+  background:linear-gradient(115deg,transparent 48.6%,rgba(0,255,220,.55) 49.2%,rgba(255,0,200,.5) 49.6%,transparent 50.4%),linear-gradient(62deg,transparent 70%,rgba(255,0,200,.35) 70.3%,transparent 70.8%);
+  animation:caoGlitch 2.6s steps(1) infinite}
+html.caotica #grieta{opacity:.7}
+html.caotica .ember{background:#00ffd5;box-shadow:0 0 6px #00ffd5,0 0 14px rgba(200,0,255,.7);animation-name:ember,caoColor}
+html.caotica .ember.b{background:#ff3df0;box-shadow:0 0 6px #ff3df0}
+@keyframes caoColor{0%{filter:hue-rotate(0)}100%{filter:hue-rotate(360deg)}}
+html.caotica #grecas{opacity:.08;filter:hue-rotate(140deg) saturate(2.5)}
+html.caotica .h1{background:linear-gradient(90deg,#00ffd5,#c04dff,#ff3df0,#00ffd5);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;animation:caoFondo 3s linear infinite;filter:drop-shadow(2px 0 #ff00c8) drop-shadow(-2px 0 #00ffe1)}
+.slot .rt.r4 b{color:#00ffd5;text-shadow:1px 0 #ff00c8,-1px 0 #00ffe1}.slot .rt.r4 .prog i{background:linear-gradient(90deg,#c04dff,#00ffd5,#ff3df0)}
+.lv-caotico{color:#00ffd5;text-shadow:1px 0 #ff00c8,-1px 0 #00ffe1}
 .slot .rt.r3 b{color:#ff2244;text-shadow:0 0 6px rgba(255,0,40,.6)}.slot .rt.r3 .prog i{background:linear-gradient(90deg,#6b0010,#ff2244)}
 .lv-epico{color:#ff2244;text-shadow:0 0 6px rgba(255,0,40,.7)}
 .pod{color:#ff6b7f;border-color:#ff2244;background:rgba(60,0,8,.6)}
@@ -342,7 +369,7 @@ html.epica .node.done .med{filter:grayscale(.3) sepia(.3) hue-rotate(-30deg)}
 </head>
 <body>
 <div id="stage">
-<div id="bg"></div><div id="niebla"></div><div id="grecas"></div><div id="scan"></div>
+<div id="bg"></div><div id="niebla"></div><div id="grieta"></div><div id="grecas"></div><div id="scan"></div>
 
 <!-- PORTADA -->
 <section class="scr on" id="sTitle">
@@ -432,7 +459,7 @@ html.epica .node.done .med{filter:grayscale(.3) sepia(.3) hue-rotate(-30deg)}
 // Combate: escribe "chh_arcade_match" y abre simulacion.html?modo=arcade;
 //          la simulación escribe "chh_arcade_result" y regresa a arcade.html?r=<id>
 // ════════════════════════════════════
-const ARC_VERSION='Arcade v2.4';
+const ARC_VERSION='Arcade v2.5';
 const STAGE=document.getElementById('stage');
 // ── Orientación horizontal ──
 const MOVIL=matchMedia('(pointer:coarse)').matches;
@@ -463,12 +490,12 @@ const CREDITOS=5;                    // créditos por ruta (estilo arcade)
 // v2.3 · Cada ruta tiene SUS PROPIOS créditos. Al completar una ruta por primera vez, los créditos que te
 // sobren (máx. BONUS_MAX) pasan como bonus a la siguiente. La Ruta Épica tiene menos créditos pero un SELLO
 // a la mitad: si pierdes todos los créditos después del sello, vuelves al sello y no al combate 1.
-const CRED_BASE={1:5,2:5,3:3}, BONUS_MAX=3, SELLO_EPICO=5;
-const RUTA_NOM={1:'I · ARCADE',2:'II · LEGENDARIA',3:'III · ÉPICA'};
+const CRED_BASE={1:5,2:5,3:3,4:3}, BONUS_MAX=3, SELLO_EPICO=5;
+const RUTA_NOM={1:'I · ARCADE',2:'II · LEGENDARIA',3:'III · ÉPICA',4:'IV · CAÓTICA'};
 function credBase(n){return CRED_BASE[n]||CREDITOS;}
 function creditos(g,n){return g&&g.creditos!=null?g.creditos:credBase(n||rutaN(g));}
 function monedas(g,n){n=n||rutaN(g);const c=creditos(g,n),tot=Math.max(credBase(n),c);return '<span class="coins" title="Créditos de esta ruta">'+'<i></i>'.repeat(c)+'<i class="off"></i>'.repeat(Math.max(0,tot-c))+'</span>';}
-const NIV={facil:'FÁCIL',medio:'MEDIO',dificil:'DIFÍCIL',muy_dificil:'MUY DIFÍCIL',epico:'☠ ÉPICO'};
+const NIV={facil:'FÁCIL',medio:'MEDIO',dificil:'DIFÍCIL',muy_dificil:'MUY DIFÍCIL',epico:'☠ ÉPICO',caotico:'🌀 CAÓTICO'};
 const RIVALES2_DEFAULT=`# ════════════════════════════════════════════════════════════════════
 #  MODO ARCADE · RUTA LEGENDARIA (RUTA II)
 #  Se desbloquea al completar la Ruta I en esa partida.
@@ -696,6 +723,170 @@ derrota = Cenizas. Solo cenizas.
 # Con cartas PROTOTIPO (carpeta cartas_3, solo Ruta Legendaria):
 # r2_prision (Évolotl) · r2_dragones (EX-Pada / Koatl Campeón) · r2_forja (Héroes Invitados)
 # r2_nexotlan (Medallón) · r2_desatados (Temak) · r2_sangre (Mictlán) · r2_wulfenita
+`;
+const RIVALES4_DEFAULT=`# ════════════════════════════════════════════════════════════════════
+#  MODO ARCADE · RUTA CAÓTICA (RUTA IV)
+#  Se desbloquea al completar la Ruta Épica en esa partida.
+#  Mismo formato que rivales.txt. Dificultad CAÓTICA en toda la ruta:
+#  las barajas RESPETAN la banlist, pero la CPU juega al máximo nivel:
+#  no comete errores, no activa cartas sin objetivo, no destruye su propio
+#  campo sin ganar ventaja, niega lo peligroso y busca el golpe letal.
+#  También acepta los campos mano / almas / robo de la Ruta Épica (aquí no se usan).
+# ════════════════════════════════════════════════════════════════════
+
+[1]
+nombre = Tuna Chan Toon
+titulo = La Suplente Imposible
+baraja = r4_tuna
+carta = tuna_toon
+imagen = rival4_01.png
+fondo = fondo4_01.jpg
+musica = musica_choque/pista_6.mp3
+color = #ff9ad5
+dificultad = caotico
+entrada = ¿Materiales? Yo soy TODOS los materiales. | ¡Que empiece la función!
+victoria = ¡Se acabó la caricatura!… por hoy.
+derrota = ¡Y eso es todo, amigos!
+
+[2]
+nombre = Metal X, Koatl
+titulo = El Núcleo Atómico
+baraja = r4_metal
+carta = p3_metal_x_koatl
+imagen = rival4_02.png
+fondo = fondo4_02.jpg
+musica = musica_choque/pista_7.mp3
+color = #9fe7ff
+dificultad = caotico
+corazones = 1
+entrada = Fusión completada. | Ningún efecto tuyo me alcanza dentro del laboratorio.
+victoria = Reacción en cadena… detenida.
+derrota = Elemento inestable eliminado.
+
+[3]
+nombre = Grandor el León
+titulo = Rey de los Reencarnados
+baraja = r4_grandor
+carta = p3_grandor
+imagen = rival4_03.png
+fondo = fondo4_03.jpg
+musica = musica_choque/pista_9.mp3
+color = #ffb347
+dificultad = caotico
+corazones = 1
+entrada = Mi manada no muere. | Solo cambia de piel.
+victoria = El león… vuelve a dormir.
+derrota = Ruge conmigo… o cae.
+
+[4]
+nombre = Évolotl, Were Poxak
+titulo = La Mutación Final
+baraja = r4_werepoxak
+carta = p3_were_poxak
+imagen = rival4_04.png
+fondo = fondo4_04.jpg
+musica = musica_choque/pista_4.mp3
+color = #7dff6b
+dificultad = caotico
+corazones = 1
+entrada = Ya no soy un axolotl. | Soy lo que viene después.
+victoria = Mi forma… se deshace…
+derrota = Adaptarse o extinguirse.
+
+[5]
+nombre = Koatl, El Campeón Dragón
+titulo = Furia de Cristal y Jade
+baraja = r4_campeon
+carta = p3_koatl_campeon
+imagen = rival4_05.png
+fondo = fondo4_05.jpg
+musica = musica_choque/pista_2.mp3
+color = #3ad6a0
+dificultad = caotico
+corazones = 2
+entrada = Koatl y Vulcar en un solo cuerpo. | Prepárate para el SELLO… si llegas.
+victoria = Ganaste el SELLO. Lo merecías.
+derrota = Un campeón no se rinde. Tú sí.
+
+[6]
+nombre = Micté, Dama del Mictlán
+titulo = Señora de las Ánimas
+baraja = r4_micte
+carta = p3_micte_dama
+imagen = rival4_06.png
+fondo = fondo4_06.jpg
+musica = musica_choque/pista_8.mp3
+color = #c084ff
+dificultad = caotico
+corazones = 2
+entrada = Todo lo que envías al Mictlán… | yo lo recibo.
+victoria = Regresa a la luz… por ahora.
+derrota = Tu ánima ya tiene dueña.
+
+[7]
+nombre = Volkot, Dragón Defensor Feroz
+titulo = El Bastión Viviente
+baraja = r4_volkot
+carta = p3_volkot_dragon_feroz
+imagen = rival4_07.png
+fondo = fondo4_07.jpg
+musica = musica_choque/pista_12.mp3
+color = #4fe0ff
+dificultad = caotico
+corazones = 2
+entrada = Cada defensor a mi lado | es una muralla más.
+victoria = El bastión… ha caído.
+derrota = Nadie atraviesa a los defensores.
+
+[8]
+nombre = D´ Absoluta Ornamentum
+titulo = La Emperatriz Absoluta
+baraja = r4_absoluta
+carta = p3_dabsoluta
+imagen = rival4_08.png
+fondo = fondo4_08.jpg
+musica = musica_choque/pista_14.mp3
+color = #e6e6ff
+dificultad = caotico
+corazones = 3
+entrada = Destruyo una carta cada turno. | Y regreso cada vez que caigo.
+victoria = Absoluta… no. Solo mortal.
+derrota = Arrodíllate ante la corte.
+
+[9]
+nombre = Ixchell, Conspiradora Insurgente
+titulo = La Traidora del Nexo
+baraja = r4_ixchell
+carta = p3_ixchell
+imagen = rival4_09.png
+fondo = fondo4_09.jpg
+musica = musica_choque/pista_3.mp3
+color = #ff4d6d
+dificultad = caotico
+corazones = 3
+entrada = Llama a quien quieras. | Yo decido si llega al campo.
+victoria = La insurrección… terminó.
+derrota = Tu ejército ahora es mío.
+
+[10]
+nombre = Tezcatlipoca
+titulo = El Espejo Humeante
+baraja = r4_tezca
+carta = tezcatlipoca
+imagen = rival4_10.png
+fondo = fondo4_10.jpg
+musica = musica_choque/pista_15.mp3
+color = #00ffd5
+dificultad = caotico
+corazones = 4
+entrada = Mira el espejo humeante. | Lo que ves es el caos… y el caos soy yo.
+victoria = El humo se disipa… | y tú sigues en pie. Eres el dueño del caos.
+derrota = El espejo se rompe. Tú con él.
+
+# ── BARAJAS DE ESTA RUTA (exclusivas del Arcade · respetan la banlist) ──
+# r4_tuna · r4_metal · r4_grandor · r4_werepoxak · r4_campeon
+# r4_micte · r4_volkot · r4_absoluta · r4_ixchell · r4_tezca
+# Extra disponibles: r4_grace (Marea de Grace) · r4_bellcblu (Dojo del Caos)
 `;
 const RIVALES3_DEFAULT=`# ════════════════════════════════════════════════════════════════════
 #  MODO ARCADE · RUTA ÉPICA (RUTA III)
@@ -1005,15 +1196,16 @@ derrota = Tu alma ya me pertenece.`;
 const $=id=>document.getElementById(id);
 const esc=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 // ── Rutas: I (rivales.txt) y II · Legendaria (rivales2.txt, se desbloquea al completar la I) ──
-let RUTAS={1:[],2:[],3:[]};
+let RUTAS={1:[],2:[],3:[],4:[]};
 const CAMPOS_RUTA=['ronda','victorias','derrotas','creditos','completado','historial','gameovers','goRuta','vueltas','rejugadas','sello','credIni'];
-function rutaN(g){return g&&(g.ruta===2||g.ruta===3)&&RUTAS[g.ruta].length?g.ruta:1;}
+function rutaN(g){return g&&(g.ruta===2||g.ruta===3||g.ruta===4)&&RUTAS[g.ruta].length?g.ruta:1;}
 function rutaDe(g){return RUTAS[rutaN(g)];}
 function usarRuta(g){RIV=rutaDe(g);}
 function rutaCompleta(g,n){if(!g)return false;if(g['r'+n+'Completa'])return true;const d=datosRuta(g,n);return !!d&&(!!d.completado||(d.vueltas||0)>0);}
 function r2Desbloqueada(g){return !!g&&RUTAS[2].length>0&&(rutaCompleta(g,1)||rutaN(g)>=2||!!(g.rutas&&g.rutas[2]));}
 function r3Desbloqueada(g){return !!g&&RUTAS[3].length>0&&(rutaCompleta(g,2)||rutaN(g)===3||!!(g.rutas&&g.rutas[3]));}
-function rutaLibre(g,n){return n===1?true:n===2?r2Desbloqueada(g):r3Desbloqueada(g);}
+function r4Desbloqueada(g){return !!g&&RUTAS[4].length>0&&(rutaCompleta(g,3)||rutaN(g)===4||!!(g.rutas&&g.rutas[4]));}
+function rutaLibre(g,n){return n===1?true:n===2?r2Desbloqueada(g):n===3?r3Desbloqueada(g):r4Desbloqueada(g);}
 function nuevaRutaDatos(g,n){const bono=Math.min(BONUS_MAX,(g.bonus&&g.bonus[n])||0);if(g.bonus)delete g.bonus[n];
   return {ronda:0,victorias:0,derrotas:0,creditos:credBase(n)+bono,credIni:credBase(n)+bono,completado:false,historial:[],gameovers:0,goRuta:false,vueltas:0,rejugadas:[],sello:0,_bono:bono};}
 function cambiarRuta(n){
@@ -1030,7 +1222,7 @@ function cambiarRuta(n){
 }
 // Datos de una ruta del slot (la activa vive arriba; la otra en g.rutas[n])
 function datosRuta(g,n){return rutaN(g)===n?g:(g.rutas&&g.rutas[n])||null;}
-function r2Iniciada(g){return !!g&&RUTAS[2].length>0&&(rutaN(g)>=2||!!(g.rutas&&(g.rutas[2]||g.rutas[3])));}
+function r2Iniciada(g){return !!g&&RUTAS[2].length>0&&(rutaN(g)>=2||!!(g.rutas&&(g.rutas[2]||g.rutas[3]||g.rutas[4])));}
 function rIniciada(g,n){return n===1||(!!g&&RUTAS[n].length>0&&(rutaN(g)===n||!!(g.rutas&&g.rutas[n])));}
 let RIV=[], DATA=null, CARD={}, GALI={}, DECKS=[], NEWSEL=null;
 
@@ -1050,6 +1242,7 @@ function parseRivales(txt){
 function nivelDe(r,i,total){
   const d=(r.dificultad||'auto').toLowerCase().replace(/\s+/g,'_').normalize('NFD').replace(/[̀-ͯ]/g,'');
   if(NIV[d]) return d;
+  if(r._ruta===4) return 'caotico';                         // Ruta Caótica
   if(r._ruta===3) return 'epico';                           // Ruta Épica
   if(r._ruta===2) return i<7?'dificil':'muy_dificil';      // Ruta Legendaria
   const q=i/Math.max(1,total);           // reparto progresivo en cuartos
@@ -1101,7 +1294,7 @@ async function usarBolsa(){const j=sesionJug();if(!j)return {ok:false,msg:'Inici
     if(d&&d.status==='ok'){setBolsa(d.bolsa|0);return {ok:true};}
     if(d&&typeof d.bolsa==='number')setBolsa(d.bolsa);return {ok:false,msg:(d&&d.message)||'No se pudo usar el crédito.'};}
   catch(e){return {ok:false,msg:'Error de conexión. Intenta de nuevo.'};}}
-function aplicarGameOver(g){const rn=rutaN(g);g.gameovers=(g.gameovers||0)+1;g.goRuta=true;g.ronda=rn===3&&g.sello>0?g.sello:0;g.creditos=credBase(rn);g.credIni=g.creditos;delete g.pendienteGO;}
+function aplicarGameOver(g){const rn=rutaN(g);g.gameovers=(g.gameovers||0)+1;g.goRuta=true;g.ronda=rn>=3&&g.sello>0?g.sello:0;g.creditos=credBase(rn);g.credIni=g.creditos;delete g.pendienteGO;}
 function ofrecerContinuar(i,res){
   const n=bolsa(),g=slot();
   modal('🪙 ¿CONTINUAR?','Te quedaste sin créditos en esta ruta.<br><br>Tienes <b style="color:#ffd166">'+n+'</b> crédito'+(n===1?'':'s')+' en tu bolsa (comprados en la Tienda del Héroe). Usa uno para seguir en el combate '+((g.ronda||0)+1)+', o acepta el GAME OVER.',
@@ -1142,8 +1335,8 @@ function renderSlots(){
       const b=DECKS.find(d=>d.id===g.baraja), r=RIV[Math.min(g.ronda,RIV.length-1)], lv=nivelDe(r||{},Math.min(g.ronda,RIV.length-1),RIV.length);
       const pct=Math.round(100*Math.min(g.ronda,RIV.length)/RIV.length);
       el.innerHTML+='<div class="deck">'+avatarHTML(deckPortada(b))+'<div style="min-width:0"><b>'+esc(g.nombre||'Jugador')+'</b><small>'+esc(b?b.nombre:g.barajaNombre||g.baraja)+'</small>'+
-        (rutaN(g)===2?'<small style="color:#ff4d6d;font-family:Orbitron,sans-serif;font-size:8px;letter-spacing:2px">★ RUTA LEGENDARIA</small>':rutaN(g)===3?'<small style="color:#ff2244;font-family:Orbitron,sans-serif;font-size:8px;letter-spacing:2px;text-shadow:0 0 6px #ff0022">☠ RUTA ÉPICA</small>':'')+'<small>'+(g.completado?'👑 RUTA COMPLETADA':'Siguiente: <b style="font-size:12px;color:#fff">'+esc(r?r.nombre:'')+'</b> <span class="badge lv-'+lv+'">'+NIV[lv]+'</span>')+'</small></div></div>'+
-        (r2Iniciada(g)?'<div class="rts">'+[1,2,3].filter(n=>rIniciada(g,n)).map(n=>{const d=datosRuta(g,n)||{},L=RUTAS[n].length,k=Math.min(d.ronda||0,L);
+        (rutaN(g)===2?'<small style="color:#ff4d6d;font-family:Orbitron,sans-serif;font-size:8px;letter-spacing:2px">★ RUTA LEGENDARIA</small>':rutaN(g)===3?'<small style="color:#ff2244;font-family:Orbitron,sans-serif;font-size:8px;letter-spacing:2px;text-shadow:0 0 6px #ff0022">☠ RUTA ÉPICA</small>':rutaN(g)===4?'<small style="color:#00ffd5;font-family:Orbitron,sans-serif;font-size:8px;letter-spacing:2px;text-shadow:1px 0 #ff00c8,-1px 0 #00ffe1">🌀 RUTA CAÓTICA</small>':'')+'<small>'+(g.completado?'👑 RUTA COMPLETADA':'Siguiente: <b style="font-size:12px;color:#fff">'+esc(r?r.nombre:'')+'</b> <span class="badge lv-'+lv+'">'+NIV[lv]+'</span>')+'</small></div></div>'+
+        (r2Iniciada(g)?'<div class="rts">'+[1,2,3,4].filter(n=>rIniciada(g,n)).map(n=>{const d=datosRuta(g,n)||{},L=RUTAS[n].length,k=Math.min(d.ronda||0,L);
             return '<div class="rt r'+n+(rutaN(g)===n?' act':'')+'"><b>'+RUTA_NOM[n]+'</b><div class="prog"><i style="width:'+Math.round(100*k/L)+'%"></i></div><span>'+(d.completado?'👑 ':'')+k+'/'+L+' · '+(d.victorias||0)+'V · '+creditos(d,n)+'🪙</span></div>';}).join('')+'</div>'
           :'<div class="prog"><i style="width:'+pct+'%"></i></div>')+
         '<div class="stats"><div><b>'+Math.min(g.ronda,RIV.length)+'/'+RIV.length+'</b><small>RIVALES</small></div><div><b>'+(g.victorias||0)+'</b><small>VICTORIAS</small></div><div><b>'+creditos(g)+'</b><small>CRÉDITOS</small></div></div>'+
@@ -1193,19 +1386,22 @@ function renderRuta(){
   const g=slot(); if(!g){go('sSlots');return;}
   usarRuta(g);
   const rn=rutaN(g);
-  $('rTitle').textContent=rn===3?'RUTA ÉPICA':rn===2?'RUTA LEGENDARIA':'RUTA ARCADE';
+  $('rTitle').textContent=rn===4?'RUTA CAÓTICA':rn===3?'RUTA ÉPICA':rn===2?'RUTA LEGENDARIA':'RUTA ARCADE';
   document.documentElement.classList.toggle('epica',rn===3);
+  document.documentElement.classList.toggle('caotica',rn===4);
   if(RUTAS[2].length){
-    const libre=r2Desbloqueada(g), libre3=r3Desbloqueada(g);
+    const libre=r2Desbloqueada(g), libre3=r3Desbloqueada(g), libre4=r4Desbloqueada(g);
     $('rRutas').innerHTML='<button class="pill'+(rn===1?' gold on':'')+'" data-ruta="1">I · ARCADE</button><button class="pill leg'+(rn===2?' on':'')+(!libre?' lock':(rn!==2&&!libre3?' pulse':''))+'" data-ruta="2">'+(libre?'★ II · LEGENDARIA':'🔒 II · LEGENDARIA')+'</button>'+
-      (RUTAS[3].length&&libre?'<button class="pill epi'+(rn===3?' on':'')+(!libre3?' lock':(rn!==3?' pulse':''))+'" data-ruta="3">'+(libre3?'☠ III · ÉPICA':'🔒 III · ÉPICA')+'</button>':'');
+      (RUTAS[3].length&&libre?'<button class="pill epi'+(rn===3?' on':'')+(!libre3?' lock':(rn!==3&&!libre4?' pulse':''))+'" data-ruta="3">'+(libre3?'☠ III · ÉPICA':'🔒 III · ÉPICA')+'</button>':'')+
+      (RUTAS[4].length&&libre3?'<button class="pill cao'+(rn===4?' on':'')+(!libre4?' lock':(rn!==4?' pulse':''))+'" data-ruta="4">'+(libre4?'🌀 IV · CAÓTICA':'🔒 IV · CAÓTICA')+'</button>':'');
     $('rRutas').querySelectorAll('[data-ruta]').forEach(b=>b.onclick=()=>{const n=+b.dataset.ruta;
       if(n===2&&!libre){modal('RUTA LEGENDARIA','Completa la Ruta I (vence al jefe final) para desbloquear 15 rivales nuevos con barajas devastadoras en dificultad DIFÍCIL y MUY DIFÍCIL.',[['ENTENDIDO','']]);return;}
       if(n===3&&!libre3){modal('☠ RUTA ÉPICA','Completa la Ruta Legendaria para desbloquearla.<br><br>'+RUTAS[3].length+' rivales en dificultad <b style="color:#ff2244">ÉPICA</b> con barajas que <b>ignoran la banlist</b> y poderes especiales. Solo '+credBase(3)+' créditos, más el bonus que te sobre de la Ruta Legendaria.',[['ENTENDIDO','']]);return;}
+      if(n===4&&!libre4){modal('🌀 RUTA CAÓTICA','Completa la Ruta Épica para desbloquearla.<br><br>'+RUTAS[4].length+' rivales nuevos en dificultad <b style="color:#00ffd5">CAÓTICA</b>: respetan la banlist, pero juegan mejor que nunca con las cartas más nuevas. Solo '+credBase(4)+' créditos, más el bonus que te sobre de la Ruta Épica.',[['ENTENDIDO','']]);return;}
       cambiarRuta(n);});
   } else $('rRutas').innerHTML='';
   const b=DECKS.find(d=>d.id===g.baraja);
-  $('rHead').innerHTML='<span class="hb tl"></span><span class="hb tr"></span><span class="hb bl"></span><span class="hb br"></span>'+avatarHTML(deckPortada(b))+'<div class="info"><b>'+esc(g.nombre)+'</b><small>'+esc(b?b.nombre:g.barajaNombre)+' · '+Math.min(g.ronda,RIV.length)+'/'+RIV.length+' rivales · '+(g.victorias||0)+' victorias · '+(g.derrotas||0)+' derrotas</small></div><div class="cred" id="rCred" title="¿Cómo funcionan los créditos?"><small>CRÉDITOS · '+RUTA_NOM[rn].split(' · ')[0]+' ⓘ</small>'+monedas(g)+(bolsa()?'<small class="bolsa">+'+bolsa()+' 🪙 EN TU BOLSA</small>':'')+(rn===3&&(g.sello||0)>0?'<small style="color:#ff6b7f;margin-top:3px">🔱 SELLO: COMBATE '+(g.sello+1)+'</small>':'')+'</div>';
+  $('rHead').innerHTML='<span class="hb tl"></span><span class="hb tr"></span><span class="hb bl"></span><span class="hb br"></span>'+avatarHTML(deckPortada(b))+'<div class="info"><b>'+esc(g.nombre)+'</b><small>'+esc(b?b.nombre:g.barajaNombre)+' · '+Math.min(g.ronda,RIV.length)+'/'+RIV.length+' rivales · '+(g.victorias||0)+' victorias · '+(g.derrotas||0)+' derrotas</small></div><div class="cred" id="rCred" title="¿Cómo funcionan los créditos?"><small>CRÉDITOS · '+RUTA_NOM[rn].split(' · ')[0]+' ⓘ</small>'+monedas(g)+(bolsa()?'<small class="bolsa">+'+bolsa()+' 🪙 EN TU BOLSA</small>':'')+(rn>=3&&(g.sello||0)>0?'<small style="color:#ff6b7f;margin-top:3px">🔱 SELLO: COMBATE '+(g.sello+1)+'</small>':'')+'</div>';
   $('rCred').onclick=()=>ayudaCreditos(rn);
   const N=RIV.length, map=$('map'), inn=$('mapIn');
   const W=Math.max(map.clientWidth,N*104+40), H=Math.max(map.clientHeight,250);
@@ -1248,10 +1444,10 @@ function renderRuta(){
 })();
 function ayudaCreditos(rn){
   modal('🪙 CRÉDITOS','<b>Cada ruta tiene sus propios créditos</b> y no se mezclan entre sí:<br>'+
-    [1,2,3].filter(n=>RUTAS[n].length).map(n=>'· '+RUTA_NOM[n]+': <b>'+credBase(n)+'</b> créditos').join('<br>')+
+    [1,2,3,4].filter(n=>RUTAS[n].length).map(n=>'· '+RUTA_NOM[n]+': <b>'+credBase(n)+'</b> créditos').join('<br>')+
     '<br><br>Pierdes 1 crédito por cada derrota. Si se acaban: <b>GAME OVER</b> y la ruta vuelve al combate 1 con sus créditos nuevos (tu baraja y estadísticas se conservan).'+
     '<br><br>🎁 <b>Bonus:</b> al completar una ruta por primera vez, los créditos que te sobren (máx. '+BONUS_MAX+') se suman a la siguiente ruta.'+
-    (RUTAS[3].length?'<br><br>🔱 <b>Sello Épico:</b> en la Ruta Épica, al vencer al rival '+SELLO_EPICO+' ganas un sello: si después te quedas sin créditos, vuelves al combate '+(SELLO_EPICO+1)+' en lugar del 1.':''),
+    (RUTAS[3].length?'<br><br>🔱 <b>Sello:</b> en las Rutas Épica y Caótica, al vencer al rival '+SELLO_EPICO+' ganas un sello: si después te quedas sin créditos, vuelves al combate '+(SELLO_EPICO+1)+' en lugar del 1.':''),
     [['ENTENDIDO','']]);
 }
 $('rFight').onclick=()=>{
@@ -1293,7 +1489,8 @@ function showVS(i,modo,res,opt){
   $('vsTitle').textContent=r.titulo||'';
   const b=DECKS.find(d=>d.id===g.baraja);
   const pods=poderes(r);
-  if(!r._fondo&&r._ruta===3) bg.style.backgroundImage='radial-gradient(ellipse at 70% 50%,'+acc+'44,transparent 55%),radial-gradient(ellipse at 50% 120%,#4a0008,#0a0001 60%,#000)';
+  if(!r._fondo&&r._ruta===4) bg.style.backgroundImage='radial-gradient(ellipse at 70% 45%,'+acc+'44,transparent 55%),conic-gradient(from 30deg at 60% 55%,#1a0030,#002a2a,#2a0020,#001a33,#1a0030)';
+  else if(!r._fondo&&r._ruta===3) bg.style.backgroundImage='radial-gradient(ellipse at 70% 50%,'+acc+'44,transparent 55%),radial-gradient(ellipse at 50% 120%,#4a0008,#0a0001 60%,#000)';
   $('vsMeta').innerHTML='<span class="badge lv-'+lv+'">'+NIV[lv]+'</span>'+(r.corazones?'<span class="badge" style="color:#ff4d6d">+'+esc(r.corazones)+' ❤</span>':'')+pods.map(x=>'<span class="badge pod" title="Poder épico">'+x+'</span>').join('')+(r.banlist==='no'||r._ruta===3?'<span class="badge pod" title="Su baraja ignora la banlist">⛓ SIN BANLIST</span>':'')+
     '<span class="vs-me">'+(avatarPerfil()?'<img src="'+esc(avatarPerfil())+'" alt="" style="width:44px;height:44px;border-radius:50%;border:2px solid var(--gold)">':PLAYER_IMG?'<img src="'+PLAYER_IMG+'" alt="">':'<img src="'+esc(deckPortada(b))+'" alt="">')+esc(g.nombre)+' · '+esc(b?b.nombre:g.barajaNombre)+'</span>'+
     (modo!=='intro'&&res&&res.turnos?'<span class="badge" style="color:#9fb3cc">'+res.turnos+' TURNOS</span>':'')+
@@ -1318,7 +1515,7 @@ function showVS(i,modo,res,opt){
   }
   go('sVS');
   musica(r._musica||null,modo==='intro');
-  if(opt.gameover) setTimeout(()=>{const rn=rutaN(g),se=rn===3&&(g.ronda||0)>0;modal('GAME OVER','Te quedaste sin créditos. '+(se?'🔱 Tu Sello Épico te salva: vuelves al combate '+(g.ronda+1):'La ruta vuelve a empezar desde el combate 1')+' con '+credBase(rn)+' créditos nuevos. Tu baraja y tus estadísticas se conservan.',[['ENTENDIDO','']]);},900);
+  if(opt.gameover) setTimeout(()=>{const rn=rutaN(g),se=rn>=3&&(g.ronda||0)>0;modal('GAME OVER','Te quedaste sin créditos. '+(se?'🔱 Tu Sello te salva: vuelves al combate '+(g.ronda+1):'La ruta vuelve a empezar desde el combate 1')+' con '+credBase(rn)+' créditos nuevos. Tu baraja y tus estadísticas se conservan.',[['ENTENDIDO','']]);},900);
 }
 function poderes(r){const o=[];const n=k=>parseInt(r[k],10)||0;
   if(n('mano'))o.push('🃏 +'+n('mano')+' CARTA'+(n('mano')>1?'S':'')+' INICIAL'+(n('mano')>1?'ES':''));
@@ -1349,7 +1546,7 @@ function procesarResultado(){
     (g.historial=g.historial||[]).push({ronda:i+1,won:res.won,turnos:res.turnos,ts:res.ts});
     const rn=rutaN(g);
     if(res.won){g.victorias=(g.victorias||0)+1;if(g.ronda===i)g.ronda=i+1;
-      if(rn===3&&g.ronda>=SELLO_EPICO&&!(g.sello>0)&&g.ronda<RIV.length){g.sello=SELLO_EPICO;g._sellonuevo=true;}
+      if(rn>=3&&g.ronda>=SELLO_EPICO&&!(g.sello>0)&&g.ronda<RIV.length){g.sello=SELLO_EPICO;g._sellonuevo=true;}
       if(g.ronda>=RIV.length){g.completado=true;
         const prim=!g['r'+rn+'Completa'];
         if(prim&&RUTAS[rn+1]&&RUTAS[rn+1].length){g._rnueva=rn+1;const b=Math.min(BONUS_MAX,creditos(g)-0);if(b>0&&!(g.rutas&&g.rutas[rn+1])){g.bonus=g.bonus||{};g.bonus[rn+1]=b;g._bonoNuevo=b;}}
@@ -1362,7 +1559,7 @@ function procesarResultado(){
   }
   const sn=g._sellonuevo; delete g._sellonuevo;
   saveSlots(s);
-  if(sn) setTimeout(()=>modal('🔱 SELLO ÉPICO','Venciste al rival '+SELLO_EPICO+' de la Ruta Épica. Si te quedas sin créditos, ya no vuelves al combate 1: regresas al combate '+(SELLO_EPICO+1)+'.',[['¡BIEN!','']]),2600);
+  if(sn) setTimeout(()=>modal('🔱 SELLO','Venciste al rival '+SELLO_EPICO+' de esta ruta. Si te quedas sin créditos, ya no vuelves al combate 1: regresas al combate '+(SELLO_EPICO+1)+'.',[['¡BIEN!','']]),2600);
   try{localStorage.removeItem('chh_arcade_result');}catch(e){}
   showVS(i,'res',res,{replay,gameover,continuar});
   evaluarLogros(g,res,replay,i);
@@ -1372,11 +1569,12 @@ function finalArcade(){
   const g=slot();
   const h=g.historial||[], tt=h.filter(x=>x.won).reduce((t,x)=>t+(x.turnos||0),0);
   const rnF=rutaN(g);
-  $('eSub').textContent=(g.nombre||'Jugador').toUpperCase()+' VENCIÓ A LOS '+RIV.length+' RIVALES'+(rnF===2?' DE LA RUTA LEGENDARIA':rnF===3?' DE LA RUTA ÉPICA':'');
+  $('eSub').textContent=(g.nombre||'Jugador').toUpperCase()+' VENCIÓ A LOS '+RIV.length+' RIVALES'+(rnF===2?' DE LA RUTA LEGENDARIA':rnF===3?' DE LA RUTA ÉPICA':rnF===4?' DE LA RUTA CAÓTICA':'');
   if(g._rnueva||g._r2nueva){const nx=g._rnueva||2, bo=g._bonoNuevo||0;setSlot(x=>{delete x._r2nueva;delete x._rnueva;delete x._bonoNuevo;});
     const txtB=bo?'<br><br>🎁 Te sobraron créditos: empiezas esa ruta con <b>+'+bo+' de bonus</b>.':'';
-    setTimeout(()=>modal(nx===3?'☠ RUTA ÉPICA DESBLOQUEADA':'🔓 RUTA LEGENDARIA DESBLOQUEADA',
-      nx===3?RUTAS[3].length+' rivales en dificultad <b style="color:#ff2244">ÉPICA</b>: juegan sin errores, sus barajas ignoran la banlist y cada uno tiene un poder especial. Elígela en la pantalla de Ruta: «III · ÉPICA».'+txtB
+    setTimeout(()=>modal(nx===4?'🌀 RUTA CAÓTICA DESBLOQUEADA':nx===3?'☠ RUTA ÉPICA DESBLOQUEADA':'🔓 RUTA LEGENDARIA DESBLOQUEADA',
+      nx===4?RUTAS[4].length+' rivales nuevos en dificultad <b style="color:#00ffd5">CAÓTICA</b>: respetan la banlist, pero juegan sin desperdiciar cartas y con las cartas más nuevas. Elígela en la pantalla de Ruta: «IV · CAÓTICA».'+txtB
+      :nx===3?RUTAS[3].length+' rivales en dificultad <b style="color:#ff2244">ÉPICA</b>: juegan sin errores, sus barajas ignoran la banlist y cada uno tiene un poder especial. Elígela en la pantalla de Ruta: «III · ÉPICA».'+txtB
             :'15 rivales nuevos con barajas devastadoras te esperan en dificultad DIFÍCIL y MUY DIFÍCIL. Elígela en la pantalla de Ruta: «II · LEGENDARIA».'+txtB,[['¡A PELEAR!','']]),2200);}
   $('eStats').innerHTML=[[g.victorias||0,'VICTORIAS'],[g.derrotas||0,'DERROTAS'],[tt,'TURNOS'],[(g.vueltas||0)+1,'VUELTA']].map(([v,t])=>'<div><b>'+v+'</b><small>'+t+'</small></div>').join('');
   go('sEnd');
@@ -1400,18 +1598,20 @@ AUD.addEventListener('error',()=>{_musUrl=null;});
 function muteUI(){$('mute').textContent=MUTE?'🔇':'🔊';}
 $('mute').onclick=()=>{MUTE=!MUTE;try{localStorage.setItem('chh_arcade_mute',MUTE?'1':'0');}catch(e){}muteUI();if(MUTE)AUD.pause();else if(_musUrl)AUD.play().catch(()=>{});};
 // Ruta Legendaria: fondo y canción propios (assets/arcade/portada2.jpg y musica/legendaria.mp3)
-let LEG_MUS=null, LEG_FALLA=false, BG_NORMAL=null, BG_LEG=null, EPI_MUS=null, EPI_FALLA=false, BG_EPI=null;
+let LEG_MUS=null, LEG_FALLA=false, BG_NORMAL=null, BG_LEG=null, EPI_MUS=null, EPI_FALLA=false, BG_EPI=null, CAO_MUS=null, CAO_FALLA=false, BG_CAO=null;
+function enCaotica(id){if(!['sRuta','sEnd'].includes(id))return false;const g=slot();return !!g&&rutaN(g)===4;}
 function enLegendaria(id){if(id!=='sRuta')return false;const g=slot();return !!g&&rutaN(g)===2;}
 function enEpica(id){if(!['sRuta','sEnd'].includes(id))return false;const g=slot();return !!g&&rutaN(g)===3;}
-function musMenu(id){if(enEpica(id))return EPI_MUS&&!EPI_FALLA?EPI_MUS:(LEG_MUS&&!LEG_FALLA?LEG_MUS:TITULO_MUS);return enLegendaria(id)&&LEG_MUS&&!LEG_FALLA?LEG_MUS:TITULO_MUS;}
+function musMenu(id){if(enCaotica(id))return CAO_MUS&&!CAO_FALLA?CAO_MUS:(EPI_MUS&&!EPI_FALLA?EPI_MUS:TITULO_MUS);if(enEpica(id))return EPI_MUS&&!EPI_FALLA?EPI_MUS:(LEG_MUS&&!LEG_FALLA?LEG_MUS:TITULO_MUS);return enLegendaria(id)&&LEG_MUS&&!LEG_FALLA?LEG_MUS:TITULO_MUS;}
 function ambiente(id){
-  const bg=$('bg'),leg=enLegendaria(id),epi=enEpica(id),img=epi?(BG_EPI||BG_LEG||BG_NORMAL):leg?(BG_LEG||BG_NORMAL):BG_NORMAL;
+  const bg=$('bg'),leg=enLegendaria(id),epi=enEpica(id),cao=enCaotica(id),img=cao?(BG_CAO||BG_NORMAL):epi?(BG_EPI||BG_LEG||BG_NORMAL):leg?(BG_LEG||BG_NORMAL):BG_NORMAL;
   bg.style.backgroundImage=img?'url("'+img+'")':'';bg.classList.toggle('img',!!img);
   bg.classList.toggle('leg',leg&&!BG_LEG);
-  bg.classList.toggle('epi',epi);bg.classList.toggle('noimg',epi&&!img);
-  document.documentElement.classList.toggle('epica',epi);
+  bg.classList.toggle('epi',epi);bg.classList.toggle('cao',cao);bg.classList.toggle('noimg',(epi||cao)&&!img);
+  document.documentElement.classList.toggle('epica',epi);document.documentElement.classList.toggle('caotica',cao);
 }
 AUD.addEventListener('error',()=>{if(LEG_MUS&&AUD.src&&AUD.src.indexOf('legendaria')>=0&&!LEG_FALLA){LEG_FALLA=true;if($('sRuta').classList.contains('on'))musica(musMenu('sRuta'));}
+  if(CAO_MUS&&AUD.src&&AUD.src.indexOf('caotica')>=0&&!CAO_FALLA){CAO_FALLA=true;if($('sRuta').classList.contains('on'))musica(musMenu('sRuta'));}
   if(EPI_MUS&&AUD.src&&AUD.src.indexOf('epica')>=0&&!EPI_FALLA){EPI_FALLA=true;if($('sRuta').classList.contains('on'))musica(musMenu('sRuta'));}});
 {const _go=go;go=function(id){_go(id);ambiente(id);if(['sTitle','sSlots','sNew','sRuta'].includes(id)&&TITULO_MUS)musica(musMenu(id));if(id==='sEnd')musica(FINAL_MUS||TITULO_MUS,true);};}
 let FINAL_MUS=null;
@@ -1441,6 +1641,8 @@ const LOGROS=[
   {id:'arc_epico',           cat:'ruta',nombre:'Héroe Épico',          emoji:'☠️',cond:'Completa la Ruta Épica.'},
   {id:'arc_inmortal',        cat:'ruta',nombre:'Inmortal',             emoji:'🩸',cond:'Completa la Ruta Épica sin sufrir un GAME OVER en ella.'},
   {id:'arc_sin_piedad',      cat:'ruta',nombre:'Sin Piedad',           emoji:'⚰️',cond:'Vence al jefe de la Ruta Épica sin perder ningún corazón.'},
+  {id:'arc_caotico',         cat:'ruta',nombre:'Señor del Caos',       emoji:'🌀',cond:'Completa la Ruta Caótica.'},
+  {id:'arc_caos_puro',       cat:'ruta',nombre:'Caos Puro',            emoji:'🧿',cond:'Completa la Ruta Caótica sin sufrir un GAME OVER en ella.'},
   // — Combate (dificultad Medio o superior) —
   {id:'arc_intacto',         cat:'combate',nombre:'Intocable',         emoji:'🛡️',cond:'Gana un combate sin perder ningún corazón.'},
   {id:'arc_relampago',       cat:'combate',nombre:'Relámpago',         emoji:'⚡',cond:'Gana un combate antes del turno 8.'},
@@ -1498,6 +1700,7 @@ function evaluarLogros(g,res,replay,i){
     if(g.goRuta) ok('arc_fenix');
     if(rutaN(g)===2) ok('arc_legendario');
     if(rutaN(g)===3){ok('arc_epico');if(!g.goRuta)ok('arc_inmortal');}
+    if(rutaN(g)===4){ok('arc_caotico');if(!g.goRuta)ok('arc_caos_puro');}
   }
   if(res.won&&jefe&&res.intacto&&rutaN(g)===3) ok('arc_sin_piedad');
   if(res.won&&jefe&&res.intacto) ok('arc_jefe_intacto');
@@ -1647,6 +1850,7 @@ let PLAYER_IMG=null;
   BG_NORMAL=portada||null;
   BG_LEG=await probarImg(DIR+'portada2.jpg')||await probarImg(DIR+'portada2.png')||await probarImg(DIR+'fondos/legendaria.jpg')||null;
   BG_EPI=await probarImg(DIR+'portada3.jpg')||await probarImg(DIR+'portada3.png')||await probarImg(DIR+'fondos/epica.jpg')||null;
+  BG_CAO=await probarImg(DIR+'portada4.jpg')||await probarImg(DIR+'portada4.png')||await probarImg(DIR+'fondos/caotica.jpg')||null;
   PLAYER_IMG=jug;
   RIV=parseRivales(txt||'');
   if(!RIV.length) RIV=parseRivales(RIVALES_DEFAULT);
@@ -1656,18 +1860,21 @@ let PLAYER_IMG=null;
   const txt3=await fetchTxt(DIR+'rivales3.txt');
   let R3=parseRivales(txt3||''); if(!R3.length) R3=parseRivales(RIVALES3_DEFAULT);
   R3.forEach(r=>r._ruta=3);
-  RUTAS={1:RIV,2:R2,3:R3};
+  const txt4=await fetchTxt(DIR+'rivales4.txt');
+  let R4=parseRivales(txt4||''); if(!R4.length) R4=parseRivales(RIVALES4_DEFAULT);
+  R4.forEach(r=>r._ruta=4);
+  RUTAS={1:RIV,2:R2,3:R3,4:R4};
   DATA=data||{cartas:[],barajas:[]};
   DATA.cartas.forEach(c=>CARD[c.id]=c);
   (Array.isArray(gal)?gal:(gal&&Object.values(gal).find(Array.isArray))||[]).forEach(x=>{if(x&&x.id!=null)GALI[String(x.id)]=x;});
   DECKS=(DATA.barajas||[]);
   // Imágenes de cada rival (si no existen, se usa el arte de su carta)
-  await Promise.all(RUTAS[1].concat(RUTAS[2],RUTAS[3]).map(async r=>{
+  await Promise.all(RUTAS[1].concat(RUTAS[2],RUTAS[3],RUTAS[4]).map(async r=>{
     r._img=r.imagen?await probarImg(DIR+'personajes/'+r.imagen):null;
     r._fondo=r.fondo?await probarImg(DIR+'fondos/'+r.fondo):null;
     r._musica=musPath(r.musica);
   }));
-  TITULO_MUS=musPath('titulo.mp3'); FINAL_MUS=musPath('final.mp3'); LEG_MUS=musPath('legendaria.mp3'); EPI_MUS=musPath('epica.mp3');
+  TITULO_MUS=musPath('titulo.mp3'); FINAL_MUS=musPath('final.mp3'); LEG_MUS=musPath('legendaria.mp3'); EPI_MUS=musPath('epica.mp3'); CAO_MUS=musPath('caotica.mp3');
   muteUI();
   sincronizarLogros();
   $('tStatus').textContent=data?'TOCA JUGAR':'⚠ NO SE PUDIERON LEER LAS BARAJAS';

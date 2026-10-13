@@ -49,8 +49,24 @@ RUTA ÉPICA (RUTA III)
   musica/epica.mp3       Canción de la pantalla de ruta en la Ruta Épica.
                          Si no existe, suena legendaria.mp3 (o titulo.mp3).
 
+RUTA CAÓTICA (RUTA IV)
+  rivales4.txt           Los rivales de la Ruta IV (mismo formato que rivales.txt).
+                         Se desbloquea en cada partida al completar la Ruta Épica.
+                         Dificultad CAÓTICA fija: la CPU no comete errores, busca el golpe letal,
+                         empieza con +3 corazones y además evita jugadas sin sentido
+                         (no roba con la mano llena, no llama sin zona libre, no destruye sin objetivo…).
+                         Sus barajas (r4_…) SÍ respetan la banlist.
+  personajes/rival4_01.png … rival4_10.png   (900×1350 px)
+  fondos/fondo4_01.jpg … fondo4_10.jpg        (1920×1080 px)
+                         Si un rival no tiene fondo, se usa un fondo violeta/cian automático.
+  portada4.jpg           Fondo de la pantalla de ruta en la Ruta Caótica (1920×1080 px).
+                         También sirve portada4.png o fondos/caotica.jpg.
+                         Si no existe: fondo de grietas violeta/cian con distorsión.
+  musica/caotica.mp3     Canción de la pantalla de ruta en la Ruta Caótica.
+                         Si no existe, suena epica.mp3.
+
 CRÉDITOS
-  Cada ruta tiene sus propios créditos: I = 5 · II = 5 · III = 3.
+  Cada ruta tiene sus propios créditos: I = 5 · II = 5 · III = 3 · IV = 3.
   Al completar una ruta por primera vez, los créditos que te sobren (máx. 3) se suman como bonus
-  a la siguiente ruta. Ruta Épica: al vencer al rival 5 ganas un SELLO; si después haces GAME OVER
+  a la siguiente ruta. Rutas Épica y Caótica: al vencer al rival 5 ganas un SELLO; si después haces GAME OVER
   vuelves al combate 6 en lugar del 1.

@@ -1028,7 +1028,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v51';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v52';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -1371,6 +1371,7 @@ function validarReglas(m){
     if(R.barajaAlmas&&m._n.ba!==R.barajaAlmas) av.push('la BA tiene '+m._n.ba+' cartas (deben ser '+R.barajaAlmas+').');
     if(R.barajaSoporteMax!=null&&m._n.bs>R.barajaSoporteMax) av.push('la B.SOP tiene '+m._n.bs+' cartas (máximo '+R.barajaSoporteMax+').');
     const cnt={};[...(m.bp||[]),...(m.ba||[]),...(m.bs||[])].forEach(e=>{const n=C[e.id].name;cnt[n]=(cnt[n]||0)+(e.copias||1);});
+    if(m.sinBanlist) return;   // v52 · Ruta Épica: barajas que ignoran la banlist a propósito
     Object.entries(cnt).forEach(([n,c])=>{
       const est=LIM[K(n).replace(/[^A-Z0-9]/g,'')], max=est in MAXC?MAXC[est]:3;
       if(c>max) av.push(c+'× "'+n+'" supera el máximo de '+max+(est?' ('+est+')':'')+'.');
@@ -4137,7 +4138,8 @@ async function announce(o,cid,kind,where,extra){
 function cpuThreat(ev){
   const c=C[ev.cid];
   if(ev.kind==='ataque') return true;
-  if(ev.kind==='llamado') return c.type==='amalgama'||(c.cost||0)>=6;
+  if(ev.kind==='llamado') return c.type==='amalgama'||(c.cost||0)>=(G&&G.cpuNivel==='epico'?5:6)||(G&&G.cpuNivel==='epico'&&!!ev.especial&&SCORE(ev.cid)>=45);
+  if(G&&G.cpuNivel==='epico'&&ev.kind==='habilidad'&&isChar(c.id)&&SCORE(c.id)>=60) return true;
   const a=ev.accs||new Set();
   return ['destruir_campo_rival','retornar_campo_bp','confinar_objetivo','descartar_azar_rival','llamar_especial','retornar_almas_mictlan','destruir_sector_arena'].some(x=>a.has(x));
 }
@@ -6370,7 +6372,8 @@ async function cpuTurn(){
   if(G.noBP==='cpu'){G.noBP=null;lg('🐱 Katzandra: la CPU no roba de su BP este turno.','var(--purple)');}
   else if(!P.bp.length){endGame(true,'BP de CPU agotada');return;}
   else {const x=drawFrom('cpu','bp');lg('🃏 CPU roba de su Baraja.','var(--muted)');playSound('card');renderAll();
-   if(x&&hasKw(x,'COSMO')){await W(400);if(!alive())return;await cosmo('cpu',x);}}
+   if(x&&hasKw(x,'COSMO')){await W(400);if(!alive())return;await cosmo('cpu',x);}
+   if(typeof ARCADE!=='undefined'&&ARCADE&&+ARCADE.roboExtra>0){for(let k=0;k<+ARCADE.roboExtra&&P.bp.length;k++)drawFrom('cpu','bp');lg('☠ Poder épico: la CPU roba '+ARCADE.roboExtra+' carta(s) extra.','#ff2244');renderAll();}}
   G.callsLeft=R.llamadosPorTurno; // contador de la CPU (se reinicia para el jugador al volver)
   await inicioAccion('cpu'); if(!alive()) return;
 
@@ -6596,6 +6599,14 @@ async function cpuTurn(){
   await combatAbilities();
   if(!alive()) return;
   const atkers0=P.pj.map((p,i)=>canAtk('cpu',i)?i:-1).filter(i=>i>=0);
+  // v52 · Nivel ÉPICO: si los ataques directos posibles bastan para ganar, va por los corazones
+  if(G.cpuNivel==='epico'&&atkers0.length){
+    const dir=atkers0.filter(i=>puedeDirecto('cpu',i));
+    if(dir.length&&dir.reduce((t,i)=>t+eI(P.pj[i]),0)>=G.player.hp){
+      lg('☠ <b>CPU</b> huele la victoria: ¡ataque letal!','#ff2244');
+      for(const i of dir){if(!alive())return;if(!P.pj[i]||!canAtk('cpu',i))continue;if(!await step(700))return;await attackHearts('cpu',i);if(!alive()||checkEnd())return;}
+    }
+  }
   lg(atkers0.length?'⚔️ <b>CPU — Fase de Combate.</b> Atacando con '+atkers0.length+' personaje(s)…':'⏸ CPU no tiene atacantes disponibles este turno.',atkers0.length?'var(--red)':'var(--muted)');
   for(let n=0;n<10;n++){
     const as=P.pj.findIndex((p,i)=>canAtk('cpu',i));
@@ -7088,7 +7099,7 @@ function arcadePreparar(){
   DSEL.jugador=ARCADE.jugador; DSEL.cpu=ARCADE.cpu;
   document.getElementById('deckSel').hidden=true;
   document.getElementById('bootScreen').classList.add('arcade');
-  const NIV={facil:'FÁCIL',medio:'MEDIO',dificil:'DIFÍCIL',muy_dificil:'MUY DIFÍCIL'};
+  const NIV={facil:'FÁCIL',medio:'MEDIO',dificil:'DIFÍCIL',muy_dificil:'MUY DIFÍCIL',epico:'☠ ÉPICO'};
   document.getElementById('bootStatus').innerHTML='🕹 <b style="color:var(--gold2)">MODO ARCADE</b> · Combate '+ARCADE.ronda+'/'+ARCADE.total+(ARCADE.jefe?' · <b style="color:#ff4d6d">JEFE FINAL</b>':'')+' · Dificultad '+(NIV[ARCADE.nivel]||ARCADE.nivel);
   const vs=document.getElementById('bootVs');
   if(vs){
@@ -7108,8 +7119,14 @@ function arcadePreparar(){
   if(ARCADE&&G){
     arsReset();
     G.cpuNivel=ARCADE.nivel||'medio';
-    const extra=(ARCADE.nivel==='muy_dificil'?3:0)+(ARCADE.corazonesExtra||0);
+    const extra=(ARCADE.nivel==='muy_dificil'||ARCADE.nivel==='epico'?3:0)+(ARCADE.corazonesExtra||0);
     if(extra){G.cpu.hp+=extra;lg('🕹 '+arcadeEsc(ARCADE.nombre)+' empieza con '+G.cpu.hp+' corazones.','#ff4d6d');}
+    // v52 · Ruta Épica: poderes del rival (mano extra, almas activas desde el inicio, robo extra por turno)
+    {const me=+ARCADE.manoExtra||0, ae=+ARCADE.almasExtra||0;
+     for(let k=0;k<me&&G.cpu.bp.length;k++) drawFrom('cpu','bp');
+     for(let k=0;k<ae&&G.cpu.ba.length;k++){const z=freeApo('cpu');if(z<0)break;G.cpu.apoyo[z]={card:G.cpu.ba.shift(),type:'alma',bonus:0,eot:false};}
+     const pod=[me?'+'+me+' carta(s) en su mano inicial':'',ae?ae+' alma(s) activas desde el inicio':'',ARCADE.roboExtra?'roba '+ARCADE.roboExtra+' carta(s) extra cada turno':''].filter(Boolean);
+     if(pod.length) lg('☠ <b>PODER ÉPICO</b> · '+arcadeEsc(ARCADE.nombre)+': '+pod.join(' · ')+'.','#ff2244');}
     lg('🕹 <b>ARCADE</b> · Combate '+ARCADE.ronda+'/'+ARCADE.total+' contra <b>'+arcadeEsc(ARCADE.nombre)+'</b>.','var(--gold2)');
     if(ARCADE.musica){try{MP.req++;mpAudio.src=ARCADE.musica;mpAudio.loop=true;
       mpAudio.play().then(()=>{MP.on=true;MP.idx=-1;document.getElementById('mpName').textContent='🕹 Tema de '+ARCADE.nombre;mpUI();}).catch(()=>{});}catch(e){}}

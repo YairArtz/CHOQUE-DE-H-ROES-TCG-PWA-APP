@@ -74,6 +74,35 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 @keyframes legPulse{0%,100%{transform:scale(1);box-shadow:0 0 8px rgba(255,59,107,.7),0 0 22px rgba(160,60,255,.45)}50%{transform:scale(1.07);box-shadow:0 0 16px #ff3b6b,0 0 40px rgba(160,60,255,.85)}}
 /* Fondo de la Ruta Legendaria (si no hay portada2, tiñe la portada normal de carmesí) */
 #bg.leg::before{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse at 50% 30%,rgba(200,20,70,.28),transparent 65%),linear-gradient(180deg,rgba(80,0,40,.35),rgba(30,0,60,.45))}
+/* v2.3 · Ruta ÉPICA: negro/sangre, más siniestra */
+.pill.epi{height:38px;padding:0 16px;font-size:10px;color:#ffd6d6;border:1px solid #b3001b;letter-spacing:2px;
+  background:linear-gradient(135deg,rgba(25,0,0,.96),rgba(90,0,10,.96) 60%,rgba(10,0,0,.96));text-shadow:0 0 6px rgba(255,0,40,.95);
+  box-shadow:0 0 10px rgba(200,0,30,.75),0 0 28px rgba(120,0,0,.6),inset 0 0 12px rgba(255,0,40,.18)}
+.pill.epi:hover,.pill.epi:active{color:#fff;border-color:#ff2244;box-shadow:0 0 14px #ff0022,0 0 36px rgba(160,0,20,.85)}
+.pill.epi.pulse{animation:epiPulse 1.25s ease-in-out infinite}
+.pill.epi.on{border-color:#ff2244;box-shadow:0 0 12px #ff0022,0 0 30px rgba(160,0,20,.8),0 0 0 2px rgba(255,34,68,.55)}
+.pill.epi.lock{background:rgba(15,0,0,.88);color:#8a3a44;border-color:#3d0710;box-shadow:none;text-shadow:none}
+@keyframes epiPulse{0%,100%{transform:scale(1);box-shadow:0 0 10px rgba(200,0,30,.75),0 0 28px rgba(120,0,0,.6)}45%{transform:scale(1.08);box-shadow:0 0 18px #ff0022,0 0 46px rgba(200,0,30,.9)}55%{transform:scale(1.03)}}
+#bg.epi{filter:saturate(.55) contrast(1.15) brightness(.75)}
+#bg.epi::before{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(ellipse 60% 50% at 50% 38%,rgba(160,0,20,.42),transparent 70%),radial-gradient(ellipse at center,transparent 35%,rgba(0,0,0,.92) 100%),linear-gradient(180deg,rgba(40,0,0,.55),rgba(0,0,0,.75));
+  animation:latido 2.4s ease-in-out infinite}
+#bg.epi.noimg{background:radial-gradient(ellipse 80% 60% at 50% 110%,#3a0006 0%,#120002 45%,#000 80%)}
+@keyframes latido{0%,100%{opacity:.85}12%{opacity:1}22%{opacity:.88}32%{opacity:1}}
+#niebla{position:fixed;inset:-10%;z-index:1;pointer-events:none;opacity:0;transition:opacity 1.2s;
+  background:radial-gradient(ellipse 45% 20% at 20% 80%,rgba(120,0,15,.35),transparent 70%),radial-gradient(ellipse 50% 22% at 80% 70%,rgba(90,0,10,.3),transparent 70%),radial-gradient(ellipse 40% 18% at 50% 95%,rgba(150,0,20,.35),transparent 70%);
+  animation:niebla 18s ease-in-out infinite alternate}
+html.epica #niebla{opacity:1}
+@keyframes niebla{from{transform:translateX(-4%) scale(1)}to{transform:translateX(4%) scale(1.08)}}
+html.epica .ember{background:#ff2a2a;box-shadow:0 0 6px #ff0022,0 0 14px rgba(200,0,30,.7)}
+html.epica .ember.b{background:#ffb3b3;box-shadow:0 0 6px #ff4d6d}
+html.epica #grecas{opacity:.07;filter:hue-rotate(-40deg) saturate(2)}
+html.epica .h1{background:linear-gradient(180deg,#ffd6d6 0%,#ff2244 50%,#6b0010 100%);-webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 0 12px rgba(255,0,40,.6))}
+html.epica .node.done .med{filter:grayscale(.3) sepia(.3) hue-rotate(-30deg)}
+.slot .rt.r3 b{color:#ff2244;text-shadow:0 0 6px rgba(255,0,40,.6)}.slot .rt.r3 .prog i{background:linear-gradient(90deg,#6b0010,#ff2244)}
+.lv-epico{color:#ff2244;text-shadow:0 0 6px rgba(255,0,40,.7)}
+.pod{color:#ff6b7f;border-color:#ff2244;background:rgba(60,0,8,.6)}
+.cred{cursor:pointer}
 /* Progreso por ruta en Partidas */
 .slot .rts{display:flex;flex-direction:column;gap:6px}
 .slot .rt{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;font-size:11px;color:var(--muted)}
@@ -307,7 +336,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 </head>
 <body>
 <div id="stage">
-<div id="bg"></div><div id="grecas"></div><div id="scan"></div>
+<div id="bg"></div><div id="niebla"></div><div id="grecas"></div><div id="scan"></div>
 
 <!-- PORTADA -->
 <section class="scr on" id="sTitle">
@@ -343,7 +372,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
   <div class="topbar"><button class="pill" data-go="sSlots">← PARTIDAS</button><div class="h1" style="font-size:16px" id="rTitle">RUTA ARCADE</div><span style="display:flex;gap:8px"><button class="pill gold" id="rAp">🎨 APARIENCIA</button><button class="pill gold" id="rDeck">🃏 BARAJA</button></span></div>
   <div class="panel ruta-head" id="rHead"></div>
   <div class="map" id="map"><div class="map-in" id="mapIn"></div></div>
-  <div class="ruta-foot"><span id="rRutas" style="display:flex;gap:6px"></span><span class="hint" id="rHint" style="display:none">👑 Toca cualquier rival para volver a enfrentarlo</span><button class="btn" id="rFight">⚔ SIGUIENTE COMBATE</button></div>
+  <div class="ruta-foot"><span id="rRutas" style="display:flex;gap:6px;flex-wrap:wrap"></span><span class="hint" id="rHint" style="display:none">👑 Toca cualquier rival para volver a enfrentarlo</span><button class="btn" id="rFight">⚔ SIGUIENTE COMBATE</button></div>
 </section>
 
 <!-- VS / RESULTADO -->
@@ -397,7 +426,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 // Combate: escribe "chh_arcade_match" y abre simulacion.html?modo=arcade;
 //          la simulación escribe "chh_arcade_result" y regresa a arcade.html?r=<id>
 // ════════════════════════════════════
-const ARC_VERSION='Arcade v2.2';
+const ARC_VERSION='Arcade v2.3';
 const STAGE=document.getElementById('stage');
 // ── Orientación horizontal ──
 const MOVIL=matchMedia('(pointer:coarse)').matches;
@@ -425,9 +454,15 @@ ajustaVista();
 const DIR='assets/arcade/';
 const NSLOTS=3;
 const CREDITOS=5;                    // créditos por ruta (estilo arcade)
-function creditos(g){return g&&g.creditos!=null?g.creditos:CREDITOS;}
-function monedas(g){const n=creditos(g);return '<span class="coins" title="Créditos">'+'<i></i>'.repeat(n)+'<i class="off"></i>'.repeat(Math.max(0,CREDITOS-n))+'</span>';}
-const NIV={facil:'FÁCIL',medio:'MEDIO',dificil:'DIFÍCIL',muy_dificil:'MUY DIFÍCIL'};
+// v2.3 · Cada ruta tiene SUS PROPIOS créditos. Al completar una ruta por primera vez, los créditos que te
+// sobren (máx. BONUS_MAX) pasan como bonus a la siguiente. La Ruta Épica tiene menos créditos pero un SELLO
+// a la mitad: si pierdes todos los créditos después del sello, vuelves al sello y no al combate 1.
+const CRED_BASE={1:5,2:5,3:3}, BONUS_MAX=3, SELLO_EPICO=5;
+const RUTA_NOM={1:'I · ARCADE',2:'II · LEGENDARIA',3:'III · ÉPICA'};
+function credBase(n){return CRED_BASE[n]||CREDITOS;}
+function creditos(g,n){return g&&g.creditos!=null?g.creditos:credBase(n||rutaN(g));}
+function monedas(g,n){n=n||rutaN(g);const c=creditos(g,n),tot=Math.max(credBase(n),c);return '<span class="coins" title="Créditos de esta ruta">'+'<i></i>'.repeat(c)+'<i class="off"></i>'.repeat(Math.max(0,tot-c))+'</span>';}
+const NIV={facil:'FÁCIL',medio:'MEDIO',dificil:'DIFÍCIL',muy_dificil:'MUY DIFÍCIL',epico:'☠ ÉPICO'};
 const RIVALES2_DEFAULT=`# ════════════════════════════════════════════════════════════════════
 #  MODO ARCADE · RUTA LEGENDARIA (RUTA II)
 #  Se desbloquea al completar la Ruta I en esa partida.
@@ -656,6 +691,182 @@ derrota = Cenizas. Solo cenizas.
 # r2_prision (Évolotl) · r2_dragones (EX-Pada / Koatl Campeón) · r2_forja (Héroes Invitados)
 # r2_nexotlan (Medallón) · r2_desatados (Temak) · r2_sangre (Mictlán) · r2_wulfenita
 `;
+const RIVALES3_DEFAULT=`# ════════════════════════════════════════════════════════════════════
+#  MODO ARCADE · RUTA ÉPICA (RUTA III)
+#  Se desbloquea al completar la Ruta Legendaria en esa partida.
+#  Mismo formato que rivales.txt. Dificultad ÉPICA en toda la ruta:
+#  la CPU no comete errores, niega con más criterio y busca el golpe letal.
+#  Campos extra de esta ruta (poderes épicos, opcionales):
+#    mano  = N   → el rival empieza con N cartas extra en la mano
+#    almas = N   → el rival empieza con N almas activas (del tope de su BA)
+#    robo  = N   → el rival roba N cartas extra de su BP cada turno
+#  Las barajas r3_… son exclusivas del Arcade e IGNORAN LA BANLIST.
+# ════════════════════════════════════════════════════════════════════
+
+[1]
+nombre = Cosmika
+titulo = Bruja de las Constelaciones
+baraja = r3_cosmika
+carta = cosmika
+imagen = rival3_01.png
+fondo = fondo3_01.jpg
+musica = musica_choque/pista_5.mp3
+color = #c04dff
+dificultad = epico
+entrada = ¿Banlist? Las reglas son para los mortales. | Mis aprendices ya viven en tu campo.
+victoria = Las estrellas… se apagan…
+derrota = Tu destino ya estaba escrito en mis constelaciones.
+
+[2]
+nombre = Kitsuné
+titulo = La Reencarnación Infinita
+baraja = r3_kitsune
+carta = kitsune
+imagen = rival3_02.png
+fondo = fondo3_02.jpg
+musica = musica_choque/pista_9.mp3
+color = #ff8a2b
+dificultad = epico
+entrada = Mátame las veces que quieras. | Del Mictlán siempre se regresa.
+victoria = Nueve colas… y ninguna fue suficiente.
+derrota = Una vida menos para ti. A mí me sobran.
+
+[3]
+nombre = Khaleydoh
+titulo = Dragón de Cristal
+baraja = r3_noth
+carta = khaleydoh
+imagen = rival3_03.png
+fondo = fondo3_03.jpg
+musica = musica_choque/pista_2.mp3
+color = #7fe9ff
+dificultad = epico
+mano = 1
+entrada = Mis dragones no pueden ser tocados. | Y vuelven de tres en tres.
+victoria = El cristal… se agrieta.
+derrota = Brillas poco. Te rompes fácil.
+
+[4]
+nombre = Ozmozord
+titulo = La Fusión Prohibida
+baraja = r3_metal
+carta = ozmozord
+imagen = rival3_04.png
+fondo = fondo3_04.jpg
+musica = musica_choque/pista_7.mp3
+color = #9fb3cc
+dificultad = epico
+mano = 1
+entrada = Tres ataques por turno. | Calcula cuántos turnos te quedan.
+victoria = Error en la fórmula… imposible.
+derrota = Experimento concluido. Sujeto eliminado.
+
+[5]
+nombre = KungLee Max-Kara
+titulo = El Dojo Prohibido
+baraja = r3_maxkara
+carta = mk_kunglee
+imagen = rival3_05.png
+fondo = fondo3_05.jpg
+musica = musica_choque/pista_13.mp3
+color = #f5c842
+dificultad = epico
+mano = 1
+almas = 1
+entrada = En este dojo no hay reglas. | Solo hay vencedores… y cuerpos.
+victoria = Ganaste el SELLO ÉPICO. Te lo ganaste.
+derrota = Vuelve cuando sepas pelear.
+
+[6]
+nombre = Capitán Drake
+titulo = Terror de los Siete Mares
+baraja = r3_drake
+carta = drake
+imagen = rival3_06.png
+fondo = fondo3_06.jpg
+musica = musica_choque/pista_3.mp3
+color = #2db8e0
+dificultad = epico
+corazones = 1
+almas = 1
+entrada = En mi barco nadie usa habilidades. | Nadie… excepto mi tripulación.
+victoria = ¡Arrr! Hundiste al Capitán…
+derrota = Al fondo del mar. Con los demás.
+
+[7]
+nombre = Hellw Khalet
+titulo = El Trono Intocable
+baraja = r3_khalet
+carta = hellw_khalet
+imagen = rival3_07.png
+fondo = fondo3_07.jpg
+musica = musica_choque/pista_14.mp3
+color = #cc55ff
+dificultad = epico
+corazones = 1
+mano = 1
+almas = 1
+entrada = Nada de lo que hagas puede tocarme. | Absolutamente nada.
+victoria = Me tocaste… nadie había podido.
+derrota = Arrodíllate ante el trono.
+
+[8]
+nombre = Évolotl, Omni Axolotl
+titulo = La Evolución Final
+baraja = r3_evolotl
+carta = evo_tlatik
+imagen = rival3_08.png
+fondo = fondo3_08.jpg
+musica = musica_choque/pista_4.mp3
+color = #3ad6a0
+dificultad = epico
+corazones = 2
+mano = 1
+almas = 1
+entrada = Cada forma que ves… ya la superé. | Esta es la última evolución.
+victoria = Todavía… puedo… evolucionar…
+derrota = Tu especie no se adaptó.
+
+[9]
+nombre = Lilith
+titulo = Apocalipsis de Wulfenita
+baraja = r3_fafnir
+carta = lilith
+imagen = rival3_09.png
+fondo = fondo3_09.jpg
+musica = musica_choque/pista_15.mp3
+color = #ff4d2e
+dificultad = epico
+corazones = 2
+mano = 1
+almas = 2
+entrada = Fafnir despierta cuando yo lo ordeno. | Y hoy lo ordeno.
+victoria = Belleza… y ruina. Hoy solo ruina.
+derrota = Arde, pequeño héroe. Arde.
+
+[10]
+nombre = Los Primigenios
+titulo = Quetzalcoatl y Mictlantecuhtli
+baraja = r3_dioses
+carta = quetzal_primigenio
+imagen = rival3_10.png
+fondo = fondo3_10.jpg
+musica = musica_choque/pista_8.mp3
+color = #ff0022
+dificultad = epico
+corazones = 4
+mano = 1
+almas = 2
+robo = 1
+entrada = Antes del Sol y antes de la Muerte… éramos nosotros. | Arrodíllate ante el principio y el fin.
+victoria = Un mortal… por encima de los dioses primigenios. | Tú eres la nueva leyenda.
+derrota = Del polvo viniste. Al Mictlán regresas.
+
+# ── BARAJAS DE ESTA RUTA (exclusivas del Arcade · sin banlist) ──────
+# r3_cosmika · r3_kitsune · r3_noth · r3_metal · r3_maxkara
+# r3_drake · r3_khalet · r3_evolotl · r3_fafnir · r3_dioses
+# Extra disponibles: r3_nexotlan (Nexotlan Eterna) · r3_prision (Cárcel de Angie)
+`;
 const RIVALES_DEFAULT=`[1]
 nombre = Vika Cosplay
 baraja = vika_cosplay
@@ -788,25 +999,33 @@ derrota = Tu alma ya me pertenece.`;
 const $=id=>document.getElementById(id);
 const esc=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 // ── Rutas: I (rivales.txt) y II · Legendaria (rivales2.txt, se desbloquea al completar la I) ──
-let RUTAS={1:[],2:[]};
-const CAMPOS_RUTA=['ronda','victorias','derrotas','creditos','completado','historial','gameovers','goRuta','vueltas','rejugadas'];
-function rutaN(g){return g&&g.ruta===2&&RUTAS[2].length?2:1;}
+let RUTAS={1:[],2:[],3:[]};
+const CAMPOS_RUTA=['ronda','victorias','derrotas','creditos','completado','historial','gameovers','goRuta','vueltas','rejugadas','sello','credIni'];
+function rutaN(g){return g&&(g.ruta===2||g.ruta===3)&&RUTAS[g.ruta].length?g.ruta:1;}
 function rutaDe(g){return RUTAS[rutaN(g)];}
 function usarRuta(g){RIV=rutaDe(g);}
-function r2Desbloqueada(g){return !!g&&RUTAS[2].length>0&&(g.r1Completa||rutaN(g)===2||!!g.completado||(g.vueltas||0)>0);}
+function rutaCompleta(g,n){if(!g)return false;if(g['r'+n+'Completa'])return true;const d=datosRuta(g,n);return !!d&&(!!d.completado||(d.vueltas||0)>0);}
+function r2Desbloqueada(g){return !!g&&RUTAS[2].length>0&&(rutaCompleta(g,1)||rutaN(g)>=2||!!(g.rutas&&g.rutas[2]));}
+function r3Desbloqueada(g){return !!g&&RUTAS[3].length>0&&(rutaCompleta(g,2)||rutaN(g)===3||!!(g.rutas&&g.rutas[3]));}
+function rutaLibre(g,n){return n===1?true:n===2?r2Desbloqueada(g):r3Desbloqueada(g);}
+function nuevaRutaDatos(g,n){const bono=Math.min(BONUS_MAX,(g.bonus&&g.bonus[n])||0);if(g.bonus)delete g.bonus[n];
+  return {ronda:0,victorias:0,derrotas:0,creditos:credBase(n)+bono,credIni:credBase(n)+bono,completado:false,historial:[],gameovers:0,goRuta:false,vueltas:0,rejugadas:[],sello:0,_bono:bono};}
 function cambiarRuta(n){
-  setSlot(g=>{const cur=g.ruta||1;if(cur===n)return;
-    if(n===2&&!r2Desbloqueada(g))return;
-    if(cur===1&&(g.completado||(g.vueltas||0)>0))g.r1Completa=true;
+  let bono=0;
+  setSlot(g=>{const cur=rutaN(g);if(cur===n)return;
+    if(!rutaLibre(g,n))return;
+    if(g.completado||(g.vueltas||0)>0)g['r'+cur+'Completa']=true;
     g.rutas=g.rutas||{};const a={};CAMPOS_RUTA.forEach(k=>a[k]=g[k]);g.rutas[cur]=a;
-    const b=g.rutas[n]||{ronda:0,victorias:0,derrotas:0,creditos:CREDITOS,completado:false,historial:[],gameovers:0,goRuta:false,vueltas:0,rejugadas:[]};
+    const b=g.rutas[n]||nuevaRutaDatos(g,n);bono=b._bono||0;delete b._bono;
     CAMPOS_RUTA.forEach(k=>g[k]=b[k]);g.ruta=n;});
+  if(bono) setTimeout(()=>modal('🪙 CRÉDITOS DE BONUS','Comienzas la '+RUTA_NOM[n]+' con <b>'+(credBase(n)+bono)+' créditos</b>: '+credBase(n)+' de la ruta + <b>'+bono+' de bonus</b> que te sobraron en la ruta anterior.',[['¡VAMOS!','']]),400);
   renderRuta();
   if($('sRuta').classList.contains('on')){ambiente('sRuta');musica(musMenu('sRuta'));}
 }
 // Datos de una ruta del slot (la activa vive arriba; la otra en g.rutas[n])
 function datosRuta(g,n){return rutaN(g)===n?g:(g.rutas&&g.rutas[n])||null;}
-function r2Iniciada(g){return !!g&&RUTAS[2].length>0&&(rutaN(g)===2||!!(g.rutas&&g.rutas[2]));}
+function r2Iniciada(g){return !!g&&RUTAS[2].length>0&&(rutaN(g)>=2||!!(g.rutas&&(g.rutas[2]||g.rutas[3])));}
+function rIniciada(g,n){return n===1||(!!g&&RUTAS[n].length>0&&(rutaN(g)===n||!!(g.rutas&&g.rutas[n])));}
 let RIV=[], DATA=null, CARD={}, GALI={}, DECKS=[], NEWSEL=null;
 
 // ── Rivales: formato de texto simple ──
@@ -825,6 +1044,7 @@ function parseRivales(txt){
 function nivelDe(r,i,total){
   const d=(r.dificultad||'auto').toLowerCase().replace(/\s+/g,'_').normalize('NFD').replace(/[̀-ͯ]/g,'');
   if(NIV[d]) return d;
+  if(r._ruta===3) return 'epico';                           // Ruta Épica
   if(r._ruta===2) return i<7?'dificil':'muy_dificil';      // Ruta Legendaria
   const q=i/Math.max(1,total);           // reparto progresivo en cuartos
   return q<4/15?'facil':q<8/15?'medio':q<12/15?'dificil':'muy_dificil';
@@ -873,16 +1093,16 @@ function renderSlots(){
     const el=document.createElement('div');el.className='panel slot';
     el.innerHTML='<span class="hb tl"></span><span class="hb tr"></span><span class="hb bl"></span><span class="hb br"></span><div class="num">PARTIDA '+(i+1)+'</div>';
     if(!g){
-      el.innerHTML+='<div class="empty"><div style="font-size:30px">✦</div><b>VACÍA</b><span>Comienza una nueva ruta de '+RIV.length+' combates</span></div>'+
+      el.innerHTML+='<div class="empty"><div style="font-size:30px">✦</div><b>VACÍA</b><span>Comienza una nueva ruta de '+RUTAS[1].length+' combates</span></div>'+
         '<div class="acts"><button class="btn sm" data-a="new">⚔ NUEVA PARTIDA</button></div>';
     } else {
       const RIV=rutaDe(g);
       const b=DECKS.find(d=>d.id===g.baraja), r=RIV[Math.min(g.ronda,RIV.length-1)], lv=nivelDe(r||{},Math.min(g.ronda,RIV.length-1),RIV.length);
       const pct=Math.round(100*Math.min(g.ronda,RIV.length)/RIV.length);
       el.innerHTML+='<div class="deck"><img src="'+esc(deckPortada(b))+'" alt=""><div style="min-width:0"><b>'+esc(g.nombre||'Jugador')+'</b><small>'+esc(b?b.nombre:g.barajaNombre||g.baraja)+'</small>'+
-        (rutaN(g)===2?'<small style="color:#ff4d6d;font-family:Orbitron,sans-serif;font-size:8px;letter-spacing:2px">★ RUTA LEGENDARIA</small>':'')+'<small>'+(g.completado?'👑 RUTA COMPLETADA':'Siguiente: <b style="font-size:12px;color:#fff">'+esc(r?r.nombre:'')+'</b> <span class="badge lv-'+lv+'">'+NIV[lv]+'</span>')+'</small></div></div>'+
-        (r2Iniciada(g)?'<div class="rts">'+[1,2].map(n=>{const d=datosRuta(g,n)||{},L=RUTAS[n].length,k=Math.min(d.ronda||0,L);
-            return '<div class="rt r'+n+(rutaN(g)===n?' act':'')+'"><b>'+(n===1?'I · ARCADE':'II · LEGENDARIA')+'</b><div class="prog"><i style="width:'+Math.round(100*k/L)+'%"></i></div><span>'+(d.completado?'👑 ':'')+k+'/'+L+' · '+(d.victorias||0)+'V · '+creditos(d)+'🪙</span></div>';}).join('')+'</div>'
+        (rutaN(g)===2?'<small style="color:#ff4d6d;font-family:Orbitron,sans-serif;font-size:8px;letter-spacing:2px">★ RUTA LEGENDARIA</small>':rutaN(g)===3?'<small style="color:#ff2244;font-family:Orbitron,sans-serif;font-size:8px;letter-spacing:2px;text-shadow:0 0 6px #ff0022">☠ RUTA ÉPICA</small>':'')+'<small>'+(g.completado?'👑 RUTA COMPLETADA':'Siguiente: <b style="font-size:12px;color:#fff">'+esc(r?r.nombre:'')+'</b> <span class="badge lv-'+lv+'">'+NIV[lv]+'</span>')+'</small></div></div>'+
+        (r2Iniciada(g)?'<div class="rts">'+[1,2,3].filter(n=>rIniciada(g,n)).map(n=>{const d=datosRuta(g,n)||{},L=RUTAS[n].length,k=Math.min(d.ronda||0,L);
+            return '<div class="rt r'+n+(rutaN(g)===n?' act':'')+'"><b>'+RUTA_NOM[n]+'</b><div class="prog"><i style="width:'+Math.round(100*k/L)+'%"></i></div><span>'+(d.completado?'👑 ':'')+k+'/'+L+' · '+(d.victorias||0)+'V · '+creditos(d,n)+'🪙</span></div>';}).join('')+'</div>'
           :'<div class="prog"><i style="width:'+pct+'%"></i></div>')+
         '<div class="stats"><div><b>'+Math.min(g.ronda,RIV.length)+'/'+RIV.length+'</b><small>RIVALES</small></div><div><b>'+(g.victorias||0)+'</b><small>VICTORIAS</small></div><div><b>'+creditos(g)+'</b><small>CRÉDITOS</small></div></div>'+
         '<small style="color:var(--muted);font-size:10px">Última vez: '+fecha(g.ultimo)+'</small>'+
@@ -898,7 +1118,7 @@ function slotAccion(i,a){
   if(a==='new'){CUR=i;NEWSEL=null;go('sNew');}
   else if(a==='play'){CUR=i;go('sRuta');}
   else if(a==='del') modal('BORRAR PARTIDA '+(i+1),'Se perderá todo el progreso de esta partida. ¿Seguro?',[['✕ BORRAR','red',()=>{s[i]=null;saveSlots(s);renderSlots();}],['CANCELAR','ghost']]);
-  else if(a==='reset') modal('REINICIAR PARTIDA '+(i+1),'Volverás al combate 1 con la misma baraja. ¿Continuar?',[['↺ REINICIAR','red',()=>{Object.assign(s[i],{ronda:0,victorias:0,derrotas:0,creditos:CREDITOS,gameovers:0,goRuta:false,completado:false,historial:[],inicio:Date.now(),ultimo:Date.now(),pendiente:null});saveSlots(s);renderSlots();}],['CANCELAR','ghost']]);
+  else if(a==='reset') modal('REINICIAR PARTIDA '+(i+1),'Volverás al combate 1 con la misma baraja. ¿Continuar?',[['↺ REINICIAR','red',()=>{Object.assign(s[i],{ronda:0,victorias:0,derrotas:0,creditos:credBase(rutaN(s[i])),credIni:credBase(rutaN(s[i])),sello:0,gameovers:0,goRuta:false,completado:false,historial:[],inicio:Date.now(),ultimo:Date.now(),pendiente:null});saveSlots(s);renderSlots();}],['CANCELAR','ghost']]);
   else if(a==='copy'){
     const dest=[0,1,2].filter(j=>j!==i);
     modal('COPIAR PARTIDA '+(i+1),'¿A qué ranura la copias? Si está ocupada, se reemplaza.',dest.map(j=>['→ PARTIDA '+(j+1)+(s[j]?' (ocupada)':''),s[j]?'red':'',()=>{s[j]=JSON.parse(JSON.stringify(s[i]));s[j].pendiente=null;saveSlots(s);renderSlots();}]).concat([['CANCELAR','ghost']]));
@@ -930,16 +1150,20 @@ function renderRuta(){
   const g=slot(); if(!g){go('sSlots');return;}
   usarRuta(g);
   const rn=rutaN(g);
-  $('rTitle').textContent=rn===2?'RUTA LEGENDARIA':'RUTA ARCADE';
+  $('rTitle').textContent=rn===3?'RUTA ÉPICA':rn===2?'RUTA LEGENDARIA':'RUTA ARCADE';
+  document.documentElement.classList.toggle('epica',rn===3);
   if(RUTAS[2].length){
-    const libre=r2Desbloqueada(g);
-    $('rRutas').innerHTML='<button class="pill'+(rn===1?' gold on':'')+'" data-ruta="1">I · ARCADE</button><button class="pill leg'+(rn===2?' on':'')+(!libre?' lock':(rn!==2?' pulse':''))+'" data-ruta="2">'+(libre?'★ II · LEGENDARIA':'🔒 II · LEGENDARIA')+'</button>';
+    const libre=r2Desbloqueada(g), libre3=r3Desbloqueada(g);
+    $('rRutas').innerHTML='<button class="pill'+(rn===1?' gold on':'')+'" data-ruta="1">I · ARCADE</button><button class="pill leg'+(rn===2?' on':'')+(!libre?' lock':(rn!==2&&!libre3?' pulse':''))+'" data-ruta="2">'+(libre?'★ II · LEGENDARIA':'🔒 II · LEGENDARIA')+'</button>'+
+      (RUTAS[3].length&&libre?'<button class="pill epi'+(rn===3?' on':'')+(!libre3?' lock':(rn!==3?' pulse':''))+'" data-ruta="3">'+(libre3?'☠ III · ÉPICA':'🔒 III · ÉPICA')+'</button>':'');
     $('rRutas').querySelectorAll('[data-ruta]').forEach(b=>b.onclick=()=>{const n=+b.dataset.ruta;
       if(n===2&&!libre){modal('RUTA LEGENDARIA','Completa la Ruta I (vence al jefe final) para desbloquear 15 rivales nuevos con barajas devastadoras en dificultad DIFÍCIL y MUY DIFÍCIL.',[['ENTENDIDO','']]);return;}
+      if(n===3&&!libre3){modal('☠ RUTA ÉPICA','Completa la Ruta Legendaria para desbloquearla.<br><br>'+RUTAS[3].length+' rivales en dificultad <b style="color:#ff2244">ÉPICA</b> con barajas que <b>ignoran la banlist</b> y poderes especiales. Solo '+credBase(3)+' créditos, más el bonus que te sobre de la Ruta Legendaria.',[['ENTENDIDO','']]);return;}
       cambiarRuta(n);});
   } else $('rRutas').innerHTML='';
   const b=DECKS.find(d=>d.id===g.baraja);
-  $('rHead').innerHTML='<span class="hb tl"></span><span class="hb tr"></span><span class="hb bl"></span><span class="hb br"></span><img src="'+esc(deckPortada(b))+'" alt=""><div class="info"><b>'+esc(g.nombre)+'</b><small>'+esc(b?b.nombre:g.barajaNombre)+' · '+Math.min(g.ronda,RIV.length)+'/'+RIV.length+' rivales · '+(g.victorias||0)+' victorias · '+(g.derrotas||0)+' derrotas</small></div><div class="cred"><small>CRÉDITOS</small>'+monedas(g)+'</div>';
+  $('rHead').innerHTML='<span class="hb tl"></span><span class="hb tr"></span><span class="hb bl"></span><span class="hb br"></span><img src="'+esc(deckPortada(b))+'" alt=""><div class="info"><b>'+esc(g.nombre)+'</b><small>'+esc(b?b.nombre:g.barajaNombre)+' · '+Math.min(g.ronda,RIV.length)+'/'+RIV.length+' rivales · '+(g.victorias||0)+' victorias · '+(g.derrotas||0)+' derrotas</small></div><div class="cred" id="rCred" title="¿Cómo funcionan los créditos?"><small>CRÉDITOS · '+RUTA_NOM[rn].split(' · ')[0]+' ⓘ</small>'+monedas(g)+(rn===3&&(g.sello||0)>0?'<small style="color:#ff6b7f;margin-top:3px">🔱 SELLO: COMBATE '+(g.sello+1)+'</small>':'')+'</div>';
+  $('rCred').onclick=()=>ayudaCreditos(rn);
   const N=RIV.length, map=$('map'), inn=$('mapIn');
   const W=Math.max(map.clientWidth,N*104+40), H=Math.max(map.clientHeight,250);
   inn.style.width=W+'px';
@@ -963,9 +1187,17 @@ function renderRuta(){
   $('rHint').style.display=g.completado?'':'none';
   $('rFight').textContent=g.completado?'↺ NUEVA VUELTA':(g.ronda===N-1?'☠ ENFRENTAR AL JEFE FINAL':'⚔ SIGUIENTE COMBATE');
 }
+function ayudaCreditos(rn){
+  modal('🪙 CRÉDITOS','<b>Cada ruta tiene sus propios créditos</b> y no se mezclan entre sí:<br>'+
+    [1,2,3].filter(n=>RUTAS[n].length).map(n=>'· '+RUTA_NOM[n]+': <b>'+credBase(n)+'</b> créditos').join('<br>')+
+    '<br><br>Pierdes 1 crédito por cada derrota. Si se acaban: <b>GAME OVER</b> y la ruta vuelve al combate 1 con sus créditos nuevos (tu baraja y estadísticas se conservan).'+
+    '<br><br>🎁 <b>Bonus:</b> al completar una ruta por primera vez, los créditos que te sobren (máx. '+BONUS_MAX+') se suman a la siguiente ruta.'+
+    (RUTAS[3].length?'<br><br>🔱 <b>Sello Épico:</b> en la Ruta Épica, al vencer al rival '+SELLO_EPICO+' ganas un sello: si después te quedas sin créditos, vuelves al combate '+(SELLO_EPICO+1)+' en lugar del 1.':''),
+    [['ENTENDIDO','']]);
+}
 $('rFight').onclick=()=>{
   const g=slot(); if(!g) return;
-  if(g.completado){modal('NUEVA VUELTA','Tu ruta ya está completa. ¿Quieres reiniciarla desde el combate 1? Se conserva tu historial de victorias.',[['↺ REINICIAR RUTA','',()=>{setSlot(x=>{x.ronda=0;x.completado=false;x.creditos=CREDITOS;x.vueltas=(x.vueltas||0)+1;x.goRuta=false;});renderRuta();}],['CANCELAR','ghost']]);return;}
+  if(g.completado){modal('NUEVA VUELTA','Tu ruta ya está completa. ¿Quieres reiniciarla desde el combate 1? Se conserva tu historial de victorias.',[['↺ REINICIAR RUTA','',()=>{setSlot(x=>{x.ronda=0;x.completado=false;x.creditos=credBase(rutaN(x));x.credIni=x.creditos;x.sello=0;x.vueltas=(x.vueltas||0)+1;x.goRuta=false;});renderRuta();}],['CANCELAR','ghost']]);return;}
   showVS(g.ronda,'intro');
 };
 $('rDeck').onclick=()=>{
@@ -1000,17 +1232,20 @@ function showVS(i,modo,res,opt){
   $('vsName').textContent=r.nombre;
   $('vsTitle').textContent=r.titulo||'';
   const b=DECKS.find(d=>d.id===g.baraja);
-  $('vsMeta').innerHTML='<span class="badge lv-'+lv+'">'+NIV[lv]+'</span>'+(r.corazones?'<span class="badge" style="color:#ff4d6d">+'+esc(r.corazones)+' ❤</span>':'')+
+  const pods=poderes(r);
+  if(!r._fondo&&r._ruta===3) bg.style.backgroundImage='radial-gradient(ellipse at 70% 50%,'+acc+'44,transparent 55%),radial-gradient(ellipse at 50% 120%,#4a0008,#0a0001 60%,#000)';
+  $('vsMeta').innerHTML='<span class="badge lv-'+lv+'">'+NIV[lv]+'</span>'+(r.corazones?'<span class="badge" style="color:#ff4d6d">+'+esc(r.corazones)+' ❤</span>':'')+pods.map(x=>'<span class="badge pod" title="Poder épico">'+x+'</span>').join('')+(r.banlist==='no'||r._ruta===3?'<span class="badge pod" title="Su baraja ignora la banlist">⛓ SIN BANLIST</span>':'')+
     '<span class="vs-me">'+(PLAYER_IMG?'<img src="'+PLAYER_IMG+'" alt="">':'<img src="'+esc(deckPortada(b))+'" alt="">')+esc(g.nombre)+' · '+esc(b?b.nombre:g.barajaNombre)+'</span>'+
     (modo!=='intro'&&res&&res.turnos?'<span class="badge" style="color:#9fb3cc">'+res.turnos+' TURNOS</span>':'')+
     (opt.replay?'<span class="badge" style="color:#cc55ff">REVANCHA · NO CUENTA PARA LA RUTA</span>':'<span class="vs-cr">'+monedas(g)+'</span>');
+  if(r._ruta===3&&modo==='intro'&&!opt.replay&&!sessionStorage.getItem('chh_epi_aviso')){try{sessionStorage.setItem('chh_epi_aviso','1');}catch(e){}}
   const frase=modo==='intro'?(r.entrada||'¡En guardia!'):(res.won?(r.victoria||'…'):(r.derrota||'…'));
   typeText($('vsSay'),frase);
   const B=$('vsBtns');B.innerHTML='';
   const add=(t,cls,fn)=>{const x=document.createElement('button');x.className='btn '+(cls||'');x.textContent=t;x.onclick=fn;B.appendChild(x);};
   if(modo==='intro'){add('⚔ ¡PELEAR!','',()=>iniciarCombate(i,opt.replay));$('vsBack').onclick=()=>go('sRuta');}
   else if(opt.replay){add(res.won?'👑 VOLVER A LA RUTA':'RUTA','',()=>go('sRuta'));add('↺ OTRA VEZ','ghost',()=>showVS(i,'intro',null,{replay:true}));$('vsBack').onclick=()=>go('sRuta');}
-  else if(opt.gameover){add('🪙 INSERTAR CRÉDITOS · COMBATE 1','red',()=>go('sRuta'));$('vsBack').onclick=()=>go('sRuta');}
+  else if(opt.gameover){add('🪙 INSERTAR CRÉDITOS · COMBATE '+((g.ronda||0)+1),'red',()=>go('sRuta'));$('vsBack').onclick=()=>go('sRuta');}
   else if(res.won){
     if(i>=N-1) add('👑 CONTINUAR','',()=>finalArcade());
     else add('➜ SIGUIENTE COMBATE','',()=>go('sRuta'));
@@ -1022,13 +1257,18 @@ function showVS(i,modo,res,opt){
   }
   go('sVS');
   musica(r._musica||null,modo==='intro');
-  if(opt.gameover) setTimeout(()=>modal('GAME OVER','Te quedaste sin créditos. La ruta vuelve a empezar desde el combate 1 con '+CREDITOS+' créditos nuevos. Tu baraja y tus estadísticas se conservan.',[['ENTENDIDO','']]),900);
+  if(opt.gameover) setTimeout(()=>{const rn=rutaN(g),se=rn===3&&(g.ronda||0)>0;modal('GAME OVER','Te quedaste sin créditos. '+(se?'🔱 Tu Sello Épico te salva: vuelves al combate '+(g.ronda+1):'La ruta vuelve a empezar desde el combate 1')+' con '+credBase(rn)+' créditos nuevos. Tu baraja y tus estadísticas se conservan.',[['ENTENDIDO','']]);},900);
 }
+function poderes(r){const o=[];const n=k=>parseInt(r[k],10)||0;
+  if(n('mano'))o.push('🃏 +'+n('mano')+' CARTA'+(n('mano')>1?'S':'')+' INICIAL'+(n('mano')>1?'ES':''));
+  if(n('almas'))o.push('💙 '+n('almas')+' ALMA'+(n('almas')>1?'S':'')+' ACTIVA'+(n('almas')>1?'S':''));
+  if(n('robo'))o.push('📥 ROBA +'+n('robo')+' POR TURNO');
+  return o;}
 function iniciarCombate(i,replay){
   const r=RIV[i], g=slot(), N=RIV.length, id='a'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
   setSlot(x=>{x.pendiente={id,ronda:i,replay:!!replay};});
   const m={id,slot:CUR,ronda:i+1,total:N,jefe:i===N-1,jugador:g.baraja,cpu:r.baraja,nivel:nivelDe(r,i,N),
-    corazonesExtra:parseInt(r.corazones,10)||0,nombre:r.nombre,retrato:retratoUrl(r)||'',musica:r._musica?new URL(r._musica,location.href).href:''};
+    corazonesExtra:parseInt(r.corazones,10)||0,manoExtra:parseInt(r.mano,10)||0,almasExtra:parseInt(r.almas,10)||0,roboExtra:parseInt(r.robo,10)||0,nombre:r.nombre,retrato:retratoUrl(r)||'',musica:r._musica?new URL(r._musica,location.href).href:''};
   try{localStorage.setItem('chh_arcade_match',JSON.stringify(m));}catch(e){}
   location.href='simulacion.html?modo=arcade';
 }
@@ -1046,14 +1286,22 @@ function procesarResultado(){
   if(replay){(g.rejugadas=g.rejugadas||[]).push({ronda:i+1,won:res.won,turnos:res.turnos,ts:res.ts});}
   else{
     (g.historial=g.historial||[]).push({ronda:i+1,won:res.won,turnos:res.turnos,ts:res.ts});
-    if(res.won){g.victorias=(g.victorias||0)+1;if(g.ronda===i)g.ronda=i+1;if(g.ronda>=RIV.length){g.completado=true;if(rutaN(g)===1){g._r2nueva=!g.r1Completa&&RUTAS[2].length>0;g.r1Completa=true;}}}
+    const rn=rutaN(g);
+    if(res.won){g.victorias=(g.victorias||0)+1;if(g.ronda===i)g.ronda=i+1;
+      if(rn===3&&g.ronda>=SELLO_EPICO&&!(g.sello>0)&&g.ronda<RIV.length){g.sello=SELLO_EPICO;g._sellonuevo=true;}
+      if(g.ronda>=RIV.length){g.completado=true;
+        const prim=!g['r'+rn+'Completa'];
+        if(prim&&RUTAS[rn+1]&&RUTAS[rn+1].length){g._rnueva=rn+1;const b=Math.min(BONUS_MAX,creditos(g)-0);if(b>0&&!(g.rutas&&g.rutas[rn+1])){g.bonus=g.bonus||{};g.bonus[rn+1]=b;g._bonoNuevo=b;}}
+        g['r'+rn+'Completa']=true;}}
     else{
       g.derrotas=(g.derrotas||0)+1;
       g.creditos=creditos(g)-1;
-      if(g.creditos<=0){gameover=true;g.gameovers=(g.gameovers||0)+1;g.goRuta=true;g.ronda=0;g.creditos=CREDITOS;}
+      if(g.creditos<=0){gameover=true;g.gameovers=(g.gameovers||0)+1;g.goRuta=true;g.ronda=rn===3&&g.sello>0?g.sello:0;g.creditos=credBase(rn);g.credIni=g.creditos;}
     }
   }
+  const sn=g._sellonuevo; delete g._sellonuevo;
   saveSlots(s);
+  if(sn) setTimeout(()=>modal('🔱 SELLO ÉPICO','Venciste al rival '+SELLO_EPICO+' de la Ruta Épica. Si te quedas sin créditos, ya no vuelves al combate 1: regresas al combate '+(SELLO_EPICO+1)+'.',[['¡BIEN!','']]),2600);
   try{localStorage.removeItem('chh_arcade_result');}catch(e){}
   showVS(i,'res',res,{replay,gameover});
   evaluarLogros(g,res,replay,i);
@@ -1062,8 +1310,13 @@ function procesarResultado(){
 function finalArcade(){
   const g=slot();
   const h=g.historial||[], tt=h.filter(x=>x.won).reduce((t,x)=>t+(x.turnos||0),0);
-  $('eSub').textContent=(g.nombre||'Jugador').toUpperCase()+' VENCIÓ A LOS '+RIV.length+' RIVALES'+(rutaN(g)===2?' DE LA RUTA LEGENDARIA':'');
-  if(g._r2nueva){setSlot(x=>{delete x._r2nueva;});setTimeout(()=>modal('🔓 RUTA LEGENDARIA DESBLOQUEADA','15 rivales nuevos con barajas devastadoras te esperan en dificultad DIFÍCIL y MUY DIFÍCIL. Elígela en la pantalla de Ruta: «II · LEGENDARIA».',[['¡A PELEAR!','']]),2200);}
+  const rnF=rutaN(g);
+  $('eSub').textContent=(g.nombre||'Jugador').toUpperCase()+' VENCIÓ A LOS '+RIV.length+' RIVALES'+(rnF===2?' DE LA RUTA LEGENDARIA':rnF===3?' DE LA RUTA ÉPICA':'');
+  if(g._rnueva||g._r2nueva){const nx=g._rnueva||2, bo=g._bonoNuevo||0;setSlot(x=>{delete x._r2nueva;delete x._rnueva;delete x._bonoNuevo;});
+    const txtB=bo?'<br><br>🎁 Te sobraron créditos: empiezas esa ruta con <b>+'+bo+' de bonus</b>.':'';
+    setTimeout(()=>modal(nx===3?'☠ RUTA ÉPICA DESBLOQUEADA':'🔓 RUTA LEGENDARIA DESBLOQUEADA',
+      nx===3?RUTAS[3].length+' rivales en dificultad <b style="color:#ff2244">ÉPICA</b>: juegan sin errores, sus barajas ignoran la banlist y cada uno tiene un poder especial. Elígela en la pantalla de Ruta: «III · ÉPICA».'+txtB
+            :'15 rivales nuevos con barajas devastadoras te esperan en dificultad DIFÍCIL y MUY DIFÍCIL. Elígela en la pantalla de Ruta: «II · LEGENDARIA».'+txtB,[['¡A PELEAR!','']]),2200);}
   $('eStats').innerHTML=[[g.victorias||0,'VICTORIAS'],[g.derrotas||0,'DERROTAS'],[tt,'TURNOS'],[(g.vueltas||0)+1,'VUELTA']].map(([v,t])=>'<div><b>'+v+'</b><small>'+t+'</small></div>').join('');
   go('sEnd');
   for(let k=0;k<70;k++){const c=document.createElement('div');c.className='confetti';c.style.left=Math.random()*100+'%';
@@ -1086,15 +1339,19 @@ AUD.addEventListener('error',()=>{_musUrl=null;});
 function muteUI(){$('mute').textContent=MUTE?'🔇':'🔊';}
 $('mute').onclick=()=>{MUTE=!MUTE;try{localStorage.setItem('chh_arcade_mute',MUTE?'1':'0');}catch(e){}muteUI();if(MUTE)AUD.pause();else if(_musUrl)AUD.play().catch(()=>{});};
 // Ruta Legendaria: fondo y canción propios (assets/arcade/portada2.jpg y musica/legendaria.mp3)
-let LEG_MUS=null, LEG_FALLA=false, BG_NORMAL=null, BG_LEG=null;
+let LEG_MUS=null, LEG_FALLA=false, BG_NORMAL=null, BG_LEG=null, EPI_MUS=null, EPI_FALLA=false, BG_EPI=null;
 function enLegendaria(id){if(id!=='sRuta')return false;const g=slot();return !!g&&rutaN(g)===2;}
-function musMenu(id){return enLegendaria(id)&&LEG_MUS&&!LEG_FALLA?LEG_MUS:TITULO_MUS;}
+function enEpica(id){if(!['sRuta','sEnd'].includes(id))return false;const g=slot();return !!g&&rutaN(g)===3;}
+function musMenu(id){if(enEpica(id))return EPI_MUS&&!EPI_FALLA?EPI_MUS:(LEG_MUS&&!LEG_FALLA?LEG_MUS:TITULO_MUS);return enLegendaria(id)&&LEG_MUS&&!LEG_FALLA?LEG_MUS:TITULO_MUS;}
 function ambiente(id){
-  const bg=$('bg'),leg=enLegendaria(id),img=leg?(BG_LEG||BG_NORMAL):BG_NORMAL;
+  const bg=$('bg'),leg=enLegendaria(id),epi=enEpica(id),img=epi?(BG_EPI||BG_LEG||BG_NORMAL):leg?(BG_LEG||BG_NORMAL):BG_NORMAL;
   bg.style.backgroundImage=img?'url("'+img+'")':'';bg.classList.toggle('img',!!img);
   bg.classList.toggle('leg',leg&&!BG_LEG);
+  bg.classList.toggle('epi',epi);bg.classList.toggle('noimg',epi&&!img);
+  document.documentElement.classList.toggle('epica',epi);
 }
-AUD.addEventListener('error',()=>{if(LEG_MUS&&AUD.src&&AUD.src.indexOf('legendaria')>=0&&!LEG_FALLA){LEG_FALLA=true;if($('sRuta').classList.contains('on'))musica(TITULO_MUS);}});
+AUD.addEventListener('error',()=>{if(LEG_MUS&&AUD.src&&AUD.src.indexOf('legendaria')>=0&&!LEG_FALLA){LEG_FALLA=true;if($('sRuta').classList.contains('on'))musica(musMenu('sRuta'));}
+  if(EPI_MUS&&AUD.src&&AUD.src.indexOf('epica')>=0&&!EPI_FALLA){EPI_FALLA=true;if($('sRuta').classList.contains('on'))musica(musMenu('sRuta'));}});
 {const _go=go;go=function(id){_go(id);ambiente(id);if(['sTitle','sSlots','sNew','sRuta'].includes(id)&&TITULO_MUS)musica(musMenu(id));if(id==='sEnd')musica(FINAL_MUS||TITULO_MUS,true);};}
 let FINAL_MUS=null;
 
@@ -1119,6 +1376,10 @@ const LOGROS=[
   {id:'arc_veterano',        cat:'ruta',nombre:'Veterano del Arcade',  emoji:'🔁',cond:'Completa la ruta 3 veces.',prog:['rutas',3]},
   {id:'arc_maestro_barajas', cat:'ruta',nombre:'Maestro de Barajas',   emoji:'🃏',cond:'Completa la ruta con 5 barajas diferentes.',prog:['nBarajas',5]},
   {id:'arc_gran_maestro',    cat:'ruta',nombre:'Señor de las Barajas', emoji:'🏛️',cond:'Completa la ruta con 10 barajas diferentes.',prog:['nBarajas',10]},
+  {id:'arc_legendario',      cat:'ruta',nombre:'Leyenda Viviente',     emoji:'★',cond:'Completa la Ruta Legendaria.'},
+  {id:'arc_epico',           cat:'ruta',nombre:'Héroe Épico',          emoji:'☠️',cond:'Completa la Ruta Épica.'},
+  {id:'arc_inmortal',        cat:'ruta',nombre:'Inmortal',             emoji:'🩸',cond:'Completa la Ruta Épica sin sufrir un GAME OVER en ella.'},
+  {id:'arc_sin_piedad',      cat:'ruta',nombre:'Sin Piedad',           emoji:'⚰️',cond:'Vence al jefe de la Ruta Épica sin perder ningún corazón.'},
   // — Combate (dificultad Medio o superior) —
   {id:'arc_intacto',         cat:'combate',nombre:'Intocable',         emoji:'🛡️',cond:'Gana un combate sin perder ningún corazón.'},
   {id:'arc_relampago',       cat:'combate',nombre:'Relámpago',         emoji:'⚡',cond:'Gana un combate antes del turno 8.'},
@@ -1172,9 +1433,12 @@ function evaluarLogros(g,res,replay,i){
     st.rutas=(st.rutas||0)+1;
     if(g.baraja&&!st.barajas.includes(g.baraja)) st.barajas.push(g.baraja);
     ok('arc_campeon');
-    if(creditos(g)===CREDITOS&&!g.goRuta) ok('arc_un_credito');
+    if(creditos(g)>=(g.credIni||credBase(rutaN(g)))&&!g.goRuta) ok('arc_un_credito');
     if(g.goRuta) ok('arc_fenix');
+    if(rutaN(g)===2) ok('arc_legendario');
+    if(rutaN(g)===3){ok('arc_epico');if(!g.goRuta)ok('arc_inmortal');}
   }
+  if(res.won&&jefe&&res.intacto&&rutaN(g)===3) ok('arc_sin_piedad');
   if(res.won&&jefe&&res.intacto) ok('arc_jefe_intacto');
   st.nBarajas=st.barajas.length;
   if(st.rutas>=3) ok('arc_veterano');
@@ -1321,24 +1585,28 @@ let PLAYER_IMG=null;
   if(portada){$('bg').style.backgroundImage='url("'+portada+'")';$('bg').classList.add('img');}
   BG_NORMAL=portada||null;
   BG_LEG=await probarImg(DIR+'portada2.jpg')||await probarImg(DIR+'portada2.png')||await probarImg(DIR+'fondos/legendaria.jpg')||null;
+  BG_EPI=await probarImg(DIR+'portada3.jpg')||await probarImg(DIR+'portada3.png')||await probarImg(DIR+'fondos/epica.jpg')||null;
   PLAYER_IMG=jug;
   RIV=parseRivales(txt||'');
   if(!RIV.length) RIV=parseRivales(RIVALES_DEFAULT);
   const txt2=await fetchTxt(DIR+'rivales2.txt');
   let R2=parseRivales(txt2||''); if(!R2.length) R2=parseRivales(RIVALES2_DEFAULT);
   R2.forEach(r=>r._ruta=2);
-  RUTAS={1:RIV,2:R2};
+  const txt3=await fetchTxt(DIR+'rivales3.txt');
+  let R3=parseRivales(txt3||''); if(!R3.length) R3=parseRivales(RIVALES3_DEFAULT);
+  R3.forEach(r=>r._ruta=3);
+  RUTAS={1:RIV,2:R2,3:R3};
   DATA=data||{cartas:[],barajas:[]};
   DATA.cartas.forEach(c=>CARD[c.id]=c);
   (Array.isArray(gal)?gal:(gal&&Object.values(gal).find(Array.isArray))||[]).forEach(x=>{if(x&&x.id!=null)GALI[String(x.id)]=x;});
   DECKS=(DATA.barajas||[]);
   // Imágenes de cada rival (si no existen, se usa el arte de su carta)
-  await Promise.all(RUTAS[1].concat(RUTAS[2]).map(async r=>{
+  await Promise.all(RUTAS[1].concat(RUTAS[2],RUTAS[3]).map(async r=>{
     r._img=r.imagen?await probarImg(DIR+'personajes/'+r.imagen):null;
     r._fondo=r.fondo?await probarImg(DIR+'fondos/'+r.fondo):null;
     r._musica=musPath(r.musica);
   }));
-  TITULO_MUS=musPath('titulo.mp3'); FINAL_MUS=musPath('final.mp3'); LEG_MUS=musPath('legendaria.mp3');
+  TITULO_MUS=musPath('titulo.mp3'); FINAL_MUS=musPath('final.mp3'); LEG_MUS=musPath('legendaria.mp3'); EPI_MUS=musPath('epica.mp3');
   muteUI();
   sincronizarLogros();
   $('tStatus').textContent=data?'TOCA JUGAR':'⚠ NO SE PUDIERON LEER LAS BARAJAS';

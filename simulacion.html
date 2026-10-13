@@ -1024,11 +1024,12 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 </div><!-- /stage -->
 
 <script src="cosmeticos.js"></script>
+<script src="medios.js"></script>
 <script>
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v57';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v58';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -1056,8 +1057,40 @@ function makeReverb(ac){
 let _rev=null;
 function getRev(){if(!_rev)_rev=makeReverb(getAC());return _rev;}
 
+// v58 · EFECTOS DE SONIDO PERSONALIZADOS (assets/audio/sfx/)
+// Cada evento busca su archivo; si no existe, suena el efecto sintetizado de siempre.
+const SFX={evts:['combat','destroy','call','card','damage','ofrenda','turno','victory','defeat'],buf:{},vol:1,listo:false,encontrados:0};
+const SFX_DIR='assets/audio/sfx/';
+function sfxModo(){try{return localStorage.getItem('cdh_sim_sfx')||'custom';}catch(e){return 'custom';}}
+async function sfxCargar(){
+  let cfg=null;
+  try{const r=await fetch(SFX_DIR+'sonidos.json',{cache:'no-cache'});if(r.ok){const j=await r.json();if(j&&!j.status){cfg=j;try{localStorage.setItem('cdh_sim_sfx_cfg',JSON.stringify(j));}catch(e){}}}}catch(e){}
+  if(!cfg){try{cfg=JSON.parse(localStorage.getItem('cdh_sim_sfx_cfg')||'null');}catch(e){}}
+  const mapa=(cfg&&cfg.sonidos)||{};
+  SFX.vol=cfg&&cfg.volumen!=null?Math.max(0,Math.min(2,+cfg.volumen||0)):1;
+  let ac=null;try{ac=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}
+  if(!ac||!window.CHH_MEDIOS){SFX.listo=true;return;}
+  const dec=buf=>new Promise(res=>{try{const pr=ac.decodeAudioData(buf,res,()=>res(null));if(pr&&pr.then)pr.then(res,()=>res(null));}catch(e){res(null);}});
+  SFX.encontrados=0;
+  await Promise.all(SFX.evts.map(async ev=>{
+    const L=[].concat(mapa[ev]||(ev+'.mp3')).filter(Boolean).map(f=>/[\/]/.test(f)?f:SFX_DIR+f);
+    const bufs=[];
+    for(const u of L){const b=await CHH_MEDIOS.bytes(u);if(!b)continue;const d=await dec(b);if(d)bufs.push(d);}
+    if(bufs.length){SFX.buf[ev]=bufs;SFX.encontrados++;}
+  }));
+  try{ac.close&&ac.close();}catch(e){}
+  SFX.listo=true;
+}
+function sfxPlay(type){
+  if(sfxModo()!=='custom') return false;
+  const L=SFX.buf[type]; if(!L||!L.length) return false;
+  try{const ac=getAC(),src=ac.createBufferSource(),g=ac.createGain();
+    src.buffer=L[Math.floor(Math.random()*L.length)];g.gain.value=SFX.vol;src.connect(g);g.connect(ac.destination);src.start();return true;}
+  catch(e){return false;}
+}
 function playSound(type){
   if(MUTED) return;
+  if(sfxPlay(type)) return;
   try{
     const ac=getAC();
     const rev=getRev();
@@ -7117,8 +7150,10 @@ function mpSelect(i){
   MP.idx=i;
   const req=++MP.req;
   const url=new URL(MP.carpeta+t.file,location.href).href;
-  mpAudio.src=url; mpAudio.loop=MP.loop;
-  mpAudio.play().then(()=>{MP.on=true;mpUI();}).catch(()=>{MP.on=false;mpUI();});
+  const suena=src=>{if(req!==MP.req)return;mpAudio.src=src;mpAudio.loop=MP.loop;
+    mpAudio.play().then(()=>{MP.on=true;mpUI();}).catch(()=>{MP.on=false;mpUI();});};
+  if(window.CHH_MEDIOS){CHH_MEDIOS.blobUrl(url).then(b=>suena(b||url));document.getElementById('mpName').textContent=t.title;mpSave({id:t.id,auto:true});mpRender();return;}
+  suena(url);
   // Copia descargada en musica.html → úsala si el streaming aún no arrancó
   if('caches' in window){
     caches.open('chh-musica-v1').then(c=>c.match(url)).then(r=>r&&r.blob()).then(b=>{
@@ -7264,7 +7299,7 @@ function apAbrir(){
     '<h3>🎨 APARIENCIA</h3><h4>FONDO DE MESA (detrás del tablero)</h4><div class="ap-grid">'+
     MESAS.map(m=>{const dis=m.id==='imagen'&&!AP.mesaImg;const pv=m.id==='imagen'?(AP.mesaImg?'url("'+AP.mesaImg+'") center/cover':'repeating-linear-gradient(45deg,#111,#111 6px,#1a1a1a 6px,#1a1a1a 12px)'):m.prev;
       return '<button class="ap-opt'+(m.id===act&&!dis?' on':'')+'" data-mesa="'+m.id+'"'+(dis?' disabled':'')+'><span class="ap-prev" style="background:'+pv.replace(/"/g,'&quot;')+'"></span><b>'+m.nom+'</b><small>'+(dis?'No se encontró la imagen':m.desc)+'</small></button>';}).join('')+
-    '</div><div id="apCosm"></div><h4>EFECTOS VISUALES</h4><div class="ds-chips" id="apFx">'+
+    '</div><div id="apCosm"></div><div id="apMedios"></div><h4>EFECTOS VISUALES</h4><div class="ds-chips" id="apFx">'+
     [['on','✨ Completos'],['off','🔋 Reducidos']].map(([v,t])=>'<button class="ds-chip'+(fxModo()===v?' on':'')+'" data-fx="'+v+'">'+t+'</button>').join('')+
     '</div><div class="ap-note">Personaliza desde el repositorio subiendo a <code>assets/simulacion/</code>: <code>inicio_fondo.jpg</code> (fondo de esta pantalla), <code>inicio_logo.png</code> (logo) y <code>mesa_fondo.jpg</code> (opción "Imagen"). Si no existen, se usan los de siempre.</div>';
   box.querySelectorAll('#apFx .ds-chip').forEach(b=>b.onclick=()=>{try{localStorage.setItem('cdh_sim_fx',b.dataset.fx);}catch(e){}fxAplicar();
@@ -7272,7 +7307,54 @@ function apAbrir(){
   box.querySelectorAll('.ap-opt').forEach(b=>b.onclick=()=>{try{localStorage.setItem('cdh_sim_mesa',b.dataset.mesa);}catch(e){}apAplicarMesa(b.dataset.mesa);
     box.querySelectorAll('.ap-opt').forEach(x=>x.classList.toggle('on',x===b));});
   document.getElementById('dsList').classList.add('show');
-  cosmPanel();
+  cosmPanel();mediosPanel();
+}
+// ── v58 · CONTENIDO SIN CONEXIÓN (medios.js): sonidos, música, micas y playmats ──
+const DESC={estado:'',ocupado:false};
+async function descListas(){
+  const sfx=[];
+  try{const cfg=JSON.parse(localStorage.getItem('cdh_sim_sfx_cfg')||'null');const m=(cfg&&cfg.sonidos)||{};
+    SFX.evts.forEach(ev=>[].concat(m[ev]||(ev+'.mp3')).forEach(f=>sfx.push(/[\/]/.test(f)?f:SFX_DIR+f)));}catch(e){}
+  let cosm=[];
+  if(window.CHH_COSM){try{const [a,b]=await Promise.all([CHH_COSM.disponibles('mica'),CHH_COSM.disponibles('playmat')]);
+    cosm=a.concat(b).filter(x=>x.origen!=='clasico').map(x=>x.img);}catch(e){}}
+  const mus=(MP.tracks||[]).filter(t=>t.libre).map(t=>MP.carpeta+t.file);
+  if(ARCADE&&ARCADE.musica) mus.unshift(ARCADE.musica);
+  return {sfx,cosm,mus};
+}
+async function descargarTodo(conMusica,onTxt){
+  if(!window.CHH_MEDIOS||DESC.ocupado) return;
+  DESC.ocupado=true;
+  try{
+    const L=await descListas();
+    const pinta=t=>{DESC.estado=t;try{onTxt&&onTxt(t);}catch(e){}};
+    await CHH_MEDIOS.lista(L.cosm,(n,t)=>pinta('⬇ Micas y playmats '+n+'/'+t),'cosm');
+    if(conMusica) await CHH_MEDIOS.lista(L.mus,(n,t)=>pinta('⬇ Música '+n+'/'+t+' (sigue jugando, se descarga en segundo plano)'),'mus');
+    pinta('');
+  }finally{DESC.ocupado=false;}
+}
+async function mediosPanel(){
+  const box=document.getElementById('apMedios'); if(!box) return;
+  const pinta=async()=>{
+    const L=await descListas();
+    const [m,c]=await Promise.all([CHH_MEDIOS.cuantos(L.mus),CHH_MEDIOS.cuantos(L.cosm)]);
+    const auto=CHH_MEDIOS.puedeAuto(), modo=sfxModo();
+    box.innerHTML='<h4>EFECTOS DE SONIDO</h4><div class="ds-chips" id="apSfx">'+
+      [['custom','🎧 Personalizados'],['clasico','🎹 Clásicos']].map(([v,t])=>'<button class="ds-chip'+(modo===v?' on':'')+'" data-sfx="'+v+'">'+t+'</button>').join('')+
+      '<button class="ds-chip" id="apSfxTest">▶ Probar</button></div>'+
+      '<div class="ap-note">'+(SFX.listo?(SFX.encontrados?'Se encontraron <b>'+SFX.encontrados+' de '+SFX.evts.length+'</b> sonidos personalizados en <code>assets/audio/sfx/</code>. Los que falten suenan como siempre.':'No hay sonidos personalizados en <code>assets/audio/sfx/</code>: se usan los clásicos.'):'Buscando sonidos personalizados…')+'</div>'+
+      '<h4>JUGAR SIN CONEXIÓN</h4><div class="ap-note">🎵 Música descargada: <b>'+m.n+'/'+m.total+'</b> · 🃏 Micas y playmats: <b>'+c.n+'/'+c.total+'</b> · 🔊 Sonidos: <b>'+SFX.encontrados+'</b>'+
+      (DESC.estado?'<br><span style="color:#ffd166">'+DESC.estado+'</span>':'')+'</div>'+
+      '<div class="ds-chips"><button class="ds-chip" id="apDesc">⬇ Descargar todo ahora</button><button class="ds-chip'+(auto?' on':'')+'" id="apAuto">'+(auto?'✅':'⬜')+' Música automática (Wi-Fi)</button><button class="ds-chip" id="apBorra">🗑 Borrar descargas</button></div>';
+    box.querySelectorAll('[data-sfx]').forEach(b=>b.onclick=()=>{try{localStorage.setItem('cdh_sim_sfx',b.dataset.sfx);}catch(e){}pinta();});
+    document.getElementById('apSfxTest').onclick=()=>{const was=MUTED;MUTED=false;playSound('call');setTimeout(()=>playSound('destroy'),450);MUTED=was;};
+    document.getElementById('apDesc').onclick=()=>{descargarTodo(true,()=>pinta());pinta();};
+    document.getElementById('apAuto').onclick=()=>{CHH_MEDIOS.setAuto(!CHH_MEDIOS.puedeAuto());pinta();};
+    document.getElementById('apBorra').onclick=async()=>{if(!confirm('¿Borrar la música, sonidos, micas y playmats descargados? Se volverán a descargar cuando haya internet.'))return;await CHH_MEDIOS.borrar();pinta();};
+  };
+  box.innerHTML='<h4>SONIDO Y DESCARGAS</h4><div class="ap-note">Cargando…</div>';
+  if(!window.CHH_MEDIOS){box.innerHTML='';return;}
+  await pinta();
 }
 // ── v44 · MICAS y PLAYMATS (cosmeticos.js) ──
 async function cosmAplicar(){
@@ -7523,8 +7605,9 @@ function arcadePreparar(){
      const pod=[me?'+'+me+' carta(s) en su mano inicial':'',ae?ae+' alma(s) activas desde el inicio':'',ARCADE.roboExtra?'roba '+ARCADE.roboExtra+' carta(s) extra cada turno':''].filter(Boolean);
      if(pod.length) lg('☠ <b>PODER ÉPICO</b> · '+arcadeEsc(ARCADE.nombre)+': '+pod.join(' · ')+'.','#ff2244');}
     lg('🕹 <b>ARCADE</b> · Combate '+ARCADE.ronda+'/'+ARCADE.total+' contra <b>'+arcadeEsc(ARCADE.nombre)+'</b>.','var(--gold2)');
-    if(ARCADE.musica){try{MP.req++;mpAudio.src=ARCADE.musica;mpAudio.loop=true;
-      mpAudio.play().then(()=>{MP.on=true;MP.idx=-1;document.getElementById('mpName').textContent='🕹 Tema de '+ARCADE.nombre;mpUI();}).catch(()=>{});}catch(e){}}
+    if(ARCADE.musica){try{const rq=++MP.req;const am=ARCADE.musica;
+      (window.CHH_MEDIOS?CHH_MEDIOS.blobUrl(am):Promise.resolve(null)).then(b=>{if(rq!==MP.req)return;mpAudio.src=b||am;mpAudio.loop=true;
+      mpAudio.play().then(()=>{MP.on=true;MP.idx=-1;document.getElementById('mpName').textContent='🕹 Tema de '+ARCADE.nombre;mpUI();}).catch(()=>{});});}catch(e){}}
     renderAll();
   }
   return r;};}
@@ -7583,6 +7666,8 @@ function arsResumen(){
   try{
     await loadData();
     cosmAplicar(); if(window.CHH_COSM) CHH_COSM.sincronizar(8000).then(cosmAplicar);
+    sfxCargar().catch(()=>{});
+    setTimeout(()=>{if(window.CHH_MEDIOS&&navigator.onLine)descargarTodo(CHH_MEDIOS.puedeAuto()).catch(()=>{});},6000);
     let _ok=false;
     await precargarMiniaturas((n,t,ya)=>{_ok=ya;st.textContent=ya?'Imágenes guardadas en el dispositivo':'Guardando imágenes en el dispositivo '+n+'/'+t+'…';});
     st.textContent=Object.keys(C).length+' cartas listas · elige tus barajas'+(_ok?' · 📲 sin red OK':'');

@@ -1,5 +1,8 @@
 // ================================================================
-//  CHOQUE DE HÉROES TCG — Service Worker v8.3
+//  CHOQUE DE HÉROES TCG — Service Worker v8.4
+//  v8.4: caché permanente "chh-medios-v1" (sonidos, micas, playmats y arte del Arcade que
+//        descargan simulacion.html y arcade.html con medios.js). Las imágenes de assets/ se
+//        sirven primero desde ahí, así funcionan sin conexión. No se borra al actualizar.
 //  v8.3: las imágenes de cartas (cartas/, cartas_2/…) van a su propia caché permanente
 //        "chh-cartas-v1": no se borra al actualizar la app ni cuenta para el límite de
 //        la dinámica. Se sirven desde el dispositivo sin tocar la red y se revisan
@@ -12,10 +15,11 @@
 //      datos .json red-primero con timeout, fallbacks por tipo de archivo,
 //      caché dinámica con límite de tamaño.
 // ================================================================
-const CACHE_NAME    = 'chh-tcg-v88';
+const CACHE_NAME    = 'chh-tcg-v89';
 const CACHE_DYNAMIC = 'chh-dynamic-v63';
 const CACHE_MUSICA  = 'chh-musica-v1';
-const CACHE_CARTAS  = 'chh-cartas-v1';   // imágenes de cartas (permanente, compartida con simulacion.html)
+const CACHE_CARTAS  = 'chh-cartas-v1';
+const CACHE_MEDIOS  = 'chh-medios-v1';   // sonidos, micas, playmats y arte del Arcade (permanente, medios.js)   // imágenes de cartas (permanente, compartida con simulacion.html)
 const CARTAS_MAX    = 2500;
 const CARTAS_REVISAR = 7 * 24 * 3600 * 1000;   // revalidación en segundo plano cada 7 días   // pistas guardadas por musica.html (no se borra al actualizar)
 const NET_TIMEOUT   = 3000;   // ms para datos .json antes de servir copia
@@ -43,6 +47,7 @@ const CACHE_SIM = [
   './assets/arcade/rivales4.txt',
   './assets/arcade/rivales5.txt',
   './cosmeticos.js',
+  './medios.js',
   './gamepad.js',
   './data/cosmeticos.json',
   './data/cartas_simulacion.json',
@@ -73,7 +78,7 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME && k !== CACHE_DYNAMIC && k !== CACHE_MUSICA && k !== CACHE_CARTAS).map(k => caches.delete(k))))
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME && k !== CACHE_DYNAMIC && k !== CACHE_MUSICA && k !== CACHE_CARTAS && k !== CACHE_MEDIOS).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -106,6 +111,11 @@ self.addEventListener('fetch', event => {
   }
 
   const path = url.pathname;
+  if (/\/assets\/.+\.(jpe?g|png|webp|gif)$/i.test(path)) {
+    // Arte personalizable (micas, playmats, Arcade): primero la copia descargada
+    event.respondWith(medioPrimero(req, url));
+    return;
+  }
   if (/\/cartas(_\d+)?\/[^/]+\.(jpe?g|png|webp|gif)$/i.test(path)) {
     // Imágenes de cartas: del dispositivo primero, siempre
     event.respondWith(cartaCacheFirst(req, url));
@@ -253,6 +263,15 @@ async function cartaCacheFirst(req, url) {
   }
   const r = await desdeRed();
   return r || new Response('', { status: 504 });
+}
+
+// Imágenes de assets/: copia descargada por medios.js → si no, la estrategia normal
+async function medioPrimero(req, url) {
+  try {
+    const c = await (await caches.open(CACHE_MEDIOS)).match(url.origin + url.pathname);
+    if (c) return c;
+  } catch (e) {}
+  return staleWhileRevalidate(req);
 }
 
 // Busca primero en la dinámica (más reciente) y luego en el precache

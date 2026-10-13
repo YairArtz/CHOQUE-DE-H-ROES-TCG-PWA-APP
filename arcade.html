@@ -519,6 +519,7 @@ html.heroica .h1{background:linear-gradient(90deg,#fff2c4,#ffb300,#fff6d8,#ffb30
 <button class="pill" id="flip" title="Girar al otro lado" style="position:fixed;bottom:max(10px,env(safe-area-inset-bottom));left:calc(max(10px,env(safe-area-inset-left)) + 46px);z-index:60;width:38px;justify-content:center;padding:0">⟲</button>
 </div>
 <script src="cosmeticos.js"></script>
+<script src="medios.js"></script>
 <script>
 // ════════════════════════════════════
 // MODO ARCADE — v1
@@ -527,7 +528,7 @@ html.heroica .h1{background:linear-gradient(90deg,#fff2c4,#ffb300,#fff6d8,#ffb30
 // Combate: escribe "chh_arcade_match" y abre simulacion.html?modo=arcade;
 //          la simulación escribe "chh_arcade_result" y regresa a arcade.html?r=<id>
 // ════════════════════════════════════
-const ARC_VERSION='Arcade v2.6';
+const ARC_VERSION='Arcade v2.7';
 const STAGE=document.getElementById('stage');
 // ── Orientación horizontal ──
 const MOVIL=matchMedia('(pointer:coarse)').matches;
@@ -2012,9 +2013,12 @@ function musPath(v){if(!v)return null;v=String(v).trim();return /[\/]/.test(v)?v
 function musica(url,reiniciar){
   if(!url){return;}
   if(url===_musUrl&&!reiniciar){if(!MUTE&&AUD.paused)AUD.play().catch(()=>{});return;}
-  _musUrl=url;AUD.src=url;AUD.currentTime=0;
-  if(!MUTE) AUD.play().catch(()=>{});
+  _musUrl=url;const rq=++_musReq;
+  // v2.7 · si la canción ya está descargada, suena desde el dispositivo (sin conexión)
+  (window.CHH_MEDIOS?CHH_MEDIOS.blobUrl(url):Promise.resolve(null)).then(b=>{if(rq!==_musReq)return;
+    AUD.src=b||url;try{AUD.currentTime=0;}catch(e){}if(!MUTE)AUD.play().catch(()=>{});});
 }
+let _musReq=0;
 AUD.addEventListener('error',()=>{_musUrl=null;});
 function muteUI(){$('mute').textContent=MUTE?'🔇':'🔊';}
 $('mute').onclick=()=>{MUTE=!MUTE;try{localStorage.setItem('chh_arcade_mute',MUTE?'1':'0');}catch(e){}muteUI();if(MUTE)AUD.pause();else if(_musUrl)AUD.play().catch(()=>{});};
@@ -2102,7 +2106,8 @@ function _lgSig(){const b=_lgCola.shift();if(!b){_lgVis=false;return;}_lgVis=tru
   if(window.CHH_COSM) CHH_COSM.recompensasDe(b.id).then(R=>{if(R.length&&$('lgtN').textContent===b.nombre)$('lgtC').textContent='🎁 Ganaste: '+R.map(r=>(r.tipo==='mica'?'Mica':'Playmat')+' «'+r.nombre+'»').join(' · ')+' — úsala en Apariencia';}).catch(()=>{});
   const t=$('lgToast');t.classList.add('on');try{playLg();}catch(e){}
   setTimeout(()=>{t.classList.remove('on');setTimeout(_lgSig,500);},3600);}
-function playLg(){const A=window.AudioContext||window.webkitAudioContext;if(!A||MUTE)return;const c=new A(),t=c.currentTime;
+let LOGRO_SND=null;
+function playLg(){if(LOGRO_SND&&!MUTE){try{const a=new Audio(LOGRO_SND);a.volume=.85;a.play().catch(()=>{});return;}catch(e){}}const A=window.AudioContext||window.webkitAudioContext;if(!A||MUTE)return;const c=new A(),t=c.currentTime;
   [523,659,784,1047].forEach((f,k)=>{const o=c.createOscillator(),g=c.createGain();o.type='triangle';o.frequency.value=f;g.gain.setValueAtTime(.0001,t+k*.09);g.gain.exponentialRampToValueAtTime(.18,t+k*.09+.02);g.gain.exponentialRampToValueAtTime(.0001,t+k*.09+.35);o.connect(g);g.connect(c.destination);o.start(t+k*.09);o.stop(t+k*.09+.4);});}
 function desbloquear(L,id){
   if(L.l[id]) return;
@@ -2243,7 +2248,9 @@ async function abrirApariencia(){
         const pv=m.id==='imagen'?(img?'url(&quot;'+img+'&quot;) center/cover':'repeating-linear-gradient(45deg,#111,#111 6px,#1a1a1a 6px,#1a1a1a 12px)'):m.prev.replace(/"/g,'&quot;');
         return '<button class="apo'+(m.id===mesa&&!dis?' on':'')+'" data-mesa="'+m.id+'"'+(dis?' disabled':'')+'><span class="pv" style="background:'+pv+'"></span><b>'+m.nom+'</b><small>'+(dis?'No se encontró la imagen':m.desc)+'</small></button>';}).join('')+'</div>'+
       '<h4>EFECTOS VISUALES</h4><div class="apchips">'+[['on','✨ Completos'],['off','🔋 Reducidos']].map(([v,t])=>'<button class="btn sm '+(fx===v?'':'ghost')+'" data-fx="'+v+'">'+t+'</button>').join('')+'</div>'+
-      '<div class="apnote">Se aplica en tus combates del Arcade y en la Simulación. Consigue más micas y playmats en la <b>Tienda</b> con Hero Pesos o con los <b>logros del Arcade</b>.</div>';
+      '<div class="apnote">Se aplica en tus combates del Arcade y en la Simulación. Consigue más micas y playmats en la <b>Tienda</b> con Hero Pesos o con los <b>logros del Arcade</b>.</div>'+(await arcMediosHTML());
+    if($('apDesc'))$('apDesc').onclick=()=>{arcDescargar(true,()=>{if($('apM').classList.contains('on'))pinta();});pinta();};
+    if($('apAuto'))$('apAuto').onclick=()=>{CHH_MEDIOS.setAuto(!CHH_MEDIOS.puedeAuto());pinta();};
     body.querySelectorAll('[data-cosm]').forEach(b=>b.onclick=()=>{CHH_COSM.equipar(b.dataset.cosm,b.dataset.id);
       body.querySelectorAll('[data-cosm="'+b.dataset.cosm+'"]').forEach(x=>x.classList.toggle('on',x===b));});
     body.querySelectorAll('[data-mesa]').forEach(b=>b.onclick=()=>{apLs.set('cdh_sim_mesa',b.dataset.mesa);
@@ -2263,6 +2270,30 @@ for(let i=0;i<18;i++){const e=document.createElement('span');e.className='ember'
   e.style.left=(Math.random()*100)+'%';e.style.animationDuration=(9+Math.random()*10)+'s';e.style.animationDelay=(-Math.random()*15)+'s';
   e.style.setProperty('--dx',(Math.random()*80-40)+'px');STAGE.appendChild(e);}
 
+// ── v2.7 · Descargas para jugar sin conexión (medios.js) ──
+const ARC_DESC={estado:'',ocupado:false};
+function arcListas(){
+  const mus=[TITULO_MUS,FINAL_MUS,LEG_MUS,EPI_MUS,CAO_MUS,HER_MUS], img=[BG_NORMAL,BG_LEG,BG_EPI,BG_CAO,BG_HER,PLAYER_IMG];
+  [1,2,3,4,5].forEach(n=>(RUTAS[n]||[]).forEach(r=>{mus.push(r._musica);img.push(r._img,r._fondo);}));
+  return {mus:mus.filter(Boolean),img:img.filter(x=>x&&!/^data:/.test(x))};
+}
+async function arcDescargar(conMusica,onTxt){
+  if(!window.CHH_MEDIOS||ARC_DESC.ocupado)return;ARC_DESC.ocupado=true;
+  const pinta=t=>{ARC_DESC.estado=t;try{onTxt&&onTxt(t);}catch(e){}};
+  try{
+    const L=arcListas();let cosm=[];
+    if(window.CHH_COSM){try{const [a,b]=await Promise.all([CHH_COSM.disponibles('mica'),CHH_COSM.disponibles('playmat')]);cosm=a.concat(b).filter(x=>x.origen!=='clasico').map(x=>x.img);}catch(e){}}
+    await CHH_MEDIOS.lista(L.img.concat(cosm),(n,t)=>pinta('⬇ Arte del Arcade '+n+'/'+t),'arcimg');
+    if(conMusica) await CHH_MEDIOS.lista(L.mus,(n,t)=>pinta('⬇ Música del Arcade '+n+'/'+t),'arcmus');
+    pinta('');
+  }finally{ARC_DESC.ocupado=false;}
+}
+async function arcMediosHTML(){
+  if(!window.CHH_MEDIOS)return '';
+  const L=arcListas(),[m,i]=await Promise.all([CHH_MEDIOS.cuantos(L.mus),CHH_MEDIOS.cuantos(L.img)]),auto=CHH_MEDIOS.puedeAuto();
+  return '<h4>JUGAR SIN CONEXIÓN</h4><div class="apnote">🎵 Música del Arcade descargada: <b>'+m.n+'/'+m.total+'</b> · 🖼 Retratos y fondos: <b>'+i.n+'/'+i.total+'</b>'+(ARC_DESC.estado?'<br><span style="color:#ffd166">'+ARC_DESC.estado+'</span>':'')+'</div>'+
+    '<div class="apchips"><button class="btn sm" id="apDesc">⬇ DESCARGAR TODO</button><button class="btn sm '+(auto?'':'ghost')+'" id="apAuto">'+(auto?'✅':'⬜')+' MÚSICA AUTOMÁTICA (WI-FI)</button></div>';
+}
 // ── Arranque ──
 let PLAYER_IMG=null;
 (async function init(){
@@ -2312,6 +2343,10 @@ let PLAYER_IMG=null;
   $('tStatus').textContent=data?'TOCA JUGAR':'⚠ NO SE PUDIERON LEER LAS BARAJAS';
   $('tStart').onclick=()=>{go('sSlots');musica(TITULO_MUS);};
   if(!procesarResultado()&&new URLSearchParams(location.search).get('slots')) go('sSlots');
+  if(window.CHH_MEDIOS){
+    CHH_MEDIOS.bajar('assets/audio/sfx/logro.mp3',20000).then(()=>CHH_MEDIOS.blobUrl('assets/audio/sfx/logro.mp3')).then(u=>{LOGRO_SND=u;}).catch(()=>{});
+    setTimeout(()=>{if(navigator.onLine)arcDescargar(CHH_MEDIOS.puedeAuto()).catch(()=>{});},5000);
+  }
   window.addEventListener('resize',()=>{if($('sRuta').classList.contains('on'))renderRuta();});
 })();
 </script>

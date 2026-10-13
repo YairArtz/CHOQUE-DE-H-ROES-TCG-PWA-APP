@@ -89,3 +89,11 @@ CRÉDITOS
   Al completar una ruta por primera vez, los créditos que te sobren (máx. 3) se suman como bonus
   a la siguiente ruta. Rutas Épica, Caótica y Heroica: al vencer al rival 5 ganas un SELLO; si después haces GAME OVER
   vuelves al combate 6 en lugar del 1.
+
+JUGAR SIN CONEXIÓN (Arcade v2.7)
+  El Arcade descarga al dispositivo la música de las rutas y de cada rival, las portadas, retratos,
+  fondos y tus micas/playmats. Lo descargado se queda aunque actualices la app.
+  · Las imágenes se descargan siempre que haya internet.
+  · La música se descarga sola con Wi-Fi (no con datos móviles ni "ahorro de datos").
+  · En 🎨 APARIENCIA → JUGAR SIN CONEXIÓN: ver el avance, "⬇ DESCARGAR TODO" y activar/desactivar la música automática.
+  · Sonido de logro personalizado: assets/audio/sfx/logro.mp3 (si no existe, suena el de siempre).

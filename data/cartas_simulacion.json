@@ -24039,6 +24039,1057 @@
    "prototipo": true,
    "expansion": "prototipos",
    "rareza": "comun"
+  },
+  {
+   "id": "p3_koatl_defensor",
+   "nombre": "Koatl, El Defensor",
+   "tipo": "pj",
+   "coste": 5,
+   "imp": 1,
+   "cor": 2,
+   "fue": 6,
+   "res": 4,
+   "texto": "HABILIDAD: Cuando este PERSONAJE es llamado a tu lado del campo: puedes añadir a tu mano una carta APOYO-EQUIPO desde tu BP (revuelve tu BP). Si este PERSONAJE se encuentra en tu MICTLÁN; puedes Confinarlo para llamar de forma especial a tu lado del campo un PERSONAJE con \"KOATL, EL DEFENSOR ESPECTRAL\" desde tu mano o BP (revuelve tu BP).",
+   "efectos": [
+    {
+     "cuando": "al_llamar",
+     "opcional": true,
+     "texto": "Añadir un APOYO-EQUIPO de tu BP",
+     "condicion": {
+      "hay": {
+       "origen": "bp",
+       "filtro": {
+        "tipo": "apoyo",
+        "subtipo": "equipo"
+       }
+      }
+     },
+     "pasos": [
+      {
+       "accion": "buscar",
+       "origen": "bp",
+       "filtro": {
+        "tipo": "apoyo",
+        "subtipo": "equipo"
+       }
+      }
+     ]
+    },
+    {
+     "cuando": "mictlan",
+     "limite": "turno",
+     "texto": "Confinarlo y llamar a KOATL, EL DEFENSOR ESPECTRAL",
+     "condicion": {
+      "zonaLibre": true,
+      "hay": {
+       "origen": [
+        "mano",
+        "bp"
+       ],
+       "filtro": {
+        "tipo": "pj",
+        "nombreIncluye": "DEFENSOR ESPECTRAL"
+       },
+       "texto": "No tienes a KOATL, EL DEFENSOR ESPECTRAL en tu mano ni BP"
+      }
+     },
+     "pasos": [
+      {
+       "accion": "confinar_esta"
+      },
+      {
+       "accion": "llamar_especial",
+       "origen": [
+        "mano",
+        "bp"
+       ],
+       "filtro": {
+        "tipo": "pj",
+        "nombreIncluye": "DEFENSOR ESPECTRAL"
+       }
+      }
+     ]
+    }
+   ],
+   "img": "./cartas_3/prototipos_040_full.jpg",
+   "imgMin": "./cartas_3/prototipos_040.jpg",
+   "prototipo": true,
+   "expansion": "exclusivas_de_barajas",
+   "rareza": "comun"
+  },
+  {
+   "id": "p3_tenochtitlan_campeones",
+   "nombre": "La Gran Tenochtitlán, Tierra de Campeones",
+   "tipo": "arena",
+   "texto": "(Esta carta es tratada como \"LA GRAN TENOCHTITLÁN\" en mano, BP, MICTLÁN y Confinamiento) Todos tus PERSONAJES en campo con \"DEFENSOR\", \"VIGILANTE\" o \"GUARDIÁN\" en su nombre, incrementan +1 punto de CORAZÓN, IMPACTO, FUERZA y RESISTENCIA. Una vez por turno, puedes Confinar una carta del campo, pero uno de tus PERSONAJES con \"DEFENSOR\", \"VIGILANTE\" o \"GUARDIÁN\" no podrá declarar ataque. Mientras esta carta se encuentre en tu lado del campo; cuando tus PERSONAJES en campo defienden, no tendrán que descansar el siguiente turno. Si esta carta en tu lado del campo fuera a ser destruida o Confinada, Envía al MICTLÁN uno de tus PERSONAJES para negar el efecto o habilidad.",
+   "efectos": [
+    {
+     "cuando": "pasivo",
+     "accion": "aura",
+     "filtro": {
+      "nombreIncluye": [
+       "DEFENSOR",
+       "VIGILANTE",
+       "GUARDIAN"
+      ]
+     },
+     "cor": 1,
+     "imp": 1,
+     "fue": 1,
+     "res": 1
+    },
+    {
+     "cuando": "accion",
+     "limite": "turno",
+     "texto": "Confinar una carta del campo (un DEFENSOR/VIGILANTE/GUARDIÁN tuyo no podrá atacar)",
+     "condicion": {
+      "pjFiltroMin": {
+       "filtro": {
+        "nombreIncluye": [
+         "DEFENSOR",
+         "VIGILANTE",
+         "GUARDIAN"
+        ]
+       },
+       "n": 1
+      }
+     },
+     "pasos": [
+      {
+       "accion": "no_ataca_filtro",
+       "filtro": {
+        "nombreIncluye": [
+         "DEFENSOR",
+         "VIGILANTE",
+         "GUARDIAN"
+        ]
+       }
+      },
+      {
+       "accion": "cartas_campo",
+       "modo": "conf",
+       "cantidad": 1
+      }
+     ]
+    },
+    {
+     "cuando": "pasivo",
+     "accion": "reemplazo_por_pj"
+    }
+   ],
+   "img": "./cartas_3/prototipos_041_full.jpg",
+   "imgMin": "./cartas_3/prototipos_041.jpg",
+   "prototipo": true,
+   "expansion": "exclusivas_de_barajas",
+   "rareza": "comun"
+  },
+  {
+   "id": "p3_ixchell_defensora",
+   "nombre": "Ixchell, Defensora Ancestral",
+   "tipo": "pj",
+   "coste": 5,
+   "imp": 1,
+   "cor": 2,
+   "fue": 5,
+   "res": 5,
+   "habilidades": [
+    "DOBLE BATALLA",
+    "HEROISMO"
+   ],
+   "texto": "HABILIDAD: Puedes llamar a este personaje de forma especial desde tu mano o MICTLÁN, enviando al MICTLÁN 1 carta APOYO EQUIPO desde tu mano o BP (revuelve tu BP). DOBLE BATALLA: Este personaje puede chocar al mismo tiempo con dos personajes en el campo de tu adversario que se encuentren en el mismo sector. HEROÍSMO: Este personaje no puede ser destruido en combate.",
+   "efectos": [
+    {
+     "cuando": "mano",
+     "sinAnuncio": true,
+     "limite": "turno",
+     "texto": "Enviar un APOYO EQUIPO al Mictlán y llamarla de forma especial",
+     "condicion": {
+      "zonaLibre": true,
+      "hay": {
+       "origen": [
+        "mano",
+        "bp"
+       ],
+       "filtro": {
+        "tipo": "apoyo",
+        "subtipo": "equipo"
+       },
+       "texto": "No tienes APOYO EQUIPO en tu mano ni BP"
+      }
+     },
+     "pasos": [
+      {
+       "accion": "llamarse_especial",
+       "costo": "equipo_a_mictlan"
+      }
+     ]
+    },
+    {
+     "cuando": "mictlan",
+     "sinAnuncio": true,
+     "limite": "turno",
+     "texto": "Enviar un APOYO EQUIPO al Mictlán y llamarla desde el Mictlán",
+     "condicion": {
+      "zonaLibre": true,
+      "hay": {
+       "origen": [
+        "mano",
+        "bp"
+       ],
+       "filtro": {
+        "tipo": "apoyo",
+        "subtipo": "equipo"
+       },
+       "texto": "No tienes APOYO EQUIPO en tu mano ni BP"
+      }
+     },
+     "pasos": [
+      {
+       "accion": "llamarse_especial",
+       "costo": "equipo_a_mictlan"
+      }
+     ]
+    }
+   ],
+   "img": "./cartas_3/prototipos_042_full.jpg",
+   "imgMin": "./cartas_3/prototipos_042.jpg",
+   "prototipo": true,
+   "expansion": "exclusivas_de_barajas",
+   "rareza": "comun"
+  },
+  {
+   "id": "p3_quetzaltetl",
+   "nombre": "Quetzaltetl",
+   "tipo": "apoyo",
+   "subtipo": "equipo",
+   "texto": "Solo puedes equipar con esta carta APOYO a un personaje con \"DEFENSOR\", \"VIGILANTE\", \"GUARDIÁN\" o \"ENVOKATEOTL\" en su nombre: Incrementa la cantidad de impactos en +2 al PERSONAJE equipado con esta carta. El PERSONAJE equipado obtiene la habilidad \"EMBOSCADA\".",
+   "efectos": [
+    {
+     "cuando": "pasivo",
+     "accion": "equipo",
+     "imp": 2,
+     "otorgar": "EMBOSCADA",
+     "filtroObjetivo": {
+      "nombreIncluye": [
+       "DEFENSOR",
+       "VIGILANTE",
+       "GUARDIAN",
+       "ENVOKATEOTL"
+      ]
+     }
+    }
+   ],
+   "img": "./cartas_3/prototipos_043_full.jpg",
+   "imgMin": "./cartas_3/prototipos_043.jpg",
+   "prototipo": true,
+   "expansion": "exclusivas_de_barajas",
+   "rareza": "comun"
+  },
+  {
+   "id": "p3_macahuitl",
+   "nombre": "Gran Macahuitl de Kos-kalt",
+   "tipo": "apoyo",
+   "subtipo": "equipo",
+   "texto": "Solo puedes equipar con esta carta APOYO a un personaje con \"DEFENSOR\", \"VIGILANTE\", \"GUARDIÁN\" o \"ENVOKATEOTL\" en su nombre: Incrementa la FUERZA en +3 y la RESISTENCIA en +4 del PERSONAJE equipado con esta carta. El PERSONAJE equipado obtiene la habilidad \"DOBLE BATALLA\".",
+   "efectos": [
+    {
+     "cuando": "pasivo",
+     "accion": "equipo",
+     "fue": 3,
+     "res": 4,
+     "otorgar": "DOBLE BATALLA",
+     "filtroObjetivo": {
+      "nombreIncluye": [
+       "DEFENSOR",
+       "VIGILANTE",
+       "GUARDIAN",
+       "ENVOKATEOTL"
+      ]
+     }
+    }
+   ],
+   "img": "./cartas_3/prototipos_044_full.jpg",
+   "imgMin": "./cartas_3/prototipos_044.jpg",
+   "prototipo": true,
+   "expansion": "exclusivas_de_barajas",
+   "rareza": "comun"
+  },
+  {
+   "id": "p3_xiuhcoatl_divino",
+   "nombre": "Xiuhcoatl Divino de Huitzilopochtli",
+   "tipo": "apoyo",
+   "subtipo": "equipo",
+   "texto": "Solo puedes equipar con esta carta APOYO a un personaje con \"DEFENSOR\", \"VIGILANTE\", \"GUARDIÁN\", \"ENVOKATEOTL\" o \"HUITZILOPOCHTLI\" en su nombre; aplica uno de los siguientes efectos según tu cantidad de corazones de jugador: -5 o menos, ese personaje gana +10 puntos de FUERZA y +5 de RESISTENCIA. -6 o más, ese personaje gana +5 puntos de FUERZA y +3 de RESISTENCIA. El personaje equipado adquiere la habilidad \"BRUTALIDAD\": Este personaje puede declarar batalla el mismo turno en el que fue llamado al campo. (Solo puedes tener 1 carta \"XIUHCOATL DIVINO DE HUITZILOPOCHTLI\" activa a la vez)",
+   "efectos": [
+    {
+     "cuando": "pasivo",
+     "accion": "equipo",
+     "otorgar": "BRUTALIDAD",
+     "unicoActivo": true,
+     "filtroObjetivo": {
+      "nombreIncluye": [
+       "DEFENSOR",
+       "VIGILANTE",
+       "GUARDIAN",
+       "ENVOKATEOTL",
+       "HUITZILOPOCHTLI"
+      ]
+     },
+     "segunCorazones": [
+      {
+       "max": 5,
+       "fue": 10,
+       "res": 5
+      },
+      {
+       "min": 6,
+       "fue": 5,
+       "res": 3
+      }
+     ]
+    }
+   ],
+   "img": "./cartas_3/prototipos_045_full.jpg",
+   "imgMin": "./cartas_3/prototipos_045.jpg",
+   "prototipo": true,
+   "expansion": "exclusivas_de_barajas",
+   "rareza": "comun"
+  },
+  {
+   "id": "p3_el_vigilante_aguila",
+   "nombre": "El Vigilante Águila",
+   "tipo": "pj",
+   "coste": 1,
+   "imp": 1,
+   "cor": 1,
+   "fue": 4,
+   "res": 2,
+   "texto": "HABILIDAD: Retorna una carta ALMA de tu lado del campo o mano al fondo de tu BA y añade un PERSONAJE con \"DEFENSOR\", \"VIGILANTE\" o \"GUARDIÁN\" en su nombre a tu mano desde tu BP (revuelve tu BP) o MICTLÁN. Puedes descartar este PERSONAJE de tu mano o enviarlo desde tu lado del campo al MICTLÁN, para terminar la Fase de Combate de tu adversario.",
+   "efectos": [
+    {
+     "cuando": "accion",
+     "limite": "turno",
+     "texto": "Retornar un ALMA a tu BA y añadir un DEFENSOR/VIGILANTE/GUARDIÁN",
+     "condicion": {
+      "almasManoCampoMin": 1,
+      "hay": {
+       "origen": [
+        "bp",
+        "mictlan"
+       ],
+       "filtro": {
+        "tipo": "pj",
+        "nombreIncluye": [
+         "DEFENSOR",
+         "VIGILANTE",
+         "GUARDIAN"
+        ]
+       },
+       "texto": "No hay DEFENSOR/VIGILANTE/GUARDIÁN en tu BP ni Mictlán"
+      }
+     },
+     "pasos": [
+      {
+       "accion": "alma_mano_campo_a_ba"
+      },
+      {
+       "accion": "buscar",
+       "origen": [
+        "bp",
+        "mictlan"
+       ],
+       "filtro": {
+        "tipo": "pj",
+        "nombreIncluye": [
+         "DEFENSOR",
+         "VIGILANTE",
+         "GUARDIAN"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "cuando": "respuesta",
+     "accion": "anik"
+    },
+    {
+     "cuando": "respuesta_campo",
+     "accion": "anik_campo"
+    }
+   ],
+   "img": "./cartas_3/prototipos_046_full.jpg",
+   "imgMin": "./cartas_3/prototipos_046.jpg",
+   "prototipo": true,
+   "expansion": "exclusivas_de_barajas",
+   "rareza": "comun"
+  },
+  {
+   "id": "p3_koatl_nexotlan",
+   "nombre": "Koatl, El Defensor De Nexotlan",
+   "tipo": "pj",
+   "coste": 8,
+   "imp": 2,
+   "cor": 2,
+   "fue": 7,
+   "res": 6,
+   "texto": "HABILIDAD: Si este personaje fué llamado por efecto o habilidad de otra carta, añade a tu mano una carta ALMA desde tu BA (revuelve tu BA). Si una carta ARENA con \"NEXOTLÁN\" en su nombre esta activa en tu lado del campo este personaje adquiere la habilidad \"HEROÍSMO\": Este personaje no puede ser destruido en combate. Una vez por turno puedes ENLAZAR este personaje a un PERSONAJE con \"DEFENSOR\", \"GUARDIÁN\" o \"VIGILANTE\" en su nombre de tu lado del campo, ambos compartirán la habilidad HEROÍSMO y la cantidad de IMPACTOS de este PERSONAJE.",
+   "efectos": [
+    {
+     "cuando": "al_llamar",
+     "condicion": {
+      "llamadoPorHabilidad": true,
+      "hay": {
+       "origen": "ba",
+       "filtro": {
+        "tipo": "alma"
+       }
+      }
+     },
+     "pasos": [
+      {
+       "accion": "buscar",
+       "origen": "ba",
+       "filtro": {
+        "tipo": "alma"
+       }
+      }
+     ]
+    },
+    {
+     "cuando": "pasivo",
+     "accion": "aura",
+     "alcance": "esta",
+     "cond": "arenaPropia",
+     "condFiltro": {
+      "tipo": "arena",
+      "nombreIncluye": "NEXOTLAN"
+     },
+     "hab": "HEROISMO"
+    },
+    {
+     "cuando": "accion",
+     "limite": "turno",
+     "texto": "ENLAZAR con un DEFENSOR/GUARDIÁN/VIGILANTE (comparten HEROÍSMO e IMPACTOS)",
+     "condicion": {
+      "pjFiltroMin": {
+       "filtro": {
+        "nombreIncluye": [
+         "DEFENSOR",
+         "VIGILANTE",
+         "GUARDIAN"
+        ]
+       },
+       "n": 1,
+       "otro": true
+      }
+     },
+     "pasos": [
+      {
+       "accion": "enlazar_compartir",
+       "filtro": {
+        "nombreIncluye": [
+         "DEFENSOR",
+         "VIGILANTE",
+         "GUARDIAN"
+        ]
+       },
+       "hab": "HEROISMO"
+      }
+     ]
+    }
+   ],
+   "img": "./cartas_3/prototipos_047_full.jpg",
+   "imgMin": "./cartas_3/prototipos_047.jpg",
+   "prototipo": true,
+   "expansion": "exclusivas_de_barajas",
+   "rareza": "comun"
+  },
+  {
+   "id": "p3_benton",
+   "nombre": "Benton, El Líder Elfo",
+   "tipo": "pj",
+   "coste": 1,
+   "imp": 1,
+   "cor": 1,
+   "fue": 2,
+   "res": 2,
+   "texto": "HABILIDAD: Cuando este PERSONAJE es llamado de forma normal a tu lado del campo; añade a tu mano una carta con \"VULCAR\", \"CRISTAL\" o \"DRAGÓN\" en su nombre desde tu BP (revuelve tu BP). Si este personaje deja el campo; puedes enviar una carta ALMA de tu mano o campo, uno de tus PERSONAJES ganará +1 corazón.",
+   "efectos": [
+    {
+     "cuando": "al_llamar",
+     "condicion": {
+      "via": "normal",
+      "hay": {
+       "origen": "bp",
+       "filtro": {
+        "nombreIncluye": [
+         "VULCAR",
+         "CRISTAL",
+         "DRAGON"
+        ]
+       }
+      }
+     },
+     "pasos": [
+      {
+       "accion": "buscar",
+       "origen": "bp",
+       "filtro": {
+        "nombreIncluye": [
+         "VULCAR",
+         "CRISTAL",
+         "DRAGON"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "cuando": "al_salir",
+     "opcional": true,
+     "texto": "Enviar un ALMA al Mictlán: un personaje tuyo gana +1 corazón",
+     "condicion": {
+      "almasManoCampoMin": 1,
+      "hayPJ": true
+     },
+     "pasos": [
+      {
+       "accion": "alma_mano_campo_a_mictlan"
+      },
+      {
+       "accion": "dar_corazon_propio"
+      }
+     ]
+    }
+   ],
+   "img": "./cartas_3/prototipos_048_full.jpg",
+   "imgMin": "./cartas_3/prototipos_048.jpg",
+   "prototipo": true,
+   "expansion": "exclusivas_de_barajas",
+   "rareza": "comun"
+  },
+  {
+   "id": "p3_legado_cristal",
+   "nombre": "Legado de Cristal",
+   "tipo": "apoyo",
+   "subtipo": "rapido",
+   "noNegable": true,
+   "texto": "Envía un PERSONAJE con \"CRISTAL\" en su nombre de tu lado del campo y la carta del tope de tu BA al MICTLÁN; llama de forma especial a tu lado del campo, 2 PERSONAJES con una diferencia de 1 a 2 en sus valores y \"CRISTAL\" en su nombre desde tu MICTLÁN. (El efecto de esta carta no puede ser negado)",
+   "efectos": [
+    {
+     "cuando": "activar",
+     "condicion": {
+      "pjFiltroMin": {
+       "filtro": {
+        "nombreIncluye": "CRISTAL"
+       },
+       "n": 1
+      },
+      "legadoCristal": true
+     },
+     "pasos": [
+      {
+       "accion": "sacrificar_propio",
+       "filtro": {
+        "nombreIncluye": "CRISTAL"
+       }
+      },
+      {
+       "accion": "ba_tope_mictlan"
+      },
+      {
+       "accion": "legado_cristal"
+      }
+     ]
+    }
+   ],
+   "img": "./cartas_3/prototipos_049_full.jpg",
+   "imgMin": "./cartas_3/prototipos_049.jpg",
+   "prototipo": true,
+   "expansion": "exclusivas_de_barajas",
+   "rareza": "comun"
+  },
+  {
+   "id": "p3_vulcar_vengativo",
+   "nombre": "Vulcar, El Caballero de Cristal Vengativo",
+   "tipo": "pj",
+   "coste": 6,
+   "imp": 1,
+   "cor": 2,
+   "fue": 7,
+   "res": 4,
+   "texto": "HABILIDAD: Cuando este PERSONAJE es llamado a tu lado del campo: puedes añadir a tu mano un APOYO con \"ESPADA\" y \"CRISTAL\" en su nombre desde tu BP (revuelve tu BP) o MICTLÁN. Cuando este personaje deja el campo, puedes descartar una carta de tu mano al MICTLÁN para llamar de forma especial a un PERSONAJE con \"VULCAR\" y \"DRAGÓN\" en su nombre a tu lado del campo.",
+   "efectos": [
+    {
+     "cuando": "al_llamar",
+     "opcional": true,
+     "texto": "Añadir un APOYO ESPADA de CRISTAL",
+     "condicion": {
+      "hay": {
+       "origen": [
+        "bp",
+        "mictlan"
+       ],
+       "filtro": {
+        "tipo": "apoyo",
+        "nombreTodos": [
+         "ESPADA",
+         "CRISTAL"
+        ]
+       }
+      }
+     },
+     "pasos": [
+      {
+       "accion": "buscar",
+       "origen": [
+        "bp",
+        "mictlan"
+       ],
+       "filtro": {
+        "tipo": "apoyo",
+        "nombreTodos": [
+         "ESPADA",
+         "CRISTAL"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "cuando": "al_salir",
+     "opcional": true,
+     "texto": "Descartar 1 carta y llamar un VULCAR DRAGÓN",
+     "condicion": {
+      "zonaLibre": true,
+      "manoMin": 1,
+      "hay": {
+       "origen": [
+        "mano",
+        "bp",
+        "mictlan"
+       ],
+       "filtro": {
+        "tipo": "pj",
+        "nombreTodos": [
+         "VULCAR",
+         "DRAGON"
+        ]
+       }
+      }
+     },
+     "pasos": [
+      {
+       "accion": "descartar_mano",
+       "cantidad": 1
+      },
+      {
+       "accion": "llamar_especial",
+       "origen": [
+        "mano",
+        "bp",
+        "mictlan"
+       ],
+       "filtro": {
+        "tipo": "pj",
+        "nombreTodos": [
+         "VULCAR",
+         "DRAGON"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "img": "./cartas_3/prototipos_050_full.jpg",
+   "imgMin": "./cartas_3/prototipos_050.jpg",
+   "prototipo": true,
+   "expansion": "exclusivas_de_barajas",
+   "rareza": "comun"
+  },
+  {
+   "id": "p3_espada_cristal_dragon",
+   "nombre": "Espada de Cristal Dragón",
+   "tipo": "apoyo",
+   "subtipo": "equipo",
+   "texto": "Equipa un PERSONAJE con \"CABALLERO\" o \"AMAZONA\" en su nombre; ganará +5 puntos de FUERZA y +3 de RESISTENCIA. Cuando el PERSONAJE equipado ataca, el adversario debe quitar un corazón al PERSONAJE objetivo elegido. (No pueden activarse cartas en respuesta a este efecto)",
+   "efectos": [
+    {
+     "cuando": "pasivo",
+     "accion": "equipo",
+     "fue": 5,
+     "res": 3,
+     "quitaCorObjetivo": true,
+     "filtroObjetivo": {
+      "nombreIncluye": [
+       "CABALLERO",
+       "AMAZONA"
+      ]
+     }
+    }
+   ],
+   "img": "./cartas_3/prototipos_051_full.jpg",
+   "imgMin": "./cartas_3/prototipos_051.jpg",
+   "prototipo": true,
+   "expansion": "exclusivas_de_barajas",
+   "rareza": "comun"
+  },
+  {
+   "id": "p3_errantes_phorus",
+   "nombre": "Errantes de Phorus",
+   "tipo": "apoyo",
+   "subtipo": "continuo",
+   "texto": "Si tienes un PERSONAJE con \"VULCAR\" y \"CABALLERO\" en su nombre en tu lado del campo, puedes activar uno de los siguientes efectos al inicio de cada turno: -Si tienes un PERSONAJE con WARR en su nombre; Tu adversario no puede activar APOYOS durante tu turno. -Si tienes un PERSONAJE con BESSA en su nombre; tu adversario no puede activar SECTORES en tu lado del campo. -Si WARR y BESSA se encuentran en tu lado del campo; tus personajes con \"VULCAR\" en su nombre adquieren la habilidad, EMBOSCADA.",
+   "efectos": [
+    {
+     "cuando": "pasivo",
+     "accion": "errantes"
+    }
+   ],
+   "img": "./cartas_3/prototipos_052_full.jpg",
+   "imgMin": "./cartas_3/prototipos_052.jpg",
+   "prototipo": true,
+   "expansion": "exclusivas_de_barajas",
+   "rareza": "comun"
+  },
+  {
+   "id": "p3_negro_caballo",
+   "nombre": "Negro, El Caballo Feroz",
+   "tipo": "apoyo",
+   "subtipo": "equipo",
+   "texto": "Equipa con esta carta a un PERSONAJE con \"CABALLERO\" o \"AMAZONA\" en su nombre; incrementa en +1 los CORAZONES, FUERZA y RESISTENCIA del personaje equipado por cada carta ALMA activa de tu lado del campo. El personaje equipado gana la habilidad; PRIMER DAÑO: Durante el choque, este personaje puede dañar con mayor rapidez al personaje de tu adversario (el personaje del contrincante no podrá responder al choque). Cuando el personaje equipado deja el campo: Envía esta carta al MICTLÁN.",
+   "efectos": [
+    {
+     "cuando": "pasivo",
+     "accion": "equipo",
+     "porCada": "almas_propias",
+     "cor": 1,
+     "fue": 1,
+     "res": 1,
+     "otorgar": "PRIMER DANO",
+     "filtroObjetivo": {
+      "nombreIncluye": [
+       "CABALLERO",
+       "AMAZONA"
+      ]
+     }
+    }
+   ],
+   "img": "./cartas_3/prototipos_053_full.jpg",
+   "imgMin": "./cartas_3/prototipos_053.jpg",
+   "prototipo": true,
+   "expansion": "exclusivas_de_barajas",
+   "rareza": "comun"
+  },
+  {
+   "id": "p3_vulcar_nexotlan",
+   "nombre": "Vulcar, El Caballero De Nexotlan",
+   "tipo": "pj",
+   "coste": 8,
+   "imp": 2,
+   "cor": 2,
+   "fue": 9,
+   "res": 6,
+   "texto": "HABILIDAD: Si este personaje fué llamado por efecto o habilidad de otra carta, añade a tu mano una carta PERSONAJE desde tu Confinamiento. Si una carta ARENA con \"NEXOTLÁN\" en su nombre esta activa en tu lado del campo; este personaje adquiere la habilidad \"INVULNERABLE\": Este personaje no puede ser destruido por efectos de cartas o habilidades de personajes. Una vez por turno puedes ENLAZAR este personaje a un PERSONAJE con \"DRAGÓN\", \"CRISTAL\", \"HANNIA\", \"WARR\" o \"BESSA\" en su nombre de tu lado del campo, ambos compartirán la habilidad INVULNERABLE y la cantidad de IMPACTOS de este PERSONAJE.",
+   "efectos": [
+    {
+     "cuando": "al_llamar",
+     "condicion": {
+      "llamadoPorHabilidad": true,
+      "hay": {
+       "origen": "conf",
+       "filtro": {
+        "tipos": [
+         "pj"
+        ]
+       }
+      }
+     },
+     "pasos": [
+      {
+       "accion": "buscar",
+       "origen": "conf",
+       "filtro": {
+        "tipos": [
+         "pj"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "cuando": "pasivo",
+     "accion": "aura",
+     "alcance": "esta",
+     "cond": "arenaPropia",
+     "condFiltro": {
+      "tipo": "arena",
+      "nombreIncluye": "NEXOTLAN"
+     },
+     "inmune": "destruir"
+    },
+    {
+     "cuando": "accion",
+     "limite": "turno",
+     "texto": "ENLAZAR con un DRAGÓN/CRISTAL/HANNIA/WARR/BESSA (comparten INVULNERABLE e IMPACTOS)",
+     "condicion": {
+      "pjFiltroMin": {
+       "filtro": {
+        "nombreIncluye": [
+         "DRAGON",
+         "CRISTAL",
+         "HANNIA",
+         "WARR",
+         "BESSA"
+        ]
+       },
+       "n": 1,
+       "otro": true
+      }
+     },
+     "pasos": [
+      {
+       "accion": "enlazar_compartir",
+       "filtro": {
+        "nombreIncluye": [
+         "DRAGON",
+         "CRISTAL",
+         "HANNIA",
+         "WARR",
+         "BESSA"
+        ]
+       },
+       "inmune": "destruir"
+      }
+     ]
+    }
+   ],
+   "img": "./cartas_3/prototipos_054_full.jpg",
+   "imgMin": "./cartas_3/prototipos_054.jpg",
+   "prototipo": true,
+   "expansion": "exclusivas_de_barajas",
+   "rareza": "comun"
+  },
+  {
+   "id": "p3_volkot_cristal_feroz",
+   "nombre": "Volkot, Defensor de Cristal Feroz",
+   "tipo": "amalgama",
+   "gama": 6,
+   "imp": 1,
+   "cor": 3,
+   "fue": 9,
+   "res": 7,
+   "habilidades": [
+    "EMBOSCADA"
+   ],
+   "texto": "(Solo puede ser llamado desde tu BS Confinando la carta del tope de tu BA y a \"VOLKOT, EL DEFENSOR DE CRISTAL\" al final del turno en que fué llamado al campo). HABILIDAD: Mientras este PERSONAJE se encuentre en tu lado del campo, todos tus PERSONAJES con \"DEFENSOR\", \"VIGILANTE\", \"GUARDIÁN\", \"CRISTAL\" y \"CABALLERO\" ganan 1 punto de FUERZA y RESISTENCIA por cada carta en tu mano. Cuando este personaje deja el campo gana 1 corazón de jugador por cada carta con \"DEFENSOR\", \"VIGILANTE\", \"GUARDIÁN\", \"CRISTAL\" o \"CABALLERO\" en el campo. EMBOSCADA.",
+   "llamadoEspecial": {
+    "texto": "Confina la carta del tope de tu BA y a VOLKOT, EL DEFENSOR DE CRISTAL (llamado este turno).",
+    "materiales": [
+     {
+      "cantidad": 1,
+      "id": "volkot_cristal",
+      "tipo": "amalgama"
+     }
+    ],
+    "origen": [
+     "campo"
+    ],
+    "destino": "confinar",
+    "esteTurno": true,
+    "costoTopeBA": true
+   },
+   "efectos": [
+    {
+     "cuando": "pasivo",
+     "accion": "aura",
+     "filtro": {
+      "nombreIncluye": [
+       "DEFENSOR",
+       "VIGILANTE",
+       "GUARDIAN",
+       "CRISTAL",
+       "CABALLERO"
+      ]
+     },
+     "porCada": "mano",
+     "fue": 1,
+     "res": 1
+    },
+    {
+     "cuando": "al_salir",
+     "pasos": [
+      {
+       "accion": "ganar_corazones_por",
+       "filtro": {
+        "nombreIncluye": [
+         "DEFENSOR",
+         "VIGILANTE",
+         "GUARDIAN",
+         "CRISTAL",
+         "CABALLERO"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "img": "./cartas_3/prototipos_055_full.jpg",
+   "imgMin": "./cartas_3/prototipos_055.jpg",
+   "prototipo": true,
+   "expansion": "exclusivas_de_barajas",
+   "rareza": "comun"
+  },
+  {
+   "id": "p3_volkot_dragon_feroz",
+   "nombre": "Volkot, Dragón Defensor Feroz",
+   "tipo": "amalgama",
+   "gama": 6,
+   "imp": 1,
+   "cor": 3,
+   "fue": 7,
+   "res": 9,
+   "habilidades": [
+    "PRIMER DANO"
+   ],
+   "texto": "(Solo puede ser llamado desde tu BS Confinando la carta del tope de tu BA y a \"VOLKOT, EL DRAGÓN DEFENSOR\" al final del turno en que fué llamado al campo). HABILIDAD: Mientras este PERSONAJE se encuentre en tu lado del campo, todos tus PERSONAJES con \"DEFENSOR\", \"VIGILANTE\", \"GUARDIÁN\", \"CRISTAL\" y \"CABALLERO\" ganan 1 punto de FUERZA y RESISTENCIA por cada carta en tu lado del campo. Cuando este personaje deja el campo gana 1 corazón de jugador por cada carta con \"DEFENSOR\", \"VIGILANTE\", \"AMAZONA\", \"CRISTAL\" o \"DRAGÓN\" en el campo. PRIMER DAÑO.",
+   "llamadoEspecial": {
+    "texto": "Confina la carta del tope de tu BA y a VOLKOT, EL DRAGÓN DEFENSOR (llamado este turno).",
+    "materiales": [
+     {
+      "cantidad": 1,
+      "id": "volkot",
+      "tipo": "amalgama"
+     }
+    ],
+    "origen": [
+     "campo"
+    ],
+    "destino": "confinar",
+    "esteTurno": true,
+    "costoTopeBA": true
+   },
+   "efectos": [
+    {
+     "cuando": "pasivo",
+     "accion": "aura",
+     "filtro": {
+      "nombreIncluye": [
+       "DEFENSOR",
+       "VIGILANTE",
+       "GUARDIAN",
+       "CRISTAL",
+       "CABALLERO"
+      ]
+     },
+     "porCada": "cartas_campo",
+     "fue": 1,
+     "res": 1
+    },
+    {
+     "cuando": "al_salir",
+     "pasos": [
+      {
+       "accion": "ganar_corazones_por",
+       "filtro": {
+        "nombreIncluye": [
+         "DEFENSOR",
+         "VIGILANTE",
+         "AMAZONA",
+         "CRISTAL",
+         "DRAGON"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "img": "./cartas_3/prototipos_056_full.jpg",
+   "imgMin": "./cartas_3/prototipos_056.jpg",
+   "prototipo": true,
+   "expansion": "exclusivas_de_barajas",
+   "rareza": "comun"
+  },
+  {
+   "id": "p3_lazos_anima",
+   "nombre": "Lazos de Ánima",
+   "tipo": "apoyo",
+   "subtipo": "continuo",
+   "texto": "Mientras esta carta APOYO se encuentre activa en tu lado del campo, tu adversario deberá tener la cantidad necesaria de ALMAS activas en campo para llamar sus PERSONAJES tanto de forma normal como especial. (Los puntajes de VALOR y GAMA son tratados como si de llamados normales se tratase) Tus llamados especiales estan limitados a 1 por turno. Al final de tu turno, tú puedes pagar 2 corazones de jugador para destruir esta carta, si lo haces; añade una carta ALMA a tu mano desde tu BA (revuelve tu BA).",
+   "efectos": [
+    {
+     "cuando": "pasivo",
+     "accion": "lazos_anima"
+    }
+   ],
+   "img": "./cartas_3/prototipos_057_full.jpg",
+   "imgMin": "./cartas_3/prototipos_057.jpg",
+   "prototipo": true,
+   "expansion": "exclusivas_de_barajas",
+   "rareza": "comun"
+  },
+  {
+   "id": "p3_vortice_espiritual",
+   "nombre": "Vórtice Espiritual",
+   "tipo": "apoyo",
+   "subtipo": "rapido",
+   "costoNegar": 3,
+   "texto": "Paga 2 corazones de jugador; destruye y envía al MICTLÁN todas las cartas en la zona de apoyo de ambos jugadores. Para negar la activación de esta carta, además de la habilidad o efecto de su carta, tu adversario deberá pagar 3 corazones de jugador.",
+   "efectos": [
+    {
+     "cuando": "activar",
+     "costo": {
+      "corazones": 2
+     },
+     "condicion": {
+      "hayApoyoCampo": true
+     },
+     "pasos": [
+      {
+       "accion": "destruir_apoyos_ambos"
+      }
+     ]
+    }
+   ],
+   "img": "./cartas_3/prototipos_058_full.jpg",
+   "imgMin": "./cartas_3/prototipos_058.jpg",
+   "prototipo": true,
+   "expansion": "exclusivas_de_barajas",
+   "rareza": "comun"
+  },
+  {
+   "id": "p3_necro_cadena",
+   "nombre": "Necro Cadena Dimensional",
+   "tipo": "sector",
+   "subtipo": "rapido",
+   "soloRespuesta": true,
+   "texto": "Cuando tu adversario llama de forma especial un personaje: Puedes Confinar la carta del tope de tu BP y activa esta carta SECTOR en una zona Sector vacía u ocupada en el campo de tu adversario (si había una carta SECTOR activa previamente, destrúyela y envíala al MICTLÁN). Los personajes en este SECTOR no pueden atacar o defender, reduce su FUERZA -5 puntos y niega sus habilidades. (Si el SECTOR donde se encuentra activa esta carta no tiene PERSONAJES, destruye y envía esta carta al MICTLÁN)",
+   "efectos": [
+    {
+     "cuando": "tras_llamado_especial",
+     "accion": "necro_cadena"
+    },
+    {
+     "cuando": "pasivo",
+     "accion": "aura",
+     "alcance": "sector",
+     "fue": -5
+    },
+    {
+     "cuando": "pasivo",
+     "accion": "negar_habilidades_sector"
+    },
+    {
+     "cuando": "pasivo",
+     "accion": "sin_combate_sector"
+    }
+   ],
+   "img": "./cartas_3/prototipos_059_full.jpg",
+   "imgMin": "./cartas_3/prototipos_059.jpg",
+   "prototipo": true,
+   "expansion": "exclusivas_de_barajas",
+   "rareza": "comun"
   }
  ],
  "expansionesProhibidas": [

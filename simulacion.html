@@ -1028,7 +1028,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v53';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v54';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -1300,7 +1300,7 @@ async function loadData(onProgress){
       cost:c.coste??0, fue:c.fue??0, res:c.res??0, cor:c.cor??1, imp:c.imp??1, val:c.valor??0,
       img, imgMin:c.imgMin?resolveImg(minBase||base,c.imgMin):(minBase&&c.img&&!/^(https?:|data:|\/|\.\/)/.test(c.img)?minBase+c.img:img),
       gama:c.gama??0, esp:c.llamadoEspecial||null, subtipo:c.subtipo||'normal', colocar:c.colocar||null, sustituto:c.sustitutoAmalgama||null, noNormal:!!c.noNormal, noEspecial:!!c.noEspecial, soloPor:c.soloPor||null, colocarApoyoRival:c.colocarApoyoRival||0, faseCombate:!!c.faseCombate, sectorTurnos:c.sectorTurnos||0, soloPorValor:c.soloPorValor??null, costoColocar:c.costoColocar||null,
-      invitado:!!c.invitado, dios:!!c.dios, proto:!!c.prototipo, soloPorNombre:c.soloPorNombre||null, soloOrigen:c.soloOrigen||null, soloPorSi:!!c.soloPorSi, hab:(c.habilidades||[]).map(h=>String(h).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase()),
+      invitado:!!c.invitado, dios:!!c.dios, proto:!!c.prototipo, soloResp:!!c.soloRespuesta, noNeg:!!c.noNegable, costoNegar:c.costoNegar||0, soloPorNombre:c.soloPorNombre||null, soloOrigen:c.soloOrigen||null, soloPorSi:!!c.soloPorSi, hab:(c.habilidades||[]).map(h=>String(h).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase()),
       eff:c.texto||'', efectos:Array.isArray(c.efectos)?c.efectos:[]
     };
   });
@@ -1577,6 +1577,7 @@ function altoActivo(){return !!G&&['player','cpu'].some(o=>G[o].apoyo.some(a=>a&
 function jakkyelEn(o){return !!G&&G[o].apoyo.some(a=>a&&a.duenio&&a.duenio!==o&&a.card==='jakkyel');}
 function ofrendaNegada(o){return altoActivo()||jakkyelEn(o)||controlaPasiva(o,'anula_ofrenda');}
 async function inicioAccion(o){
+  if(G&&!G.over) await errantesInicio(); 
   if(!G||G.over||!jakkyelEn(o)||!G[o].hand.length) return;
   const k=Math.floor(Math.random()*G[o].hand.length), c=G[o].hand.splice(k,1)[0];
   G[o].conf.push(c);
@@ -3257,7 +3258,7 @@ const PASOS={
     const z=ctx.zone==='mictlan'?'mictlan':ctx.zone==='conf'?'conf':'mano';
     const arr=G[ctx.o][z==='mano'?'hand':z];
     const from=z==='mano'?'la mano':z==='conf'?'el Confinamiento':'el Mictlán';
-    if(['descartar','confinar_filtro','equipo_mictlan_mano','conf_mictlan','retirar_cen'].includes(st.costo)) return llamarseConCosto(ctx,st,z,arr,from);
+    if(['descartar','confinar_filtro','equipo_mictlan_mano','conf_mictlan','retirar_cen','equipo_a_mictlan'].includes(st.costo)) return llamarseConCosto(ctx,st,z,arr,from);
     if(st.costo==='sacrificar'){
       if(arr.lastIndexOf(ctx.cid)<0||espBloqueado()) return false;
       const list=G[ctx.o].pj.map((p,i)=>p&&matchF(p.id,st.filtro||{})?{z:'campo',i,cid:p.id,o:ctx.o}:null).filter(Boolean);
@@ -3662,6 +3663,8 @@ async function llamarseConCosto(ctx,st,z,arr,from){
   if(st.costo==='equipo_mictlan_mano'&&!cands(o,'mictlan',{tipo:'apoyo',subtipo:'equipo'}).length) return false;
   if(st.costo==='conf_mictlan'&&!micL().length) return false;
   if(st.costo==='retirar_cen'&&!cenTotal(o)) return false;
+  const eqL=()=>cands(o,['mano','bp'],{tipo:'apoyo',subtipo:'equipo'});
+  if(st.costo==='equipo_a_mictlan'&&!eqL().length) return false;
   if(!await announce(o,ctx.cid,'llamado',{z},{especial:true})) return false;
   if(st.costo==='descartar'){
     const pick=await choose(ctx,otras(),st.n||1,{sub:'Elige qué descartar al Mictlán',score:y=>-SCORE(y.cid)});
@@ -3685,6 +3688,11 @@ async function llamarseConCosto(ctx,st,z,arr,from){
     lg('⛓ <b>'+C[x.cid].name+'</b>'+who(x.o)+' queda confinada (costo de '+C[ctx.cid].name+').','var(--purple)');
   } else if(st.costo==='retirar_cen'){
     if(!await retirarCEN(ctx)) return false;
+  } else if(st.costo==='equipo_a_mictlan'){
+    const [x]=await choose(ctx,eqL(),1,{sub:'Elige el APOYO EQUIPO que envías al Mictlán',score:y=>(y.z==='bp'?20:0)-SCORE(y.cid)});
+    if(!x) return false;
+    const c=takeFrom(o,x); if(!c) return false; G[o].mictlan.push(c); if(x.z==='bp') sh(G[o].bp);
+    lg('🗑 <b>'+C[c].name+'</b>'+who(o)+' va al Mictlán desde '+SRC_NOM[x.z]+'.','var(--muted)');
   }
   const i=arr.lastIndexOf(ctx.cid); if(i<0||freePJ(o)===-1) return false;
   arr.splice(i,1);
@@ -3920,6 +3928,186 @@ Object.assign(PASOS,{
 });
 
 // ¿Se cumple la condición? Devuelve '' si sí, o el motivo si no.
+// ════════════════════════════════════
+// v54 · EXCLUSIVAS DE BARAJAS (cartas_3 · prototipos 040–059)
+// ════════════════════════════════════
+function errantesActivo(o){return !!G&&G[o].apoyo.some(a=>a&&a.type==='continuo'&&!a.duenio&&hasPassive(a.card,'errantes'));}
+function errantesEf(o){return G&&G.errantes&&G.errantes[o]&&errantesActivo(o)?G.errantes[o].ef:null;}
+function errBloqApoyo(o){const X=opp(o);return !!G&&errantesEf(X)==='apoyos'&&G.active===X;}
+function errBloqSector(owner,o){return !!G&&owner!==o&&errantesEf(o)==='sectores';}
+async function errantesInicio(){
+  G.errantes=G.errantes||{};
+  for(const X of ['player','cpu']){
+    if(!errantesActivo(X)||!G[X].pj.some(p=>p&&matchF(p.id,{nombreTodos:['VULCAR','CABALLERO']}))){delete G.errantes[X];continue;}
+    const warr=G[X].pj.some(p=>p&&matchF(p.id,{nombreIncluye:'WARR'})), bessa=G[X].pj.some(p=>p&&matchF(p.id,{nombreIncluye:'BESSA'}));
+    const ops=[];if(warr)ops.push(['apoyos','Tu adversario no puede activar APOYOS durante tu turno']);if(bessa)ops.push(['sectores','Tu adversario no puede activar SECTORES en tu lado del campo']);if(warr&&bessa)ops.push(['emboscada','Tus VULCAR adquieren EMBOSCADA']);
+    if(!ops.length){delete G.errantes[X];continue;}
+    let k=ops.length-1;
+    if(X==='player'&&ops.length>1){const i=await askChoice('🦅 ERRANTES DE PHORUS<br>Elige el efecto de este turno:',ops.map(x=>x[1]));if(i!=null)k=i;}
+    G.errantes[X]={ef:ops[k][0]};
+    lg('🦅 <b>Errantes de Phorus</b>'+who(X)+': '+ops[k][1]+'.','#ffe066');
+  }
+  renderAll();
+}
+function lazosDe(o){return !!G&&G[o].apoyo.some(a=>a&&a.type==='continuo'&&!a.duenio&&hasPassive(a.card,'lazos_anima'));}
+async function lazosFinTurno(o){
+  const k=G[o].apoyo.findIndex(a=>a&&a.type==='continuo'&&!a.duenio&&hasPassive(a.card,'lazos_anima'));
+  if(k<0||G[o].hp<=2) return;
+  const hayAlma=G[o].ba.some(c=>C[c].type==='alma');
+  let yes=o==='cpu'?(G.cpu.hp>=8&&hayAlma&&!G.cpu.hand.some(c=>C[c].type==='alma')&&almasActivas('cpu')<2):false;
+  if(o==='player') yes=(await askChoice('⛓ LAZOS DE ÁNIMA<br>¿Pagas 2 corazones para destruirla y añadir una carta ALMA de tu BA a tu mano?',['💔 Sí, pagar 2','✖ No']))===0;
+  if(!yes) return;
+  G[o].hp-=2;lg('💔 '+(o==='player'?'Pagas':'La CPU paga')+' 2 corazones por <b>Lazos de Ánima</b>.','var(--red)');
+  const a=G[o].apoyo[k];G[o].apoyo[k]=null;G[o].mictlan.push(a.card);marcaDestruida(o,a.card);
+  lg('💥 <b>'+C[a.card].name+'</b>'+who(o)+' es destruida.','var(--red)');
+  if(hayAlma) await PASOS.buscar({o,cid:a.card,vars:{},interactive:o==='player'},{origen:'ba',filtro:{tipo:'alma'}});
+  sh(G[o].ba);renderAll();checkEnd();
+}
+function legadoParOk(o){
+  const vals=G[o].mictlan.filter(c=>C[c].type==='pj'&&matchF(c,{nombreIncluye:'CRISTAL'})).map(c=>C[c].cost);
+  G[o].pj.forEach(p=>{if(p&&C[p.id].type==='pj'&&matchF(p.id,{nombreIncluye:'CRISTAL'}))vals.push(C[p.id].cost);});
+  const libres=G[o].pj.filter(x=>x===null).length+1;
+  if(libres<2||mictlanCerrado()) return false;
+  for(let i=0;i<vals.length;i++)for(let j=i+1;j<vals.length;j++){const d=Math.abs(vals[i]-vals[j]);if(d>=1&&d<=2)return true;}
+  return false;
+}
+async function salvarArenaConPJ(t,by,verbo){
+  if(!hasPassive(t.cid,'reemplazo_por_pj')||by===t.o||!G[t.o].pj.some(Boolean)||G[t.o].arena!==t.cid) return false;
+  let yes=t.o==='cpu';
+  if(t.o==='player') yes=(await askChoice('🏛 '+C[t.cid].name.toUpperCase()+'<br>Tu ARENA va a ser '+verbo+'. ¿Envías al Mictlán uno de tus personajes para negarlo?',['✅ Sí','✖ No']))===0;
+  if(!yes) return false;
+  const list=G[t.o].pj.map((p,i)=>p?{z:'campo',i,cid:p.id,o:t.o}:null).filter(Boolean);
+  const [x]=await choose({o:t.o,cid:t.cid,vars:{},interactive:t.o==='player'},list,1,{sub:'¿Qué personaje envías al Mictlán?',score:y=>-SCORE(y.cid)});
+  if(!x) return false;
+  leaveField(t.o,x.i,'mictlan');
+  lg('🏛 <b>'+C[x.cid].name+'</b>'+who(t.o)+' va al Mictlán: <b>'+C[t.cid].name+'</b> no es '+verbo+'.','var(--green)');
+  renderAll();await fireLeave(t.o,x.cid);
+  return true;
+}
+function necroSinPJ(){
+  ['player','cpu'].forEach(o=>['left','right'].forEach(sd=>{
+    const c=G[o].sect[sd];
+    if(!c||!hasPassive(c,'sin_combate_sector')) return;
+    if(slotsOf(o,sd).some(j=>G[o].pj[j])) return;
+    const d=sectOwner(o,sd);setSect(o,sd,null);G[d].mictlan.push(c);
+    lg('⛓ <b>'+C[c].name+'</b> se queda sin personajes en su SECTOR: es destruida y va al Mictlán.','var(--muted)');
+  }));
+}
+async function ofrecerNecro(calledO,calledCid){
+  const p=opp(calledO);
+  const cid=[...new Set(G[p].hand)].find(c=>(C[c].efectos||[]).some(e=>e.cuando==='tras_llamado_especial'&&e.accion==='necro_cadena'));
+  if(!cid||!G[p].bp.length||G.used[p]['necro:'+turnKey()]) return;
+  const sl=G[calledO].pj.findIndex(q=>q&&q.id===calledCid&&q.turnoLlamado===turnKey());
+  if(sl<0) return;
+  const side=sideOfSlot(calledO,sl);
+  if(errBloqSector(p,calledO)) return;
+  if(G[calledO].sect[side]&&bastion(sectOwner(calledO,side))&&sectOwner(calledO,side)!==p) return;
+  let yes=p==='cpu'?SCORE(calledCid)>=35||slotsOf(calledO,side).filter(j=>G[calledO].pj[j]).length>=2:false;
+  if(p==='player') yes=(await askChoice('⛓ '+C[cid].name.toUpperCase()+'<br>La CPU llamó de forma especial a <b>'+C[calledCid].name+'</b>. ¿Confinas el tope de tu BP y activas esta carta en ese SECTOR de la CPU?',['✅ Sí','✖ No']))===0;
+  if(!yes) return;
+  G.used[p]['necro:'+turnKey()]=true;
+  if(!await announce(p,cid,'activacion',{z:'mano'},{rapido:true})) return;
+  const i=G[p].hand.indexOf(cid); if(i<0||!G[p].bp.length) return;
+  G[p].hand.splice(i,1);
+  const t=G[p].bp.shift(); G[p].conf.push(t);
+  lg('⛓ '+(p==='player'?'Confinas':'La CPU confina')+' la carta del tope de '+(p==='player'?'tu':'su')+' BP.','var(--purple)');
+  await placeSector(p,cid,calledO,side);
+  renderAll();
+}
+Object.assign(PASOS,{
+  async no_ataca_filtro(ctx,st){
+    const o=ctx.o, list=G[o].pj.map((p,i)=>p&&matchF(p.id,st.filtro||{})?{z:'campo',i,cid:p.id,o}:null).filter(Boolean);
+    if(!list.length) return false;
+    const [x]=await choose(ctx,list,1,{sub:'¿Qué personaje no podrá declarar ataque este turno?',score:y=>{const q=G[o].pj[y.i];return (q.attacked||q.resting?100:0)-eF(q);}});
+    if(!x) return false;
+    G[o].pj[x.i].noAtk=turnKey();
+    lg('🛑 <b>'+C[x.cid].name+'</b>'+who(o)+' no podrá declarar ataque este turno.','var(--muted)');
+    return true;
+  },
+  async alma_mano_campo_a_ba(ctx){
+    const o=ctx.o, list=[...G[o].hand.map((c,i)=>C[c].type==='alma'?{z:'mano',i,cid:c,o}:null),...G[o].apoyo.map((a,i)=>a&&a.type==='alma'?{z:'apoyo',i,cid:a.card,o}:null)].filter(Boolean);
+    if(!list.length) return false;
+    const [x]=await choose(ctx,list,1,{sub:'Elige el ALMA que regresa al fondo de tu BA',score:y=>(y.z==='mano'?50:0)-(C[y.cid].val||0)});
+    if(!x) return false;
+    if(x.z==='mano'){const k=G[o].hand.indexOf(x.cid);if(k<0)return false;G[o].hand.splice(k,1);}else G[o].apoyo[x.i]=null;
+    G[o].ba.push(x.cid);
+    lg('↩ <b>'+C[x.cid].name+'</b>'+who(o)+' regresa al fondo de su BA.','var(--ac)');
+    return true;
+  },
+  async alma_mano_campo_a_mictlan(ctx){
+    const o=ctx.o, list=[...G[o].hand.map((c,i)=>C[c].type==='alma'?{z:'mano',i,cid:c,o}:null),...G[o].apoyo.map((a,i)=>a&&a.type==='alma'?{z:'apoyo',i,cid:a.card,o}:null)].filter(Boolean);
+    if(!list.length) return false;
+    const [x]=await choose(ctx,list,1,{sub:'Elige el ALMA que envías al Mictlán',score:y=>(y.z==='mano'?50:0)-(C[y.cid].val||0)});
+    if(!x) return false;
+    if(x.z==='mano'){const k=G[o].hand.indexOf(x.cid);if(k<0)return false;G[o].hand.splice(k,1);}else G[o].apoyo[x.i]=null;
+    G[o].mictlan.push(x.cid);
+    lg('🗑 <b>'+C[x.cid].name+'</b>'+who(o)+' va al Mictlán.','var(--muted)');
+    return true;
+  },
+  async dar_corazon_propio(ctx){
+    const o=ctx.o, list=G[o].pj.map((p,i)=>p?{z:'campo',i,cid:p.id,o}:null).filter(Boolean);
+    if(!list.length) return true;
+    const [x]=await choose(ctx,list,1,{sub:'¿Qué personaje tuyo gana +1 corazón?',score:y=>SCORE(y.cid)});
+    if(!x) return true;
+    G[o].pj[x.i].cor++;
+    lg('💚 <b>'+C[x.cid].name+'</b>'+who(o)+' gana +1 corazón.','var(--green)');
+    return true;
+  },
+  async ganar_corazones_por(ctx,st){
+    let n=0;
+    ['player','cpu'].forEach(x=>{
+      G[x].pj.forEach(p=>{if(p&&matchF(p.id,st.filtro))n++;});
+      G[x].apoyo.forEach(a=>{if(a&&matchF(a.card,st.filtro))n++;});
+      ['left','right'].forEach(sd=>{if(G[x].sect[sd]&&matchF(G[x].sect[sd],st.filtro))n++;});
+      if(G[x].arena&&matchF(G[x].arena,st.filtro))n++;
+    });
+    if(n>0){G[ctx.o].hp+=n;lg('💚 <b>'+C[ctx.cid].name+'</b>'+who(ctx.o)+': '+(ctx.o==='player'?'ganas':'la CPU gana')+' <b>'+n+'</b> corazón(es) de jugador.','var(--green)');}
+    else lg('💚 '+C[ctx.cid].name+': no hay cartas que cuenten en el campo.','var(--muted)');
+    return true;
+  },
+  async destruir_apoyos_ambos(ctx){
+    let n=0;
+    for(const x of ['player','cpu']){
+      if(x!==ctx.o&&bastion(x)){lg('🛡 BASTIÓN: las cartas del lado '+(x==='player'?'tuyo':'de la CPU')+' no pueden ser destruidas.','var(--gold2)');continue;}
+      for(let k=0;k<4;k++){const a=G[x].apoyo[k];if(!a||anilloProtegido(x,a))continue;
+        if(a.type==='alma'&&controlaPasiva(x,'protege_almas'))continue;
+        await quitarDelCampo(ctx.o,{o:x,z:'apoyo',i:k,cid:a.card},'destruir');n++;if(!G||G.over)return false;}
+    }
+    lg('🌪 <b>'+C[ctx.cid].name+'</b>: '+n+' carta(s) de las zonas de apoyo son destruidas.','var(--red)');
+    renderAll();
+    return true;
+  },
+  async legado_cristal(ctx){
+    const o=ctx.o;
+    const lista=()=>cands(o,'mictlan',{tipo:'pj',nombreIncluye:'CRISTAL'});
+    const pares=lista().filter(a=>lista().some(b=>b!==a&&b.i!==a.i&&Math.abs(C[a.cid].cost-C[b.cid].cost)>=1&&Math.abs(C[a.cid].cost-C[b.cid].cost)<=2));
+    if(!pares.length||freePJ(o)===-1){lg('💎 '+C[ctx.cid].name+': no hay 2 personajes CRISTAL con 1 o 2 de diferencia de VALOR en tu Mictlán.','var(--muted)');return true;}
+    const [a]=await choose(ctx,pares,1,{sub:'Elige el primer personaje CRISTAL que llamas',score:y=>SCORE(y.cid)});
+    if(!a) return true;
+    const va=C[a.cid].cost;
+    G._noNeg=true;
+    try{await PASOS.llamar_especial(ctx,{origen:'mictlan',filtro:{id:a.cid}});}finally{if(G)G._noNeg=false;}
+    if(!G||G.over||freePJ(o)===-1) return true;
+    const seg=lista().filter(b=>{const d=Math.abs(C[b.cid].cost-va);return d>=1&&d<=2;});
+    if(!seg.length) return true;
+    const [b]=await choose(ctx,seg,1,{sub:'Elige el segundo personaje CRISTAL (1 o 2 de diferencia de VALOR)',score:y=>SCORE(y.cid)});
+    if(b){G._noNeg=true;try{await PASOS.llamar_especial(ctx,{origen:'mictlan',filtro:{id:b.cid}});}finally{if(G)G._noNeg=false;}}
+    return true;
+  },
+  async enlazar_compartir(ctx,st){
+    const o=ctx.o, me=G[o].pj[ctx.slot]; if(!me) return false;
+    const list=G[o].pj.map((p,i)=>p&&i!==ctx.slot&&matchF(p.id,st.filtro||{})?{z:'campo',i,cid:p.id,o}:null).filter(Boolean);
+    if(!list.length) return false;
+    const [x]=await choose(ctx,list,1,{sub:'¿Con qué personaje ENLAZAS a '+C[me.id].name+'?',score:y=>SCORE(y.cid)});
+    if(!x) return false;
+    const eA=(C[me.id].efectos||[]).find(e=>e.cuando==='pasivo'&&e.accion==='aura'&&e.cond==='arenaPropia');
+    me.enlace={con:G[o].pj[x.i],hab:st.hab||null,inm:st.inmune||null,condArena:eA?eA.condFiltro:null};
+    const nom=st.hab?KW_NOM[st.hab]||st.hab:'INVULNERABLE';
+    lg('🔗 <b>'+C[me.id].name+'</b>'+who(o)+' se ENLAZA con <b>'+C[x.cid].name+'</b>: comparten sus IMPACTOS'+(eA?' y '+nom+' (si la ARENA NEXOTLAN está activa)':'')+'.','#7fe9ff');
+    renderAll();
+    return true;
+  }
+});
 function condWhy(o,cid,cond,src){
   if(!cond) return '';
   src=src||{};
@@ -3980,8 +4168,9 @@ function condWhy(o,cid,cond,src){
   if(cond.almasManoCampoMin&&almasActivas(o)+G[o].hand.filter(c=>C[c].type==='alma').length<cond.almasManoCampoMin) return 'Necesitas '+cond.almasManoCampoMin+' ALMAS (activas o en tu mano)';
   if(cond.manoFiltro&&!G[o].hand.some(c=>c!==cid&&matchF(c,cond.manoFiltro))) return 'No tienes la carta necesaria en tu mano';
   if(cond.apoyoActivoRival&&!G[opp(o)].apoyo.some(a=>a&&a.type!=='alma')) return 'El rival no tiene APOYOS activos';
-  if(cond.pjFiltroMin&&G[o].pj.filter(p=>p&&matchF(p.id,cond.pjFiltroMin.filtro)).length<cond.pjFiltroMin.n) return 'Necesitas '+cond.pjFiltroMin.n+' personajes con '+[].concat(cond.pjFiltroMin.filtro.nombreIncluye)[0];
+  if(cond.pjFiltroMin&&G[o].pj.filter((p,i)=>p&&!(cond.pjFiltroMin.otro&&src.slot===i)&&matchF(p.id,cond.pjFiltroMin.filtro)).length<cond.pjFiltroMin.n) return 'Necesitas '+cond.pjFiltroMin.n+' personajes con '+[].concat(cond.pjFiltroMin.filtro.nombreIncluye)[0];
   if(cond.campoNombre&&!sectorArenaTargets().some(t=>matchF(t.cid,{nombreIncluye:cond.campoNombre}))) return 'No hay '+cond.campoNombre.join(' / ')+' en el campo';
+  if(cond.legadoCristal&&!legadoParOk(o)) return 'Necesitas 2 personajes con CRISTAL en tu Mictlán (o el que envíes) con 1 o 2 de diferencia de VALOR, y 2 zonas libres';
   if(cond.hayPJ&&!G.player.pj.some(Boolean)&&!G.cpu.pj.some(Boolean)) return 'No hay personajes en el campo';
   if(cond.rivalPJMin&&G[opp(o)].pj.filter(Boolean).length<cond.rivalPJMin) return 'Tu adversario necesita '+cond.rivalPJMin+' o más personajes';
   if(cond.activoNombre&&!((G.actTurno||{})[o+':'+turnKey()]||[]).some(c=>matchF(c,{nombreIncluye:cond.activoNombre}))) return 'Debes haber activado una carta con "'+cond.activoNombre+'" este turno';
@@ -4123,6 +4312,11 @@ async function announce(o,cid,kind,where,extra){
   if(kind==='llamado'&&extra.especial&&jennielOn()&&!matchF(cid,{nombreIncluye:'ENCANTADORA'})){lg('🎀 Encantadora Apprentiz, Jenniel: solo las "Encantadora" pueden ser llamadas de forma especial.','var(--purple)');return false;}
   if(kind==='llamado'&&extra.especial&&(where||{}).z==='mictlan'&&fatimaOn()){lg('💀 Fátima: no se pueden llamar de forma especial personajes que estén en el Mictlán.','var(--purple)');return false;}
   if(kind==='ataque'){const rr=opp(o),ar=G[rr].arena;if(ar&&hasPassive(ar,'anula_primer_ataque')&&!G.used[rr]['primerAtk']){G.used[rr]['primerAtk']=true;lg('⛰ <b>'+C[ar].name+'</b>'+who(rr)+': el primer ataque de <b>'+C[cid].name+'</b> falla.','var(--green)');return false;}}
+  if(kind==='llamado'&&lazosDe(opp(o))){const v=C[cid].type==='amalgama'?C[cid].gama:C[cid].cost;
+    if(almaT(o,cid)<v){lg('⛓ <b>Lazos de Ánima</b>: '+(o==='player'?'necesitas':'la CPU necesita')+' '+v+' de ALMAS activas para llamar a <b>'+C[cid].name+'</b>'+(extra.especial?' (también los llamados especiales)':'')+'.','var(--purple)');return false;}}
+  if(kind==='llamado'&&extra.especial&&lazosDe(o)){G.espLaz=G.espLaz||{};const kk=o+':'+turnKey();
+    if(G.espLaz[kk]){lg('⛓ <b>Lazos de Ánima</b>: '+(o==='player'?'tus llamados especiales están':'los llamados especiales de la CPU están')+' limitados a 1 por turno.','var(--purple)');return false;}
+    G.espLaz[kk]=1;}
   if(kind==='llamado'&&extra.especial&&espBloqueado()){lg('🚫 "M": nadie puede llamar de forma especial el resto del turno.','var(--purple)');return false;}
   if(kind==='llamado'&&extra.especial&&['mictlan','conf'].includes((where||{}).z)&&choqueDiosesOn()){lg('⚡ Choque entre Dioses: nadie puede llamar de forma especial personajes del Mictlán o del Confinamiento.','var(--purple)');return false;}
   if(kind==='llamado'&&!llamadoOk(o,cid)){lg('🚫 '+(o==='player'?'Solo puedes':'La CPU solo puede')+' llamar personajes con "'+[].concat(G.soloLlamar.f.nombreIncluye)[0]+'" este turno (Micté, Guía del Mictlán).','var(--purple)');return false;}
@@ -4132,6 +4326,11 @@ async function announce(o,cid,kind,where,extra){
   if(G.chain.length>1) lg('⛓ <b>Cadena '+G.chain.length+'</b>: '+evDesc(ev)+' en respuesta a <b>'+C[G.chain[G.chain.length-2].cid].name+'</b>.','var(--purple)');
   try{await offerResponses(ev);}finally{if(G)G.chain.pop();}
   if(!G||G.over) return false;
+  if(ev.negated&&C[cid].costoNegar&&ev.by&&ev.by!==o){
+    const n=C[cid].costoNegar;
+    if(G[ev.by].hp>n){G[ev.by].hp-=n;checkEnd();lg('💔 '+(ev.by==='player'?'Pagas':'La CPU paga')+' '+n+' corazones para negar <b>'+C[cid].name+'</b>.','var(--red)');playSound('damage');}
+    else{ev.negated=false;lg('🌀 '+(ev.by==='player'?'No tienes':'La CPU no tiene')+' corazones suficientes para negar <b>'+C[cid].name+'</b>: se resuelve.','var(--purple)');}
+  }
   if(ev.negated){await resolveNegation(ev);return false;}
   return true;
 }
@@ -4150,6 +4349,7 @@ function responsesFor(r,ev){
   for(const cid of G[r].hand){
     if(seen.has(cid)) continue; seen.add(cid);
     const c=C[cid];
+    if(c.type==='apoyo'&&errBloqApoyo(r)) continue;
     for(const e of c.efectos||[]){
       if(e.pendiente) continue;
       if(e.cuando==='respuesta'&&e.accion==='negar_confinar'&&canNeg&&freeApo(r)!==-1)
@@ -4237,6 +4437,13 @@ function responsesFor(r,ev){
         if(e.costoDescartar&&G[r].hand.length<e.costoDescartar) return;
         out.push({label:'🛡 '+C[p.id].name+' — negar '+C[ev.cid].name+(e.destino==='mictlan'?' y destruirla':''),cpu:cpuThreat(ev)||(ev.kind==='activacion'&&t==='apoyo'),run:()=>respCampoNegar(r,ev,slot,e,key)});
       }
+      if(e.cuando==='respuesta_campo'&&e.accion==='anik_campo'&&ev.kind==='ataque'&&ev.o!==r&&G.active!==r)
+        out.push({label:'🦅 '+C[p.id].name+' — enviarlo al Mictlán: terminar la Fase de Combate rival',cpu:G[ev.o].pj.filter(q=>q&&canAtkLive(q)).length>=2||G[r].hp<=3,run:async()=>{
+          if(!await announce(r,p.id,'habilidad',{z:'campo',slot})) return;
+          if(G[r].pj[slot]!==p||ev.negated) return;
+          leaveField(r,slot,'mictlan');renderAll();await fireLeave(r,p.id);
+          ev.negated=true;ev.fate='nada';ev.by=r;G.noAtk={o:ev.o,k:turnKey()};
+          lg('🦅 <b>'+C[p.id].name+'</b>'+who(r)+' va al Mictlán y termina la Fase de Combate: '+(ev.o==='player'?'no puedes':'la CPU no puede')+' atacar este turno.','var(--purple)');}});
       if(e.cuando==='accion'&&e.rapido&&ev.o!==r&&!effWhy(r,p.id,e,idx,{zone:'campo',slot})&&!(G[r].pj[slot]&&G[r].pj[slot].rapK===turnKey()+':'+idx))
         out.push({label:'⚡ '+C[p.id].name+' — '+(e.texto||'habilidad')+' (uso rápido)',cpu:e.cpuRapido==='amenaza'?cpuThreat(ev):G.active!==r,run:async()=>{const q=G[r].pj[slot];if(!q||q.id!==p.id)return;q.rapK=turnKey()+':'+idx;await useAbility(r,p.id,e,idx,{zone:'campo',slot});}});
       if(e.accion==='anular_primer_ataque'&&ev.kind==='ataque'&&ev.o!==r&&G.active!==r&&ev.primero&&!(e.limite==='turno'&&G.used[r][key])&&(!e.costoEnviar||cands(r,e.costoEnviar.origen,e.costoEnviar.filtro).length))
@@ -4365,12 +4572,15 @@ async function respCampoNegar(r,ev,slot,e,key){
 }
 async function offerResponses(ev){
   const r=opp(ev.o);
-  const opts=responsesFor(r,ev);
+  if(G._noNeg) return;
+  if(C[ev.cid]&&C[ev.cid].noNeg&&ev.kind==='activacion'){lg('💎 <b>'+C[ev.cid].name+'</b>: su efecto no puede ser negado.','var(--muted)');return;}
+  let opts=responsesFor(r,ev);
+  if(C[ev.cid]&&C[ev.cid].costoNegar&&r==='cpu'&&G.cpu.hp<=C[ev.cid].costoNegar+1) opts=[];
   if(!opts.length) return;
   let pick=null;
   if(r==='player'){
     if(G.skipResp===turnKey()) return;
-    const i=await askChoice('⛓ '+evDesc(ev)+'.<br>¿Respondes?',[...opts.map(x=>x.label),'➡ Pasar','⏭ Pasar todo este turno']);
+    const i=await askChoice('⛓ '+evDesc(ev)+'.'+(C[ev.cid]&&C[ev.cid].costoNegar?'<br><b style="color:#ff4d6d">Para negarla debes pagar '+C[ev.cid].costoNegar+' corazones.</b>':'')+'<br>¿Respondes?',[...opts.map(x=>x.label),'➡ Pasar','⏭ Pasar todo este turno']);
     if(i==null||i===opts.length) return;
     if(i===opts.length+1){G.skipResp=turnKey();lg('⏭ No responderás más en este turno.','var(--muted)');return;}
     pick=opts[i];
@@ -4468,6 +4678,7 @@ async function offerTrasNegar(o){
 // "M": cuando un personaje es llamado de forma especial
 async function offerTrasEspecial(calledO,calledCid){
   if(!G||G.over) return;
+  await ofrecerNecro(calledO,calledCid); if(!G||G.over) return;
   for(const p of [opp(calledO),calledO]){
     for(const cid of [...new Set(G[p].hand)]){
       const e=(C[cid].efectos||[]).find(x=>x.cuando==='tras_llamado_especial'&&!x.pendiente);
@@ -4506,6 +4717,7 @@ function sectorArenaTargets(){
 async function destroyFieldCard(t,by){
   const own0=t.z==='sector'?sectOwner(t.o,t.side):t.o;
   if(bastion(own0)&&by!==own0){lg('🛡 BASTIÓN: <b>'+C[t.cid].name+'</b> no puede ser destruida por efectos.','var(--gold2)');return false;}
+  if(t.z==='arena'&&await salvarArenaConPJ(t,by,'destruida')) return false;
   // Nexotlan: puede pagar 1 corazón de uno de sus personajes en lugar de ser destruida
   if(t.z==='arena'&&hasPassive(t.cid,'reemplazo_destruccion')&&G[t.o].pj.some(Boolean)){
     let yes=t.o==='cpu';
@@ -4571,6 +4783,7 @@ async function quitarDelCampo(by,x,modo){
     renderAll();await fireLeave(o,p.id);
   } else if(x.z==='sector'||x.z==='arena'){
     if(modo==='destruir'){await destroyFieldCard({o,z:x.z,side:x.side,cid:x.cid},by);return;}
+    if(x.z==='arena'&&modo==='conf'&&await salvarArenaConPJ({o,z:'arena',cid:x.cid},by,'confinada')) return;
     let d=o;
     if(x.z==='sector'){if(G[o].sect[x.side]!==x.cid)return;d=sectOwner(o,x.side);setSect(o,x.side,null);}
     else{if(G[o].arena!==x.cid)return;G[o].arena=null;}
@@ -4595,6 +4808,7 @@ function sectoresLibres(){const out=[];['player','cpu'].forEach(o=>['left','righ
 // Coloca una carta SECTOR (o tratada como sector) en una zona de cualquier lado.
 // Si estaba ocupada, el sector anterior es DESTRUIDO y va al Mictlán de su dueño.
 async function placeSector(owner,cid,o,side){
+  if(errBloqSector(owner,o)){lg('🦅 <b>Errantes de Phorus</b>: no se pueden activar SECTORES en ese lado del campo.','var(--purple)');G[owner].mictlan.push(cid);return;}
   const prev=G[o].sect[side];
   if(prev){
     const d=sectOwner(o,side);
@@ -4640,6 +4854,7 @@ function auraBonus(o){
       if(s.slot!=null&&e.cond==='soloEnSector'&&mismoSector(o,s.slot).length) continue;
       if(e.cond==='comoSector'&&!(s.slot==null&&s.side)) continue;
       if(e.cond==='comoArena'&&!(s.slot==null&&!s.side)) continue;
+      if(e.cond==='arenaPropia'&&!(P.arena&&matchF(P.arena,e.condFiltro||{}))) continue;
       if(s.slot!=null&&e.cond==='otroPropio'&&!P.pj.some((q,j)=>q&&j!==s.slot&&matchF(q.id,e.condFiltro))) continue;
       if(s.slot!=null&&e.cond==='otroEnSector'&&!mismoSector(o,s.slot,e.condFiltro).length) continue;
       const tgt=[];
@@ -4673,6 +4888,15 @@ function auraBonus(o){
       if(!neg) tgt.forEach(i=>add(i,v));
     }
   }
+  // v54 · ENLAZAR (Koatl / Vulcar de Nexotlan): el enlazado comparte la habilidad y los IMPACTOS del origen
+  P.pj.forEach((p,i)=>{
+    if(!p||!p.enlace||supp(o,i)) return;
+    const j=P.pj.indexOf(p.enlace.con); if(j<0||j===i){delete p.enlace;return;}
+    const q=P.pj[j], arenaOk=!p.enlace.condArena||(P.arena&&matchF(P.arena,p.enlace.condArena));
+    const di=Math.max(0,(p.imp||0)-((q.imp||0)-(q.bI||0)));
+    add(j,{f:0,r:0,c:0,i:di,kw:p.enlace.hab&&arenaOk?[p.enlace.hab]:[],inm:p.enlace.inm&&arenaOk?p.enlace.inm:null});
+  });
+  if(errantesEf(o)==='emboscada') P.pj.forEach((p,i)=>{if(p&&matchF(p.id,{nombreIncluye:'VULCAR'}))add(i,{f:0,r:0,c:0,i:0,kw:['EMBOSCADA'],inm:null});});
   // Equipos (APOYO/EQUIPO en la zona de apoyo, ligados a un personaje)
   P.apoyo.forEach(a=>{
     if(!a||a.type!=='equipo') return;
@@ -4693,13 +4917,15 @@ function equipStats(o,a){
   if(e.porCada==='pj_campo') m=G.player.pj.filter(Boolean).length+G.cpu.pj.filter(Boolean).length;
   else if(e.porCada==='almas_campo') m=almasActivas('player')+almasActivas('cpu');
   else if(e.porCada==='mano') m=G[o].hand.length;
+  else if(e.porCada==='almas_propias') m=almasActivas(o);
+  if(e.segunCorazones){const sc=e.segunCorazones.find(x=>(x.max==null||G[o].hp<=x.max)&&(x.min==null||G[o].hp>=x.min))||{};return {f:sc.fue||0,r:sc.res||0,c:sc.cor||0,i:sc.imp||0};}
   if(e.segun&&a.tgt){const sg=e.segun.find(x=>matchF(a.tgt.id,{nombreIncluye:x.nombreIncluye}));return sg?{f:sg.fue||0,r:sg.res||0,c:sg.cor||0,i:0}:{f:0,r:0,c:0,i:0};}
   return {f:(e.fue||0)*m,r:(e.res||0)*m,c:(e.cor||0)*m,i:(e.imp||0)*m};
 }
 function equiposDe(o,p){return G[o].apoyo.filter(a=>a&&a.type==='equipo'&&a.tgt===p);}
 function applyMods(){
   if(!G) return;
-  limpiaApoExtra(); despiertaClanes();
+  limpiaApoExtra(); despiertaClanes(); necroSinPJ();
   ['player','cpu'].forEach(o=>{
     const B=auraBonus(o);
     G[o].pj.forEach((p,i)=>{
@@ -4945,7 +5171,7 @@ function spResumen(sp){
 function spCandidates(o,sp){
   const out=[], org=[].concat(sp.origen||['mano']);
   if(org.includes('mano')) G[o].hand.forEach((cid,i)=>out.push({src:'mano',i,cid}));
-  if(org.includes('campo')) G[o].pj.forEach((p,i)=>{if(p&&!p.ixRival)out.push({src:'campo',i,cid:p.nombreCopia||p.id});});
+  if(org.includes('campo')) G[o].pj.forEach((p,i)=>{if(p&&!p.ixRival&&!(sp.esteTurno&&p.turnoLlamado!==turnKey()))out.push({src:'campo',i,cid:p.nombreCopia||p.id});});
   if(org.includes('mictlan')) G[o].mictlan.forEach((cid,i)=>out.push({src:'mictlan',i,cid}));
   return out.filter(x=>(sp.materiales||[]).some(g=>matchReq(x.cid,g)));
 }
@@ -4967,7 +5193,7 @@ function spAssign(sel,groups){
   return go(0);
 }
 function spSlotOk(o,sel){return freePJ(o)!==-1||sel.some(x=>x.src==='campo');}
-function spValid(o,cid,sel){const sp=C[cid].esp;return !!sp&&spAssign(sel,sp.materiales||[])&&spSlotOk(o,sel);}
+function spValid(o,cid,sel){const sp=C[cid].esp;return !!sp&&!(sp.costoTopeBA&&!G[o].ba.length)&&!(sp.esteTurno&&sel.some(x=>x.src==='campo'&&(!G[o].pj[x.i]||G[o].pj[x.i].turnoLlamado!==turnKey())))&&spAssign(sel,sp.materiales||[])&&spSlotOk(o,sel);}
 function spFind(o,cid){
   const sp=C[cid].esp;
   if(!sp) return null;
@@ -5023,6 +5249,7 @@ async function doSpecialCall(o,cid,sel,side){
     const id=leaveField(o,x.i,dest);
     if(id){names.push(C[id].name);leaves.push(id);}
   });
+  if(sp.costoTopeBA&&G[o].ba.length){const t=G[o].ba.shift();G[o].conf.push(t);lg('⛓ <b>'+C[t].name+'</b>'+who(o)+' (tope de la BA) queda confinada.','var(--purple)');}
   const bi=G[o].bs.indexOf(cid);
   if(bi!==-1) G[o].bs.splice(bi,1);
   if(o==='player') clearSel();
@@ -5565,6 +5792,7 @@ function canAtk(o,i){
   const p=G[o].pj[i];
   if(p&&G.turn>1&&!p.attacked&&(p.resting||p.lock>0)&&enSinDescanso(o,i)){p.resting=false;p.lock=0;}
   if(!p||p.resting||p.attacked||p.bloq>0) return false;
+  if(sinCombate(o,i)) return false;
   if(G.noAtk&&G.noAtk.o===o&&G.noAtk.k===turnKey()) return false;
   if(p.noAtk===turnKey()||p.sinAtk) return false;
   if(p.ixRival&&hasPassive(p.id,'tortura')) return false;
@@ -5582,7 +5810,8 @@ function porQueNoAtaca(o,i){
   if(e&&!supp(o,i)&&!mismoSector(o,i,e.filtro).length) return 'Necesita otro METALÚRGICO en su SECTOR para atacar';
   return '';
 }
-function defensores(o){return G[o].pj.map((p,i)=>p&&!(p.bloq>0)?i:-1).filter(i=>i>=0);}
+function sinCombate(o,i){const s=G[o].sect[sideOfSlot(o,i)];return !!s&&hasPassive(s,'sin_combate_sector');}
+function defensores(o){return G[o].pj.map((p,i)=>p&&!(p.bloq>0)&&!sinCombate(o,i)?i:-1).filter(i=>i>=0);}
 function puedeDirecto(o,i){return !defensores(opp(o)).filter(j=>atacable(o,i,j)).length||hasKw(G[o].pj[i],'EMBOSCADA');}
 // INMATERIAL: solo puede ser atacado por personajes con INMATERIAL
 function atacable(o,as,ds){const r=opp(o),d=G[r].pj[ds],a=G[o].pj[as];if(!d)return false;if(hasPassive(d.id,'inmaterial')&&!supp(r,ds)&&!(a&&hasKw(a,'INMATERIAL')))return false;return true;}
@@ -5737,7 +5966,8 @@ function buildMenuActions(cid,idx,at,card){
     const ok=G.phase==='action'&&!unica&&!arenaBloq('player');
     acts.push({label:G.player.arena?'🟢 Activar ARENA (destruye '+C[G.player.arena].name+')':'🟢 Activar ARENA',ok,why:ok?'':(unica?'Ya hay una '+card.name+' en el campo':phaseWhy()),fn:()=>doArena('player',idx)});
   }
-  if(card.type==='sector'){
+  if(card.type==='sector'&&card.soloResp){acts.push({label:'⛓ Se activa en respuesta: cuando tu adversario llama de forma especial',ok:false,why:'Solo se activa cuando tu adversario llama de forma especial a un personaje',fn:()=>{}});}
+  else if(card.type==='sector'){
     if(card.colocar==='rival'){
       ['left','right'].forEach(side=>{
         const bloq=G.cpu.sect[side]&&bastion('cpu');
@@ -5908,6 +6138,7 @@ async function doApoyo(handIdx){
 async function activateApoyo(o,handIdx){
   const cid0=G[o].hand[handIdx];
   if(C[cid0].subtipo==='equipo') return activateEquipo(o,cid0);
+  if(errBloqApoyo(o)){lg('🦅 <b>Errantes de Phorus</b>: '+(o==='player'?'no puedes':'la CPU no puede')+' activar APOYOS durante este turno.','var(--purple)');return;}
   const effs=activarEff(cid0).filter(x=>!x.e.pendiente).map(x=>x.e), accs=accsOf(effs);
   if(!await announce(o,cid0,'activacion',{z:'mano'},{anade:anadeORoba(accs),accs})){renderAll();return;}
   const hi=G[o].hand.indexOf(cid0);if(hi<0) return;
@@ -5936,6 +6167,8 @@ async function activateApoyo(o,handIdx){
 async function activateEquipo(o,cid0){
   const e=equipEff(cid0)||{};
   if(e.medallon) return activateMedallon(o,cid0);
+  if(e.unicoActivo&&['player','cpu'].some(x=>G[x].apoyo.some(a=>a&&a.card===cid0&&(a.duenio||x)===o))){lg('⚠ Solo puedes tener 1 <b>'+C[cid0].name+'</b> activa a la vez.','var(--red)');return;}
+  if(errBloqApoyo(o)){lg('🦅 <b>Errantes de Phorus</b>: no puedes activar APOYOS durante el turno del rival.','var(--purple)');return;}
   const desdeM=e.desdeMictlan;
   const objetivos=()=>desdeM?cands(o,'mictlan',Object.assign({tipos:['pj','amalgama']},desdeM)):G[o].pj.map((p,i)=>p&&!p.ixRival&&(!e.filtroObjetivo||matchF(p.id,e.filtroObjetivo))?{z:'campo',i,cid:p.id,o}:null).filter(Boolean);
   if(freeApoAp(o)===-1||!objetivos().length||(desdeM&&freePJ(o)===-1)) return;
@@ -5981,6 +6214,8 @@ async function doArena(o,handIdx){
 }
 async function doSector(handIdx,side,tgtO){
   tgtO=tgtO||'player';
+  if(C[G.player.hand[handIdx]]&&C[G.player.hand[handIdx]].soloResp) return;
+  if(tgtO!=='player'&&errBloqSector('player',tgtO)){lg('🦅 <b>Errantes de Phorus</b>: no puedes activar SECTORES en el lado de la CPU.','var(--purple)');return;}
   if(tgtO==='player'&&G.player.sect[side]!==null){lg('⚠ Sector ocupado.','var(--red)');return;}
   const cid=G.player.hand[handIdx];
   if(!await announce('player',cid,'activacion',{z:'mano'})){renderAll();return;}
@@ -6079,6 +6314,12 @@ async function battle(o,as,ds){
   if(!G[r].pj[ds]){ds=G[r].pj.findIndex(Boolean);if(ds<0){lg('⚔️ El ataque de <b>'+C[atk.id].name+'</b> se queda sin objetivo.','var(--muted)');return null;}}
   ds=await elegirDefensor(o,as,ds);
   if(!G||G.over||!G[r].pj[ds]||G[o].pj[as]!==atk) return null;
+  if(equiposDe(o,atk).some(a=>(equipEff(a.card)||{}).quitaCorObjetivo)&&!inmune(r,ds,o,'afectar')){
+    const d=G[r].pj[ds];d.cor--;
+    lg('🗡 <b>Espada de Cristal Dragón</b>: <b>'+C[d.id].name+'</b>'+who(r)+' pierde un corazón antes del choque.','var(--red)');renderAll();
+    if(d.cor<=0){await quitarDelCampo(o,{o:r,z:'campo',i:ds,cid:d.id},'destruir');await procDestrQ();
+      if(!G||G.over) return null;lg('⚔️ El objetivo cae antes del choque.','var(--muted)');return null;}
+  }
   const res={html:'',leaves:[],killed:false,atkId:atk.id,first:null};
   // La Gran Muralla de Cristal: destruye al atacante (1 vez por turno)
   const side=sideOfSlot(r,ds), mur=G[r].sect[side], due=mur&&sectOwner(r,side);
@@ -6230,6 +6471,7 @@ async function retirosFinTurno(){
   }
 }
 async function runEOT(o){
+  await lazosFinTurno(o); if(!G||G.over) return;
   for(let i=0;i<4;i++){const p=G[o].pj[i];if(p&&(C[p.id].efectos||[]).some(e=>e.cuando==='fin_turno')){await runTrigger(o,p.id,'fin_turno',{zone:'campo',slot:i});if(!G||G.over)return;}}
   if(G.finTurno&&G.finTurno.length){
     const mios=G.finTurno.filter(x=>x.o===o);G.finTurno=G.finTurno.filter(x=>x.o!==o);
@@ -6345,7 +6587,7 @@ function cpuQuiereMano(cid,e){
   if(acc.has('llamarse_especial')){
     const st=(e.pasos||[]).find(s=>s.accion==='llamarse_especial');
     if(st.costo==='retornar_equipo'||st.costo==='conf_bp') return true;
-    if(['conf_mictlan','retirar_cen','equipo_mictlan_mano','confinar_filtro'].includes(st.costo)) return true;
+    if(['conf_mictlan','retirar_cen','equipo_mictlan_mano','confinar_filtro','equipo_a_mictlan'].includes(st.costo)) return true;
     if(st.costo==='descartar') return G.cpu.hand.length>=3;
     if(st.costo==='sacrificar') return true;
     return sectorArenaTargets().some(t=>t.own==='player'&&t.z===(st.costo==='retornar_sector'?'sector':'arena'));
@@ -6416,7 +6658,7 @@ async function cpuTurn(){
   }
   // 4) Sectores
   for(const cid of [...P.hand]){
-    if(C[cid].type!=='sector'||C[cid].colocar==='rival') continue;
+    if(C[cid].type!=='sector'||C[cid].colocar==='rival'||C[cid].soloResp) continue;
     const fp=freePJ('cpu');
     const want=fp!==-1?(fp<2?'right':'left'):'right';
     const side=P.sect[want]===null?want:(P.sect[want==='right'?'left':'right']===null?(want==='right'?'left':'right'):null);
@@ -6429,7 +6671,7 @@ async function cpuTurn(){
   }
   // 4a) SECTOR que se coloca del lado rival (Sector Bloqueado): donde el jugador tenga más fuerza
   for(const cid of [...P.hand]){
-    if(C[cid].type!=='sector'||C[cid].colocar!=='rival') continue;
+    if(C[cid].type!=='sector'||C[cid].colocar!=='rival'||C[cid].soloResp||errBloqSector('cpu','player')) continue;
     const val=sd=>slotsOf('player',sd).reduce((t,j)=>t+(G.player.pj[j]?eF(G.player.pj[j])+eR(G.player.pj[j]):0),0);
     const libres=sd=>slotsOf('player',sd).filter(j=>!G.player.pj[j]).length;
     const sd=hasPassive(cid,'restringe_llamado')
@@ -6482,6 +6724,8 @@ async function cpuTurn(){
     if(a.has('espiritu_guerrero')) return G.turn>1&&P.pj.some((p,i)=>p&&canAtk('cpu',i)&&p.habT!==turnKey());
     if(a.has('ritual_sanacion')) return pCount()>=2;
     if(a.has('quedar_en_apoyo')) return pCount()>0&&freeApoAp('cpu')!==-1;
+    if(a.has('destruir_apoyos_ambos')){const n=x=>G[x].apoyo.filter(Boolean).length;return n('player')>=n('cpu')+2&&P.hp>5;}
+    if(a.has('legado_cristal')) return true;
     if(a.has('nebulosa')){
       if(cenTotal('cpu')>=2) return false;
       const libres=P.apoyo.filter(x=>x&&x.type==='alma'&&!x.cen);
@@ -6553,7 +6797,8 @@ async function cpuTurn(){
   // 7a) Habilidad de la ARENA (Tamoanchan)
   if(P.arena&&alive()){
     for(const {e,k} of (C[P.arena].efectos||[]).map((e,k)=>({e,k})).filter(x=>x.e.cuando==='accion'&&!x.e.pendiente)){
-      if(!(e.pasos||[]).some(s=>['destruir_propia','museo_dado','museo_reemplazo'].includes(s.accion))) continue;
+      if(!(e.pasos||[]).some(s=>['destruir_propia','museo_dado','museo_reemplazo','no_ataca_filtro'].includes(s.accion))) continue;
+      if((e.pasos||[]).some(s=>s.accion==='no_ataca_filtro')&&!G.player.pj.some(q=>q&&SCORE(q.id)>=45)&&!sectorArenaTargets().some(t=>t.own==='player')) continue;
       if((e.pasos||[]).some(s=>s.accion==='museo_dado')&&!museoQuiereDado('cpu')) continue;
       if((e.pasos||[]).some(s=>s.accion==='museo_reemplazo')&&!museoPar('cpu')) continue;
       if(effWhy('cpu',P.arena,e,k,{zone:'arena'})) continue;

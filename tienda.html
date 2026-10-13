@@ -470,8 +470,8 @@
         </div>
         <div class="cat-card" onclick="abrirSeccion('cosmeticos')" style="--cat-color:#00cfff;--cat-dim:rgba(0,207,255,.1)">
           <div class="cat-icon">🎴</div>
-          <div class="cat-name">MICAS Y PLAYMATS</div>
-          <div class="cat-desc">Personaliza tus cartas y tu tablero en el Simulador</div>
+          <div class="cat-name">MICAS, PLAYMATS Y CRÉDITOS</div>
+          <div class="cat-desc">Personaliza tu Simulador y compra créditos para el Arcade</div>
         </div>
         <div class="cat-card" onclick="abrirSeccion('musica')" style="--cat-color:#cc55ff;--cat-dim:rgba(180,70,255,.1)">
           <div class="cat-icon">🎵</div>
@@ -554,7 +554,7 @@
         <div class="hp-info">
           <div class="hp-label">HERO PESOS</div>
           <div class="hp-amount" id="hp-cosm-val">—</div>
-          <div class="hp-sub">Micas y playmats para el Simulador y el Arcade</div>
+          <div class="hp-sub">Micas, playmats y créditos para el Simulador y el Arcade</div>
         </div>
       </div>
       <div id="cosm-cont"><div class="empty-tab">⏳ Cargando...</div></div>
@@ -1100,7 +1100,7 @@ function _esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;'
 function _jsq(s) { return String(s ?? '').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
 
 function renderPacks(packs) {
-  packs = (packs || []).filter(p => !esTipoCosmetico(p.tipo));   // micas/playmats van en su propia sección
+  packs = (packs || []).filter(p => !esTipoCosmetico(p.tipo) && String(p.tipo||'').toLowerCase().trim() !== 'creditos');   // micas/playmats/créditos van en su propia sección
   const grid = document.getElementById('pack-grid');
   const est = document.getElementById('packs-estado');
   if (est) est.style.display = 'none';
@@ -1743,21 +1743,49 @@ function formatFecha(f) {
 //  Se equipan desde Simulación → APARIENCIA (o con USAR aquí).
 // ════════════════════════════════════════════
 function esTipoCosmetico(t) { t = String(t || '').toLowerCase().trim(); return t === 'mica' || t === 'playmat'; }
-let _cosmVenta = null;
+let _cosmVenta = null, _credVenta = null, _bolsaArc = null;
+// v3.5 · Créditos del Arcade: filas de Packs_Config con tipo 'creditos' (E = cantidad). Van a la bolsa del jugador.
+function esTipoCreditos(t) { return String(t || '').toLowerCase().trim() === 'creditos'; }
+function guardarBolsa(n) { _bolsaArc = n; try { localStorage.setItem('chh_arcade_bolsa', JSON.stringify({ pid: jugador && jugador.id, n: n, ts: Date.now() })); } catch (e) {} }
+async function cargarBolsa() {
+  try { const d = await fetchJSON(`${HERO_PESOS_URL}?action=creditos_arcade&playerid=${encodeURIComponent(jugador.id)}`, 15000); if (d && d.status === 'ok') guardarBolsa(d.bolsa || 0); } catch (e) {}
+}
+async function comprarCreditos(id) {
+  if (comprando) return;
+  const p = (_credVenta || []).find(x => String(x.pack_id) === id); if (!p) return;
+  const costo = Number(p.costo) || 0, cant = Math.max(1, parseInt(p.descripcion) || 1);
+  if (hpSaldo < costo) { mostrarToast('Saldo insuficiente'); return; }
+  if (!confirm(`¿Comprar ${cant} crédito${cant === 1 ? '' : 's'} para el Arcade por ${costo} HP?`)) return;
+  comprando = true; document.querySelectorAll('.cosm-btn').forEach(b => b.disabled = true);
+  try {
+    const r = await fetch(`${HERO_PESOS_URL}?action=comprar_sobre&playerid=${encodeURIComponent(jugador.id)}&packid=${encodeURIComponent(id)}`);
+    const d = await r.json();
+    if (d.status !== 'ok') { mostrarToast(d.message || 'No se pudo comprar'); return; }
+    if (typeof d.bolsa === 'number') guardarBolsa(d.bolsa);
+    if (typeof d.saldo_nuevo === 'number' && d.saldo_nuevo >= 0) {
+      hpSaldo = d.saldo_nuevo;
+      ['hp-menu-val', 'hp-saldo-val', 'hp-cartas-val', 'hp-cosm-val'].forEach(k => { const el = document.getElementById(k); if (el) el.textContent = d.saldo_nuevo; });
+    } else { await cargarSaldoHP(); }
+    mostrarToast(`🪙 ¡+${d.creditos || cant} crédito${(d.creditos || cant) === 1 ? '' : 's'}! Úsalos en el Arcade cuando te quedes sin créditos.`);
+  } catch (e) { mostrarToast('Error de conexión'); }
+  finally { comprando = false; renderCosmeticos(); }
+}
 
 async function cargarCosmeticos() {
   const cont = document.getElementById('cosm-cont');
   document.getElementById('hp-cosm-val').textContent = hpSaldo;
   if (!window.CHH_COSM) { cont.innerHTML = '<div class="empty-tab">⚠ No se pudo cargar el módulo de cosméticos.</div>'; return; }
-  if (_packsCache) { _cosmVenta = _packsCache.filter(p => esTipoCosmetico(p.tipo)); await renderCosmeticos(); }
+  if (_packsCache) { _cosmVenta = _packsCache.filter(p => esTipoCosmetico(p.tipo)); _credVenta = _packsCache.filter(p => esTipoCreditos(p.tipo)); await renderCosmeticos(); }
   try {
     const [d] = await Promise.all([
       fetchJSON(`${HERO_PESOS_URL}?action=packs_disponibles&playerid=${encodeURIComponent(jugador.id)}`, 25000),
-      CHH_COSM.sincronizar(15000)
+      CHH_COSM.sincronizar(15000),
+      cargarBolsa()
     ]);
     if (d && d.status === 'ok') {
       _packsCache = Array.isArray(d.packs) ? d.packs : [];
       _cosmVenta = _packsCache.filter(p => esTipoCosmetico(p.tipo));
+      _credVenta = _packsCache.filter(p => esTipoCreditos(p.tipo));
     }
   } catch (e) { console.warn('cosméticos:', e); }
   await renderCosmeticos();
@@ -1796,6 +1824,16 @@ async function renderCosmeticos() {
   const premios = cat.filter((x, i) => ok[i]);
 
   let html = '';
+  const cred = _credVenta || [];
+  if (cred.length || _bolsaArc) {
+    html += `<div class="seccion-label">🪙 CRÉDITOS DEL ARCADE · tu bolsa: <b style="color:var(--gold)">${_bolsaArc == null ? '…' : _bolsaArc}</b></div>`
+      + `<div class="cosm-sub" style="margin:-4px 2px 8px">Cuando te quedes sin créditos en una ruta del Arcade, puedes usar uno de tu bolsa para seguir peleando en lugar de hacer GAME OVER.</div>`
+      + `<div class="cosm-grid">` + cred.map(p => { const cant = Math.max(1, parseInt(p.descripcion) || 1), costo = Number(p.costo) || 0, puede = hpSaldo >= costo;
+          const img = p.imagen ? (/^(https?:|data:|\/|\.\/)/.test(p.imagen) || p.imagen.indexOf('/') >= 0 ? p.imagen : 'hero_pesos/' + p.imagen) : '';
+          return `<div class="cosm-card"><div class="cosm-prev playmat" style="${img ? `background-image:url('${_esc(img)}')` : 'background:radial-gradient(circle at 50% 40%,#3a2a05,#0b0e18 70%);display:flex;align-items:center;justify-content:center;font-size:44px'}">${img ? '' : '🪙'}<span class="tag">×${cant}</span></div>`
+            + `<div class="cosm-info"><div class="cosm-nombre">${_esc(p.nombre)}</div><div class="cosm-sub">${cant} crédito${cant === 1 ? '' : 's'} para el Arcade</div>`
+            + `<button class="cosm-btn" ${puede ? '' : 'disabled'} onclick="comprarCreditos('${_jsq(String(p.pack_id))}')">${puede ? 'COMPRAR · ' + costo + ' HP' : '🔒 ' + costo + ' HP'}</button></div></div>`; }).join('') + `</div>`;
+  }
   ['mica', 'playmat'].forEach(t => {
     const v = ventaItems.filter(x => x.tipo === t);
     if (v.length) html += `<div class="seccion-label">${t === 'mica' ? '🎴 MICAS A LA VENTA' : '🟫 PLAYMATS A LA VENTA'}</div><div class="cosm-grid">${v.map(x => tarjeta(x, 'tienda')).join('')}</div>`;

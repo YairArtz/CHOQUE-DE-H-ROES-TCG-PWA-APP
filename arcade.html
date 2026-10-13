@@ -153,6 +153,12 @@ html.epica .node.done .med{filter:grayscale(.3) sepia(.3) hue-rotate(-30deg)}
 .slot .empty b{font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:2px;color:#9fb3cc}
 .slot .deck{display:flex;gap:10px;align-items:center}
 .slot .deck img{width:56px;height:78px;border-radius:6px;object-fit:cover;background:#000;box-shadow:0 0 12px rgba(245,166,35,.35)}
+.av-pj{position:relative;flex:0 0 auto}
+.slot .deck .av-pj img.av,.av-pj img.av{width:62px;height:62px;border-radius:50%;object-fit:cover;background:#000;border:2px solid var(--gold);box-shadow:0 0 12px rgba(245,166,35,.45);display:block}
+.av-pj .mini{position:absolute;right:-8px;bottom:-6px;width:26px!important;height:36px!important;border-radius:3px!important;border:1px solid #000;box-shadow:0 0 6px rgba(0,0,0,.8)!important}
+.ruta-head .av-pj img.av{width:50px;height:50px}.ruta-head .av-pj .mini{width:20px!important;height:28px!important}
+.map.drag{cursor:grabbing}
+.bolsa{display:block;font-family:'Orbitron',sans-serif;font-size:8px;letter-spacing:1px;color:#ffd166;margin-top:3px}
 .slot .deck b{display:block;font-size:16px;color:var(--gold2);line-height:1.1}
 .slot .deck small{display:block;font-size:11px;color:var(--muted)}
 .prog{height:8px;border-radius:5px;background:#0d1320;border:1px solid #1b2433;overflow:hidden}
@@ -186,7 +192,7 @@ html.epica .node.done .med{filter:grayscale(.3) sepia(.3) hue-rotate(-30deg)}
 .ruta-head .info{flex:1;min-width:0}
 .ruta-head b{font-size:16px;color:var(--gold2)}
 .ruta-head small{display:block;font-size:11px;color:var(--muted)}
-.map{width:100%;max-width:1100px;flex:1;min-height:250px;position:relative;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;scrollbar-color:rgba(245,166,35,.4) transparent}
+.map{width:100%;max-width:1100px;flex:1;min-height:250px;position:relative;overflow-x:auto;overflow-y:hidden;touch-action:none;cursor:grab;scrollbar-width:thin;scrollbar-color:rgba(245,166,35,.4) transparent}
 .map-in{position:relative;height:100%;min-height:250px}
 .map svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .node{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:4px;width:92px}
@@ -426,7 +432,7 @@ html.epica .node.done .med{filter:grayscale(.3) sepia(.3) hue-rotate(-30deg)}
 // Combate: escribe "chh_arcade_match" y abre simulacion.html?modo=arcade;
 //          la simulación escribe "chh_arcade_result" y regresa a arcade.html?r=<id>
 // ════════════════════════════════════
-const ARC_VERSION='Arcade v2.3';
+const ARC_VERSION='Arcade v2.4';
 const STAGE=document.getElementById('stage');
 // ── Orientación horizontal ──
 const MOVIL=matchMedia('(pointer:coarse)').matches;
@@ -1070,6 +1076,42 @@ function cartaImg(id,grande){
 }
 function deckPortada(b){return b?cartaImg(b.portada||(b.bp&&b.bp[0]&&b.bp[0].id)):'';}
 
+// ── v2.4 · Avatar del Perfil (perfil.html guarda la elección en localStorage "nhAv_<ID>") ──
+function sesionJug(){try{const s=JSON.parse(localStorage.getItem('nhSesion')||'null');return s&&s.tipo!=='tienda'&&s.id?s:null;}catch(e){return null;}}
+function avatarPerfil(){
+  const j=sesionJug(); if(!j) return null;
+  let id=null;try{id=localStorage.getItem('nhAv_'+String(j.id).trim())||localStorage.getItem('nhAv_'+String(j.id).trim().toUpperCase());}catch(e){}
+  if(!id) return 'avatares/avatar_1.jpg';
+  if(/^av_p\d+$/.test(id)) return 'avatares/'+id+'.jpg';
+  const m=id.match(/^av(\d+)$/); return m?'avatares/avatar_'+m[1]+'.jpg':'avatares/avatar_1.jpg';
+}
+function nombrePerfil(){const j=sesionJug();return j?(j.nick||j.nombre||'').toString().trim():'';}
+function avatarHTML(deckImg){const a=avatarPerfil();
+  if(!a) return '<img src="'+esc(deckImg)+'" alt="">';
+  return '<span class="av-pj"><img class="av" src="'+esc(a)+'" alt="" onerror="this.src=\''+esc(deckImg)+'\';this.style.borderRadius=\'6px\'">'+(deckImg?'<img class="mini" src="'+esc(deckImg)+'" alt="">':'')+'</span>';}
+// ── v2.4 · Bolsa de créditos comprados en la Tienda del Héroe (Hero Pesos) ──
+function bolsa(){try{const b=JSON.parse(localStorage.getItem('chh_arcade_bolsa')||'null'),j=sesionJug();return b&&j&&String(b.pid).toUpperCase()===String(j.id).toUpperCase()?(b.n|0):0;}catch(e){return 0;}}
+function setBolsa(n){const j=sesionJug();try{localStorage.setItem('chh_arcade_bolsa',JSON.stringify({pid:j&&j.id,n:n,ts:Date.now()}));}catch(e){}}
+async function refrescarBolsa(){const j=sesionJug();if(!j||!navigator.onLine)return bolsa();
+  try{const ctrl=new AbortController(),t=setTimeout(()=>ctrl.abort(),12000);const r=await fetch(LOGROS_URL+'?action=creditos_arcade&playerid='+encodeURIComponent(String(j.id).toUpperCase()),{signal:ctrl.signal});clearTimeout(t);
+    const d=await r.json();if(d&&d.status==='ok')setBolsa(d.bolsa|0);}catch(e){}return bolsa();}
+async function usarBolsa(){const j=sesionJug();if(!j)return {ok:false,msg:'Inicia sesión en Mi Perfil para usar tu bolsa de créditos.'};
+  if(!navigator.onLine)return {ok:false,msg:'Necesitas conexión a internet para usar un crédito de tu bolsa.'};
+  try{const r=await fetch(LOGROS_URL+'?action=usar_credito_arcade&playerid='+encodeURIComponent(String(j.id).toUpperCase()));const d=await r.json();
+    if(d&&d.status==='ok'){setBolsa(d.bolsa|0);return {ok:true};}
+    if(d&&typeof d.bolsa==='number')setBolsa(d.bolsa);return {ok:false,msg:(d&&d.message)||'No se pudo usar el crédito.'};}
+  catch(e){return {ok:false,msg:'Error de conexión. Intenta de nuevo.'};}}
+function aplicarGameOver(g){const rn=rutaN(g);g.gameovers=(g.gameovers||0)+1;g.goRuta=true;g.ronda=rn===3&&g.sello>0?g.sello:0;g.creditos=credBase(rn);g.credIni=g.creditos;delete g.pendienteGO;}
+function ofrecerContinuar(i,res){
+  const n=bolsa(),g=slot();
+  modal('🪙 ¿CONTINUAR?','Te quedaste sin créditos en esta ruta.<br><br>Tienes <b style="color:#ffd166">'+n+'</b> crédito'+(n===1?'':'s')+' en tu bolsa (comprados en la Tienda del Héroe). Usa uno para seguir en el combate '+((g.ronda||0)+1)+', o acepta el GAME OVER.',
+    [['🪙 USAR 1 DE LA BOLSA','',async()=>{const r=await usarBolsa();
+        if(r.ok){setSlot(x=>{x.creditos=1;delete x.pendienteGO;});modal('🪙 ¡CRÉDITO INSERTADO!','Sigues en la ruta con 1 crédito. Te quedan <b>'+bolsa()+'</b> en tu bolsa.',[['⚔ ¡A PELEAR!','',()=>{const gg=slot();showVS(gg.ronda,'intro');}],['RUTA','ghost',()=>go('sRuta')]]);}
+        else modal('NO SE PUDO',esc(r.msg),[['REINTENTAR','',()=>ofrecerContinuar(i,res)],['GAME OVER','red',()=>aceptarGameOver(i,res)]]);}],
+     ['✖ GAME OVER','red',()=>aceptarGameOver(i,res)]]);
+}
+function aceptarGameOver(i,res){setSlot(x=>aplicarGameOver(x));if(res)showVS(i,'res',res,{gameover:true});else{renderRuta();modal('GAME OVER','Te quedaste sin créditos. La ruta vuelve a empezar con sus créditos nuevos.',[['ENTENDIDO','']]);}}
+
 // ── Partidas (3 slots) ──
 function loadSlots(){let s=[];try{s=JSON.parse(localStorage.getItem('chh_arcade_slots')||'[]')||[];}catch(e){}while(s.length<NSLOTS)s.push(null);return s.slice(0,NSLOTS);}
 function saveSlots(s){try{localStorage.setItem('chh_arcade_slots',JSON.stringify(s));}catch(e){}}
@@ -1099,7 +1141,7 @@ function renderSlots(){
       const RIV=rutaDe(g);
       const b=DECKS.find(d=>d.id===g.baraja), r=RIV[Math.min(g.ronda,RIV.length-1)], lv=nivelDe(r||{},Math.min(g.ronda,RIV.length-1),RIV.length);
       const pct=Math.round(100*Math.min(g.ronda,RIV.length)/RIV.length);
-      el.innerHTML+='<div class="deck"><img src="'+esc(deckPortada(b))+'" alt=""><div style="min-width:0"><b>'+esc(g.nombre||'Jugador')+'</b><small>'+esc(b?b.nombre:g.barajaNombre||g.baraja)+'</small>'+
+      el.innerHTML+='<div class="deck">'+avatarHTML(deckPortada(b))+'<div style="min-width:0"><b>'+esc(g.nombre||'Jugador')+'</b><small>'+esc(b?b.nombre:g.barajaNombre||g.baraja)+'</small>'+
         (rutaN(g)===2?'<small style="color:#ff4d6d;font-family:Orbitron,sans-serif;font-size:8px;letter-spacing:2px">★ RUTA LEGENDARIA</small>':rutaN(g)===3?'<small style="color:#ff2244;font-family:Orbitron,sans-serif;font-size:8px;letter-spacing:2px;text-shadow:0 0 6px #ff0022">☠ RUTA ÉPICA</small>':'')+'<small>'+(g.completado?'👑 RUTA COMPLETADA':'Siguiente: <b style="font-size:12px;color:#fff">'+esc(r?r.nombre:'')+'</b> <span class="badge lv-'+lv+'">'+NIV[lv]+'</span>')+'</small></div></div>'+
         (r2Iniciada(g)?'<div class="rts">'+[1,2,3].filter(n=>rIniciada(g,n)).map(n=>{const d=datosRuta(g,n)||{},L=RUTAS[n].length,k=Math.min(d.ronda||0,L);
             return '<div class="rt r'+n+(rutaN(g)===n?' act':'')+'"><b>'+RUTA_NOM[n]+'</b><div class="prog"><i style="width:'+Math.round(100*k/L)+'%"></i></div><span>'+(d.completado?'👑 ':'')+k+'/'+L+' · '+(d.victorias||0)+'V · '+creditos(d,n)+'🪙</span></div>';}).join('')+'</div>'
@@ -1128,6 +1170,7 @@ function slotAccion(i,a){
 // ── Pantalla: nueva partida ──
 function propias(){const out=[];try{(JSON.parse(localStorage.getItem('chh_decks')||'[]')||[]).forEach((d,i)=>{if(d&&d.decks)out.push({id:'mis:'+i+':'+(d.date||''),nombre:d.name||('Baraja '+(i+1)),estilo:'Tu baraja del Constructor',propia:true});});}catch(e){}return out;}
 function renderNew(){
+  if(!$('nName').value&&nombrePerfil()) $('nName').value=nombrePerfil();
   const box=$('nDecks');box.querySelectorAll('.dk,.lbl').forEach(x=>x.remove());
   const all=DECKS.filter(b=>!b.soloArcade).concat(propias());   // las exclusivas del Arcade son solo para rivales
   all.forEach(b=>{
@@ -1162,7 +1205,7 @@ function renderRuta(){
       cambiarRuta(n);});
   } else $('rRutas').innerHTML='';
   const b=DECKS.find(d=>d.id===g.baraja);
-  $('rHead').innerHTML='<span class="hb tl"></span><span class="hb tr"></span><span class="hb bl"></span><span class="hb br"></span><img src="'+esc(deckPortada(b))+'" alt=""><div class="info"><b>'+esc(g.nombre)+'</b><small>'+esc(b?b.nombre:g.barajaNombre)+' · '+Math.min(g.ronda,RIV.length)+'/'+RIV.length+' rivales · '+(g.victorias||0)+' victorias · '+(g.derrotas||0)+' derrotas</small></div><div class="cred" id="rCred" title="¿Cómo funcionan los créditos?"><small>CRÉDITOS · '+RUTA_NOM[rn].split(' · ')[0]+' ⓘ</small>'+monedas(g)+(rn===3&&(g.sello||0)>0?'<small style="color:#ff6b7f;margin-top:3px">🔱 SELLO: COMBATE '+(g.sello+1)+'</small>':'')+'</div>';
+  $('rHead').innerHTML='<span class="hb tl"></span><span class="hb tr"></span><span class="hb bl"></span><span class="hb br"></span>'+avatarHTML(deckPortada(b))+'<div class="info"><b>'+esc(g.nombre)+'</b><small>'+esc(b?b.nombre:g.barajaNombre)+' · '+Math.min(g.ronda,RIV.length)+'/'+RIV.length+' rivales · '+(g.victorias||0)+' victorias · '+(g.derrotas||0)+' derrotas</small></div><div class="cred" id="rCred" title="¿Cómo funcionan los créditos?"><small>CRÉDITOS · '+RUTA_NOM[rn].split(' · ')[0]+' ⓘ</small>'+monedas(g)+(bolsa()?'<small class="bolsa">+'+bolsa()+' 🪙 EN TU BOLSA</small>':'')+(rn===3&&(g.sello||0)>0?'<small style="color:#ff6b7f;margin-top:3px">🔱 SELLO: COMBATE '+(g.sello+1)+'</small>':'')+'</div>';
   $('rCred').onclick=()=>ayudaCreditos(rn);
   const N=RIV.length, map=$('map'), inn=$('mapIn');
   const W=Math.max(map.clientWidth,N*104+40), H=Math.max(map.clientHeight,250);
@@ -1187,6 +1230,22 @@ function renderRuta(){
   $('rHint').style.display=g.completado?'':'none';
   $('rFight').textContent=g.completado?'↺ NUEVA VUELTA':(g.ronda===N-1?'☠ ENFRENTAR AL JEFE FINAL':'⚔ SIGUIENTE COMBATE');
 }
+// v2.4 · Arrastrar el mapa de la ruta con el dedo (también con la pantalla girada por CSS) y con la rueda del mouse
+(function arrastreMapa(){
+  const map=document.getElementById('map'); if(!map) return;
+  let id=null,x0=0,y0=0,s0=0,mov=false,vel=0,lastT=0,lastP=0,raf=0;
+  const eje=e=>{const R=document.documentElement;if(!R.classList.contains('rot'))return e.clientX;return R.classList.contains('flip')?-e.clientY:e.clientY;};
+  map.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&e.button!==0)return;cancelAnimationFrame(raf);id=e.pointerId;x0=eje(e);s0=map.scrollLeft;mov=false;vel=0;lastT=performance.now();lastP=x0;});
+  map.addEventListener('pointermove',e=>{if(e.pointerId!==id)return;const p=eje(e),d=p-x0;
+    if(!mov&&Math.abs(d)>6){mov=true;map.classList.add('drag');try{map.setPointerCapture(id);}catch(_){}}
+    if(mov){map.scrollLeft=s0-d;const t=performance.now();if(t>lastT){vel=(p-lastP)/(t-lastT);lastT=t;lastP=p;}}});
+  const fin=e=>{if(e.pointerId!==id)return;id=null;map.classList.remove('drag');
+    if(mov){let v=vel*16;const paso=()=>{if(Math.abs(v)<.5)return;map.scrollLeft-=v;v*=.93;raf=requestAnimationFrame(paso);};raf=requestAnimationFrame(paso);}};
+  map.addEventListener('pointerup',fin);map.addEventListener('pointercancel',fin);
+  // Si fue arrastre, no cuenta como toque sobre un rival
+  map.addEventListener('click',e=>{if(mov){e.stopPropagation();e.preventDefault();mov=false;}},true);
+  map.addEventListener('wheel',e=>{if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){map.scrollLeft+=e.deltaY;e.preventDefault();}},{passive:false});
+})();
 function ayudaCreditos(rn){
   modal('🪙 CRÉDITOS','<b>Cada ruta tiene sus propios créditos</b> y no se mezclan entre sí:<br>'+
     [1,2,3].filter(n=>RUTAS[n].length).map(n=>'· '+RUTA_NOM[n]+': <b>'+credBase(n)+'</b> créditos').join('<br>')+
@@ -1197,6 +1256,7 @@ function ayudaCreditos(rn){
 }
 $('rFight').onclick=()=>{
   const g=slot(); if(!g) return;
+  if(g.pendienteGO){if(bolsa()>0)ofrecerContinuar(g.ronda,null);else aceptarGameOver(g.ronda,null);return;}
   if(g.completado){modal('NUEVA VUELTA','Tu ruta ya está completa. ¿Quieres reiniciarla desde el combate 1? Se conserva tu historial de victorias.',[['↺ REINICIAR RUTA','',()=>{setSlot(x=>{x.ronda=0;x.completado=false;x.creditos=credBase(rutaN(x));x.credIni=x.creditos;x.sello=0;x.vueltas=(x.vueltas||0)+1;x.goRuta=false;});renderRuta();}],['CANCELAR','ghost']]);return;}
   showVS(g.ronda,'intro');
 };
@@ -1235,7 +1295,7 @@ function showVS(i,modo,res,opt){
   const pods=poderes(r);
   if(!r._fondo&&r._ruta===3) bg.style.backgroundImage='radial-gradient(ellipse at 70% 50%,'+acc+'44,transparent 55%),radial-gradient(ellipse at 50% 120%,#4a0008,#0a0001 60%,#000)';
   $('vsMeta').innerHTML='<span class="badge lv-'+lv+'">'+NIV[lv]+'</span>'+(r.corazones?'<span class="badge" style="color:#ff4d6d">+'+esc(r.corazones)+' ❤</span>':'')+pods.map(x=>'<span class="badge pod" title="Poder épico">'+x+'</span>').join('')+(r.banlist==='no'||r._ruta===3?'<span class="badge pod" title="Su baraja ignora la banlist">⛓ SIN BANLIST</span>':'')+
-    '<span class="vs-me">'+(PLAYER_IMG?'<img src="'+PLAYER_IMG+'" alt="">':'<img src="'+esc(deckPortada(b))+'" alt="">')+esc(g.nombre)+' · '+esc(b?b.nombre:g.barajaNombre)+'</span>'+
+    '<span class="vs-me">'+(avatarPerfil()?'<img src="'+esc(avatarPerfil())+'" alt="" style="width:44px;height:44px;border-radius:50%;border:2px solid var(--gold)">':PLAYER_IMG?'<img src="'+PLAYER_IMG+'" alt="">':'<img src="'+esc(deckPortada(b))+'" alt="">')+esc(g.nombre)+' · '+esc(b?b.nombre:g.barajaNombre)+'</span>'+
     (modo!=='intro'&&res&&res.turnos?'<span class="badge" style="color:#9fb3cc">'+res.turnos+' TURNOS</span>':'')+
     (opt.replay?'<span class="badge" style="color:#cc55ff">REVANCHA · NO CUENTA PARA LA RUTA</span>':'<span class="vs-cr">'+monedas(g)+'</span>');
   if(r._ruta===3&&modo==='intro'&&!opt.replay&&!sessionStorage.getItem('chh_epi_aviso')){try{sessionStorage.setItem('chh_epi_aviso','1');}catch(e){}}
@@ -1245,6 +1305,7 @@ function showVS(i,modo,res,opt){
   const add=(t,cls,fn)=>{const x=document.createElement('button');x.className='btn '+(cls||'');x.textContent=t;x.onclick=fn;B.appendChild(x);};
   if(modo==='intro'){add('⚔ ¡PELEAR!','',()=>iniciarCombate(i,opt.replay));$('vsBack').onclick=()=>go('sRuta');}
   else if(opt.replay){add(res.won?'👑 VOLVER A LA RUTA':'RUTA','',()=>go('sRuta'));add('↺ OTRA VEZ','ghost',()=>showVS(i,'intro',null,{replay:true}));$('vsBack').onclick=()=>go('sRuta');}
+  else if(opt.continuar){$('vsTag').textContent='¿CONTINUAR?';add('🪙 USAR CRÉDITO DE TU BOLSA ('+bolsa()+')','',()=>ofrecerContinuar(i,res));add('✖ GAME OVER','red ghost',()=>aceptarGameOver(i,res));$('vsBack').onclick=()=>go('sRuta');}
   else if(opt.gameover){add('🪙 INSERTAR CRÉDITOS · COMBATE '+((g.ronda||0)+1),'red',()=>go('sRuta'));$('vsBack').onclick=()=>go('sRuta');}
   else if(res.won){
     if(i>=N-1) add('👑 CONTINUAR','',()=>finalArcade());
@@ -1268,7 +1329,7 @@ function iniciarCombate(i,replay){
   const r=RIV[i], g=slot(), N=RIV.length, id='a'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
   setSlot(x=>{x.pendiente={id,ronda:i,replay:!!replay};});
   const m={id,slot:CUR,ronda:i+1,total:N,jefe:i===N-1,jugador:g.baraja,cpu:r.baraja,nivel:nivelDe(r,i,N),
-    corazonesExtra:parseInt(r.corazones,10)||0,manoExtra:parseInt(r.mano,10)||0,almasExtra:parseInt(r.almas,10)||0,roboExtra:parseInt(r.robo,10)||0,nombre:r.nombre,retrato:retratoUrl(r)||'',musica:r._musica?new URL(r._musica,location.href).href:''};
+    corazonesExtra:parseInt(r.corazones,10)||0,avatar:avatarPerfil()?new URL(avatarPerfil(),location.href).href:'',manoExtra:parseInt(r.mano,10)||0,almasExtra:parseInt(r.almas,10)||0,roboExtra:parseInt(r.robo,10)||0,nombre:r.nombre,retrato:retratoUrl(r)||'',musica:r._musica?new URL(r._musica,location.href).href:''};
   try{localStorage.setItem('chh_arcade_match',JSON.stringify(m));}catch(e){}
   location.href='simulacion.html?modo=arcade';
 }
@@ -1281,7 +1342,7 @@ function procesarResultado(){
   const s=loadSlots(), g=s[res.slot]; if(!g||!g.pendiente||g.pendiente.id!==q) return false;
   CUR=res.slot; usarRuta(g);
   const i=g.pendiente.ronda, replay=!!g.pendiente.replay;
-  let gameover=false;
+  let gameover=false, continuar=false;
   g.pendiente=null;g.ultimo=Date.now();
   if(replay){(g.rejugadas=g.rejugadas||[]).push({ronda:i+1,won:res.won,turnos:res.turnos,ts:res.ts});}
   else{
@@ -1296,14 +1357,14 @@ function procesarResultado(){
     else{
       g.derrotas=(g.derrotas||0)+1;
       g.creditos=creditos(g)-1;
-      if(g.creditos<=0){gameover=true;g.gameovers=(g.gameovers||0)+1;g.goRuta=true;g.ronda=rn===3&&g.sello>0?g.sello:0;g.creditos=credBase(rn);g.credIni=g.creditos;}
+      if(g.creditos<=0){if(bolsa()>0){g.creditos=0;g.pendienteGO=true;continuar=true;}else{gameover=true;aplicarGameOver(g);}}
     }
   }
   const sn=g._sellonuevo; delete g._sellonuevo;
   saveSlots(s);
   if(sn) setTimeout(()=>modal('🔱 SELLO ÉPICO','Venciste al rival '+SELLO_EPICO+' de la Ruta Épica. Si te quedas sin créditos, ya no vuelves al combate 1: regresas al combate '+(SELLO_EPICO+1)+'.',[['¡BIEN!','']]),2600);
   try{localStorage.removeItem('chh_arcade_result');}catch(e){}
-  showVS(i,'res',res,{replay,gameover});
+  showVS(i,'res',res,{replay,gameover,continuar});
   evaluarLogros(g,res,replay,i);
   return true;
 }

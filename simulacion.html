@@ -1028,7 +1028,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v52';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v53';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -7104,7 +7104,7 @@ function arcadePreparar(){
   const vs=document.getElementById('bootVs');
   if(vs){
     const j=deckById(ARCADE.jugador), por=b=>b&&(C[b.portada]||C[(b.bp||[])[0]&&b.bp[0].id]);
-    vs.innerHTML='<div class="vs-side">'+(por(j)?'<img src="'+por(j).imgMin+'" alt="">':'<span class="vs-ico">🛡</span>')+'<span style="min-width:0"><small>TÚ</small><b>'+arcadeEsc(j?j.nombre:'')+'</b></span></div>'+
+    vs.innerHTML='<div class="vs-side">'+(ARCADE.avatar?'<img src="'+arcadeEsc(ARCADE.avatar)+'" alt="" style="border-radius:50%;object-fit:cover;aspect-ratio:1">':por(j)?'<img src="'+por(j).imgMin+'" alt="">':'<span class="vs-ico">🛡</span>')+'<span style="min-width:0"><small>TÚ</small><b>'+arcadeEsc(j?j.nombre:'')+'</b></span></div>'+
       '<span class="vs-x">VS</span><div class="vs-side r">'+(ARCADE.retrato?'<img src="'+arcadeEsc(ARCADE.retrato)+'" alt="" style="object-fit:cover;object-position:top">':'<span class="vs-ico">🤖</span>')+
       '<span style="min-width:0"><small>'+(ARCADE.jefe?'JEFE FINAL':'RIVAL')+'</small><b>'+arcadeEsc(ARCADE.nombre)+'</b></span></div>';
     vs.hidden=false;

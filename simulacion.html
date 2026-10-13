@@ -1028,7 +1028,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v55';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v56';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -4119,19 +4119,37 @@ Object.assign(PASOS,{
 // ════════════════════════════════════
 // v55 · CARTAS DE LIGA (prototipos 060–065) + IA de alto nivel
 // ════════════════════════════════════
-function oblivionRoba(owner,o,side){
-  let n=0;
-  for(const j of slotsOf(o,side)){
-    const q=G[o].pj[j]; if(!q||inmune(o,j,owner,'afectar')) continue;
-    const k=freePJ(owner); if(k===-1) break;
-    G[o].pj[j]=null; G[owner].pj[k]=q; q.resting=true; delete q.ixRival; n++;
-    lg('🌀 <b>Sector Oblivion</b>: <b>'+C[q.id].name+'</b> pasa al control de '+(owner==='player'?'ti':'la CPU')+'.','var(--purple)');
-  }
-  if(n){renderAll();}
+// SECTOR OBLIVION (v56): los personajes NO se mueven. Su propietario no puede atacar con ellos;
+// el dueño del SECTOR, en su turno, puede atacar con ellos directo a los corazones del propietario (EMBOSCADA).
+function oblivionCtl(x,j){
+  if(!G||!G[x]||!G[x].pj[j]) return null;
+  const sd=sideOfSlot(x,j), c=G[x].sect[sd];
+  if(!c||!hasPassive(c,'oblivion')) return null;
+  const ow=sectOwner(x,sd);
+  return ow!==x?ow:null;
 }
-function oblivionInicio(o){
-  ['player','cpu'].forEach(x=>['left','right'].forEach(sd=>{const c=G[x].sect[sd];if(c&&hasPassive(c,'oblivion')){const ow=sectOwner(x,sd);if(ow!==x)oblivionRoba(ow,x,sd);}}));
+function oblivionPuede(ow,x,j){
+  const p=G[x].pj[j];
+  if(!p||G.over||G.active!==ow||(ow==='player'&&(G.phase!=='combat'||G.turn<=1))) return false;
+  if(oblivionCtl(x,j)!==ow) return false;
+  if(p.oblK===turnKey()||p.bloq>0||p.sinAtk) return false;
+  if(G.noAtk&&G.noAtk.o===ow&&G.noAtk.k===turnKey()) return false;
+  return true;
 }
+async function oblivionAtaque(ow,x,j){
+  const p=G[x].pj[j];
+  if(!oblivionPuede(ow,x,j)) return;
+  p.oblK=turnKey();
+  renderAll();
+  if(!await announce(ow,p.id,'ataque',{z:'campo',slot:j,lado:x})){renderAll();return;}
+  if(G[x].pj[j]!==p) return;
+  animAttack((x==='player'?'pP':'cP')+j);
+  const lost=hurt(x,eI(p),'ataque');
+  lg('🌀 <b>Sector Oblivion</b>: <b>'+C[p.id].name+'</b> ('+(x==='player'?'tuyo':'de la CPU')+') ataca por orden de '+(ow==='player'?'ti':'la CPU')+' con EMBOSCADA → '+(x==='cpu'?'CPU −'+lost+' corazón(es).':'pierdes <b>'+lost+'</b> corazón(es).'),'var(--purple)');
+  playSound('damage');shakeBoard();
+  renderAll();checkEnd();
+}
+function oblivionInicio(o){}
 // ¿Tiene sentido para la CPU usar estos pasos ahora? (niveles ÉPICO y CAÓTICO)
 function pasosTienenSentido(o,pasos,slot){
   const r=opp(o);
@@ -4723,6 +4741,7 @@ async function respRapido(r,cid){const i=G[r].hand.indexOf(cid);if(i>=0) await a
 function applyFate(ev){
   const {o,cid}=ev, w=ev.where||{};
   if(ev.fate==='nada') return false;
+  if(w.lado&&w.z==='campo'){const p=G[w.lado].pj[w.slot];if(p&&p.id===cid&&ev.fate!=='queda'){const dest=ev.fate==='fondo'?'bp_fondo':ev.fate==='mictlan'?'mictlan':'conf';lg('💥 <b>'+C[cid].name+'</b>'+who(w.lado)+(dest==='conf'?' queda confinada.':dest==='mictlan'?' es destruida.':' regresa al fondo de su baraja.'),'var(--muted)');leaveField(w.lado,w.slot,dest);return true;}return false;}
   if(ev.fate==='queda'){
     if(w.z==='campo'){const p=G[o].pj[w.slot];if(p&&p.id===cid){p.neg=true;lg('⛓ <b>'+C[cid].name+'</b>'+who(o)+': sus habilidades quedan negadas hasta el final del turno.','var(--purple)');}}
     return false;
@@ -4746,7 +4765,7 @@ function applyFate(ev){
 async function resolveNegation(ev){
   const leftField=applyFate(ev);
   renderAll();
-  if(leftField) await fireLeave(ev.o,ev.cid);
+  if(leftField) await fireLeave((ev.where&&ev.where.lado)||ev.o,ev.cid);
   if(ev.by&&ev.by!==ev.o) await offerTrasNegar(ev.o);
   renderAll();
 }
@@ -4911,7 +4930,7 @@ async function placeSector(owner,cid,o,side){
   setSect(o,side,cid,owner);
   lg('🟣 '+(owner==='player'?'Colocas':'CPU coloca')+' <b>'+C[cid].name+'</b> en el Sector '+(side==='left'?'IZQ':'DER')+(o!==owner?(o==='player'?' de tu lado':' de la CPU'):'')+'.','var(--as)');
   playSound('call');renderAll();
-  if(hasPassive(cid,'oblivion')&&o!==owner) oblivionRoba(owner,o,side);
+  if(hasPassive(cid,'oblivion')&&o!==owner&&slotsOf(o,side).some(j=>G[o].pj[j])) lg('🌀 <b>Sector Oblivion</b>: '+(o==='player'?'tus personajes de ese sector ya no pueden atacar; la CPU puede atacar con ellos directo a tus corazones.':'los personajes de la CPU en ese sector ya no pueden atacar; tú puedes atacar con ellos directo a los corazones de la CPU.'),'var(--purple)');
 }
 const SIDE_NOM=(o,side)=>(o==='player'?'Tu sector ':'Sector de la CPU ')+(side==='left'?'IZQ':'DER');
 
@@ -5880,7 +5899,7 @@ function renderPJs(o){
     el.innerHTML=imgTag(card.id,'ci')
       +'<div class="pj-ov"></div>'
       +(card.resting?'<div class="rest-tag">'+(card.lock>0?'DESCANSO ×'+(card.lock+1):'DESCANSO')+'</div>':(card.bloq>0?'<div class="rest-tag" style="background:rgba(192,64,255,.85)">🔒 BLOQUEADO</div>':''))
-      +(card.cen?'<div class="cen-badge" title="Contadores de Energía Negativa"><small>☯</small>'+card.cen+'</div>':'')+(supp(o,i)?'<div class="rest-tag" style="top:0;bottom:auto;background:rgba(120,40,160,.9)">⛓ NEGADO</div>':card.ixRival?'<div class="rest-tag" style="top:0;bottom:auto;background:rgba(160,30,60,.9)">🗡 INFILTRADA</div>':'')
+      +(card.cen?'<div class="cen-badge" title="Contadores de Energía Negativa"><small>☯</small>'+card.cen+'</div>':'')+(supp(o,i)?'<div class="rest-tag" style="top:0;bottom:auto;background:rgba(120,40,160,.9)">⛓ NEGADO</div>':oblivionCtl(o,i)?'<div class="rest-tag" style="top:0;bottom:auto;background:rgba(90,20,170,.92)">🌀 OBLIVION</div>':card.ixRival?'<div class="rest-tag" style="top:0;bottom:auto;background:rgba(160,30,60,.9)">🗡 INFILTRADA</div>':'')
       +'<div class="pj-st"><span class="sf">⚔'+eF(card)+'</span><span class="sr">🛡'+eR(card)+'</span><span class="sc">'+'❤'.repeat(Math.max(0,card.cor))+'</span></div>';
     const si=i;
     el.onclick=()=>onBoardPJ(o,si);
@@ -5895,6 +5914,7 @@ function canAtk(o,i){
   if(p&&G.turn>1&&!p.attacked&&(p.resting||p.lock>0)&&enSinDescanso(o,i)){p.resting=false;p.lock=0;}
   if(!p||p.resting||p.attacked||p.bloq>0) return false;
   if(sinCombate(o,i)) return false;
+  if(oblivionCtl(o,i)) return false;
   if(G.noAtk&&G.noAtk.o===o&&G.noAtk.k===turnKey()) return false;
   if(p.noAtk===turnKey()||p.sinAtk) return false;
   if(p.ixRival&&hasPassive(p.id,'tortura')) return false;
@@ -5907,6 +5927,7 @@ function porQueNoAtaca(o,i){
   const p=G[o].pj[i];
   if(!p) return '';
   if(p.bloq>0) return 'Bloqueado: no puede atacar este turno';
+  if(oblivionCtl(o,i)) return 'Sector Oblivion: lo controla tu adversario para atacar';
   if(p.lock>0) return 'Espada de Cristal: debe descansar';
   const e=(C[p.id].efectos||[]).find(x=>x.cuando==='pasivo'&&x.accion==='no_ataca_solo');
   if(e&&!supp(o,i)&&!mismoSector(o,i,e.filtro).length) return 'Necesita otro METALÚRGICO en su SECTOR para atacar';
@@ -5936,6 +5957,7 @@ function otraVez(o,p){
 }
 function fieldActs(o,i){
   const p=G[o].pj[i];
+  if(p&&o==='cpu'&&oblivionCtl('cpu',i)==='player'){const ok=oblivionPuede('player','cpu',i);return [{label:'🌀 Atacar corazones de la CPU (Oblivion · EMBOSCADA)',ok,why:ok?'':(p.oblK===turnKey()?'Ya atacó este turno':'Solo en tu Fase de Combate'),fn:()=>oblivionAtaque('player','cpu',i)}];}
   if(!p||o!=='player'||G.active!=='player'||G.over) return [];
   const acts=[];
   if(G.phase==='action') acts.push(...activables(o,p.id,'accion',{zone:'campo',slot:i}));
@@ -6777,7 +6799,7 @@ async function cpuTurn(){
   // 4a) SECTOR que se coloca del lado rival (Sector Bloqueado): donde el jugador tenga más fuerza
   for(const cid of [...P.hand]){
     if(C[cid].type!=='sector'||!['rival','ambos'].includes(C[cid].colocar)||C[cid].soloResp||errBloqSector('cpu','player')) continue;
-    if(C[cid].colocar==='ambos'&&(freePJ('cpu')===-1||!['left','right'].some(sd=>slotsOf('player',sd).some(j=>G.player.pj[j]&&SCORE(G.player.pj[j].id)>=35)))) continue;
+    if(C[cid].colocar==='ambos'&&!['left','right'].some(sd=>slotsOf('player',sd).some(j=>G.player.pj[j]&&(SCORE(G.player.pj[j].id)>=35||eI(G.player.pj[j])>=2)))) continue;
     const val=sd=>slotsOf('player',sd).reduce((t,j)=>t+(G.player.pj[j]?eF(G.player.pj[j])+eR(G.player.pj[j]):0),0);
     const libres=sd=>slotsOf('player',sd).filter(j=>!G.player.pj[j]).length;
     const sd=hasPassive(cid,'restringe_llamado')
@@ -6951,6 +6973,7 @@ async function cpuTurn(){
   };
   await combatAbilities();
   if(!alive()) return;
+  for(let j=0;j<4;j++){if(!alive())return;if(!oblivionPuede('cpu','player',j))continue;if(!await step(700))return;await oblivionAtaque('cpu','player',j);if(!alive()||checkEnd())return;}
   const atkers0=P.pj.map((p,i)=>canAtk('cpu',i)?i:-1).filter(i=>i>=0);
   // v52 · Nivel ÉPICO: si los ataques directos posibles bastan para ganar, va por los corazones
   if(nivelAlto()&&atkers0.length){

@@ -532,6 +532,9 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 .bc .pj-st{position:absolute;bottom:1px;left:0;right:0;display:flex;justify-content:space-around;font-family:'Orbitron',sans-serif;
   font-size:max(6px,calc(var(--cw) * .14));font-weight:700}
 .sf{color:var(--orange)}.sr{color:var(--ac)}.sc{color:var(--red)}
+.bc .cen-badge{position:absolute;right:-3%;top:34%;z-index:6;min-width:calc(var(--cw) * .36);height:calc(var(--cw) * .36);padding:0 2px;box-sizing:border-box;border-radius:999px;display:flex;align-items:center;justify-content:center;gap:1px;background:radial-gradient(circle at 35% 30%,#b44dff,#6a12b8 55%,#2e0552);border:2px solid #ffd6ff;opacity:1;color:#fff;font-family:'Orbitron',sans-serif;font-weight:900;font-size:max(9px,calc(var(--cw) * .2));line-height:1;text-shadow:0 1px 2px #000;box-shadow:0 0 8px 2px rgba(190,90,255,.85);animation:cenPulse 1.6s ease-in-out infinite;pointer-events:none}
+.bc .cen-badge small{font-size:.6em;opacity:.9}
+@keyframes cenPulse{0%,100%{box-shadow:0 0 6px 1px rgba(190,90,255,.7)}50%{box-shadow:0 0 12px 4px rgba(210,120,255,1)}}
 .bc .rest-tag{position:absolute;top:0;left:0;right:0;text-align:center;font-family:'Orbitron',sans-serif;font-size:max(5px,calc(var(--cw) * .11));background:rgba(255,77,109,.8);color:#fff;padding:1px}
 .bc .zlbl{font-family:'Orbitron',sans-serif;font-size:max(5px,calc(var(--cw) * .1));letter-spacing:.3px;color:rgba(255,255,255,.2);text-align:center;line-height:1.4}
 .bc .dct{position:absolute;top:1px;right:2px;font-family:'Orbitron',sans-serif;font-size:max(9px,calc(var(--cw) * .2));font-weight:900;color:var(--gold2);text-shadow:0 0 5px #000}
@@ -1025,7 +1028,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v50';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v51';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -1756,7 +1759,7 @@ async function choose(ctx,list,n,{title,sub,score,min}={}){
     return [...list].sort((a,b)=>sc(b)-sc(a)).slice(0,n);
   }
   const r=await pickCards({title:title||C[ctx.cid].name.toUpperCase(),sub,max:n,min:min??n,
-    items:list.map(x=>({cid:x.cid,tag:(x.o&&x.o!==ctx.o?'RIVAL · ':'')+(SRC_NOM[x.z]||x.z).toUpperCase(),note:isChar(x.cid)?(C[x.cid].type==='amalgama'?'✦ Gama '+C[x.cid].gama:'◆ Valor '+C[x.cid].cost):''}))});
+    items:list.map(x=>({cid:x.cid,tag:(x.o&&x.o!==ctx.o?'RIVAL · ':'')+(SRC_NOM[x.z]||x.z).toUpperCase(),note:(isChar(x.cid)?(C[x.cid].type==='amalgama'?'✦ Gama '+C[x.cid].gama:'◆ Valor '+C[x.cid].cost):'')+(()=>{const h=x.o&&G&&G[x.o]?(x.z==='campo'?G[x.o].pj[x.i]:x.z==='apoyo'?G[x.o].apoyo[x.i]:null):null;return h&&h.cen>0?' · ☯ '+h.cen+' contador(es)':'';})()}))});
   return (r||[]).map(k=>list[k]);
 }
 
@@ -3346,7 +3349,7 @@ async function retirarCEN(ctx){
   if(!L.length) return false;
   const h0=y=>y.z==='campo'?G[o].pj[y.i]:G[o].apoyo[y.i];
   const [x]=await choose(ctx,L,1,{sub:'¿De dónde retiras un Contador de Energía Negativa?',
-    score:y=>{const h=h0(y);if(y.z==='apoyo'&&anilloProtegido(o,h))return 100;if(h.cen>1)return 80;return y.z==='campo'?50-SCORE(y.cid)/10:30;}});
+    score:y=>{const h=h0(y);if(y.z==='apoyo'&&anilloProtegido(o,h))return 100;if(h.cen>1)return y.z==='apoyo'?85:80;return y.z==='campo'?10-SCORE(y.cid)/10:40;}});
   if(!x) return false;
   const h=h0(x); h.cen--;
   lg('🟣 '+(o==='player'?'Retiras':'La CPU retira')+' un Contador de Energía Negativa de <b>'+C[x.cid].name+'</b>.','var(--purple)');
@@ -3850,7 +3853,7 @@ Object.assign(PASOS,{
   async nebulosa(ctx){
     const o=ctx.o, list=G[o].apoyo.map((a,i)=>a&&a.type==='alma'?{z:'apoyo',i,cid:a.card,o}:null).filter(Boolean);
     if(!list.length) return true;
-    const [x]=await choose(ctx,list,1,{sub:'Elige el ALMA que recibe Contadores de Energía Negativa',score:y=>(C[y.cid].val||0)*10-(G[o].apoyo[y.i].cen||0)});
+    const [x]=await choose(ctx,list,1,{sub:'Elige el ALMA que recibe Contadores de Energía Negativa',score:y=>o==='cpu'?-Math.abs((C[y.cid].val||0)-2)*10-(G[o].apoyo[y.i].cen||0)*5-((C[y.cid].val||0)<1?100:0):(C[y.cid].val||0)*10-(G[o].apoyo[y.i].cen||0)});
     if(!x) return true;
     const a=G[o].apoyo[x.i], n=C[a.card].val||0;
     a.cen=(a.cen||0)+n;
@@ -3862,7 +3865,7 @@ Object.assign(PASOS,{
     if(me&&me.id===ctx.cid) list.push({z:'campo',i:ctx.slot,cid:me.id,o});
     G[o].apoyo.forEach((a,i)=>{if(a&&a.type==='alma')list.push({z:'apoyo',i,cid:a.card,o});});
     if(!list.length) return true;
-    const [x]=await choose(ctx,list,1,{sub:'¿Dónde colocas el Contador de Energía Negativa?',score:y=>y.z==='apoyo'&&hasPassive(y.cid,'anillo_sellador')?100:y.z==='campo'?60:-almaVal(G[o].apoyo[y.i])});
+    const [x]=await choose(ctx,list,1,{sub:'¿Dónde colocas el Contador de Energía Negativa?',score:y=>y.z==='apoyo'&&hasPassive(y.cid,'anillo_sellador')?100:y.z==='campo'?45:(G[o].apoyo[y.i].cen?75:70-10*((C[y.cid].val||0)+(G[o].apoyo[y.i].bonus||0)))});
     if(!x) return true;
     const h=x.z==='campo'?G[o].pj[x.i]:G[o].apoyo[x.i];
     h.cen=(h.cen||0)+n;
@@ -5358,6 +5361,7 @@ function showDetail(cid,opt){
     const sg=n=>(n>0?'+':'')+n;
     if(live&&(live.bF||live.bR||live.bC||live.bI)) h+='<div class="dt-text" style="color:'+((live.bF||0)+(live.bR||0)<0?'var(--red)':'var(--green)')+'">✨ Bonos activos: '+(live.bF?sg(live.bF)+'⚔ ':'')+(live.bR?sg(live.bR)+'🛡 ':'')+(live.bC?sg(live.bC)+'❤ ':'')+(live.bI?sg(live.bI)+' IMP':'')+'</div>';
     const L=live&&locate(live);
+    if(live&&live.cen>0) h+='<div class="dt-text" style="color:#d68cff;font-weight:bold">☯ Contadores de Energía Negativa: '+live.cen+' <span style="color:var(--muted);font-weight:normal">(si se retira el último, el personaje es destruido)</span></div>';
     if(L){
       const eq=G[L.o].apoyo.filter(a=>a&&a.type==='equipo'&&(a.tgt===live||a.host===live));
       if(eq.length) h+='<div class="dt-text" style="color:var(--orange)">⚙ Equipado con: '+eq.map(a=>C[a.card].name).join(', ')+'</div>';
@@ -5369,8 +5373,9 @@ function showDetail(cid,opt){
       if(live.lock>0) h+='<div class="dt-text" style="color:var(--red)">⏳ Espada de Cristal: descansa '+live.lock+' turno(s) más</div>';
     }
     if(live&&live.resting) h+='<div class="dt-text" style="color:var(--red)">😴 En descanso</div>';
-  } else if(c.type==='alma'){
+  } else if(c.type==='alma'||opt.alma){
     h+='<div class="dt-stats"><span class="sr">💙 Valor '+(opt.alma?almaVal(opt.alma):c.val)+'</span></div>';
+    if(opt.alma&&opt.alma.cen>0) h+='<div class="dt-text" style="color:#d68cff;font-weight:bold">☯ Contadores de Energía Negativa: '+opt.alma.cen+'</div><div class="dt-text" style="color:var(--muted)">Mientras tenga contadores su VALOR es 0, salvo para llamar personajes con "DESATADO" o "GARDUÑA" (ahí vale '+((C[opt.alma.card].val||0)+(opt.alma.bonus||0)+(opt.alma.cont||0))+'). Si pierde su último contador es destruida'+(hasPassive(opt.alma.card,'anillo_sellador')?' (el Anillo no, si controlas un TEMAK/XOLOT/DESATADO)':'')+'.</div>';
   }
   const kws=[...c.hab.map(k=>KW_NOM[k]||k),...(live?Object.keys(live.tmp).map(k=>(KW_NOM[k]||k)+' (temporal)'):[]),...(live&&live.perm?Object.keys(live.perm).map(k=>KW_NOM[k]||k):[]),...(live&&live.kwA?[...new Set(live.kwA)].filter(k=>!c.hab.includes(k)).map(k=>(KW_NOM[k]||k)+' (aura)'):[])];
   if(kws.length) h+='<div class="dt-text" style="color:#ffe066;font-weight:700">⚡ '+kws.join(' · ')+'</div>';
@@ -5523,7 +5528,7 @@ function pintaApo(el,o,i){
       el.onclick=()=>showDetail(d.card,{title:'EQUIPO'+(to?' → '+C[to.id].name:''),equipo:d,owner:o});
     } else if(d){
       el.classList.add('has-alma');
-      el.innerHTML=imgTag(d.card,'ci')+'<span class="av"'+(copalOn(o)?' style="color:#ffe066"':'')+'>'+almaEf(o,d)+'</span>'+(d.cont?'<div class="rest-tag" style="top:0;bottom:auto;background:rgba(45,184,224,.85)">◆×'+d.cont+'</div>':'')+(d.cen?'<div class="rest-tag" style="top:0;bottom:auto;background:rgba(140,40,200,.9)">🟣×'+d.cen+'</div>':'')+(d.eot?'<div class="rest-tag" style="background:rgba(45,184,224,.85)">FIN DE TURNO</div>':'');
+      el.innerHTML=imgTag(d.card,'ci')+'<span class="av"'+(copalOn(o)?' style="color:#ffe066"':'')+'>'+almaEf(o,d)+'</span>'+(d.cont?'<div class="rest-tag" style="top:0;bottom:auto;background:rgba(45,184,224,.85)">◆×'+d.cont+'</div>':'')+(d.cen?'<div class="cen-badge" title="Contadores de Energía Negativa"><small>☯</small>'+d.cen+'</div>':'')+(d.eot?'<div class="rest-tag" style="background:rgba(45,184,224,.85)">FIN DE TURNO</div>':'');
       el.onclick=()=>showDetail(d.card,{alma:d});
     } else el.innerHTML='<span class="zlbl">ALMA<br>/AP</span>';
   }
@@ -5544,7 +5549,7 @@ function renderPJs(o){
     el.innerHTML=imgTag(card.id,'ci')
       +'<div class="pj-ov"></div>'
       +(card.resting?'<div class="rest-tag">'+(card.lock>0?'DESCANSO ×'+(card.lock+1):'DESCANSO')+'</div>':(card.bloq>0?'<div class="rest-tag" style="background:rgba(192,64,255,.85)">🔒 BLOQUEADO</div>':''))
-      +(supp(o,i)?'<div class="rest-tag" style="top:0;bottom:auto;background:rgba(120,40,160,.9)">⛓ NEGADO</div>':card.cen?'<div class="rest-tag" style="top:0;bottom:auto;background:rgba(140,40,200,.9)">🟣×'+card.cen+'</div>':card.ixRival?'<div class="rest-tag" style="top:0;bottom:auto;background:rgba(160,30,60,.9)">🗡 INFILTRADA</div>':'')
+      +(card.cen?'<div class="cen-badge" title="Contadores de Energía Negativa"><small>☯</small>'+card.cen+'</div>':'')+(supp(o,i)?'<div class="rest-tag" style="top:0;bottom:auto;background:rgba(120,40,160,.9)">⛓ NEGADO</div>':card.ixRival?'<div class="rest-tag" style="top:0;bottom:auto;background:rgba(160,30,60,.9)">🗡 INFILTRADA</div>':'')
       +'<div class="pj-st"><span class="sf">⚔'+eF(card)+'</span><span class="sr">🛡'+eR(card)+'</span><span class="sc">'+'❤'.repeat(Math.max(0,card.cor))+'</span></div>';
     const si=i;
     el.onclick=()=>onBoardPJ(o,si);
@@ -6349,7 +6354,7 @@ function cpuQuiereMano(cid,e){
   if(acc.has('confinar_esta')&&acc.has('conf_a_mano')) return G.cpu.conf.some(c=>SCORE(c)>=50);   // Choque entre Dioses
   if(acc.has('confinar_esta')&&acc.has('buscar')) return true;                                     // Medallón
   if(acc.has('confinar_esta')&&acc.has('cartas_campo')) return G.player.apoyo.some(a=>a&&a.type==='alma'&&almaVal(a)>=2);  // Nebulosa
-  if(acc.has('descartar_esta')&&acc.has('enviar_a_mictlan')) return !G.cpu.mictlan.includes('p3_osamenta')&&cenTotal('cpu')>0; // Primos del Sur
+  if(acc.has('descartar_esta')&&acc.has('enviar_a_mictlan')) return !G.cpu.mictlan.includes('p3_osamenta')&&(cenTotal('cpu')>0||G.cpu.hand.some(c=>c==='p3_nebulosa'||c==='p3_temak_sicario')||G.cpu.pj.some(p=>p&&p.id==='p3_temak_sicario')); // Primos del Sur
   if(acc.has('descartar_esta')&&acc.has('llamado_descuento')) return G.cpu.hand.some(c=>c!==cid&&C[c].type==='pj'&&matchF(c,{nombreIncluye:'EVOLOTL',valorMax:2})&&C[c].cost<=almaT('cpu'));
   return false;
 }
@@ -6474,7 +6479,18 @@ async function cpuTurn(){
     if(a.has('espiritu_guerrero')) return G.turn>1&&P.pj.some((p,i)=>p&&canAtk('cpu',i)&&p.habT!==turnKey());
     if(a.has('ritual_sanacion')) return pCount()>=2;
     if(a.has('quedar_en_apoyo')) return pCount()>0&&freeApoAp('cpu')!==-1;
-    if(a.has('nebulosa')) return cenTotal('cpu')<2&&P.apoyo.some(x=>x&&x.type==='alma'&&!x.cen&&(C[x.card].val||0)>=2)&&(P.mictlan.includes('p3_osamenta')||P.pj.some(p=>p&&p.id==='p3_temak_ente')||P.hand.some(c=>isChar(c)&&matchF(c,{nombreIncluye:['DESATADO','GARDUNA']})));
+    if(a.has('nebulosa')){
+      if(cenTotal('cpu')>=2) return false;
+      const libres=P.apoyo.filter(x=>x&&x.type==='alma'&&!x.cen);
+      const tgt=libres.filter(x=>(C[x.card].val||0)>=1).sort((x,y)=>Math.abs((C[x.card].val||0)-2)-Math.abs((C[y.card].val||0)-2))[0];
+      if(!tgt) return false;
+      const uso=P.mictlan.includes('p3_osamenta')||P.hand.includes('p3_primos_sur')||P.pj.some(p=>p&&(p.id==='p3_temak_ente'||p.id==='p3_temak_sicario'))||P.hand.some(c=>isChar(c)&&matchF(c,{nombreIncluye:['DESATADO','GARDUNA']}));
+      if(!uso) return false;
+      // no se queda sin almas para sus llamados normales
+      const resto=libres.filter(x=>x!==tgt).reduce((t,x)=>t+almaEf('cpu',x),0);
+      const caro=Math.max(0,...P.hand.filter(c=>C[c].type==='pj'&&!matchF(c,{nombreIncluye:['DESATADO','GARDUNA']})&&llamadoOk('cpu',c)).map(c=>C[c].cost));
+      return resto>=Math.min(caro,4);
+    }
     return true;
   };
   for(const cid of [...P.hand]){
@@ -6496,7 +6512,7 @@ async function cpuTurn(){
       const acc=new Set((e.pasos||[e]).map(s=>s.accion));
       if(acc.has('barajear_mano')) continue;
       if(acc.has('sacrificar_esta')){
-        const ll=(e.pasos||[]).find(x=>x.accion==='llamar_especial');
+        const ll=(e.pasos||[]).find(x=>x.accion==='llamar_especial'||x.accion==='buscar_o_llamar');
         if(!ll||!cands('cpu',ll.origen||'bp',Object.assign({tipos:['pj','amalgama']},ll.filtro)).filter(x=>x.cid!==p.id&&SCORE(x.cid)>SCORE(p.id)).length) continue;
       }
       if(acc.has('confinar_propio')&&P.pj.filter(Boolean).length<2) continue;

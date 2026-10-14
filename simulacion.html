@@ -1046,19 +1046,26 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 .sorteo-vs{font-family:'Orbitron',sans-serif;font-weight:900;font-size:18px;color:#ffd166;opacity:.8}
 .sorteo-msg{font-size:15px;font-weight:600;min-height:22px}
 /* v66 · Cintillo de fase */
-/* v67 · Cintillo de fase: franja oscura opaca de lado a lado, letra más grande */
-.turn-banner-inner.fase{
-  width:min(94%,760px);padding:14px 24px 16px!important;border-radius:14px;
-  background:linear-gradient(90deg,rgba(3,4,8,.86) 0%,rgba(6,8,14,.96) 18%,rgba(6,8,14,.96) 82%,rgba(3,4,8,.86) 100%)!important;
-  border-left:0!important;border-right:0!important;
-  box-shadow:0 0 0 100vmax rgba(0,0,0,.28),0 10px 40px rgba(0,0,0,.8),0 0 34px currentColor!important}
-.turn-banner-inner.fase .bl{font-size:12px;letter-spacing:7px;opacity:.9;margin-bottom:6px;color:#e8eef8}
-.turn-banner-inner.fase .bm{font-size:clamp(28px,calc(var(--W) * .045),44px);color:#fff;
-  text-shadow:0 0 2px #000,0 2px 6px #000,0 0 18px currentColor;-webkit-text-stroke:.5px rgba(0,0,0,.6)}
-.turn-banner-inner.fase.player{color:var(--green);border-top:3px solid var(--green)!important;border-bottom:3px solid var(--green)!important}
-.turn-banner-inner.fase.cpu{color:var(--red);border-top:3px solid var(--red)!important;border-bottom:3px solid var(--red)!important}
-.turn-banner-inner.fase.player .bm{text-shadow:0 0 2px #000,0 2px 6px #000,0 0 20px rgba(0,232,122,.9)}
-.turn-banner-inner.fase.cpu .bm{text-shadow:0 0 2px #000,0 2px 6px #000,0 0 20px rgba(255,60,60,.9)}
+/* v68 · Cintillos (turno, fase, fin de turno, llamados): viven DENTRO del tablero y miden lo mismo que él.
+   Franja oscura opaca, línea de color arriba y abajo, letra escalada al ancho del tablero (--bw). */
+#board>.turn-banner{position:absolute;inset:0;z-index:60;border-radius:6px;pointer-events:none;
+  display:flex;align-items:center;justify-content:center;transition:background .25s}
+#board>.turn-banner:not(:empty){background:rgba(0,0,0,.32)}
+#board .turn-banner-inner:not(.win):not(.lose){
+  width:calc(100% - 12px);max-width:none;padding:calc(var(--bw,600px) * .018) 12px calc(var(--bw,600px) * .022)!important;border-radius:10px;
+  background:linear-gradient(90deg,rgba(3,4,8,.88) 0%,rgba(6,8,14,.97) 16%,rgba(6,8,14,.97) 84%,rgba(3,4,8,.88) 100%)!important;
+  border-left:0!important;border-right:0!important;letter-spacing:3px;
+  box-shadow:0 8px 30px rgba(0,0,0,.8),0 0 26px currentColor!important}
+#board .turn-banner-inner:not(.win):not(.lose) .bl{font-size:clamp(8px,calc(var(--bw,600px) * .02),13px);letter-spacing:.45em;opacity:.92;margin-bottom:.35em;color:#e8eef8}
+#board .turn-banner-inner:not(.win):not(.lose) .bm{font-size:clamp(17px,calc(var(--bw,600px) * .062),46px);color:#fff;line-height:1.1;white-space:nowrap;
+  -webkit-text-stroke:.5px rgba(0,0,0,.6)}
+#board .turn-banner-inner.fase .bm{font-size:clamp(15px,calc(var(--bw,600px) * .052),40px)}
+#board .turn-banner-inner.player{color:var(--green);border-top:3px solid var(--green)!important;border-bottom:3px solid var(--green)!important}
+#board .turn-banner-inner.cpu{color:var(--red);border-top:3px solid var(--red)!important;border-bottom:3px solid var(--red)!important}
+#board .turn-banner-inner.end{color:var(--gold2,#ffd166);border-top:3px solid var(--gold2,#ffd166)!important;border-bottom:3px solid var(--gold2,#ffd166)!important}
+#board .turn-banner-inner.player .bm{text-shadow:0 0 2px #000,0 2px 6px #000,0 0 18px rgba(0,232,122,.9)}
+#board .turn-banner-inner.cpu .bm{text-shadow:0 0 2px #000,0 2px 6px #000,0 0 18px rgba(255,60,60,.9)}
+#board .turn-banner-inner.end .bm{text-shadow:0 0 2px #000,0 2px 6px #000,0 0 18px rgba(255,209,102,.9)}
 </style>
 </head>
 <body>
@@ -1268,7 +1275,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v67';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v68';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -1454,7 +1461,9 @@ function _bqSig(){
   if(!b){_bqOn=false;return;}
   _bqOn=true;
   if(b.gen!==GEN&&b.fase){b.res();_bqSig();return;}
-  const wrap=document.getElementById('turnBanner');
+  const wrap=document.getElementById('turnBanner'), bd=document.getElementById('board');
+  if(bd&&wrap.parentNode!==bd) bd.appendChild(wrap);
+  if(bd) wrap.style.setProperty('--bw',bd.offsetWidth+'px');
   wrap.innerHTML='';
   const inner=document.createElement('div');
   inner.className='turn-banner-inner '+b.type+(b.fase?' fase':'');

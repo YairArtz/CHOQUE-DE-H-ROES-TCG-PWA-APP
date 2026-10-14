@@ -1,5 +1,14 @@
 // ================================================================
-//  CHOQUE DE HÉROES TCG — Service Worker v10.0
+//  CHOQUE DE HÉROES TCG — Service Worker v10.1
+//  v10.1: FIX "La red no respondió" al entrar a módulos con datos móviles.
+//         · Navigation Preload: el navegador pide la página a la red AL MISMO TIEMPO que
+//           arranca el Service Worker (en red móvil el arranque del SW + la petición desde
+//           el SW tardaba demasiado). La página nunca se pide dos veces.
+//         · Páginas sin copia: se piden igual que sin Service Worker (sin tiempos límite
+//           artificiales). Solo si la red de verdad falla aparece "La red no respondió".
+//         · La caché de páginas ya NO se borra al subir CACHE_NAME: los módulos que ya
+//           visitaste abren al instante tras cada actualización (antes, cada versión nueva
+//           obligaba a descargar de nuevo cada módulo con la red móvil).
 //  v10.0: · Se RECUPERA la base v9.6 (los arreglos de datos móviles del 9 de octubre).
 //           El 9 de octubre a las 17:45 se subió por error un sw.js v8.2 (del trabajo del
 //           simulador) encima del v9.6 y desde entonces volvieron los fallos en red móvil:
@@ -51,8 +60,8 @@
 //  v8.1: precache de la Simulación v17.
 //  v8:   shell cache-first + revalidación, JSON red-primero, fallbacks por tipo.
 // ================================================================
-const CACHE_NAME    = 'chh-tcg-v90';
-const CACHE_DYNAMIC = 'chh-dynamic-v90';   // súbelo junto con CACHE_NAME
+const CACHE_NAME    = 'chh-tcg-v91';
+const CACHE_DYNAMIC = 'chh-paginas-v1';    // estable: páginas/JSON/JS visitados (NO subir; lo precargado se renueva solo)
 const CACHE_IMG     = 'chh-img-v1';      // estable: imágenes, fuentes y PDFs. Subir SOLO si reemplazas imágenes con el mismo nombre
 const CACHE_AUDIO   = 'chh-audio-v1';    // estable: pistas de bgm.js. Subir SOLO si reemplazas un .mp3 con el mismo nombre
 const CACHE_MUSICA  = 'chh-musica-v1';   // pistas guardadas por musica.html y medios.js (no se borra al actualizar)
@@ -123,17 +132,37 @@ self.addEventListener('install', event => {
       Promise.allSettled([...CACHE_CORE, ...CACHE_SIM].map(url =>
         fetchTimeout(new Request(url, { cache: 'no-cache' }), 30000)
           .then(r => { if (r.ok) return cache.put(url, r); })
-      ))
+      )).then(async () => {
+        // Lo recién precargado manda: se quita su copia vieja de la caché de páginas
+        try {
+          const dyn = await caches.open(CACHE_DYNAMIC);
+          await Promise.all([...CACHE_CORE, ...CACHE_SIM].map(u => dyn.delete(new URL(u, self.location).href, { ignoreSearch: true })));
+        } catch (e) {}
+      })
     )
   );
 });
 
 self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys()
-      .then(keys => Promise.all(keys.filter(k => !KEEP_CACHES.includes(k)).map(k => caches.delete(k))))
-      .then(() => self.clients.claim())
-  );
+  event.waitUntil((async () => {
+    try { if (self.registration.navigationPreload) await self.registration.navigationPreload.enable(); } catch (e) {}
+    const keys = await caches.keys();
+    // Migración: las páginas ya visitadas (cachés dinámicas viejas) pasan a la estable
+    try {
+      const dyn = await caches.open(CACHE_DYNAMIC);
+      const pre = new Set([...CACHE_CORE, ...CACHE_SIM].map(u => new URL(u, self.location).href));
+      for (const k of keys.filter(k => /^chh-dynamic-/.test(k))) {
+        const old = await caches.open(k);
+        for (const rq of await old.keys()) {
+          if (pre.has(rq.url.split('?')[0]) || !/\.(html|js|json)$|\/$/.test(rq.url.split('?')[0])) continue;
+          if (await dyn.match(rq)) continue;
+          const r = await old.match(rq); if (r) await dyn.put(rq, r);
+        }
+      }
+    } catch (e) {}
+    await Promise.all(keys.filter(k => !KEEP_CACHES.includes(k)).map(k => caches.delete(k)));
+    await self.clients.claim();
+  })());
 });
 
 self.addEventListener('message', event => {
@@ -185,7 +214,9 @@ self.addEventListener('fetch', event => {
 
   if (/\.json$/i.test(path)) {
     event.respondWith(CATALOG_JSON.test(path) ? cacheFirstRevalidate(req) : networkFirstTimeout(req, 'json', NET_TIMEOUT));
-  } else if (req.mode === 'navigate' || /\.html$/i.test(path) || path.endsWith('/')) {
+  } else if (req.mode === 'navigate') {
+    event.respondWith(pagina(event));
+  } else if (/\.html$/i.test(path) || path.endsWith('/')) {
     event.respondWith(cacheFirstRevalidate(req, true));
   } else if (/\.(js|css)$/i.test(path)) {
     event.respondWith(cacheFirstRevalidate(req));
@@ -371,11 +402,50 @@ async function cacheFirstRevalidate(req, isPage) {
   return fallbackFor(req);
 }
 
+// Páginas (navegación): copia al instante; sin copia, la red como si no hubiera SW.
+async function pagina(event) {
+  const req = event.request;
+  const key = req.url.split('?')[0].split('#')[0];
+  const pre = event.preloadResponse ? Promise.resolve(event.preloadResponse).catch(() => null) : Promise.resolve(null);
+  const cached = await matchAny(req, { ignoreSearch: true });
+  if (cached) {
+    if (Date.now() - (_lastCheck.get(key) || 0) >= REVALIDATE_EVERY) {
+      _lastCheck.set(key, Date.now());
+      event.waitUntil((async () => {
+        try {
+          const r = (await pre) || await netFetch(req);
+          if (r && r.status === 200 && r.type === 'basic' && !r.redirected) await putDynamic(req, r.clone());
+        } catch (e) { _lastCheck.delete(key); }
+      })());
+    } else {
+      event.waitUntil(pre);
+    }
+    return cached;
+  }
+  // Sin copia: la respuesta que el navegador ya pidió en paralelo (navigation preload)
+  try {
+    const r = await pre;
+    if (r) {
+      if (r.status === 200 && r.type === 'basic' && !r.redirected) event.waitUntil(putDynamic(req, r.clone()));
+      return r;
+    }
+  } catch (e) {}
+  // Sin preload: la misma petición del navegador, sin tiempos límite
+  try {
+    const r = await fetch(req);
+    if (r && r.status === 200 && r.type === 'basic' && !r.redirected) event.waitUntil(putDynamic(req, r.clone()));
+    return r;
+  } catch (e) {
+    try { return await fetch(req.url, { credentials: 'same-origin' }); }
+    catch (e2) { return fallbackFor(req); }
+  }
+}
+
 // ── Precarga en segundo plano de los módulos (uno por uno) ──
 let _warmStarted = false;
 async function warmPages() {
-  await timeout(4000);   // deja pasar primero lo que la página actual necesita
-  const cache = await caches.open(CACHE_NAME);
+  await timeout(15000);   // deja pasar primero lo que la página actual necesita (red móvil)
+  const cache = await caches.open(CACHE_DYNAMIC);   // estable: no se re-descarga en cada versión
   for (const url of CACHE_WARM) {
     try {
       if (await matchAny(url, { ignoreSearch: true })) continue;

@@ -836,13 +836,13 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 @keyframes epFondo{from{opacity:0}to{opacity:1}}
 @keyframes epRayos{to{transform:rotate(360deg)}}
 @keyframes epBrillo{0%{background-position:0% 50%}100%{background-position:200% 50%}}
-@keyframes epSheen{0%,70%{left:-60%}100%{left:130%}}
+@keyframes epSheen{0%,70%{transform:translateX(0)}100%{transform:translateX(450%)}}
 @keyframes epLatido{0%,100%{box-shadow:0 0 14px rgba(245,166,35,.45),0 0 0 1px rgba(255,209,102,.35) inset}50%{box-shadow:0 0 26px rgba(245,166,35,.75),0 0 0 1px rgba(255,240,190,.6) inset}}
 
 /* ── Fondo de todas las ventanas emergentes ── */
 .choose-overlay,.sector-overlay,.discard-overlay,.overlay,.bs-overlay,.ds-list,.endgame-overlay{
-  background:radial-gradient(ellipse at 50% 45%,rgba(60,38,6,.55) 0%,rgba(2,3,8,.93) 62%,rgba(0,0,0,.97) 100%)!important;
-  backdrop-filter:blur(6px) saturate(1.2);-webkit-backdrop-filter:blur(6px) saturate(1.2)}
+  background:radial-gradient(ellipse at 50% 45%,rgba(60,38,6,.6) 0%,rgba(2,3,8,.95) 62%,rgba(0,0,0,.97) 100%)!important;
+  backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
 .choose-overlay.show,.sector-overlay.show,.discard-overlay.show,.overlay.show,.bs-overlay.show,.ds-list.show,.endgame-overlay.show{animation:epFondo .25s ease both}
 
 /* ── Ventana épica (marco dorado, esquinas y brillo) ── */
@@ -1006,6 +1006,25 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 .ep-confirm .choose-title{margin-bottom:14px!important}
 .ep-confirm .sector-btn{width:100%}
 .ep-confirm .sector-cancel{padding:11px!important;font-size:10px!important}
+
+/* v61 · Ventana de combate: siempre cabe en pantalla (el botón CONTINUAR nunca queda fuera) */
+.cbox{display:flex!important;flex-direction:column;max-height:calc(var(--H) - 16px)!important;overflow:hidden!important}
+.cbox>*{flex:0 0 auto}
+.cb-log{flex:1 1 auto!important;min-height:36px;overflow-y:auto;margin-bottom:8px!important}
+.cb-c img{height:clamp(56px,calc(var(--H) * .24),104px)!important;width:auto!important;aspect-ratio:5/7}
+.cb-title{margin-bottom:6px!important}.cb-vs{margin-bottom:6px!important}
+.overlay{padding:8px!important}
+.choose-box,.sector-box,.discard-box,.bs-box{max-height:calc(var(--H) - 16px)!important}
+@media (pointer:coarse){
+  .sector-btn,.discard-confirm,.bs-ok,.cb-close,.endgame-btn:not(.alt){animation:none!important;box-shadow:0 0 16px rgba(245,166,35,.5)!important}
+  .endgame-overlay::before{animation-duration:80s}
+}
+:root.fx-off .sector-btn,:root.fx-off .discard-confirm,:root.fx-off .bs-ok,:root.fx-off .cb-close,:root.fx-off .endgame-btn{animation:none!important}
+:root.fx-off .sector-btn::after,:root.fx-off .discard-confirm::after,:root.fx-off .bs-ok::after,:root.fx-off .cb-close::after,:root.fx-off .endgame-btn::after,
+:root.fx-off .choose-box::before,:root.fx-off .sector-box::before,:root.fx-off .discard-box::before,:root.fx-off .cbox::before,:root.fx-off .bs-box::before,:root.fx-off .ds-list-box::before{animation:none!important}
+/* v61 · Inicio girado: tamaño calculado en píxeles reales del teléfono */
+:root.rot .boot,:root.rot .ds-list,:root.rot #epConfirm{width:var(--rotW,var(--vh))!important;height:var(--rotH,100vw)!important}
+:root.rot .boot-card{height:calc(var(--rotH,100vw) - 56px)!important}
 </style>
 </head>
 <body>
@@ -1215,7 +1234,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v60';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v61';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -7962,6 +7981,19 @@ function salirPartida(ev,a){
   ventanaConfirmar('¿ABANDONAR LA PARTIDA?','Se perderá el progreso de este combate.','🚪 SÍ, SALIR','↩ SEGUIR JUGANDO','⚠️').then(ok=>{if(ok)ir();});
   return false;
 }
+</script>
+<script>
+// v61 · Medidas reales para la vista girada (algunos Android calculan mal 100dvh/100vw en vertical)
+(function(){
+  function medir(){
+    const R=document.documentElement, w=window.innerWidth, h=window.innerHeight;
+    R.style.setProperty('--rotW',Math.max(w,h)+'px'); R.style.setProperty('--rotH',Math.min(w,h)+'px');
+  }
+  medir();
+  addEventListener('resize',medir); addEventListener('orientationchange',()=>{medir();setTimeout(medir,300);setTimeout(()=>{medir();try{checkOrientation();}catch(e){}},800);});
+  document.addEventListener('fullscreenchange',()=>{setTimeout(()=>{medir();try{checkOrientation();}catch(e){}},250);});
+  if(window.visualViewport) visualViewport.addEventListener('resize',medir);
+})();
 </script>
 </body>
 </html>

@@ -528,7 +528,7 @@ html.heroica .h1{background:linear-gradient(90deg,#fff2c4,#ffb300,#fff6d8,#ffb30
 // Combate: escribe "chh_arcade_match" y abre simulacion.html?modo=arcade;
 //          la simulación escribe "chh_arcade_result" y regresa a arcade.html?r=<id>
 // ════════════════════════════════════
-const ARC_VERSION='Arcade v2.7';
+const ARC_VERSION='Arcade v2.8';
 const STAGE=document.getElementById('stage');
 // ── Orientación horizontal ──
 const MOVIL=matchMedia('(pointer:coarse)').matches;
@@ -1952,9 +1952,12 @@ function iniciarCombate(i,replay){
 }
 // Regreso de la simulación con el resultado
 function procesarResultado(){
-  const q=new URLSearchParams(location.search).get('r'); if(!q) return false;
-  history.replaceState(null,'',location.pathname);
   let res=null;try{res=JSON.parse(localStorage.getItem('chh_arcade_result')||'null');}catch(e){}
+  // v2.8 · Un combate abandonado (se cerró la app o se salió a media partida) cuenta como derrota aunque no regrese con ?r
+  let q=new URLSearchParams(location.search).get('r');
+  if(!q&&res&&res.abandono) q=res.id;
+  if(!q) return false;
+  history.replaceState(null,'',location.pathname);
   if(!res||res.id!==q) return false;
   const s=loadSlots(), g=s[res.slot]; if(!g||!g.pendiente||g.pendiente.id!==q) return false;
   CUR=res.slot; usarRuta(g);
@@ -1983,6 +1986,7 @@ function procesarResultado(){
   try{localStorage.removeItem('chh_arcade_result');}catch(e){}
   showVS(i,'res',res,{replay,gameover,continuar});
   evaluarLogros(g,res,replay,i);
+  if(res.abandono&&!gameover) setTimeout(()=>modal('🚪 COMBATE ABANDONADO','Saliste del combate antes de terminarlo: cuenta como <b>derrota</b>'+(replay?'.':' y gastas un crédito.'),[['ENTENDIDO','']]),700);
   return true;
 }
 function finalArcade(){

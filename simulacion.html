@@ -1031,6 +1031,23 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 :root.rot #stage>.boot{overflow:hidden}
 :root.rot #stage>.boot>.boot-card{height:calc(100% - 56px)!important;max-height:none}
 :root.rot #stage>.ds-list .ds-list-box{max-height:calc(100% - 32px)}
+/* v65 · Sorteo de inicio */
+#sorteoModal{z-index:10050}
+.sorteo-box{text-align:center;max-width:min(420px,calc(var(--W) * .92))!important}
+.sorteo-box .ep-tt{font-family:'Orbitron',sans-serif;font-weight:900;font-size:16px;letter-spacing:3px;color:var(--gold2,#ffd166);margin-bottom:12px;text-shadow:0 0 14px rgba(245,166,35,.6)}
+.sorteo-dados{display:flex;align-items:center;justify-content:center;gap:18px;margin:4px 0 10px}
+.sorteo-lado{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:90px}
+.sorteo-lado b{font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:2px;color:#00cfff;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sorteo-lado.r b{color:#ff6a80}
+.sorteo-dado{font-size:clamp(56px,calc(var(--H) * .16),84px);line-height:1;color:#fff4d6;text-shadow:0 0 16px rgba(255,209,102,.6);transition:transform .12s,color .2s,text-shadow .2s}
+.sorteo-dado.rueda{transform:rotate(14deg) scale(.94)}
+.sorteo-dado.gana{color:#ffd166;text-shadow:0 0 22px rgba(255,209,102,.95),0 0 40px rgba(245,166,35,.7);transform:scale(1.12)}
+.sorteo-dado.pierde{opacity:.45;transform:scale(.9)}
+.sorteo-vs{font-family:'Orbitron',sans-serif;font-weight:900;font-size:18px;color:#ffd166;opacity:.8}
+.sorteo-msg{font-size:15px;font-weight:600;min-height:22px}
+/* v66 · Cintillo de fase */
+.turn-banner-inner.fase .bm{font-size:22px}
+.turn-banner-inner.fase{padding:12px 24px}
 </style>
 </head>
 <body>
@@ -1240,7 +1257,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v64';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v66';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -1407,18 +1424,45 @@ function playSound(type){
 // ════════════════════════════════════
 // BANNER ÉPICO DE TURNO
 // ════════════════════════════════════
-function showBanner(type,topLine,mainLine,dur=1600){
+// v66 · Los cintillos hacen fila: el de turno y el de fase ya no se pisan.
+const _BQ=[]; let _bqOn=false, _bqCur=null;
+function showBanner(type,topLine,mainLine,dur=1600,fase){
+  return new Promise(res=>{
+    if(fase){
+      // una fase nueva deja obsoletos los avisos de fase pendientes y corta el que se está mostrando
+      for(let k=_BQ.length-1;k>=0;k--) if(_BQ[k].fase){_BQ[k].res();_BQ.splice(k,1);}
+      if(_bqCur&&_bqCur.fase) _bqCur.cortar();
+    }
+    _BQ.push({type,topLine,mainLine,dur,fase,res,gen:GEN});
+    if(!_bqOn) _bqSig();
+  });
+}
+function _bqSig(){
+  const b=_BQ.shift();
+  _bqCur=null;
+  if(!b){_bqOn=false;return;}
+  _bqOn=true;
+  if(b.gen!==GEN&&b.fase){b.res();_bqSig();return;}
   const wrap=document.getElementById('turnBanner');
   wrap.innerHTML='';
   const inner=document.createElement('div');
-  inner.className='turn-banner-inner '+type;
-  inner.innerHTML='<div class="bl">'+topLine+'</div><div class="bm">'+mainLine+'</div>';
+  inner.className='turn-banner-inner '+b.type+(b.fase?' fase':'');
+  inner.innerHTML='<div class="bl">'+b.topLine+'</div><div class="bm">'+b.mainLine+'</div>';
   wrap.appendChild(inner);
   playSound('turno');
-  setTimeout(()=>{
-    inner.classList.add('out');
-    setTimeout(()=>wrap.innerHTML='',380);
-  },dur);
+  let hecho=false;
+  const salir=()=>{if(hecho)return;hecho=true;clearTimeout(t);inner.classList.add('out');
+    setTimeout(()=>{if(wrap.firstChild===inner)wrap.innerHTML='';b.res();_bqSig();},300);};
+  const t=setTimeout(salir,b.dur);
+  b.cortar=salir; _bqCur=b;
+}
+// Aviso de cada fase del turno (Apariencia → Avisos de fase: todos / solo los tuyos / apagados)
+function avisosFase(){try{return localStorage.getItem('cdh_sim_fases')||'todos';}catch(e){return 'todos';}}
+const FASE_NOM={ofrenda:'🌿 FASE DE OFRENDA',draw:'🃏 FASE DE ROBO',action:'⚡ FASE DE ACCIÓN',combat:'⚔ FASE DE COMBATE',discard:'🗑 DESCARTE'};
+function faseBanner(o,fase){
+  const m=avisosFase();
+  if(!G||G.over||m==='off'||(m==='propios'&&o!=='player')||!FASE_NOM[fase]) return Promise.resolve();
+  return showBanner(o==='player'?'player':'cpu',o==='player'?'TU TURNO':'TURNO DEL RIVAL',FASE_NOM[fase],900,true);
 }
 
 function toggleMute(){
@@ -2235,7 +2279,7 @@ const PASOS={
     const [x]=await choose(ctx,list,1,{sub:'Elige quién gana '+st.habilidad,score:y=>(G[ctx.o].pj[y.i].resting?100:0)+C[y.cid].fue});
     if(!x) return true;
     const p=G[ctx.o].pj[x.i];p.tmp[st.habilidad]=true;
-    if(st.habilidad==='BRUTALIDAD'&&!p.attacked&&!(G.turn===1&&ctx.o==='player')) p.resting=false;
+    if(st.habilidad==='BRUTALIDAD'&&!p.attacked&&!primerTurno(ctx.o)) p.resting=false;
     lg('⚡ <b>'+C[x.cid].name+'</b>'+who(ctx.o)+' gana <b>'+st.habilidad+'</b> hasta el final del turno.','#ffe066');
     return true;
   },
@@ -2635,7 +2679,7 @@ const PASOS={
     const me=G[ctx.o].pj[ctx.slot]; if(!me) return true;
     const otros=mismoSector(ctx.o,ctx.slot).map(j=>G[ctx.o].pj[j].id);
     if(otros.includes('julio_verne')){me.res+=2;me.resB+=2;lg('🐍 <b>'+C[ctx.cid].name+'</b> junto a Julio Verne: +2 de resistencia.','#ffe066');}
-    if(otros.includes('arango')){me.perm=me.perm||{};me.perm.BRUTALIDAD=true;if(!(G.turn===1&&ctx.o==='player'))me.resting=false;lg('🐍 <b>'+C[ctx.cid].name+'</b> junto a Arango: gana BRUTALIDAD.','#ffe066');}
+    if(otros.includes('arango')){me.perm=me.perm||{};me.perm.BRUTALIDAD=true;if(!primerTurno(ctx.o))me.resting=false;lg('🐍 <b>'+C[ctx.cid].name+'</b> junto a Arango: gana BRUTALIDAD.','#ffe066');}
     return true;
   },
   async mover_sector(ctx){
@@ -4381,7 +4425,7 @@ function oblivionCtl(x,j){
 }
 function oblivionPuede(ow,x,j){
   const p=G[x].pj[j];
-  if(!p||G.over||G.active!==ow||(ow==='player'&&(G.phase!=='combat'||G.turn<=1))) return false;
+  if(!p||G.over||G.active!==ow||(ow==='player'&&G.phase!=='combat')||primerTurno(ow)) return false;
   if(oblivionCtl(x,j)!==ow) return false;
   if(p.oblK===turnKey()||p.bloq>0||p.sinAtk) return false;
   if(G.noAtk&&G.noAtk.o===ow&&G.noAtk.k===turnKey()) return false;
@@ -4629,6 +4673,8 @@ function entersActive(o,side){return G.turn>1&&hasPassive(G[o].sect[side],'sin_d
 // Si algo se niega, no se paga nada: ni costos, ni llamados, ni almas, ni materiales.
 // ════════════════════════════════════
 function turnKey(){return G.turn+'-'+G.active;}
+// v65 · ¿Es el primer turno de quien inició el choque? (lo decide el sorteo del dado)
+function primerTurno(o){return !!G&&G.turn===1&&o===(G.first||'player');}
 function espBloqueado(){return G.bloqEsp===turnKey()||(G.bloqTurnos||0)>0;}
 const ACC_ANADE=new Set(['robar','buscar','barajear_mano']);
 function accsOf(effs){
@@ -5364,7 +5410,7 @@ async function placeChar(o,cid,opt){
   }
   if(slot===undefined){lg('⚠ Sin zona libre para '+C[cid].name+'.','var(--red)');G[o].mictlan.push(cid);return false;}
   const side=sideOfSlot(o,slot), live=mkLive(cid);
-  const firstTurnBlock=G.turn===1&&o==='player';
+  const firstTurnBlock=primerTurno(o);
   G[o].pj[slot]=live;
   live.turnoLlamado=turnKey();
   if(opt.duenio&&opt.duenio!==o) live.duenio=opt.duenio;
@@ -5895,7 +5941,7 @@ function initGame(){
   SEL_IDX=-1; ATK_SLOT=null; _pendingLeaves=[];
   if(_combatClose){_combatClose=null;}
   G={
-    turn:1, phase:'draw', active:'player', over:false,
+    turn:1, phase:'sorteo', active:'cpu', first:null, over:false,
     callsLeft:R.llamadosPorTurno, almaUsed:false,
     drewBA:false, drewBP:false,
     used:{player:{},cpu:{}}, usedGame:{player:{},cpu:{}}, chain:[], bloqEsp:null, skipResp:null, owner:{},
@@ -5904,10 +5950,82 @@ function initGame(){
   };
   showDetail(null);
   renderAll();
-  lg('⚔️ T1 · TU TURNO — Toca tu <b>B.ALMAS</b> y tu <b>BARAJA</b> (derecha) para robar.','var(--gold)');
-  lg('ℹ Quien inicia el choque no puede declarar batalla en su primer turno.','var(--muted)');
   lg('🃏 Tú: <b>'+DK.jugador.nombre+'</b> · Rival: <b>'+DK.cpu.nombre+'</b>'+(DK.cpuModo==='espejo'?' (espejo)':DK.cpuModo==='aleatoria'?' (al azar)':''),'var(--blue)');
   [['Tu baraja',DK.jugador],['Baraja rival',DK.cpu]].forEach(([q,b])=>(b._avisos||[]).forEach(a=>lg('⚠ '+q+' · '+a,'var(--gold2)')));
+  sorteoInicio();
+}
+
+// ════════════════════════════════════
+// v65 · SORTEO DE INICIO — se tira un dado cada quien; quien saca más decide quién empieza.
+// La CPU, si gana, siempre elige empezar. Quien inicia no puede declarar batalla en su primer turno.
+// ════════════════════════════════════
+const DADO=['⚀','⚁','⚂','⚃','⚄','⚅'];
+function sorteoUI(){
+  let m=document.getElementById('sorteoModal');
+  if(!m){
+    m=document.createElement('div');m.id='sorteoModal';m.className='choose-overlay';
+    m.innerHTML='<div class="choose-box sorteo-box"><div class="ep-tt">🎲 SORTEO DE INICIO</div>'+
+      '<div class="sorteo-dados"><div class="sorteo-lado"><div class="sorteo-dado" id="dadoP">⚀</div><b>TÚ</b></div>'+
+      '<div class="sorteo-vs">VS</div><div class="sorteo-lado r"><div class="sorteo-dado" id="dadoC">⚀</div><b id="dadoCNom">RIVAL</b></div></div>'+
+      '<div class="sorteo-msg" id="sorteoMsg">Tirando los dados…</div></div>';
+    (document.getElementById('stage')||document.body).appendChild(m);
+  }
+  return m;
+}
+async function sorteoInicio(){
+  const g=GEN, vivo=()=>g===GEN&&G&&!G.over, W=ms=>new Promise(r=>setTimeout(r,ms));
+  const m=sorteoUI(), dp=document.getElementById('dadoP'), dc=document.getElementById('dadoC'), msg=document.getElementById('sorteoMsg');
+  const nomR=(typeof ARCADE!=='undefined'&&ARCADE&&ARCADE.nombre)?String(ARCADE.nombre).toUpperCase():'RIVAL';
+  document.getElementById('dadoCNom').textContent=nomR;
+  [dp,dc].forEach(d=>d.classList.remove('gana','pierde'));
+  msg.textContent='Tirando los dados…';
+  m.classList.add('show');
+  let a,b;
+  do{
+    const t0=Date.now();
+    while(Date.now()-t0<1100){
+      dp.textContent=DADO[Math.random()*6|0];dc.textContent=DADO[Math.random()*6|0];
+      dp.classList.toggle('rueda');dc.classList.toggle('rueda');
+      await W(70); if(!vivo()){m.classList.remove('show');return;}
+    }
+    a=1+(Math.random()*6|0); b=1+(Math.random()*6|0);
+    dp.textContent=DADO[a-1]; dc.textContent=DADO[b-1]; dp.classList.remove('rueda'); dc.classList.remove('rueda');
+    try{playSound('card');}catch(e){}
+    if(a===b){msg.textContent='Empate ('+a+' y '+b+'). Se vuelve a tirar…';await W(1100);if(!vivo()){m.classList.remove('show');return;}}
+  }while(a===b);
+  const ganaJ=a>b;
+  dp.classList.add(ganaJ?'gana':'pierde'); dc.classList.add(ganaJ?'pierde':'gana');
+  lg('🎲 <b>Sorteo de inicio</b>: tú sacas <b>'+a+'</b>, '+(nomR==='RIVAL'?'la CPU':arcadeEsc(nomR))+' saca <b>'+b+'</b>.','var(--gold2)');
+  let empiezo;
+  if(ganaJ){
+    msg.innerHTML='<b style="color:var(--green)">¡Ganas el dado!</b> Tú decides quién empieza.';
+    await W(1000); if(!vivo()){m.classList.remove('show');return;}
+    m.classList.remove('show');
+    const i=await askChoice('🎲 GANASTE EL DADO ('+a+' vs '+b+')<br><small style="font-weight:600;opacity:.85">Quien inicia juega primero, pero no puede declarar batalla en su primer turno.</small>',['⚔ EMPIEZO YO','🛡 QUE EMPIECE EL RIVAL']);
+    if(!vivo()) return;
+    empiezo=i!==1;
+  } else {
+    msg.innerHTML='<b style="color:var(--red)">'+(nomR==='RIVAL'?'La CPU':arcadeEsc(nomR))+' gana el dado</b> y decide empezar.';
+    await W(1700); if(!vivo()){m.classList.remove('show');return;}
+    m.classList.remove('show');
+    empiezo=false;
+  }
+  G.first=empiezo?'player':'cpu';
+  if(empiezo){
+    G.active='player'; G.phase='draw';
+    lg(ganaJ?'⚔ Decides empezar.':'','var(--gold)');
+    lg('⚔️ T1 · TU TURNO — Toca tu <b>B.ALMAS</b> y tu <b>BARAJA</b> (derecha) para robar.','var(--gold)');
+    lg('ℹ Quien inicia el choque no puede declarar batalla en su primer turno.','var(--muted)');
+    showBanner('player','INICIAS','TU TURNO',1400); faseBanner('player','draw');
+    renderAll();
+  } else {
+    G.active='cpu'; G.phase='cpu';
+    lg(ganaJ?'🛡 Le cedes el primer turno al rival.':'☠ El rival toma el primer turno.','var(--red)');
+    lg('ℹ La CPU inicia el choque: no puede declarar batalla en su primer turno. Tú sí podrás atacar en tu primer turno.','var(--muted)');
+    showBanner('cpu','INICIA EL RIVAL','TURNO DEL RIVAL',1500);
+    renderAll();
+    later(cpuTurn,1700);
+  }
 }
 
 function checkEnd(){
@@ -5952,7 +6070,7 @@ function endGame(won,reason){
 }
 function checkDrawDone(){
   if(G.drewBA&&G.drewBP){
-    G.phase='action';
+    G.phase='action'; faseBanner('player','action');
     lg('✅ Robo completado · Fase de Acción.','var(--green)');
     renderAll();
     void inicioAccion('player');
@@ -6210,6 +6328,7 @@ function canAttack(i){
 // ¿Puede declarar ataque? (descanso, bloqueo de Nitrógeno, Neón sin compañero)
 function canAtk(o,i){
   const p=G[o].pj[i];
+  if(primerTurno(o)&&G.active===o) return false;     // quien inicia no declara batalla en su primer turno
   if(p&&G.turn>1&&!p.attacked&&(p.resting||p.lock>0)&&enSinDescanso(o,i)){p.resting=false;p.lock=0;}
   if(!p||p.resting||p.attacked||p.bloq>0) return false;
   if(sinCombate(o,i)) return false;
@@ -6465,7 +6584,7 @@ function renderDecks(){
   baEl.classList.toggle('draw-pending',drawing&&!G.drewBA);
 }
 function renderUI(){
-  const lbls={draw:'FASE DE ROBO',ofrenda:'FASE DE OFRENDA',action:'FASE DE ACCIÓN',combat:'FASE DE COMBATE',cpu:'TURNO CPU',discard:'DESCARTE',end:'FIN DE TURNO'};
+  const lbls={sorteo:'SORTEO DE INICIO',draw:'FASE DE ROBO',ofrenda:'FASE DE OFRENDA',action:'FASE DE ACCIÓN',combat:'FASE DE COMBATE',cpu:'TURNO CPU',discard:'DESCARTE',end:'FIN DE TURNO'};
   const descs={
     draw:'Toca tu B.ALMAS y tu BARAJA para robar',
     ofrenda:'Devuelve tu mano, revuelve y roba de nuevo',
@@ -6513,7 +6632,7 @@ function startOfrenda(){
   clearSel();
   lg('🌿 <b>Fase de Ofrenda:</b> devolviste '+handCopy.length+' carta(s) y revolviste. Robaste '+drawn.length+' de BP.','var(--gold2)');
   playSound('ofrenda');
-  G.phase='draw'; G.drewBA=false; G.drewBP=false;
+  G.phase='draw'; G.drewBA=false; G.drewBP=false; faseBanner('player','draw');
   lg('⬇ Ahora toca tu <b>B.ALMAS</b> y <b>BARAJA</b> para robar.','var(--gold)');
   renderAll();
 }
@@ -6523,7 +6642,7 @@ function startOfrenda(){
 // ════════════════════════════════════
 function goToCombat(){
   if(G.active!=='player'||G.phase!=='action') return;
-  G.phase='combat'; ATK_SLOT=null;
+  G.phase='combat'; ATK_SLOT=null; faseBanner('player','combat');
   clearSel();
   playSound('combat');
   lg(G.turn===1?'⚔️ <b>Fase de Combate.</b> Primer turno del choque: no puedes declarar batalla. Presiona FIN DE TURNO.'
@@ -6964,7 +7083,7 @@ async function endTurn(){
   if(!G||G.over) return;
   lg('─── Fin de tu turno ───','rgba(255,255,255,.25)');
   if(G.player.hand.length>R.manoMax){
-    G.phase='discard';
+    G.phase='discard'; faseBanner('player','discard');
     openDiscardModal(true);
     renderUI();
   } else finishTurn();
@@ -7044,6 +7163,7 @@ async function cpuTurn(){
   const step=async ms=>{await W(ms);return alive();};
   const P=G.cpu;
   if(!await step(500)) return;
+  await faseBanner('cpu','draw'); if(!alive()) return;
   torturaInicio('cpu'); if(checkEnd()) return;
   if(G.noBA==='cpu'){G.noBA=null;lg('⚡ Centella Azul: la CPU no roba de su BA este turno.','var(--purple)');}
   else if(P.ba.length){drawFrom('cpu','ba');lg('💙 CPU roba de su B.Almas.','var(--ac)');playSound('card');renderAll();}
@@ -7054,6 +7174,7 @@ async function cpuTurn(){
    if(x&&hasKw(x,'COSMO')){await W(400);if(!alive())return;await cosmo('cpu',x);}
    if(typeof ARCADE!=='undefined'&&ARCADE&&+ARCADE.roboExtra>0){for(let k=0;k<+ARCADE.roboExtra&&P.bp.length;k++)drawFrom('cpu','bp');lg('☠ Poder épico: la CPU roba '+ARCADE.roboExtra+' carta(s) extra.','#ff2244');renderAll();}}
   G.callsLeft=R.llamadosPorTurno; // contador de la CPU (se reinicia para el jugador al volver)
+  await faseBanner('cpu','action'); if(!alive()) return;
   await inicioAccion('cpu'); if(!alive()) return;
 
   // 1) ALMA: la de mayor valor estimado
@@ -7271,6 +7392,7 @@ async function cpuTurn(){
 
   // 8) Combate
   if(!await step(700)) return;
+  await faseBanner('cpu','combat'); if(!alive()) return;
   const combatAbilities=async()=>{
     for(let i=0;i<4;i++){
       const p=P.pj[i];if(!p) continue;
@@ -7293,7 +7415,8 @@ async function cpuTurn(){
       for(const i of dir){if(!alive())return;if(!P.pj[i]||!canAtk('cpu',i))continue;if(!await step(700))return;await attackHearts('cpu',i);if(!alive()||checkEnd())return;}
     }
   }
-  lg(atkers0.length?'⚔️ <b>CPU — Fase de Combate.</b> Atacando con '+atkers0.length+' personaje(s)…':'⏸ CPU no tiene atacantes disponibles este turno.',atkers0.length?'var(--red)':'var(--muted)');
+  if(primerTurno('cpu')) lg('⏸ <b>CPU</b> inició el choque: no puede declarar batalla en su primer turno.','var(--muted)');
+  else lg(atkers0.length?'⚔️ <b>CPU — Fase de Combate.</b> Atacando con '+atkers0.length+' personaje(s)…':'⏸ CPU no tiene atacantes disponibles este turno.',atkers0.length?'var(--red)':'var(--muted)');
   for(let n=0;n<10;n++){
     const as=P.pj.findIndex((p,i)=>canAtk('cpu',i));
     if(as<0) break;
@@ -7333,14 +7456,18 @@ async function cpuTurn(){
   G.used={player:{},cpu:{}};
   showBanner('player','T'+G.turn,'TU TURNO',1400);
   torturaInicio('player'); if(checkEnd()) return;
-  if(ofrendaNegada('player')){
+  if(G.first==='cpu'&&G.turn===2){
     G.phase='draw';
+    lg('─── T'+G.turn+' · <b>TU PRIMER TURNO</b> · Roba cartas. Ya puedes declarar batalla. ───','var(--gold)');
+    faseBanner('player','draw');
+  } else if(ofrendaNegada('player')){
+    G.phase='draw'; faseBanner('player','draw');
     lg('─── T'+G.turn+' · <b>TU TURNO</b> · Fase de Ofrenda negada ('+(altoActivo()?'Alto a los Sacrificios':controlaPasiva('player','anula_ofrenda')?'Quetzalcoatl Encarnado':'Jakkyel')+'). Roba cartas. ───','var(--gold)');
   } else if(almaT('player')<=R.ofrendaSiAlmasMenorIgual){
-    G.phase='ofrenda';
+    G.phase='ofrenda'; faseBanner('player','ofrenda');
     lg('─── T'+G.turn+' · <b>TU TURNO</b> · <b>FASE DE OFRENDA</b> (almas: '+almaT('player')+' ≤ '+R.ofrendaSiAlmasMenorIgual+'). Presiona el botón. ───','var(--gold)');
   } else {
-    G.phase='draw';
+    G.phase='draw'; faseBanner('player','draw');
     lg('─── T'+G.turn+' · <b>TU TURNO</b> · Ofrenda cancelada ('+almaT('player')+' almas). Roba cartas. ───','var(--gold)');
   }
   renderAll();
@@ -7562,7 +7689,11 @@ function apAbrir(){
       return '<button class="ap-opt'+(m.id===act&&!dis?' on':'')+'" data-mesa="'+m.id+'"'+(dis?' disabled':'')+'><span class="ap-prev" style="background:'+pv.replace(/"/g,'&quot;')+'"></span><b>'+m.nom+'</b><small>'+(dis?'No se encontró la imagen':m.desc)+'</small></button>';}).join('')+
     '</div><div id="apCosm"></div><div id="apMedios"></div><h4>EFECTOS VISUALES</h4><div class="ds-chips" id="apFx">'+
     [['on','✨ Completos'],['off','🔋 Reducidos']].map(([v,t])=>'<button class="ds-chip'+(fxModo()===v?' on':'')+'" data-fx="'+v+'">'+t+'</button>').join('')+
+    '</div><h4>AVISOS DE FASE</h4><div class="ds-chips" id="apFases">'+
+    [['todos','📣 Todos'],['propios','🙋 Solo mis fases'],['off','🔕 Apagados']].map(([v,t])=>'<button class="ds-chip'+(avisosFase()===v?' on':'')+'" data-f="'+v+'">'+t+'</button>').join('')+
     '</div><div class="ap-note">Personaliza desde el repositorio subiendo a <code>assets/simulacion/</code>: <code>inicio_fondo.jpg</code> (fondo de esta pantalla), <code>inicio_logo.png</code> (logo) y <code>mesa_fondo.jpg</code> (opción "Imagen"). Si no existen, se usan los de siempre.</div>';
+  box.querySelectorAll('#apFases .ds-chip').forEach(b=>b.onclick=()=>{try{localStorage.setItem('cdh_sim_fases',b.dataset.f);}catch(e){}
+    box.querySelectorAll('#apFases .ds-chip').forEach(x=>x.classList.toggle('on',x===b));});
   box.querySelectorAll('#apFx .ds-chip').forEach(b=>b.onclick=()=>{try{localStorage.setItem('cdh_sim_fx',b.dataset.fx);}catch(e){}fxAplicar();
     box.querySelectorAll('#apFx .ds-chip').forEach(x=>x.classList.toggle('on',x===b));});
   box.querySelectorAll('.ap-opt').forEach(b=>b.onclick=()=>{try{localStorage.setItem('cdh_sim_mesa',b.dataset.mesa);}catch(e){}apAplicarMesa(b.dataset.mesa);
@@ -7906,6 +8037,18 @@ function arsResumen(){
   const F=typeof FXS!=='undefined'?FXS:{};
   return Object.assign({},ARS||{},{apoyos:apo,destC:F.destC||0,destP:F.destP||0,dmg:F.dmgHecho||0,hpFin:G?G.player.hp:0});
 }
+// v66 · En cuanto empieza el combate queda registrada una DERROTA por abandono; solo el final real la reemplaza.
+// Así salir, recargar o cerrar la app a media partida cuenta como derrota (no se puede repetir la mano).
+function arcadeAbandonoGuardar(){
+  if(!ARCADE) return;
+  try{localStorage.setItem('chh_arcade_result',JSON.stringify({id:ARCADE.id,slot:ARCADE.slot,ronda:ARCADE.ronda,won:false,abandono:true,turnos:G?G.turn:0,
+    corazones:0,intacto:false,danio:0,st:{},ts:Date.now()}));}catch(e){}
+}
+function arcadeYaJugado(){
+  if(!ARCADE) return false;
+  try{const r=JSON.parse(localStorage.getItem('chh_arcade_result')||'null');return !!(r&&r.id===ARCADE.id);}catch(e){return false;}
+}
+{const _ig=initGame;initGame=function(){const r=_ig.apply(this,arguments);arcadeAbandonoGuardar();return r;};}
 {const _eg=endGame;endGame=function(won,reason){
   const ya=G&&G.over;
   _eg.apply(this,arguments);
@@ -7921,6 +8064,12 @@ function arsResumen(){
 
 (async function boot(){
   document.getElementById('simVer').textContent=SIM_VERSION;
+  // v66 · Combate del Arcade ya empezado (se recargó la página o se cerró la app): cuenta como derrota
+  if(typeof ARCADE!=='undefined'&&ARCADE&&arcadeYaJugado()){
+    document.getElementById('bootStatus').innerHTML='🚪 Este combate ya había empezado y se abandonó: <b>cuenta como derrota</b>. Volviendo al Arcade…';
+    setTimeout(()=>{location.replace('arcade.html?r='+encodeURIComponent(ARCADE.id));},1800);
+    return;
+  }
   document.getElementById('btnMute').textContent=MUTED?'🔇':'🔊';
   const st=document.getElementById('bootStatus'), btn=document.getElementById('bootBtn');
   if(!canLock) document.getElementById('bootNote').textContent='Gira tu dispositivo a horizontal para jugar';
@@ -8031,10 +8180,14 @@ function ventanaConfirmar(titulo,texto,si,no,ico){
 }
 // Botón ← SALIR: confirma con la ventana épica y apaga la vibración del control antes de cambiar de página
 function salirPartida(ev,a){
-  const ir=()=>{try{if(window.GP&&GP.parar)GP.parar();}catch(e){}const h=a.href;setTimeout(()=>{location.href=h;},140);};
+  const arc=typeof ARCADE!=='undefined'&&ARCADE;
+  const ir=()=>{try{if(window.GP&&GP.parar)GP.parar();}catch(e){}
+    const h=arc&&arcadeYaJugado()?'arcade.html?r='+encodeURIComponent(ARCADE.id):a.href;setTimeout(()=>{location.href=h;},140);};
   if(typeof G==='undefined'||!G||G.over){ev.preventDefault();ir();return false;}
   ev.preventDefault();
-  ventanaConfirmar('¿ABANDONAR LA PARTIDA?','Se perderá el progreso de este combate.','🚪 SÍ, SALIR','↩ SEGUIR JUGANDO','⚠️').then(ok=>{if(ok)ir();});
+  ventanaConfirmar('¿ABANDONAR LA PARTIDA?',arc?'Abandonar cuenta como <b>DERROTA</b>: pierdes este combate y gastas un crédito.':'Abandonar cuenta como <b>DERROTA</b>.','🚪 SÍ, ABANDONAR','↩ SEGUIR JUGANDO','⚠️').then(ok=>{if(!ok)return;
+    if(G&&!G.over){try{endGame(false,'Abandonaste la partida');}catch(e){}if(arc)arcadeAbandonoGuardar();}
+    ir();});
   return false;
 }
 </script>

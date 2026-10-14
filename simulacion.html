@@ -1240,7 +1240,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v62';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v64';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -2117,8 +2117,9 @@ const PASOS={
     return true;
   },
   async retornar_y_llamar_menor(ctx){
-    const list=G[ctx.o].pj.map((p,i)=>p?{z:'campo',i,cid:p.id,o:ctx.o}:null).filter(Boolean);
-    if(!list.length) return false;
+    // v64 · Solo PERSONAJES: las Amalgamas no van a la BP, así que no pueden usarse para esta habilidad
+    const list=G[ctx.o].pj.map((p,i)=>p&&C[p.id].type==='pj'?{z:'campo',i,cid:p.id,o:ctx.o}:null).filter(Boolean);
+    if(!list.length){lg('↩ '+C[ctx.cid].name+': no tienes PERSONAJES (no Amalgamas) para regresar a la BP.','var(--muted)');return false;}
     const [x]=await choose(ctx,list,1,{sub:'Elige el personaje que regresa al fondo de tu BP',score:y=>-SCORE(y.cid)});
     if(!x) return false;
     const v=C[x.cid].type==='amalgama'?C[x.cid].gama:C[x.cid].cost;
@@ -3300,9 +3301,11 @@ const PASOS={
     return true;
   },
   async sacrificar_propio(ctx,st){
-    const list=G[ctx.o].pj.map((p,i)=>p&&!(st.excluirEsta&&i===ctx.slot)&&matchF(p.id,st.filtro||{})?{z:'campo',i,cid:p.id,o:ctx.o}:null).filter(Boolean);
+    let list=G[ctx.o].pj.map((p,i)=>p&&!(st.excluirEsta&&i===ctx.slot)&&matchF(p.id,st.filtro||{})?{z:'campo',i,cid:p.id,o:ctx.o}:null).filter(Boolean);
+    const legado=ctx.cid==='p3_legado_cristal';
+    if(legado){const ok=list.filter(y=>legadoSacrificioOk(ctx.o,y.cid));if(ok.length)list=ok;}
     if(!list.length) return false;
-    const [x]=await choose(ctx,list,1,{sub:'Elige el personaje que sacrificas',score:y=>st.guardarValor?SCORE(y.cid):-SCORE(y.cid)});
+    const [x]=await choose(ctx,list,1,{sub:legado?'Elige el personaje CRISTAL que envías al Mictlán':'Elige el personaje que sacrificas',score:y=>st.guardarValor?SCORE(y.cid):-SCORE(y.cid)});
     if(!x) return false;
     if(st.guardarValor) ctx.vars.v=C[x.cid].cost;
     leaveField(ctx.o,x.i,'mictlan');
@@ -3977,6 +3980,7 @@ Object.assign(PASOS,{
     const r=opp(ctx.o), c=G[r].bp.shift();
     if(!c){lg('✨ '+C[ctx.cid].name+': la BP rival está vacía.','var(--muted)');return true;}
     G[ctx.o].hand.push(c);
+    G.prest=G.prest||{player:{},cpu:{}}; G.prest[ctx.o][c]=(G.prest[ctx.o][c]||0)+1;
     lg('🍣 <b>'+C[ctx.cid].name+'</b>'+who(ctx.o)+' toma '+(ctx.o==='player'?'<b>'+C[c].name+'</b>':'una carta')+' del tope de la BP '+(r==='player'?'tuya':'de la CPU')+'.','var(--purple)');
     return true;
   },
@@ -4215,13 +4219,16 @@ async function lazosFinTurno(o){
   if(hayAlma) await PASOS.buscar({o,cid:a.card,vars:{},interactive:o==='player'},{origen:'ba',filtro:{tipo:'alma'}});
   sh(G[o].ba);renderAll();checkEnd();
 }
+// v63 · Legado de Cristal: el par (1 o 2 de diferencia de VALOR) debe existir en el Mictlán
+// después de enviar UN personaje CRISTAL de tu campo (ese también puede formar parte del par).
+const legadoDif=(a,b)=>{const d=Math.abs(a-b);return d>=1&&d<=2;};
+function legadoValsMictlan(o){return G[o].mictlan.filter(c=>C[c].type==='pj'&&matchF(c,{nombreIncluye:'CRISTAL'})).map(c=>C[c].cost);}
+function legadoHayPar(vals){for(let i=0;i<vals.length;i++)for(let j=i+1;j<vals.length;j++)if(legadoDif(vals[i],vals[j]))return true;return false;}
+function legadoSacrificioOk(o,cid){const v=legadoValsMictlan(o);if(C[cid].type==='pj')v.push(C[cid].cost);return legadoHayPar(v);}
 function legadoParOk(o){
-  const vals=G[o].mictlan.filter(c=>C[c].type==='pj'&&matchF(c,{nombreIncluye:'CRISTAL'})).map(c=>C[c].cost);
-  G[o].pj.forEach(p=>{if(p&&C[p.id].type==='pj'&&matchF(p.id,{nombreIncluye:'CRISTAL'}))vals.push(C[p.id].cost);});
   const libres=G[o].pj.filter(x=>x===null).length+1;
   if(libres<2||mictlanCerrado()) return false;
-  for(let i=0;i<vals.length;i++)for(let j=i+1;j<vals.length;j++){const d=Math.abs(vals[i]-vals[j]);if(d>=1&&d<=2)return true;}
-  return false;
+  return G[o].pj.some(p=>p&&matchF(p.id,{nombreIncluye:'CRISTAL'})&&legadoSacrificioOk(o,p.id));
 }
 async function salvarArenaConPJ(t,by,verbo){
   if(!hasPassive(t.cid,'reemplazo_por_pj')||by===t.o||!G[t.o].pj.some(Boolean)||G[t.o].arena!==t.cid) return false;
@@ -4332,7 +4339,7 @@ Object.assign(PASOS,{
   async legado_cristal(ctx){
     const o=ctx.o;
     const lista=()=>cands(o,'mictlan',{tipo:'pj',nombreIncluye:'CRISTAL'});
-    const pares=lista().filter(a=>lista().some(b=>b!==a&&b.i!==a.i&&Math.abs(C[a.cid].cost-C[b.cid].cost)>=1&&Math.abs(C[a.cid].cost-C[b.cid].cost)<=2));
+    const pares=lista().filter(a=>lista().some(b=>b!==a&&b.i!==a.i&&legadoDif(C[a.cid].cost,C[b.cid].cost)));
     if(!pares.length||freePJ(o)===-1){lg('💎 '+C[ctx.cid].name+': no hay 2 personajes CRISTAL con 1 o 2 de diferencia de VALOR en tu Mictlán.','var(--muted)');return true;}
     const [a]=await choose(ctx,pares,1,{sub:'Elige el primer personaje CRISTAL que llamas',score:y=>SCORE(y.cid)});
     if(!a) return true;
@@ -4473,6 +4480,7 @@ function condWhy(o,cid,cond,src){
   if(cond.sectorConPJ&&!slotsOf(o,src.side).some(i=>G[o].pj[i])) return 'No hay personajes en este sector';
   if(cond.haySectorArena&&!sectorArenaTargets().some(t=>t.own!==o)) return 'El rival no tiene SECTOR ni ARENA';
   if(cond.conPJPropio&&!G[o].pj.some(Boolean)) return 'No tienes personajes en el campo';
+  if(cond.pjNoAmalgama&&!G[o].pj.some(p=>p&&C[p.id].type==='pj')) return 'No tienes PERSONAJES en el campo (las Amalgamas no regresan a la BP)';
   if(cond.hay2&&!cands(o,cond.hay2.origen,cond.hay2.filtro).length) return cond.hay2.texto||'No hay cartas válidas';
   if(cond.desdeZona&&src.desde!==cond.desdeZona) return 'No fue llamado desde '+(SRC_NOM[cond.desdeZona]||cond.desdeZona);
   if(cond.via&&src.via!==cond.via) return cond.via==='normal'?'Solo si fue llamado de forma normal':'No fue llamado así';
@@ -5523,6 +5531,8 @@ function matchReq(cid,g){
   if(!c) return false;
   if(c.sustituto==='*'&&c.type==='pj'&&(g.tipo||'pj')==='pj'&&!g.invitado) return true;
   if(c.sustituto&&c.type==='pj'&&g.nombreIncluye&&[].concat(g.nombreIncluye).some(n=>K(n).includes(K(c.sustituto)))) return true;
+  // v63 · Si la condición es solo de NOMBRE (sin valor), una Amalgama también es material válido
+  if(!g.tipo&&c.type==='amalgama'&&(g.nombreIncluye||g.id)&&g.valor==null&&g.valorMin==null&&g.valorMax==null) return matchF(cid,Object.assign({},g,{tipo:null}));
   if((g.tipo||'pj')!==c.type) return false;
   return matchF(cid,Object.assign({},g,{tipo:null}));
 }
@@ -6097,8 +6107,38 @@ function drawBP(){
 // ════════════════════════════════════
 // RENDER
 // ════════════════════════════════════
+// v63 · Cartas tomadas con Umami Chan: al dejar la mano o el campo de quien las tomó,
+// regresan a la zona equivalente de su DUEÑO original (Mictlán→su Mictlán, Confinamiento→su Confinamiento, Baraja→su BP).
+function prestTenidas(o,cid){
+  const P=G[o]; let n=P.hand.filter(x=>x===cid).length;
+  n+=P.pj.filter(p=>p&&p.id===cid).length;
+  n+=P.apoyo.filter(a=>a&&a.card===cid).length;
+  if(P.sect){if(P.sect.left===cid)n++;if(P.sect.right===cid)n++;}
+  if(P.arena===cid)n++;
+  return n;
+}
+function prestReconciliar(){
+  if(!G||!G.prest) return;
+  ['player','cpu'].forEach(o=>{
+    const r=opp(o), M=G.prest[o];
+    Object.keys(M).forEach(cid=>{
+      while(M[cid]>0&&prestTenidas(o,cid)<M[cid]){
+        M[cid]--;
+        let dest=null, pos='fin';
+        const zonas=[['mictlan','mictlan'],['conf','conf'],['bp','bp'],['ba','bp'],['bs','bp']];
+        for(const [z,dz] of zonas){const k=G[o][z].lastIndexOf(cid);if(k>=0){const L=G[o][z].length;pos=k===L-1?'fin':k===0?'tope':'medio';G[o][z].splice(k,1);dest=dz;break;}}
+        if(!dest) continue;                       // ya está en una zona del dueño
+        if(dest==='bp'){if(pos==='tope')G[r].bp.unshift(cid);else if(pos==='fin')G[r].bp.push(cid);else{G[r].bp.push(cid);sh(G[r].bp);}}
+        else G[r][dest].push(cid);
+        lg('🍣 <b>'+C[cid].name+'</b> regresa con su dueño: '+(dest==='mictlan'?'al Mictlán':dest==='conf'?'al Confinamiento':'a la BP')+(r==='player'?' tuyo':' de la CPU')+'.','var(--muted)');
+      }
+      if(!M[cid]) delete M[cid];
+    });
+  });
+}
 function renderAll(){
   if(!G) return;
+  try{prestReconciliar();}catch(e){}
   applyMods();
   renderHP('player'); renderHP('cpu');
   renderApos('player'); renderApos('cpu');
@@ -6174,6 +6214,7 @@ function canAtk(o,i){
   if(!p||p.resting||p.attacked||p.bloq>0) return false;
   if(sinCombate(o,i)) return false;
   if(oblivionCtl(o,i)) return false;
+  if(extraSoloPJ(p)&&!G[opp(o)].pj.some((q,j)=>q&&atacable(o,i,j))) return false;
   if(G.noAtk&&G.noAtk.o===o&&G.noAtk.k===turnKey()) return false;
   if(p.noAtk===turnKey()||p.sinAtk) return false;
   if(p.ixRival&&hasPassive(p.id,'tortura')) return false;
@@ -6194,7 +6235,10 @@ function porQueNoAtaca(o,i){
 }
 function sinCombate(o,i){const s=G[o].sect[sideOfSlot(o,i)];return !!s&&hasPassive(s,'sin_combate_sector');}
 function defensores(o){return G[o].pj.map((p,i)=>p&&!(p.bloq>0)&&!sinCombate(o,i)?i:-1).filter(i=>i>=0);}
-function puedeDirecto(o,i){return !defensores(opp(o)).filter(j=>atacable(o,i,j)).length||hasKw(G[o].pj[i],'EMBOSCADA');}
+// v63 · "Puede atacar 2 veces por turno a PERSONAJES" (soloPJ): el ataque extra nunca va directo a los corazones
+function ataquesSoloPJ(p){const e=p&&(C[p.id].efectos||[]).find(x=>x.cuando==='pasivo'&&x.accion==='ataques');return !!(e&&e.soloPJ);}
+function extraSoloPJ(p){return !!p&&(p.nAtk||0)>0&&ataquesSoloPJ(p);}
+function puedeDirecto(o,i){if(extraSoloPJ(G[o].pj[i]))return false;return !defensores(opp(o)).filter(j=>atacable(o,i,j)).length||hasKw(G[o].pj[i],'EMBOSCADA');}
 // INMATERIAL: solo puede ser atacado por personajes con INMATERIAL
 function atacable(o,as,ds){const r=opp(o),d=G[r].pj[ds],a=G[o].pj[as];if(!d)return false;if(hasPassive(d.id,'inmaterial')&&!supp(r,ds)&&!(a&&hasKw(a,'INMATERIAL')))return false;return true;}
 function markLock(o,p){
@@ -6206,11 +6250,12 @@ function markLock(o,p){
 function wake(p){if(p.lock>0){p.lock--;return true;}return false;}
 function tickTurn(){['player','cpu'].forEach(o=>G[o].pj.forEach(p=>{if(p){if(p.bloq>0)p.bloq--;p.nAtk=0;}}));if(G.bloqTurnos>0)G.bloqTurnos--;}
 // Ozmozord: puede atacar hasta N veces por turno
-function otraVez(o,p){
+function otraVez(o,p,directo){
   if(!p||!locate(p)) return;
   const e=(C[p.id].efectos||[]).find(x=>x.cuando==='pasivo'&&x.accion==='ataques');
   const L=locate(p);
   if(!e||supp(L.o,L.i)) return;
+  if(directo&&e.soloPJ) return;   // atacó a los corazones: ya no tiene ataque extra
   p.nAtk=(p.nAtk||0)+1;
   if(p.nAtk<e.n&&!(p.lock>0)){p.attacked=false;p.resting=false;lg('⚔️ <b>'+C[p.id].name+'</b>'+who(o)+' puede atacar otra vez ('+p.nAtk+'/'+e.n+').','#ffe066');}
 }
@@ -6315,6 +6360,10 @@ function buildMenuActions(cid,idx,at,card){
   }
   if(card.type==='apoyo'){
     const effs=activarEff(cid);
+    if(!effs.length&&(card.efectos||[]).some(e=>e.cuando==='pasivo'&&e.accion==='custodio_mano')){
+      acts.push({label:'⚡ Uso Rápido: se activa en respuesta',ok:false,why:'Se activa sola desde tu mano cuando una habilidad o efecto del adversario va a impactar tus corazones',fn:()=>{}});
+      return acts;
+    }
     if(!effs.length&&(card.efectos||[]).some(e=>e.cuando==='respuesta')){
       acts.push({label:'⚡ Uso Rápido: se activa como respuesta',ok:false,why:'Aparecerá cuando el rival llame o active algo que puedas negar',fn:()=>{}});
       return acts;
@@ -6521,6 +6570,7 @@ async function doApoyo(handIdx){
 }
 async function activateApoyo(o,handIdx){
   const cid0=G[o].hand[handIdx];
+  if((C[cid0].efectos||[]).some(e=>e.cuando==='pasivo'&&e.accion==='custodio_mano')&&!activarEff(cid0).length) return;
   if(C[cid0].subtipo==='equipo') return activateEquipo(o,cid0);
   if(errBloqApoyo(o)){lg('🦅 <b>Errantes de Phorus</b>: '+(o==='player'?'no puedes':'la CPU no puede')+' activar APOYOS durante este turno.','var(--purple)');return;}
   const effs=activarEff(cid0).filter(x=>!x.e.pendiente).map(x=>x.e), accs=accsOf(effs);
@@ -6636,7 +6686,7 @@ async function attackHearts(o,slot){
   const lost=hurt(r,eI(card),'ataque');
   lg('💥 <b>'+C[card.id].name+'</b>'+who(o)+' ataca DIRECTO'+(emb?(hasKw(card,'EMBOSCADA')?' (EMBOSCADA)':' (sin defensores)'):'')+' → '+(r==='cpu'?'CPU −'+lost+' corazón(es).':'pierdes <b>'+lost+'</b> corazón(es).'),'var(--red)');
   playSound('damage');shakeBoard();
-  otraVez(o,card);
+  otraVez(o,card,true);
   renderAll(); checkEnd();
   if(o==='player'&&G[o].pj[slot]) showDetail(card.id,{live:card,title:'TUYO'});
 }

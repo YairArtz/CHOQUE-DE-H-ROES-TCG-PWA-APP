@@ -2,680 +2,372 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#07090f">
   <title>Galería de Cartas · Choque de Héroes TCG</title>
   <link rel="manifest" href="manifest.json">
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
   <style>
-    *, *::before, *::after { 
-      box-sizing: border-box; 
-      margin: 0; 
-      padding: 0; 
-    }
-
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --accent: #f5a623;
-      --accent-glow: rgba(245,166,35,0.10);
-      --accent-dim: rgba(245,166,35,0.25);
       --bg: #07090f;
-      --card: rgba(12,10,5,0.97);
-      --border: #2a200a;
-      --text: #f0e6d0;
-      --muted: #8a7a5a;
+      --gold: #ffd166;
+      --gold2: #f5a623;
+      --gold-d: #b8730a;
+      --cyan: #00cfff;
+      --red: #ff2244;
+      --green: #00e29b;
+      --purple: #c77dff;
+      --text: #f2e8d2;
+      --muted: #9a8a68;
+      --line: rgba(255,209,102,.22);
+      --box: linear-gradient(180deg, rgba(26,20,10,.97) 0%, rgba(10,10,16,.98) 55%, rgba(6,8,14,.99) 100%);
+      --safe-b: env(safe-area-inset-bottom, 0px);
     }
-
-    html, body {
-      min-height: 100%;
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Rajdhani', sans-serif;
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
-    }
-
-    body {
-      position: relative;
-      overflow-x: hidden;
-      padding-bottom: env(safe-area-inset-bottom);
-    }
-
-    /* Diamond grid background */
+    html, body { min-height: 100%; background: var(--bg); color: var(--text); font-family: 'Rajdhani', sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { position: relative; overflow-x: hidden; padding-bottom: var(--safe-b); }
     body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
+      content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
       background-image:
-        linear-gradient(45deg, rgba(245,166,35,0.03) 1px, transparent 1px),
-        linear-gradient(-45deg, rgba(245,166,35,0.03) 1px, transparent 1px);
+        linear-gradient(45deg, rgba(245,166,35,.035) 1px, transparent 1px),
+        linear-gradient(-45deg, rgba(245,166,35,.035) 1px, transparent 1px);
       background-size: 40px 40px;
-      pointer-events: none;
-      z-index: 0;
     }
-
-    /* Gold radial glow */
     body::after {
-      content: '';
-      position: fixed;
-      top: -10%;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 700px;
-      height: 500px;
-      background: radial-gradient(ellipse, rgba(245,166,35,0.07) 0%, transparent 70%);
-      pointer-events: none;
-      z-index: 0;
+      content: ''; position: fixed; top: -12%; left: 50%; transform: translateX(-50%);
+      width: min(900px, 140vw); height: 520px; pointer-events: none; z-index: 0;
+      background: radial-gradient(ellipse, rgba(245,166,35,.09) 0%, transparent 70%);
     }
+    button, select, input { font: inherit; color: inherit; }
+    :focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+
+    @keyframes epIn { 0% { opacity: 0; transform: translateY(14px) scale(.9) } 60% { opacity: 1; transform: translateY(-2px) scale(1.01) } 100% { opacity: 1; transform: none } }
+    @keyframes epBrillo { 0% { background-position: 0% 50% } 100% { background-position: 200% 50% } }
+    @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
 
     /* ═══ BARRA SUPERIOR ═══ */
     .top-bar {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background: linear-gradient(180deg, rgba(7,9,15,0.98) 0%, rgba(7,9,15,0.95) 100%);
-      border-bottom: 1px solid var(--border);
-      padding: 14px 16px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      backdrop-filter: blur(20px);
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(3,5,10,.94); border-bottom: 1px solid rgba(255,209,102,.18);
+      padding: 12px 16px; padding-top: max(12px, env(safe-area-inset-top));
+      display: flex; align-items: center; gap: 12px;
     }
-
     .top-bar::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 10%;
-      right: 10%;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--accent-dim), transparent);
+      content: ''; position: absolute; left: 8%; right: 8%; bottom: -1px; height: 2px; border-radius: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), #fff6d8, var(--gold), transparent);
+      background-size: 200% 100%; animation: epBrillo 4s linear infinite; opacity: .7;
     }
-
     .back-btn {
-      background: rgba(245,166,35,0.08);
-      border: 1px solid var(--accent-dim);
-      color: var(--accent);
-      font-size: 20px;
-      width: 40px;
-      height: 40px;
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      text-decoration: none;
-      transition: all 0.3s;
-      font-family: 'Orbitron', sans-serif;
-      font-weight: 700;
+      width: 40px; height: 40px; flex-shrink: 0; border-radius: 9px; display: grid; place-items: center;
+      background: rgba(245,166,35,.08); border: 1px solid rgba(255,209,102,.4); color: var(--gold);
+      font: 700 20px 'Orbitron', sans-serif; text-decoration: none; transition: transform .15s, box-shadow .15s;
     }
-
-    .back-btn:active {
-      transform: scale(0.95);
-      background: rgba(245,166,35,0.15);
-      box-shadow: 0 0 20px rgba(245,166,35,0.3);
+    .back-btn:active { transform: scale(.94); box-shadow: 0 0 18px rgba(245,166,35,.4); }
+    .top-title { flex: 1; min-width: 0; }
+    .top-title h1 {
+      font: 900 clamp(14px, 3.8vw, 18px)/1.1 'Orbitron', sans-serif; letter-spacing: 2px; color: #fff;
+      text-shadow: 0 0 2px #000, 0 0 14px rgba(245,166,35,.45); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-
-    .top-title {
-      flex: 1;
-      font-size: 16px;
-      font-weight: 900;
-      color: #fff;
-      font-family: 'Orbitron', sans-serif;
-      letter-spacing: 2px;
-      text-shadow: 0 0 20px rgba(245,166,35,0.4);
+    .top-title small { display: block; font-size: 12px; color: var(--muted); font-weight: 600; margin-top: 2px; }
+    .icon-btn {
+      height: 40px; min-width: 40px; padding: 0 12px; border-radius: 9px; cursor: pointer; flex-shrink: 0;
+      background: rgba(7,9,15,.85); border: 1px solid rgba(255,255,255,.14); color: var(--text);
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 700; font-size: 14px;
+      transition: border-color .15s, background .15s;
     }
+    .icon-btn[aria-pressed="true"] { border-color: var(--gold); background: rgba(245,166,35,.16); color: var(--gold); }
+    .icon-btn .n { font: 700 11px 'Orbitron', sans-serif; }
 
-    /* ═══ BUSCADOR ═══ */
-    .search-section {
-      padding: 20px 16px 16px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .search-box {
-      position: relative;
-      margin-bottom: 16px;
-    }
-
-    .search-icon {
-      position: absolute;
-      left: 16px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 16px;
-      color: var(--accent);
-      pointer-events: none;
-    }
-
+    /* ═══ BUSCADOR Y FILTROS ═══ */
+    .search-section { padding: 16px 16px 6px; position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; }
+    .search-row { display: flex; gap: 8px; margin-bottom: 12px; }
+    .search-box { position: relative; flex: 1; min-width: 0; }
+    .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 15px; pointer-events: none; opacity: .9; }
     .search-input {
-      width: 100%;
-      padding: 13px 16px 13px 48px;
-      background: rgba(255,255,255,0.03);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--text);
-      font-size: 15px;
-      font-family: 'Rajdhani', sans-serif;
-      font-weight: 500;
-      transition: all 0.3s;
+      width: 100%; height: 46px; padding: 0 40px 0 42px; border-radius: 10px;
+      background: rgba(7,9,15,.88); border: 1px solid rgba(255,255,255,.15); color: var(--text);
+      font-size: 16px; font-weight: 600; transition: border-color .2s, box-shadow .2s;
     }
-
-    .search-input:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(245,166,35,0.10);
+    .search-input:focus { outline: none; border-color: var(--gold2); box-shadow: 0 0 0 3px rgba(245,166,35,.14); }
+    .search-input::placeholder { color: rgba(255,255,255,.4); }
+    .search-clear {
+      position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 34px; height: 34px; border-radius: 8px;
+      background: transparent; border: none; color: var(--muted); font-size: 18px; cursor: pointer; display: none;
     }
-
-    .search-input::placeholder {
-      color: var(--muted);
+    .search-box.has-text .search-clear { display: block; }
+    .sort-select option { text-indent: 0; background: #0a0806; color: var(--text); }
+    .sort-select {
+      flex: 0 0 auto; width: 46px; text-indent: -999px; overflow: hidden; cursor: pointer;
+      background: rgba(7,9,15,.88) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath d='M6 3v13M2.5 12.5 6 16l3.5-3.5M14 17V4M10.5 7.5 14 4l3.5 3.5' fill='none' stroke='%23ffd166' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/20px no-repeat !important;
+      -webkit-appearance: none; appearance: none;
+      height: 46px; border-radius: 10px; padding: 0 10px; background: rgba(7,9,15,.88); border: 1px solid rgba(255,255,255,.15);
+      color: var(--text); font-weight: 700; font-size: 14px; max-width: 42vw;
     }
-
-    /* ═══ FILTROS DE EXPANSIÓN ═══ */
-    .expansion-filters {
-      display: flex;
-      gap: 10px;
-      overflow-x: auto;
-      padding-bottom: 8px;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
+    @media (min-width: 640px) { .sort-select { width: auto !important; text-indent: 0 !important; padding: 0 12px 0 36px !important; background-position: 10px center !important; } }
+    .chips { display: flex; gap: 8px; overflow-x: auto; padding: 2px 0 8px; scrollbar-width: none; }
+    .chips::-webkit-scrollbar { display: none; }
+    .chips + .chips { margin-top: 2px; }
+    .filter-btn, .type-chip {
+      flex-shrink: 0; white-space: nowrap; cursor: pointer; border-radius: 9px;
+      background: rgba(7,9,15,.82); border: 1px solid rgba(255,255,255,.13); color: #cdbf9f;
+      text-shadow: 0 1px 4px rgba(0,0,0,.9); transition: background .15s, border-color .15s, color .15s;
     }
+    .filter-btn { padding: 9px 16px; font: 700 10.5px 'Orbitron', sans-serif; letter-spacing: 1.2px; text-transform: uppercase; }
+    .filter-btn.active { background: linear-gradient(135deg, var(--gold), var(--gold2)); border-color: var(--gold); color: #120c02; text-shadow: none; box-shadow: 0 4px 18px rgba(245,166,35,.28); }
+    .filter-btn.sub { border-color: rgba(0,207,255,.35); }
+    .type-chip { padding: 6px 12px; font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
+    .type-chip i { font-style: normal; font-size: 13px; }
+    .type-chip.active { border-color: var(--cyan); color: #dff8ff; background: rgba(0,207,255,.14); }
 
-    .expansion-filters::-webkit-scrollbar {
-      display: none;
-    }
-
-    .filter-btn {
-      padding: 10px 20px;
-      background: rgba(255,255,255,0.03);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--muted);
-      font-size: 11px;
-      font-weight: 700;
-      font-family: 'Orbitron', sans-serif;
-      letter-spacing: 1.5px;
-      white-space: nowrap;
-      cursor: pointer;
-      transition: all 0.3s;
-      text-transform: uppercase;
-    }
-
-    .filter-btn.active {
-      background: linear-gradient(135deg, #f5a623, #e08c0a);
-      border-color: var(--accent);
-      color: #07090f;
-      box-shadow: 0 4px 20px rgba(245,166,35,0.25);
-    }
-
-    .filter-btn:active {
-      transform: scale(0.95);
-    }
-
-    /* ═══ CONTADOR DE CARTAS ═══ */
     .card-count {
-      padding: 12px 16px;
-      color: var(--muted);
-      font-size: 11px;
-      text-align: center;
-      font-family: 'Orbitron', sans-serif;
-      letter-spacing: 2px;
-      position: relative;
-      z-index: 1;
+      padding: 8px 16px 12px; color: var(--muted); font-size: 14px; font-weight: 600; text-align: center; position: relative; z-index: 1;
     }
+    .card-count b { color: var(--gold); font-family: 'Orbitron', sans-serif; font-size: 12px; }
 
-    /* ═══ GRID DE CARTAS ═══ */
+    /* ═══ GRID ═══ */
     .cards-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr); /* Valor por defecto */
-      gap: 12px;
-      padding: 0 16px 80px 16px;
-      position: relative;
-      z-index: 1;
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+      padding: 0 16px 90px; position: relative; z-index: 1; max-width: 1400px; margin: 0 auto;
     }
-
-    /* Variantes de columnas para ajustes */
-    .cards-grid.cols-2 {
-      grid-template-columns: repeat(2, 1fr) !important;
-    }
-    
-    .cards-grid.cols-3 {
-      grid-template-columns: repeat(3, 1fr) !important;
-    }
-    
-    .cards-grid.cols-4 {
-      grid-template-columns: repeat(4, 1fr) !important;
-    }
-
+    @media (min-width: 760px) { .cards-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); } }
+    .cards-grid.cols-2 { grid-template-columns: repeat(2, 1fr) !important; }
+    .cards-grid.cols-3 { grid-template-columns: repeat(3, 1fr) !important; }
+    .cards-grid.cols-4 { grid-template-columns: repeat(4, 1fr) !important; }
     .card-item {
-      position: relative;
-      aspect-ratio: 5/7;
-      border-radius: 8px;
-      overflow: hidden;
-      cursor: pointer;
-      border: 1px solid var(--border);
-      background: rgba(12,10,5,0.6);
-      transition: all 0.3s;
-      backdrop-filter: blur(10px);
+      position: relative; aspect-ratio: 5/7; border-radius: 8px; overflow: hidden; cursor: pointer;
+      border: 1px solid rgba(255,209,102,.16); background: rgba(12,10,5,.7); padding: 0; display: block; width: 100%;
+      transition: transform .15s, border-color .15s, box-shadow .15s;
     }
-
-    .card-item:active {
-      transform: scale(0.95);
-      border-color: var(--accent);
-      box-shadow: 0 0 20px rgba(245,166,35,0.3), 0 8px 24px rgba(0,0,0,0.5);
+    .card-item:active { transform: scale(.96); }
+    @media (hover: hover) {
+      .card-item:hover { border-color: rgba(255,209,102,.7); box-shadow: 0 0 0 1px rgba(255,209,102,.3), 0 10px 26px rgba(0,0,0,.6), 0 0 22px rgba(245,166,35,.22); transform: translateY(-2px); }
     }
-
-    .card-item img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
+    .card-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .card-placeholder {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(135deg, rgba(12,10,5,0.8), rgba(42,32,10,0.4));
-      color: var(--muted);
-      font-size: 10px;
-      text-align: center;
-      padding: 8px;
-      font-family: 'Orbitron', sans-serif;
-      letter-spacing: 1px;
+      width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; text-align: center; padding: 8px;
+      background: linear-gradient(135deg, rgba(12,10,5,.85), rgba(42,32,10,.45)); color: var(--muted); font: 700 10px/1.3 'Orbitron', sans-serif;
     }
-
-    /* ═══ ESTADO VACÍO ═══ */
-    .empty-state {
-      display: none;
-      text-align: center;
-      padding: 60px 20px;
-      color: var(--muted);
-      position: relative;
-      z-index: 1;
+    .tile-tags { position: absolute; left: 4px; right: 4px; top: 4px; display: flex; justify-content: space-between; pointer-events: none; }
+    .tile-tag {
+      font: 900 9px 'Orbitron', sans-serif; padding: 3px 5px; border-radius: 5px; letter-spacing: .5px;
+      background: rgba(0,0,0,.78); border: 1px solid currentColor; line-height: 1;
     }
+    .tile-tag.lim { color: var(--gold); } .tile-tag.semi { color: var(--cyan); } .tile-tag.cond { color: var(--red); }
+    .tile-fav { margin-left: auto; color: #ff5c8a; font-size: 13px; filter: drop-shadow(0 0 3px #000); }
 
-    .empty-state.active {
-      display: block;
-    }
+    .empty-state { display: none; text-align: center; padding: 50px 24px; color: var(--muted); position: relative; z-index: 1; }
+    .empty-state.active { display: block; }
+    .empty-icon { font-size: 54px; margin-bottom: 12px; opacity: .35; }
+    .empty-text { font: 700 15px 'Orbitron', sans-serif; letter-spacing: 1px; margin-bottom: 8px; color: #d8c9a6; }
+    .empty-subtext { font-size: 15px; }
+    .empty-state button { margin-top: 16px; }
 
-    .empty-icon {
-      font-size: 64px;
-      margin-bottom: 16px;
-      opacity: 0.3;
-    }
-
-    .empty-text {
-      font-size: 16px;
-      margin-bottom: 8px;
-      font-family: 'Orbitron', sans-serif;
-      letter-spacing: 1px;
-    }
-
-    .empty-subtext {
-      font-size: 13px;
-      opacity: 0.7;
-    }
-
-    /* ═══ MODAL VISTA AMPLIADA ═══ */
+    /* ═══ FICHA DE CARTA (vista ampliada) ═══ */
     .modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(7,9,15,0.98);
-      z-index: 1000;
-      animation: fadeIn 0.3s;
+      display: none; position: fixed; inset: 0; z-index: 1000; overflow-y: auto; overscroll-behavior: contain;
+      background: radial-gradient(ellipse at 50% 40%, rgba(60,38,6,.62) 0%, rgba(2,3,8,.96) 62%, rgba(0,0,0,.98) 100%);
     }
-
-    .modal.active {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
+    .modal.active { display: block; animation: fadeIn .22s ease both; }
     .modal-header {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      padding: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: linear-gradient(180deg, rgba(7,9,15,0.95) 0%, transparent 100%);
-      z-index: 10;
-      backdrop-filter: blur(10px);
+      position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 8px;
+      padding: 12px 14px; padding-top: max(12px, env(safe-area-inset-top));
+      background: linear-gradient(180deg, rgba(3,4,8,.96) 60%, rgba(3,4,8,0));
     }
-
     .expansion-badge {
-      display: inline-block;
-      font-family: 'Orbitron', sans-serif;
-      font-size: 9px;
-      letter-spacing: 2px;
-      color: var(--accent);
-      background: rgba(245,166,35,0.08);
-      border: 1px solid var(--accent-dim);
-      padding: 6px 14px;
-      border-radius: 4px;
+      font: 700 10px 'Orbitron', sans-serif; letter-spacing: 1.5px; color: var(--gold);
+      background: rgba(245,166,35,.08); border: 1px solid rgba(255,209,102,.4); padding: 7px 12px; border-radius: 7px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;
+    }
+    .modal-pos { color: var(--muted); font-size: 14px; font-weight: 700; margin-left: auto; white-space: nowrap; }
+    .close-btn, .nav-btn {
+      width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0; cursor: pointer; display: grid; place-items: center;
+      background: rgba(10,8,4,.9); border: 1px solid rgba(255,209,102,.45); color: var(--gold); font: 700 20px 'Orbitron', sans-serif;
+    }
+    .close-btn:active, .nav-btn:active { transform: scale(.92); }
+    .nav-btn:disabled { opacity: .25; cursor: default; }
+
+    .ficha {
+      display: grid; grid-template-columns: 1fr; gap: 18px; justify-items: center;
+      max-width: 1100px; margin: 0 auto; padding: 4px 16px calc(28px + var(--safe-b));
+    }
+    @media (min-width: 820px), (orientation: landscape) and (min-width: 640px) {
+      .ficha { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); align-items: start; gap: 28px; padding-top: 10px; }
+      .ficha-img-wrap { position: sticky; top: 76px; }
     }
 
-    .close-btn {
-      background: rgba(245,166,35,0.08);
-      border: 1px solid var(--accent-dim);
-      color: var(--accent);
-      font-size: 24px;
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.3s;
-      backdrop-filter: blur(10px);
-      font-family: 'Orbitron', sans-serif;
-      font-weight: 700;
+    /* La carta: único elemento con movimiento propio (brillo holográfico al inclinarla) */
+    .ficha-img-wrap { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 12px; perspective: 900px; }
+    .holo {
+      position: relative; width: min(100%, 380px, calc((100vh - 170px) * .714)); aspect-ratio: 5/7; border-radius: 14px;
+      transform-style: preserve-3d; transition: transform .25s ease-out; touch-action: pan-y;
+      box-shadow: 0 0 0 1.5px rgba(255,209,102,.85), 0 22px 60px rgba(0,0,0,.75), 0 0 46px rgba(245,166,35,.28);
+      animation: epIn .42s cubic-bezier(.2,1.2,.4,1) both;
     }
-
-    .close-btn:active {
-      transform: scale(0.9);
-      background: rgba(245,166,35,0.15);
-      box-shadow: 0 0 20px rgba(245,166,35,0.4);
+    @media (max-width: 639px) and (orientation: portrait) { .holo { width: min(84vw, 340px, calc(56vh * .714)); } }
+    @media (min-width: 820px) { .holo { width: min(100%, 420px, calc((100vh - 120px) * .714)); } }
+    .holo img { width: 100%; height: 100%; object-fit: cover; border-radius: 14px; display: block; background: #0c0a06; }
+    .holo::after {
+      content: ''; position: absolute; inset: 0; border-radius: 14px; pointer-events: none; mix-blend-mode: color-dodge; opacity: 0;
+      background:
+        radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,.55), transparent 42%),
+        linear-gradient(115deg, transparent 25%, rgba(0,207,255,.35) 42%, rgba(255,209,102,.4) 50%, rgba(199,125,255,.35) 58%, transparent 75%);
+      background-size: 100% 100%, 220% 220%; background-position: center, var(--hx, 50%) var(--hy, 50%);
+      transition: opacity .25s;
     }
+    .holo.tilt::after { opacity: .55; }
+    .ficha-hint { font-size: 13px; color: var(--muted); font-weight: 600; text-align: center; }
 
-    .modal-card-container {
-      max-width: 90%;
-      max-height: 70vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    .panel {
+      position: relative; width: 100%; max-width: 560px; border-radius: 14px; padding: 18px 18px 16px;
+      background: var(--box); border: 1px solid rgba(255,209,102,.5);
+      box-shadow: 0 0 0 1px rgba(0,0,0,.7), 0 18px 60px rgba(0,0,0,.7), 0 0 30px rgba(245,166,35,.18), inset 0 0 30px rgba(245,190,60,.06);
+      animation: epIn .42s .06s cubic-bezier(.2,1.2,.4,1) both;
     }
-
-    @keyframes scaleIn {
-      from {
-        transform: scale(0.8);
-        opacity: 0;
-      }
-      to {
-        transform: scale(1);
-        opacity: 1;
-      }
+    .panel::before {
+      content: ''; position: absolute; left: 10%; right: 10%; top: 0; height: 2px; border-radius: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), #fff6d8, var(--gold), transparent); box-shadow: 0 0 10px rgba(255,209,102,.7);
     }
-
-    .modal-card-img {
-      width: 100%;
-      max-width: 360px;
-      border-radius: 12px;
-      border: 2px solid var(--accent);
-      box-shadow: 
-        0 20px 60px rgba(245,166,35,0.3), 
-        0 0 40px rgba(245,166,35,0.2),
-        0 8px 32px rgba(0,0,0,0.6);
+    .panel::after {
+      content: ''; position: absolute; inset: 4px; border-radius: 11px; pointer-events: none;
+      background:
+        linear-gradient(var(--gold), var(--gold)) top left/16px 2px no-repeat, linear-gradient(var(--gold), var(--gold)) top left/2px 16px no-repeat,
+        linear-gradient(var(--gold), var(--gold)) top right/16px 2px no-repeat, linear-gradient(var(--gold), var(--gold)) top right/2px 16px no-repeat,
+        linear-gradient(var(--cyan), var(--cyan)) bottom left/16px 2px no-repeat, linear-gradient(var(--cyan), var(--cyan)) bottom left/2px 16px no-repeat,
+        linear-gradient(var(--cyan), var(--cyan)) bottom right/16px 2px no-repeat, linear-gradient(var(--cyan), var(--cyan)) bottom right/2px 16px no-repeat;
     }
-
-    .modal-card-info {
-      margin-top: 24px;
-      text-align: center;
-      padding: 0 20px;
-    }
-
     .modal-card-name {
-      font-size: 24px;
-      font-weight: 900;
-      color: #fff;
-      font-family: 'Orbitron', sans-serif;
-      letter-spacing: 2px;
-      text-shadow: 0 0 20px rgba(245,166,35,0.6);
-      margin-bottom: 8px;
+      font: 900 clamp(18px, 5vw, 24px)/1.2 'Orbitron', sans-serif; letter-spacing: 1px; color: #fff;
+      text-shadow: 0 0 18px rgba(245,166,35,.55); margin-bottom: 6px; padding-right: 36px;
     }
+    .fav-btn {
+      position: absolute; top: 14px; right: 14px; width: 38px; height: 38px; border-radius: 50%; cursor: pointer; z-index: 2;
+      background: rgba(0,0,0,.35); border: 1px solid rgba(255,255,255,.18); color: #cdbf9f; font-size: 18px;
+    }
+    .fav-btn[aria-pressed="true"] { color: #ff5c8a; border-color: rgba(255,92,138,.6); background: rgba(255,92,138,.12); }
+    .modal-card-type { font-size: 16px; color: var(--gold2); font-weight: 700; letter-spacing: .5px; }
+    .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .tag { font-size: 13.5px; font-weight: 700; padding: 3px 9px; border-radius: 6px; border: 1px solid rgba(255,255,255,.16); color: #d8cbae; background: rgba(255,255,255,.03); }
+    .tag.lim { color: var(--gold); border-color: rgba(255,209,102,.55); background: rgba(255,209,102,.08); }
+    .tag.semi { color: var(--cyan); border-color: rgba(0,207,255,.5); background: rgba(0,207,255,.08); }
+    .tag.cond { color: #ff6a80; border-color: rgba(255,34,68,.6); background: rgba(255,34,68,.1); }
+    .tag.inv { color: var(--purple); border-color: rgba(199,125,255,.5); }
 
-    .modal-card-type {
-      font-size: 14px;
-      color: var(--accent);
-      text-transform: uppercase;
-      letter-spacing: 3px;
-      font-weight: 600;
-      font-family: 'Orbitron', sans-serif;
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(62px, 1fr)); gap: 8px; margin-top: 14px; }
+    .stat {
+      text-align: center; padding: 8px 4px 7px; border-radius: 10px;
+      background: rgba(0,0,0,.35); border: 1px solid rgba(255,209,102,.2);
     }
-    
-    .add-to-deck-btn {
-      margin-top: 20px;
-      width: 100%;
-      background: linear-gradient(135deg, var(--accent), #cc55ff);
-      border: none;
-      color: #000;
-      font-family: 'Orbitron', sans-serif;
-      font-size: 12px;
-      font-weight: 900;
-      letter-spacing: 1.5px;
-      padding: 14px 20px;
-      border-radius: 10px;
-      cursor: pointer;
-      text-transform: uppercase;
-      transition: all 0.2s;
-      box-shadow: 0 0 20px rgba(245,166,35,0.3);
+    .stat b { display: block; font: 900 20px 'Orbitron', sans-serif; color: #fff; }
+    .stat span { font-size: 12.5px; white-space: nowrap; color: var(--muted); font-weight: 700; }
+    .stat.v b { color: var(--gold); } .stat.f b { color: #ff8a5c; } .stat.r b { color: #6ad1ff; } .stat.c b { color: #ff5c8a; } .stat.i b { color: #ffe066; }
+
+    .hab { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+    .hab span {
+      font: 700 11px 'Orbitron', sans-serif; letter-spacing: 1px; padding: 6px 10px; border-radius: 7px; color: #ffe9b0;
+      background: linear-gradient(135deg, rgba(245,166,35,.22), rgba(184,115,10,.12)); border: 1px solid rgba(255,209,102,.5);
     }
-    
-    .add-to-deck-btn:active {
-      transform: scale(0.95);
-      box-shadow: 0 0 30px rgba(245,166,35,0.5);
+    .bloque { margin-top: 16px; }
+    .bloque h3 { font: 700 12px 'Orbitron', sans-serif; letter-spacing: 1.5px; color: var(--gold); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+    .bloque h3::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, rgba(255,209,102,.35), transparent); }
+    .efecto { font-size: 17.5px; line-height: 1.5; font-weight: 600; color: #f4ead6; max-width: 66ch; }
+    .efecto p + p { margin-top: 8px; }
+    .efecto .kw { color: var(--gold); font-weight: 700; }
+    .efecto .q { color: #ffe0a0; }
+    .efecto .lbl { color: var(--cyan); font-weight: 700; }
+    .req { font-size: 16px; line-height: 1.45; font-weight: 600; color: #dff3ff; padding: 10px 12px; border-radius: 10px; background: rgba(0,207,255,.07); border: 1px solid rgba(0,207,255,.3); }
+    .nota { margin-top: 12px; font-size: 14px; color: var(--muted); font-weight: 600; line-height: 1.4; }
+    .nota.warn { color: #ffb36b; }
+    .sin-texto { font-size: 16px; color: var(--muted); font-weight: 600; line-height: 1.45; }
+
+    .acciones { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; }
+    .fbtn {
+      height: 46px; border-radius: 10px; cursor: pointer; font: 700 11px 'Orbitron', sans-serif; letter-spacing: 1px;
+      border: 1px solid rgba(255,209,102,.4); background: rgba(10,8,4,.8); color: var(--gold); text-transform: uppercase;
     }
-    
-    /* ═══ VISTA DE SUBMENÚ ═══ */
-    .submenu-view {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: var(--bg);
-      z-index: 200;
-      overflow-y: auto;
-      padding: 80px 20px 100px;
+    .fbtn.primary {
+      grid-column: 1 / -1; border: none; color: #120c02;
+      background: linear-gradient(135deg, #fff1c4, var(--gold) 35%, var(--gold2) 75%, var(--gold-d)); box-shadow: 0 0 20px rgba(245,166,35,.35);
     }
-    
-    .submenu-view.active {
-      display: block;
+    .fbtn:active { transform: scale(.97); }
+
+    .versiones { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
+    .versiones button {
+      flex: 0 0 64px; aspect-ratio: 5/7; border-radius: 6px; overflow: hidden; cursor: pointer; padding: 0;
+      border: 1px solid rgba(255,255,255,.15); background: #0c0a06;
     }
-    
-    .submenu-header {
-      text-align: center;
-      margin-bottom: 30px;
+    .versiones button.cur { border-color: var(--gold); box-shadow: 0 0 10px rgba(245,166,35,.45); }
+    .versiones img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    .toast {
+      position: fixed; left: 50%; bottom: calc(22px + var(--safe-b)); transform: translate(-50%, 20px); z-index: 2000;
+      background: rgba(10,8,4,.96); border: 1px solid rgba(255,209,102,.55); color: var(--gold); padding: 10px 16px; border-radius: 10px;
+      font-weight: 700; font-size: 15px; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s;
     }
-    
-    .submenu-title {
-      font-family: 'Orbitron', monospace;
-      font-size: 18px;
-      font-weight: 900;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--accent);
-      text-shadow: 0 0 15px rgba(245,166,35,0.5);
-      margin-bottom: 10px;
-    }
-    
-    .submenu-subtitle {
-      font-size: 13px;
-      color: var(--muted);
-      font-weight: 500;
-    }
-    
-    .submenu-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 0 16px;
-    }
-    
-    .submenu-card {
-      background: rgba(245,166,35,0.08);
-      border: 1px solid rgba(245,166,35,0.3);
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.2s;
-      overflow: hidden;
-      position: relative;
-    }
-    
-    .submenu-card:active {
-      transform: scale(0.95);
-      border-color: var(--accent);
-      box-shadow: 0 0 25px rgba(245,166,35,0.4);
-    }
-    
-    .submenu-card-img {
-      width: 100%;
-      aspect-ratio: 2/3;
-      object-fit: cover;
-      display: block;
-      background: rgba(0,0,0,0.3);
-    }
-    
-    .submenu-card-name {
-      font-family: 'Orbitron', monospace;
-      font-size: 10px;
-      font-weight: 900;
-      letter-spacing: 0.5px;
-      color: var(--accent);
-      text-transform: uppercase;
-      padding: 8px 6px;
-      text-align: center;
-      line-height: 1.2;
-      background: rgba(0,0,0,0.5);
-    }
-    
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+    /* ═══ SUBMENÚS ═══ */
+    .submenu-view { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 200; overflow-y: auto; padding: 70px 16px 110px; }
+    .submenu-view.active { display: block; }
+    .submenu-header { text-align: center; margin-bottom: 24px; }
+    .submenu-title { font: 900 18px 'Orbitron', sans-serif; letter-spacing: 2px; color: var(--gold); text-shadow: 0 0 15px rgba(245,166,35,.5); margin-bottom: 8px; }
+    .submenu-subtitle { font-size: 15px; color: var(--muted); font-weight: 600; }
+    .submenu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 12px; max-width: 760px; margin: 0 auto; }
+    .submenu-card { background: rgba(245,166,35,.06); border: 1px solid rgba(255,209,102,.3); border-radius: 12px; cursor: pointer; overflow: hidden; transition: transform .15s, box-shadow .15s; }
+    .submenu-card:active { transform: scale(.96); box-shadow: 0 0 22px rgba(245,166,35,.4); }
+    .submenu-card-img { width: 100%; aspect-ratio: 2/3; object-fit: cover; display: block; background: rgba(0,0,0,.3); }
+    .submenu-card-name { font: 900 10px/1.25 'Orbitron', sans-serif; color: var(--gold); padding: 8px 6px; text-align: center; background: rgba(0,0,0,.5); }
     .back-to-gallery-btn {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: linear-gradient(135deg, var(--accent), #cc55ff);
-      border: none;
-      color: #000;
-      font-family: 'Orbitron', monospace;
-      font-size: 11px;
-      font-weight: 900;
-      letter-spacing: 1.5px;
-      padding: 14px 28px;
-      border-radius: 10px;
-      cursor: pointer;
-      text-transform: uppercase;
-      box-shadow: 0 0 25px rgba(245,166,35,0.4);
-      transition: all 0.2s;
-      z-index: 250;
-    }
-    
-    .back-to-gallery-btn:active {
-      transform: translateX(-50%) scale(0.95);
-      box-shadow: 0 0 35px rgba(245,166,35,0.6);
-    }
-  
-    /* ─── LEGIBILIDAD CON FONDOS DE TIENDA ─── */
-
-    /* Top bar — más opaco y blur */
-    .top-bar {
-      background: rgba(3,5,10,0.92) !important;
-      backdrop-filter: blur(12px) !important;
-      -webkit-backdrop-filter: blur(12px) !important;
-    }
-    .top-title {
-      text-shadow: 0 0 2px #000, 0 0 8px #000, 0 2px 4px #000 !important;
+      position: fixed; bottom: calc(18px + var(--safe-b)); left: 50%; transform: translateX(-50%); z-index: 250;
+      background: linear-gradient(135deg, var(--gold), var(--gold2)); border: none; color: #120c02; cursor: pointer;
+      font: 900 11px 'Orbitron', sans-serif; letter-spacing: 1.5px; padding: 14px 26px; border-radius: 10px; box-shadow: 0 0 22px rgba(245,166,35,.4);
     }
 
-    /* Barra de búsqueda — fondo visible y borde más contrastado */
-    .search-input {
-      background: rgba(7,9,15,0.85) !important;
-      border-color: rgba(255,255,255,0.15) !important;
-      backdrop-filter: blur(8px) !important;
-      -webkit-backdrop-filter: blur(8px) !important;
+    @media (prefers-reduced-motion: reduce) {
+      .holo, .panel, .modal.active { animation: none; }
+      .top-bar::after { animation: none; }
+      .holo { transition: none; }
     }
-    .search-input::placeholder {
-      color: rgba(255,255,255,0.4) !important;
-    }
-    .search-wrap {
-      background: transparent !important;
-    }
-
-    /* Filtros — fondo visible */
-    .filter-btn {
-      background: rgba(7,9,15,0.80) !important;
-      border-color: rgba(255,255,255,0.12) !important;
-      backdrop-filter: blur(6px) !important;
-      -webkit-backdrop-filter: blur(6px) !important;
-      text-shadow: 0 1px 4px rgba(0,0,0,0.9) !important;
-    }
-    .filter-btn.active {
-      background: linear-gradient(135deg, var(--accent), var(--neon-d)) !important;
-      border-color: var(--accent) !important;
-      text-shadow: 0 0 8px rgba(0,0,0,1), 0 1px 4px rgba(0,0,0,1) !important;
-    }
-
-    /* Subtitle / contador */
-    .subtitle {
-      color: #c8d8f0 !important;
-      text-shadow: 0 0 8px rgba(0,0,0,1), 0 1px 4px rgba(0,0,0,1) !important;
-    }
-</style>
+  </style>
 </head>
 <body>
 
-  <!-- BARRA SUPERIOR -->
   <div class="top-bar">
-    <a href="index.html" class="back-btn">←</a>
-    <div class="top-title">🃏 GALERÍA DE CARTAS</div>
+    <a href="index.html" class="back-btn" aria-label="Volver al inicio">←</a>
+    <div class="top-title">
+      <h1>GALERÍA DE CARTAS</h1>
+      <small id="topSub">Toca una carta para ver su ficha</small>
+    </div>
+    <button class="icon-btn" id="favToggle" aria-pressed="false" title="Ver solo tus favoritas">♥ <span class="n" id="favN">0</span></button>
   </div>
 
-  <!-- VISTA PRINCIPAL -->
   <div id="mainGalleryView">
-    <!-- SECCIÓN DE BÚSQUEDA -->
     <div class="search-section">
-      <div class="search-box">
-        <span class="search-icon">🔍</span>
-        <input 
-          type="text" 
-          class="search-input" 
-          id="searchInput"
-          placeholder="Buscar por nombre o tipo..."
-        >
+      <div class="search-row">
+        <div class="search-box" id="searchBox">
+          <span class="search-icon">🔍</span>
+          <input type="search" class="search-input" id="searchInput" placeholder="Busca carta o efecto…" autocomplete="off" enterkeyhint="search">
+          <button class="search-clear" id="searchClear" aria-label="Borrar búsqueda">×</button>
+        </div>
+        <select class="sort-select" id="sortSelect" aria-label="Ordenar">
+          <option value="orig">Orden de la colección</option>
+          <option value="az">Nombre A–Z</option>
+          <option value="vmenor">Valor: menor a mayor</option>
+          <option value="vmayor">Valor: mayor a menor</option>
+          <option value="fue">Más fuerza</option>
+        </select>
       </div>
-
-      <!-- FILTROS DE EXPANSIÓN -->
-      <div class="expansion-filters" id="expansionFilters">
-        <!-- Los filtros se generan dinámicamente desde el JSON -->
-      </div>
+      <div class="chips" id="typeChips" role="group" aria-label="Tipo de carta"></div>
+      <div class="chips expansion-filters" id="expansionFilters"></div>
     </div>
 
-    <!-- CONTADOR -->
-    <div class="card-count" id="cardCount">
-      Cargando cartas...
-    </div>
+    <div class="card-count" id="cardCount">Cargando cartas…</div>
+    <div class="cards-grid" id="cardsGrid"></div>
 
-    <!-- DEBUG INFO (temporal) -->
-    <div style="background: rgba(245,166,35,0.1); border: 1px solid rgba(245,166,35,0.3); padding: 12px; margin: 0 16px 16px; border-radius: 6px; font-family: monospace; font-size: 11px; color: #f5a623; position: relative; z-index: 1;" id="debugInfo">
-      🔍 Cargando...
-    </div>
-
-    <!-- GRID DE CARTAS -->
-    <div class="cards-grid" id="cardsGrid">
-      <!-- Las cartas se cargan dinámicamente desde cartas.json -->
-    </div>
-
-    <!-- ESTADO VACÍO -->
     <div class="empty-state" id="emptyState">
       <div class="empty-icon">🃏</div>
-      <div class="empty-text">No se encontraron cartas</div>
-      <div class="empty-subtext">Intenta con otro término de búsqueda</div>
+      <div class="empty-text">Ninguna carta coincide</div>
+      <div class="empty-subtext">Prueba otra palabra o quita algún filtro.</div>
+      <button class="fbtn" id="clearFilters" style="padding:0 18px">Quitar filtros</button>
     </div>
   </div>
 
@@ -683,32 +375,15 @@
   <div class="submenu-view" id="barajasSubmenu">
     <div class="submenu-header">
       <div class="submenu-title">🎴 Barajas de Inicio</div>
-      <div class="submenu-subtitle">Selecciona una baraja preconstruida</div>
+      <div class="submenu-subtitle">Elige una baraja preconstruida</div>
     </div>
-    
     <div class="submenu-grid">
-      <div class="submenu-card" data-expansion="baraja_ninjiachi">
-        <img src="https://yairartz.github.io/banner_baraja_1.jpg" alt="Baraja Ninjiachi" class="submenu-card-img" onerror="this.style.display='none'">
-        <div class="submenu-card-name">Baraja Ninjiachi</div>
-      </div>
-      
-      <div class="submenu-card" data-expansion="baraja_max_kara">
-        <img src="https://yairartz.github.io/banner_baraja_2.jpg" alt="Baraja Max-Kara" class="submenu-card-img" onerror="this.style.display='none'">
-        <div class="submenu-card-name">Baraja Max-Kara</div>
-      </div>
-      
-      <div class="submenu-card" data-expansion="baraja_legion_del_mar">
-        <img src="https://yairartz.github.io/banner_baraja_3.jpg" alt="Baraja Legión del Mar" class="submenu-card-img" onerror="this.style.display='none'">
-        <div class="submenu-card-name">Baraja Legión del Mar</div>
-      </div>
-      
-      <div class="submenu-card" data-expansion="baraja_evolotl">
-        <img src="https://yairartz.github.io/banner_baraja_4.jpg" alt="Baraja Evolotl" class="submenu-card-img" onerror="this.style.display='none'">
-        <div class="submenu-card-name">Baraja Evolotl</div>
-      </div>
+      <div class="submenu-card" data-expansion="baraja_ninjiachi"><img src="https://yairartz.github.io/banner_baraja_1.jpg" alt="Baraja Ninjiachi" class="submenu-card-img" onerror="this.style.display='none'"><div class="submenu-card-name">Baraja Ninjiachi</div></div>
+      <div class="submenu-card" data-expansion="baraja_max_kara"><img src="https://yairartz.github.io/banner_baraja_2.jpg" alt="Baraja Max-Kara" class="submenu-card-img" onerror="this.style.display='none'"><div class="submenu-card-name">Baraja Max-Kara</div></div>
+      <div class="submenu-card" data-expansion="baraja_legion_del_mar"><img src="https://yairartz.github.io/banner_baraja_3.jpg" alt="Baraja Legión del Mar" class="submenu-card-img" onerror="this.style.display='none'"><div class="submenu-card-name">Baraja Legión del Mar</div></div>
+      <div class="submenu-card" data-expansion="baraja_evolotl"><img src="https://yairartz.github.io/banner_baraja_4.jpg" alt="Baraja Evolotl" class="submenu-card-img" onerror="this.style.display='none'"><div class="submenu-card-name">Baraja Evolotl</div></div>
     </div>
-    
-    <button class="back-to-gallery-btn" id="backFromBarajas">← Volver a Galería</button>
+    <button class="back-to-gallery-btn" id="backFromBarajas">← Volver a la galería</button>
   </div>
 
   <!-- SUBMENÚ: SOBRES ESPECIALES -->
@@ -717,30 +392,13 @@
       <div class="submenu-title">✨ Sobres Especiales</div>
       <div class="submenu-subtitle">Ediciones de evento y promos de liga</div>
     </div>
-
     <div class="submenu-grid">
-      <div class="submenu-card" data-expansion="sobre_anima">
-        <img src="cartas_3/sobre_anima_000.jpg" alt="Sobre Anima" class="submenu-card-img" onerror="this.style.display='none'">
-        <div class="submenu-card-name">Sobre Anima</div>
-      </div>
-
-      <div class="submenu-card" data-expansion="sobre_patrio">
-        <img src="cartas_3/sobre_patrio_000.jpg" alt="Sobre Patrio" class="submenu-card-img" onerror="this.style.display='none'">
-        <div class="submenu-card-name">Sobre Patrio</div>
-      </div>
-
-      <div class="submenu-card" data-expansion="sobre_otakon">
-        <img src="cartas_3/sobre_otakon_000.jpg" alt="Sobre Otakon" class="submenu-card-img" onerror="this.style.display='none'">
-        <div class="submenu-card-name">Sobre Otakon</div>
-      </div>
-
-      <div class="submenu-card" data-expansion="sobre_torneo_1">
-        <img src="cartas/carta_052.jpg" alt="Cartas de Liga" class="submenu-card-img" onerror="this.style.display='none'">
-        <div class="submenu-card-name">Cartas de Liga</div>
-      </div>
+      <div class="submenu-card" data-expansion="sobre_anima"><img src="cartas_3/sobre_anima_000.jpg" alt="Sobre Anima" class="submenu-card-img" onerror="this.style.display='none'"><div class="submenu-card-name">Sobre Anima</div></div>
+      <div class="submenu-card" data-expansion="sobre_patrio"><img src="cartas_3/sobre_patrio_000.jpg" alt="Sobre Patrio" class="submenu-card-img" onerror="this.style.display='none'"><div class="submenu-card-name">Sobre Patrio</div></div>
+      <div class="submenu-card" data-expansion="sobre_otakon"><img src="cartas_3/sobre_otakon_000.jpg" alt="Sobre Otakon" class="submenu-card-img" onerror="this.style.display='none'"><div class="submenu-card-name">Sobre Otakon</div></div>
+      <div class="submenu-card" data-expansion="sobre_torneo_1"><img src="cartas/carta_052.jpg" alt="Cartas de Liga" class="submenu-card-img" onerror="this.style.display='none'"><div class="submenu-card-name">Cartas de Liga</div></div>
     </div>
-
-    <button class="back-to-gallery-btn" id="backFromEspeciales">← Volver a Galería</button>
+    <button class="back-to-gallery-btn" id="backFromEspeciales">← Volver a la galería</button>
   </div>
 
   <!-- SUBMENÚ: EXPANSIONES AGOTADAS -->
@@ -749,432 +407,478 @@
       <div class="submenu-title">⚠️ Expansiones Agotadas</div>
       <div class="submenu-subtitle">Colecciones fuera de circulación (2016-2020)</div>
     </div>
-    
     <div class="submenu-grid">
-      <div class="submenu-card" data-expansion="series">
-        <img src="cartas_2/series_banner.jpg" alt="SERIES" class="submenu-card-img" onerror="this.style.display='none'">
-        <div class="submenu-card-name">SERIES</div>
-      </div>
-      
-      <div class="submenu-card" data-expansion="heroes_del_exilio">
-        <img src="https://yairartz.github.io/expansion_agotada_9.jpg" alt="Héroes del Exilio" class="submenu-card-img" onerror="this.style.display='none'">
-        <div class="submenu-card-name">Héroes del Exilio</div>
-      </div>
-      
-      <div class="submenu-card" data-expansion="control_absoluto">
-        <img src="https://yairartz.github.io/expansion_agotada_8.jpg" alt="Control Absoluto" class="submenu-card-img" onerror="this.style.display='none'">
-        <div class="submenu-card-name">Control Absoluto</div>
-      </div>
-      
-      <div class="submenu-card" data-expansion="renacer_heroico">
-        <img src="https://yairartz.github.io/expansion_agotada_7.jpg" alt="Renacer Heroico" class="submenu-card-img" onerror="this.style.display='none'">
-        <div class="submenu-card-name">Renacer Heroico</div>
-      </div>
-      
-      <div class="submenu-card" data-expansion="crisis_dimensional">
-        <img src="https://yairartz.github.io/expansion_agotada_6.jpg" alt="Crisis Dimensional" class="submenu-card-img" onerror="this.style.display='none'">
-        <div class="submenu-card-name">Crisis Dimensional</div>
-      </div>
-      
-      <div class="submenu-card" data-expansion="despertar_ancestral">
-        <img src="https://yairartz.github.io/expansion_agotada_5.jpg" alt="El Despertar Ancestral" class="submenu-card-img" onerror="this.style.display='none'">
-        <div class="submenu-card-name">El Despertar Ancestral</div>
-      </div>
-      
-      <div class="submenu-card" data-expansion="heroes_de_leyenda">
-        <img src="https://yairartz.github.io/expansion_agotada_4.jpg" alt="Héroes de Leyenda" class="submenu-card-img" onerror="this.style.display='none'">
-        <div class="submenu-card-name">Héroes de Leyenda</div>
-      </div>
-      
-      <div class="submenu-card" data-expansion="secretos_de_phorus">
-        <img src="https://yairartz.github.io/expansion_agotada_3.jpg" alt="Secretos de Phorus" class="submenu-card-img" onerror="this.style.display='none'">
-        <div class="submenu-card-name">Secretos de Phorus</div>
-      </div>
-      
-      <div class="submenu-card" data-expansion="azote_del_mictlan">
-        <img src="https://yairartz.github.io/expansion_agotada_2.jpg" alt="Azote del Mictlán" class="submenu-card-img" onerror="this.style.display='none'">
-        <div class="submenu-card-name">Azote del Mictlán</div>
-      </div>
-      
-      <div class="submenu-card" data-expansion="ancestros">
-        <img src="https://yairartz.github.io/expansion_agotada_1.jpg" alt="Ancestros" class="submenu-card-img" onerror="this.style.display='none'">
-        <div class="submenu-card-name">Ancestros</div>
-      </div>
+      <div class="submenu-card" data-expansion="series"><img src="cartas_2/series_banner.jpg" alt="SERIES" class="submenu-card-img" onerror="this.style.display='none'"><div class="submenu-card-name">SERIES</div></div>
+      <div class="submenu-card" data-expansion="heroes_del_exilio"><img src="https://yairartz.github.io/expansion_agotada_9.jpg" alt="Héroes del Exilio" class="submenu-card-img" onerror="this.style.display='none'"><div class="submenu-card-name">Héroes del Exilio</div></div>
+      <div class="submenu-card" data-expansion="control_absoluto"><img src="https://yairartz.github.io/expansion_agotada_8.jpg" alt="Control Absoluto" class="submenu-card-img" onerror="this.style.display='none'"><div class="submenu-card-name">Control Absoluto</div></div>
+      <div class="submenu-card" data-expansion="renacer_heroico"><img src="https://yairartz.github.io/expansion_agotada_7.jpg" alt="Renacer Heroico" class="submenu-card-img" onerror="this.style.display='none'"><div class="submenu-card-name">Renacer Heroico</div></div>
+      <div class="submenu-card" data-expansion="crisis_dimensional"><img src="https://yairartz.github.io/expansion_agotada_6.jpg" alt="Crisis Dimensional" class="submenu-card-img" onerror="this.style.display='none'"><div class="submenu-card-name">Crisis Dimensional</div></div>
+      <div class="submenu-card" data-expansion="despertar_ancestral"><img src="https://yairartz.github.io/expansion_agotada_5.jpg" alt="El Despertar Ancestral" class="submenu-card-img" onerror="this.style.display='none'"><div class="submenu-card-name">El Despertar Ancestral</div></div>
+      <div class="submenu-card" data-expansion="heroes_de_leyenda"><img src="https://yairartz.github.io/expansion_agotada_4.jpg" alt="Héroes de Leyenda" class="submenu-card-img" onerror="this.style.display='none'"><div class="submenu-card-name">Héroes de Leyenda</div></div>
+      <div class="submenu-card" data-expansion="secretos_de_phorus"><img src="https://yairartz.github.io/expansion_agotada_3.jpg" alt="Secretos de Phorus" class="submenu-card-img" onerror="this.style.display='none'"><div class="submenu-card-name">Secretos de Phorus</div></div>
+      <div class="submenu-card" data-expansion="azote_del_mictlan"><img src="https://yairartz.github.io/expansion_agotada_2.jpg" alt="Azote del Mictlán" class="submenu-card-img" onerror="this.style.display='none'"><div class="submenu-card-name">Azote del Mictlán</div></div>
+      <div class="submenu-card" data-expansion="ancestros"><img src="https://yairartz.github.io/expansion_agotada_1.jpg" alt="Ancestros" class="submenu-card-img" onerror="this.style.display='none'"><div class="submenu-card-name">Ancestros</div></div>
     </div>
-    
-    <button class="back-to-gallery-btn" id="backFromAgotadas">← Volver a Galería</button>
+    <button class="back-to-gallery-btn" id="backFromAgotadas">← Volver a la galería</button>
   </div>
 
-  <!-- MODAL VISTA AMPLIADA -->
-  <div class="modal" id="modal">
+  <!-- FICHA DE CARTA -->
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalCardName">
     <div class="modal-header">
+      <button class="close-btn" id="closeModal" aria-label="Cerrar">×</button>
       <span class="expansion-badge" id="modalExpansionBadge"></span>
-      <button class="close-btn" id="closeModal">×</button>
+      <span class="modal-pos" id="modalPos"></span>
+      <button class="nav-btn" id="prevBtn" aria-label="Carta anterior">‹</button>
+      <button class="nav-btn" id="nextBtn" aria-label="Carta siguiente">›</button>
     </div>
-    <div class="modal-card-container">
-      <img src="" alt="Carta" class="modal-card-img" id="modalCardImg">
-      <div class="modal-card-info">
+    <div class="ficha" id="ficha">
+      <div class="ficha-img-wrap">
+        <div class="holo" id="holo"><img src="" alt="" id="modalCardImg"></div>
+        <div class="ficha-hint" id="fichaHint">Desliza la carta para ver la anterior o la siguiente</div>
+      </div>
+      <div class="panel" id="panel">
+        <button class="fav-btn" id="favBtn" aria-pressed="false" aria-label="Marcar como favorita">♥</button>
         <div class="modal-card-name" id="modalCardName"></div>
         <div class="modal-card-type" id="modalCardType"></div>
-        <button class="add-to-deck-btn" id="addToDeckBtn">+ Agregar a Baraja</button>
+        <div class="tags" id="modalTags"></div>
+        <div id="modalStats"></div>
+        <div id="modalBody"></div>
+        <div class="acciones">
+          <button class="fbtn primary" id="addToDeckBtn">+ Agregar a baraja</button>
+          <button class="fbtn" id="copyBtn">Copiar texto</button>
+          <button class="fbtn" id="shareBtn">Compartir</button>
+        </div>
       </div>
     </div>
   </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script>
     // ═══════════════════════════════════════════════════════
-    // VARIABLES GLOBALES
+    // DATOS
+    //   cartas.json                  → imágenes y expansiones de la galería
+    //   data/cartas_simulacion.json  → texto, estadísticas y habilidades que usa el Simulador
+    //   cartas-limitadas.json        → estado en la lista de cartas limitadas
     // ═══════════════════════════════════════════════════════
-    
-    let allCards = [];
-    let filteredCards = [];
-    let currentExpansion = 'todas';
-    // Nombres a mostrar de algunas expansiones (el id interno no cambia)
+    let allCards = [], filteredCards = [];
+    let currentExpansion = 'todas', currentType = 'todos', soloFav = false, orden = 'orig';
+    let SIM = { porGaleria: {}, porImg: {}, porNombre: {} }, LIM = {};
     const NOMBRES_EXP = { exclusivas_de_barajas: 'Exclusivas de Barajas', sobre_torneo_1: 'Cartas de Liga' };
-    function nombreExp(exp) {
-      return NOMBRES_EXP[exp] || String(exp).split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    const BETA = ['ancestros', 'azote_del_mictlan'];
+    const nombreExp = exp => NOMBRES_EXP[exp] || String(exp).split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    const K = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const $ = id => document.getElementById(id);
+
+    const cardsGrid = $('cardsGrid'), searchInput = $('searchInput'), expansionFilters = $('expansionFilters'),
+          cardCount = $('cardCount'), emptyState = $('emptyState'), modal = $('modal');
+
+    const TIPOS = [
+      { id: 'todos', ico: '✦', nom: 'Todas' },
+      { id: 'pj', ico: '⚔', nom: 'Personajes' },
+      { id: 'amalgama', ico: '🧬', nom: 'Amalgamas' },
+      { id: 'apoyo', ico: '🔴', nom: 'Apoyos' },
+      { id: 'sector', ico: '🟣', nom: 'Sectores' },
+      { id: 'arena', ico: '🟢', nom: 'Arenas' },
+      { id: 'alma', ico: '💙', nom: 'Almas' }
+    ];
+    function tipoDe(card) {
+      const t = K(card.tipo);
+      if (t.includes('AMALGAMA')) return 'amalgama';
+      if (t.includes('PERSONAJE') || t.includes('HEROEINVITADO')) return 'pj';
+      if (t.includes('APOYO')) return 'apoyo';
+      if (t.includes('SECTOR')) return 'sector';
+      if (t.includes('ARENA')) return 'arena';
+      if (t.includes('ALMA')) return 'alma';
+      const s = simDe(card);
+      return s ? s.tipo : 'otro';
     }
 
-    const cardsGrid = document.getElementById('cardsGrid');
-    const searchInput = document.getElementById('searchInput');
-    const expansionFilters = document.getElementById('expansionFilters');
-    const cardCount = document.getElementById('cardCount');
-    const emptyState = document.getElementById('emptyState');
-    const modal = document.getElementById('modal');
-    const closeModalBtn = document.getElementById('closeModal');
+    // ── Favoritas (solo en este dispositivo) ──
+    let FAV = new Set();
+    try { FAV = new Set(JSON.parse(localStorage.getItem('chh_gal_fav') || '[]')); } catch (e) {}
+    const guardarFav = () => { try { localStorage.setItem('chh_gal_fav', JSON.stringify([...FAV])); } catch (e) {} $('favN').textContent = FAV.size; };
 
-    // ═══════════════════════════════════════════════════════
-    // FUNCIONES PRINCIPALES
-    // ═══════════════════════════════════════════════════════
+    // ── Carta del Simulador que corresponde a una carta de la galería ──
+    function simDe(card) {
+      if (card._sim !== undefined) return card._sim;
+      let s = SIM.porGaleria[card.id] || SIM.porImg[(card.ampliada || '').replace(/^\.\//, '')] || SIM.porImg[(card.miniatura || '').replace(/^\.\//, '')] || null;
+      if (!s && card.tipo !== 'BANNER') s = SIM.porNombre[K(card.nombre)] || null;
+      card._sim = s;
+      return s;
+    }
+    function limDe(card) { const s = simDe(card); return LIM[K(card.nombre)] || (s && LIM[K(s.nombre)]) || null; }
+
+    async function cargarJSON(url) { const r = await fetch(url); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }
 
     async function loadCards() {
-      const debugInfo = document.getElementById('debugInfo');
       try {
-        debugInfo.textContent = '📡 Solicitando cartas.json...';
-        
-        const response = await fetch('cartas.json');
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        
-        debugInfo.textContent = `📊 Parseando JSON...`;
-        let cardsData = await response.json();
-        
-        allCards = cardsData;
-        
-        debugInfo.textContent = `✅ ${allCards.length} cartas cargadas`;
-        
-        filteredCards = [...allCards];
-        
-        generateExpansionFilters();
-        renderCards();
-        
-        // Ocultar debug después de 3 segundos
-        setTimeout(() => {
-          debugInfo.style.display = 'none';
-        }, 3000);
-        
+        allCards = await cargarJSON('cartas.json');
       } catch (error) {
-        console.error('Error cargando cartas:', error);
-        debugInfo.textContent = `❌ ERROR: ${error.message}`;
-        debugInfo.style.background = 'rgba(255,77,109,0.1)';
-        debugInfo.style.borderColor = 'rgba(255,77,109,0.3)';
-        debugInfo.style.color = '#ff4d6d';
-        
-        cardCount.textContent = 'ERROR AL CARGAR LAS CARTAS';
+        cardCount.textContent = 'No se pudo cargar el catálogo (' + error.message + '). Revisa tu conexión y vuelve a abrir la galería.';
         emptyState.classList.add('active');
-        document.querySelector('.empty-text').textContent = 'Error al cargar el catálogo';
-        document.querySelector('.empty-subtext').textContent = 'Verifica que cartas.json esté en el repositorio';
+        return;
       }
+      allCards.forEach((c, i) => { c._i = i; });
+      const [sim, lim] = await Promise.allSettled([cargarJSON('data/cartas_simulacion.json'), cargarJSON('cartas-limitadas.json')]);
+      if (sim.status === 'fulfilled') {
+        (sim.value.cartas || []).forEach(c => {
+          if (c.galeriaId) SIM.porGaleria[c.galeriaId] = c;
+          if (c.img) SIM.porImg[c.img.replace(/^\.\//, '')] = c;
+          if (c.imgMin) SIM.porImg[c.imgMin.replace(/^\.\//, '')] = c;
+          [c.nombre, ...[].concat(c.alias || [])].forEach(n => { const k = K(n); if (k && !SIM.porNombre[k]) SIM.porNombre[k] = c; });
+        });
+      }
+      if (lim.status === 'fulfilled') (lim.value || []).forEach(x => { if (x && x.nombre) LIM[K(x.nombre)] = x.estado; });
+      allCards.forEach(c => { c._tipo = tipoDe(c); const s = simDe(c); c._txt = K((s && s.texto) || ''); });
+
+      generateTypeChips();
+      generateExpansionFilters();
+      guardarFav();
+      filterCards();
+      abrirDesdeURL();
+    }
+
+    function generateTypeChips() {
+      const box = $('typeChips');
+      box.innerHTML = TIPOS.map(t => `<button class="type-chip${t.id === currentType ? ' active' : ''}" data-tipo="${t.id}" aria-pressed="${t.id === currentType}"><i>${t.ico}</i>${t.nom}</button>`).join('');
+      box.onclick = e => {
+        const b = e.target.closest('.type-chip'); if (!b) return;
+        currentType = b.dataset.tipo;
+        box.querySelectorAll('.type-chip').forEach(x => { const on = x === b; x.classList.toggle('active', on); x.setAttribute('aria-pressed', on); });
+        filterCards();
+      };
     }
 
     function generateExpansionFilters() {
-      // Extraer expansiones únicas del JSON
       const expansions = [...new Set(allCards.map(card => card.expansion))];
-      
-      // Limpiar filtros existentes
       expansionFilters.innerHTML = '';
-      
-      // Botón "Todas" siempre primero
-      const allBtn = document.createElement('button');
-      allBtn.className = 'filter-btn active';
-      allBtn.dataset.expansion = 'todas';
-      allBtn.textContent = 'Todas';
-      expansionFilters.appendChild(allBtn);
-      
-      // Definir orden específico y agrupar expansiones
+      const add = (txt, data, cls) => {
+        const btn = document.createElement('button');
+        btn.className = 'filter-btn' + (cls ? ' ' + cls : '');
+        Object.assign(btn.dataset, data);
+        btn.textContent = txt;
+        expansionFilters.appendChild(btn);
+      };
+      add('Todas', { expansion: 'todas' }, 'active');
       const barajasInicio = ['baraja_ninjiachi', 'baraja_max_kara', 'baraja_legion_del_mar', 'baraja_evolotl'];
-      const agotadas = [
-        'series',
-        'heroes_del_exilio', 
-        'control_absoluto', 
-        'renacer_heroico',
-        'crisis_dimensional',
-        'despertar_ancestral',
-        'heroes_de_leyenda',
-        'secretos_de_phorus',
-        'azote_del_mictlan',
-        'ancestros'
-      ];
+      const agotadas = ['series', 'heroes_del_exilio', 'control_absoluto', 'renacer_heroico', 'crisis_dimensional', 'despertar_ancestral', 'heroes_de_leyenda', 'secretos_de_phorus', 'azote_del_mictlan', 'ancestros'];
       const especiales = ['sobre_anima', 'sobre_patrio', 'sobre_otakon', 'sobre_torneo_1'];
-      const ordenEspecifico = ['reliquias del multiverso','exclusivas_de_barajas','variantes'];
-      
-      // Agregar primero las expansiones en orden específico
-      ordenEspecifico.forEach(exp => {
-        if (expansions.includes(exp)) {
-          const btn = document.createElement('button');
-          btn.className = 'filter-btn';
-          btn.dataset.expansion = exp;
-          
-          const formattedName = nombreExp(exp);
-          
-          btn.textContent = formattedName;
-          expansionFilters.appendChild(btn);
-        }
-      });
-      
-      // Botón especial: Sobres Especiales (Anima, Patrio, Otakon y Cartas de Liga)
-      if (expansions.some(e => especiales.includes(e))) {
-        const espBtn = document.createElement('button');
-        espBtn.className = 'filter-btn';
-        espBtn.dataset.submenu = 'especiales';
-        espBtn.textContent = '✨ Sobres Especiales';
-        espBtn.style.background = 'linear-gradient(135deg, rgba(245,166,35,0.18), rgba(0,255,157,0.12))';
-        espBtn.style.borderColor = 'rgba(245,166,35,0.5)';
-        expansionFilters.appendChild(espBtn);
-      }
-
-      // Botón especial: Barajas de Inicio
-      if (expansions.some(e => barajasInicio.includes(e))) {
-        const barajasBtn = document.createElement('button');
-        barajasBtn.className = 'filter-btn';
-        barajasBtn.dataset.submenu = 'barajas';
-        barajasBtn.textContent = '🎴 Barajas de Inicio';
-        barajasBtn.style.background = 'linear-gradient(135deg, rgba(0,207,255,0.15), rgba(204,85,255,0.15))';
-        barajasBtn.style.borderColor = 'rgba(0,207,255,0.4)';
-        expansionFilters.appendChild(barajasBtn);
-      }
-      
-      // Botón especial: Expansiones Agotadas
-      if (expansions.some(e => agotadas.includes(e))) {
-        const agotadasBtn = document.createElement('button');
-        agotadasBtn.className = 'filter-btn';
-        agotadasBtn.dataset.submenu = 'agotadas';
-        agotadasBtn.textContent = '⚠️ Expansiones Agotadas';
-        agotadasBtn.style.background = 'linear-gradient(135deg, rgba(255,34,68,0.15), rgba(245,166,35,0.15))';
-        agotadasBtn.style.borderColor = 'rgba(255,34,68,0.4)';
-        expansionFilters.appendChild(agotadasBtn);
-      }
-      
-      // Agregar resto de expansiones (que no estén en los grupos especiales)
+      const ordenEspecifico = ['reliquias del multiverso', 'exclusivas_de_barajas', 'variantes'];
+      ordenEspecifico.forEach(exp => { if (expansions.includes(exp)) add(nombreExp(exp), { expansion: exp }); });
+      if (expansions.some(e => especiales.includes(e))) add('✨ Sobres Especiales', { submenu: 'especiales' }, 'sub');
+      if (expansions.some(e => barajasInicio.includes(e))) add('🎴 Barajas de Inicio', { submenu: 'barajas' }, 'sub');
+      if (expansions.some(e => agotadas.includes(e))) add('⚠️ Expansiones Agotadas', { submenu: 'agotadas' }, 'sub');
       expansions.forEach(exp => {
-        if (!ordenEspecifico.includes(exp) && !barajasInicio.includes(exp) && !agotadas.includes(exp) && !especiales.includes(exp)) {
-          const btn = document.createElement('button');
-          btn.className = 'filter-btn';
-          btn.dataset.expansion = exp;
-          
-          const formattedName = nombreExp(exp);
-          
-          btn.textContent = formattedName;
-          expansionFilters.appendChild(btn);
-        }
+        if (!ordenEspecifico.includes(exp) && !barajasInicio.includes(exp) && !agotadas.includes(exp) && !especiales.includes(exp)) add(nombreExp(exp), { expansion: exp });
       });
+    }
+
+    const valorDe = c => { const s = simDe(c); return s ? (s.coste ?? s.gama ?? s.valor ?? -1) : -1; };
+    function ordenar(list) {
+      const L = [...list];
+      if (orden === 'az') L.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+      else if (orden === 'vmenor') L.sort((a, b) => (valorDe(a) < 0) - (valorDe(b) < 0) || valorDe(a) - valorDe(b) || a._i - b._i);
+      else if (orden === 'vmayor') L.sort((a, b) => valorDe(b) - valorDe(a) || a._i - b._i);
+      else if (orden === 'fue') L.sort((a, b) => ((simDe(b) || {}).fue ?? -1) - ((simDe(a) || {}).fue ?? -1) || a._i - b._i);
+      return L;
     }
 
     function renderCards() {
       cardsGrid.innerHTML = '';
-
       if (filteredCards.length === 0) {
         emptyState.classList.add('active');
         cardsGrid.style.display = 'none';
-        cardCount.textContent = 'NO SE ENCONTRARON CARTAS';
+        cardCount.innerHTML = 'Ninguna carta coincide';
         return;
       }
-
       emptyState.classList.remove('active');
-      cardsGrid.style.display = 'grid';
-      cardCount.textContent = `MOSTRANDO ${filteredCards.length} ${filteredCards.length === 1 ? 'CARTA' : 'CARTAS'}`;
-
-      console.log('Renderizando:', filteredCards.length, 'cartas');
-      console.log('Primera carta:', filteredCards[0]);
-
-      filteredCards.forEach(card => {
-        const cardEl = document.createElement('div');
-        cardEl.className = 'card-item';
-        cardEl.onclick = () => openModal(card);
-
-        if (card.miniatura) {
-          cardEl.innerHTML = `<img src="${card.miniatura}" alt="${card.nombre}" loading="lazy" decoding="async">`;
-          const im = cardEl.querySelector('img');
-          im.onerror = () => { cardEl.innerHTML = `<div class="card-placeholder">${card.nombre}</div>`; };
-        } else {
-          cardEl.innerHTML = `<div class="card-placeholder">${card.nombre}</div>`;
-        }
-
-        cardsGrid.appendChild(cardEl);
+      cardsGrid.style.display = '';
+      cardCount.innerHTML = `<b>${filteredCards.length}</b> ${filteredCards.length === 1 ? 'carta' : 'cartas'}`;
+      const frag = document.createDocumentFragment();
+      filteredCards.forEach((card, idx) => {
+        const el = document.createElement('button');
+        el.className = 'card-item';
+        el.type = 'button';
+        el.dataset.idx = idx;
+        el.setAttribute('aria-label', card.nombre);
+        const lim = limDe(card);
+        const tags = (lim ? `<span class="tile-tag ${lim === 'limitada' ? 'lim' : lim === 'semi' || lim === 'semilimitada' ? 'semi' : 'cond'}">${lim === 'limitada' ? '1' : lim === 'condenada' ? '✖' : '2'}</span>` : '<span></span>') +
+                     (FAV.has(card.id) ? '<span class="tile-fav">♥</span>' : '');
+        el.innerHTML = (card.miniatura ? `<img src="${esc(card.miniatura)}" alt="" loading="lazy" decoding="async">` : `<div class="card-placeholder">${esc(card.nombre)}</div>`) +
+                       `<div class="tile-tags">${tags}</div>`;
+        const im = el.querySelector('img');
+        if (im) im.onerror = () => { im.replaceWith(Object.assign(document.createElement('div'), { className: 'card-placeholder', textContent: card.nombre })); };
+        frag.appendChild(el);
       });
+      cardsGrid.appendChild(frag);
     }
+    cardsGrid.addEventListener('click', e => { const el = e.target.closest('.card-item'); if (el) openModal(+el.dataset.idx); });
 
     function filterCards() {
-      const searchTerm = searchInput.value.toLowerCase().trim();
-      
-      filteredCards = allCards.filter(card => {
-        // Buscar en nombre Y en tipo
-        const matchesSearch = 
-          card.nombre.toLowerCase().includes(searchTerm) ||
-          card.tipo.toLowerCase().includes(searchTerm);
-        
-        const matchesExpansion = currentExpansion === 'todas' || card.expansion === currentExpansion;
-        return matchesSearch && matchesExpansion;
-      });
-
+      const q = searchInput.value.trim();
+      const kq = K(q);
+      $('searchBox').classList.toggle('has-text', !!q);
+      filteredCards = ordenar(allCards.filter(card => {
+        if (kq && !(K(card.nombre).includes(kq) || K(card.tipo).includes(kq) || card._txt.includes(kq))) return false;
+        if (currentExpansion !== 'todas' && card.expansion !== currentExpansion) return false;
+        if (currentType !== 'todos' && card._tipo !== currentType) return false;
+        if (soloFav && !FAV.has(card.id)) return false;
+        return true;
+      }));
       renderCards();
     }
 
-    function openModal(card) {
-      document.getElementById('modalCardImg').src = card.ampliada || card.miniatura || '';
-      document.getElementById('modalCardName').textContent = card.nombre;
-      document.getElementById('modalCardType').textContent = card.tipo;
-      
-      // Formatear nombre de expansión dinámicamente
-      const formattedExpansion = nombreExp(card.expansion);
-      
-      document.getElementById('modalExpansionBadge').textContent = formattedExpansion.toUpperCase();
-      
-      // Botón agregar a baraja — ocultar para banners
-      const addBtn = document.getElementById('addToDeckBtn');
-      if (card.tipo === 'BANNER') {
-        addBtn.style.display = 'none';
-      } else {
-        addBtn.style.display = '';
-        addBtn.onclick = () => {
-          window.location.href = `constructor.html?carta=${card.id}`;
-        };
+    // ═══════════════════════════════════════════════════════
+    // FICHA DE CARTA
+    // ═══════════════════════════════════════════════════════
+    let modalIdx = -1;
+    const SUBT = { rapido: 'Uso Rápido', equipo: 'Equipo', continuo: 'Continuo', normal: 'Normal' };
+    const ESTADO = { limitada: ['lim', 'Limitada · máx. 1 copia'], semi: ['semi', 'Semi-limitada · máx. 2 copias'], semilimitada: ['semi', 'Semi-limitada · máx. 2 copias'], condenada: ['cond', 'Condenada · no se permite'] };
+
+    function textoEfecto(t) {
+      // Resalta lo que más se busca al leer: etiquetas (HABILIDAD:), nombres entre comillas y palabras clave en mayúsculas
+      let h = esc(t);
+      h = h.replace(/(&quot;|“)([^“”]+?)(&quot;|”)/g, '<span class="q">“$2”</span>');
+      h = h.replace(/\b(HABILIDAD(?:ES)?|EFECTO|REQUISITO|COSTO|LLAMADO ESPECIAL)(\s*:)/g, '<span class="lbl">$1$2</span>');
+      h = h.replace(/(^|[^\wÁÉÍÓÚÑ])([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\-]{2,}(?:\s+[A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\-]{2,})*)(?![^<]*>)/g, (m, a, b) => /^(BP|BA|BS)$/.test(b) ? m : a + '<span class="kw">' + b + '</span>');
+      return h.split(/\n+/).map(p => '<p>' + p + '</p>').join('');
+    }
+
+    function statsHTML(s) {
+      if (!s) return '';
+      const it = [];
+      if (s.tipo === 'amalgama' && s.gama != null) it.push(['v', s.gama, 'Gama']);
+      else if (s.coste != null) it.push(['v', s.coste, 'Valor']);
+      else if (s.tipo === 'alma' && s.valor != null) it.push(['v', s.valor, 'Valor']);
+      if (s.fue != null) it.push(['f', s.fue, 'Fuerza']);
+      if (s.res != null) it.push(['r', s.res, 'Resist.']);
+      if (s.cor != null) it.push(['c', s.cor, 'Corazón']);
+      if (s.imp != null) it.push(['i', s.imp, 'Impacto']);
+      if (!it.length) return '';
+      return `<div class="stats" style="grid-template-columns:repeat(${it.length},1fr)">` + it.map(([c, v, l]) => `<div class="stat ${c}"><b>${esc(v)}</b><span>${l}</span></div>`).join('') + '</div>';
+    }
+
+    function versionesDe(card) {
+      const s = simDe(card), k = K(card.nombre);
+      return allCards.filter(c => c.tipo !== 'BANNER' && (K(c.nombre) === k || (s && simDe(c) === s)));
+    }
+
+    function pintarFicha(card) {
+      const s = simDe(card);
+      $('modalCardImg').src = card.ampliada || card.miniatura || '';
+      $('modalCardImg').alt = card.nombre;
+      $('modalCardName').textContent = card.nombre;
+      $('modalCardType').textContent = card.tipo + (s && s.subtipo && SUBT[s.subtipo] && !K(card.tipo).includes(K(SUBT[s.subtipo])) ? ' · ' + SUBT[s.subtipo] : '');
+      $('modalExpansionBadge').textContent = nombreExp(card.expansion).toUpperCase();
+      $('modalPos').textContent = (modalIdx + 1) + ' / ' + filteredCards.length;
+      $('prevBtn').disabled = modalIdx <= 0;
+      $('nextBtn').disabled = modalIdx >= filteredCards.length - 1;
+
+      const tags = [];
+      const lim = limDe(card);
+      if (lim && ESTADO[lim]) tags.push(`<span class="tag ${ESTADO[lim][0]}">${ESTADO[lim][1]}</span>`);
+      if (s && s.invitado && !K(card.tipo).includes('INVITADO')) tags.push('<span class="tag inv">Héroe Invitado</span>');
+      if (s && s.dios) tags.push('<span class="tag">Dios</span>');
+      if (s && s.noNegable) tags.push('<span class="tag">No puede ser negada</span>');
+      $('modalTags').innerHTML = tags.join('');
+      $('modalStats').innerHTML = statsHTML(s);
+
+      let body = '';
+      if (s && s.habilidades && s.habilidades.length) body += '<div class="hab">' + s.habilidades.map(h => `<span>${esc(h)}</span>`).join('') + '</div>';
+      if (s && s.llamadoEspecial && s.llamadoEspecial.texto) body += `<div class="bloque"><h3>Llamado especial</h3><div class="req">${esc(s.llamadoEspecial.texto)}</div></div>`;
+      if (s && s.texto) {
+        body += `<div class="bloque"><h3>Efecto</h3><div class="efecto">${textoEfecto(s.texto)}</div></div>`;
+        if (BETA.includes(card.expansion)) body += '<div class="nota warn">Carta de la beta: no se usa en el Simulador. Este es el texto de su reimpresión.</div>';
+        else body += '<div class="nota">Texto tal como lo aplica el Simulador.</div>';
+      } else if (card.tipo !== 'BANNER') {
+        body += `<div class="bloque"><h3>Efecto</h3><div class="sin-texto">${BETA.includes(card.expansion) ? 'Carta de la beta: no se usa en el Simulador. Lee el efecto en la imagen.' : 'Esta carta todavía no tiene versión en texto. Lee el efecto en la imagen.'}</div></div>`;
       }
-      
+      const vers = versionesDe(card);
+      if (vers.length > 1) {
+        body += '<div class="bloque"><h3>Otras versiones</h3><div class="versiones" id="versiones">' +
+          vers.map(v => `<button data-id="${esc(v.id)}" class="${v === card ? 'cur' : ''}" aria-label="${esc(nombreExp(v.expansion))}" title="${esc(nombreExp(v.expansion))}"><img src="${esc(v.miniatura || v.ampliada || '')}" alt="" loading="lazy"></button>`).join('') + '</div></div>';
+      }
+      $('modalBody').innerHTML = body;
+      const vb = $('versiones');
+      if (vb) vb.onclick = e => {
+        const b = e.target.closest('button'); if (!b) return;
+        const c = allCards.find(x => x.id === b.dataset.id); if (!c || c === card) return;
+        let i = filteredCards.indexOf(c);
+        if (i < 0) { filteredCards = [...filteredCards, c]; i = filteredCards.length - 1; }
+        mostrar(i);
+      };
+
+      $('favBtn').setAttribute('aria-pressed', FAV.has(card.id));
+      const addBtn = $('addToDeckBtn');
+      addBtn.style.display = card.tipo === 'BANNER' ? 'none' : '';
+      addBtn.onclick = () => { window.location.href = `constructor.html?carta=${encodeURIComponent(card.id)}`; };
+      $('copyBtn').style.display = s && s.texto ? '' : 'none';
+      $('ficha').scrollTop = 0;
+    }
+
+    function mostrar(i) {
+      if (i < 0 || i >= filteredCards.length) return;
+      modalIdx = i;
+      pintarFicha(filteredCards[i]);
+      try { history.replaceState({ ficha: true }, '', '?carta=' + encodeURIComponent(filteredCards[i].id)); } catch (e) {}
+      // precarga la siguiente para que pasar de carta sea inmediato
+      const n = filteredCards[i + 1]; if (n && n.ampliada) { const im = new Image(); im.src = n.ampliada; }
+    }
+
+    function openModal(i) {
+      const yaAbierta = modal.classList.contains('active');
       modal.classList.add('active');
       document.body.style.overflow = 'hidden';
+      if (!yaAbierta) { try { history.pushState({ ficha: true }, '', '?carta=' + encodeURIComponent(filteredCards[i].id)); } catch (e) {} }
+      mostrar(i);
+      modal.scrollTop = 0;
+      $('closeModal').focus({ preventScroll: true });
     }
-
-    function closeModal() {
+    function cerrarUI() {
       modal.classList.remove('active');
-      document.body.style.overflow = 'auto';
+      document.body.style.overflow = '';
+      const el = cardsGrid.querySelector(`.card-item[data-idx="${modalIdx}"]`);
+      if (el) el.focus({ preventScroll: false });
+    }
+    function closeModal() {
+      if (history.state && history.state.ficha) history.back(); else { cerrarUI(); try { history.replaceState(null, '', location.pathname); } catch (e) {} }
+    }
+    addEventListener('popstate', () => { if (modal.classList.contains('active')) cerrarUI(); });
+
+    function abrirDesdeURL() {
+      const id = new URLSearchParams(location.search).get('carta');
+      if (!id) return;
+      const i = filteredCards.findIndex(c => c.id === id);
+      if (i < 0) return;
+      try { history.replaceState(null, '', location.pathname); } catch (e) {}
+      openModal(i);
     }
 
-    // ═══════════════════════════════════════════════════════
-    // EVENT LISTENERS
-    // ═══════════════════════════════════════════════════════
-
-    searchInput.addEventListener('input', filterCards);
-
-    // ═══════════════════════════════════════════════════════
-    // MANEJO DE SUBMENÚS
-    // ═══════════════════════════════════════════════════════
-    
-    const mainGalleryView = document.getElementById('mainGalleryView');
-    const barajasSubmenu = document.getElementById('barajasSubmenu');
-    const agotadasSubmenu = document.getElementById('agotadasSubmenu');
-    const backFromBarajas = document.getElementById('backFromBarajas');
-    const backFromAgotadas = document.getElementById('backFromAgotadas');
-    const especialesSubmenu = document.getElementById('especialesSubmenu');
-    const backFromEspeciales = document.getElementById('backFromEspeciales');
-
-    expansionFilters.addEventListener('click', (e) => {
-      if (e.target.classList.contains('filter-btn')) {
-        // Si es un botón de submenú
-        if (e.target.dataset.submenu === 'barajas') {
-          mainGalleryView.style.display = 'none';
-          barajasSubmenu.classList.add('active');
-          return;
-        } else if (e.target.dataset.submenu === 'especiales') {
-          mainGalleryView.style.display = 'none';
-          especialesSubmenu.classList.add('active');
-          return;
-        } else if (e.target.dataset.submenu === 'agotadas') {
-          mainGalleryView.style.display = 'none';
-          agotadasSubmenu.classList.add('active');
-          return;
-        }
-        
-        // Si es un filtro normal
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-          btn.classList.remove('active');
-        });
-        e.target.classList.add('active');
-
-        currentExpansion = e.target.dataset.expansion;
-        filterCards();
-      }
+    $('closeModal').onclick = closeModal;
+    $('prevBtn').onclick = () => mostrar(modalIdx - 1);
+    $('nextBtn').onclick = () => mostrar(modalIdx + 1);
+    modal.addEventListener('click', e => { if (e.target === modal || e.target.id === 'ficha') closeModal(); });
+    addEventListener('keydown', e => {
+      if (!modal.classList.contains('active')) return;
+      if (e.key === 'Escape') closeModal();
+      else if (e.key === 'ArrowLeft') mostrar(modalIdx - 1);
+      else if (e.key === 'ArrowRight') mostrar(modalIdx + 1);
     });
-    
-    // Seleccionar expansión desde submenús
-    barajasSubmenu.addEventListener('click', (e) => {
+
+    $('favBtn').onclick = () => {
+      const c = filteredCards[modalIdx]; if (!c) return;
+      if (FAV.has(c.id)) FAV.delete(c.id); else FAV.add(c.id);
+      guardarFav();
+      $('favBtn').setAttribute('aria-pressed', FAV.has(c.id));
+      toast(FAV.has(c.id) ? '♥ Agregada a favoritas' : 'Quitada de favoritas');
+      const el = cardsGrid.querySelector(`.card-item[data-idx="${modalIdx}"] .tile-tags`);
+      if (el) { const f = el.querySelector('.tile-fav'); if (FAV.has(c.id) && !f) el.insertAdjacentHTML('beforeend', '<span class="tile-fav">♥</span>'); else if (!FAV.has(c.id) && f) f.remove(); }
+    };
+    $('favToggle').onclick = () => {
+      soloFav = !soloFav;
+      $('favToggle').setAttribute('aria-pressed', soloFav);
+      $('topSub').textContent = soloFav ? 'Mostrando solo tus favoritas' : 'Toca una carta para ver su ficha';
+      filterCards();
+    };
+
+    function textoPlano(card) {
+      const s = simDe(card); if (!s) return card.nombre;
+      const st = [];
+      if (s.tipo === 'amalgama' && s.gama != null) st.push('Gama ' + s.gama); else if (s.coste != null) st.push('Valor ' + s.coste);
+      if (s.fue != null) st.push('FUE ' + s.fue + ' / RES ' + s.res + ' / COR ' + s.cor + ' / IMP ' + s.imp);
+      return [card.nombre, card.tipo + (st.length ? ' — ' + st.join(' · ') : ''), (s.habilidades || []).join(', '), s.llamadoEspecial && s.llamadoEspecial.texto ? 'Llamado especial: ' + s.llamadoEspecial.texto : '', s.texto].filter(Boolean).join('\n');
+    }
+    async function copiar(t) {
+      try { await navigator.clipboard.writeText(t); return true; } catch (e) {
+        const ta = Object.assign(document.createElement('textarea'), { value: t }); document.body.appendChild(ta); ta.select();
+        let ok = false; try { ok = document.execCommand('copy'); } catch (_) {} ta.remove(); return ok;
+      }
+    }
+    $('copyBtn').onclick = async () => { toast(await copiar(textoPlano(filteredCards[modalIdx])) ? 'Texto copiado' : 'No se pudo copiar'); };
+    $('shareBtn').onclick = async () => {
+      const c = filteredCards[modalIdx];
+      const url = location.origin + location.pathname + '?carta=' + encodeURIComponent(c.id);
+      if (navigator.share) { try { await navigator.share({ title: c.nombre, text: c.nombre + ' · Choque de Héroes', url }); } catch (e) {} return; }
+      toast(await copiar(url) ? 'Enlace copiado' : 'No se pudo copiar el enlace');
+    };
+
+    let tt;
+    function toast(m) { const t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('show'), 1700); }
+
+    // ── Carta: inclinación con brillo holográfico y deslizar para cambiar de carta ──
+    (function () {
+      const holo = $('holo');
+      const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      let x0 = null, y0 = 0, t0 = 0;
+      function tilt(e) {
+        if (reduce) return;
+        const r = holo.getBoundingClientRect();
+        const px = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)), py = Math.min(1, Math.max(0, (e.clientY - r.top) / r.height));
+        holo.style.transform = `rotateY(${(px - .5) * 16}deg) rotateX(${(.5 - py) * 16}deg)`;
+        holo.style.setProperty('--mx', px * 100 + '%'); holo.style.setProperty('--my', py * 100 + '%');
+        holo.style.setProperty('--hx', px * 100 + '%'); holo.style.setProperty('--hy', py * 100 + '%');
+        holo.classList.add('tilt');
+      }
+      function reset() { holo.style.transform = ''; holo.classList.remove('tilt'); }
+      holo.addEventListener('pointermove', e => { if (e.pointerType === 'mouse') tilt(e); });
+      holo.addEventListener('pointerleave', reset);
+      holo.addEventListener('pointerdown', e => { x0 = e.clientX; y0 = e.clientY; t0 = Date.now(); if (e.pointerType !== 'mouse') tilt(e); });
+      holo.addEventListener('pointerup', e => {
+        if (x0 == null) return;
+        const dx = e.clientX - x0, dy = e.clientY - y0;
+        x0 = null;
+        if (e.pointerType !== 'mouse') setTimeout(reset, 450);
+        if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.4 && Date.now() - t0 < 700) mostrar(modalIdx + (dx < 0 ? 1 : -1));
+      });
+      holo.addEventListener('pointercancel', () => { x0 = null; reset(); });
+      if (matchMedia('(hover: hover)').matches) $('fichaHint').textContent = 'Usa ← → para cambiar de carta';
+    })();
+
+    // ═══════════════════════════════════════════════════════
+    // BÚSQUEDA, ORDEN Y SUBMENÚS
+    // ═══════════════════════════════════════════════════════
+    let tq;
+    searchInput.addEventListener('input', () => { clearTimeout(tq); tq = setTimeout(filterCards, 120); });
+    $('searchClear').onclick = () => { searchInput.value = ''; filterCards(); searchInput.focus(); };
+    $('sortSelect').onchange = e => { orden = e.target.value; filterCards(); };
+    $('clearFilters').onclick = () => {
+      searchInput.value = ''; currentType = 'todos'; currentExpansion = 'todas'; soloFav = false;
+      $('favToggle').setAttribute('aria-pressed', false); $('topSub').textContent = 'Toca una carta para ver su ficha';
+      generateTypeChips();
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.expansion === 'todas'));
+      filterCards();
+    };
+
+    const mainGalleryView = $('mainGalleryView');
+    const SUBMENUS = { barajas: $('barajasSubmenu'), especiales: $('especialesSubmenu'), agotadas: $('agotadasSubmenu') };
+    expansionFilters.addEventListener('click', e => {
+      const b = e.target.closest('.filter-btn'); if (!b) return;
+      if (b.dataset.submenu) { mainGalleryView.style.display = 'none'; SUBMENUS[b.dataset.submenu].classList.add('active'); scrollTo(0, 0); return; }
+      document.querySelectorAll('.filter-btn').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      currentExpansion = b.dataset.expansion;
+      filterCards();
+    });
+    Object.values(SUBMENUS).forEach(sm => sm.addEventListener('click', e => {
       const card = e.target.closest('.submenu-card');
-      if (card) {
-        const expansion = card.dataset.expansion;
-        currentExpansion = expansion;
-        filterCards();
-        barajasSubmenu.classList.remove('active');
-        mainGalleryView.style.display = 'block';
-        
-        // Actualizar botones
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      }
-    });
-    
-    agotadasSubmenu.addEventListener('click', (e) => {
-      const card = e.target.closest('.submenu-card');
-      if (card) {
-        const expansion = card.dataset.expansion;
-        currentExpansion = expansion;
-        filterCards();
-        agotadasSubmenu.classList.remove('active');
-        mainGalleryView.style.display = 'block';
-        
-        // Actualizar botones
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      }
-    });
-    
-    especialesSubmenu.addEventListener('click', (e) => {
-      const card = e.target.closest('.submenu-card');
-      if (card) {
-        currentExpansion = card.dataset.expansion;
-        filterCards();
-        especialesSubmenu.classList.remove('active');
-        mainGalleryView.style.display = 'block';
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      }
-    });
-
-    // Botones de regreso
-    backFromEspeciales.addEventListener('click', () => {
-      especialesSubmenu.classList.remove('active');
+      if (!card) return;
+      currentExpansion = card.dataset.expansion;
+      filterCards();
+      sm.classList.remove('active');
       mainGalleryView.style.display = 'block';
+      document.querySelectorAll('.filter-btn').forEach(x => x.classList.remove('active'));
+      cardCount.innerHTML = `<b>${filteredCards.length}</b> cartas · ${esc(nombreExp(currentExpansion))}`;
+    }));
+    [['backFromBarajas', 'barajas'], ['backFromEspeciales', 'especiales'], ['backFromAgotadas', 'agotadas']].forEach(([id, k]) => {
+      $(id).addEventListener('click', () => { SUBMENUS[k].classList.remove('active'); mainGalleryView.style.display = 'block'; });
     });
-
-    backFromBarajas.addEventListener('click', () => {
-      barajasSubmenu.classList.remove('active');
-      mainGalleryView.style.display = 'block';
-    });
-    
-    backFromAgotadas.addEventListener('click', () => {
-      agotadasSubmenu.classList.remove('active');
-      mainGalleryView.style.display = 'block';
-    });
-
-    closeModalBtn.addEventListener('click', closeModal);
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) closeModal();
-    });
-
-    // ═══════════════════════════════════════════════════════
-    // INICIALIZACIÓN
-    // ═══════════════════════════════════════════════════════
 
     loadCards();
   </script>
 
   <!-- Sistema de ajustes -->
   <script src="settings.js"></script>
-
 </body>
 </html>

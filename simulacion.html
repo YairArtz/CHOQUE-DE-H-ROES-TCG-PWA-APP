@@ -997,7 +997,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 #epConfirm{z-index:10060}
 :root.rot #epConfirm{inset:auto;top:0;left:0;width:var(--vh);height:100vw;transform-origin:top left;transform:rotate(90deg) translateY(-100%)}
 :root.rot.flip #epConfirm{transform:rotate(-90deg) translateX(-100%)}
-.ep-confirm{text-align:center;max-width:min(400px,92vw)!important}
+.ep-confirm{text-align:center;max-width:min(400px,calc(var(--W) * .92))!important}
 .ep-confirm .ep-ico{font-size:40px;line-height:1;margin:2px 0 6px;filter:drop-shadow(0 0 14px rgba(255,170,0,.6));animation:epLatidoIco 1.6s ease-in-out infinite}
 @keyframes epLatidoIco{50%{transform:scale(1.08)}}
 .ep-confirm .ep-tt{font-family:'Orbitron',sans-serif;font-weight:900;font-size:16px;letter-spacing:3px;margin-bottom:8px;
@@ -1025,6 +1025,12 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 /* v61 · Inicio girado: tamaño calculado en píxeles reales del teléfono */
 :root.rot .boot,:root.rot .ds-list,:root.rot #epConfirm{width:var(--rotW,var(--vh))!important;height:var(--rotH,100vw)!important}
 :root.rot .boot-card{height:calc(var(--rotH,100vw) - 56px)!important}
+/* v62 · El inicio, la lista de barajas y las confirmaciones viven DENTRO de #stage:
+   giran junto con el tablero (que en Android sí ocupa toda la pantalla), sin rotación propia. */
+:root.rot #stage>.boot,:root.rot #stage>.ds-list,:root.rot #stage>#epConfirm{inset:0!important;width:auto!important;height:auto!important;transform:none!important}
+:root.rot #stage>.boot{overflow:hidden}
+:root.rot #stage>.boot>.boot-card{height:calc(100% - 56px)!important;max-height:none}
+:root.rot #stage>.ds-list .ds-list-box{max-height:calc(100% - 32px)}
 </style>
 </head>
 <body>
@@ -1234,7 +1240,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v61';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v62';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -7818,7 +7824,7 @@ function arcadePreparar(){
   return r;};}
 function bannerCreador(t,sub){try{
   let b=document.getElementById('creadorBanner');
-  if(!b){b=document.createElement('div');b.id='creadorBanner';b.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;background:radial-gradient(ellipse at center,rgba(255,209,102,.35),rgba(0,0,0,.75) 70%);opacity:0;transition:opacity .35s';document.body.appendChild(b);}
+  if(!b){b=document.createElement('div');b.id='creadorBanner';b.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;background:radial-gradient(ellipse at center,rgba(255,209,102,.35),rgba(0,0,0,.75) 70%);opacity:0;transition:opacity .35s';(document.getElementById('stage')||document.body).appendChild(b);}
   b.innerHTML='<div style="font-family:Orbitron,sans-serif;font-weight:900;font-size:clamp(20px,5vw,44px);color:#ffe9a8;letter-spacing:3px;text-shadow:0 0 12px #ffb300,0 0 30px #ff7a00,0 2px 0 #000;text-align:center;padding:0 16px">'+t+'</div><div style="margin-top:10px;font-size:clamp(12px,2.6vw,18px);color:#fff;text-shadow:0 1px 4px #000;text-align:center;padding:0 16px">'+arcadeEsc(sub||'')+'</div>';
   b.style.opacity='1';clearTimeout(b._t);b._t=setTimeout(()=>{b.style.opacity='0';},2200);
 }catch(e){}}
@@ -7961,7 +7967,7 @@ if('serviceWorker' in navigator&&location.protocol!=='file:'){addEventListener('
 function ventanaConfirmar(titulo,texto,si,no,ico){
   return new Promise(res=>{
     let m=document.getElementById('epConfirm');
-    if(!m){m=document.createElement('div');m.className='choose-overlay';m.id='epConfirm';document.body.appendChild(m);}
+    if(!m){m=document.createElement('div');m.className='choose-overlay';m.id='epConfirm';(document.getElementById('stage')||document.body).appendChild(m);}
     m.innerHTML='<div class="choose-box ep-confirm"><div class="ep-ico">'+(ico||'⚠️')+'</div><div class="ep-tt">'+titulo+'</div>'+
       '<div class="choose-title">'+texto+'</div><button class="sector-btn" id="epSi" type="button">'+si+'</button>'+
       '<button class="sector-cancel" id="epNo" type="button" data-gp-back>'+no+'</button></div>';
@@ -7981,6 +7987,13 @@ function salirPartida(ev,a){
   ventanaConfirmar('¿ABANDONAR LA PARTIDA?','Se perderá el progreso de este combate.','🚪 SÍ, SALIR','↩ SEGUIR JUGANDO','⚠️').then(ok=>{if(ok)ir();});
   return false;
 }
+</script>
+<script>
+// v62 · Mover el inicio y la lista de barajas dentro de #stage (giran con el tablero)
+(function(){
+  const st=document.getElementById('stage'); if(!st) return;
+  ['dsList','bootScreen'].forEach(id=>{const e=document.getElementById(id); if(e&&e.parentNode!==st) st.insertBefore(e,st.firstChild);});
+})();
 </script>
 <script>
 // v61 · Medidas reales para la vista girada (algunos Android calculan mal 100dvh/100vw en vertical)

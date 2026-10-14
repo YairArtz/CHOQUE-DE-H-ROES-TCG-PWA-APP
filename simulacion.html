@@ -992,6 +992,20 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
   .choose-box,.sector-box,.discard-box,.cbox,.bs-box,.ds-list-box,.endgame-box{animation:none!important}
   .endgame-overlay::before{animation:none}
 }
+
+/* v60 · Ventana de confirmación épica (salir de la partida, borrar descargas) */
+#epConfirm{z-index:10060}
+:root.rot #epConfirm{inset:auto;top:0;left:0;width:var(--vh);height:100vw;transform-origin:top left;transform:rotate(90deg) translateY(-100%)}
+:root.rot.flip #epConfirm{transform:rotate(-90deg) translateX(-100%)}
+.ep-confirm{text-align:center;max-width:min(400px,92vw)!important}
+.ep-confirm .ep-ico{font-size:40px;line-height:1;margin:2px 0 6px;filter:drop-shadow(0 0 14px rgba(255,170,0,.6));animation:epLatidoIco 1.6s ease-in-out infinite}
+@keyframes epLatidoIco{50%{transform:scale(1.08)}}
+.ep-confirm .ep-tt{font-family:'Orbitron',sans-serif;font-weight:900;font-size:16px;letter-spacing:3px;margin-bottom:8px;
+  background:linear-gradient(90deg,#fff2c4,#ffd166,#fff6d8,#f5a623,#fff2c4);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;animation:epBrillo 4s linear infinite;filter:drop-shadow(0 0 6px rgba(255,170,0,.45))}
+.ep-confirm .choose-title{margin-bottom:14px!important}
+.ep-confirm .sector-btn{width:100%}
+.ep-confirm .sector-cancel{padding:11px!important;font-size:10px!important}
 </style>
 </head>
 <body>
@@ -1038,7 +1052,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
   <!-- ═══ PANEL IZQUIERDO: DETALLE DE CARTA ═══ -->
   <aside class="panel side-l">
     <div class="sl-top">
-      <a href="simulacion.html" class="hdr-back" onclick="return (typeof G==='undefined'||!G||G.over||confirm('¿Salir de la partida? Se perderá el progreso de este combate.'))">← SALIR</a>
+      <a href="simulacion.html" class="hdr-back" onclick="return salirPartida(event,this)">← SALIR</a>
       <img class="hdr-logo" id="hdrLogo" alt="CDH">
     </div>
     <div class="dt" id="detail"></div>
@@ -1201,7 +1215,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v59';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v60';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -7522,7 +7536,7 @@ async function mediosPanel(){
     document.getElementById('apSfxTest').onclick=()=>{const was=MUTED;MUTED=false;playSound('call');setTimeout(()=>playSound('destroy'),450);MUTED=was;};
     document.getElementById('apDesc').onclick=()=>{descargarTodo(true,()=>pinta());pinta();};
     document.getElementById('apAuto').onclick=()=>{CHH_MEDIOS.setAuto(!CHH_MEDIOS.puedeAuto());pinta();};
-    document.getElementById('apBorra').onclick=async()=>{if(!confirm('¿Borrar la música, sonidos, micas y playmats descargados? Se volverán a descargar cuando haya internet.'))return;await CHH_MEDIOS.borrar();pinta();};
+    document.getElementById('apBorra').onclick=async()=>{if(!await ventanaConfirmar('¿BORRAR DESCARGAS?','Se borrarán la música, sonidos, micas y playmats descargados. Se volverán a descargar cuando haya internet.','🗑 SÍ, BORRAR','↩ CANCELAR','🗑'))return;await CHH_MEDIOS.borrar();pinta();};
   };
   box.innerHTML='<h4>SONIDO Y DESCARGAS</h4><div class="ap-note">Cargando…</div>';
   if(!window.CHH_MEDIOS){box.innerHTML='';return;}
@@ -7878,7 +7892,7 @@ window.GP_CFG={
   select:()=>document.getElementById('btnMute'),
   // B sin ventana abierta: cancela el ataque elegido o la selección (nunca sale de la partida)
   atras:()=>{
-    if(document.querySelector('#bsModal.show,#chooseModal.show,#sectorModal.show,#combatMod.show,#discardModal.show,#dsList.show,#endgameModal.show')) return false;
+    if(document.querySelector('#bsModal.show,#chooseModal.show,#sectorModal.show,#combatMod.show,#discardModal.show,#dsList.show,#endgameModal.show,#epConfirm.show')) return false;
     if(typeof G!=='undefined'&&G&&!G.over){
       try{if(typeof ATK_SLOT!=='undefined'&&ATK_SLOT!==null){ATK_SLOT=null;renderAll();return true;}
         if(typeof SEL_IDX!=='undefined'&&SEL_IDX>=0){SEL_IDX=-1;showDetail(null);renderAll();return true;}}catch(e){}
@@ -7922,6 +7936,32 @@ if('serviceWorker' in navigator&&location.protocol!=='file:'){addEventListener('
   if(typeof restartGame==='function'){const _rg=restartGame;restartGame=function(){const r=_rg.apply(this,arguments);
     if(musFin){const m=musFin;musFin=null;try{mpAudio.volume=m.v;mpAudio.play().then(()=>{MP.on=true;mpUI();}).catch(()=>{});}catch(e){}}return r;};}
 })();
+</script>
+<script>
+// ═══ v60 · Ventana de confirmación épica (reemplaza los avisos del navegador) ═══
+function ventanaConfirmar(titulo,texto,si,no,ico){
+  return new Promise(res=>{
+    let m=document.getElementById('epConfirm');
+    if(!m){m=document.createElement('div');m.className='choose-overlay';m.id='epConfirm';document.body.appendChild(m);}
+    m.innerHTML='<div class="choose-box ep-confirm"><div class="ep-ico">'+(ico||'⚠️')+'</div><div class="ep-tt">'+titulo+'</div>'+
+      '<div class="choose-title">'+texto+'</div><button class="sector-btn" id="epSi" type="button">'+si+'</button>'+
+      '<button class="sector-cancel" id="epNo" type="button" data-gp-back>'+no+'</button></div>';
+    m.classList.add('show');
+    const fin=v=>{m.classList.remove('show');res(v);};
+    m.querySelector('#epSi').onclick=()=>fin(true);
+    m.querySelector('#epNo').onclick=()=>fin(false);
+    m.onclick=e=>{if(e.target===m)fin(false);};
+    try{if(window.GP&&GP.activo())setTimeout(()=>GP.enfocar(m.querySelector('#epNo')),60);}catch(e){}
+  });
+}
+// Botón ← SALIR: confirma con la ventana épica y apaga la vibración del control antes de cambiar de página
+function salirPartida(ev,a){
+  const ir=()=>{try{if(window.GP&&GP.parar)GP.parar();}catch(e){}const h=a.href;setTimeout(()=>{location.href=h;},140);};
+  if(typeof G==='undefined'||!G||G.over){ev.preventDefault();ir();return false;}
+  ev.preventDefault();
+  ventanaConfirmar('¿ABANDONAR LA PARTIDA?','Se perderá el progreso de este combate.','🚪 SÍ, SALIR','↩ SEGUIR JUGANDO','⚠️').then(ok=>{if(ok)ir();});
+  return false;
+}
 </script>
 </body>
 </html>

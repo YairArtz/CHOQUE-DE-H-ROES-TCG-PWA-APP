@@ -207,8 +207,8 @@
     const opt = { bubbles: true, cancelable: true, clientX: x, clientY: y, view: window };
     try { const ev = new PointerEvent('pointerdown', opt); ev._gp = true; el.dispatchEvent(ev); } catch (e) {}
     if (el.tagName === 'INPUT' || el.tagName === 'SELECT') { el.focus(); if (el.tagName === 'SELECT') try { el.showPicker(); } catch (e) {} return; }
+    vibrar(18, .25);   // antes del clic: si el clic cambia de página, la vibración ya terminó
     el.click();
-    vibrar(18, .25);
   }
   function tocarPuntero() {
     const h = document.elementFromPoint(px, py); if (!h) return;
@@ -260,9 +260,26 @@
     try {
       const g = [...navigator.getGamepads()].find(Boolean);
       const v = g && g.vibrationActuator;
-      if (v && v.playEffect) v.playEffect('dual-rumble', { duration: ms || 120, strongMagnitude: f || .6, weakMagnitude: f || .6 });
+      if (v && v.playEffect) {
+        v.playEffect('dual-rumble', { duration: ms || 120, strongMagnitude: f || .6, weakMagnitude: f || .6 }).catch(() => {});
+        // Seguro: apaga el motor al terminar (algunos controles se quedan vibrando si la página cambia)
+        clearTimeout(vibrar._t); vibrar._t = setTimeout(parar, (ms || 120) + 80);
+      }
     } catch (e) {}
   }
+  // Detiene la vibración de todos los controles
+  function parar() {
+    try {
+      [...navigator.getGamepads()].filter(Boolean).forEach(g => {
+        const v = g.vibrationActuator; if (!v) return;
+        if (v.reset) v.reset().catch(() => {});
+        else if (v.playEffect) v.playEffect('dual-rumble', { duration: 1, strongMagnitude: 0, weakMagnitude: 0 }).catch(() => {});
+      });
+    } catch (e) {}
+  }
+  addEventListener('pagehide', parar);
+  addEventListener('beforeunload', parar);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) parar(); });
 
   // ── Lectura del control ──
   function pulsado(g, i) { const b = g.buttons[i]; return !!b && (b.pressed || b.value > .5); }
@@ -320,5 +337,5 @@
   // Algunos navegadores no avisan "gamepadconnected" si el control ya estaba conectado
   if (navigator.getGamepads && [...navigator.getGamepads()].some(Boolean)) { bucle._on = true; requestAnimationFrame(bucle); }
 
-  window.GP = { activo: () => activo, vibrar, enfocar, valido, refrescarHud: pintarHud };
+  window.GP = { activo: () => activo, vibrar, parar, enfocar, valido, refrescarHud: pintarHud };
 })();

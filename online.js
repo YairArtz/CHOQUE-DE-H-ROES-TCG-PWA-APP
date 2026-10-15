@@ -15,7 +15,7 @@
 // ════════════════════════════════════════════════════════════════════════════
 (function () {
 'use strict';
-const ONLINE_VER = 'Online v1.2';
+const ONLINE_VER = 'Online v1.3';
 const FB_CFG = {
   apiKey: 'AIzaSyDif80xeOdjhJ2_-jcRwQK80bPqiVgzCPY',
   authDomain: 'choque-heroes-online.firebaseapp.com',
@@ -282,7 +282,18 @@ function sinCPU(t) {
 // ¿El texto que se acaba de escribir es del punto de vista de este teléfono?
 function textoPara(destino, t) {   // destino: 'host' | 'guest'
   const marcoEs = ON.swapped ? 'guest' : 'host';
-  return sinCPU(marcoEs === destino ? t : voltearTexto(t));
+  return sinCPU(marcoEs === destino ? t : voltearTexto(ocultarMano(t)));
+}
+// Mensajes escritos para quien juega el turno que revelan cartas que entran a SU mano:
+// el rival solo ve cuántas.
+const _nb = t => (String(t).match(/<b>[^<]*<\/b>/g) || []).length;
+function ocultarMano(t) {
+  t = String(t);
+  t = t.replace(/^(💙|🃏) Robaste <b>[^<]*<\/b> de tu (BA|BP)\./, (m, ic, z) => ic + ' El rival robó una carta de su ' + z + '.');
+  t = t.replace(/(: añade )((?:<b>[^<]*<\/b>(?:, )?)+)( a la mano)/, (m, a, nombres, b) => { const n = _nb(nombres); return a + (n === 1 ? 'una carta' : n + ' cartas') + b; });
+  t = t.replace(/(mira \d+ cartas y añade )<b>[^<]*<\/b>( a la mano)/, '$1una$2');
+  t = t.replace(/( toma )<b>[^<]*<\/b>( del tope de la BP)/, '$1una carta$2');
+  return t;
 }
 
 // ════════════════════════════════════
@@ -373,14 +384,35 @@ async function crearSala() {
   sessionStorage.setItem('chh_online_sala', JSON.stringify({ rol: 'host', code: ON.code }));
   mostrarSala('TU SALA · comparte este código', 'Esperando a que tu rival se una…');
   estadoLobby('Sala creada');
+  let _visto = false, _fuera = null;
   netOnInfo(info => {
+    const antes = ON.rivalOnline;
     ON.rivalOnline = !!info.guestOn;
+    if (ON.rivalOnline) _visto = true;
     if (info.guest && !ON.jugando) {
       ON.rivalNombre = info.guest;
-      mostrarSala('TU SALA', '⚔ <b>' + esc(info.guest) + '</b> se unió con <b>' + esc(info.guestDeckNombre || 'su baraja') + '</b>.<br>Toca INICIAR cuando estén listos.');
-      $('onJugar').style.display = '';
+      if (ON.rivalOnline || !_visto) {
+        mostrarSala('TU SALA', '⚔ <b>' + esc(info.guest) + '</b> se unió con <b>' + esc(info.guestDeckNombre || 'su baraja') + '</b>.<br>Toca INICIAR cuando estén listos.');
+        $('onJugar').style.display = '';
+      } else {
+        mostrarSala('TU SALA', '⚠ <b>' + esc(info.guest) + '</b> salió de la sala. Espera a que vuelva a entrar o comparte el código con otro rival.');
+        $('onJugar').style.display = 'none';
+      }
     }
     marcaConexion();
+    // Durante la partida: aviso y 60 s para regresar; si no, gana el anfitrión por abandono
+    if (ON.jugando && G && !G.over && _visto) {
+      if (!ON.rivalOnline && antes !== false) {
+        lg('📡 ' + esc(ON.rivalNombre || 'Tu rival') + ' se desconectó. Tiene 60 segundos para regresar.', 'var(--red)');
+        avisoRival(60);
+        clearTimeout(_fuera);
+        _fuera = setTimeout(() => { if (!ON.rivalOnline) finPorAbandono(true, (ON.rivalNombre || 'Tu rival') + ' se desconectó y no regresó'); }, 60000);
+      } else if (ON.rivalOnline && antes === false) {
+        clearTimeout(_fuera); avisoRival(null);
+        lg('📶 ' + esc(ON.rivalNombre || 'Tu rival') + ' regresó a la partida.', 'var(--green)');
+        enviarEstado(true);
+      }
+    }
   });
   netOn('g2h', m => hostRecibe(m));
 }
@@ -407,10 +439,15 @@ async function unirseSala() {
   netOnInfo(info => {
     ON.rivalOnline = !!info.hostOn; if (info.host) ON.rivalNombre = info.host; marcaConexion();
     clearTimeout(_sinHost);
-    if (!info.hostOn && ON.jugando && G && !G.over) _sinHost = setTimeout(() => {
-      if (!G || G.over || ON.rivalOnline) return;
-      _egGuest(true, (ON.rivalNombre || 'El anfitrión') + ' se desconectó y la partida terminó');
-    }, 60000);
+    if (!info.hostOn && ON.jugando && G && !G.over) {
+      avisoRival(60);
+      _sinHost = setTimeout(() => {
+        if (!G || G.over || ON.rivalOnline) return;
+        finPorAbandono(true, (ON.rivalNombre || 'El anfitrión') + ' se desconectó y la partida terminó');
+      }, 60000);
+    } else if (info.hostOn) avisoRival(null);
+    if (!ON.jugando && info.hostOn) ON._hostVisto = true;
+    if (!ON.jugando && ON._hostVisto && !info.hostOn) mostrarSala('SALA ' + ON.code, '⚠ El anfitrión cerró la sala. Pídele un código nuevo.');
   });
   netOn('h2g', m => guestRecibe(m));
   netSend('g2h', { t: 'hola' });
@@ -770,16 +807,38 @@ async function sorteoOnline() {
     renderAll();
   }
 }
-function finPorAbandono(ganoYo) {
+function finPorAbandono(ganoYo, razon) {
   if (!G || G.over) return;
+  razon = razon || (ganoYo ? (ON.rivalNombre || 'Tu rival') + ' abandonó la partida' : 'Abandonaste la partida');
+  avisoRival(null);
   if (ON.rol === 'host') {
     if (ON.swapped) { swapFrame(G); ON.swapped = false; }
+    PEND.forEach(x => x.res(null)); PEND.clear(); esperaUI(false);
     ON.finGuestGana = !ganoYo;
     netInfoSet({ estado: 'fin' });
-    REAL_EG(ganoYo, ganoYo ? 'Tu rival abandonó la partida' : 'Abandonaste la partida');
+    REAL_EG(ganoYo, razon);
   } else {
-    G.over = false; _egGuest(ganoYo, ganoYo ? 'Tu rival abandonó la partida' : 'Abandonaste la partida');
+    G.over = false; _egGuest(ganoYo, razon);
   }
+}
+// Aviso grande sobre el tablero cuando el rival se desconecta (cuenta regresiva)
+let _avisoT = null;
+function avisoRival(seg) {
+  let a = $('onAviso');
+  clearInterval(_avisoT);
+  if (seg == null) { if (a) a.style.display = 'none'; return; }
+  if (!a) {
+    a = document.createElement('div'); a.id = 'onAviso';
+    a.style.cssText = 'position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:80;pointer-events:none;width:calc(100% - 24px);max-width:560px;' +
+      'text-align:center;padding:14px 16px;border-radius:12px;background:rgba(6,8,14,.96);border-top:3px solid #ff2244;border-bottom:3px solid #ff2244;' +
+      'box-shadow:0 0 30px rgba(255,34,68,.5);color:#fff;font:700 15px Rajdhani,sans-serif;line-height:1.35';
+    const b = $('board'); (b || document.body).appendChild(a);
+  }
+  let n = seg;
+  const pinta = () => { a.innerHTML = '<div style="font:900 15px Orbitron,sans-serif;letter-spacing:2px;color:#ff6a80;margin-bottom:4px">📡 ' + esc((ON.rivalNombre || 'TU RIVAL').toUpperCase()) + ' SE DESCONECTÓ</div>' +
+    'Si no regresa en <b style="color:#ffd166">' + n + ' s</b>, la partida termina' + (ON.rol === 'host' ? ' y ganas por abandono.' : '.'); };
+  a.style.display = 'block'; pinta();
+  _avisoT = setInterval(() => { n--; if (n <= 0) { clearInterval(_avisoT); a.style.display = 'none'; return; } pinta(); }, 1000);
 }
 let REAL_EG = null, _egGuest = null;
 
@@ -826,6 +885,7 @@ function guestRecibe(m) {
     case 'dados': guestDados(m.a, m.b); break;
     case 'fin': if (G) { G.over = false; } _egGuest(!!m.won, m.r || ''); break;
     case 'full': case 'd': guestTablero(m); break;
+    case 'abandono': finPorAbandono(true); break;
     case 'revancha': _ultN = 0; $('endgameModal').classList.remove('show'); $('logwrap').innerHTML = ''; break;
   }
 }

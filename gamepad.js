@@ -14,11 +14,12 @@
 //  Start                  menú de la pantalla (Apariencia…)
 //  View / Select          silenciar música
 //
-//  Cada página puede definir window.GP_CFG = { zonas, principal, atras, start, select, acciones }.
+//  Cada página puede definir window.GP_CFG = { zonas, principal, atras, start, select, acciones, clicables }.
+//  (clicables: selector CSS extra de elementos tocables que usan addEventListener en vez de onclick)
 //  El control se activa al presionar cualquier botón; tocar la pantalla lo oculta.
 // ════════════════════════════════════════════════════════════════════
 (function () {
-  if (!('getGamepads' in navigator)) return;
+  if (!('getGamepads' in navigator) || window.GP) return;   // (settings.js también lo carga: evita doble)
   const CFG = () => window.GP_CFG || {};
   const B = { A: 0, B: 1, X: 2, Y: 3, LB: 4, RB: 5, LT: 6, RT: 7, VIEW: 8, START: 9, LS: 10, RS: 11, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 };
   const DZ = 0.5, DZ_R = 0.22, REP0 = 330, REP = 110;
@@ -93,6 +94,7 @@
     const t = el.tagName;
     if (t === 'BUTTON' || t === 'SELECT' || (t === 'A' && el.hasAttribute('href'))) return true;
     if (t === 'INPUT' && el.type !== 'hidden') return true;
+    const extra = CFG().clicables; if (extra && el.matches(extra)) return true;   // elementos con addEventListener (por página)
     return typeof el.onclick === 'function' || el.hasAttribute('onclick') || el.getAttribute('role') === 'button';
   }
   function vw() { return innerWidth; } function vh() { return innerHeight; }

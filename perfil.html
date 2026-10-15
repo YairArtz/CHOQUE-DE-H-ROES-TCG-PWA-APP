@@ -384,6 +384,35 @@
       transition: color .15s;
     }
     .chh-notif-close:hover { color: #ff4d6d; }
+    /* ══ VISTA AMPLIA (PC / tablet horizontal) — se desactiva en Ajustes (html.hz-off) ══ */
+    @media (min-width:1000px) and (min-height:560px){
+      html:not(.hz-off) .container{max-width:1360px;padding:30px 28px 50px;}
+      html:not(.hz-off) #login-panel{max-width:460px;margin:0 auto;}
+      html:not(.hz-off) #profile-panel[style*="block"]{display:grid!important;grid-template-columns:350px minmax(0,1fr) minmax(0,1fr);column-gap:18px;row-gap:0;align-items:stretch;}
+      html:not(.hz-off) #profile-panel>*{margin:0 0 18px!important;}
+      html:not(.hz-off) #profile-panel .card{padding:24px 22px;}
+      /* Columna izquierda: tarjeta del jugador fija mientras recorres lo demás */
+      html:not(.hz-off) #profile-panel>.card:first-child{grid-column:1;grid-row:1/span 40;align-self:start;position:sticky;top:64px;}
+      html:not(.hz-off) #dashboard-hero-container{grid-column:2/4;order:0;}
+      html:not(.hz-off) #dashboard-hero-container:empty{display:none;}
+      html:not(.hz-off) #profile-panel>.card:nth-child(3){order:1}  /* ranking */
+      html:not(.hz-off) #profile-panel>.card:nth-child(4){order:2}  /* inscripciones */
+      html:not(.hz-off) #profile-panel>.card:nth-child(5){order:3}  /* torneos */
+      html:not(.hz-off) #profile-panel>.card:nth-child(7){order:4}  /* hero pesos */
+      html:not(.hz-off) #profile-panel>.card:nth-child(8){order:5}  /* barajas */
+      html:not(.hz-off) #profile-panel>.card:nth-child(9){order:6}  /* colección */
+      html:not(.hz-off) #profile-panel>.card:nth-child(10){order:7;grid-row:span 2;} /* datos */
+      html:not(.hz-off) #profile-panel>.btn-share{order:8;align-self:end;}
+      html:not(.hz-off) #profile-panel>.btn-danger{order:9;align-self:start;}
+      html:not(.hz-off) #profile-panel>.card:nth-child(6){order:10;grid-column:2/4;} /* logros: ancho completo */
+      html:not(.hz-off) .badges-grid{grid-template-columns:repeat(auto-fill,minmax(82px,1fr));}
+      html:not(.hz-off) .coleccion-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr));}
+      /* Ventanas: centradas en lugar de hoja inferior */
+      html:not(.hz-off) .modal-overlay{align-items:center;}
+      html:not(.hz-off) .carta-modal,html:not(.hz-off) .avatar-modal,html:not(.hz-off) .badge-detail-modal{border-radius:12px;}
+      html:not(.hz-off) .avatar-modal{max-width:640px;max-height:82vh;}
+      html:not(.hz-off) .avatars-grid{grid-template-columns:repeat(6,1fr);}
+    }
   </style>
 </head>
 

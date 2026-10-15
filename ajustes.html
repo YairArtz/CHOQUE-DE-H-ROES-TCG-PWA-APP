@@ -232,6 +232,15 @@ footer{margin-top:auto;padding:24px 16px 16px;text-align:center;color:var(--mute
         <div class="toggle-switch" id="toggle-anims" onclick="toggleAnims(this)"></div>
       </div>
     </div>
+    <div class="setting-item">
+      <div class="toggle-container">
+        <div>
+          <div class="setting-label">🖥️ Vista amplia (PC / tablet)</div>
+          <div class="setting-desc">En pantallas horizontales grandes, Perfil, Tienda y Constructor aprovechan todo el ancho</div>
+        </div>
+        <div class="toggle-switch" id="toggle-amplia" onclick="toggleAmplia(this)"></div>
+      </div>
+    </div>
   </div>
 
   <!-- DATOS -->
@@ -339,6 +348,7 @@ function refrescarUI() {
   document.getElementById('toggle-vibrate').classList.toggle('active', s.vibrate !== false);
   document.getElementById('toggle-tournaments').classList.toggle('active', !!s.tournamentsNotif);
   document.getElementById('toggle-anims').classList.toggle('active', !!s.animations);
+  document.getElementById('toggle-amplia').classList.toggle('active', s.vistaAmplia !== false);
   refrescarPicker();
 }
 
@@ -379,6 +389,11 @@ function toggleVibrate(el) {
 function toggleTournaments(el) {
   const active = el.classList.toggle('active');
   const s = CHH_SETTINGS.load(); s.tournamentsNotif = active; CHH_SETTINGS.save(s);
+}
+function toggleAmplia(el) {
+  const active = el.classList.toggle('active');
+  const s = CHH_SETTINGS.load(); s.vistaAmplia = active; CHH_SETTINGS.save(s);
+  CHH_SETTINGS.applyVistaAmplia(active);
 }
 function toggleAnims(el) {
   const active = el.classList.toggle('active');
@@ -441,7 +456,7 @@ function resetSettings() {
   if (s.temaId) preserve.temaId = s.temaId; // conserva tema equipado
   CHH_SETTINGS.save({
     theme:'dark', accentColor:'green', tournamentsNotif:true, galleryView:'3col',
-    animations:true, textScale:'normal', vibrate:true, landingPage:'index',
+    animations:true, textScale:'normal', vibrate:true, landingPage:'index', vistaAmplia:true,
     ...preserve
   });
   toast('Ajustes restaurados');

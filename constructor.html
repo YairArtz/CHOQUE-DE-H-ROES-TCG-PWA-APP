@@ -852,6 +852,24 @@
     .confirm-btn:active {
       transform: scale(0.95);
     }
+    /* ══ VISTA AMPLIA (PC / tablet horizontal) — se desactiva en Ajustes (html.hz-off) ══
+       Cartas disponibles a la izquierda; baraja, contador y acciones a la derecha.
+       Cada panel se desplaza por separado (como una app de escritorio). */
+    @media (min-width:1000px) and (min-height:560px){
+      html:not(.hz-off) .container{max-width:1560px;display:grid;grid-template-columns:minmax(0,1fr) clamp(320px,30vw,420px);grid-template-rows:auto minmax(0,1fr);
+        column-gap:24px;height:calc(100vh - var(--cx-top,70px));padding:18px 24px 16px;}
+      html:not(.hz-off) .cx-main{grid-column:1;grid-row:1/3;display:flex;flex-direction:column;min-height:0;}
+      html:not(.hz-off) .cx-main .search-section{margin-bottom:14px;}
+      html:not(.hz-off) .cx-main .available-cards{flex:1;min-height:0;max-height:none;overflow-y:auto;margin-bottom:0;}
+      html:not(.hz-off) .cx-a{grid-column:2;grid-row:1;}
+      html:not(.hz-off) .cx-a .deck-selector,html:not(.hz-off) .cx-a .deck-counter{margin-bottom:14px;}
+      html:not(.hz-off) .cx-b{grid-column:2;grid-row:2;display:flex;flex-direction:column;min-height:0;}
+      html:not(.hz-off) .cx-b .deck-list{flex:1;min-height:120px;overflow-y:auto;margin-bottom:0;}
+      html:not(.hz-off) .cx-b .actions{margin-top:12px;}
+      html:not(.hz-off) .cx-b>.action-btn{flex:none;}
+      html:not(.hz-off) .cards-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));}
+      html:not(.hz-off) .modal-content{max-width:520px;}
+    }
   </style>
 </head>
 <body>
@@ -865,6 +883,7 @@
   <!-- CONTENEDOR PRINCIPAL -->
   <div class="container">
     
+    <div class="cx-a">
     <!-- SELECTOR DE BARAJA -->
     <div class="deck-selector">
       <button class="deck-tab active" data-deck="BP">
@@ -894,7 +913,9 @@
       <!-- Estadísticas por tipo -->
       <div class="stats-grid" id="statsGrid"></div>
     </div>
+    </div><!-- /cx-a -->
 
+    <div class="cx-main">
     <!-- BUSCADOR -->
     <div class="search-section">
       <div class="search-box">
@@ -911,7 +932,9 @@
       <div class="available-cards-title">Cartas Disponibles</div>
       <div class="cards-grid" id="cardsGrid"></div>
     </div>
+    </div><!-- /cx-main -->
 
+    <div class="cx-b">
     <!-- LISTA DE BARAJA -->
     <div class="deck-list">
       <div class="deck-list-title">
@@ -938,6 +961,7 @@
 
     <!-- ACADEMIA — solo visible para admins -->
     <button class="action-btn academia-btn" id="shareAcademiaBtn" style="display:none;width:100%;margin-top:8px;background:linear-gradient(135deg,#cc55ff,#8033cc);color:#000;border:none;">📚 COMPARTIR EN ACADEMIA</button>
+    </div><!-- /cx-b -->
 
   </div>
 
@@ -1013,6 +1037,7 @@
   </div>
 
   <script src="settings.js"></script>
+  <script>window.GP_CFG = window.GP_CFG || { clicables: '.card-item:not(.disabled),.saved-deck-item', principalTxt: 'Guardar', principal: () => document.getElementById('saveBtn') };</script>
   <script>
     // ── Flag de tracking para badges (v3) ──
     try {

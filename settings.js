@@ -12,7 +12,8 @@ const DEFAULT_SETTINGS = {
   // Tier 1 nuevos
   textScale: 'normal',   // 'small' | 'normal' | 'large'
   vibrate: true,         // vibración táctil global
-  landingPage: 'index'   // 'index' | 'calc' | 'perfil' | 'tienda' | 'last'
+  landingPage: 'index',  // 'index' | 'calc' | 'perfil' | 'tienda' | 'last'
+  vistaAmplia: true      // diseño horizontal en PC/tablet (perfil, tienda, constructor…)
 };
 
 // ─── CATÁLOGO GLOBAL DE TEMAS ─────────────────
@@ -331,6 +332,21 @@ function applyTextScale(size) {
   document.documentElement.style.zoom = z;
 }
 
+// ─── VISTA AMPLIA (PC / tablet horizontal) ───
+// Cada módulo trae su diseño amplio en un @media; aquí solo se apaga con html.hz-off
+function applyVistaAmplia(on) {
+  document.documentElement.classList.toggle('hz-off', on === false);
+}
+
+// ─── CONTROL (gamepad.js en todos los módulos) ─
+// Solo se activa al presionar un botón del control; con táctil/ratón no hace nada.
+function cargarControl() {
+  if (!('getGamepads' in navigator) || window.GP || document.querySelector('script[src*="gamepad.js"]')) return;
+  const s = document.createElement('script'); s.src = 'gamepad.js'; s.async = true;
+  document.head.appendChild(s);
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', cargarControl); else setTimeout(cargarControl, 0);
+
 // ─── TIER 1: VIBRACIÓN CONDICIONAL ───────────
 function vibrateIf(pattern) {
   const s = loadSettings();
@@ -430,6 +446,7 @@ function applyAllSettings() {
   applyAnimations(settings.animations);
   applyGalleryView(settings.galleryView);
   applyTextScale(settings.textScale);
+  applyVistaAmplia(settings.vistaAmplia);
   if (settings.fondoImg) applyFondo(settings.fondoImg);
 
   // TEMA: prioridad = tema equipado del jugador > settings.temaId > settings.accentColor > 'green'
@@ -461,6 +478,7 @@ window.CHH_SETTINGS = {
   save: saveSettings,
   applyAll: applyAllSettings,
   applyTextScale,
+  applyVistaAmplia,
   vibrateIf,
   exportar: exportarDatos,
   importar: importarDatos,

@@ -205,7 +205,8 @@
     #chh-nav .nav-spacer { width: 60px; flex-shrink: 0; }
     body { padding-top: 0 !important; }
 
-    </style>
+        #chh-nav { align-self: stretch; margin-left: -16px; margin-right: -16px; }
+</style>
 </head>
 <body>
   <nav id="chh-nav">
@@ -444,5 +445,17 @@
       btn.innerHTML = "⚔ &nbsp;PUBLICAR TORNEO";
     }
   </script>
+<script>
+// Si iniciaste sesión como tienda en Mi Perfil, se llenan solos tus datos
+(function(){
+  try{
+    const s=JSON.parse(localStorage.getItem('nhSesion')||'null');
+    if(!s||s.tipo!=='tienda')return;
+    const f=(id,v)=>{const e=document.getElementById(id);if(e&&!e.value&&v)e.value=v;};
+    f('input-storeid',s.id);f('input-storename',s.nombre);f('input-email',s.correo);
+  }catch(e){}
+})();
+</script>
+<script src="gamepad.js"></script>
 </body>
 </html>

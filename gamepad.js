@@ -207,8 +207,12 @@
     if (best) enfocar(best); else vibrar(25, .2);
   }
 
+  // Historial corto: al cerrarse una ventana, el foco regresa a donde estabas (no al inicio)
+  const hist = [];
+  function regreso() { for (let i = hist.length - 1; i >= 0; i--) { if (hist[i] !== foco && valido(hist[i])) return hist[i]; } return null; }
   function enfocar(el) {
     if (!el) return;
+    if (foco && foco !== el) { hist.push(foco); if (hist.length > 8) hist.shift(); }
     foco = el; modoPuntero = false; ptr.style.display = 'none';
     try {
       // En páginas largas: si queda pegado al borde o fuera de la pantalla, se centra para ver lo que sigue.
@@ -235,7 +239,7 @@
     const paso = () => {
       if (!activo) return;
       if (!modoPuntero) {
-        if (foco && !valido(foco)) { const n = inicial(); if (n) foco = n; }   // apareció un modal o la carta desapareció
+        if (foco && !valido(foco)) { const n = regreso() || inicial(); if (n) { if (foco.isConnected) { hist.push(foco); if (hist.length > 8) hist.shift(); } foco = n; } }   // se cerró/abrió una ventana o la carta desapareció
         dibujarAnillo();
       }
       raf = requestAnimationFrame(paso);

@@ -23,6 +23,8 @@
     appId: '1:701628192523:web:98cc293ffb01b7dd33740e'
   };
   const FB_SDK = 'https://www.gstatic.com/firebasejs/10.12.2/';
+  // Carpeta del sitio (nube.js también se usa desde subcarpetas, p. ej. mercado/)
+  const BASE = (document.currentScript && document.currentScript.src) ? new URL('.', document.currentScript.src).href : '';
   const TIMEOUT = 12000;
   const KEY_DECKS = 'chh_decks', KEY_BORR = 'chh_decks_borradas', KEY_DUENO = 'chh_decks_dueno';
   const ls = {
@@ -91,7 +93,7 @@
   // Catálogo (para reconstruir las cartas de una baraja que viene de la nube)
   let _cat = null;
   function catalogo() {
-    if (!_cat) _cat = fetch('cartas.json').then(r => r.json()).then(a => { const m = {}; (a || []).forEach(c => { if (c && c.id != null) m[String(c.id)] = c; }); return m; }).catch(() => { _cat = null; return {}; });
+    if (!_cat) _cat = fetch(BASE + 'cartas.json').then(r => r.json()).then(a => { const m = {}; (a || []).forEach(c => { if (c && c.id != null) m[String(c.id)] = c; }); return m; }).catch(() => { _cat = null; return {}; });
     return _cat;
   }
   function tipoJuego(c) {

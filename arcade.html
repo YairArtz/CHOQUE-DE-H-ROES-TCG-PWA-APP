@@ -528,7 +528,7 @@ html.heroica .h1{background:linear-gradient(90deg,#fff2c4,#ffb300,#fff6d8,#ffb30
 // Combate: escribe "chh_arcade_match" y abre simulacion.html?modo=arcade;
 //          la simulación escribe "chh_arcade_result" y regresa a arcade.html?r=<id>
 // ════════════════════════════════════
-const ARC_VERSION='Arcade v3.0';
+const ARC_VERSION='Arcade v3.1';
 const STAGE=document.getElementById('stage');
 // ── Orientación horizontal ──
 const MOVIL=matchMedia('(pointer:coarse)').matches;
@@ -1552,6 +1552,31 @@ function logrosJugador(){
   _lgJug=S;_lgJugT=Date.now();return S;
 }
 function rutaPorLogro(n){const L=logrosJugador();return (LOGRO_RUTA[n]||[]).some(id=>L.has(id));}
+// v3.1 · Los logros del registro (ganados en otro dispositivo) se copian a los logros del Arcade de este
+// teléfono: aparecen en la sección LOGROS, desbloquean rutas y no se vuelven a enviar ni a pagar HP.
+function importarLogrosRegistro(){
+  const yo=sesionId(); if(!yo) return 0;
+  _lgJug=null;
+  const S=logrosJugador(), L=loadLg(); let n=0;
+  LOGROS.forEach(b=>{if(S.has(b.id)&&!L.l[b.id]){L.l[b.id]={ts:Date.now(),por:yo,sync:true,importado:true};n++;}});
+  if(n) saveLg(L);
+  return n;
+}
+// Una sola consulta ligera (la misma que usa la Tienda) en segundo plano: nunca bloquea el inicio.
+// Se hace si este teléfono aún no conoce logros del jugador o cada 12 h.
+function traerLogrosRegistro(){
+  const yo=sesionId(); if(!yo||!navigator.onLine||!window.CHH_COSM||!CHH_COSM.sincronizar) return;
+  let ult=0;try{ult=+localStorage.getItem('chh_arc_lgsync_'+yo)||0;}catch(e){}
+  const conoce=[...logrosJugador()].some(id=>/^arc_/.test(id));
+  if(conoce&&Date.now()-ult<12*3600*1000) return;
+  CHH_COSM.sincronizar(9000).then(()=>{
+    try{localStorage.setItem('chh_arc_lgsync_'+yo,String(Date.now()));}catch(e){}
+    if(importarLogrosRegistro()>0){
+      if($('sLogros').classList.contains('on'))renderLogros();
+      if($('sRuta').classList.contains('on'))renderRuta();
+    }
+  }).catch(()=>{});
+}
 function r2Desbloqueada(g){return !!g&&RUTAS[2].length>0&&(rutaCompleta(g,1)||rutaPorLogro(1)||rutaN(g)>=2||!!(g.rutas&&g.rutas[2]));}
 function r3Desbloqueada(g){return !!g&&RUTAS[3].length>0&&(rutaCompleta(g,2)||rutaPorLogro(2)||rutaN(g)===3||!!(g.rutas&&g.rutas[3]));}
 function r4Desbloqueada(g){return !!g&&RUTAS[4].length>0&&(rutaCompleta(g,3)||rutaPorLogro(3)||rutaN(g)===4||!!(g.rutas&&g.rutas[4]));}
@@ -2363,7 +2388,9 @@ let PLAYER_IMG=null;
   RUTAS[1].concat(RUTAS[2],RUTAS[3],RUTAS[4],RUTAS[5]).forEach(r=>{r._img=null;r._fondo=null;r._musica=musPath(r.musica);});
   TITULO_MUS=musPath('titulo.mp3'); FINAL_MUS=musPath('final.mp3'); LEG_MUS=musPath('legendaria.mp3'); EPI_MUS=musPath('epica.mp3'); CAO_MUS=musPath('caotica.mp3'); HER_MUS=musPath('heroica.mp3');
   muteUI();
+  importarLogrosRegistro();
   sincronizarLogros();
+  setTimeout(traerLogrosRegistro,2500);
   $('tStatus').textContent=data?'TOCA JUGAR':'⚠ NO SE PUDIERON LEER LAS BARAJAS';
   $('tStart').onclick=()=>{go('sSlots');musica(TITULO_MUS);};
   // 2) Logo y portada: se esperan un momento como máximo (si tardan, aparecen cuando lleguen)

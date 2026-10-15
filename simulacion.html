@@ -1275,7 +1275,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v69';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v72';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -1666,6 +1666,27 @@ async function loadData(onProgress){
   // v45 · Barajas exclusivas del Arcade (soloArcade): solo las usa la CPU en la ruta, no aparecen en los selectores
   DATA.barajasArcade=DATA.barajas.filter(b=>b.soloArcade);
   DATA.barajas=DATA.barajas.filter(b=>!b.soloArcade);
+  // v71 · Nexotlan (Modo Aventura): la baraja que el jugador arma con su cofre llega en localStorage
+  //       "chh_nexotlan_baraja" = {nombre, bp:[{id,copias}], ba:[...], bs:[...] (v72)} y se usa como "nx_mia" (oculta en los selectores).
+  try{
+    const nb=JSON.parse(localStorage.getItem('chh_nexotlan_baraja')||'null');
+    if(nb&&Array.isArray(nb.bp)){
+      const m={id:'nx_mia',nombre:String(nb.nombre||'Mi baraja de Nexotlan').slice(0,40),estilo:'Aventura Nexotlan',soloArcade:true,aventura:true,
+        bp:nb.bp.filter(x=>x&&x.id).map(x=>({id:String(x.id),copias:Math.max(1,x.copias|0)})),
+        ba:(nb.ba||[]).filter(x=>x&&x.id).map(x=>({id:String(x.id),copias:Math.max(1,x.copias|0)})),
+        bs:(nb.bs||[]).filter(x=>x&&x.id).map(x=>({id:String(x.id),copias:Math.max(1,x.copias|0)})),almasIniciales:[]};
+      const e=[];
+      [...m.bp,...m.ba,...m.bs].forEach(x=>{if(!C[x.id])e.push('no existe "'+x.id+'"');});
+      m.ba.forEach(x=>{if(C[x.id]&&C[x.id].type!=='alma')e.push('la BA solo admite ALMAS: '+x.id);});
+      m.bp.forEach(x=>{if(C[x.id]&&(C[x.id].type==='alma'||C[x.id].type==='amalgama'))e.push('la BP no admite '+x.id);});
+      m.bs.forEach(x=>{if(C[x.id]&&C[x.id].type!=='amalgama')e.push('la B.SOP solo admite AMALGAMAS: '+x.id);});
+      m._error=e.length?e.join(' · '):null;
+      m.portada=(m.bp.find(x=>C[x.id]&&C[x.id].type==='pj')||m.bp[0]||{}).id;
+      validarReglas(m);
+      if(m._error) console.warn('[sim] baraja nx_mia: '+m._error);
+      DATA.barajasArcade.push(m);
+    }
+  }catch(e){}
 }
 function validarReglas(m){
   const LIM=DATA._LIM||{}, MAXC={'limitada':1,'semi-limitada':2,'condenada':0};
@@ -7983,11 +8004,15 @@ function fxMictlan(o,xs){
 // ════════════════════════════════════
 const ARCADE=(()=>{try{if(new URLSearchParams(location.search).get('modo')!=='arcade')return null;
   const m=JSON.parse(localStorage.getItem('chh_arcade_match')||'null');return m&&m.id?m:null;}catch(e){return null;}})();
+// v70 · Otros módulos (p. ej. nexotlan.html, Modo Aventura) usan el mismo canal: el combate puede traer
+//       "volver" (página a la que regresa), "volverTxt" (texto del botón) y "etiqueta" (texto de la barra).
+const ARC_VOLVER=ARCADE&&ARCADE.volver&&/^[a-z0-9_\-]+\.html$/i.test(ARCADE.volver)?ARCADE.volver:'arcade.html';
+const ARC_TXT=ARCADE&&ARCADE.volverTxt?String(ARCADE.volverTxt).slice(0,24):'ARCADE';
 function arcadeEsc(t){return String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function arcadePreparar(){
   if(!ARCADE) return;
-  const home=document.getElementById('bootHome'); if(home){home.href='arcade.html';home.textContent='← ARCADE';}
-  document.querySelectorAll('.hdr-back').forEach(a=>{a.href='arcade.html';a.textContent='← ARCADE';});
+  const home=document.getElementById('bootHome'); if(home){home.href=ARC_VOLVER;home.textContent='← '+ARC_TXT;}
+  document.querySelectorAll('.hdr-back').forEach(a=>{a.href=ARC_VOLVER;a.textContent='← '+ARC_TXT;});
   const cfg=document.getElementById('bootCfg'); if(cfg) cfg.style.display='none';
   if(!deckById(ARCADE.jugador)){const b=DATA.barajas.find(x=>!x._error);ARCADE.jugador=b.id;}
   if(!deckById(ARCADE.cpu)){const b=DATA.barajas.find(x=>!x._error);ARCADE.cpu=b.id;}
@@ -7995,13 +8020,13 @@ function arcadePreparar(){
   document.getElementById('deckSel').hidden=true;
   document.getElementById('bootScreen').classList.add('arcade');
   const NIV={facil:'FÁCIL',medio:'MEDIO',dificil:'DIFÍCIL',muy_dificil:'MUY DIFÍCIL',epico:'☠ ÉPICO',caotico:'🌀 CAÓTICO',creador:'👑 CREADOR'};
-  document.getElementById('bootStatus').innerHTML='🕹 <b style="color:var(--gold2)">MODO ARCADE</b> · Combate '+ARCADE.ronda+'/'+ARCADE.total+(ARCADE.jefe?' · <b style="color:#ff4d6d">JEFE FINAL</b>':'')+' · Dificultad '+(NIV[ARCADE.nivel]||ARCADE.nivel);
+  document.getElementById('bootStatus').innerHTML=ARCADE.etiqueta?arcadeEsc(ARCADE.etiqueta)+' · Dificultad '+(NIV[ARCADE.nivel]||ARCADE.nivel):'🕹 <b style="color:var(--gold2)">MODO ARCADE</b> · Combate '+ARCADE.ronda+'/'+ARCADE.total+(ARCADE.jefe?' · <b style="color:#ff4d6d">JEFE FINAL</b>':'')+' · Dificultad '+(NIV[ARCADE.nivel]||ARCADE.nivel);
   const vs=document.getElementById('bootVs');
   if(vs){
     const j=deckById(ARCADE.jugador), por=b=>b&&(C[b.portada]||C[(b.bp||[])[0]&&b.bp[0].id]);
     vs.innerHTML='<div class="vs-side">'+(ARCADE.avatar?'<img src="'+arcadeEsc(ARCADE.avatar)+'" alt="" style="border-radius:50%;object-fit:cover;aspect-ratio:1">':por(j)?'<img src="'+por(j).imgMin+'" alt="">':'<span class="vs-ico">🛡</span>')+'<span style="min-width:0"><small>TÚ</small><b>'+arcadeEsc(j?j.nombre:'')+'</b></span></div>'+
       '<span class="vs-x">VS</span><div class="vs-side r">'+(ARCADE.retrato?'<img src="'+arcadeEsc(ARCADE.retrato)+'" alt="" style="object-fit:cover;object-position:top">':'<span class="vs-ico">🤖</span>')+
-      '<span style="min-width:0"><small>'+(ARCADE.jefe?'JEFE FINAL':'RIVAL')+'</small><b>'+arcadeEsc(ARCADE.nombre)+'</b></span></div>';
+      '<span style="min-width:0"><small>'+(ARCADE.jefe?(ARCADE.jefeTxt?arcadeEsc(ARCADE.jefeTxt):'JEFE FINAL'):'RIVAL')+'</small><b>'+arcadeEsc(ARCADE.nombre)+'</b></span></div>';
     vs.hidden=false;
   }
   document.getElementById('bootBtn').textContent='⚔ ¡A PELEAR!';
@@ -8025,7 +8050,7 @@ function arcadePreparar(){
      for(let k=0;k<ae&&G.cpu.ba.length;k++){const z=freeApo('cpu');if(z<0)break;G.cpu.apoyo[z]={card:G.cpu.ba.shift(),type:'alma',bonus:0,eot:false};}
      const pod=[me?'+'+me+' carta(s) en su mano inicial':'',ae?ae+' alma(s) activas desde el inicio':'',ARCADE.roboExtra?'roba '+ARCADE.roboExtra+' carta(s) extra cada turno':''].filter(Boolean);
      if(pod.length) lg('☠ <b>PODER ÉPICO</b> · '+arcadeEsc(ARCADE.nombre)+': '+pod.join(' · ')+'.','#ff2244');}
-    lg('🕹 <b>ARCADE</b> · Combate '+ARCADE.ronda+'/'+ARCADE.total+' contra <b>'+arcadeEsc(ARCADE.nombre)+'</b>.','var(--gold2)');
+    lg(ARCADE.etiqueta?'🗺 '+arcadeEsc(ARCADE.etiqueta)+' · contra <b>'+arcadeEsc(ARCADE.nombre)+'</b>.':'🕹 <b>ARCADE</b> · Combate '+ARCADE.ronda+'/'+ARCADE.total+' contra <b>'+arcadeEsc(ARCADE.nombre)+'</b>.','var(--gold2)');
     if(ARCADE.musica){try{const rq=++MP.req;const am=ARCADE.musica;
       (window.CHH_MEDIOS?CHH_MEDIOS.blobUrl(am):Promise.resolve(null)).then(b=>{if(rq!==MP.req)return;mpAudio.src=b||am;mpAudio.loop=true;
       mpAudio.play().then(()=>{MP.on=true;MP.idx=-1;document.getElementById('mpName').textContent='🕹 Tema de '+ARCADE.nombre;mpUI();}).catch(()=>{});});}catch(e){}}
@@ -8086,8 +8111,8 @@ function arcadeYaJugado(){
     corazones:G.player.hp,intacto:G.player.hp>=R.corazones,danio:(typeof FXS!=='undefined'?FXS.dmgHecho:0),st:arsResumen(),ts:Date.now()}));}catch(e){}
   const box=document.getElementById('endgameBox');
   box.querySelectorAll('.endgame-btn').forEach(b=>b.style.display='none');
-  const go=document.createElement('button');go.className='endgame-btn';go.textContent='🕹 CONTINUAR';
-  go.onclick=()=>{location.href='arcade.html?r='+encodeURIComponent(ARCADE.id);};
+  const go=document.createElement('button');go.className='endgame-btn';go.textContent=ARC_VOLVER==='arcade.html'?'🕹 CONTINUAR':'🗺 CONTINUAR';
+  go.onclick=()=>{location.href=ARC_VOLVER+'?r='+encodeURIComponent(ARCADE.id);};
   box.appendChild(go);
 };}
 
@@ -8095,8 +8120,8 @@ function arcadeYaJugado(){
   document.getElementById('simVer').textContent=SIM_VERSION;
   // v66 · Combate del Arcade ya empezado (se recargó la página o se cerró la app): cuenta como derrota
   if(typeof ARCADE!=='undefined'&&ARCADE&&arcadeYaJugado()){
-    document.getElementById('bootStatus').innerHTML='🚪 Este combate ya había empezado y se abandonó: <b>cuenta como derrota</b>. Volviendo al Arcade…';
-    setTimeout(()=>{location.replace('arcade.html?r='+encodeURIComponent(ARCADE.id));},1800);
+    document.getElementById('bootStatus').innerHTML='🚪 Este combate ya había empezado y se abandonó: <b>cuenta como derrota</b>. Regresando…';
+    setTimeout(()=>{location.replace(ARC_VOLVER+'?r='+encodeURIComponent(ARCADE.id));},1800);
     return;
   }
   document.getElementById('btnMute').textContent=MUTED?'🔇':'🔊';
@@ -8211,10 +8236,10 @@ function ventanaConfirmar(titulo,texto,si,no,ico){
 function salirPartida(ev,a){
   const arc=typeof ARCADE!=='undefined'&&ARCADE;
   const ir=()=>{try{if(window.GP&&GP.parar)GP.parar();}catch(e){}
-    const h=arc&&arcadeYaJugado()?'arcade.html?r='+encodeURIComponent(ARCADE.id):a.href;setTimeout(()=>{location.href=h;},140);};
+    const h=arc&&arcadeYaJugado()?ARC_VOLVER+'?r='+encodeURIComponent(ARCADE.id):a.href;setTimeout(()=>{location.href=h;},140);};
   if(typeof G==='undefined'||!G||G.over){ev.preventDefault();ir();return false;}
   ev.preventDefault();
-  ventanaConfirmar('¿ABANDONAR LA PARTIDA?',arc?'Abandonar cuenta como <b>DERROTA</b>: pierdes este combate y gastas un crédito.':'Abandonar cuenta como <b>DERROTA</b>.','🚪 SÍ, ABANDONAR','↩ SEGUIR JUGANDO','⚠️').then(ok=>{if(!ok)return;
+  ventanaConfirmar('¿ABANDONAR LA PARTIDA?',arc?(ARC_VOLVER==='arcade.html'?'Abandonar cuenta como <b>DERROTA</b>: pierdes este combate y gastas un crédito.':'Abandonar cuenta como <b>DERROTA</b>.'):'Abandonar cuenta como <b>DERROTA</b>.','🚪 SÍ, ABANDONAR','↩ SEGUIR JUGANDO','⚠️').then(ok=>{if(!ok)return;
     if(G&&!G.over){try{endGame(false,'Abandonaste la partida');}catch(e){}if(arc)arcadeAbandonoGuardar();}
     ir();});
   return false;

@@ -1,6 +1,10 @@
 MODO AVENTURA · NEXOTLAN — CÓMO PERSONALIZARLO
 ==============================================
 
+0) comerciante.txt → el puesto de Taiyō: sobres de la aventura, cartas del día con precios variables,
+   joyas (cartas fuertes muy caras) y compra de cartas sobrantes. Instrucciones al inicio del archivo.
+   Imágenes de los sobres en  sobres/  (ej. sobres/sobre_puerta.png, proporción 5:7). Sin imagen se dibuja uno.
+
 1) mapa.txt  → todo el contenido: distritos, rivales, héroes, guardianes y diálogos.
    Mismo formato que assets/arcade/rivales.txt (campo = valor). Las instrucciones están al inicio del archivo.
 
@@ -30,3 +34,42 @@ REGLAS DEL MODO
 · Un guardián solo acepta el reto cuando venciste a los puntos de su  requiere.
 · Revanchas: puedes volver a retar a cualquiera; da 1/4 de las monedas.
 · La partida se guarda en el dispositivo y en la nube con el ID de jugador (Mi Perfil).
+
+COFRE Y BARAJA DE AVENTURA (🃏 BARAJA en el mapa)
+· El jugador empieza con las cartas de su baraja básica. Al ganar un Choque recibe cartas
+  de la BARAJA DEL RIVAL (sin condenadas ni expansiones prohibidas):
+    - 1ª victoria contra un rival ....... 1 carta
+    - 1ª victoria contra un guardián .... 2 cartas + 1 AMALGAMA de su Baraja de Soporte
+    - revancha ganada ................... probabilidad de 1 carta (premio_revancha);
+                                          contra guardianes puede ser Amalgama
+· Las Amalgamas solo las dan los guardianes (líderes de distrito).
+· Máximo 3 copias de cada carta en el cofre (o lo que permita cartas-limitadas.json);
+  si sale una de más se cambia por monedas.
+· En 🃏 BARAJA arma su baraja con el cofre: BP 40 y BA 15 exactas, B.SOP opcional (máx. 15,
+  solo Amalgamas), respetando cartas-limitadas.json. "↺ BÁSICA" la regresa a la inicial.
+
+Opciones en [config]:
+  premio_revancha = 50      (% de soltar carta en una revancha)
+  moneda_repetida = 5       (monedas por carta repetida de más)
+Opción en un [punto:…]:
+  premio = Trazador, Niña Piñata    (cartas fijas, por nombre o id, que da la 1ª victoria
+                                     además de las sorteadas de su baraja)
+
+BARAJAS DE LOS RIVALES (propias de Nexotlan, no dependen del Arcade)
+· Están en data/cartas_simulacion.json con id  nxr_<punto>  (p. ej. nxr_vika) y "nexotlan": true.
+  Cada punto las usa con  baraja = nxr_<punto>  en este mapa.txt.
+· Fuerza por distrito (cartas fuertes = limitadas/semi-limitadas, Trazador, Acecho, Niña Piñata,
+  Explosión Abismal, Resurrección Ancestral):
+    Puerta ....... rivales 0 fuertes, sin Amalgamas · guardián 1 fuerte + 3 Amalgamas
+    Mercado ...... rivales 1 fuerte,  sin Amalgamas · guardián 2 fuertes + 4 Amalgamas
+    Archivos ..... rivales 2 fuertes + 2 Amalgamas  · guardián 3 fuertes + 5 Amalgamas
+    Ciudadela .... rivales 3 fuertes + 2 Amalgamas  · guardián 4 fuertes + 6 Amalgamas
+· Puedes editarlas a mano en el JSON (bp / ba / bs) como cualquier otra baraja.
+
+IMAGEN DE MUESTRA DE LAS BARAJAS BÁSICAS
+· Pon una imagen en  assets/nexotlan/barajas/<id>.jpg  (o .png / .webp), por ejemplo:
+    assets/nexotlan/barajas/nx_koatl.jpg
+    assets/nexotlan/barajas/nx_vulcar.jpg
+    assets/nexotlan/barajas/nx_invitados.jpg
+  Proporción de carta (5:7), ej. 500×700. Si no existe, se muestra la carta de portada.
+· También puedes poner  "imagen": "carpeta/archivo.jpg"  en la baraja dentro del JSON.

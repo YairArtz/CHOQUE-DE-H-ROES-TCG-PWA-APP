@@ -165,6 +165,115 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 .st b{display:block;font-family:'Orbitron',monospace;font-size:18px;color:var(--cyan)}
 .st small{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:1.5px;color:var(--muted)}
 
+/* ═══ BARAJA Y COFRE (Constructor de aventura) ═══ */
+#sMazo{background:var(--bg)}
+.hb .bdg{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:var(--red);color:#fff;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;box-shadow:0 0 8px var(--red)}
+.hb{position:relative}
+.mz-cnt{display:flex;gap:6px;font-family:'Orbitron',monospace;font-size:10px;font-weight:900;letter-spacing:1px}
+.mz-cnt span{padding:5px 8px;border-radius:8px;border:1px solid var(--line);background:rgba(10,20,48,.8);white-space:nowrap}
+.mz-cnt .ok{color:var(--green);border-color:rgba(0,255,157,.35)}
+.mz-cnt .no{color:#ffb3c2;border-color:rgba(255,47,90,.45)}
+.mz-save{padding:10px 14px;font-size:10px;flex-shrink:0}
+.mz-tabs{display:flex;border-bottom:1px solid var(--line);flex-shrink:0}
+.mz-tabs button{flex:1;padding:11px 6px;font-family:'Orbitron',monospace;font-size:10.5px;font-weight:900;letter-spacing:1.5px;color:var(--muted);border-bottom:2px solid transparent}
+.mz-tabs button.on{color:var(--cyan);border-bottom-color:var(--cyan)}
+.mz-body{flex:1;min-height:0;display:flex}
+.mz-pane{flex:1;min-width:0;overflow-y:auto;padding:12px 12px 30px}
+.mz-body[data-t=deck] .mz-cofre,.mz-body[data-t=cofre] .mz-deck{display:none}
+.mz-nom{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+.mz-nom .inp{margin:0;padding:9px 12px;font-size:16px}
+.mz-nom .bt{padding:10px 12px;font-size:9.5px;flex-shrink:0}
+.mz-av{font-size:13px;color:#ffb3c2;background:rgba(255,47,90,.08);border:1px solid rgba(255,47,90,.35);border-radius:10px;padding:8px 10px;margin-bottom:10px;line-height:1.35}
+.mz-av.ok{color:var(--green);background:rgba(0,255,157,.06);border-color:rgba(0,255,157,.3)}
+.mz-g{font-family:'Orbitron',monospace;font-size:10px;font-weight:900;letter-spacing:2px;color:var(--muted);margin:12px 0 6px;display:flex;justify-content:space-between}
+.mz-row{display:flex;align-items:center;gap:8px;padding:5px 6px;border-radius:9px;border:1px solid var(--line);background:rgba(10,20,48,.6);margin-bottom:5px}
+.mz-row img{width:34px;height:48px;border-radius:4px;object-fit:cover;flex-shrink:0;background:#0d1838}
+.mz-row .n{flex:1;min-width:0;font-size:14.5px;font-weight:700;line-height:1.1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mz-row .n small{display:block;font-size:11.5px;color:var(--muted);font-weight:600}
+.mz-row .q{font-family:'Orbitron',monospace;font-size:12px;font-weight:900;color:var(--cyan);width:28px;text-align:center}
+.mz-row .pm{width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:rgba(10,20,48,.9);font-size:17px;font-weight:900;flex-shrink:0}
+.mz-row .pm:disabled{opacity:.3}
+.mz-fil{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;align-items:center}
+.mz-fil .inp{margin:0;flex:1 1 160px;padding:9px 12px;font-size:15px}
+.mz-fil button{padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:rgba(10,20,48,.8);font-family:'Orbitron',monospace;font-size:9.5px;font-weight:700;letter-spacing:1px}
+.mz-fil button.on{border-color:var(--cyan);color:var(--cyan);background:rgba(54,214,255,.1)}
+.mz-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.mz-c{position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--line);background:#0d1838;aspect-ratio:5/7}
+.mz-c img{width:100%;height:100%;object-fit:cover;display:block}
+.mz-c .ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:6px;font-size:12px;text-align:center;color:var(--muted)}
+.mz-c .qq{position:absolute;left:4px;bottom:4px;padding:2px 6px;border-radius:6px;background:rgba(2,6,20,.88);font-family:'Orbitron',monospace;font-size:10px;font-weight:900;color:var(--cyan)}
+.mz-c .nw{position:absolute;right:4px;top:4px;padding:2px 6px;border-radius:6px;background:var(--gold);color:#1a0f00;font-family:'Orbitron',monospace;font-size:8.5px;font-weight:900;letter-spacing:1px;box-shadow:0 0 8px var(--gold)}
+.mz-c.agot img{opacity:.35;filter:grayscale(.7)}
+.mz-vacio{color:var(--muted);font-size:15px;text-align:center;padding:30px 10px}
+.mc-box{max-width:640px;display:flex;gap:16px;align-items:flex-start}
+.mc-box>img{width:min(240px,42vw);border-radius:12px;flex-shrink:0;box-shadow:0 0 24px rgba(54,214,255,.25)}
+.mc-inf{flex:1;min-width:0}
+.mc-inf .f-n{padding-right:34px}
+.mc-inf p{font-size:14.5px;line-height:1.4;color:#cfe0ff;margin:8px 0;white-space:pre-wrap}
+.mc-inf .f-btns{flex-wrap:wrap}
+.premio{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin:6px 0 10px}
+.premio figure{width:min(140px,26vw);animation:premioIn .6s cubic-bezier(.2,1.4,.4,1) both}
+.premio figure:nth-child(2){animation-delay:.25s}.premio figure:nth-child(3){animation-delay:.5s}
+.premio img{width:100%;border-radius:10px;display:block;box-shadow:0 0 22px rgba(255,209,102,.55);border:2px solid #ffd166}
+.premio figcaption{font-size:13px;font-weight:700;margin-top:4px;line-height:1.15}
+@keyframes premioIn{from{opacity:0;transform:rotateY(90deg) scale(.6)}to{opacity:1;transform:none}}
+@media (min-width:900px){
+  .mz-tabs{display:none}
+  .mz-body .mz-deck{display:block!important;flex:0 0 400px;border-right:1px solid var(--line)}
+  .mz-body .mz-cofre{display:block!important}
+  .mz-grid{grid-template-columns:repeat(auto-fill,minmax(118px,1fr))}
+}
+@media (max-width:620px){
+  .mz-cnt span{padding:4px 6px;font-size:9px}
+  .mc-box{flex-direction:column;align-items:center}
+  .mc-box>img{width:min(220px,60vw)}
+}
+
+/* ═══ COMERCIANTE ═══ */
+#sTienda{background:var(--bg)}
+.td-banda{position:relative;height:150px;flex-shrink:0;overflow:hidden;background:#0b1a44 center/cover no-repeat;border-bottom:2px solid var(--gold)}
+.td-banda svg{position:absolute;inset:0;width:100%;height:100%}
+.td-banda img.ret{position:absolute;left:12px;bottom:0;height:140px;max-width:40%;object-fit:contain;object-position:bottom;filter:drop-shadow(0 6px 14px rgba(0,0,0,.7))}
+.td-banda img.ret.carta{height:120px;bottom:12px;border-radius:8px;border:2px solid var(--gold)}
+.td-bur{position:absolute;left:min(170px,38%);right:12px;top:50%;transform:translateY(-50%);background:#f7f9ff;color:#0a0f1e;border-radius:14px;padding:10px 14px;font-family:'VT323',monospace;font-size:clamp(19px,2.6vw,24px);line-height:1.1;box-shadow:0 0 0 3px #0a1430,0 0 0 5px var(--gold)}
+.td-bur b{display:block;font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:#a3123a;margin-bottom:2px}
+.td-tabs{display:flex;border-bottom:1px solid var(--line);flex-shrink:0}
+.td-tabs button{flex:1;padding:11px 6px;font-family:'Orbitron',monospace;font-size:10.5px;font-weight:900;letter-spacing:1.5px;color:var(--muted);border-bottom:2px solid transparent}
+.td-tabs button.on{color:var(--gold);border-bottom-color:var(--gold)}
+.td-body{flex:1;min-height:0;overflow-y:auto;padding:14px 12px 40px}
+.td-nota{font-size:14px;color:var(--muted);margin-bottom:12px;line-height:1.35}
+.td-sobres{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
+.td-s{display:flex;flex-direction:column;gap:8px;padding:10px;border-radius:12px;border:1px solid var(--line);background:rgba(10,20,48,.7);text-align:center}
+.td-s .pk{width:100%;aspect-ratio:5/7;border-radius:10px;overflow:hidden;position:relative}
+.td-s .pk img{width:100%;height:100%;object-fit:contain;display:block}
+.td-s b{font-family:'Orbitron',monospace;font-size:11.5px;letter-spacing:1px;line-height:1.2}
+.td-s small{font-size:13px;color:var(--muted);line-height:1.25;flex:1}
+.td-s .bt{padding:11px 6px;font-size:10.5px}
+.pk-gen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:10px;
+  background:radial-gradient(ellipse at 50% 30%,color-mix(in srgb,var(--pc) 70%,#fff 10%),transparent 70%),linear-gradient(160deg,color-mix(in srgb,var(--pc) 60%,#000),#050a1c 75%);border:2px solid var(--pc);border-radius:10px}
+.pk-gen::before{content:'';position:absolute;left:0;right:0;top:9%;height:2px;background:repeating-linear-gradient(90deg,var(--pc) 0 6px,transparent 6px 10px);opacity:.8}
+.pk-gen::after{content:'';position:absolute;left:0;right:0;bottom:9%;height:2px;background:repeating-linear-gradient(90deg,var(--pc) 0 6px,transparent 6px 10px);opacity:.8}
+.pk-gen i{font-style:normal;font-family:'Orbitron',monospace;font-size:9px;letter-spacing:3px;color:#fff;opacity:.85}
+.pk-gen span{font-family:'Orbitron',monospace;font-weight:900;font-size:clamp(13px,2vw,17px);letter-spacing:1.5px;color:#fff;text-shadow:0 0 12px var(--pc),0 2px 0 #000;line-height:1.15}
+.pk-gen em{font-style:normal;font-size:30px;filter:drop-shadow(0 0 10px var(--pc))}
+.td-precio{font-family:'Orbitron',monospace;font-weight:900;font-size:12px;color:#ffd166}
+.mz-c .pr{position:absolute;right:4px;bottom:4px;padding:2px 6px;border-radius:6px;background:rgba(2,6,20,.9);font-family:'Orbitron',monospace;font-size:10px;font-weight:900;color:#ffd166}
+.mz-c .jy{position:absolute;left:4px;top:4px;padding:2px 6px;border-radius:6px;background:linear-gradient(135deg,#ffd166,#ff2f5a);color:#1a0010;font-family:'Orbitron',monospace;font-size:8.5px;font-weight:900;letter-spacing:1px}
+.mz-c.joya{border-color:#ffd166;box-shadow:0 0 14px rgba(255,209,102,.35)}
+.mz-c .vd{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(2,6,20,.72);font-family:'Orbitron',monospace;font-weight:900;font-size:11px;letter-spacing:2px;color:var(--green)}
+.sob{position:fixed;inset:0;z-index:180;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:16px;background:radial-gradient(ellipse at center,rgba(20,30,70,.96),rgba(0,0,0,.97))}
+.sob.on{display:flex}
+.sob .pkg{width:min(240px,56vw);aspect-ratio:5/7;position:relative;cursor:pointer;animation:pkFlota 2s ease-in-out infinite}
+.sob .pkg img{width:100%;height:100%;object-fit:contain}
+.sob .pkg.abre{animation:pkAbre .55s ease forwards}
+@keyframes pkFlota{50%{transform:translateY(-8px) rotate(-1deg)}}
+@keyframes pkAbre{40%{transform:scale(1.08) rotate(3deg)}100%{transform:scale(1.6);opacity:0;filter:brightness(3)}}
+.sob .hint{font-family:'Orbitron',monospace;font-size:11px;letter-spacing:3px;color:#ffd166;animation:gpul 1.4s ease-in-out infinite}
+.sob .premio{max-width:900px}
+.sob .premio figure{width:min(132px,28vw)}
+.sob .premio figure:nth-child(4){animation-delay:.75s}.sob .premio figure:nth-child(5){animation-delay:1s}.sob .premio figure:nth-child(6){animation-delay:1.25s}
+@media (min-width:900px){.td-banda{height:180px}.td-banda img.ret{height:170px}}
+
 /* ═══ EDITOR ═══ */
 .ed{position:fixed;left:10px;bottom:10px;z-index:70;width:min(420px,calc(100% - 20px));background:rgba(5,10,28,.95);border:1px solid var(--gold);border-radius:12px;padding:10px 12px;font-size:13px;display:none}
 body.editor .ed{display:block}
@@ -236,12 +345,43 @@ body.editor .pt{cursor:move}
     <div class="mon" id="hMon">🪙 0</div>
     <button class="hb" id="hDescansar" title="Descansar (avanza un día)">🌙<span class="t">DESCANSAR</span></button>
     <button class="hb" id="hDiario" title="Diario">📖<span class="t">DIARIO</span></button>
-    <button class="hb" id="hBaraja" title="Cambiar baraja">🃏<span class="t">BARAJA</span></button>
+    <button class="hb" id="hBaraja" title="Baraja y cofre">🃏<span class="t">BARAJA</span><span class="bdg" id="hNuevas" hidden></span></button>
     <button class="hb" id="hMute" title="Música">🔊</button>
   </div>
   <div class="mapa" id="mapa"><div class="mi" id="mi"></div></div>
   <div class="zoom"><button class="hb" id="zMas" aria-label="Acercar">＋</button><button class="hb" id="zMenos" aria-label="Alejar">－</button></div>
 </section>
+
+<!-- ══════ BARAJA Y COFRE ══════ -->
+<section class="scr" id="sMazo">
+  <div class="hud">
+    <button class="hb" id="mzSalir" aria-label="Volver al mapa">←<span class="t">MAPA</span></button>
+    <div class="h-title">BARAJA Y COFRE</div>
+    <div class="h-sp"></div>
+    <div class="mz-cnt" id="mzCnt"></div>
+    <button class="bt gold mz-save" id="mzGuardar">💾 GUARDAR</button>
+  </div>
+  <div class="mz-tabs" id="mzTabs"><button class="on" data-t="deck">🃏 MI BARAJA</button><button data-t="cofre">🎁 COFRE</button></div>
+  <div class="mz-body" id="mzBody" data-t="deck">
+    <div class="mz-pane mz-deck" id="mzDeck"></div>
+    <div class="mz-pane mz-cofre" id="mzCofre"><div class="mz-fil" id="mzFil"></div><div class="mz-grid" id="mzGrid"></div></div>
+  </div>
+</section>
+<div class="modal" id="mCarta"><div class="mbox mc-box" id="mcBox"></div></div>
+
+<!-- ══════ COMERCIANTE ══════ -->
+<section class="scr" id="sTienda">
+  <div class="hud">
+    <button class="hb" id="tdSalir" aria-label="Volver al mapa">←<span class="t">MAPA</span></button>
+    <div class="h-title">COMERCIANTE</div>
+    <div class="h-sp"></div>
+    <div class="mon" id="tdMon">🪙 0</div>
+  </div>
+  <div class="td-banda" id="tdBanda"></div>
+  <div class="td-tabs" id="tdTabs"><button class="on" data-t="sobres">📦 SOBRES</button><button data-t="cartas">🃏 CARTAS DEL DÍA</button><button data-t="vender">💰 VENDER</button></div>
+  <div class="td-body" id="tdBody"></div>
+</section>
+<div class="sob" id="mSobre"><div class="pkg" id="sbPkg"></div><div class="hint" id="sbHint">TOCA EL SOBRE PARA ABRIRLO</div><div id="sbRes"></div><button class="bt gold" id="sbOk" hidden>✔ CONTINUAR</button></div>
 
 <!-- Ficha del punto -->
 <div class="ficha" id="ficha"><button class="f-x" id="fX" aria-label="Cerrar">✕</button><div id="fBody"></div></div>
@@ -266,7 +406,7 @@ body.editor .pt{cursor:move}
 <script src="nube.js"></script>
 <script>
 // ════════════════════════════════════════════════════════════════════
-//  MODO AVENTURA · NEXOTLAN  (Fase 1)
+//  MODO AVENTURA · NEXOTLAN  (Fase 1 + cofre y constructor de aventura)
 //  · Mapa por distritos (se abren al vencer a su GUARDIÁN), puntos de
 //    rivales, héroes y guardianes, ciclo de días, diálogos retro.
 //  · Las partidas (Choques) usan el Simulador por el mismo canal del Arcade:
@@ -372,6 +512,103 @@ function guardar(sinNube) {
 function nueva(nombre, baraja, barajaNombre) {
   return { v: 1, nombre, baraja, barajaNombre, dia: 0, monedas: 0, vencidos: {}, derrotas: {}, hablados: {}, abiertos: {}, victorias: 0, perdidas: 0, historial: [], inicio: Date.now(), u: Date.now(), pendiente: null };
 }
+// ════════════════ COFRE Y BARAJA DE AVENTURA ════════════════
+// S.col   = { idCarta: copias }  todo lo que tiene el jugador (baraja básica + cartas ganadas)
+// S.mazo  = { nombre, bp:[{id,copias}], ba:[...] }  la baraja con la que juega (se arma en 🃏 BARAJA)
+// S.nuevas = { idCarta: 1 }  cartas recién ganadas (insignia "NUEVA")
+let LIM = {};                                            // cartas-limitadas.json → { NOMBRE: estado }
+const MAXC = { 'limitada': 1, 'semi-limitada': 2, 'condenada': 0 };
+const TIPO_C = { pj: 'Personaje', apoyo: 'Apoyo', sector: 'Sector', arena: 'Arena', alma: 'Alma', amalgama: 'Amalgama' };
+const ORD_T = ['pj', 'apoyo', 'sector', 'arena', 'alma', 'amalgama'];
+const MAX_TENER = 3;                                     // copias máximas por carta en el cofre
+const nomC = id => (CARD[id] && CARD[id].nombre) || id;
+const zonaDe = id => { const t = (CARD[id] || {}).tipo; return t === 'alma' ? 'ba' : t === 'amalgama' ? 'bs' : 'bp'; };
+function maxCopias(id) { const e = LIM[NK(nomC(id))]; return e in MAXC ? MAXC[e] : 3; }
+const topeDe = id => Math.min(MAX_TENER, maxCopias(id));    // no tiene caso guardar más copias de las que se pueden jugar
+const basica = id => (DATA.barajas || []).find(b => b.id === id) || null;
+const copiaLista = l => (l || []).map(x => ({ id: x.id, copias: x.copias || 1 }));
+function asegurarColeccion() {
+  if (!S) return;
+  const b = basica(S.baraja);
+  if (b && (!S.col || !Object.keys(S.col).length)) { S.col = {}; [...(b.bp || []), ...(b.ba || [])].forEach(x => { S.col[x.id] = (S.col[x.id] || 0) + (x.copias || 1); }); }
+  if (b && (!S.mazo || !S.mazo.bp)) S.mazo = { nombre: b.nombre, bp: copiaLista(b.bp), ba: copiaLista(b.ba), bs: copiaLista(b.bs) };
+  if (S.mazo) S.mazo.bs = S.mazo.bs || [];
+  S.col = S.col || {}; S.nuevas = S.nuevas || {};
+}
+const enLista = (l, id) => ((l || []).find(x => x.id === id) || {}).copias || 0;
+const enMazo = (m, id) => enLista(m.bp, id) + enLista(m.ba, id) + enLista(m.bs, id);
+const totL = l => (l || []).reduce((a, x) => a + (x.copias || 1), 0);
+const porNombre = (m, id) => { const k = NK(nomC(id)); return [...(m.bp || []), ...(m.ba || []), ...(m.bs || [])].filter(x => NK(nomC(x.id)) === k).reduce((a, x) => a + x.copias, 0); };
+const tieneNombre = id => { const k = NK(nomC(id)); return Object.entries(S.col || {}).filter(([c]) => NK(nomC(c)) === k).reduce((a, [, n]) => a + n, 0); };
+function validarMazo(m) {
+  const R = (DATA.reglas || {}), nBP = R.barajaPrincipal || 40, nBA = R.barajaAlmas || 15, nBS = R.barajaSoporteMax ?? 15, e = [];
+  if (!m || !m.bp) return { ok: false, bp: 0, ba: 0, bs: 0, nBP, nBA, nBS, errores: ['Sin baraja'] };
+  m.bs = m.bs || [];
+  const bp = totL(m.bp), ba = totL(m.ba), bs = totL(m.bs);
+  if (bs > nBS) e.push(`La Baraja de Soporte lleva ${bs} (máximo ${nBS}).`);
+  if (bp !== nBP) e.push(`La Baraja Principal lleva ${bp}/${nBP} cartas.`);
+  if (ba !== nBA) e.push(`La Baraja de Almas lleva ${ba}/${nBA} almas.`);
+  const vistos = {};
+  [...m.bp, ...m.ba, ...m.bs].forEach(x => {
+    if (!CARD[x.id]) { e.push('Carta desconocida: ' + x.id); return; }
+    if (x.copias > (S.col[x.id] || 0)) e.push(`Solo tienes ${S.col[x.id] || 0}× ${nomC(x.id)}.`);
+    const k = NK(nomC(x.id)); if (vistos[k]) return; vistos[k] = 1;
+    const n = porNombre(m, x.id), mx = maxCopias(x.id);
+    if (n > mx) e.push(`${n}× ${nomC(x.id)} supera el máximo de ${mx}.`);
+  });
+  m.bp.forEach(x => { if (CARD[x.id] && (CARD[x.id].tipo === 'alma' || CARD[x.id].tipo === 'amalgama')) e.push(nomC(x.id) + ' no va en la Baraja Principal.'); });
+  m.ba.forEach(x => { if (CARD[x.id] && CARD[x.id].tipo !== 'alma') e.push(nomC(x.id) + ' no es un Alma.'); });
+  m.bs.forEach(x => { if (CARD[x.id] && CARD[x.id].tipo !== 'amalgama') e.push(nomC(x.id) + ' no es una Amalgama.'); });
+  return { ok: !e.length, bp, ba, bs, nBP, nBA, nBS, errores: e };
+}
+// Cartas que puede soltar un rival: las de su propia baraja (sin Amalgamas, condenadas ni expansiones prohibidas)
+function premiable(id) {
+  const c = CARD[id]; if (!c || maxCopias(id) === 0) return false;
+  const g = GALI[String(c.galeriaId)]; if (g && (DATA.expansionesProhibidas || []).includes(g.expansion)) return false;
+  return true;
+}
+function resolverCarta(t) { t = String(t || '').trim(); if (CARD[t]) return t; const k = NK(t); const c = Object.values(CARD).find(x => NK(x.nombre) === k); return c ? c.id : null; }
+// zonas: qué partes de su baraja entran al sorteo ('bp','ba' normales · 'bs' Amalgamas, solo guardianes)
+function sortear(p, n, zonas) {
+  const b = (DATA.barajas || []).find(x => x.id === p.baraja); if (!b || n <= 0) return [];
+  const bolsa = []; (zonas || ['bp', 'ba']).flatMap(z => b[z] || []).forEach(x => { if (premiable(x.id)) for (let k = 0; k < (x.copias || 1); k++) bolsa.push(x.id); });
+  const out = [];
+  for (let i = 0; i < n && bolsa.length; i++) {
+    // Preferir cartas que todavía no tienes completas
+    const utiles = bolsa.filter(id => tieneNombre(id) + out.filter(o => NK(nomC(o)) === NK(nomC(id))).length < topeDe(id));
+    const de = utiles.length ? utiles : bolsa;
+    out.push(de[Math.floor(Math.random() * de.length)]);
+  }
+  return out;
+}
+// Reparte el premio de un Choque ganado: devuelve [{id, repetida}] y suma monedas por las repetidas
+function darPremio(p, primera) {
+  asegurarColeccion();
+  const G = p.tipo === 'guardian';
+  const n = primera ? (G ? 2 : 1) : (Math.random() * 100 < num(CFG.premio_revancha, 50) ? 1 : 0);
+  const fijos = primera ? lista(p.premio).map(resolverCarta).filter(id => id && CARD[id]) : [];
+  // Los guardianes (líderes de distrito) entregan además una Amalgama de su Baraja de Soporte la primera vez;
+  // en las revanchas sus Amalgamas también entran al sorteo.
+  return entregar(fijos.concat(sortear(p, n, G && !primera ? ['bp', 'ba', 'bs'] : ['bp', 'ba']), G && primera ? sortear(p, 1, ['bs']) : []));
+}
+// Mete cartas al cofre; las que ya tienes completas se cambian por monedas. Devuelve [{id, repetida}]
+function entregar(ids) {
+  asegurarColeccion();
+  const vale = parseInt(CFG.moneda_repetida, 10) || 5, out = [];
+  ids.forEach(id => {
+    if (tieneNombre(id) >= topeDe(id)) { S.monedas += vale; out.push({ id, repetida: vale }); }
+    else { S.col[id] = (S.col[id] || 0) + 1; S.nuevas[id] = 1; out.push({ id }); }
+  });
+  return out;
+}
+async function mostrarPremio(lst) {
+  if (!lst.length) return;
+  const h = `<div class="premio">${lst.map(x => `<figure><img src="${esc(cartaImg(x.id, true))}" alt=""><figcaption>${esc(nomC(x.id))}${x.repetida ? `<br><span style="color:#ffd166">Ya la tienes completa · +${x.repetida} 🪙</span>` : ''}</figcaption></figure>`).join('')}</div>
+    <div style="font-size:14px;color:var(--muted)">${lst.some(x => !x.repetida) ? 'Ya está en tu cofre. Agrégala a tu baraja en <b style="color:var(--text)">🃏 BARAJA</b>.' : ''}</div>`;
+  await mensaje(lst.length > 1 ? '🎁 ¡CARTAS PARA TU COFRE!' : '🎁 ¡CARTA PARA TU COFRE!', h);
+}
+function pintarNuevas() { const n = Object.keys((S && S.nuevas) || {}).length, b = $('hNuevas'); if (!b) return; b.hidden = !n; b.textContent = n; }
+
 const diaNombre = d => CFG._dias[((d % CFG._dias.length) + CFG._dias.length) % CFG._dias.length];
 const diaClave = d => NK(diaNombre(d)).slice(0, 3);
 const vencido = id => (S.vencidos[id] || 0) > 0;
@@ -462,7 +699,7 @@ function pintarMapa() {
     const v = vencido(p.id), nuevoNpc = p.tipo === 'heroe' && !(S.hablados[p.id] > 0);
     const bloq = p.tipo === 'guardian' && p._req.length && !cumple(p._req) && !EDITOR;
     return `<button class="pt ${p.tipo} ${p.tipo === 'guardian' && v ? 'jefe-ok' : ''}" data-id="${esc(p.id)}" style="left:${p._x}%;top:${p._y}%" aria-label="${esc(p.nombre)}">
-      <span class="pin">${(PIN[p.tipo] || PIN.rival)()}${v ? '<span class="ok">✔</span>' : ''}${nuevoNpc ? '<span class="ex">!</span>' : ''}${bloq ? '<span class="ok" style="background:#3a4670;color:#fff;box-shadow:none">🔒</span>' : ''}</span>
+      <span class="pin">${(PIN[p.tipo] || PIN.rival)()}${v ? '<span class="ok">✔</span>' : ''}${nuevoNpc ? '<span class="ex">!</span>' : (esComerciante(p) ? '<span class="ok" style="background:#ffd166;box-shadow:0 0 8px #ffd166">🛒</span>' : '')}${bloq ? '<span class="ok" style="background:#3a4670;color:#fff;box-shadow:none">🔒</span>' : ''}</span>
       <span class="lab">${esc(p.nombre)}</span></button>`;
   }).join('');
   mi.innerHTML = fondo + etq + pts;
@@ -476,6 +713,7 @@ function pintarHud() {
   $('hDia').innerHTML = `<i>DÍA ${S.dia + 1}</i><span>${esc(diaNombre(S.dia).toUpperCase())}</span>`;
   $('hMon').textContent = '🪙 ' + (S.monedas || 0);
   $('hMute').textContent = MUTE ? '🔇' : '🔊';
+  pintarNuevas();
 }
 // Zoom: el mapa mide (ancho visible × zoom) y se recorre con scroll (dedo, ratón o control)
 function ajustarZoom(z, cx, cy) {
@@ -516,12 +754,13 @@ async function abrirFicha(id) {
   const v = S.vencidos[p.id] || 0, dr = S.derrotas[p.id] || 0;
   const chips = [];
   if (d) chips.push(`<span class="chip" style="color:${esc(d.color)}">📍 ${esc(d.nombre)}</span>`);
-  if (p.tipo !== 'heroe') { chips.push(`<span class="chip">⚔ ${NIV_TXT[nivelDe(p)]}</span>`); if (v) chips.push(`<span class="chip ok">✔ Vencido ×${v}</span>`); if (dr) chips.push(`<span class="chip no">✖ Derrotas ${dr}</span>`); if (p._mon) chips.push(`<span class="chip">🪙 ${p._mon}${v ? ' (revancha: ' + Math.ceil(p._mon / 4) + ')' : ''}</span>`); }
+  if (p.tipo !== 'heroe') { chips.push(`<span class="chip">⚔ ${NIV_TXT[nivelDe(p)]}</span>`); if (v) chips.push(`<span class="chip ok">✔ Vencido ×${v}</span>`); if (dr) chips.push(`<span class="chip no">✖ Derrotas ${dr}</span>`); if (p._mon) chips.push(`<span class="chip">🪙 ${p._mon}${v ? ' (revancha: ' + Math.ceil(p._mon / 4) + ')' : ''}</span>`); chips.push(`<span class="chip">🎁 ${v ? 'Puede soltar una carta' : (p.tipo === 'guardian' ? '2 cartas + 1 Amalgama' : '1 carta') + ' de su baraja'}</span>`); }
   if (p._dias.length) chips.push(`<span class="chip">📅 ${p._dias.map(x => x.charAt(0) + x.slice(1).toLowerCase()).join(' · ')}</span>`);
   const bloq = p.tipo === 'guardian' && p._req.length && !cumple(p._req);
   if (bloq) chips.push(`<span class="chip no">🔒 Antes vence a: ${esc(nombresReq(p._req.filter(r => !vencido(r))))}</span>`);
   let btns = '';
-  if (p.tipo === 'heroe') btns = `<button class="bt" id="fHablar">💬 HABLAR</button>`;
+  if (esComerciante(p)) btns = `<button class="bt gold" id="fTienda">🛒 TIENDA</button><button class="bt sec" id="fHablar">💬 HABLAR</button>`;
+  else if (p.tipo === 'heroe') btns = `<button class="bt" id="fHablar">💬 HABLAR</button>`;
   else btns = `<button class="bt ${p.tipo === 'guardian' ? 'red' : 'gold'}" id="fRetar" ${bloq ? 'disabled' : ''}>⚔ ${v ? 'REVANCHA' : 'RETAR'}</button><button class="bt sec" id="fHablar">💬 HABLAR</button>`;
   $('fBody').innerHTML = `<div class="f-top" style="--fc:${tc}">
       <div class="f-ret">${ret ? `<img src="${esc(ret.src)}" alt="">` : ''}</div>
@@ -531,7 +770,8 @@ async function abrirFicha(id) {
   const h = $('fHablar'), r = $('fRetar');
   if (h) h.onclick = () => hablar(p);
   if (r) r.onclick = () => retar(p);
-  try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar(r && !r.disabled ? r : h), 60); } catch (e) {}
+  if ($('fTienda')) $('fTienda').onclick = () => abrirTienda(p);
+  try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('fTienda') || (r && !r.disabled ? r : h)), 60); } catch (e) {}
 }
 function cerrarFicha() { $('ficha').classList.remove('on'); SEL = null; document.querySelectorAll('.pt.sel').forEach(b => b.classList.remove('sel')); }
 $('fX').onclick = cerrarFicha;
@@ -577,7 +817,7 @@ function cerrarDialogo(i) { const D = DLG; if (!D) return; clearInterval(D.tm); 
 $('dlg').addEventListener('click', e => { if (e.target.closest('.d-ops')) return; avanzarDialogo(); });
 document.addEventListener('keydown', e => {
   if (DLG && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); avanzarDialogo(); }
-  if (e.key === 'Escape') { if (DLG && !DLG.ops.length) cerrarDialogo(-1); else if ($('mDiario').classList.contains('on')) cerrarModal('mDiario'); else cerrarFicha(); }
+  if (e.key === 'Escape') { if (DLG && !DLG.ops.length) cerrarDialogo(-1); else if ($('mMsg').classList.contains('on')) return; else if ($('mSobre').classList.contains('on')) return; else if ($('mCarta').classList.contains('on')) cerrarModal('mCarta'); else if ($('sTienda').classList.contains('on')) salirTienda(); else if ($('mDiario').classList.contains('on')) cerrarModal('mDiario'); else if ($('sMazo').classList.contains('on')) salirMazo(); else cerrarFicha(); }
 });
 
 async function hablar(p) {
@@ -605,7 +845,10 @@ async function iniciarChoque(p) {
   const id = 'nx' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   const d = distDe(p), ret = await retrato(p);
   S.pendiente = { id, punto: p.id, dia: S.dia }; guardar(true);
-  const m = { id, slot: 0, ronda: 1, total: 1, jefe: p.tipo === 'guardian', jefeTxt: 'GUARDIÁN', jugador: S.baraja, cpu: p.baraja, nivel: nivelDe(p),
+  // La baraja armada en 🃏 BARAJA viaja al Simulador como "nx_mia"
+  asegurarColeccion(); let jug = S.baraja;
+  if (S.mazo && validarMazo(S.mazo).ok) { try { localStorage.setItem('chh_nexotlan_baraja', JSON.stringify({ nombre: S.mazo.nombre || S.barajaNombre, bp: S.mazo.bp, ba: S.mazo.ba, bs: S.mazo.bs || [] })); jug = 'nx_mia'; } catch (e) {} }
+  const m = { id, slot: 0, ronda: 1, total: 1, jefe: p.tipo === 'guardian', jefeTxt: 'GUARDIÁN', jugador: jug, cpu: p.baraja, nivel: nivelDe(p),
     corazonesExtra: parseInt(p.corazones, 10) || 0, avatar: avatarPerfil() ? new URL(avatarPerfil(), location.href).href : '', nombre: p.nombre,
     retrato: ret ? new URL(ret.src, location.href).href : '', musica: p.musica ? new URL(p.musica, location.href).href : '',
     volver: 'nexotlan.html', volverTxt: 'NEXOTLAN', etiqueta: '🗺 NEXOTLAN · ' + (d ? d.nombre : '') };
@@ -634,6 +877,7 @@ async function procesarResultado() {
   await dialogo(p, res.won ? p.victoria : p.derrota);
   if (res.abandono) await mensaje('🚪 CHOQUE ABANDONADO', 'Saliste del Choque antes de terminarlo: cuenta como <b>derrota</b>.');
   if (premio) toast('🪙 +' + premio + ' monedas');
+  if (res.won && !res.abandono) { const cartas = darPremio(p, !antes); guardar(); pintarHud(); await mostrarPremio(cartas); }
   await revisarAperturas(true);
   if (res.won && p.tipo === 'guardian' && DIST.every(d => distritoAbierto(d)) && PTS.filter(x => x.tipo === 'guardian').every(x => vencido(x.id)) && !S.campeon) {
     S.campeon = Date.now(); guardar();
@@ -666,7 +910,7 @@ function abrirDiario() {
   const ab = DIST.filter(distritoAbierto).length, tot = PTS.filter(p => p.tipo !== 'heroe'), ven = tot.filter(p => vencido(p.id)).length;
   let h = `<div class="stats"><div class="st"><b>${S.dia + 1}</b><small>DÍA</small></div><div class="st"><b>${ven}/${tot.length}</b><small>VENCIDOS</small></div>
     <div class="st"><b>${S.victorias}-${S.perdidas}</b><small>V-D</small></div><div class="st"><b>${ab}/${DIST.length}</b><small>DISTRITOS</small></div></div>
-    <div class="lbl">Baraja: <b style="color:var(--text)">${esc(S.barajaNombre || S.baraja)}</b></div>`;
+    <div class="lbl" style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><span>Baraja: <b style="color:var(--text)">${esc((S.mazo && S.mazo.nombre) || S.barajaNombre || S.baraja)}</b> · Cofre: <b style="color:var(--text)">${Object.values(S.col || {}).reduce((a, n) => a + n, 0)}</b> cartas</span><button class="bt sec" id="diMazo" style="padding:8px 12px;font-size:9.5px">🃏 EDITAR BARAJA</button></div>`;
   DIST.forEach(d => { const a = distritoAbierto(d), pr = progresoDistrito(d);
     const pts = PTS.filter(p => p.distrito === d.id && p.tipo !== 'heroe');
     h += `<div class="dist ${a ? '' : 'lock'}" style="--dc:${esc(d.color)}"><div class="dist-n"><span>${a ? '' : '🔒 '}${esc(d.nombre)}</span><b>${pr.ven}/${pr.tot}</b></div>
@@ -674,6 +918,7 @@ function abrirDiario() {
       <small>${a ? pts.map(p => (vencido(p.id) ? '✔ ' : (p.tipo === 'guardian' ? '👑 ' : '• ')) + esc(p.nombre)).join(' · ') : 'Se abre al vencer a ' + esc(nombresReq(d._req))}</small></div>`; });
   h += `<div class="f-btns"><button class="bt red" id="diBorrar">🗑 BORRAR PARTIDA</button></div>`;
   $('diBody').innerHTML = h; $('mDiario').classList.add('on');
+  $('diMazo').onclick = () => { cerrarModal('mDiario'); abrirMazo(); };
   $('diBorrar').onclick = async () => { if (await mensaje('¿BORRAR LA PARTIDA?', 'Se pierde todo tu progreso en Nexotlan (también en la nube).', [['🗑 BORRAR', 'red'], ['CANCELAR', 'sec']]) !== 0) return;
     S = nueva(S.nombre, S.baraja, S.barajaNombre); S.u = Date.now(); guardar(); cerrarModal('mDiario'); irA('sTitulo'); pintarTitulo(); };
 }
@@ -687,19 +932,286 @@ function pantallaBaraja(modo) {
   if (!$('nNombre').value) { const j = sesionJug(); $('nNombre').value = (j && (j.nick || j.nombre)) || ''; }
   pintarBarajas(); irA('sNueva');
 }
+// Imagen de muestra de una baraja: "imagen" en el JSON, o assets/nexotlan/barajas/<id>.jpg (.png/.webp); si no hay, su carta de portada
+function imgBaraja(b) {
+  const carta = cartaImg(b.portada || (b.bp && b.bp[0] && b.bp[0].id), b.aventura);
+  const prueba = b.imagen ? [galPath(b.imagen)] : ['jpg', 'png', 'webp'].map(e => DIR + 'barajas/' + b.id + '.' + e);
+  const lst = prueba.concat(carta ? [carta] : []);
+  return `<img src="${esc(lst[0])}" data-alt="${esc(lst.slice(1).join('|'))}" onerror="const a=(this.dataset.alt||'').split('|').filter(Boolean);if(a.length){this.dataset.alt=a.slice(1).join('|');this.src=a[0];}else this.onerror=null" alt="" loading="lazy">`;
+}
 function pintarBarajas() {
-  $('nDecks').innerHTML = barajasJugador().map(b => `<button class="dk ${b.aventura ? 'av' : ''} ${NSEL === b.id ? 'on' : ''}" data-id="${esc(b.id)}">${b.propia ? '<span class="ph">⭐</span>' : `<img src="${esc(cartaImg(b.portada || (b.bp && b.bp[0] && b.bp[0].id), b.aventura))}" alt="" loading="lazy">`}
+  $('nDecks').innerHTML = barajasJugador().map(b => `<button class="dk ${b.aventura ? 'av' : ''} ${NSEL === b.id ? 'on' : ''}" data-id="${esc(b.id)}">${b.propia ? '<span class="ph">⭐</span>' : imgBaraja(b)}
     <span style="min-width:0"><b>${esc(b.nombre)}</b><small>${esc(b.aventura ? (b.descripcion || '') : (b.estilo || ''))}</small></span></button>`).join('');
   $('nDecks').querySelectorAll('.dk').forEach(el => el.onclick = () => { NSEL = el.dataset.id; pintarBarajas(); });
   $('nGo').disabled = !NSEL;
 }
 $('nGo').onclick = () => {
   const b = barajasJugador().find(x => x.id === NSEL); if (!b) return;
-  if (NMODO === 'cambiar') { S.baraja = b.id; S.barajaNombre = b.nombre; guardar(); entrarMapa(); toast('🃏 Ahora juegas con ' + b.nombre); return; }
-  S = nueva(($('nNombre').value || '').trim() || 'Jugador', b.id, b.nombre); guardar();
+  if (NMODO === 'cambiar') { if (S.baraja !== b.id) { S.col = null; S.mazo = null; } S.baraja = b.id; S.barajaNombre = b.nombre; asegurarColeccion(); guardar(); entrarMapa(); toast('🃏 Ahora juegas con ' + b.nombre); return; }
+  S = nueva(($('nNombre').value || '').trim() || 'Jugador', b.id, b.nombre); asegurarColeccion(); guardar();
   entrarMapa(true);
 };
 $('nVolver').onclick = () => { if (NMODO === 'cambiar') entrarMapa(); else irA('sTitulo'); };
+
+// ════════════════ CONSTRUCTOR DE AVENTURA (🃏 BARAJA) ════════════════
+let MZ = null;          // { m: borrador, cambios, filtro, q }
+function abrirMazo() {
+  asegurarColeccion(); cerrarFicha();
+  MZ = { m: { nombre: S.mazo.nombre || S.barajaNombre || 'Mi baraja', bp: copiaLista(S.mazo.bp), ba: copiaLista(S.mazo.ba), bs: copiaLista(S.mazo.bs) }, cambios: false, filtro: MZ ? MZ.filtro : 'todo', q: '' };
+  if ($('mzQ')) $('mzQ').value = '';
+  irA('sMazo'); pintarMazo(); pintarCofre();
+  try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('mzDeck').querySelector('button')), 60); } catch (e) {}
+}
+async function salirMazo() {
+  if (MZ && MZ.cambios) {
+    const v = validarMazo(MZ.m);
+    const r = await mensaje('¿GUARDAR CAMBIOS?', v.ok ? 'Tu baraja tiene cambios sin guardar.' : 'La baraja no está completa, así que no se puede guardar:<br><small style="color:#ffb3c2">' + esc(v.errores[0]) + '</small>',
+      v.ok ? [['💾 GUARDAR', 'gold'], ['DESCARTAR', 'red'], ['SEGUIR EDITANDO', 'sec']] : [['DESCARTAR CAMBIOS', 'red'], ['SEGUIR EDITANDO', 'sec']]);
+    if (v.ok ? r === 2 : r === 1) return;
+    if (v.ok && r === 0) guardarMazo(true);
+  }
+  S.nuevas = {}; guardar(); MZ = null;
+  irA('sMapa'); pintarHud(); ajustarZoom(ZOOM);
+}
+function guardarMazo(callado) {
+  const v = validarMazo(MZ.m); if (!v.ok) { toast('⚠ ' + v.errores[0]); return false; }
+  S.mazo = { nombre: (MZ.m.nombre || '').trim().slice(0, 40) || S.barajaNombre, bp: copiaLista(MZ.m.bp), ba: copiaLista(MZ.m.ba), bs: copiaLista(MZ.m.bs) };
+  MZ.cambios = false; guardar(); pintarMazo();
+  if (!callado) toast('💾 Baraja guardada');
+  return true;
+}
+function mzAgregar(id) {
+  const m = MZ.m, z = zonaDe(id), v = validarMazo(m), lim = z === 'bp' ? v.nBP : z === 'ba' ? v.nBA : v.nBS;
+  if (enMazo(m, id) >= (S.col[id] || 0)) return toast('No tienes más copias de ' + nomC(id));
+  if (porNombre(m, id) >= maxCopias(id)) return toast('Máximo ' + maxCopias(id) + ' copias de ' + nomC(id));
+  if (totL(m[z]) >= lim) return toast(({ bp: 'La Baraja Principal', ba: 'La Baraja de Almas', bs: 'La Baraja de Soporte' })[z] + ' ya tiene ' + lim + ': quita una primero');
+  const e = m[z].find(x => x.id === id); if (e) e.copias++; else m[z].push({ id, copias: 1 });
+  MZ.cambios = true; pintarMazo(); pintarCofre();
+}
+function mzQuitar(id) {
+  const m = MZ.m, z = zonaDe(id), e = m[z].find(x => x.id === id); if (!e) return;
+  if (--e.copias <= 0) m[z] = m[z].filter(x => x !== e);
+  MZ.cambios = true; pintarMazo(); pintarCofre();
+}
+const ordenCarta = (a, b) => { const A = CARD[a] || {}, B = CARD[b] || {}; return (ORD_T.indexOf(A.tipo) - ORD_T.indexOf(B.tipo)) || ((A.coste || 0) - (B.coste || 0)) || nomC(a).localeCompare(nomC(b)); };
+function pintarMazo() {
+  const m = MZ.m, v = validarMazo(m);
+  const hayAm = v.bs || Object.keys(S.col).some(id => S.col[id] > 0 && (CARD[id] || {}).tipo === 'amalgama');
+  $('mzCnt').innerHTML = `<span class="${v.bp === v.nBP ? 'ok' : 'no'}">BP ${v.bp}/${v.nBP}</span><span class="${v.ba === v.nBA ? 'ok' : 'no'}">BA ${v.ba}/${v.nBA}</span>${hayAm ? `<span class="${v.bs <= v.nBS ? 'ok' : 'no'}">BS ${v.bs}/${v.nBS}</span>` : ''}`;
+  $('mzGuardar').disabled = !v.ok || !MZ.cambios;
+  const fila = x => { const c = CARD[x.id] || {}, libre = (S.col[x.id] || 0) - enMazo(m, x.id);
+    return `<div class="mz-row"><img src="${esc(cartaImg(x.id))}" alt="" loading="lazy"><button class="n" data-ver="${esc(x.id)}">${esc(nomC(x.id))}<small>${esc(TIPO_C[c.tipo] || c.tipo || '')}${c.tipo !== 'alma' ? ' · Coste ' + (c.coste ?? 0) : ''}${S.nuevas[x.id] ? ' · <b style="color:#ffd166">NUEVA</b>' : ''}</small></button>
+      <button class="pm" data-menos="${esc(x.id)}" aria-label="Quitar">−</button><span class="q">${x.copias}</span><button class="pm" data-mas="${esc(x.id)}" aria-label="Agregar" ${libre > 0 && porNombre(m, x.id) < maxCopias(x.id) ? '' : 'disabled'}>+</button></div>`; };
+  let h = `<div class="mz-nom"><input class="inp" id="mzNombre" maxlength="40" value="${esc(m.nombre)}" aria-label="Nombre de la baraja"><button class="bt sec" id="mzRestaurar" title="Volver a la baraja básica">↺ BÁSICA</button></div>`;
+  h += v.ok ? `<div class="mz-av ok">✔ Baraja lista para el Choque${MZ.cambios ? ' · guarda los cambios' : ''}.</div>` : `<div class="mz-av">⚠ ${v.errores.slice(0, 3).map(esc).join('<br>')}</div>`;
+  ORD_T.forEach(t => { const l = (t === 'alma' ? m.ba : t === 'amalgama' ? m.bs : m.bp).filter(x => (CARD[x.id] || {}).tipo === t).sort((a, b) => ordenCarta(a.id, b.id)); if (!l.length) return;
+    h += `<div class="mz-g"><span>${t === 'alma' ? 'BARAJA DE ALMAS' : t === 'amalgama' ? 'BARAJA DE SOPORTE · AMALGAMAS' : esc(TIPO_C[t].toUpperCase())}</span><span>${totL(l)}</span></div>` + l.map(fila).join(''); });
+  $('mzDeck').innerHTML = h;
+  $('mzNombre').oninput = e => { MZ.m.nombre = e.target.value; MZ.cambios = true; $('mzGuardar').disabled = !validarMazo(MZ.m).ok; };
+  $('mzRestaurar').onclick = async () => { const b = basica(S.baraja); if (!b) return;
+    if (await mensaje('¿VOLVER A LA BÁSICA?', 'Tu baraja vuelve a ser <b>' + esc(b.nombre) + '</b>. Las cartas de tu cofre no se pierden.', [['↺ RESTAURAR', 'gold'], ['CANCELAR', 'sec']]) !== 0) return;
+    MZ.m = { nombre: b.nombre, bp: copiaLista(b.bp), ba: copiaLista(b.ba), bs: copiaLista(b.bs) }; MZ.cambios = true; pintarMazo(); pintarCofre(); };
+  $('mzDeck').querySelectorAll('[data-menos]').forEach(b => b.onclick = () => mzQuitar(b.dataset.menos));
+  $('mzDeck').querySelectorAll('[data-mas]').forEach(b => b.onclick = () => mzAgregar(b.dataset.mas));
+  $('mzDeck').querySelectorAll('[data-ver]').forEach(b => b.onclick = () => verCarta(b.dataset.ver));
+}
+function pintarCofre() {
+  const F = [['todo', 'TODAS'], ['libres', 'FUERA DE LA BARAJA'], ['nuevas', '✨ NUEVAS'], ['pj', 'PERSONAJES'], ['apoyo', 'APOYOS'], ['sector', 'SECTORES'], ['arena', 'ARENAS'], ['alma', 'ALMAS'], ['amalgama', 'AMALGAMAS']];
+  if (!$('mzQ')) {
+    $('mzFil').innerHTML = `<input class="inp" id="mzQ" placeholder="Buscar en tu cofre…" autocomplete="off">` + F.map(([k, t]) => `<button data-f="${k}">${t}</button>`).join('');
+    $('mzQ').oninput = e => { MZ.q = e.target.value; pintarCofre(); };
+    $('mzFil').querySelectorAll('[data-f]').forEach(b => b.onclick = () => { MZ.filtro = b.dataset.f; pintarCofre(); });
+  }
+  $('mzFil').querySelectorAll('[data-f]').forEach(b => b.classList.toggle('on', b.dataset.f === MZ.filtro));
+  const m = MZ.m, q = NK(MZ.q || '');
+  let ids = Object.keys(S.col).filter(id => S.col[id] > 0 && CARD[id]);
+  const f = MZ.filtro;
+  if (f === 'libres') ids = ids.filter(id => S.col[id] - enMazo(m, id) > 0);
+  else if (f === 'nuevas') ids = ids.filter(id => S.nuevas[id]);
+  else if (f !== 'todo') ids = ids.filter(id => CARD[id].tipo === f);
+  if (q) ids = ids.filter(id => NK(nomC(id) + ' ' + (CARD[id].texto || '')).includes(q));
+  ids.sort((a, b) => (S.nuevas[b] ? 1 : 0) - (S.nuevas[a] ? 1 : 0) || ordenCarta(a, b));
+  const total = Object.values(S.col).reduce((a, n) => a + n, 0);
+  $('mzGrid').innerHTML = ids.length ? ids.map(id => { const libre = S.col[id] - enMazo(m, id), im = cartaImg(id);
+    return `<button class="mz-c ${libre > 0 ? '' : 'agot'}" data-id="${esc(id)}" aria-label="${esc(nomC(id))}">${im ? `<img src="${esc(im)}" alt="" loading="lazy">` : `<span class="ph">${esc(nomC(id))}</span>`}
+      <span class="qq">${libre}/${S.col[id]}</span>${S.nuevas[id] ? '<span class="nw">NUEVA</span>' : ''}</button>`; }).join('')
+    : `<div class="mz-vacio">${f === 'nuevas' ? 'No tienes cartas nuevas.' : 'Nada por aquí.'}<br><small>Vence rivales en el mapa para ganar cartas de sus barajas (${total} en tu cofre).</small></div>`;
+  $('mzGrid').querySelectorAll('.mz-c').forEach(b => b.onclick = () => verCarta(b.dataset.id));
+  const tab = $('mzTabs').querySelector('[data-t=cofre]'); if (tab) tab.textContent = '🎁 COFRE (' + total + ')';
+}
+function verCarta(id) {
+  const c = CARD[id] || {}, m = MZ.m, en = enMazo(m, id), tengo = S.col[id] || 0, libre = tengo - en;
+  const st = (c.tipo === 'pj' || c.tipo === 'amalgama') ? ` · FUE ${c.fue ?? 0} · RES ${c.res ?? 0}` : '';
+  const lim = maxCopias(id) < 3 ? `<span class="chip no">${esc(LIM[NK(nomC(id))] || '')} · máx ${maxCopias(id)}</span>` : '';
+  $('mcBox').innerHTML = `<button class="f-x" id="mcX" aria-label="Cerrar">✕</button><img src="${esc(cartaImg(id, true))}" alt="">
+    <div class="mc-inf"><span class="f-tipo" style="--fc:var(--cyan)">${esc((TIPO_C[c.tipo] || c.tipo || '').toUpperCase())}</span><div class="f-n">${esc(nomC(id))}</div>
+    <div class="f-t">${c.tipo !== 'alma' && c.tipo !== 'amalgama' ? 'Coste ' + (c.coste ?? 0) : ''}${st}</div>${c.tipo === 'amalgama' ? '<div class="f-d">Va en la Baraja de Soporte (opcional, máx. 15).</div>' : ''}
+    <div class="f-chips"><span class="chip">🎁 Tienes ${tengo}</span><span class="chip ${en ? 'ok' : ''}">🃏 En baraja ${en}</span>${lim}${S.nuevas[id] ? '<span class="chip" style="color:#ffd166">✨ NUEVA</span>' : ''}</div>
+    ${c.texto ? `<p>${esc(c.texto)}</p>` : ''}
+    <div class="f-btns"><button class="bt sec" id="mcMenos" ${en ? '' : 'disabled'}>− QUITAR</button><button class="bt gold" id="mcMas" ${libre > 0 ? '' : 'disabled'}>+ A LA BARAJA</button></div></div>`;
+  $('mCarta').classList.add('on');
+  $('mcX').onclick = () => cerrarModal('mCarta');
+  $('mcMas').onclick = () => { mzAgregar(id); verCarta(id); };
+  $('mcMenos').onclick = () => { mzQuitar(id); verCarta(id); };
+  try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar(!$('mcMas').disabled ? $('mcMas') : $('mcX')), 40); } catch (e) {}
+}
+$('mzSalir').onclick = salirMazo;
+$('mzGuardar').onclick = () => guardarMazo();
+$('mzTabs').querySelectorAll('button').forEach(b => b.onclick = () => { $('mzTabs').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); $('mzBody').dataset.t = b.dataset.t; });
+$('mCarta').addEventListener('click', e => { if (e.target === $('mCarta')) cerrarModal('mCarta'); });
+
+// ════════════════ COMERCIANTE (assets/nexotlan/comerciante.txt) ════════════════
+let COM = { cfg: {}, sobres: [], precios: {} };
+function parseCom(txt) {
+  const out = { cfg: {}, sobres: [], precios: {} }; let cur = null, tipo = '';
+  String(txt || '').replace(/\r/g, '').split('\n').forEach(l => {
+    const t = l.trim(); if (!t || t.startsWith('#') || t.startsWith(';')) return;
+    const h = t.match(/^\[(.+)\]$/);
+    if (h) { const [a, id] = h[1].split(':').map(x => x.trim()); tipo = a.toLowerCase();
+      cur = tipo === 'sobre' ? { id: id || 'sobre' + out.sobres.length } : tipo === 'comerciante' ? out.cfg : null; if (tipo === 'sobre') out.sobres.push(cur); return; }
+    const i = t.indexOf('='); if (i < 0) return;
+    const k = t.slice(0, i).trim(), v = t.slice(i + 1).trim();
+    if (tipo === 'precios') { const n = parseInt(v, 10); if (isFinite(n)) out.precios[NK(k)] = n; }
+    else if (cur) cur[k.toLowerCase()] = v;
+  });
+  return out;
+}
+const FUERTES = ['TRAZADORDEPESADILLAS', 'ACECHODELCAZARECOMPENSAS', 'NINAPINATA', 'EXPLOSIONABISMAL', 'RESURRECCIONANCESTRAL'];
+const r5 = n => Math.max(5, Math.round(n / 5) * 5);
+const hashS = t => String(t).split('').reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
+const esComerciante = p => p && p.tipo === 'heroe' && COM.cfg.punto && p.id === COM.cfg.punto;
+function precioBase(id) {
+  const c = CARD[id]; if (!c || !premiable(id)) return 0;
+  const k = NK(c.nombre); if (k in COM.precios) return COM.precios[k]; if (NK(id) in COM.precios) return COM.precios[NK(id)];
+  const e = LIM[k]; let p;
+  if (e === 'limitada') p = 1500; else if (FUERTES.includes(k)) p = 1200; else if (e === 'semi-limitada') p = 800;
+  else p = ({ pj: 30 + 12 * (c.coste || 0), amalgama: 450 + 8 * ((c.fue || 0) + (c.res || 0)), alma: 40 })[c.tipo] || 70;
+  return r5(p * num(COM.cfg.precio_cartas, 100) / 100);
+}
+function precioHoy(id) {
+  const b = precioBase(id); if (!b) return 0;
+  const v = num(COM.cfg.variacion, 20) / 100, R = rnd(hashS(id) + S.dia * 7919 + (S.inicio || 0) % 9973)();
+  return r5(b * (1 - v + 2 * v * R));
+}
+const precioCompra = id => r5(precioHoy(id) * num(COM.cfg.compra, 20) / 100);
+// Cartas de un pool: distritos (sus rivales y guardián), barajas por id, o "todo"
+function poolDe(spec, zonas) {
+  let L = lista(spec); if (!L.length || L.includes('todo')) L = DIST.map(d => d.id);
+  const decks = [];
+  L.forEach(x => { if (DIST.some(d => d.id === x)) PTS.filter(p => p.distrito === x && p.baraja).forEach(p => decks.push(p.baraja)); else decks.push(x); });
+  const set = new Set();
+  decks.forEach(id => { const b = (DATA.barajas || []).find(y => y.id === id); if (b) (zonas || ['bp', 'ba']).forEach(z => (b[z] || []).forEach(e => { if (precioBase(e.id) > 0) set.add(e.id); })); });
+  return [...set];
+}
+function stockHoy() {
+  if (S.tienda && S.tienda.dia === S.dia && Array.isArray(S.tienda.stock)) return S.tienda;
+  const abiertos = DIST.filter(distritoAbierto).map(d => d.id);
+  const R = rnd(hashS('stock') + S.dia * 104729 + (S.inicio || 0) % 99991);
+  const todo = [...new Set(poolDe(abiertos.join(','), ['bp', 'ba']).concat(poolDe(abiertos.join(','), ['bs'])).concat(Object.keys(CARD).filter(id => NK(nomC(id)) in COM.precios && precioBase(id) > 0)))];
+  const normal = todo.filter(id => precioBase(id) < 450), joyas = todo.filter(id => precioBase(id) >= 450);
+  const toma = (L, n) => { L = L.slice(); const o = []; while (o.length < n && L.length) o.push(L.splice(Math.floor(R() * L.length), 1)[0]); return o; };
+  const nj = Math.min(parseInt(COM.cfg.joyas_dia, 10) || 0, joyas.length), nt = parseInt(COM.cfg.cartas_dia, 10) || 8;
+  const stock = toma(joyas, nj).map(id => ({ id, joya: 1 })).concat(toma(normal, nt - nj).map(id => ({ id })));
+  S.tienda = { dia: S.dia, stock, vendidas: {} };
+  return S.tienda;
+}
+let TD = { tab: 'sobres' };
+async function abrirTienda(p) {
+  cerrarFicha(); asegurarColeccion(); stockHoy(); guardar();
+  const ret = await retrato(p), pai = paisajeDe(p), hayPai = pai && await probar(pai), d = distDe(p);
+  const sal = String(COM.cfg.saludo || '').split('|').map(x => x.trim()).filter(Boolean); if (!sal.length) sal.push('¡Bienvenido!');
+  $('tdBanda').style.backgroundImage = hayPai ? `url('${pai}')` : '';
+  $('tdBanda').innerHTML = (hayPai ? '' : skyline(d)) + (ret ? `<img class="ret ${ret.carta ? 'carta' : ''}" src="${esc(ret.src)}" alt="">` : '') +
+    `<div class="td-bur"><b>${esc((p.nombre || '').toUpperCase())}</b>${esc(sal[Math.floor(Math.random() * sal.length)])}</div>`;
+  irA('sTienda'); pintarTienda();
+  try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('tdBody').querySelector('button:not([disabled])') || $('tdSalir')), 60); } catch (e) {}
+}
+function salirTienda() { S.nuevas = S.nuevas || {}; guardar(); irA('sMapa'); pintarHud(); ajustarZoom(ZOOM); }
+const sobreDisponible = sb => !lista(sb.requiere).length || lista(sb.requiere).every(r => vencido(r) || (DIST.find(d => d.id === r) && distritoAbierto(DIST.find(d => d.id === r))));
+function imgSobre(sb) {
+  const gen = `<div class="pk-gen" style="--pc:${esc(sb.color || '#36d6ff')}"><i>NEXOTLAN</i><em>📦</em><span>${esc(sb.nombre || sb.id)}</span><i>${esc((sb.cartas || 5) + ' CARTAS')}</i></div>`;
+  if (!sb.imagen) return gen;
+  const src = /\//.test(sb.imagen) ? sb.imagen : DIR + 'sobres/' + sb.imagen;
+  return gen + `<img src="${esc(src)}" alt="" style="position:absolute;inset:0" onerror="this.remove()">`;
+}
+function pintarTienda() {
+  $('tdMon').textContent = '🪙 ' + S.monedas;
+  $('tdTabs').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.t === TD.tab));
+  const B = $('tdBody'); let h = '';
+  if (TD.tab === 'sobres') {
+    const L = COM.sobres.filter(sobreDisponible), faltan = COM.sobres.length - L.length;
+    h = `<div class="td-nota">Las cartas van a tu <b style="color:var(--text)">🎁 cofre</b>. Las más caras salen menos en los sobres.${faltan ? ` · ${faltan} sobre(s) más al avanzar en Nexotlan.` : ''}</div>`;
+    h += L.length ? `<div class="td-sobres">${L.map(sb => { const pr = parseInt(sb.precio, 10) || 100, ok = S.monedas >= pr;
+      return `<div class="td-s"><div class="pk">${imgSobre(sb)}</div><b>${esc(sb.nombre || sb.id)}</b><small>${esc(sb.descripcion || '')}${parseInt(sb.amalgama, 10) ? `<br><span style="color:#ffd166">✨ ${parseInt(sb.amalgama, 10)} % de Amalgama</span>` : ''}</small>
+        <button class="bt ${ok ? 'gold' : 'sec'}" data-sobre="${esc(sb.id)}" ${ok ? '' : 'disabled'}>🪙 ${pr} · ${ok ? 'COMPRAR' : 'FALTAN ' + (pr - S.monedas)}</button></div>`; }).join('')}</div>` : '<div class="mz-vacio">Todavía no hay sobres a la venta.</div>';
+  } else if (TD.tab === 'cartas') {
+    const T = stockHoy();
+    h = `<div class="td-nota">Ofertas del <b style="color:var(--text)">día ${S.dia + 1}</b>: cambian (y sus precios también) cada vez que avanza el día. ${T.stock.some(x => x.joya) ? 'Las <b style="color:#ffd166">JOYAS</b> son cartas fuertes y muy caras.' : ''}</div><div class="mz-grid">`;
+    h += T.stock.map((x, i) => { const pr = precioHoy(x.id), vd = T.vendidas[i];
+      return `<button class="mz-c ${x.joya ? 'joya' : ''}" data-of="${i}" aria-label="${esc(nomC(x.id))}"><img src="${esc(cartaImg(x.id))}" alt="" loading="lazy">${x.joya ? '<span class="jy">JOYA</span>' : ''}<span class="qq">${tieneNombre(x.id)}/${topeDe(x.id)}</span><span class="pr">🪙 ${pr}</span>${vd ? '<span class="vd">✔ COMPRADA</span>' : ''}</button>`; }).join('') + '</div>';
+  } else {
+    const ids = Object.keys(S.col).filter(id => S.col[id] - enMazo(S.mazo, id) > 0 && precioBase(id) > 0).sort(ordenCarta);
+    h = `<div class="td-nota">Te compra al <b style="color:var(--text)">${num(COM.cfg.compra, 20)} %</b> del precio del día. Solo aparecen las copias que <b style="color:var(--text)">no están en tu baraja</b>.</div>`;
+    h += ids.length ? `<div class="mz-grid">${ids.map(id => `<button class="mz-c" data-vd="${esc(id)}" aria-label="${esc(nomC(id))}"><img src="${esc(cartaImg(id))}" alt="" loading="lazy"><span class="qq">×${S.col[id] - enMazo(S.mazo, id)}</span><span class="pr">+${precioCompra(id)}</span></button>`).join('')}</div>` : '<div class="mz-vacio">No tienes cartas fuera de tu baraja para vender.</div>';
+  }
+  B.innerHTML = h;
+  B.querySelectorAll('[data-sobre]').forEach(b => b.onclick = () => comprarSobre(COM.sobres.find(x => x.id === b.dataset.sobre)));
+  B.querySelectorAll('[data-of]').forEach(b => b.onclick = () => fichaTienda(+b.dataset.of));
+  B.querySelectorAll('[data-vd]').forEach(b => b.onclick = () => fichaVenta(b.dataset.vd));
+}
+function fichaBase(id, extra, btns) {
+  const c = CARD[id] || {}, st = (c.tipo === 'pj' || c.tipo === 'amalgama') ? ` · FUE ${c.fue ?? 0} · RES ${c.res ?? 0}` : '';
+  $('mcBox').innerHTML = `<button class="f-x" id="mcX" aria-label="Cerrar">✕</button><img src="${esc(cartaImg(id, true))}" alt="">
+    <div class="mc-inf"><span class="f-tipo" style="--fc:var(--gold)">${esc((TIPO_C[c.tipo] || c.tipo || '').toUpperCase())}</span><div class="f-n">${esc(nomC(id))}</div>
+    <div class="f-t">${c.tipo !== 'alma' && c.tipo !== 'amalgama' ? 'Coste ' + (c.coste ?? 0) : ''}${st}</div>
+    <div class="f-chips"><span class="chip">🎁 Tienes ${tieneNombre(id)}/${topeDe(id)}</span><span class="chip">🃏 En baraja ${enMazo(S.mazo, id)}</span>${extra || ''}</div>
+    ${c.texto ? `<p>${esc(c.texto)}</p>` : ''}<div class="f-btns">${btns}</div></div>`;
+  $('mCarta').classList.add('on'); $('mcX').onclick = () => cerrarModal('mCarta');
+}
+function fichaTienda(i) {
+  const T = stockHoy(), x = T.stock[i]; if (!x) return;
+  const pr = precioHoy(x.id), lleno = tieneNombre(x.id) >= topeDe(x.id), vd = T.vendidas[i], ok = !vd && !lleno && S.monedas >= pr;
+  fichaBase(x.id, `<span class="chip" style="color:#ffd166">🪙 ${pr}${x.joya ? ' · JOYA' : ''}</span>`,
+    `<button class="bt sec" id="tdNo">CERRAR</button><button class="bt gold" id="tdSi" ${ok ? '' : 'disabled'}>${vd ? '✔ YA LA COMPRASTE' : lleno ? 'YA LA TIENES COMPLETA' : S.monedas < pr ? 'FALTAN ' + (pr - S.monedas) + ' 🪙' : '🪙 COMPRAR'}</button>`);
+  $('tdNo').onclick = () => cerrarModal('mCarta');
+  $('tdSi').onclick = () => { if (S.monedas < pr) return; S.monedas -= pr; T.vendidas[i] = 1; entregar([x.id]); guardar(); cerrarModal('mCarta'); pintarTienda(); toast('🛒 ' + nomC(x.id) + ' a tu cofre'); };
+  try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar(ok ? $('tdSi') : $('tdNo')), 40); } catch (e) {}
+}
+function fichaVenta(id) {
+  const libres = S.col[id] - enMazo(S.mazo, id), pr = precioCompra(id); if (libres <= 0) return;
+  fichaBase(id, `<span class="chip" style="color:#ffd166">Te paga 🪙 ${pr}</span>`, `<button class="bt sec" id="tdNo">CERRAR</button><button class="bt gold" id="tdSi">💰 VENDER 1 (+${pr})</button>`);
+  $('tdNo').onclick = () => cerrarModal('mCarta');
+  $('tdSi').onclick = () => { S.col[id]--; if (S.col[id] <= 0) { delete S.col[id]; delete S.nuevas[id]; } S.monedas += pr; guardar(); cerrarModal('mCarta'); pintarTienda(); toast('💰 +' + pr + ' monedas'); };
+  try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('tdSi')), 40); } catch (e) {}
+}
+function sorteoPeso(L) {
+  const w = L.map(id => 1 / Math.pow(precioBase(id) || 50, 1.3)), tot = w.reduce((a, b) => a + b, 0);
+  let r = Math.random() * tot; for (let i = 0; i < L.length; i++) { r -= w[i]; if (r <= 0) return L[i]; } return L[L.length - 1];
+}
+async function comprarSobre(sb) {
+  if (!sb) return; const pr = parseInt(sb.precio, 10) || 100; if (S.monedas < pr) return;
+  const n = parseInt(sb.cartas, 10) || 5, pool = poolDe(sb.pool, ['bp', 'ba']); if (!pool.length) return toast('Este sobre no tiene cartas (revisa su pool)');
+  const ids = []; let L = pool.slice();
+  for (let i = 0; i < n; i++) { if (!L.length) L = pool.slice(); const id = sorteoPeso(L); ids.push(id); L = L.filter(x => x !== id); }
+  const am = poolDe(sb.pool, ['bs']);
+  if (am.length && Math.random() * 100 < (parseInt(sb.amalgama, 10) || 0)) ids[ids.length - 1] = sorteoPeso(am);
+  S.monedas -= pr; const res = entregar(ids); guardar(); pintarTienda();
+  // Apertura
+  $('sbPkg').className = 'pkg'; $('sbPkg').innerHTML = imgSobre(sb); $('sbHint').hidden = false; $('sbRes').innerHTML = ''; $('sbOk').hidden = true; $('sbPkg').style.display = '';
+  $('mSobre').classList.add('on');
+  try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('sbPkg')), 60); } catch (e) {}
+  await new Promise(r => { $('sbPkg').onclick = r; });
+  $('sbPkg').classList.add('abre'); $('sbHint').hidden = true;
+  await new Promise(r => setTimeout(r, 520));
+  $('sbPkg').style.display = 'none';
+  $('sbRes').innerHTML = `<div class="premio">${res.map(x => `<figure><img src="${esc(cartaImg(x.id, true))}" alt=""><figcaption>${esc(nomC(x.id))}${x.repetida ? `<br><span style="color:#ffd166">Completa · +${x.repetida} 🪙</span>` : (CARD[x.id] || {}).tipo === 'amalgama' ? '<br><span style="color:#ffd166">✨ AMALGAMA</span>' : (precioBase(x.id) >= 450 ? '<br><span style="color:#ffd166">★ JOYA</span>' : '')}</figcaption></figure>`).join('')}</div>`;
+  $('sbOk').hidden = false;
+  try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('sbOk')), 300); } catch (e) {}
+  await new Promise(r => { $('sbOk').onclick = r; });
+  $('mSobre').classList.remove('on'); pintarTienda();
+}
+$('tdSalir').onclick = salirTienda;
+$('tdTabs').querySelectorAll('button').forEach(b => b.onclick = () => { TD.tab = b.dataset.t; pintarTienda(); });
 
 // ════════════════ PANTALLAS / AVISOS ════════════════
 function irA(id) { document.querySelectorAll('.scr').forEach(s => s.classList.toggle('on', s.id === id)); }
@@ -719,6 +1231,7 @@ async function entrarMapa(primeraVez) {
     await mensaje('🃏 ELIGE TU BARAJA', 'En Nexotlan se juega con una de las <b>barajas básicas</b> del modo. Elige con cuál seguirás tu aventura.');
     pantallaBaraja('cambiar'); return;
   }
+  asegurarColeccion();
   irA('sMapa'); cerrarFicha();
   pintarMapa(); ajustarZoom(innerWidth < 700 ? 1.6 : 1);
   const d0 = DIST.find(distritoAbierto) || DIST[0]; if (d0) centrarEn(d0._x, d0._y);
@@ -745,7 +1258,7 @@ $('tNueva').onclick = async () => {
 $('hSalir').onclick = () => { musica(null); irA('sTitulo'); pintarTitulo(); };
 $('hDescansar').onclick = descansar;
 $('hDiario').onclick = abrirDiario;
-$('hBaraja').onclick = () => pantallaBaraja('cambiar');
+$('hBaraja').onclick = abrirMazo;
 $('zMas').onclick = () => ajustarZoom(ZOOM * 1.3);
 $('zMenos').onclick = () => ajustarZoom(ZOOM / 1.3);
 $('hMute').onclick = () => { MUTE = !MUTE; try { localStorage.setItem('chh_nexotlan_mute', MUTE ? '1' : '0'); } catch (e) {} pintarHud(); if (MUTE) $('aud').pause(); else if ($('aud').src) $('aud').play().catch(() => {}); };
@@ -797,12 +1310,16 @@ window.GP_CFG = {
   atras: () => {
     if (DLG) { if (DLG.ops.length) cerrarDialogo(DLG.ops.length - 1); else avanzarDialogo(); return true; }
     if ($('mMsg').classList.contains('on')) { const b = $('msgOps').querySelectorAll('button'); b[b.length - 1].click(); return true; }
+    if ($('mSobre').classList.contains('on')) { const b = !$('sbOk').hidden ? $('sbOk') : $('sbPkg'); b.click(); return true; }
+    if ($('mCarta').classList.contains('on')) { cerrarModal('mCarta'); return true; }
+    if ($('sTienda').classList.contains('on')) { salirTienda(); return true; }
     if ($('mDiario').classList.contains('on')) { cerrarModal('mDiario'); return true; }
+    if ($('sMazo').classList.contains('on')) { salirMazo(); return true; }
     if ($('ficha').classList.contains('on')) { const id = SEL && SEL.id; cerrarFicha(); const b = id && document.querySelector('.pt[data-id="' + id + '"]'); if (b && window.GP) GP.enfocar(b); return true; }
     return false;
   },
-  clicables: '#dCaja',
-  zonas: ['#hud', '#mi', '#ficha']
+  clicables: '#dCaja, #sbPkg',
+  zonas: ['#hud', '#mi', '#ficha', '#sMazo .hud', '#mzTabs', '#mzDeck', '#mzFil', '#mzGrid', '#mcBox', '#sTienda .hud', '#tdTabs', '#tdBody', '#mSobre']
 };
 $('dCaja').addEventListener('click', e => { if (!e.target.closest('.d-ops')) { e.stopPropagation(); avanzarDialogo(); } });
 
@@ -821,7 +1338,9 @@ $('dCaja').addEventListener('click', e => { if (!e.target.closest('.d-ops')) { e
     window.GP_CFG = { principal: '.esq' };
     return;
   }
-  const [txt, data, gal] = await Promise.allSettled([leer(DIR + 'mapa.txt'),leer('data/cartas_simulacion.json', true), leer('cartas.json', true)]);
+  const [txt, data, gal, lim, com] = await Promise.allSettled([leer(DIR + 'mapa.txt'), leer('data/cartas_simulacion.json', true), leer('cartas.json', true), leer('cartas-limitadas.json', true), leer(DIR + 'comerciante.txt')]);
+  if (com.status === 'fulfilled') COM = parseCom(com.value);
+  if (lim.status === 'fulfilled') (lim.value || []).forEach(x => { if (x && x.nombre) LIM[NK(x.nombre)] = x.estado; });
   construirModelo(parseTxt(txt.status === 'fulfilled' ? txt.value : ''));
   if (data.status === 'fulfilled') { DATA = data.value || DATA; (DATA.cartas || []).forEach(c => { if (c && c.id) CARD[c.id] = c; }); }
   if (gal.status === 'fulfilled') (gal.value || []).forEach(x => { if (x && x.id != null) GALI[String(x.id)] = x; });

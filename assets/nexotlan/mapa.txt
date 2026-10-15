@@ -6,6 +6,9 @@
 #  TIP: abre  nexotlan.html?editor=1  para mover los puntos con el dedo/ratón
 #       y copiar este archivo ya con las coordenadas nuevas.
 #
+#  OJO: el ID entre corchetes ([distrito:puerta], [punto:vika]) es la identidad del punto o distrito.
+#       Si lo cambias, el juego lo trata como uno nuevo; usa  antes = id_viejo  para conservar el progreso.
+#
 #  Hay 3 tipos de bloque:
 #   [config]            ajustes generales
 #   [distrito:ID]       una zona del mapa (ID sin espacios: puerta, mercado…)
@@ -50,6 +53,8 @@
 #   musica      música del Choque (la partida)
 #   paisaje     (opcional) paisaje propio de este punto (si no, usa el de su distrito)
 #   requiere    ID de punto que hay que vencer/visitar antes de que aparezca
+#   antes       (opcional) IDs que tuvo este punto antes de renombrarlo: conserva lo que el jugador ya hizo
+#               con él (no vuelve a dar monedas ni a pedir el Choque). Ej. antes = koatl
 #   monedas     monedas que da al vencerlo (rival/guardian) o al hablarle la 1a vez (heroe)
 #   entrada     lo que dice al acercarte          (usa | para separar cuadros de diálogo)
 #   victoria    lo que dice cuando TÚ ganas
@@ -76,7 +81,7 @@ fondo_inicio = puerta.jpg
 
 # ─────────────────────────── DISTRITOS ───────────────────────────
 
-[distrito:puerta.jpg]
+[distrito:puerta]
 nombre = Puerta de Obsidiana
 descripcion = La entrada a Nexotlan. Aquí se ponen a prueba los recién llegados.
 color = #00cfff
@@ -126,7 +131,8 @@ paisaje = ciudadela.jpg
 
 # ──────────────────── PUERTA DE OBSIDIANA ────────────────────
 
-[punto:guardian]
+[punto:nextor]
+antes = koatl, guardian
 tipo = heroe
 nombre = Nextor
 titulo = Guía de Nexotlan

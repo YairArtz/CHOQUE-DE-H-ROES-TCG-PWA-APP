@@ -474,7 +474,12 @@ function cartaImg(id, grande) {
   return galPath(grande ? (g.ampliada || g.miniatura) : (g.miniatura || g.ampliada));
 }
 // Paisaje panorámico: el del punto o el de su distrito (assets/nexotlan/paisajes/). Sin imagen se dibuja uno.
-function paisajeDe(p) { const d = distDe(p), f = p.paisaje || (d && d.paisaje); if (!f) return ''; return /\//.test(f) ? 'assets/' + f.replace(/^assets\//, '') : DIR + 'paisajes/' + f; }
+// Imágenes: se buscan en su carpeta (paisajes/, personajes/, simulador/, sobres/) y, si no están, directo en assets/nexotlan/.
+// Con carpeta en el nombre (arcade/personajes/x.png) se toma desde assets/.
+function candidatos(f, sub) { f = String(f || '').trim(); if (!f) return []; return /\//.test(f) ? ['assets/' + f.replace(/^assets\//, ''), f] : [DIR + sub + '/' + f, DIR + f]; }
+async function primeraImg(L) { for (const u of L) if (await probar(u)) return u; return ''; }
+function paisajeDe(p) { const d = distDe(p), f = p.paisaje || (d && d.paisaje); return candidatos(f, 'paisajes')[0] || ''; }
+const paisajeUrl = p => { const d = distDe(p); return primeraImg(candidatos(p.paisaje || (d && d.paisaje), 'paisajes')); };
 function skyline(d) {
   const c = (d && d.color) || '#36d6ff', R = rnd(NK((d && d.id) || 'x').split('').reduce((a, ch) => a * 31 + ch.charCodeAt(0), 3));
   let edif = '', x = 0; while (x < 1600) { const w = 40 + R() * 110, h = 90 + R() * 230; edif += `<rect x="${x.toFixed(0)}" y="${(500 - h).toFixed(0)}" width="${w.toFixed(0)}" height="${h.toFixed(0)}"/>`;
@@ -488,7 +493,7 @@ function skyline(d) {
 function imgPunto(p) { if (!p.imagen) return ''; return /\//.test(p.imagen) ? 'assets/' + p.imagen.replace(/^assets\//, '') : DIR + 'personajes/' + p.imagen; }
 const _imgOk = {};
 function probar(u) { if (!u) return Promise.resolve(false); if (u in _imgOk) return Promise.resolve(_imgOk[u]); return new Promise(r => { const im = new Image(); im.onload = () => r(_imgOk[u] = true); im.onerror = () => r(_imgOk[u] = false); im.src = u; }); }
-async function retrato(p) { const a = imgPunto(p); if (a && await probar(a)) return { src: a, carta: false }; const c = cartaImg(p.carta, true); return c ? { src: c, carta: true } : null; }
+async function retrato(p) { const a = await primeraImg(candidatos(p.imagen, 'personajes')); if (a) return { src: a, carta: false }; const c = cartaImg(p.carta, true); return c ? { src: c, carta: true } : null; }
 function propias() { const out = []; try { (JSON.parse(localStorage.getItem('chh_decks') || '[]') || []).forEach((d, i) => { if (d && d.decks) out.push({ id: 'mis:' + i + ':' + (d.date || ''), nombre: d.name || ('Baraja ' + (i + 1)), estilo: 'Tu baraja del Constructor', propia: true }); }); } catch (e) {} return out; }
 // Barajas del modo: solo las básicas de la aventura ("aventura": true en data/cartas_simulacion.json).
 // Las del Constructor quedan fuera para que el reto no se rompa.
@@ -728,7 +733,7 @@ function pintarMapa() {
 let _pre = 0;
 function precargar() {        // retratos y paisajes de lo visible hoy, en segundo plano: fichas y diálogos abren al instante
   const id = ++_pre, L = PTS.filter(visibleHoy);
-  const paso = i => { if (id !== _pre || i >= L.length) return; retrato(L[i]).catch(() => {}); probar(paisajeDe(L[i])).catch(() => {}); setTimeout(() => paso(i + 1), 60); };
+  const paso = i => { if (id !== _pre || i >= L.length) return; retrato(L[i]).catch(() => {}); paisajeUrl(L[i]).catch(() => {}); setTimeout(() => paso(i + 1), 60); };
   setTimeout(() => paso(0), 400);
 }
 function nombresReq(req) { return req.map(r => (PTS.find(p => p.id === r) || {}).nombre || r).join(', '); }
@@ -810,7 +815,7 @@ async function dialogo(p, texto, ops) {
   const ret = await retrato(p), [, tc] = TIPO_TXT[p.tipo] || TIPO_TXT.rival;
   const d = distDe(p);
   $('dlg').style.setProperty('--fc', (d && d.color) || tc);
-  const pai = paisajeDe(p), hayPai = pai && await probar(pai);
+  const pai = await paisajeUrl(p), hayPai = !!pai;
   $('dEsc').innerHTML = (hayPai ? `<div class="d-banda" style="background-image:url('${esc(pai)}')"></div>` : `<div class="d-banda">${skyline(d)}</div>`) +
     (ret ? `<img class="d-ret ${ret.carta ? 'carta' : ''}" src="${esc(ret.src)}" alt="">` : '');
   $('dNom').textContent = (p.nombre || '').toUpperCase();
@@ -872,15 +877,15 @@ function retar(p, yaHablo) {
 // Imágenes en assets/nexotlan/simulador/ (o con carpeta desde la raíz). fondo_mesa también acepta un tema: nexo, obsidiana, cristal…
 async function fondosChoque(p, d) {
   const val = k => (p[k] || (d && d[k]) || CFG[k] || '').trim();
-  const ruta = f => /\//.test(f) ? f : DIR + 'simulador/' + f;
   const abs = u => new URL(u, location.href).href;
+  const img = async f => { const u = await primeraImg(candidatos(f, 'simulador').concat(candidatos(f, 'paisajes').slice(0, 1))); return u ? abs(u) : ''; };
   const out = {};
   const mesa = val('fondo_mesa') || 'nexo';
-  if (/^[a-z]+$/.test(mesa)) out.mesa = mesa; else if (await probar(ruta(mesa))) out.mesa = abs(ruta(mesa)); else out.mesa = 'nexo';
-  const pm = val('playmat'); if (pm && await probar(ruta(pm))) out.playmat = abs(ruta(pm));
-  const fi = val('fondo_inicio');
-  if (fi && await probar(ruta(fi))) out.fondoInicio = abs(ruta(fi));
-  else { const pai = paisajeDe(p); if (pai && await probar(pai)) out.fondoInicio = abs(pai); }   // por defecto: el paisaje del distrito
+  out.mesa = /^[a-z]+$/.test(mesa) ? mesa : ((await img(mesa)) || 'nexo');
+  const pm = val('playmat'); if (pm) { const u = await img(pm); if (u) out.playmat = u; }
+  const fi = val('fondo_inicio'); let u = fi ? await img(fi) : '';
+  if (!u) { const pai = await paisajeUrl(p); if (pai) u = abs(pai); }   // por defecto: el paisaje del distrito
+  if (u) out.fondoInicio = u;
   return out;
 }
 async function iniciarChoque(p) {
@@ -1163,7 +1168,7 @@ function stockHoy() {
 let TD = { tab: 'sobres' };
 async function abrirTienda(p) {
   cerrarFicha(); asegurarColeccion(); stockHoy(); guardar();
-  const ret = await retrato(p), pai = paisajeDe(p), hayPai = pai && await probar(pai), d = distDe(p);
+  const ret = await retrato(p), pai = await paisajeUrl(p), hayPai = !!pai, d = distDe(p);
   const sal = String(COM.cfg.saludo || '').split('|').map(x => x.trim()).filter(Boolean); if (!sal.length) sal.push('¡Bienvenido!');
   $('tdBanda').style.backgroundImage = hayPai ? `url('${pai}')` : '';
   $('tdBanda').innerHTML = (hayPai ? '' : skyline(d)) + (ret ? `<img class="ret ${ret.carta ? 'carta' : ''}" src="${esc(ret.src)}" alt="">` : '') +
@@ -1176,8 +1181,8 @@ const sobreDisponible = sb => !lista(sb.requiere).length || lista(sb.requiere).e
 function imgSobre(sb) {
   const gen = `<div class="pk-gen" style="--pc:${esc(sb.color || '#36d6ff')}"><i>NEXOTLAN</i><em>📦</em><span>${esc(sb.nombre || sb.id)}</span><i>${esc((sb.cartas || 5) + ' CARTAS')}</i></div>`;
   if (!sb.imagen) return gen;
-  const src = /\//.test(sb.imagen) ? sb.imagen : DIR + 'sobres/' + sb.imagen;
-  return gen + `<img src="${esc(src)}" alt="" style="position:absolute;inset:0" onerror="this.remove()">`;
+  const L = /\//.test(sb.imagen) ? [sb.imagen] : [DIR + 'sobres/' + sb.imagen, DIR + sb.imagen];
+  return gen + `<img src="${esc(L[0])}" data-alt="${esc(L.slice(1).join('|'))}" alt="" style="position:absolute;inset:0" onerror="const a=(this.dataset.alt||'').split('|').filter(Boolean);if(a.length){this.dataset.alt=a.slice(1).join('|');this.src=a[0];}else this.remove()">`;
 }
 function pintarTienda() {
   $('tdMon').textContent = '🪙 ' + S.monedas;
@@ -1432,17 +1437,30 @@ $('dCaja').addEventListener('click', e => { if (!e.target.closest('.d-ops')) { e
   // (si la nube tarda o falla, el modo sigue funcionando con la copia local).
   S = normalizar(cargarLocal());
   pintarTitulo();
+  const avisosMapa = revisarMapa();
   if (S && S.baraja && S.pendiente) {               // venimos de un Choque (terminado, abandonado o sin empezar)
     if (!(await procesarResultado())) { S.pendiente = null; guardar(true); entrarMapa(); }
     nubeFondo(false); return;
   }
   if (EDITOR && !(S && S.baraja)) { S = nueva('Editor', (DATA.barajas[0] || {}).id, 'Editor'); entrarMapa(); }
   else if (EDITOR) entrarMapa();
-  nubeFondo(true);
+  if (avisosMapa.length) setTimeout(() => nubeFondo(true), 6000); else nubeFondo(true);
 })();
 function normalizar(x) {
-  if (x && x.baraja) { ['vencidos', 'derrotas', 'hablados', 'abiertos'].forEach(k => x[k] = x[k] || {}); x.historial = x.historial || []; }
+  if (x && x.baraja) {
+    ['vencidos', 'derrotas', 'hablados', 'abiertos'].forEach(k => x[k] = x[k] || {}); x.historial = x.historial || [];
+    // Punto renombrado en mapa.txt ("antes = id_viejo"): hereda lo que el jugador ya hizo con el id anterior
+    PTS.forEach(p => lista(p.antes).forEach(v => ['vencidos', 'derrotas', 'hablados'].forEach(k => { if (x[k][v] && !x[k][p.id]) x[k][p.id] = x[k][v]; })));
+  }
   return x;
+}
+// Revisión de mapa.txt: avisa si un punto apunta a un distrito o requisito que no existe (p. ej. un id cambiado)
+function revisarMapa() {
+  const ids = new Set(PTS.map(p => p.id)), ds = new Set(DIST.map(d => d.id)), av = [];
+  PTS.forEach(p => { if (p.distrito && !ds.has(p.distrito)) av.push(`«${p.nombre || p.id}» usa distrito = ${p.distrito}, que no existe`); p._req.forEach(r => { if (!ids.has(r)) av.push(`«${p.nombre || p.id}» requiere ${r}, que no existe`); }); });
+  DIST.forEach(d => { if (/\./.test(d.id)) av.push(`[distrito:${d.id}] tiene un punto en el id (¿quisiste poner la imagen en paisaje = …?)`); d._req.forEach(r => { if (!ids.has(r)) av.push(`el distrito ${d.nombre || d.id} requiere ${r}, que no existe`); }); });
+  if (av.length) { console.warn('[nexotlan] mapa.txt:', av); $('tInfo').innerHTML = '⚠ Revisa mapa.txt: ' + av.slice(0, 3).map(esc).join(' · ') + (av.length > 3 ? ' …' : ''); }
+  return av;
 }
 async function nubeFondo(aplicar) {
   const N = window.CHH_NUBE;

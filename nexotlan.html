@@ -83,7 +83,8 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 .pin{width:34px;height:44px;position:relative}
 .pin svg{width:100%;height:100%;display:block}
 .pt .lab{margin-top:1px;padding:1px 6px;border-radius:5px;background:rgba(2,6,20,.82);font-family:'Orbitron',monospace;font-size:8.5px;font-weight:700;letter-spacing:.5px;white-space:nowrap;color:#dfe8ff;opacity:0;transition:opacity .15s;pointer-events:none}
-.pt:hover .lab,.pt:focus-visible .lab,.pt.sel .lab,.mapa.etq .pt .lab{opacity:1}
+.pt:hover .lab,.pt:focus-visible .lab,.pt.sel .lab,.pt.gpf .lab,.mapa.etq .pt .lab{opacity:1}
+.pt.gpf{transform:translate(-50%,-100%) scale(1.18);z-index:6}
 .pt .ok{position:absolute;top:-4px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--green);color:#002417;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;box-shadow:0 0 8px var(--green)}
 .pt .ex{position:absolute;top:-10px;left:50%;transform:translateX(-50%);font-family:'Orbitron',monospace;font-weight:900;font-size:16px;color:#ffd166;text-shadow:0 0 8px #f5a623,0 2px 0 #000;animation:bob 1s ease-in-out infinite}
 @keyframes bob{50%{transform:translateX(-50%) translateY(-4px)}}
@@ -718,9 +719,16 @@ function pintarMapa() {
       <span class="lab">${esc(p.nombre)}</span></button>`;
   }).join('');
   mi.innerHTML = fondo + etq + pts;
+  precargar();
   mi.querySelectorAll('.pt').forEach(b => { b.onclick = e => { if (b._movido) { b._movido = false; return; } abrirFicha(b.dataset.id); }; });
   if (EDITOR) activarEditor();
   pintarHud();
+}
+let _pre = 0;
+function precargar() {        // retratos y paisajes de lo visible hoy, en segundo plano: fichas y diálogos abren al instante
+  const id = ++_pre, L = PTS.filter(visibleHoy);
+  const paso = i => { if (id !== _pre || i >= L.length) return; retrato(L[i]).catch(() => {}); probar(paisajeDe(L[i])).catch(() => {}); setTimeout(() => paso(i + 1), 60); };
+  setTimeout(() => paso(0), 400);
 }
 function nombresReq(req) { return req.map(r => (PTS.find(p => p.id === r) || {}).nombre || r).join(', '); }
 function pintarHud() {
@@ -765,7 +773,8 @@ async function abrirFicha(id) {
   const p = PTS.find(x => x.id === id); if (!p) return;
   SEL = p; document.querySelectorAll('.pt').forEach(b => b.classList.toggle('sel', b.dataset.id === id));
   if (EDITOR) { mostrarBloque(p); }
-  const d = distDe(p), [tt, tc] = TIPO_TXT[p.tipo] || TIPO_TXT.rival, ret = await retrato(p);
+  const d = distDe(p), [tt, tc] = TIPO_TXT[p.tipo] || TIPO_TXT.rival;
+  if (!EDITOR) musica((d && d.musica) || CFG.musica);       // música del distrito (si tiene) o la del mapa
   const v = S.vencidos[p.id] || 0, dr = S.derrotas[p.id] || 0;
   const chips = [];
   if (d) chips.push(`<span class="chip" style="color:${esc(d.color)}">📍 ${esc(d.nombre)}</span>`);
@@ -778,10 +787,11 @@ async function abrirFicha(id) {
   else if (p.tipo === 'heroe') btns = `<button class="bt" id="fHablar">💬 HABLAR</button>`;
   else btns = `<button class="bt ${p.tipo === 'guardian' ? 'red' : 'gold'}" id="fRetar" ${bloq ? 'disabled' : ''}>⚔ ${v ? 'REVANCHA' : 'RETAR'}</button><button class="bt sec" id="fHablar">💬 HABLAR</button>`;
   $('fBody').innerHTML = `<div class="f-top" style="--fc:${tc}">
-      <div class="f-ret">${ret ? `<img src="${esc(ret.src)}" alt="">` : ''}</div>
+      <div class="f-ret" id="fRet"></div>
       <div style="min-width:0"><span class="f-tipo" style="--fc:${tc}">${tt}</span><div class="f-n">${esc(p.nombre)}</div><div class="f-t">${esc(p.titulo || '')}</div></div></div>
     <div class="f-chips">${chips.join('')}</div><div class="f-btns">${btns}</div>`;
   $('ficha').classList.add('on');
+  retrato(p).then(ret => { if (SEL === p && ret && $('fRet')) $('fRet').innerHTML = `<img src="${esc(ret.src)}" alt="">`; });
   const h = $('fHablar'), r = $('fRetar');
   if (h) h.onclick = () => hablar(p);
   if (r) r.onclick = () => retar(p);
@@ -889,7 +899,7 @@ async function procesarResultado() {
   else { S.derrotas[p.id] = (S.derrotas[p.id] || 0) + 1; S.perdidas++; }
   S.dia++;                               // cada Choque consume el día
   guardar();
-  irA('sMapa'); pintarMapa(); centrarEn(p._x, p._y);
+  mostrarMapa(); centrarEn(p._x, p._y);
   await dialogo(p, res.won ? p.victoria : p.derrota);
   if (res.abandono) await mensaje('🚪 CHOQUE ABANDONADO', 'Saliste del Choque antes de terminarlo: cuenta como <b>derrota</b>.');
   if (premio) toast('🪙 +' + premio + ' monedas');
@@ -1243,14 +1253,19 @@ function mensaje(t, html, ops) {
     try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('msgOps').querySelector('button')), 40); } catch (e) {}
   });
 }
+// Muestra el mapa ya dimensionado (sin esto, al volver de un Choque el mapa quedaba de alto 0 y no se veían los puntos)
+function mostrarMapa() {
+  asegurarColeccion(); irA('sMapa'); cerrarFicha();
+  pintarMapa(); ajustarZoom(ZOOM > 1 ? ZOOM : (innerWidth < 700 ? 1.6 : 1));
+  requestAnimationFrame(() => ajustarZoom(ZOOM));          // segunda medida, ya con el layout final
+  musica(CFG.musica);
+}
 async function entrarMapa(primeraVez) {
   if (S && S.baraja && !esDelModo(S.baraja) && !EDITOR) {     // partidas viejas: elegir una baraja básica
     await mensaje('🃏 ELIGE TU BARAJA', 'En Nexotlan se juega con una de las <b>barajas básicas</b> del modo. Elige con cuál seguirás tu aventura.');
     pantallaBaraja('cambiar'); return;
   }
-  asegurarColeccion();
-  irA('sMapa'); cerrarFicha();
-  pintarMapa(); ajustarZoom(innerWidth < 700 ? 1.6 : 1);
+  ZOOM = 1; mostrarMapa(); ajustarZoom(innerWidth < 700 ? 1.6 : 1);
   const d0 = DIST.find(distritoAbierto) || DIST[0]; if (d0) centrarEn(d0._x, d0._y);
   musica(CFG.musica);
   if (primeraVez) {
@@ -1321,6 +1336,18 @@ $('edCopiar').onclick = async () => {
 $('edEtq').onclick = () => $('mapa').classList.toggle('etq');
 
 // ════════════════ CONTROL (gamepad.js) ════════════════
+// El mapa está "libre" cuando se ve y no hay ventana, diálogo ni transición encima (la ficha sí deja moverlo)
+function mapaLibre() {
+  return $('sMapa').classList.contains('on') && !DLG && !['mMsg', 'mDiario', 'mCarta', 'mSobre'].some(id => $(id).classList.contains('on')) && !$('noche').classList.contains('on');
+}
+// Teclado (PC): flechas / WASD mueven el mapa, + y − hacen zoom
+document.addEventListener('keydown', e => {
+  if (!mapaLibre() || /INPUT|TEXTAREA|SELECT/.test((document.activeElement || {}).tagName || '')) return;
+  const k = e.key, mv = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1], a: [-1, 0], d: [1, 0], w: [0, -1], s: [0, 1] }[k];
+  if (mv && !(window.GP && GP.activo())) { e.preventDefault(); $('mapa').scrollBy({ left: mv[0] * 160, top: mv[1] * 130, behavior: 'smooth' }); }
+  else if (k === '+' || k === '=') ajustarZoom(ZOOM * 1.2);
+  else if (k === '-' || k === '_') ajustarZoom(ZOOM / 1.2);
+});
 window.GP_CFG = {
   principalTxt: 'Hablar / Avanzar',
   principal: () => DLG ? ($('dOps').querySelector('button') || $('dCaja')) : ($('ficha').classList.contains('on') ? ($('fRetar') && !$('fRetar').disabled ? $('fRetar') : $('fHablar')) : null),
@@ -1336,6 +1363,27 @@ window.GP_CFG = {
     return false;
   },
   clicables: '#dCaja, #sbPkg',
+  inicial: () => {
+    if (!mapaLibre()) return null;
+    const m = $('mapa').getBoundingClientRect(), cx = m.left + m.width / 2, cy = m.top + m.height / 2;
+    let best = SEL && document.querySelector('.pt[data-id="' + SEL.id + '"]'), bd = 1e12;
+    if (!best) document.querySelectorAll('.pt').forEach(b => { const r = b.getBoundingClientRect(), d = Math.hypot(r.left + r.width / 2 - cx, r.top + r.height / 2 - cy); if (d < bd) { bd = d; best = b; } });
+    return best;
+  },
+  alEnfocar: el => {
+    document.querySelectorAll('.pt.gpf').forEach(b => b !== el && b.classList.remove('gpf'));
+    if (!el.classList.contains('pt')) return;
+    el.classList.add('gpf');
+    const m = $('mapa').getBoundingClientRect(), r = el.getBoundingClientRect(), mg = 90;
+    if (r.left < m.left + mg || r.right > m.right - mg || r.top < m.top + mg || r.bottom > m.bottom - (($('ficha').classList.contains('on') && innerWidth < 900) ? 260 : mg))
+      centrarEn(parseFloat(el.style.left), parseFloat(el.style.top), true);
+  },
+  // Stick derecho: recorrer el mapa · LT/RT: zoom · cruceta sin más puntos en esa dirección: mover el mapa
+  // En el mapa la cruceta solo salta entre puntos (LB/RB cambian a la barra de arriba o a la ficha)
+  ambito: f => f && f.closest && f.closest('#mapa') && mapaLibre() ? $('mapa') : null,
+  stickDerecho: (rx, ry) => { if (!mapaLibre()) return false; $('mapa').scrollBy(rx * 22, ry * 22); return true; },
+  gatillo: dir => { if (!mapaLibre()) return false; ajustarZoom(ZOOM * (dir > 0 ? 1.12 : 1 / 1.12)); return true; },
+  sinDestino: (dx, dy, f) => { if (!mapaLibre() || !(f && f.closest && f.closest('#mapa'))) return false; $('mapa').scrollBy({ left: dx * 260, top: dy * 200, behavior: 'smooth' }); return true; },
   zonas: ['#hud', '#mi', '#ficha', '#sMazo .hud', '#mzTabs', '#mzDeck', '#mzFil', '#mzGrid', '#mcBox', '#sTienda .hud', '#tdTabs', '#tdBody', '#mSobre']
 };
 $('dCaja').addEventListener('click', e => { if (!e.target.closest('.d-ops')) { e.stopPropagation(); avanzarDialogo(); } });

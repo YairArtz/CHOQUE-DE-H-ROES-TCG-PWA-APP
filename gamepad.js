@@ -14,7 +14,8 @@
 //  Start                  menú de la pantalla (Apariencia…)
 //  View / Select          silenciar música
 //
-//  Cada página puede definir window.GP_CFG = { zonas, principal, atras, start, select, acciones, clicables, ambito }.
+//  Cada página puede definir window.GP_CFG = { zonas, principal, atras, start, select, acciones, clicables, ambito,
+//    sinDestino(dx,dy), gatillo(dir), stickDerecho(rx,ry) }  (los tres últimos devuelven true si la página usó la entrada).
 //  (ambito(foco): devuelve un elemento para limitar la cruceta a esa zona, p. ej. un menú abierto)
 //  (clicables: selector CSS extra de elementos tocables que usan addEventListener en vez de onclick)
 //  El control se activa al presionar cualquier botón; tocar la pantalla lo oculta.
@@ -204,7 +205,8 @@
     });
     // Lo de la misma fila gana salvo que algo del cono esté mucho más cerca
     let best = b1 && (!b2 || s1 <= s2 * 1.6 + 40) ? b1 : (b2 || b1 || b3);
-    if (best) enfocar(best); else vibrar(25, .2);
+    if (best) enfocar(best);
+    else { let h = false; try { h = c.sinDestino && c.sinDestino(dx, dy, foco); } catch (e) {} if (!h) vibrar(25, .2); }   // la página puede usarlo (p. ej. mover un mapa)
   }
 
   // Historial corto: al cerrarse una ventana, el foco regresa a donde estabas (no al inicio)
@@ -363,10 +365,13 @@
         if (nuevo(B.VIEW)) { const c = CFG(); const el = c.select && c.select(); if (el) tocar(el); }
         if (nuevo(B.RS) && modoPuntero) tocarPuntero();
         // Gatillos: desplazamiento continuo
-        if (est['b' + B.LT] && (!prev['b' + B.LT] || now >= (repT.lt || 0))) { repT.lt = now + 140; desplazar(-1); }
-        if (est['b' + B.RT] && (!prev['b' + B.RT] || now >= (repT.rt || 0))) { repT.rt = now + 140; desplazar(1); }
+        const gat = d => { const c = CFG(); let h = false; try { h = c.gatillo && c.gatillo(d); } catch (e) {} if (!h) desplazar(d); };   // GP_CFG.gatillo(dir): la página puede usar LT/RT (p. ej. zoom)
+        if (est['b' + B.LT] && (!prev['b' + B.LT] || now >= (repT.lt || 0))) { repT.lt = now + 140; gat(-1); }
+        if (est['b' + B.RT] && (!prev['b' + B.RT] || now >= (repT.rt || 0))) { repT.rt = now + 140; gat(1); }
         // Stick derecho: puntero libre
-        if (Math.hypot(rx, ry) > DZ_R) {
+        let stickPag = false;   // GP_CFG.stickDerecho(rx, ry): la página puede usar el stick derecho (p. ej. recorrer un mapa)
+        if (Math.hypot(rx, ry) > DZ_R) { const c = CFG(); try { stickPag = !!(c.stickDerecho && c.stickDerecho(rx, ry)); } catch (e) {} if (stickPag) dibujarAnillo(); }
+        if (!stickPag && Math.hypot(rx, ry) > DZ_R) {
           if (!modoPuntero) {
             modoPuntero = true; ring.style.display = 'none';
             if (foco && foco.isConnected) { const [x, y] = centro(foco); px = x; py = y; } else { px = vw() / 2; py = vh() / 2; }

@@ -428,6 +428,64 @@ footer      {animation:fadeUp .5s .4s  both;}
       transition: color .15s;
     }
     .chh-notif-close:hover { color: #ff4d6d; }
+/* ════════════════════════════════════════════════════════════
+   VISTA AMPLIA (PC / tablet horizontal) — menús desplegables.
+   En celular no cambia nada. Se apaga en Ajustes (html.hz-off).
+   ════════════════════════════════════════════════════════════ */
+#hzNav,.bn-arrow{display:none;}
+@media (min-width:1000px) and (min-height:560px){
+  html:not(.hz-off) #wrap{max-width:none;padding:0 32px 18px;}
+  html:not(.hz-off) .stitle,html:not(.hz-off) .calc-card,html:not(.hz-off) .mod-grid{display:none!important;}
+  html:not(.hz-off) header{border-bottom:none;padding:22px 20px 6px;}
+  html:not(.hz-off) header::after{display:none;}
+  html:not(.hz-off) .logo-hd{width:auto;max-width:none;height:clamp(170px,30vh,300px);}
+  html:not(.hz-off) .tcg-label{font-size:15px;letter-spacing:9px;}
+  html:not(.hz-off) .eco-label{font-size:11px;letter-spacing:6px;}
+  html:not(.hz-off) .help-btn,html:not(.hz-off) .settings-btn{position:fixed;top:18px;width:44px;height:44px;opacity:.75;}
+  html:not(.hz-off) .help-btn{left:22px;} html:not(.hz-off) .settings-btn{right:22px;}
+  html:not(.hz-off) .help-btn:hover,html:not(.hz-off) .settings-btn:hover{opacity:1;border-color:var(--neon);}
+  html:not(.hz-off) .hbk{display:none;}
+
+  /* ── Barra de menús ── */
+  html:not(.hz-off) #hzNav{display:flex;justify-content:center;gap:14px;margin:16px auto 22px;position:relative;z-index:60;animation:fadeUp .5s .15s both;}
+  .hz-menu{position:static;}   /* el panel se centra respecto a toda la barra (no se sale de la pantalla) */
+  .hz-btn{display:flex;align-items:center;gap:10px;padding:13px 26px;min-width:190px;justify-content:center;
+    background:rgba(7,9,15,.86);border:1px solid var(--border);border-radius:12px;cursor:pointer;color:var(--text);
+    font-family:'Orbitron',monospace;font-size:13px;font-weight:900;letter-spacing:3px;text-transform:uppercase;
+    backdrop-filter:blur(8px);transition:border-color .2s,box-shadow .2s,background .2s;position:relative;}
+  .hz-btn::before{content:'';position:absolute;top:0;left:12%;right:12%;height:1px;background:linear-gradient(90deg,transparent,var(--c),transparent);opacity:.7;}
+  .hz-btn .hz-ico{font-size:18px;}
+  .hz-btn .hz-car{font-size:10px;opacity:.6;transition:transform .2s;}
+  .hz-menu.open .hz-btn,.hz-btn:hover{border-color:var(--c);box-shadow:0 0 18px color-mix(in srgb,var(--c) 35%,transparent);background:rgba(10,14,24,.95);}
+  .hz-menu.open .hz-car{transform:rotate(180deg);opacity:1;}
+  .hz-menu.open .hz-btn{color:var(--c);}
+  .hz-panel{display:none;position:absolute;top:calc(100% + 10px);left:50%;transform:translateX(-50%);width:min(820px,94vw);
+    padding:16px;border-radius:14px;background:rgba(5,8,15,.97);border:1px solid color-mix(in srgb,var(--c) 45%,var(--border));
+    box-shadow:0 18px 50px rgba(0,0,0,.75),0 0 30px color-mix(in srgb,var(--c) 18%,transparent);
+    grid-template-columns:repeat(2,1fr);gap:8px;}
+  .hz-panel::before{content:'';position:absolute;top:-11px;left:0;right:0;height:11px;}   /* puente para el ratón */
+  .hz-menu.open .hz-panel{display:grid;animation:hzIn .18s ease both;}
+  @keyframes hzIn{from{opacity:0;transform:translateX(-50%) translateY(-6px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+  .hz-panel .mod-card{padding:12px 14px;}
+  .hz-panel .mod-card:focus-visible{outline:2px solid var(--c);}
+  .hz-panel .mod-desc{white-space:normal;}
+  .hz-panel .mod-name{font-size:12px;}
+
+  /* ── Novedades ── */
+  html:not(.hz-off) .banner-slider{max-width:min(1000px,calc((100vh - 470px) * 2.667));min-width:560px;margin:0 auto 10px;border-radius:16px;}
+  html:not(.hz-off) .banner-slide img{border-radius:0;}
+  html:not(.hz-off) .bn-arrow{display:flex;position:absolute;top:50%;transform:translateY(-50%);z-index:3;width:42px;height:42px;border-radius:50%;
+    align-items:center;justify-content:center;background:rgba(3,5,10,.6);border:1px solid rgba(0,207,255,.35);color:#cfefff;font-size:20px;cursor:pointer;opacity:.7;transition:opacity .2s;}
+  html:not(.hz-off) .bn-arrow:hover{opacity:1;border-color:var(--blue);}
+  html:not(.hz-off) .bn-prev{left:12px;} html:not(.hz-off) .bn-next{right:12px;}
+  html:not(.hz-off) .banner-dot{width:10px;height:10px;}
+
+  /* ── Pie de página ── */
+  html:not(.hz-off) footer{flex-direction:row;justify-content:center;gap:14px;padding:16px 16px 0;border-top:none;}
+  html:not(.hz-off) footer::before{display:none;}
+  html:not(.hz-off) .footer-logo{margin:0;}
+  html:not(.hz-off) .footer-copy{margin:0;}
+}
   </style>
 </head>
 
@@ -448,9 +506,14 @@ footer      {animation:fadeUp .5s .4s  both;}
     <div class="eco-label">Juego de cartas coleccionables</div>
   </header>
 
+  <!-- Menús desplegables (solo vista amplia; se llenan con las mismas tarjetas de abajo) -->
+  <nav id="hzNav" aria-label="Menú principal"></nav>
+
   <div class="stitle">📢 Novedades</div>
   <!-- BANNER SLIDER -->
   <div class="banner-slider" id="bannerSlider">
+    <button class="bn-arrow bn-prev" onclick="goSlide((slideIndex+slideCount-1)%slideCount)" aria-label="Anterior">‹</button>
+    <button class="bn-arrow bn-next" onclick="nextSlide()" aria-label="Siguiente">›</button>
     <div class="banner-track" id="bannerTrack">
       <div class="banner-slide"><img src="Banner_1.jpg" alt="Torneo Ecom Geek"></div>
       <div class="banner-slide"><img src="Banner_2.jpg" alt="Mini-Expansión Variantes"></div>
@@ -768,6 +831,66 @@ footer      {animation:fadeUp .5s .4s  both;}
   </script>
 
 </div>
+
+<script>
+// ════════════════════════════════════════════════════════════
+//  VISTA AMPLIA: menús desplegables construidos con las mismas
+//  tarjetas del menú vertical (un solo lugar para editar enlaces).
+// ════════════════════════════════════════════════════════════
+(function(){
+  const nav = document.getElementById('hzNav'); if (!nav) return;
+  const GRUPOS = [
+    { id:'jugar',     ico:'⚔️', txt:'Jugar',          c:'var(--red)',    hrefs:['calculadora.html','simulacion.html','arcade.html','online.html','tutorial.html'] },
+    { id:'nexo',      ico:'🌐', txt:'Nexo de Héroes', c:'var(--neon)',   hrefs:[] },
+    { id:'torneos',   ico:'🏆', txt:'Torneos',        c:'var(--gold)',   hrefs:[] },
+    { id:'contenido', ico:'📡', txt:'Contenido',      c:'var(--blue)',   hrefs:[] }
+  ];
+  const porSeccion = { 'NEXO': 'nexo', 'TIENDAS': 'torneos', 'CONTENIDO': 'contenido' };
+  const items = { jugar:[], nexo:[], torneos:[], contenido:[] };
+  let seccion = 'nexo';
+  document.querySelectorAll('#wrap > .stitle, #wrap > .calc-card, #wrap > .mod-grid > a').forEach(el => {
+    if (el.classList.contains('stitle')) { const t = el.textContent.toUpperCase(); for (const k in porSeccion) if (t.includes(k)) seccion = porSeccion[k]; return; }
+    const href = el.getAttribute('href'); if (!href) return;
+    const g = GRUPOS.find(x => x.hrefs.includes(href.split('?')[0]));
+    let card = el;
+    if (el.classList.contains('calc-card')) {   // la calculadora se presenta como una tarjeta más
+      card = document.createElement('a'); card.className = 'mod-card c-purple'; card.href = href;
+      card.innerHTML = '<div class="mod-icon">⚔️</div><div class="mod-info"><div class="mod-name">Calculadora</div><div class="mod-desc">Contadores de vida y zonas de personaje para partidas físicas</div></div><div class="mod-arrow">›</div>';
+    } else card = el.cloneNode(true);
+    items[g ? g.id : seccion].push({ card, orden: g ? g.hrefs.indexOf(href) : 99 });
+  });
+  GRUPOS.forEach((g, k) => {
+    const lista = items[g.id].sort((a, b) => a.orden - b.orden);
+    if (!lista.length) return;
+    const m = document.createElement('div'); m.className = 'hz-menu'; m.id = 'hzm' + k; m.style.setProperty('--c', g.c);
+    m.innerHTML = '<button type="button" class="hz-btn" aria-expanded="false"><span class="hz-ico">' + g.ico + '</span>' + g.txt + '<span class="hz-car">▼</span></button><div class="hz-panel" role="menu"></div>';
+    const panel = m.querySelector('.hz-panel');
+    lista.forEach(x => panel.appendChild(x.card));
+    nav.appendChild(m);
+  });
+  const menus = [...nav.querySelectorAll('.hz-menu')];
+  const abrir = m => menus.forEach(x => { const on = x === m; x.classList.toggle('open', on); x.querySelector('.hz-btn').setAttribute('aria-expanded', on); });
+  const cerrar = () => abrir(null);
+  let tCierre = 0;
+  menus.forEach(m => {
+    m.querySelector('.hz-btn').addEventListener('click', e => { e.stopPropagation(); const reciente = Date.now() - (m._hover || 0) < 600; abrir(m.classList.contains('open') && !reciente ? null : m); });
+    // Ratón: abre al pasar; cierra con un pequeño retraso al salir
+    m.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') { clearTimeout(tCierre); if (!m.classList.contains('open')) { m._hover = Date.now(); abrir(m); } } });
+    m.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') { clearTimeout(tCierre); tCierre = setTimeout(() => { if (m.classList.contains('open')) cerrar(); }, 260); } });
+  });
+  document.addEventListener('click', e => { if (!nav.contains(e.target)) cerrar(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrar(); });
+  // ── Control: al enfocar un menú se abre; B lo cierra; LB/RB saltan entre menús ──
+  let sinAbrir = false;
+  window.GP_CFG = Object.assign(window.GP_CFG || {}, {
+    zonas: menus.map(m => '#' + m.id),
+    alEnfocar: el => { if (sinAbrir) { sinAbrir = false; return; } const m = el.closest && el.closest('.hz-menu'); if (m) { if (!m.classList.contains('open')) abrir(m); } else cerrar(); },
+    atras: () => { const m = menus.find(x => x.classList.contains('open')); if (!m) return false; cerrar(); if (window.GP) { sinAbrir = true; GP.enfocar(m.querySelector('.hz-btn')); } return true; },
+    ambito: f => (f && f.closest && f.closest('.hz-menu.open')) ? nav : null,
+    inicial: () => { const w = getComputedStyle(nav).display !== 'none'; return w ? menus[0] && menus[0].querySelector('.hz-btn') : null; }
+  });
+})();
+</script>
 
 <!-- Sistema de ajustes -->
 <script src="settings.js"></script>

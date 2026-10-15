@@ -14,7 +14,8 @@
 //  Start                  menú de la pantalla (Apariencia…)
 //  View / Select          silenciar música
 //
-//  Cada página puede definir window.GP_CFG = { zonas, principal, atras, start, select, acciones, clicables }.
+//  Cada página puede definir window.GP_CFG = { zonas, principal, atras, start, select, acciones, clicables, ambito }.
+//  (ambito(foco): devuelve un elemento para limitar la cruceta a esa zona, p. ej. un menú abierto)
 //  (clicables: selector CSS extra de elementos tocables que usan addEventListener en vez de onclick)
 //  El control se activa al presionar cualquier botón; tocar la pantalla lo oculta.
 // ════════════════════════════════════════════════════════════════════
@@ -119,11 +120,32 @@
     const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
     if (cx >= 0 && cy >= 0 && cx <= vw() && cy <= vh()) return encima(el, cx, cy);
     // Fuera de pantalla: válido si su contenedor con scroll está visible y arriba de todo
-    const sp = scrollPadre(el); if (!sp) return false;
+    const sp = scrollPadre(el);
+    if (!sp) return fueraEnPagina(el, r);
     const q = sp.getBoundingClientRect();
     const qx = Math.min(Math.max(q.left + q.width / 2, 1), vw() - 1), qy = Math.min(Math.max(q.top + q.height / 2, 1), vh() - 1);
     const h = document.elementFromPoint(qx, qy);
     return !!h && sp.contains(h);
+  }
+  // Páginas largas (perfil, tienda, ranking…): lo que está abajo del borde también se puede alcanzar
+  // con la cruceta (la página se desplaza sola), salvo que haya una ventana encima.
+  function fueraEnPagina(el, r) {
+    const se = document.scrollingElement || document.documentElement;
+    if (se.scrollHeight <= vh() + 2 && se.scrollWidth <= vw() + 2) return false;   // pantalla fija (Simulación/Arcade)
+    if (r.left + r.width / 2 < 0 || r.left + r.width / 2 > vw()) return false;     // (sólo desplazamiento vertical)
+    try { if (el.checkVisibility && !el.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })) return false; } catch (e) {}
+    for (let p = el; p && p !== document.body; p = p.parentElement) if (getComputedStyle(p).position === 'fixed') return false;
+    const capa = capaEncima(); return !capa;
+  }
+  // ¿Hay una ventana (capa fija grande) cubriendo la pantalla?
+  function capaEncima() {
+    const h = document.elementFromPoint(vw() / 2, vh() / 2);
+    for (let p = h; p && p !== document.body && p !== document.documentElement; p = p.parentElement) {
+      if (getComputedStyle(p).position !== 'fixed') continue;
+      const q = p.getBoundingClientRect();
+      if (q.width * q.height > vw() * vh() * 0.5) return p;
+    }
+    return null;
   }
   function candidatos(raiz) {
     const out = [];
@@ -153,30 +175,49 @@
   }
 
   // ── Mover el foco en una dirección (pantalla) ──
+  // Navegación espacial por bordes (como en consolas/TV):
+  //  1) se prefiere lo que está en la misma fila/columna (se solapa en el otro eje), el más cercano;
+  //  2) si no hay, lo que cae dentro de un cono de ~60° hacia esa dirección;
+  //  3) si tampoco, lo más cercano por delante (comportamiento anterior).
   function mover(dx, dy) {
     if (!valido(foco)) { enfocar(inicial()); return; }
     const [fx, fy, fr] = centro(foco);
-    let best = null, bs = 1e12;
-    candidatos().forEach(el => {
-      if (el === foco) return;
-      const [x, y] = centro(el);
-      const vx = x - fx, vy = y - fy;
-      const along = vx * dx + vy * dy;                 // avance en la dirección pedida
+    let b1 = null, s1 = 1e12, b2 = null, s2 = 1e12, b3 = null, s3 = 1e12;
+    // Un menú abierto puede limitar el movimiento a su zona (GP_CFG.ambito)
+    const c = CFG(); let raiz = null;
+    try { raiz = c.ambito && c.ambito(foco); } catch (e) {}
+    const antes = (a, b) => !!(a && b && (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING));   // ¿a va antes que b?
+    candidatos(raiz || undefined).forEach(el => {
+      if (el === foco || el.contains(foco) || foco.contains(el)) return;
+      const [x, y, r] = centro(el);
+      const along = (x - fx) * dx + (y - fy) * dy;
       if (along <= 4) return;
-      const cross = Math.abs(vx * dy - vy * dx);       // desvío lateral
-      // Si se solapan en el eje perpendicular, se prefieren (misma fila / columna)
-      const r = el.getBoundingClientRect();
-      const solapa = dx ? (r.bottom > fr.top && r.top < fr.bottom) : (r.right > fr.left && r.left < fr.right);
-      const score = along + cross * (solapa ? 0.6 : 2.4);
-      if (score < bs) { bs = score; best = el; }
+      // separación entre bordes en la dirección pedida (0 si se enciman)
+      const gap = Math.max(0, dx > 0 ? r.left - fr.right : dx < 0 ? fr.left - r.right : dy > 0 ? r.top - fr.bottom : fr.top - r.bottom);
+      // separación en el eje perpendicular (0 si se solapan)
+      const perp = dx ? Math.max(0, r.top - fr.bottom, fr.top - r.bottom) : Math.max(0, r.left - fr.right, fr.left - r.right);
+      const desv = dx ? Math.abs(y - fy) : Math.abs(x - fx);   // desvío de centros (desempate)
+      // empate (≈ misma distancia): gana el que va primero en la página (lectura natural)
+      if (perp === 0) { const sc = gap + desv * 0.2; if (sc < s1 - 3 || (sc <= s1 + 3 && antes(el, b1))) { s1 = Math.min(sc, s1); b1 = el; } }
+      else if (perp <= (gap + 20) * 1.7) { const sc = gap + perp * 2 + desv * 0.1; if (sc < s2) { s2 = sc; b2 = el; } }
+      const sc3 = along + Math.abs((x - fx) * dy - (y - fy) * dx) * 2.4; if (sc3 < s3) { s3 = sc3; b3 = el; }
     });
+    // Lo de la misma fila gana salvo que algo del cono esté mucho más cerca
+    let best = b1 && (!b2 || s1 <= s2 * 1.6 + 40) ? b1 : (b2 || b1 || b3);
     if (best) enfocar(best); else vibrar(25, .2);
   }
 
   function enfocar(el) {
     if (!el) return;
     foco = el; modoPuntero = false; ptr.style.display = 'none';
-    try { el.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (e) {}
+    try {
+      // En páginas largas: si queda pegado al borde o fuera de la pantalla, se centra para ver lo que sigue.
+      // (Pantallas fijas como Simulación/Arcade y listas internas: igual que antes)
+      const se = document.scrollingElement || document.documentElement, r = el.getBoundingClientRect();
+      const pagina = !scrollPadre(el) && se.scrollHeight > vh() + 2;
+      const fuera = pagina && (r.top < 70 || r.bottom > vh() - 70) && r.height < vh() * .6;
+      el.scrollIntoView(fuera ? { block: 'center', inline: 'nearest', behavior: 'smooth' } : { block: 'nearest', inline: 'nearest' });
+    } catch (e) {}
     const c = CFG(); if (c.alEnfocar) try { c.alEnfocar(el); } catch (e) {}
     dibujarAnillo();
   }

@@ -528,7 +528,7 @@ html.heroica .h1{background:linear-gradient(90deg,#fff2c4,#ffb300,#fff6d8,#ffb30
 // Combate: escribe "chh_arcade_match" y abre simulacion.html?modo=arcade;
 //          la simulación escribe "chh_arcade_result" y regresa a arcade.html?r=<id>
 // ════════════════════════════════════
-const ARC_VERSION='Arcade v2.9';
+const ARC_VERSION='Arcade v3.0';
 const STAGE=document.getElementById('stage');
 // ── Orientación horizontal ──
 const MOVIL=matchMedia('(pointer:coarse)').matches;
@@ -1535,10 +1535,27 @@ function rutaN(g){return g&&(g.ruta>=2&&g.ruta<=5)&&RUTAS[g.ruta]&&RUTAS[g.ruta]
 function rutaDe(g){return RUTAS[rutaN(g)];}
 function usarRuta(g){RIV=rutaDe(g);}
 function rutaCompleta(g,n){if(!g)return false;if(g['r'+n+'Completa'])return true;const d=datosRuta(g,n);return !!d&&(!!d.completado||(d.vueltas||0)>0);}
-function r2Desbloqueada(g){return !!g&&RUTAS[2].length>0&&(rutaCompleta(g,1)||rutaN(g)>=2||!!(g.rutas&&g.rutas[2]));}
-function r3Desbloqueada(g){return !!g&&RUTAS[3].length>0&&(rutaCompleta(g,2)||rutaN(g)===3||!!(g.rutas&&g.rutas[3]));}
-function r4Desbloqueada(g){return !!g&&RUTAS[4].length>0&&(rutaCompleta(g,3)||rutaN(g)===4||!!(g.rutas&&g.rutas[4]));}
-function r5Desbloqueada(g){return !!g&&RUTAS[5].length>0&&(rutaCompleta(g,4)||rutaN(g)===5||!!(g.rutas&&g.rutas[5]));}
+// v3.0 · Desbloqueo de rutas por LOGROS (sin consultar la red): si el jugador ya completó una ruta en otro
+// dispositivo, la siguiente aparece desbloqueada. Fuentes, todas guardadas en este teléfono:
+//   · logros del Arcade de este dispositivo ("chh_arcade_logros")
+//   · logros del registro que guardan Perfil ("nhBadges_<ID>") y Tienda/Simulador (cosmeticos.js)
+const LOGRO_RUTA={1:['arc_campeon','arc_fenix','arc_un_credito','arc_jefe_intacto','arc_veterano'],2:['arc_legendario'],3:['arc_epico','arc_inmortal','arc_sin_piedad'],4:['arc_caotico','arc_caos_puro'],5:['arc_heroico','arc_creador']};
+let _lgJug=null,_lgJugT=0;
+function logrosJugador(){
+  if(_lgJug&&Date.now()-_lgJugT<3000) return _lgJug;
+  const S=new Set(), yo=(typeof sesionId==='function')?sesionId():null;
+  try{const L=JSON.parse(localStorage.getItem('chh_arcade_logros')||'null');if(L&&L.l)Object.entries(L.l).forEach(([id,x])=>{if(!x||!x.por||!yo||x.por===yo)S.add(id);});}catch(e){}
+  if(yo){
+    try{const k=Object.keys(localStorage).find(k=>k.toUpperCase()==='NHBADGES_'+yo);if(k)(JSON.parse(localStorage.getItem(k)||'[]')||[]).forEach(b=>S.add(String(b).toLowerCase()));}catch(e){}
+    try{if(window.CHH_COSM&&CHH_COSM.logros)CHH_COSM.logros().forEach(b=>S.add(String(b).toLowerCase()));}catch(e){}
+  }
+  _lgJug=S;_lgJugT=Date.now();return S;
+}
+function rutaPorLogro(n){const L=logrosJugador();return (LOGRO_RUTA[n]||[]).some(id=>L.has(id));}
+function r2Desbloqueada(g){return !!g&&RUTAS[2].length>0&&(rutaCompleta(g,1)||rutaPorLogro(1)||rutaN(g)>=2||!!(g.rutas&&g.rutas[2]));}
+function r3Desbloqueada(g){return !!g&&RUTAS[3].length>0&&(rutaCompleta(g,2)||rutaPorLogro(2)||rutaN(g)===3||!!(g.rutas&&g.rutas[3]));}
+function r4Desbloqueada(g){return !!g&&RUTAS[4].length>0&&(rutaCompleta(g,3)||rutaPorLogro(3)||rutaN(g)===4||!!(g.rutas&&g.rutas[4]));}
+function r5Desbloqueada(g){return !!g&&RUTAS[5].length>0&&(rutaCompleta(g,4)||rutaPorLogro(4)||rutaN(g)===5||!!(g.rutas&&g.rutas[5]));}
 function rutaLibre(g,n){return n===1?true:n===2?r2Desbloqueada(g):n===3?r3Desbloqueada(g):n===4?r4Desbloqueada(g):r5Desbloqueada(g);}
 function nuevaRutaDatos(g,n){const bono=Math.min(BONUS_MAX,(g.bonus&&g.bonus[n])||0);if(g.bonus)delete g.bonus[n];
   return {ronda:0,victorias:0,derrotas:0,creditos:credBase(n)+bono,credIni:credBase(n)+bono,completado:false,historial:[],gameovers:0,goRuta:false,vueltas:0,rejugadas:[],sello:0,_bono:bono};}
@@ -1820,6 +1837,10 @@ function renderRuta(){
   document.documentElement.classList.toggle('heroica',rn===5);
   if(RUTAS[2].length){
     const libre=r2Desbloqueada(g), libre3=r3Desbloqueada(g), libre4=r4Desbloqueada(g), libre5=r5Desbloqueada(g);
+    {const porLg=[1,2,3,4].filter(n=>rutaPorLogro(n)&&!rutaCompleta(g,n)).map(n=>n+1).filter(n=>RUTAS[n]&&RUTAS[n].length);
+     const ya=g.avisoLogros||0, max=porLg.length?Math.max(...porLg):0;
+     if(max>ya){setSlot(x=>{x.avisoLogros=max;});const nom={2:'II · Legendaria',3:'III · Épica',4:'IV · Caótica',5:'V · Heroica'};
+       setTimeout(()=>modal('🏆 RUTAS DESBLOQUEADAS','Tus logros muestran que ya completaste estas rutas en otro dispositivo, así que se desbloquearon aquí:<br><br><b>'+porLg.map(n=>nom[n]).join('<br>')+'</b><br><br>Tu avance dentro de cada ruta (combate, créditos y sello) se guarda en cada dispositivo, así que empiezan desde el combate 1.',[['¡GENIAL!','']]),500);}}
     $('rRutas').innerHTML='<button class="pill'+(rn===1?' gold on':'')+'" data-ruta="1">I · ARCADE</button><button class="pill leg'+(rn===2?' on':'')+(!libre?' lock':(rn!==2&&!libre3?' pulse':''))+'" data-ruta="2">'+(libre?'★ II · LEGENDARIA':'🔒 II · LEGENDARIA')+'</button>'+
       (RUTAS[3].length&&libre?'<button class="pill epi'+(rn===3?' on':'')+(!libre3?' lock':(rn!==3&&!libre4?' pulse':''))+'" data-ruta="3">'+(libre3?'☠ III · ÉPICA':'🔒 III · ÉPICA')+'</button>':'')+
       (RUTAS[4].length&&libre3?'<button class="pill cao'+(rn===4?' on':'')+(!libre4?' lock':(rn!==4&&!libre5?' pulse':''))+'" data-ruta="4">'+(libre4?'🌀 IV · CAÓTICA':'🔒 IV · CAÓTICA')+'</button>':'')+

@@ -170,6 +170,12 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .cotiz-note{margin-top:10px;font-family:'Rajdhani',sans-serif;font-size:.72rem;color:var(--muted);line-height:1.4;text-align:center;}
 .footer{position:relative;z-index:1;padding:20px 16px 30px;text-align:center;font-family:'Orbitron',monospace;font-size:.55rem;color:var(--muted);letter-spacing:2px;border-top:1px solid var(--border);margin-top:20px;}
 .footer-brand{color:var(--gold);font-weight:900;letter-spacing:3px;text-shadow:0 0 4px #000,0 0 8px rgba(212,175,55,.3);}
+/* ══ VISTA AMPLIA (PC / tablet horizontal) ══ */
+@media (min-width:1000px) and (min-height:560px){
+  .search-wrap,.filter-row,.tabs{max-width:1240px;}
+  .list{max-width:1240px;display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:8px;}
+  .banner-slider{max-width:900px;}
+}
 </style>
 </head>
 <body>
@@ -557,7 +563,9 @@ document.getElementById('cotiz-decks').addEventListener('change',(e)=>{
   cotizarMazo();
 });
 
-document.getElementById('btn-cotizar').addEventListener('click',()=>{poblarBarajas();document.getElementById('cotiz-back').classList.add('open');});
+document.getElementById('btn-cotizar').addEventListener('click',()=>{poblarBarajas();document.getElementById('cotiz-back').classList.add('open');
+  // Trae también las barajas guardadas con tu ID en otros dispositivos
+  if(window.CHH_NUBE&&CHH_NUBE.sesionId())CHH_NUBE.sincronizarBarajas().then(r=>{if(r&&r.ok&&r.cambioLocal)poblarBarajas();});});
 document.getElementById('cotiz-back').addEventListener('click',(e)=>{if(e.target.id==='cotiz-back')e.target.classList.remove('open');});
 document.getElementById('cotiz-calc').addEventListener('click',cotizarMazo);
 
@@ -575,5 +583,8 @@ cargar();
 window.BGM_TRACK = '../assets/audio/mercado.mp3';
 </script>
 <script src="../bgm.js"></script>
+<script>window.GP_CFG={clicables:'.tab,.row',inicial:()=>document.querySelector('#search')};</script>
+<script src="../nube.js"></script>
+<script src="../gamepad.js"></script>
 </body>
 </html>

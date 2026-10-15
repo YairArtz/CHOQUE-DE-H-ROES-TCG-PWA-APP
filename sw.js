@@ -60,7 +60,7 @@
 //  v8.1: precache de la Simulación v17.
 //  v8:   shell cache-first + revalidación, JSON red-primero, fallbacks por tipo.
 // ================================================================
-const CACHE_NAME    = 'chh-tcg-v112';
+const CACHE_NAME    = 'chh-tcg-v113';
 const CACHE_DYNAMIC = 'chh-paginas-v1';    // estable: páginas/JSON/JS visitados (NO subir; lo precargado se renueva solo)
 const CACHE_IMG     = 'chh-img-v1';      // estable: imágenes, fuentes y PDFs. Subir SOLO si reemplazas imágenes con el mismo nombre
 const CACHE_AUDIO   = 'chh-audio-v1';    // estable: pistas de bgm.js. Subir SOLO si reemplazas un .mp3 con el mismo nombre
@@ -103,7 +103,7 @@ const CACHE_WARM = [
   './hero_pesos/sobres/sobre_mx26.jpg', './hero_pesos/sobres/sobre_nexo.png',
   './hero_pesos/sobres/sobre_omniversal.png',
   // Modo Online (copia del simulador + módulo de salas)
-  './online.html', './online.js'
+  './online.html', './online.js', './nube.js'
 ];
 
 const CACHE_SIM = [

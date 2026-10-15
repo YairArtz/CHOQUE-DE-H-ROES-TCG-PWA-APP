@@ -8,1840 +8,897 @@
   <link rel="manifest" href="manifest.json">
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    *, *::before, *::after { 
-      box-sizing: border-box; 
-      margin: 0; 
-      padding: 0; 
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --accent:#00cfff; --accent-dim:rgba(0,207,255,.25); --accent-glow:rgba(0,207,255,.10);
+      --bg:#07090f; --bg2:#0b0e18; --bg3:#0f1320; --border:#141c2a; --border2:#1f2a3d;
+      --text:#f0e6d0; --muted:#6a7f9a; --green:#00ff9d; --gold:#f5a623; --purple:#cc55ff; --red:#ff2244;
+      --grad:linear-gradient(135deg,#00ff9d,#cc55ff);
+      --c-pj:#ff5470; --c-apoyo:#ff9a3c; --c-arena:#3ddc84; --c-sector:#b06cff; --c-alma:#4fb4ff; --c-amalgama:#ffd84a;
     }
-
-    :root {
-      --accent: #00cfff;
-      --accent-glow: rgba(0,207,255,0.10);
-      --accent-dim: rgba(0,207,255,0.25);
-      --bg: #07090f;
-      --bg2: #0b0e18;
-      --card: rgba(12,10,5,0.97);
-      --border: #141c2a;
-      --text: #f0e6d0;
-      --muted: #6a7f9a;
-      
-      --green: #00ff9d;
-      --gold: #f5a623;
-      --purple: #cc55ff;
-      --red: #ff2244;
-    }
-
-    html, body {
-      min-height: 100%;
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Rajdhani', sans-serif;
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
-    }
-
-    body {
-      position: relative;
-      overflow-x: hidden;
-      padding-bottom: env(safe-area-inset-bottom);
-    }
-
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image:
-        linear-gradient(45deg, rgba(0,207,255,0.03) 1px, transparent 1px),
-        linear-gradient(-45deg, rgba(0,207,255,0.03) 1px, transparent 1px);
-      background-size: 40px 40px;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    body::after {
-      content: '';
-      position: fixed;
-      top: -10%;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 700px;
-      height: 500px;
-      background: radial-gradient(ellipse, rgba(0,207,255,0.07) 0%, transparent 70%);
-      pointer-events: none;
-      z-index: 0;
-    }
+    html,body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;min-height:100vh;-webkit-tap-highlight-color:transparent}
+    body{overflow-x:hidden}
+    body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+      background:radial-gradient(ellipse 60% 40% at 0% 0%,rgba(0,207,255,.06),transparent 60%),radial-gradient(ellipse 60% 40% at 100% 100%,rgba(204,85,255,.06),transparent 60%)}
+    button{font-family:inherit;color:inherit;cursor:pointer}
+    input,select,textarea{font-family:'Rajdhani',sans-serif}
+    .orb{font-family:'Orbitron',monospace}
 
     /* ═══ BARRA SUPERIOR ═══ */
-    .top-bar {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background: linear-gradient(180deg, rgba(7,9,15,0.98) 0%, rgba(7,9,15,0.95) 100%);
-      border-bottom: 1px solid var(--border);
-      padding: 14px 16px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      backdrop-filter: blur(20px);
-    }
-
-    .top-bar::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 10%;
-      right: 10%;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--accent-dim), transparent);
-    }
-
-    .back-btn {
-      background: rgba(0,207,255,0.08);
-      border: 1px solid var(--accent-dim);
-      color: var(--accent);
-      font-size: 20px;
-      width: 40px;
-      height: 40px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .back-btn:active {
-      background: var(--accent-glow);
-      transform: scale(0.95);
-    }
-
-    .top-title {
-      flex: 1;
-      font-family: 'Orbitron', monospace;
-      font-size: 16px;
-      font-weight: 900;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      color: var(--accent);
-      text-shadow: 0 0 12px rgba(0,207,255,0.4);
-    }
-
-    .save-btn {
-      background: linear-gradient(135deg, var(--accent), var(--purple));
-      border: none;
-      color: #000;
-      font-family: 'Orbitron', monospace;
-      font-size: 11px;
-      font-weight: 900;
-      letter-spacing: 1.5px;
-      padding: 10px 18px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-      box-shadow: 0 0 20px rgba(0,207,255,0.3);
-    }
-
-    .save-btn:active {
-      transform: scale(0.95);
-      box-shadow: 0 0 30px rgba(0,207,255,0.5);
-    }
-
-    /* ═══ CONTENEDOR PRINCIPAL ═══ */
-    .container {
-      position: relative;
-      z-index: 1;
-      max-width: 480px;
-      margin: 0 auto;
-      padding: 20px 16px 80px;
-    }
-
-    /* ═══ SELECTOR DE BARAJA ═══ */
-    .deck-selector {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 20px;
-      background: var(--bg2);
-      padding: 6px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-    }
-
-    .deck-tab {
-      flex: 1;
-      background: transparent;
-      border: none;
-      color: var(--muted);
-      font-family: 'Orbitron', monospace;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      padding: 12px 8px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-      text-align: center;
-    }
-
-    .deck-tab.active {
-      background: linear-gradient(135deg, var(--accent), var(--purple));
-      color: #000;
-      box-shadow: 0 0 15px rgba(0,207,255,0.3);
-    }
-
-    .deck-tab-name {
-      display: block;
-      font-size: 9px;
-      opacity: 0.7;
-      margin-top: 2px;
-    }
-
-    /* ═══ CONTADOR DE CARTAS ═══ */
-    .deck-counter {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 20px;
-    }
-
-    .counter-main {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 12px;
-    }
-
-    .counter-label {
-      font-family: 'Orbitron', monospace;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      color: var(--muted);
-      text-transform: uppercase;
-    }
-
-    .counter-value {
-      font-family: 'Orbitron', monospace;
-      font-size: 24px;
-      font-weight: 900;
-      color: var(--accent);
-      text-shadow: 0 0 12px rgba(0,207,255,0.4);
-    }
-
-    .counter-value.complete {
-      color: var(--green);
-      text-shadow: 0 0 12px rgba(0,255,157,0.4);
-    }
-
-    .counter-value.invalid {
-      color: var(--red);
-      text-shadow: 0 0 12px rgba(255,34,68,0.4);
-    }
-
-    .counter-bar {
-      width: 100%;
-      height: 6px;
-      background: rgba(0,207,255,0.1);
-      border-radius: 3px;
-      overflow: hidden;
-    }
-
-    .counter-bar-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--accent), var(--purple));
-      transition: width 0.3s;
-      box-shadow: 0 0 10px rgba(0,207,255,0.5);
-    }
-
-    .counter-bar-fill.complete {
-      background: linear-gradient(90deg, var(--green), var(--accent));
-    }
-
-    .counter-bar-fill.invalid {
-      background: linear-gradient(90deg, var(--red), var(--gold));
-    }
-
-    /* ═══ ESTADÍSTICAS POR TIPO ═══ */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-      margin-top: 12px;
-    }
-
-    .stat-item {
-      background: rgba(0,207,255,0.05);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .stat-label {
-      font-size: 10px;
-      font-weight: 600;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .stat-value {
-      font-family: 'Orbitron', monospace;
-      font-size: 14px;
-      font-weight: 900;
-      color: var(--accent);
-    }
-
-    /* ═══ BUSCADOR DE CARTAS ═══ */
-    .search-section {
-      margin-bottom: 20px;
-    }
-
-    .search-box {
-      position: relative;
-      margin-bottom: 12px;
-    }
-
-    .search-input {
-      width: 100%;
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      color: var(--text);
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 15px;
-      font-weight: 500;
-      padding: 14px 16px 14px 44px;
-      outline: none;
-      transition: all 0.2s;
-    }
-
-    .search-input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 20px rgba(0,207,255,0.2);
-    }
-
-    .search-icon {
-      position: absolute;
-      left: 16px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 18px;
-      color: var(--muted);
-    }
-
-    /* ═══ FILTROS DE TIPO ═══ */
-    .type-filters {
-      display: flex;
-      gap: 6px;
-      overflow-x: auto;
-      padding: 4px 0;
-      scrollbar-width: none;
-    }
-
-    .type-filters::-webkit-scrollbar {
-      display: none;
-    }
-
-    .type-btn {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      color: var(--muted);
-      font-family: 'Orbitron', monospace;
-      font-size: 9px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      padding: 8px 14px;
-      border-radius: 6px;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: all 0.2s;
-      flex-shrink: 0;
-    }
-
-    .type-btn.active {
-      background: linear-gradient(135deg, var(--accent), var(--purple));
-      border-color: var(--accent);
-      color: #000;
-      box-shadow: 0 0 15px rgba(0,207,255,0.3);
-    }
-
-    /* ═══ GRID DE CARTAS DISPONIBLES ═══ */
-    .available-cards {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 20px;
-      max-height: 400px;
-      overflow-y: auto;
-    }
-
-    .available-cards-title {
-      font-family: 'Orbitron', monospace;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      color: var(--muted);
-      text-transform: uppercase;
-      margin-bottom: 12px;
-    }
-
-    .cards-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-    }
-
-    .card-item {
-      background: rgba(0,207,255,0.05);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-      text-align: center;
-    }
-
-    .card-item:active {
-      transform: scale(0.95);
-      border-color: var(--accent);
-      box-shadow: 0 0 20px rgba(0,207,255,0.3);
-    }
-
-    .card-item.disabled {
-      opacity: 0.3;
-      pointer-events: none;
-    }
-
-    .card-item-img {
-      width: 100%;
-      aspect-ratio: 2/3;
-      background: rgba(0,0,0,0.3);
-      border-radius: 6px;
-      margin-bottom: 6px;
-      object-fit: cover;
-    }
-
-    .card-item-name {
-      font-size: 9px;
-      font-weight: 600;
-      color: var(--text);
-      line-height: 1.2;
-      margin-bottom: 4px;
-    }
-
-    .card-item-type {
-      font-size: 8px;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .card-item-count {
-      font-family: 'Orbitron', monospace;
-      font-size: 10px;
-      font-weight: 900;
-      color: var(--accent);
-      margin-top: 4px;
-    }
-
-    /* ═══ LISTA DE BARAJA ACTUAL ═══ */
-    .deck-list {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 20px;
-    }
-
-    .deck-list-title {
-      font-family: 'Orbitron', monospace;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      color: var(--muted);
-      text-transform: uppercase;
-      margin-bottom: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .deck-list-count {
-      color: var(--accent);
-    }
-
-    .deck-item {
-      background: rgba(0,207,255,0.03);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 10px 12px;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .deck-item-qty {
-      font-family: 'Orbitron', monospace;
-      font-size: 16px;
-      font-weight: 900;
-      color: var(--accent);
-      width: 24px;
-      text-align: center;
-    }
-
-    .deck-item-name {
-      flex: 1;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text);
-    }
-
-    .deck-item-type {
-      font-size: 9px;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-right: 8px;
-    }
-
-    .deck-item-remove {
-      background: rgba(255,34,68,0.1);
-      border: 1px solid rgba(255,34,68,0.3);
-      color: var(--red);
-      font-size: 16px;
-      width: 28px;
-      height: 28px;
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .deck-item-remove:active {
-      background: rgba(255,34,68,0.2);
-      transform: scale(0.9);
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 40px 20px;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.6;
-    }
-
-    .empty-state-icon {
-      font-size: 48px;
-      margin-bottom: 12px;
-      opacity: 0.3;
-    }
-
-    /* ═══ ACCIONES ═══ */
-    .actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 20px;
-    }
-
-    .action-btn {
-      flex: 1;
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-family: 'Orbitron', monospace;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      padding: 14px 16px;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: all 0.2s;
-      text-transform: uppercase;
-    }
-
-    .action-btn:active {
-      transform: scale(0.95);
-      border-color: var(--accent);
-      box-shadow: 0 0 20px rgba(0,207,255,0.2);
-    }
-
-    .action-btn.primary {
-      background: linear-gradient(135deg, var(--accent), var(--purple));
-      border: none;
-      color: #000;
-      box-shadow: 0 0 20px rgba(0,207,255,0.3);
-    }
-
-    /* ═══ MODAL ═══ */
-    .modal {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.9);
-      z-index: 200;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      backdrop-filter: blur(10px);
-    }
-
-    .modal.active {
-      display: flex;
-    }
-
-    .modal-content {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 24px;
-      max-width: 400px;
-      width: 100%;
-      box-shadow: 0 20px 60px rgba(0,207,255,0.3);
-    }
-
-    .modal-title {
-      font-family: 'Orbitron', monospace;
-      font-size: 16px;
-      font-weight: 900;
-      letter-spacing: 1.5px;
-      color: var(--accent);
-      text-transform: uppercase;
-      margin-bottom: 16px;
-      text-align: center;
-    }
-
-    .modal-input {
-      width: 100%;
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      color: var(--text);
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 15px;
-      font-weight: 500;
-      padding: 14px 16px;
-      margin-bottom: 16px;
-      outline: none;
-    }
-
-    .modal-input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 20px rgba(0,207,255,0.2);
-    }
-
-    .modal-actions {
-      display: flex;
-      gap: 10px;
-    }
-
-    .modal-btn {
-      flex: 1;
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-family: 'Orbitron', monospace;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      padding: 12px 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-      text-transform: uppercase;
-    }
-
-    .modal-btn.primary {
-      background: linear-gradient(135deg, var(--accent), var(--purple));
-      border: none;
-      color: #000;
-    }
-
-    /* ═══ LISTA DE BARAJAS GUARDADAS ═══ */
-    .saved-decks-list {
-      max-height: 300px;
-      overflow-y: auto;
-      margin-bottom: 16px;
-    }
-
-    .saved-deck-item {
-      background: rgba(0,207,255,0.05);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px;
-      margin-bottom: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .saved-deck-item:active {
-      background: rgba(0,207,255,0.1);
-      border-color: var(--accent);
-    }
-
-    .saved-deck-name {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text);
-    }
-
-    .saved-deck-info {
-      font-size: 10px;
-      color: var(--muted);
-      margin-top: 4px;
-    }
-
-    .saved-deck-delete {
-      background: rgba(255,34,68,0.1);
-      border: 1px solid rgba(255,34,68,0.3);
-      color: var(--red);
-      font-size: 14px;
-      width: 32px;
-      height: 32px;
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .saved-deck-delete:active {
-      background: rgba(255,34,68,0.2);
-      transform: scale(0.9);
-    }
-    
-    /* ═══ MODAL DE ALERTA PERSONALIZADO ═══ */
-    .alert-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.85);
-      z-index: 300;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      backdrop-filter: blur(10px);
-      animation: fadeIn 0.2s;
-    }
-    
-    .alert-overlay.active {
-      display: flex;
-    }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    
-    .alert-box {
-      background: var(--bg);
-      border: 2px solid var(--accent);
-      border-radius: 16px;
-      padding: 24px;
-      max-width: 380px;
-      width: 100%;
-      box-shadow: 0 0 40px rgba(0,207,255,0.4), 0 20px 60px rgba(0,0,0,0.8);
-      animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-    
-    @keyframes slideUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px) scale(0.95);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
-    }
-    
-    .alert-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 16px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid var(--border);
-    }
-    
-    .alert-icon {
-      font-size: 28px;
-      line-height: 1;
-    }
-    
-    .alert-title {
-      font-family: 'Orbitron', monospace;
-      font-size: 14px;
-      font-weight: 900;
-      letter-spacing: 1.5px;
-      color: var(--accent);
-      text-transform: uppercase;
-      flex: 1;
-    }
-    
-    .alert-message {
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--text);
-      line-height: 1.6;
-      margin-bottom: 20px;
-    }
-    
-    .alert-btn {
-      width: 100%;
-      background: linear-gradient(135deg, var(--accent), var(--purple));
-      border: none;
-      color: #000;
-      font-family: 'Orbitron', monospace;
-      font-size: 12px;
-      font-weight: 900;
-      letter-spacing: 1.5px;
-      padding: 14px 20px;
-      border-radius: 10px;
-      cursor: pointer;
-      text-transform: uppercase;
-      transition: all 0.2s;
-      box-shadow: 0 0 20px rgba(0,207,255,0.3);
-    }
-    
-    .alert-btn:active {
-      transform: scale(0.95);
-      box-shadow: 0 0 30px rgba(0,207,255,0.5);
-    }
-    
-    /* Botones de confirmación */
-    .confirm-actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 20px;
-    }
-    
-    .confirm-btn {
-      flex: 1;
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-family: 'Orbitron', monospace;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      padding: 12px 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-      text-transform: uppercase;
-    }
-    
-    .confirm-btn.danger {
-      background: linear-gradient(135deg, var(--red), #ff6b6b);
-      border: none;
-      color: #fff;
-      box-shadow: 0 0 20px rgba(255,34,68,0.3);
-    }
-    
-    .confirm-btn:active {
-      transform: scale(0.95);
-    }
-    /* ══ VISTA AMPLIA (PC / tablet horizontal) — se desactiva en Ajustes (html.hz-off) ══
-       Cartas disponibles a la izquierda; baraja, contador y acciones a la derecha.
-       Cada panel se desplaza por separado (como una app de escritorio). */
+    .top-bar{position:sticky;top:0;z-index:100;display:flex;align-items:center;gap:10px;padding:10px 14px;
+      background:linear-gradient(180deg,rgba(7,9,15,.98),rgba(7,9,15,.94));border-bottom:1px solid var(--border);backdrop-filter:blur(18px)}
+    .back-btn{width:40px;height:40px;flex-shrink:0;border-radius:10px;border:1px solid var(--border2);background:var(--bg2);color:var(--accent);font-size:20px}
+    .tb-mid{flex:1;min-width:0}
+    .top-title{font-family:'Orbitron',monospace;font-size:13px;font-weight:900;letter-spacing:2px;color:var(--green);text-transform:uppercase;text-shadow:0 0 12px rgba(0,255,157,.35)}
+    .deck-name{display:flex;align-items:center;gap:6px;margin-top:2px;font-size:14px;font-weight:600;color:#cfe3ff;background:none;border:none;padding:0;max-width:100%;text-align:left}
+    .deck-name span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .deck-name i{font-style:normal;font-size:11px;opacity:.6}
+    .nube{flex-shrink:0;font-size:11px;font-family:'Orbitron',monospace;letter-spacing:1px;padding:6px 9px;border-radius:8px;border:1px solid var(--border2);background:var(--bg2);color:var(--muted);display:flex;gap:5px;align-items:center}
+    .nube[data-e="ok"]{color:var(--green);border-color:rgba(0,255,157,.35)}
+    .nube[data-e="sync"]{color:var(--accent)}
+    .nube[data-e="error"]{color:var(--gold)}
+    .nube[data-e="sync"] b{animation:spin 1s linear infinite;display:inline-block}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .save-btn{flex-shrink:0;padding:10px 16px;border:none;border-radius:10px;background:var(--grad);color:#000;font-family:'Orbitron',monospace;font-size:11px;font-weight:900;letter-spacing:1.5px;box-shadow:0 0 18px rgba(0,255,157,.25)}
+    .save-btn .dot{display:none;width:7px;height:7px;border-radius:50%;background:#000;margin-left:6px;vertical-align:middle}
+    .save-btn.sucio .dot{display:inline-block}
+
+    /* ═══ CONTENEDOR ═══ */
+    .container{position:relative;z-index:1;max-width:520px;margin:0 auto;padding:14px 14px 90px;display:flex;flex-direction:column}
+    /* Celular: una sola columna en este orden (en PC son dos paneles, ver abajo) */
+    .cx-main,.cx-side{display:contents}
+    #deckTabs{order:1;position:sticky;top:61px;z-index:20;backdrop-filter:blur(10px);background:rgba(11,14,24,.94)}
+    #searchBox{order:2} #typeChips{order:3} .frow{order:4} .grid-wrap{order:5;margin-bottom:14px}
+    #dlPanel{order:6} #resumen{order:7} .acts{order:8} #simBtn{order:9} #shareAcademiaBtn{order:10}
+    .panel{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px}
+    .ptitle{font-family:'Orbitron',monospace;font-size:10px;font-weight:700;letter-spacing:2.5px;color:var(--muted);text-transform:uppercase;display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+
+    /* Pestañas BP/BA/BS */
+    .deck-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:5px;margin-bottom:14px;background:var(--bg2);border:1px solid var(--border);border-radius:14px}
+    .deck-tab{padding:9px 4px;border-radius:10px;border:1px solid transparent;background:transparent;text-align:center;transition:all .15s}
+    .deck-tab b{display:block;font-family:'Orbitron',monospace;font-size:13px;font-weight:900;letter-spacing:1px}
+    .deck-tab small{display:block;font-size:11px;color:var(--muted);margin-top:1px}
+    .deck-tab .cnt{display:inline-block;margin-top:4px;font-family:'Orbitron',monospace;font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;background:rgba(255,255,255,.05);color:var(--muted)}
+    .deck-tab .cnt.ok{color:var(--green);background:rgba(0,255,157,.1)}
+    .deck-tab .cnt.mal{color:var(--gold);background:rgba(245,166,35,.1)}
+    .deck-tab.active{background:linear-gradient(135deg,rgba(0,255,157,.14),rgba(204,85,255,.14));border-color:rgba(0,255,157,.45);box-shadow:0 0 14px rgba(0,255,157,.12)}
+    .deck-tab.active b{color:var(--green)}
+
+    /* Resumen */
+    .sum-head{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
+    .sum-lbl{font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase}
+    .sum-val{font-family:'Orbitron',monospace;font-size:28px;font-weight:900;color:var(--accent);line-height:1}
+    .sum-val.ok{color:var(--green);text-shadow:0 0 14px rgba(0,255,157,.4)}
+    .sum-val.mal{color:var(--red)}
+    .bar{height:7px;border-radius:5px;background:var(--bg);margin:10px 0 12px;overflow:hidden}
+    .bar i{display:block;height:100%;width:0;background:var(--grad);border-radius:5px;transition:width .3s}
+    .tipos{display:flex;flex-wrap:wrap;gap:6px}
+    .tchip{display:flex;align-items:center;gap:6px;padding:5px 9px;border-radius:8px;background:var(--bg);border:1px solid var(--border);font-size:13px;font-weight:600}
+    .tchip i{width:8px;height:8px;border-radius:50%;background:var(--tc)}
+    .tchip b{font-family:'Orbitron',monospace;font-size:11px;color:var(--tc)}
+    .curva{display:flex;align-items:flex-end;gap:4px;height:74px;margin-top:14px;padding-top:6px}
+    .curva .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;height:100%;justify-content:flex-end}
+    .curva .col i{display:block;width:100%;border-radius:4px 4px 1px 1px;background:linear-gradient(180deg,var(--accent),rgba(0,207,255,.25));min-height:2px;transition:height .3s}
+    .curva .col b{font-family:'Orbitron',monospace;font-size:9px;color:#cfe3ff;height:11px}
+    .curva .col small{font-family:'Orbitron',monospace;font-size:9px;color:var(--muted)}
+    .curva-t{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);margin-top:10px;display:flex;justify-content:space-between}
+    .checks{display:flex;flex-direction:column;gap:4px;margin-top:12px;font-size:13px}
+    .checks div{display:flex;gap:7px;align-items:center;color:var(--muted)}
+    .checks .si{color:var(--green)} .checks .no{color:var(--gold)}
+
+    /* Buscador y filtros */
+    .search-box{position:relative;margin-bottom:10px}
+    .search-box span{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:15px;opacity:.7;pointer-events:none}
+    .search-input{width:100%;padding:12px 38px 12px 38px;border-radius:12px;border:1px solid var(--border2);background:var(--bg2);color:var(--text);font-size:16px;font-weight:500;outline:none}
+    .search-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+    .search-x{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:28px;height:28px;border-radius:50%;border:none;background:rgba(255,255,255,.06);color:var(--muted);display:none}
+    .search-box.con .search-x{display:block}
+    .chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;margin-bottom:8px}
+    .chips::-webkit-scrollbar{display:none}
+    .chip{flex-shrink:0;padding:7px 12px;border-radius:9px;border:1px solid var(--border2);background:var(--bg2);font-family:'Orbitron',monospace;font-size:9.5px;font-weight:700;letter-spacing:1px;color:var(--muted);text-transform:uppercase;display:flex;align-items:center;gap:6px}
+    .chip i{width:7px;height:7px;border-radius:50%;background:var(--tc,var(--accent))}
+    .chip.active{color:#fff;border-color:var(--tc,var(--green));background:rgba(255,255,255,.07);box-shadow:0 0 10px rgba(0,255,157,.1)}
+    .frow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px}
+    .sel{width:100%;padding:9px 8px;border-radius:9px;border:1px solid var(--border2);background:var(--bg2);color:var(--text);font-size:13px;font-weight:600;outline:none;appearance:none;-webkit-appearance:none;
+      background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 13px) 55%,calc(100% - 8px) 55%;background-size:5px 5px;background-repeat:no-repeat;padding-right:22px}
+    .tog{display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 6px;border-radius:9px;border:1px solid var(--border2);background:var(--bg2);font-size:13px;font-weight:600;color:var(--muted)}
+    .tog.on{color:var(--gold);border-color:rgba(245,166,35,.5);background:rgba(245,166,35,.08)}
+
+    /* Rejilla de cartas */
+    .grid-head{display:flex;justify-content:space-between;align-items:center;margin:2px 0 8px;font-family:'Orbitron',monospace;font-size:9.5px;letter-spacing:2px;color:var(--muted);text-transform:uppercase}
+    .cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    .ci{position:relative;border-radius:9px;overflow:hidden;background:var(--bg3);border:1px solid var(--border);aspect-ratio:5/7;transition:transform .12s,border-color .15s,box-shadow .15s}
+    .ci:active{transform:scale(.96)}
+    .ci:hover{border-color:var(--accent-dim)}
+    .ci img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+    .ci .ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:6px;text-align:center;font-size:12px;color:var(--muted)}
+    .ci.full{opacity:.42;filter:grayscale(.6)}
+    .ci.cond{opacity:.35;filter:grayscale(1)}
+    .ci .n{position:absolute;top:5px;left:5px;min-width:24px;padding:2px 6px;border-radius:6px;background:rgba(3,5,10,.85);border:1px solid var(--accent);font-family:'Orbitron',monospace;font-size:10px;font-weight:900;color:var(--accent);text-align:center}
+    .ci .n.z{display:none}
+    .ci .n.max{border-color:var(--green);color:var(--green)}
+    .ci .lim{position:absolute;bottom:0;left:0;right:0;padding:3px 0 2px;font-family:'Orbitron',monospace;font-size:7.5px;font-weight:900;letter-spacing:1.5px;text-align:center;color:#000}
+    .ci .own{position:absolute;top:5px;right:30px;padding:2px 5px;border-radius:6px;background:rgba(245,166,35,.9);color:#000;font-family:'Orbitron',monospace;font-size:8.5px;font-weight:900}
+    .ci .info{position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;border:1px solid rgba(255,255,255,.25);background:rgba(3,5,10,.75);font-size:12px;font-weight:700;color:#cfe3ff;display:flex;align-items:center;justify-content:center;padding:0}
+    .ci .cost{position:absolute;bottom:6px;right:6px;width:22px;height:22px;border-radius:50%;background:rgba(3,5,10,.85);border:1px solid var(--accent);font-family:'Orbitron',monospace;font-size:10px;font-weight:900;color:#fff;display:flex;align-items:center;justify-content:center}
+    .ci .lim + .cost{bottom:20px}
+    .ci.pulse{animation:pulse .35s ease}
+    @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(0,255,157,.8)}100%{box-shadow:0 0 0 12px rgba(0,255,157,0)}}
+    .mas{display:block;width:100%;margin-top:10px;padding:12px;border-radius:10px;border:1px dashed var(--border2);background:transparent;color:var(--muted);font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px}
+    .empty{text-align:center;color:var(--muted);padding:26px 10px;font-size:15px;line-height:1.4}
+    .empty img{width:70px;border-radius:8px;opacity:.55;margin-bottom:10px}
+    .empty b{display:block;font-size:30px;margin-bottom:6px}
+
+    /* Lista de la baraja */
+    .dl-grupo{font-family:'Orbitron',monospace;font-size:9.5px;font-weight:700;letter-spacing:2px;color:var(--tc);text-transform:uppercase;margin:12px 0 6px;display:flex;gap:8px;align-items:center}
+    .dl-grupo:first-child{margin-top:0}
+    .dl-grupo::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--border2),transparent)}
+    .dl-item{display:flex;align-items:center;gap:9px;padding:5px 6px 5px 5px;border-radius:10px;background:var(--bg);border:1px solid var(--border);margin-bottom:5px}
+    .dl-thumb{width:34px;height:47px;flex-shrink:0;border-radius:5px;overflow:hidden;background:var(--bg3);border:none;padding:0}
+    .dl-thumb img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}
+    .dl-name{flex:1;min-width:0;font-size:14.5px;font-weight:600;line-height:1.15;background:none;border:none;text-align:left;padding:0}
+    .dl-name small{display:block;font-size:11.5px;color:var(--muted);font-weight:500;margin-top:1px}
+    .dl-q{display:flex;align-items:center;gap:4px;flex-shrink:0}
+    .dl-q button{width:30px;height:30px;border-radius:8px;border:1px solid var(--border2);background:var(--bg2);font-size:17px;font-weight:700;line-height:1;padding:0}
+    .dl-q .menos{color:var(--red)} .dl-q .mas1{color:var(--green)}
+    .dl-q button:disabled{opacity:.3}
+    .dl-q b{font-family:'Orbitron',monospace;font-size:13px;min-width:24px;text-align:center;color:var(--accent)}
+
+    /* Acciones */
+    .acts{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+    .act{padding:11px 4px;border-radius:10px;border:1px solid var(--border2);background:var(--bg2);font-family:'Orbitron',monospace;font-size:9.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;display:flex;flex-direction:column;align-items:center;gap:5px}
+    .act span{font-size:17px}
+    .act:hover{border-color:var(--accent-dim)}
+    .big-btn{display:block;width:100%;margin-top:8px;padding:13px;border-radius:11px;border:none;background:var(--grad);color:#000;font-family:'Orbitron',monospace;font-size:11px;font-weight:900;letter-spacing:2px}
+    .big-btn.acad{background:linear-gradient(135deg,#cc55ff,#8033cc);display:none}
+
+    /* ═══ VENTANAS ═══ */
+    .modal{position:fixed;inset:0;z-index:300;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.86);backdrop-filter:blur(8px)}
+    .modal.active{display:flex}
+    .mbox{width:100%;max-width:440px;max-height:90vh;overflow-y:auto;background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.7);animation:pop .2s ease}
+    @keyframes pop{from{transform:scale(.94);opacity:0}to{transform:none;opacity:1}}
+    .mtitle{font-family:'Orbitron',monospace;font-size:13px;font-weight:900;letter-spacing:2px;color:var(--green);margin-bottom:14px;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;gap:10px}
+    .mclose{width:34px;height:34px;border-radius:50%;border:1px solid var(--border2);background:var(--bg);color:var(--muted);font-size:16px;flex-shrink:0}
+    .minput{width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--border2);background:var(--bg);color:var(--text);font-size:16px;outline:none;margin-bottom:10px}
+    .minput:focus{border-color:var(--accent)}
+    .mrow{display:flex;gap:8px;margin-top:6px}
+    .mbtn{flex:1;padding:12px 8px;border-radius:10px;border:1px solid var(--border2);background:var(--bg);font-family:'Orbitron',monospace;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+    .mbtn.pri{border:none;background:var(--grad);color:#000}
+    .mbtn.dan{color:var(--red);border-color:rgba(255,34,68,.4)}
+    .mnote{font-size:13px;color:var(--muted);line-height:1.4;margin-bottom:12px}
+    .mnote b{color:var(--gold)}
+
+    /* Detalle de carta */
+    .det{display:grid;grid-template-columns:1fr;gap:14px}
+    .det-img{width:min(100%,280px);margin:0 auto;aspect-ratio:5/7;border-radius:12px;overflow:hidden;border:1px solid var(--border2);box-shadow:0 10px 40px rgba(0,207,255,.15);background:var(--bg3)}
+    .det-img img{width:100%;height:100%;object-fit:cover;display:block}
+    .det-n{font-family:'Orbitron',monospace;font-size:15px;font-weight:900;letter-spacing:1px;line-height:1.3}
+    .det-t{font-size:13px;color:var(--muted);margin-top:3px;letter-spacing:1px;text-transform:uppercase}
+    .stats{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+    .stat{padding:5px 9px;border-radius:8px;background:var(--bg);border:1px solid var(--border);font-size:12.5px;font-weight:600}
+    .stat b{font-family:'Orbitron',monospace;color:var(--accent);margin-left:4px}
+    .habs{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+    .hab{padding:3px 8px;border-radius:6px;font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:1px;background:rgba(204,85,255,.12);color:var(--purple);border:1px solid rgba(204,85,255,.3)}
+    .det-txt{margin-top:10px;font-size:15px;line-height:1.45;color:#d6e2f5;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;white-space:pre-line}
+    .det-lim{margin-top:8px;font-size:13px;font-weight:700}
+    .det-q{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:14px}
+    .det-q button{width:48px;height:48px;border-radius:50%;border:1px solid var(--border2);background:var(--bg);font-size:24px;font-weight:700}
+    .det-q .menos{color:var(--red)} .det-q .mas1{color:var(--green)}
+    .det-q b{font-family:'Orbitron',monospace;font-size:24px;min-width:70px;text-align:center}
+    .det-q b small{display:block;font-size:9px;letter-spacing:2px;color:var(--muted);font-weight:700}
+    .det-own{font-size:13px;color:var(--gold);margin-top:6px;text-align:center}
+    .det-links{display:flex;gap:8px;margin-top:14px}
+
+    /* Mis barajas */
+    .sv{border:1px solid var(--border);background:var(--bg);border-radius:12px;padding:12px;margin-bottom:8px}
+    .sv.cur{border-color:rgba(0,255,157,.5)}
+    .sv-top{display:flex;align-items:center;gap:10px}
+    .sv-n{flex:1;min-width:0;font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .sv-d{font-size:11.5px;color:var(--muted)}
+    .sv-c{display:flex;gap:6px;margin:8px 0}
+    .sv-c span{font-family:'Orbitron',monospace;font-size:9.5px;font-weight:700;padding:3px 7px;border-radius:6px;background:var(--bg2);color:var(--muted)}
+    .sv-c span.ok{color:var(--green)} .sv-c span.mal{color:var(--gold)}
+    .sv-a{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+    .sv-a button{padding:8px 2px;border-radius:8px;border:1px solid var(--border2);background:var(--bg2);font-size:12px;font-weight:700}
+    .sv-a .pri{border:none;background:var(--grad);color:#000}
+    .sv-a .dan{color:var(--red)}
+
+    /* Mano de prueba */
+    .hand{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:4px 0 12px}
+    .hand .ci{animation:deal .3s ease both}
+    @keyframes deal{from{transform:translateY(-18px) rotate(-4deg);opacity:0}to{transform:none;opacity:1}}
+
+    /* Toast y alertas */
+    #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);z-index:600;padding:10px 18px;border-radius:10px;background:rgba(3,5,10,.95);border:1px solid var(--green);color:var(--green);
+      font-family:'Orbitron',monospace;font-size:10.5px;font-weight:700;letter-spacing:1px;opacity:0;pointer-events:none;transition:all .25s;max-width:92vw;text-align:center}
+    #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    #toast.warn{border-color:var(--gold);color:var(--gold)}
+    .al-ico{font-size:40px;text-align:center;margin-bottom:8px}
+    .al-msg{text-align:center;font-size:16px;line-height:1.4;margin-bottom:16px}
+
+    /* ═══ VISTA AMPLIA (PC / tablet horizontal) — se apaga en Ajustes (html.hz-off) ═══ */
     @media (min-width:1000px) and (min-height:560px){
-      html:not(.hz-off) .container{max-width:1560px;display:grid;grid-template-columns:minmax(0,1fr) clamp(320px,30vw,420px);grid-template-rows:auto minmax(0,1fr);
-        column-gap:24px;height:calc(100vh - var(--cx-top,70px));padding:18px 24px 16px;}
-      html:not(.hz-off) .cx-main{grid-column:1;grid-row:1/3;display:flex;flex-direction:column;min-height:0;}
-      html:not(.hz-off) .cx-main .search-section{margin-bottom:14px;}
-      html:not(.hz-off) .cx-main .available-cards{flex:1;min-height:0;max-height:none;overflow-y:auto;margin-bottom:0;}
-      html:not(.hz-off) .cx-a{grid-column:2;grid-row:1;}
-      html:not(.hz-off) .cx-a .deck-selector,html:not(.hz-off) .cx-a .deck-counter{margin-bottom:14px;}
-      html:not(.hz-off) .cx-b{grid-column:2;grid-row:2;display:flex;flex-direction:column;min-height:0;}
-      html:not(.hz-off) .cx-b .deck-list{flex:1;min-height:120px;overflow-y:auto;margin-bottom:0;}
-      html:not(.hz-off) .cx-b .actions{margin-top:12px;}
-      html:not(.hz-off) .cx-b>.action-btn{flex:none;}
-      html:not(.hz-off) .cards-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));}
-      html:not(.hz-off) .modal-content{max-width:520px;}
+      html:not(.hz-off) .container{max-width:1600px;display:grid;grid-template-columns:minmax(0,1fr) clamp(340px,31vw,440px);column-gap:22px;
+        height:calc(100vh - 61px);padding:16px 22px 14px}
+      html:not(.hz-off) .container{display:grid}
+      html:not(.hz-off) #deckTabs{position:static;background:var(--bg2)}
+      html:not(.hz-off) #searchBox{order:1} html:not(.hz-off) #typeChips{order:2} html:not(.hz-off) .frow{order:3} html:not(.hz-off) .grid-wrap{order:4;margin-bottom:0}
+      html:not(.hz-off) #deckTabs{order:1} html:not(.hz-off) #resumen{order:2} html:not(.hz-off) #dlPanel{order:3} html:not(.hz-off) .acts{order:4} html:not(.hz-off) #simBtn{order:5} html:not(.hz-off) #shareAcademiaBtn{order:6}
+      html:not(.hz-off) .cx-main{display:flex;flex-direction:column;min-height:0}
+      html:not(.hz-off) .cx-main .grid-wrap{flex:1;min-height:0;overflow-y:auto;padding-right:4px}
+      html:not(.hz-off) .cx-side{display:flex;flex-direction:column;min-height:0;overflow-y:auto;padding-right:4px}
+      html:not(.hz-off) .cards-grid{grid-template-columns:repeat(auto-fill,minmax(138px,1fr));gap:10px}
+      html:not(.hz-off) .frow{grid-template-columns:repeat(3,minmax(0,200px))}
+      html:not(.hz-off) .search-box{max-width:620px}
+      html:not(.hz-off) .mbox{max-width:520px}
+      html:not(.hz-off) .mbox.wide{max-width:860px}
+      html:not(.hz-off) .det{grid-template-columns:300px 1fr;align-items:start}
+      html:not(.hz-off) .det-img{width:300px}
+      html:not(.hz-off) .hand{grid-template-columns:repeat(4,150px);justify-content:center}
+      html:not(.hz-off) .ci .info{opacity:0;transition:opacity .15s}
+      html:not(.hz-off) .ci:hover .info,html:not(.hz-off) .ci:focus-within .info{opacity:1}
+      html:not(.hz-off) .mas{display:none}
     }
   </style>
 </head>
 <body>
-  <!-- BARRA SUPERIOR -->
   <div class="top-bar">
-    <button class="back-btn" onclick="window.location.href='index.html'">←</button>
-    <div class="top-title">Constructor</div>
-    <button class="save-btn" id="saveBtn">Guardar</button>
+    <button class="back-btn" onclick="salir()" aria-label="Volver">←</button>
+    <div class="tb-mid">
+      <div class="top-title">Constructor</div>
+      <button class="deck-name" id="deckNameBtn" onclick="renombrarActual()"><span id="deckNameTxt">Nueva baraja</span><i>✏️</i></button>
+    </div>
+    <button class="nube" id="nube" data-e="off" onclick="sincronizar(true)" title="Sincronización con tu ID"><b>☁</b><span id="nubeTxt">Local</span></button>
+    <button class="save-btn" id="saveBtn" onclick="abrirGuardar()">GUARDAR<span class="dot"></span></button>
   </div>
 
-  <!-- CONTENEDOR PRINCIPAL -->
   <div class="container">
-    
-    <div class="cx-a">
-    <!-- SELECTOR DE BARAJA -->
-    <div class="deck-selector">
-      <button class="deck-tab active" data-deck="BP">
-        BP
-        <span class="deck-tab-name">Principal</span>
-      </button>
-      <button class="deck-tab" data-deck="BA">
-        BA
-        <span class="deck-tab-name">Almas</span>
-      </button>
-      <button class="deck-tab" data-deck="BS">
-        BS
-        <span class="deck-tab-name">Amalgamas</span>
-      </button>
-    </div>
-
-    <!-- CONTADOR -->
-    <div class="deck-counter">
-      <div class="counter-main">
-        <div class="counter-label" id="counterLabel">Baraja Principal</div>
-        <div class="counter-value" id="counterValue">0/40</div>
-      </div>
-      <div class="counter-bar">
-        <div class="counter-bar-fill" id="counterBar"></div>
-      </div>
-      
-      <!-- Estadísticas por tipo -->
-      <div class="stats-grid" id="statsGrid"></div>
-    </div>
-    </div><!-- /cx-a -->
-
+    <!-- ── Catálogo ── -->
     <div class="cx-main">
-    <!-- BUSCADOR -->
-    <div class="search-section">
-      <div class="search-box">
-        <span class="search-icon">🔍</span>
-        <input type="text" class="search-input" id="searchInput" placeholder="Buscar cartas...">
+      <div class="search-box" id="searchBox">
+        <span>🔍</span>
+        <input type="text" class="search-input" id="searchInput" placeholder="Buscar por nombre o texto de la carta…" autocomplete="off">
+        <button class="search-x" onclick="limpiarBusqueda()" aria-label="Borrar">✕</button>
       </div>
-      
-      <!-- Filtros de tipo -->
-      <div class="type-filters" id="typeFilters"></div>
-    </div>
-
-    <!-- CARTAS DISPONIBLES -->
-    <div class="available-cards">
-      <div class="available-cards-title">Cartas Disponibles</div>
-      <div class="cards-grid" id="cardsGrid"></div>
-    </div>
-    </div><!-- /cx-main -->
-
-    <div class="cx-b">
-    <!-- LISTA DE BARAJA -->
-    <div class="deck-list">
-      <div class="deck-list-title">
-        <span>Tu Baraja</span>
-        <span class="deck-list-count" id="deckListCount">0 cartas</span>
+      <div class="chips" id="typeChips"></div>
+      <div class="frow">
+        <select class="sel" id="fExp" aria-label="Expansión"></select>
+        <select class="sel" id="fOrden" aria-label="Ordenar">
+          <option value="nombre">↕ Nombre</option>
+          <option value="coste">↕ Coste</option>
+          <option value="exp">↕ Expansión</option>
+          <option value="usadas">↕ En baraja</option>
+        </select>
+        <button class="tog" id="fMias" onclick="toggleMias()">📦 Mis cartas</button>
       </div>
-      <div id="deckListContainer">
-        <div class="empty-state">
-          <img src="1000378945.jpg" alt="Reverso CHH" style="width: 80px; height: auto; border-radius: 8px; margin-bottom: 12px; opacity: 0.6;">
-          <div>Agrega cartas para comenzar a construir tu baraja</div>
-        </div>
+      <div class="grid-wrap">
+        <div class="grid-head"><span id="gridCount">Cargando catálogo…</span><span id="gridHint">Toca para agregar · ⓘ detalle</span></div>
+        <div class="cards-grid" id="cardsGrid"></div>
+        <button class="mas" id="masBtn" onclick="verMas()" style="display:none">Ver más cartas</button>
       </div>
     </div>
 
-    <!-- ACCIONES -->
-    <div class="actions">
-      <button class="action-btn" id="clearBtn">Vaciar</button>
-      <button class="action-btn" id="loadBtn">Cargar</button>
-      <button class="action-btn primary" id="exportBtn">Exportar</button>
-    </div>
-
-    <!-- SIMULACIÓN: prueba esta baraja contra la CPU -->
-    <button class="action-btn primary" id="simBtn" style="width:100%;margin-top:8px;">⚔ Probar en Simulación</button>
-
-    <!-- ACADEMIA — solo visible para admins -->
-    <button class="action-btn academia-btn" id="shareAcademiaBtn" style="display:none;width:100%;margin-top:8px;background:linear-gradient(135deg,#cc55ff,#8033cc);color:#000;border:none;">📚 COMPARTIR EN ACADEMIA</button>
-    </div><!-- /cx-b -->
-
-  </div>
-
-  <!-- MODAL GUARDAR -->
-  <div class="modal" id="saveModal">
-    <div class="modal-content">
-      <div class="modal-title">Guardar Baraja</div>
-      <input type="text" class="modal-input" id="deckNameInput" placeholder="Nombre de la baraja...">
-      <div class="modal-actions">
-        <button class="modal-btn" id="cancelSaveBtn">Cancelar</button>
-        <button class="modal-btn primary" id="confirmSaveBtn">Guardar</button>
+    <!-- ── Baraja ── -->
+    <div class="cx-side">
+      <div class="deck-tabs" id="deckTabs">
+        <button class="deck-tab active" data-deck="BP" onclick="cambiarBaraja('BP')"><b>BP</b><small>Principal</small><span class="cnt" id="cntBP">0/40</span></button>
+        <button class="deck-tab" data-deck="BA" onclick="cambiarBaraja('BA')"><b>BA</b><small>Almas</small><span class="cnt" id="cntBA">0/15</span></button>
+        <button class="deck-tab" data-deck="BS" onclick="cambiarBaraja('BS')"><b>BS</b><small>Amalgamas</small><span class="cnt" id="cntBS">0/15</span></button>
       </div>
+
+      <div class="panel" id="resumen"></div>
+
+      <div class="panel" id="dlPanel">
+        <div class="ptitle"><span>Tu baraja</span><span id="dlCount" style="color:var(--green)">0 cartas</span></div>
+        <div id="deckList"></div>
+      </div>
+
+      <div class="acts">
+        <button class="act" onclick="abrirMisBarajas()"><span>📂</span>Mis barajas</button>
+        <button class="act" onclick="nuevaBaraja()"><span>✨</span>Nueva</button>
+        <button class="act" onclick="abrirMano()"><span>🃏</span>Mano</button>
+        <button class="act" onclick="abrirImportar()"><span>📥</span>Importar</button>
+        <button class="act" onclick="abrirExportar()"><span>📤</span>Exportar</button>
+        <button class="act" onclick="vaciarActual()"><span>🗑️</span>Vaciar</button>
+      </div>
+      <button class="big-btn" id="simBtn" onclick="probarEnSimulacion()">⚔ PROBAR EN SIMULACIÓN</button>
+      <button class="big-btn acad" id="shareAcademiaBtn" onclick="abrirAcademia()">📚 COMPARTIR EN ACADEMIA</button>
     </div>
   </div>
 
-  <!-- MODAL CARGAR -->
-  <div class="modal" id="loadModal">
-    <div class="modal-content">
-      <div class="modal-title">Cargar Baraja</div>
-      <div class="saved-decks-list" id="savedDecksList"></div>
-      <div class="modal-actions">
-        <button class="modal-btn" id="cancelLoadBtn">Cancelar</button>
-      </div>
-    </div>
-  </div>
+  <!-- Ventanas -->
+  <div class="modal" id="mDetalle" onclick="if(event.target===this)cerrar(this)"><div class="mbox wide" id="detBox"></div></div>
 
-  <!-- MODAL EXPORTAR -->
-  <div class="modal" id="exportModal">
-    <div class="modal-content">
-      <div class="modal-title">Exportar Baraja</div>
-      <textarea class="modal-input" id="exportText" rows="10" readonly style="font-family: monospace; font-size: 12px;"></textarea>
-      <div class="modal-actions">
-        <button class="modal-btn" id="closeExportBtn">Cerrar</button>
-        <button class="modal-btn primary" id="copyExportBtn">Copiar</button>
-      </div>
-    </div>
-  </div>
+  <div class="modal" id="mGuardar" onclick="if(event.target===this)cerrar(this)"><div class="mbox">
+    <div class="mtitle">Guardar baraja <button class="mclose" onclick="cerrar('mGuardar')">✕</button></div>
+    <input class="minput" id="gNombre" maxlength="40" placeholder="Nombre de la baraja…">
+    <div class="mnote" id="gNota"></div>
+    <div class="mrow" id="gBtns"></div>
+  </div></div>
 
-  <!-- MODAL COMPARTIR EN ACADEMIA -->
-  <div class="modal" id="shareAcademiaModal">
-    <div class="modal-content" style="max-height:90vh;overflow-y:auto;">
-      <div class="modal-title" style="color:#cc55ff;">📚 Compartir en Academia Heroica</div>
-      <input type="text" class="modal-input" id="share-titulo" placeholder="Título de la baraja..." maxlength="60" style="margin-bottom:10px;">
-      <textarea class="modal-input" id="share-descripcion" placeholder="Descripción y estrategia — ¿cómo se juega, qué la hace única, tips...?" maxlength="500" style="min-height:100px;resize:vertical;margin-bottom:10px;"></textarea>
-      <input type="text" class="modal-input" id="share-arquetipo" placeholder="Arquetipo (separar con coma si es mixto)" maxlength="80" style="margin-bottom:10px;">
-      <select class="modal-input" id="share-dificultad" style="margin-bottom:10px;">
-        <option value="principiante">🟢 Principiante</option>
-        <option value="intermedio" selected>🔵 Intermedio</option>
-        <option value="avanzado">🔴 Avanzado</option>
-        <option value="experto">🟣 Experto</option>
-      </select>
-      <div class="modal-actions">
-        <button class="modal-btn" id="cancelShareAcademiaBtn">Cancelar</button>
-        <button class="modal-btn primary" id="confirmShareAcademiaBtn" style="background:linear-gradient(135deg,#cc55ff,#8033cc);">Publicar</button>
-      </div>
-    </div>
-  </div>
+  <div class="modal" id="mBarajas" onclick="if(event.target===this)cerrar(this)"><div class="mbox wide">
+    <div class="mtitle">Mis barajas <button class="mclose" onclick="cerrar('mBarajas')">✕</button></div>
+    <div class="mnote" id="mbNota"></div>
+    <div id="mbLista"></div>
+  </div></div>
 
-  <!-- MODAL DE ALERTA/CONFIRMACIÓN PERSONALIZADO -->
-  <div class="alert-overlay" id="alertOverlay">
-    <div class="alert-box">
-      <div class="alert-header">
-        <div class="alert-icon" id="alertIcon">⚠️</div>
-        <div class="alert-title">Nexo de Héroes</div>
-      </div>
-      <div class="alert-message" id="alertMessage"></div>
-      <button class="alert-btn" id="alertBtn">Entendido</button>
-      <div class="confirm-actions" id="confirmActions" style="display: none;">
-        <button class="confirm-btn" id="confirmCancelBtn">Cancelar</button>
-        <button class="confirm-btn danger" id="confirmOkBtn">Confirmar</button>
-      </div>
-    </div>
-  </div>
+  <div class="modal" id="mExport" onclick="if(event.target===this)cerrar(this)"><div class="mbox">
+    <div class="mtitle">Exportar baraja <button class="mclose" onclick="cerrar('mExport')">✕</button></div>
+    <textarea class="minput" id="exText" rows="12" readonly style="font-family:monospace;font-size:12px;resize:vertical"></textarea>
+    <div class="mrow"><button class="mbtn" onclick="cerrar('mExport')">Cerrar</button><button class="mbtn pri" onclick="copiarExport()">📋 Copiar</button></div>
+  </div></div>
+
+  <div class="modal" id="mImport" onclick="if(event.target===this)cerrar(this)"><div class="mbox">
+    <div class="mtitle">Importar lista <button class="mclose" onclick="cerrar('mImport')">✕</button></div>
+    <div class="mnote">Pega una lista con el formato <b>3x Nombre de la carta</b> (una por línea). Funciona con lo que copia el botón Exportar. Las Almas van a la BA y las Amalgamas a la BS automáticamente.</div>
+    <textarea class="minput" id="imText" rows="10" style="font-size:14px;resize:vertical" placeholder="3x Koatl, el Defensor&#10;2x Choque Heróico Definitivo&#10;…"></textarea>
+    <div class="mnote" id="imRes"></div>
+    <div class="mrow"><button class="mbtn" onclick="cerrar('mImport')">Cancelar</button><button class="mbtn pri" onclick="importarTexto()">📥 Importar</button></div>
+  </div></div>
+
+  <div class="modal" id="mMano" onclick="if(event.target===this)cerrar(this)"><div class="mbox wide">
+    <div class="mtitle">Mano de prueba <button class="mclose" onclick="cerrar('mMano')">✕</button></div>
+    <div class="mnote" id="manoNota"></div>
+    <div class="hand" id="manoCartas"></div>
+    <div class="mrow"><button class="mbtn" onclick="robarUna()">+1 Robar</button><button class="mbtn pri" onclick="nuevaMano()">🔄 Nueva mano</button></div>
+  </div></div>
+
+  <div class="modal" id="mAlerta"><div class="mbox" style="max-width:380px">
+    <div class="al-ico" id="alIco"></div><div class="al-msg" id="alMsg"></div><div class="mrow" id="alBtns"></div>
+  </div></div>
+
+  <div class="modal" id="shareAcademiaModal" onclick="if(event.target===this)cerrar(this)"><div class="mbox">
+    <div class="mtitle" style="color:#cc55ff">📚 Compartir en Academia <button class="mclose" onclick="cerrar('shareAcademiaModal')">✕</button></div>
+    <input type="text" class="minput" id="share-titulo" placeholder="Título de la baraja…" maxlength="60">
+    <textarea class="minput" id="share-descripcion" placeholder="Descripción y estrategia — ¿cómo se juega, qué la hace única, tips…?" maxlength="500" style="min-height:100px;resize:vertical"></textarea>
+    <input type="text" class="minput" id="share-arquetipo" placeholder="Arquetipo (separar con coma si es mixto)" maxlength="80">
+    <select class="minput" id="share-dificultad">
+      <option value="principiante">🌱 Principiante</option>
+      <option value="intermedio" selected>⚔️ Intermedio</option>
+      <option value="avanzado">🔥 Avanzado</option>
+    </select>
+    <div class="mrow"><button class="mbtn" onclick="cerrar('shareAcademiaModal')">Cancelar</button><button class="mbtn pri" id="confirmShareAcademiaBtn" onclick="publicarAcademia()" style="background:linear-gradient(135deg,#cc55ff,#8033cc)">Publicar</button></div>
+  </div></div>
+
+  <div id="toast"></div>
 
   <script src="settings.js"></script>
-  <script>window.GP_CFG = window.GP_CFG || { clicables: '.card-item:not(.disabled),.saved-deck-item', principalTxt: 'Guardar', principal: () => document.getElementById('saveBtn') };</script>
+  <script src="nube.js"></script>
   <script>
-    // ── Flag de tracking para badges (v3) ──
-    try {
-      const s = JSON.parse(localStorage.getItem('chh_secciones_visitadas') || '[]');
-      if (!s.includes('constructor')) { s.push('constructor'); localStorage.setItem('chh_secciones_visitadas', JSON.stringify(s)); }
-    } catch(e) {}
+  // ════════════════════════════════════════════════════════════════
+  //  CONSTRUCTOR DE BARAJAS v2
+  //  · Catálogo con texto/estadísticas del Simulador, filtros y orden
+  //  · Lista agrupada por tipo, curva de coste y verificación de reglas
+  //  · Mis barajas: editar, duplicar, renombrar, borrar (+ nube por ID)
+  //  · Importar/Exportar texto, mano de prueba, borrador automático
+  //  Formato guardado (chh_decks) igual que antes: lo siguen leyendo
+  //  Simulación, Arcade, Online, Perfil y Academia.
+  // ════════════════════════════════════════════════════════════════
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const K = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } };
+  const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } };
+  try { const s = lsGet('chh_secciones_visitadas', []); if (!s.includes('constructor')) { s.push('constructor'); lsSet('chh_secciones_visitadas', s); } } catch (e) {}
 
-    // ═══════════════════════════════════════════════════════
-    // SISTEMA DE ALERTAS Y CONFIRMACIONES PERSONALIZADO
-    // ═══════════════════════════════════════════════════════
-    
-    function customAlert(message, icon = '⚠️') {
-      const overlay = document.getElementById('alertOverlay');
-      const messageEl = document.getElementById('alertMessage');
-      const iconEl = document.getElementById('alertIcon');
-      const btn = document.getElementById('alertBtn');
-      const confirmActions = document.getElementById('confirmActions');
-      
-      messageEl.textContent = message;
-      iconEl.textContent = icon;
-      btn.style.display = 'block';
-      confirmActions.style.display = 'none';
-      overlay.classList.add('active');
-      
-      // Cerrar al hacer click en el botón
-      const closeAlert = () => {
-        overlay.classList.remove('active');
-        btn.removeEventListener('click', closeAlert);
-      };
-      
-      btn.addEventListener('click', closeAlert);
+  const LIMITES = {
+    BP: { max: 40, exacto: true, tipos: ['Personaje', 'Apoyo', 'Arena', 'Sector'], nombre: 'Baraja Principal' },
+    BA: { max: 15, exacto: true, tipos: ['Alma'], nombre: 'Baraja de Almas' },
+    BS: { max: 15, exacto: false, tipos: ['Amalgama'], nombre: 'Baraja de Amalgamas' }
+  };
+  const TIPO_INFO = {
+    Personaje: { c: 'var(--c-pj)', ico: '⚔️' }, Apoyo: { c: 'var(--c-apoyo)', ico: '🔴' }, Arena: { c: 'var(--c-arena)', ico: '🟢' },
+    Sector: { c: 'var(--c-sector)', ico: '🟣' }, Alma: { c: 'var(--c-alma)', ico: '💙' }, Amalgama: { c: 'var(--c-amalgama)', ico: '🧬' }
+  };
+  const MANO_INICIAL = 4, PAGINA = 90;
+  const KEY_BORRADOR = 'chh_constructor_borrador';
+
+  // ── Estado ──
+  let cartas = [], porId = {}, SIM = { gal: {}, img: {}, nom: {} }, LIM = {};
+  let actual = 'BP', busq = '', fTipo = 'todas', fExp = 'todas', fOrden = 'nombre', soloMias = false, limite = PAGINA;
+  let deck = { BP: [], BA: [], BS: [] };          // listas de ids (con repetición)
+  let editando = null;                             // { uid, name } de la baraja guardada que se edita
+  let sucio = false;
+  let propias = {};                                // id -> copias que tiene el jugador (físicas + digitales)
+
+  // ── Jugador y Academia ──
+  const ACADEMIA_URL = 'https://script.google.com/macros/s/AKfycbxC8MztvNoOUGya3uVNIlOCFrGEWZeAfyu0Qho7KpBchuJKzpFkPyUPMqY3vimwA3Wi/exec';
+  let jugadorActual = null, esAdminAcademia = false;
+  try { const s = lsGet('nhSesion', null); if (s && s.tipo !== 'tienda' && s.id) jugadorActual = s; } catch (e) {}
+  if (jugadorActual) {
+    fetch(`${ACADEMIA_URL}?action=es_admin&player_id=${encodeURIComponent(jugadorActual.id)}`).then(r => r.json())
+      .then(d => { esAdminAcademia = d.es_admin === true; if (esAdminAcademia) $('shareAcademiaBtn').style.display = 'block'; }).catch(() => {});
+  }
+
+  // ════════════════ CARGA ════════════════
+  function tipoJuego(c) {
+    const t = String(c.tipo || '').toUpperCase();
+    if (t.includes('AMALGAMA')) return 'Amalgama';
+    if (t.includes('PERSONAJE') || t.includes('HÉROE') || t.includes('HEROE')) return 'Personaje';
+    if (t.includes('ALMA')) return 'Alma';
+    if (t.includes('APOYO')) return 'Apoyo';
+    if (t.includes('ARENA')) return 'Arena';
+    if (t.includes('SECTOR')) return 'Sector';
+    const s = simDe(c);
+    if (s) return { pj: 'Personaje', apoyo: 'Apoyo', arena: 'Arena', sector: 'Sector', alma: 'Alma', amalgama: 'Amalgama' }[s.tipo] || 'Personaje';
+    return 'Personaje';
+  }
+  function simDe(c) {
+    if (c._sim !== undefined) return c._sim;
+    let s = SIM.gal[c.id] || SIM.img[String(c.ampliada || '').replace(/^\.\//, '')] || SIM.img[String(c.miniatura || '').replace(/^\.\//, '')] || SIM.nom[K(c.nombre)] || null;
+    c._sim = s; return s;
+  }
+  const cargarJSON = u => fetch(u).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
+  async function cargar() {
+    const [cat, sim, lim] = await Promise.allSettled([cargarJSON('cartas.json'), cargarJSON('data/cartas_simulacion.json'), cargarJSON('cartas-limitadas.json')]);
+    if (sim.status === 'fulfilled') (sim.value.cartas || []).forEach(c => {
+      if (!c || typeof c !== 'object') return;
+      if (c.galeriaId) SIM.gal[c.galeriaId] = c;
+      if (c.img) SIM.img[c.img.replace(/^\.\//, '')] = c;
+      if (c.imgMin) SIM.img[c.imgMin.replace(/^\.\//, '')] = c;
+      [c.nombre, ...[].concat(c.alias || [])].forEach(n => { const k = K(n); if (k && !SIM.nom[k]) SIM.nom[k] = c; });
+    });
+    if (lim.status === 'fulfilled') (lim.value || []).forEach(x => { if (x && x.nombre) LIM[K(x.nombre)] = x.estado; });
+    if (cat.status !== 'fulfilled') { $('gridCount').textContent = 'No se pudo cargar el catálogo'; $('cardsGrid').innerHTML = '<div class="empty" style="grid-column:1/-1"><b>⚠️</b>Revisa tu conexión y vuelve a abrir el Constructor.</div>'; return; }
+    cartas = (cat.value || []).filter(c => c && c.id != null && c.tipo !== 'BANNER').map((c, i) => {
+      const t = tipoJuego(c), s = simDe(c);
+      const est = LIM[K(c.nombre)] || (s && LIM[K(s.nombre)]) || null;
+      return Object.assign(c, {
+        id: String(c.id), _i: i, tipoJuego: t, _sim: s, _coste: s && s.coste != null ? s.coste : (s && s.gama != null ? s.gama : null),
+        _txt: K(s && s.texto || ''), _n: K(c.nombre),
+        maxCopias: est === 'limitada' ? 1 : est === 'semi-limitada' ? 2 : est === 'condenada' ? 0 : 3, condenada: est === 'condenada', _est: est
+      });
+    });
+    cartas.forEach(c => { porId[c.id] = c; });
+    cargarPropias();
+    const exps = [...new Set(cartas.map(c => c.expansion))];
+    $('fExp').innerHTML = '<option value="todas">📚 Todas</option>' + exps.map(e => `<option value="${esc(e)}">${esc(fmtExp(e))}</option>`).join('');
+    iniciarBaraja();
+    pintarTodo();
+    sincronizar(false);
+  }
+  const fmtExp = e => String(e || '').replace(/_/g, ' ').replace(/\b\w/g, m => m.toUpperCase());
+
+  // Cartas que el jugador tiene (Mi Colección: físicas + digitales guardadas)
+  function cargarPropias() {
+    propias = {};
+    if (!jugadorActual) return;
+    const fis = lsGet('nhColFisica_' + jugadorActual.id, {}) || {};
+    Object.entries(fis).forEach(([k, n]) => { const id = k.split('::')[0]; propias[id] = (propias[id] || 0) + (parseInt(n, 10) || 0); });
+    const dig = lsGet('nhColDigCache_' + jugadorActual.id, []) || [];
+    const porNom = {}; cartas.forEach(c => { (porNom[c._n] = porNom[c._n] || []).push(c.id); });
+    dig.forEach(d => { const ids = porNom[K(d.nombre)]; if (ids) propias[ids[0]] = (propias[ids[0]] || 0) + (d.qty || 1); });
+  }
+
+  // ════════════════ BARAJA EN CURSO ════════════════
+  const listaIds = arr => (arr || []).map(c => String(c && c.id != null ? c.id : c)).filter(id => porId[id] || id);
+  function desdeGuardada(d) { return { BP: listaIds(d.decks && d.decks.BP), BA: listaIds(d.decks && d.decks.BA), BS: listaIds(d.decks && d.decks.BS) }; }
+  function aObjetos(ids) {
+    return ids.map(id => { const c = porId[id]; if (!c) return { id, nombre: id, tipo: '', tipoJuego: 'Personaje' };
+      return { id: c.id, nombre: c.nombre, tipo: c.tipo, expansion: c.expansion, miniatura: c.miniatura, ampliada: c.ampliada, tipoJuego: c.tipoJuego, maxCopias: c.maxCopias }; });
+  }
+  const paraGuardar = () => ({ BP: aObjetos(deck.BP), BA: aObjetos(deck.BA), BS: aObjetos(deck.BS) });
+  function iniciarBaraja() {
+    const qs = new URLSearchParams(location.search);
+    const guardadas = window.CHH_NUBE ? CHH_NUBE.barajasLocales() : lsGet('chh_decks', []);
+    const b = qs.get('baraja');
+    if (b != null && guardadas[+b]) { cargarGuardada(guardadas[+b], true); }
+    else {
+      const bor = lsGet(KEY_BORRADOR, null);
+      if (bor && bor.deck) { deck = { BP: bor.deck.BP || [], BA: bor.deck.BA || [], BS: bor.deck.BS || [] }; editando = bor.editando || null; sucio = !!bor.sucio; }
     }
-    
-    function customConfirm(message, icon = '❓') {
-      return new Promise((resolve) => {
-        const overlay = document.getElementById('alertOverlay');
-        const messageEl = document.getElementById('alertMessage');
-        const iconEl = document.getElementById('alertIcon');
-        const btn = document.getElementById('alertBtn');
-        const confirmActions = document.getElementById('confirmActions');
-        const cancelBtn = document.getElementById('confirmCancelBtn');
-        const okBtn = document.getElementById('confirmOkBtn');
-        
-        messageEl.textContent = message;
-        iconEl.textContent = icon;
-        btn.style.display = 'none';
-        confirmActions.style.display = 'flex';
-        overlay.classList.add('active');
-        
-        const handleCancel = () => {
-          overlay.classList.remove('active');
-          cancelBtn.removeEventListener('click', handleCancel);
-          okBtn.removeEventListener('click', handleOk);
-          resolve(false);
-        };
-        
-        const handleOk = () => {
-          overlay.classList.remove('active');
-          cancelBtn.removeEventListener('click', handleCancel);
-          okBtn.removeEventListener('click', handleOk);
-          resolve(true);
-        };
-        
-        cancelBtn.addEventListener('click', handleCancel);
-        okBtn.addEventListener('click', handleOk);
-      });
+    const pre = qs.get('carta');
+    if (pre && porId[pre]) { const c = porId[pre]; cambiarBaraja(LIMITES.BA.tipos.includes(c.tipoJuego) ? 'BA' : LIMITES.BS.tipos.includes(c.tipoJuego) ? 'BS' : 'BP', true); agregar(pre); }
+    if (b != null || pre) history.replaceState(null, '', location.pathname);
+  }
+  function cargarGuardada(d, silencioso) {
+    deck = desdeGuardada(d);
+    editando = { uid: d.uid, name: d.name || 'Baraja' };
+    sucio = false; guardarBorrador();
+    if (!silencioso) { pintarTodo(); toast('📂 ' + (d.name || 'Baraja') + ' cargada'); }
+  }
+  function guardarBorrador() { lsSet(KEY_BORRADOR, { deck, editando, sucio, t: Date.now() }); }
+  function marcarSucio() { sucio = true; guardarBorrador(); pintarCabecera(); }
+
+  const cuenta = (lista, c) => lista.reduce((n, id) => n + ((porId[id] || {})._n === c._n ? 1 : 0), 0);   // por NOMBRE (versiones distintas cuentan juntas)
+  function agregar(id, desde) {
+    const c = porId[id]; if (!c) return false;
+    const destino = LIMITES.BA.tipos.includes(c.tipoJuego) ? 'BA' : LIMITES.BS.tipos.includes(c.tipoJuego) ? 'BS' : 'BP';
+    const L = LIMITES[destino], lista = deck[destino];
+    if (c.condenada) { alerta('Esta carta está CONDENADA y no puede usarse en torneos oficiales.', '🚫'); return false; }
+    if (lista.length >= L.max) { toast(L.nombre + ' ya tiene ' + L.max + ' cartas', true); return false; }
+    const n = cuenta(lista, c);
+    if (n >= c.maxCopias) { toast(c.maxCopias === 1 ? `"${c.nombre}" está LIMITADA a 1 copia` : c.maxCopias === 2 ? `"${c.nombre}" está SEMI-LIMITADA a 2 copias` : `Máximo ${c.maxCopias} copias de "${c.nombre}"`, true); return false; }
+    lista.push(id);
+    if (destino !== actual) cambiarBaraja(destino, true);
+    marcarSucio(); pintarBaraja(); pintarCartas();
+    if (desde) { const el = document.querySelector(`.ci[data-id="${CSS.escape(id)}"]`); if (el) { el.classList.remove('pulse'); void el.offsetWidth; el.classList.add('pulse'); } }
+    return true;
+  }
+  function quitar(id) {
+    for (const k of ['BP', 'BA', 'BS']) { const i = deck[k].lastIndexOf(id); if (i >= 0) { deck[k].splice(i, 1); marcarSucio(); pintarBaraja(); pintarCartas(); return true; } }
+    return false;
+  }
+
+  // ════════════════ PINTAR ════════════════
+  function pintarTodo() { pintarChips(); pintarCartas(); pintarBaraja(); pintarCabecera(); }
+  function pintarCabecera() {
+    $('deckNameTxt').textContent = editando ? editando.name : 'Nueva baraja';
+    $('saveBtn').classList.toggle('sucio', sucio);
+  }
+  function pintarChips() {
+    const tipos = ['todas', ...LIMITES[actual].tipos];
+    if (!tipos.includes(fTipo)) fTipo = 'todas';
+    $('typeChips').innerHTML = tipos.map(t => `<button class="chip ${t === fTipo ? 'active' : ''}" style="--tc:${t === 'todas' ? 'var(--green)' : TIPO_INFO[t].c}" onclick="setTipo('${t}')">${t === 'todas' ? '✦ Todas' : '<i></i>' + t}</button>`).join('');
+  }
+  window.setTipo = t => { fTipo = t; limite = PAGINA; pintarChips(); pintarCartas(); };
+  function filtradas() {
+    const q = K(busq), tipos = LIMITES[actual].tipos;
+    const en = {}; deck[actual].forEach(id => { en[id] = (en[id] || 0) + 1; });
+    let L = cartas.filter(c => tipos.includes(c.tipoJuego) && (fTipo === 'todas' || c.tipoJuego === fTipo) && (fExp === 'todas' || c.expansion === fExp)
+      && (!q || c._n.includes(q) || c._txt.includes(q)) && (!soloMias || propias[c.id] > 0));
+    const nom = (a, b) => a.nombre.localeCompare(b.nombre);
+    if (fOrden === 'nombre') L.sort(nom);
+    else if (fOrden === 'coste') L.sort((a, b) => ((a._coste ?? 99) - (b._coste ?? 99)) || nom(a, b));
+    else if (fOrden === 'exp') L.sort((a, b) => String(a.expansion).localeCompare(String(b.expansion)) || a._i - b._i);
+    else if (fOrden === 'usadas') L.sort((a, b) => ((en[b.id] || 0) - (en[a.id] || 0)) || nom(a, b));
+    return L;
+  }
+  function tarjeta(c, opts) {
+    opts = opts || {};
+    const n = opts.sinCuenta ? 0 : cuenta(deck[actual], c);
+    const full = !opts.sinCuenta && n >= c.maxCopias && !c.condenada;
+    const limTxt = c.condenada ? ['CONDENADA', 'var(--red)'] : c.maxCopias === 1 ? ['LIMITADA', 'var(--gold)'] : c.maxCopias === 2 ? ['SEMI-LIMITADA', 'var(--purple)'] : null;
+    const img = c.miniatura ? `<img src="${esc(c.miniatura)}" alt="${esc(c.nombre)}" loading="lazy" onerror="this.remove()">` : '';
+    return `<div class="ci ${full ? 'full' : ''} ${c.condenada ? 'cond' : ''}" data-id="${esc(c.id)}" role="button" tabindex="0" title="${esc(c.nombre)}"
+        onclick="${opts.click || `tocarCarta('${esc(c.id)}')`}">
+      <div class="ph">${esc(c.nombre)}</div>${img}
+      ${opts.sinCuenta ? '' : `<span class="n ${n ? '' : 'z'} ${full ? 'max' : ''}">${n}/${c.maxCopias}</span>`}
+      ${!opts.sinCuenta && propias[c.id] ? `<span class="own" title="En tu colección">📦${propias[c.id]}</span>` : ''}
+      ${opts.sinInfo ? '' : `<button class="info" onclick="event.stopPropagation();detalle('${esc(c.id)}')" aria-label="Detalle">i</button>`}
+      ${limTxt ? `<div class="lim" style="background:${limTxt[1]}">${limTxt[0]}</div>` : ''}
+      ${c._coste != null && !opts.sinCosto ? `<span class="cost">${c._coste}</span>` : ''}
+    </div>`;
+  }
+  function pintarCartas() {
+    if (!cartas.length) return;
+    const L = filtradas();
+    $('gridCount').textContent = L.length + ' carta' + (L.length === 1 ? '' : 's') + (soloMias ? ' de tu colección' : '');
+    const amplia = matchMedia('(min-width:1000px) and (min-height:560px)').matches && !document.documentElement.classList.contains('hz-off');
+    const vis = amplia ? L : L.slice(0, limite);
+    $('cardsGrid').innerHTML = vis.length ? vis.map(c => tarjeta(c)).join('')
+      : `<div class="empty" style="grid-column:1/-1"><b>🔍</b>${soloMias ? 'No tienes cartas registradas con estos filtros.<br><a href="coleccion.html" style="color:var(--gold)">Registra tus cartas en Mi Colección</a>' : 'No se encontraron cartas'}</div>`;
+    $('masBtn').style.display = !amplia && L.length > vis.length ? 'block' : 'none';
+    $('masBtn').textContent = `Ver más cartas (${L.length - vis.length})`;
+  }
+  window.verMas = () => { limite += PAGINA; pintarCartas(); };
+  window.tocarCarta = id => agregar(id, true);
+
+  function pintarBaraja() {
+    ['BP', 'BA', 'BS'].forEach(k => {
+      const L = LIMITES[k], n = deck[k].length, el = $('cnt' + k);
+      el.textContent = n + '/' + L.max;
+      el.className = 'cnt ' + ((L.exacto ? n === L.max : n <= L.max) && (n > 0 || !L.exacto) ? 'ok' : n ? 'mal' : '');
+    });
+    pintarResumen();
+    const lista = deck[actual];
+    $('dlCount').textContent = lista.length + ' carta' + (lista.length === 1 ? '' : 's');
+    if (!lista.length) {
+      $('deckList').innerHTML = `<div class="empty"><img src="1000378945.jpg" alt=""><br>Toca cartas del catálogo para agregarlas a tu ${LIMITES[actual].nombre}.</div>`;
+      return;
     }
-    
-    // ═══════════════════════════════════════════════════════
-    // CARGA DE CARTAS DESDE JSON
-    // ═══════════════════════════════════════════════════════
-    
-    // ═══════════════════════════════════════════════════════
-    // ACADEMIA HEROICA — Configuración y detección de admin
-    // ═══════════════════════════════════════════════════════
-    const ACADEMIA_URL = 'https://script.google.com/macros/s/AKfycbxC8MztvNoOUGya3uVNIlOCFrGEWZeAfyu0Qho7KpBchuJKzpFkPyUPMqY3vimwA3Wi/exec';
-
-    let jugadorActual = null;
-    let esAdminAcademia = false;
-
-    try {
-      const _s = JSON.parse(localStorage.getItem('nhSesion') || 'null');
-      if (_s && _s.tipo !== 'tienda') jugadorActual = _s;
-    } catch(e) {}
-
-    if (jugadorActual) {
-      fetch(`${ACADEMIA_URL}?action=es_admin&player_id=${encodeURIComponent(jugadorActual.id)}`)
-        .then(r => r.json())
-        .then(d => {
-          esAdminAcademia = d.es_admin === true;
-          if (esAdminAcademia) {
-            const btn = document.getElementById('shareAcademiaBtn');
-            if (btn) btn.style.display = 'block';
-          }
-        })
-        .catch(() => {});
-    }
-
-    let allCards = [];
-    let cartasLimitadas = {};
-    // Normaliza nombres para comparar sin importar mayúsculas, acentos ni signos
-    const normNombre = t => String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]/g,'');
-    
-    // Cargar cartas limitadas primero
-    fetch('cartas-limitadas.json')
-      .then(res => res.json())
-      .then(data => {
-        // Convertir array a objeto para búsqueda rápida
-        data.forEach(carta => {
-          cartasLimitadas[normNombre(carta.nombre)] = carta.estado;
-        });
-      })
-      .catch(err => console.error('Error cargando cartas limitadas:', err));
-    
-    // Cargar cartas.json
-    fetch('cartas.json')
-      .then(res => res.json())
-      .then(data => {
-        allCards = data;
-        init();
-      })
-      .catch(err => {
-        console.error('Error cargando cartas:', err);
-        allCards = [];
-        init();
-      });
-
-    // ═══════════════════════════════════════════════════════
-    // ESTADO GLOBAL
-    // ═══════════════════════════════════════════════════════
-
-    let currentDeck = 'BP';
-    let searchTerm = '';
-    let typeFilter = 'todas';
-
-    // Estructura de baraja
-    let deckState = {
-      BP: [], // Baraja Principal (40 cartas: Personajes, Apoyos, Arenas, Sectores)
-      BA: [], // Baraja de Almas (solo Almas)
-      BS: []  // Baraja de Soporte (solo Amalgamas)
-    };
-
-    const DECK_LIMITS = {
-      BP: { min: 40, max: 40, types: ['Personaje', 'Apoyo', 'Arena', 'Sector'] },
-      BA: { min: 15, max: 15, types: ['Alma'] },
-      BS: { min: 0, max: 15, types: ['Amalgama'] }
-    };
-
-    const MAX_COPIES = 3; // Máximo de copias por carta
-
-    // ═══════════════════════════════════════════════════════
-    // ELEMENTOS DOM
-    // ═══════════════════════════════════════════════════════
-
-    const deckTabs = document.querySelectorAll('.deck-tab');
-    const searchInput = document.getElementById('searchInput');
-    const typeFilters = document.getElementById('typeFilters');
-    const cardsGrid = document.getElementById('cardsGrid');
-    const deckListContainer = document.getElementById('deckListContainer');
-    const counterLabel = document.getElementById('counterLabel');
-    const counterValue = document.getElementById('counterValue');
-    const counterBar = document.getElementById('counterBar');
-    const deckListCount = document.getElementById('deckListCount');
-    const statsGrid = document.getElementById('statsGrid');
-
-    const saveBtn = document.getElementById('saveBtn');
-    const clearBtn = document.getElementById('clearBtn');
-    const loadBtn = document.getElementById('loadBtn');
-    const exportBtn = document.getElementById('exportBtn');
-
-    const saveModal = document.getElementById('saveModal');
-    const loadModal = document.getElementById('loadModal');
-    const exportModal = document.getElementById('exportModal');
-
-    // ═══════════════════════════════════════════════════════
-    // INICIALIZACIÓN
-    // ═══════════════════════════════════════════════════════
-
-    init();
-
-    function init() {
-      // Normalizar tipos de cartas del JSON
-      allCards = allCards.map(card => {
-        let tipoNormalizado = card.tipo.toUpperCase();
-        
-        // Mapear tipos del JSON a tipos del juego
-        if (tipoNormalizado.includes('PERSONAJE') || tipoNormalizado.includes('HÉROE')) {
-          card.tipoJuego = 'Personaje';
-        } else if (tipoNormalizado.includes('AMALGAMA')) {
-          card.tipoJuego = 'Amalgama';
-        } else if (tipoNormalizado.includes('ALMA')) {
-          card.tipoJuego = 'Alma';
-        } else if (tipoNormalizado.includes('APOYO')) {
-          card.tipoJuego = 'Apoyo';
-        } else if (tipoNormalizado.includes('ARENA')) {
-          card.tipoJuego = 'Arena';
-        } else if (tipoNormalizado.includes('SECTOR')) {
-          card.tipoJuego = 'Sector';
-        } else {
-          // Tipos desconocidos se tratan como Personaje por defecto
-          card.tipoJuego = 'Personaje';
-        }
-        
-        // Aplicar restricciones desde cartas-limitadas.json
-        const estado = cartasLimitadas[normNombre(card.nombre)];
-        if (estado === 'limitada') {
-          card.maxCopias = 1;
-        } else if (estado === 'semi-limitada') {
-          card.maxCopias = 2;
-        } else if (estado === 'condenada') {
-          card.maxCopias = 0;
-          card.condenada = true;
-        } else {
-          card.maxCopias = 3; // Default
-        }
-        
-        return card;
-      });
-      
-      renderTypeFilters();
-      renderCards();
-      renderDeck();
-      updateCounter();
-      
-      // Verificar si viene carta preseleccionada desde galería
-      const urlParams = new URLSearchParams(window.location.search);
-      const preselectedId = urlParams.get('carta');
-      if (preselectedId) {
-        addCard(preselectedId);
-      }
-      
-      // Event listeners
-      deckTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-          deckTabs.forEach(t => t.classList.remove('active'));
-          tab.classList.add('active');
-          currentDeck = tab.dataset.deck;
-          typeFilter = 'todas';
-          renderTypeFilters();
-          renderCards();
-          renderDeck();
-          updateCounter();
-        });
-      });
-
-      searchInput.addEventListener('input', (e) => {
-        searchTerm = e.target.value.toLowerCase();
-        renderCards();
-      });
-
-      saveBtn.addEventListener('click', openSaveModal);
-      clearBtn.addEventListener('click', clearDeck);
-      loadBtn.addEventListener('click', openLoadModal);
-      exportBtn.addEventListener('click', openExportModal);
-      document.getElementById('simBtn').addEventListener('click', probarEnSimulacion);
-    }
-
-    // ═══════════════════════════════════════════════════════
-    // RENDERIZADO
-    // ═══════════════════════════════════════════════════════
-
-    function renderTypeFilters() {
-      const allowedTypes = DECK_LIMITS[currentDeck].types;
-      const types = ['todas', ...allowedTypes];
-      
-      typeFilters.innerHTML = types.map(type => `
-        <button class="type-btn ${type === typeFilter ? 'active' : ''}" data-type="${type}">
-          ${type.toUpperCase()}
-        </button>
-      `).join('');
-
-      typeFilters.querySelectorAll('.type-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          typeFilter = btn.dataset.type;
-          renderTypeFilters();
-          renderCards();
-        });
-      });
-    }
-
-    function renderCards() {
-      const allowedTypes = DECK_LIMITS[currentDeck].types;
-      
-      const filtered = allCards.filter(card => {
-        // Excluir banners de expansiones agotadas
-        if (card.tipo === 'BANNER') return false;
-        
-        const matchesSearch = card.nombre.toLowerCase().includes(searchTerm);
-        const matchesType = typeFilter === 'todas' || card.tipoJuego === typeFilter;
-        const matchesDeck = allowedTypes.includes(card.tipoJuego);
-        return matchesSearch && matchesType && matchesDeck;
-      });
-
-      if (filtered.length === 0) {
-        cardsGrid.innerHTML = `
-          <div class="empty-state" style="grid-column: 1/-1;">
-            <div class="empty-state-icon">🔍</div>
-            <div>No se encontraron cartas</div>
-          </div>
-        `;
-        return;
-      }
-
-      cardsGrid.innerHTML = filtered.map(card => {
-        // Contar por NOMBRE en toda la baraja actual
-        const count = deckState[currentDeck].filter(c => c.nombre === card.nombre).length;
-        const maxReached = count >= card.maxCopias;
-        const isCondenada = card.condenada;
-        
-        let badgeColor = '#00cfff';
-        let badgeText = `${count}/${card.maxCopias}`;
-        
-        if (isCondenada) {
-          badgeColor = '#ff2244';
-          badgeText = 'CONDENADA';
-        } else if (card.maxCopias === 1) {
-          badgeColor = '#f5a623';
-          badgeText = `${count}/1 LIMITADA`;
-        } else if (card.maxCopias === 2) {
-          badgeColor = '#cc55ff';
-          badgeText = `${count}/2 SEMI`;
-        }
-        
-        return `
-          <div class="card-item ${maxReached || isCondenada ? 'disabled' : ''}" data-id="${card.id}">
-            <img src="${card.miniatura || ''}" alt="${card.nombre}" class="card-item-img" onerror="this.style.display='none'">
-            <div class="card-item-name">${card.nombre}</div>
-            <div class="card-item-type">${card.tipoJuego}</div>
-            <div class="card-item-count" style="color: ${badgeColor}">${badgeText}</div>
-          </div>
-        `;
+    const grupos = {};
+    lista.forEach(id => { const c = porId[id] || { id, nombre: id, tipoJuego: 'Personaje', maxCopias: 3 }; const g = grupos[c.tipoJuego] = grupos[c.tipoJuego] || {}; (g[id] = g[id] || { c, n: 0 }).n++; });
+    $('deckList').innerHTML = LIMITES[actual].tipos.filter(t => grupos[t]).map(t => {
+      const items = Object.values(grupos[t]).sort((a, b) => ((a.c._coste ?? 99) - (b.c._coste ?? 99)) || a.c.nombre.localeCompare(b.c.nombre));
+      const tot = items.reduce((s, x) => s + x.n, 0);
+      return `<div class="dl-grupo" style="--tc:${TIPO_INFO[t].c}">${TIPO_INFO[t].ico} ${t}s · ${tot}</div>` + items.map(({ c, n }) => {
+        const lleno = cuenta(lista, c) >= c.maxCopias || lista.length >= LIMITES[actual].max;
+        return `<div class="dl-item">
+          <button class="dl-thumb" onclick="detalle('${esc(c.id)}')" aria-label="Ver">${c.miniatura ? `<img src="${esc(c.miniatura)}" alt="" loading="lazy">` : ''}</button>
+          <button class="dl-name" onclick="detalle('${esc(c.id)}')">${esc(c.nombre)}<small>${c._coste != null ? 'Coste ' + c._coste + ' · ' : ''}${esc(fmtExp(c.expansion))}</small></button>
+          <div class="dl-q"><button class="menos" onclick="quitar('${esc(c.id)}')" aria-label="Quitar una">−</button><b>${n}</b><button class="mas1" onclick="agregar('${esc(c.id)}')" ${lleno ? 'disabled' : ''} aria-label="Agregar una">+</button></div>
+        </div>`;
       }).join('');
-
-      cardsGrid.querySelectorAll('.card-item:not(.disabled)').forEach(el => {
-        el.addEventListener('click', () => {
-          const cardId = el.dataset.id;
-          addCard(cardId);
-        });
-      });
+    }).join('');
+  }
+  function pintarResumen() {
+    const L = LIMITES[actual], lista = deck[actual], n = lista.length;
+    const ok = L.exacto ? n === L.max : n <= L.max;
+    const cnt = {}; lista.forEach(id => { const t = (porId[id] || {}).tipoJuego || 'Personaje'; cnt[t] = (cnt[t] || 0) + 1; });
+    let h = `<div class="sum-head"><div><div class="sum-lbl">${L.nombre}</div></div><div class="sum-val ${ok && n ? 'ok' : n > L.max ? 'mal' : ''}">${n}/${L.max}</div></div>
+      <div class="bar"><i style="width:${Math.min(100, n / L.max * 100)}%"></i></div>
+      <div class="tipos">${L.tipos.map(t => `<div class="tchip" style="--tc:${TIPO_INFO[t].c}"><i></i>${t}<b>${cnt[t] || 0}</b></div>`).join('')}</div>`;
+    if (actual === 'BP' || actual === 'BS') {
+      // Curva de coste (personajes / gama de amalgamas)
+      const cur = {}; let max = 1, sin = 0;
+      lista.forEach(id => { const c = porId[id]; if (!c || (actual === 'BP' && c.tipoJuego !== 'Personaje')) return; if (c._coste == null) { sin++; return; } const k = Math.min(10, c._coste); cur[k] = (cur[k] || 0) + 1; max = Math.max(max, cur[k]); });
+      const cols = []; for (let i = 0; i <= 10; i++) cols.push(`<div class="col"><b>${cur[i] || ''}</b><i style="height:${(cur[i] || 0) / max * 52}px"></i><small>${i === 10 ? '10+' : i}</small></div>`);
+      const tot = Object.values(cur).reduce((a, b) => a + b, 0), prom = tot ? (Object.entries(cur).reduce((s, [k, v]) => s + k * v, 0) / tot).toFixed(1) : '—';
+      h += `<div class="curva">${cols.join('')}</div><div class="curva-t"><span>${actual === 'BP' ? 'Curva de coste (personajes)' : 'Gama'}</span><span>Promedio ${prom}${sin ? ' · ' + sin + ' sin dato' : ''}</span></div>`;
     }
+    // Verificación de reglas de toda la baraja
+    const chk = [
+      [deck.BP.length === 40, `Baraja Principal: ${deck.BP.length}/40`],
+      [deck.BA.length === 15, `Baraja de Almas: ${deck.BA.length}/15`],
+      [deck.BS.length <= 15, `Amalgamas: ${deck.BS.length} (máx. 15)`]
+    ];
+    h += `<div class="checks">${chk.map(([s, t]) => `<div class="${s ? 'si' : 'no'}">${s ? '✔' : '•'} ${t}</div>`).join('')}</div>`;
+    $('resumen').innerHTML = h;
+  }
 
-    function renderDeck() {
-      const deck = deckState[currentDeck];
-      
-      if (deck.length === 0) {
-        deckListContainer.innerHTML = `
-          <div class="empty-state">
-            <img src="1000378945.jpg" alt="Reverso CHH" style="width: 80px; height: auto; border-radius: 8px; margin-bottom: 12px; opacity: 0.6;">
-            <div>Agrega cartas para comenzar a construir tu baraja</div>
-          </div>
-        `;
-        return;
-      }
-
-      // Agrupar por carta
-      const grouped = {};
-      deck.forEach(card => {
-        if (!grouped[card.id]) {
-          grouped[card.id] = { card, count: 0 };
-        }
-        grouped[card.id].count++;
-      });
-
-      deckListContainer.innerHTML = Object.values(grouped)
-        .sort((a, b) => a.card.nombre.localeCompare(b.card.nombre))
-        .map(({ card, count }) => `
-          <div class="deck-item">
-            <div class="deck-item-qty">${count}x</div>
-            <div class="deck-item-name">${card.nombre}</div>
-            <div class="deck-item-type">${card.tipoJuego}</div>
-            <button class="deck-item-remove" data-id="${card.id}">−</button>
-          </div>
-        `).join('');
-
-      deckListContainer.querySelectorAll('.deck-item-remove').forEach(btn => {
-        btn.addEventListener('click', () => {
-          removeCard(btn.dataset.id);
-        });
-      });
+  // ════════════════ DETALLE ════════════════
+  window.detalle = id => {
+    const c = porId[id]; if (!c) return;
+    const s = c._sim, enMazo = cuenta(deck[destinoDe(c)], c);
+    const st = [];
+    if (s) {
+      if (s.coste != null) st.push(['Coste', s.coste]); if (s.gama != null) st.push(['Gama', s.gama]);
+      if (s.imp != null) st.push(['Impacto', s.imp]); if (s.cor != null) st.push(['Corazones', s.cor]);
+      if (s.fue != null) st.push(['Fuerza', s.fue]); if (s.res != null) st.push(['Resistencia', s.res]);
+      if (s.val != null) st.push(['Valor', s.val]);
     }
+    const lim = c.condenada ? '<div class="det-lim" style="color:var(--red)">🚫 CONDENADA — no se puede usar</div>' : c.maxCopias === 1 ? '<div class="det-lim" style="color:var(--gold)">⚠️ LIMITADA a 1 copia</div>' : c.maxCopias === 2 ? '<div class="det-lim" style="color:var(--purple)">⚠️ SEMI-LIMITADA a 2 copias</div>' : '';
+    $('detBox').innerHTML = `<div class="mtitle"><span>${TIPO_INFO[c.tipoJuego].ico} ${esc(c.tipoJuego)}</span><button class="mclose" onclick="cerrar('mDetalle')">✕</button></div>
+      <div class="det">
+        <div class="det-img">${c.ampliada || c.miniatura ? `<img src="${esc(c.ampliada || c.miniatura)}" alt="${esc(c.nombre)}">` : ''}</div>
+        <div>
+          <div class="det-n">${esc(c.nombre)}</div>
+          <div class="det-t">${esc(c.tipo)} · ${esc(fmtExp(c.expansion))}</div>
+          ${st.length ? `<div class="stats">${st.map(([k, v]) => `<div class="stat">${k}<b>${v}</b></div>`).join('')}</div>` : ''}
+          ${s && s.habilidades && s.habilidades.length ? `<div class="habs">${s.habilidades.map(h => `<span class="hab">${esc(h)}</span>`).join('')}</div>` : ''}
+          ${s && s.texto ? `<div class="det-txt">${esc(s.texto)}</div>` : '<div class="det-txt" style="color:var(--muted)">El texto de esta carta aún no está en el Simulador. Consulta la imagen.</div>'}
+          ${lim}
+          <div class="det-q"><button class="menos" onclick="quitar('${esc(c.id)}');detalle('${esc(c.id)}')" ${enMazo ? '' : 'disabled'}>−</button>
+            <b>${enMazo}<small>EN BARAJA</small></b>
+            <button class="mas1" onclick="agregar('${esc(c.id)}');detalle('${esc(c.id)}')" ${c.condenada || enMazo >= c.maxCopias ? 'disabled' : ''}>+</button></div>
+          ${propias[c.id] ? `<div class="det-own">📦 Tienes ${propias[c.id]} en tu colección</div>` : ''}
+          <div class="det-links"><a class="mbtn" style="text-align:center;text-decoration:none;color:inherit" href="galeria.html?carta=${encodeURIComponent(c.id)}">🃏 Ver en galería</a></div>
+        </div>
+      </div>`;
+    abrir('mDetalle');
+  };
+  const destinoDe = c => LIMITES.BA.tipos.includes(c.tipoJuego) ? 'BA' : LIMITES.BS.tipos.includes(c.tipoJuego) ? 'BS' : 'BP';
 
-    function updateCounter() {
-      const deck = deckState[currentDeck];
-      const limit = DECK_LIMITS[currentDeck];
-      const count = deck.length;
-      
-      // Etiqueta
-      const labels = { BP: 'Baraja Principal', BA: 'Baraja de Almas', BS: 'Baraja de Amalgamas' };
-      counterLabel.textContent = labels[currentDeck];
-      
-      // Contador
-      if (currentDeck === 'BP') {
-        counterValue.textContent = `${count}/40`;
-        counterValue.className = 'counter-value';
-        if (count === 40) counterValue.classList.add('complete');
-        if (count > 40) counterValue.classList.add('invalid');
-        
-        // Barra
-        const percent = Math.min((count / 40) * 100, 100);
-        counterBar.style.width = `${percent}%`;
-        counterBar.className = 'counter-bar-fill';
-        if (count === 40) counterBar.classList.add('complete');
-        if (count > 40) counterBar.classList.add('invalid');
-        
-      } else if (currentDeck === 'BA') {
-        counterValue.textContent = `${count}/15`;
-        counterValue.className = 'counter-value';
-        if (count === 15) counterValue.classList.add('complete');
-        if (count > 15) counterValue.classList.add('invalid');
-        
-        // Barra
-        const percent = Math.min((count / 15) * 100, 100);
-        counterBar.style.width = `${percent}%`;
-        counterBar.className = 'counter-bar-fill';
-        if (count === 15) counterBar.classList.add('complete');
-        if (count > 15) counterBar.classList.add('invalid');
-        
-      } else if (currentDeck === 'BS') {
-        counterValue.textContent = `${count}/15`;
-        counterValue.className = 'counter-value';
-        if (count <= 15) counterValue.classList.add('complete');
-        if (count > 15) counterValue.classList.add('invalid');
-        
-        // Barra
-        const percent = count > 0 ? Math.min((count / 15) * 100, 100) : 0;
-        counterBar.style.width = `${percent}%`;
-        counterBar.className = 'counter-bar-fill';
-        if (count > 0 && count <= 15) counterBar.classList.add('complete');
-        if (count > 15) counterBar.classList.add('invalid');
-      }
-      
-      // Count en lista
-      deckListCount.textContent = `${count} carta${count !== 1 ? 's' : ''}`;
-      
-      // Estadísticas por tipo
-      renderStats();
-    }
+  // ════════════════ CONTROLES ════════════════
+  window.cambiarBaraja = (k, sinPintarTodo) => {
+    actual = k; limite = PAGINA;
+    document.querySelectorAll('.deck-tab').forEach(t => t.classList.toggle('active', t.dataset.deck === k));
+    if (!sinPintarTodo) pintarTodo(); else { pintarChips(); }
+  };
+  window.limpiarBusqueda = () => { $('searchInput').value = ''; busq = ''; $('searchBox').classList.remove('con'); pintarCartas(); $('searchInput').focus(); };
+  window.toggleMias = () => {
+    if (!jugadorActual) { alerta('Inicia sesión en Mi Perfil para usar tu colección como filtro.', '🔒'); return; }
+    soloMias = !soloMias; $('fMias').classList.toggle('on', soloMias); limite = PAGINA; pintarCartas();
+  };
+  let _tb = 0;
+  $('searchInput').addEventListener('input', e => { busq = e.target.value; $('searchBox').classList.toggle('con', !!busq); clearTimeout(_tb); _tb = setTimeout(() => { limite = PAGINA; pintarCartas(); }, 120); });
+  $('fExp').addEventListener('change', e => { fExp = e.target.value; limite = PAGINA; pintarCartas(); });
+  $('fOrden').addEventListener('change', e => { fOrden = e.target.value; pintarCartas(); });
+  window.vaciarActual = async () => {
+    if (!deck[actual].length) return;
+    if (!await confirmar(`¿Vaciar la ${LIMITES[actual].nombre}?`, '🗑️')) return;
+    deck[actual] = []; marcarSucio(); pintarBaraja(); pintarCartas();
+  };
+  window.nuevaBaraja = async () => {
+    if (sucio && (deck.BP.length || deck.BA.length || deck.BS.length) && !await confirmar('Tienes cambios sin guardar. ¿Empezar una baraja nueva?', '✨')) return;
+    deck = { BP: [], BA: [], BS: [] }; editando = null; sucio = false; guardarBorrador(); cambiarBaraja('BP');
+  };
+  window.salir = () => { location.href = document.referrer && /perfil\.html/.test(document.referrer) ? 'perfil.html' : 'index.html'; };
 
-    function renderStats() {
-      const deck = deckState[currentDeck];
-      const stats = {};
-      
-      deck.forEach(card => {
-        stats[card.tipoJuego] = (stats[card.tipoJuego] || 0) + 1;
-      });
+  // ════════════════ GUARDAR / MIS BARAJAS ════════════════
+  const guardadas = () => (window.CHH_NUBE ? CHH_NUBE.barajasLocales() : lsGet('chh_decks', []));
+  function escribirGuardadas(arr) {
+    if (!lsSet('chh_decks', arr)) { alerta('No hay espacio para guardar en este dispositivo.', '⚠️'); return false; }
+    return true;
+  }
+  const completa = () => deck.BP.length === 40 && deck.BA.length === 15 && deck.BS.length <= 15;
+  window.abrirGuardar = () => {
+    if (!deck.BP.length && !deck.BA.length && !deck.BS.length) { toast('La baraja está vacía', true); return; }
+    $('gNombre').value = editando ? editando.name : '';
+    $('gNota').innerHTML = completa() ? (jugadorActual ? '☁ Se guarda en este dispositivo y en la nube con tu ID.' : 'Se guarda en este dispositivo. Inicia sesión en Mi Perfil para tenerla en todos tus dispositivos.')
+      : `<b>Baraja incompleta</b> (BP ${deck.BP.length}/40 · BA ${deck.BA.length}/15). Se guardará para que la termines después; no se podrá jugar hasta completarla.`;
+    $('gBtns').innerHTML = editando
+      ? `<button class="mbtn" onclick="guardar(true)">Guardar como nueva</button><button class="mbtn pri" onclick="guardar(false)">Guardar cambios</button>`
+      : `<button class="mbtn" onclick="cerrar('mGuardar')">Cancelar</button><button class="mbtn pri" onclick="guardar(true)">Guardar</button>`;
+    abrir('mGuardar'); setTimeout(() => $('gNombre').focus(), 60);
+  };
+  window.guardar = nueva => {
+    const name = $('gNombre').value.trim();
+    if (!name) { $('gNombre').focus(); toast('Escribe un nombre', true); return; }
+    const arr = guardadas(), ahora = Date.now();
+    const datos = { name, date: new Date().toISOString(), decks: paraGuardar(), upd: ahora };
+    let i = !nueva && editando ? arr.findIndex(d => d.uid === editando.uid) : -1;
+    if (i >= 0) { arr[i] = Object.assign({}, arr[i], datos, { date: arr[i].date || datos.date }); }
+    else { datos.uid = window.CHH_NUBE ? CHH_NUBE.nuevoUid() : String(ahora); arr.push(datos); i = arr.length - 1; }
+    if (!escribirGuardadas(arr)) return;
+    editando = { uid: arr[i].uid, name }; sucio = false; guardarBorrador(); pintarCabecera();
+    cerrar('mGuardar'); toast('✅ Baraja guardada');
+    sincronizar(false);
+  };
+  window.renombrarActual = () => { if (!editando) { abrirGuardar(); return; } abrirGuardar(); };
+  window.abrirMisBarajas = () => { pintarMisBarajas(); abrir('mBarajas'); };
+  function pintarMisBarajas() {
+    const arr = guardadas();
+    $('mbNota').innerHTML = jugadorActual ? `☁ Ligadas a tu ID <b style="color:var(--green)">${esc(jugadorActual.id)}</b>: aparecen en cualquier dispositivo donde inicies sesión.`
+      : 'Guardadas solo en este dispositivo. <a href="perfil.html" style="color:var(--gold)">Inicia sesión</a> para tenerlas en la nube.';
+    if (!arr.length) { $('mbLista').innerHTML = '<div class="empty"><b>📂</b>Aún no tienes barajas guardadas.</div>'; return; }
+    $('mbLista').innerHTML = arr.map((d, i) => {
+      const bp = (d.decks?.BP || []).length, ba = (d.decks?.BA || []).length, bs = (d.decks?.BS || []).length;
+      const f = d.upd || Date.parse(d.date || ''); const fecha = f ? new Date(f).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+      return `<div class="sv ${editando && editando.uid === d.uid ? 'cur' : ''}">
+        <div class="sv-top"><div class="sv-n">${esc(d.name || 'Baraja ' + (i + 1))}</div><div class="sv-d">${fecha}</div></div>
+        <div class="sv-c"><span class="${bp === 40 ? 'ok' : 'mal'}">BP ${bp}/40</span><span class="${ba === 15 ? 'ok' : 'mal'}">BA ${ba}/15</span><span class="${bs <= 15 ? 'ok' : 'mal'}">BS ${bs}</span>${editando && editando.uid === d.uid ? '<span class="ok">✏️ EDITANDO</span>' : ''}</div>
+        <div class="sv-a"><button class="pri" onclick="editarGuardada(${i})">Editar</button><button onclick="duplicarGuardada(${i})">Duplicar</button><button onclick="renombrarGuardada(${i})">Renombrar</button><button class="dan" onclick="borrarGuardada(${i})">Borrar</button></div>
+      </div>`;
+    }).join('');
+  }
+  window.editarGuardada = async i => {
+    const d = guardadas()[i]; if (!d) return;
+    if (sucio && (deck.BP.length + deck.BA.length + deck.BS.length) && !await confirmar('Tienes cambios sin guardar en la baraja actual. ¿Abrir otra?', '📂')) return;
+    cargarGuardada(d); cerrar('mBarajas'); cambiarBaraja('BP');
+  };
+  window.duplicarGuardada = i => {
+    const arr = guardadas(), d = arr[i]; if (!d) return;
+    const c = JSON.parse(JSON.stringify(d)); c.uid = window.CHH_NUBE ? CHH_NUBE.nuevoUid() : String(Date.now()); c.name = (d.name || 'Baraja') + ' (copia)'; c.date = new Date().toISOString(); c.upd = Date.now();
+    arr.splice(i + 1, 0, c); if (escribirGuardadas(arr)) { pintarMisBarajas(); toast('📄 Copia creada'); sincronizar(false); }
+  };
+  window.renombrarGuardada = async i => {
+    const arr = guardadas(), d = arr[i]; if (!d) return;
+    const n = await pedirTexto('Nuevo nombre', d.name || ''); if (!n) return;
+    d.name = n.slice(0, 40); d.upd = Date.now();
+    if (escribirGuardadas(arr)) { if (editando && editando.uid === d.uid) { editando.name = d.name; guardarBorrador(); pintarCabecera(); } pintarMisBarajas(); sincronizar(false); }
+  };
+  window.borrarGuardada = async i => {
+    const arr = guardadas(), d = arr[i]; if (!d) return;
+    if (!await confirmar(`¿Borrar "${d.name}"?` + (jugadorActual ? ' También se borra de la nube.' : ''), '🗑️')) return;
+    arr.splice(i, 1);
+    if (window.CHH_NUBE) CHH_NUBE.marcarBorrada(d.uid);
+    if (escribirGuardadas(arr)) { if (editando && editando.uid === d.uid) { editando = null; sucio = true; guardarBorrador(); pintarCabecera(); } pintarMisBarajas(); sincronizar(false); }
+  };
 
-      if (Object.keys(stats).length === 0) {
-        statsGrid.innerHTML = '';
-        return;
-      }
+  // ════════════════ NUBE ════════════════
+  const NUBE_TXT = { off: 'Local', sinid: 'Local', sync: 'Sync…', ok: 'Nube', error: 'Sin red' };
+  if (window.CHH_NUBE) CHH_NUBE.alCambiar(e => { $('nube').dataset.e = e; $('nubeTxt').textContent = NUBE_TXT[e] || e; });
+  window.sincronizar = async manual => {
+    if (!window.CHH_NUBE) return;
+    if (!CHH_NUBE.sesionId()) { if (manual) alerta('Tus barajas se guardan en este dispositivo. Inicia sesión en Mi Perfil con tu ID para guardarlas en la nube y verlas en cualquier dispositivo.', '☁'); return; }
+    const r = await CHH_NUBE.sincronizarBarajas();
+    if (r.ok) {
+      if (editando && !guardadas().some(d => d.uid === editando.uid)) { editando = null; guardarBorrador(); pintarCabecera(); }
+      if (r.bajadas && manual !== 'silencio') toast('☁ ' + r.bajadas + ' baraja(s) llegaron de la nube');
+      else if (manual) toast('☁ Barajas sincronizadas (' + r.total + ')');
+      if ($('mBarajas').classList.contains('active')) pintarMisBarajas();
+    } else if (manual) toast('Sin conexión: se sincroniza cuando vuelva el internet', true);
+  };
 
-      statsGrid.innerHTML = Object.entries(stats)
-        .sort((a, b) => b[1] - a[1])
-        .map(([tipo, count]) => `
-          <div class="stat-item">
-            <div class="stat-label">${tipo}</div>
-            <div class="stat-value">${count}</div>
-          </div>
-        `).join('');
-    }
-
-    // ═══════════════════════════════════════════════════════
-    // LÓGICA DE BARAJA
-    // ═══════════════════════════════════════════════════════
-
-    function addCard(cardId) {
-      const card = allCards.find(c => c.id === cardId);
-      if (!card) return;
-
-      const deck = deckState[currentDeck];
-      const limit = DECK_LIMITS[currentDeck];
-      
-      // Contar copias de esta carta POR NOMBRE (no por ID) en toda la baraja
-      // Esto evita que se agreguen múltiples copias de cartas limitadas de diferentes expansiones
-      const count = deck.filter(c => c.nombre === card.nombre).length;
-      
-      // Bloquear cartas condenadas
-      if (card.condenada) {
-        customAlert('Esta carta está CONDENADA y no puede usarse en torneos oficiales', '🚫');
-        return;
-      }
-      
-      // Validaciones por baraja
-      if (currentDeck === 'BP' && deck.length >= 40) {
-        customAlert('La Baraja Principal ya tiene 40 cartas', '📦');
-        return;
-      }
-      
-      if (currentDeck === 'BA' && deck.length >= 15) {
-        customAlert('La Baraja de Almas ya tiene 15 cartas', '👻');
-        return;
-      }
-      
-      if (currentDeck === 'BS' && deck.length >= 15) {
-        customAlert('La Baraja de Amalgamas ya tiene el máximo de 15 cartas', '🔮');
-        return;
-      }
-      
-      // Validar límite de copias según restricción
-      if (count >= card.maxCopias) {
-        if (card.maxCopias === 1) {
-          customAlert(`"${card.nombre}" está LIMITADA a 1 copia (ya tienes ${count} en tu baraja)`, '⚠️');
-        } else if (card.maxCopias === 2) {
-          customAlert(`"${card.nombre}" está SEMI-LIMITADA a 2 copias (ya tienes ${count} en tu baraja)`, '⚠️');
-        } else {
-          customAlert(`Máximo ${card.maxCopias} copias de "${card.nombre}" (ya tienes ${count})`, '⚠️');
-        }
-        return;
-      }
-
-      // Agregar
-      deck.push(card);
-      renderCards();
-      renderDeck();
-      updateCounter();
-    }
-
-    function removeCard(cardId) {
-      const deck = deckState[currentDeck];
-      const index = deck.findIndex(c => c.id === cardId);
-      
-      if (index !== -1) {
-        deck.splice(index, 1);
-        renderCards();
-        renderDeck();
-        updateCounter();
-      }
-    }
-
-    async function clearDeck() {
-      const confirmed = await customConfirm('¿Vaciar la baraja actual?', '🗑️');
-      if (!confirmed) return;
-      
-      deckState[currentDeck] = [];
-      renderCards();
-      renderDeck();
-      updateCounter();
-    }
-
-    // ═══════════════════════════════════════════════════════
-    // PERSISTENCIA
-    // ═══════════════════════════════════════════════════════
-
-    function openSaveModal() {
-      if (currentDeck === 'BP' && deckState.BP.length !== 40) {
-        customAlert('La Baraja Principal debe tener exactamente 40 cartas', '📦');
-        return;
-      }
-      
-      if (currentDeck === 'BA' && deckState.BA.length !== 15) {
-        customAlert('La Baraja de Almas debe tener exactamente 15 cartas', '👻');
-        return;
-      }
-      
-      if (currentDeck === 'BS' && deckState.BS.length > 15) {
-        customAlert('La Baraja de Amalgamas no puede tener más de 15 cartas', '🔮');
-        return;
-      }
-      
-      saveModal.classList.add('active');
-      document.getElementById('deckNameInput').value = '';
-      document.getElementById('deckNameInput').focus();
-    }
-
-    document.getElementById('cancelSaveBtn').addEventListener('click', () => {
-      saveModal.classList.remove('active');
+  // ════════════════ EXPORTAR / IMPORTAR ════════════════
+  function textoLista(ids) {
+    const g = {}; ids.forEach(id => { g[id] = (g[id] || 0) + 1; });
+    return Object.entries(g).map(([id, n]) => [porId[id] || { nombre: id, tipoJuego: '?' }, n]).sort((a, b) => a[0].nombre.localeCompare(b[0].nombre)).map(([c, n]) => `  ${n}x ${c.nombre} [${c.tipoJuego}]`).join('\n');
+  }
+  window.abrirExportar = () => {
+    let t = '═══════════════════════════════════════\nCHOQUE DE HÉROES - ' + (editando ? editando.name.toUpperCase() : 'BARAJA') + '\n═══════════════════════════════════════\n\n';
+    if (deck.BP.length) t += `━━━ BARAJA PRINCIPAL (${deck.BP.length}/40) ━━━\n${textoLista(deck.BP)}\n\n`;
+    if (deck.BA.length) t += `━━━ BARAJA DE ALMAS (${deck.BA.length}/15) ━━━\n${textoLista(deck.BA)}\n\n`;
+    if (deck.BS.length) t += `━━━ BARAJA DE AMALGAMAS (${deck.BS.length}) ━━━\n${textoLista(deck.BS)}\n\n`;
+    t += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nTOTAL: ${deck.BP.length + deck.BA.length + deck.BS.length} cartas (BP: ${deck.BP.length} | BA: ${deck.BA.length} | BS: ${deck.BS.length})`;
+    $('exText').value = t; abrir('mExport');
+  };
+  window.copiarExport = async () => {
+    const t = $('exText').value;
+    try { await navigator.clipboard.writeText(t); } catch (e) { $('exText').select(); document.execCommand('copy'); }
+    toast('📋 Lista copiada');
+  };
+  window.abrirImportar = () => { $('imRes').textContent = ''; abrir('mImport'); setTimeout(() => $('imText').focus(), 60); };
+  window.importarTexto = () => {
+    const lineas = $('imText').value.split(/\r?\n/);
+    const porNom = {}; cartas.forEach(c => { if (!porNom[c._n]) porNom[c._n] = c; });
+    const nuevo = { BP: [], BA: [], BS: [] }, faltan = [];
+    lineas.forEach(l => {
+      let m = l.match(/^\s*(\d+)\s*[xX×]?\s+(.+?)\s*(\[[^\]]*\])?\s*$/) || l.match(/^\s*(.+?)\s+[xX×]\s*(\d+)\s*$/);
+      if (!m) return;
+      let n, nom; if (/^\d+$/.test(m[1])) { n = +m[1]; nom = m[2]; } else { nom = m[1]; n = +m[2]; }
+      if (!n || n > 40) return;
+      const c = porNom[K(nom)];
+      if (!c) { faltan.push(nom.trim()); return; }
+      const d = destinoDe(c); for (let i = 0; i < n; i++) nuevo[d].push(c.id);
     });
+    const tot = nuevo.BP.length + nuevo.BA.length + nuevo.BS.length;
+    if (!tot) { $('imRes').innerHTML = '<b>No se reconoció ninguna carta.</b> Revisa el formato (ej. "3x Nombre").'; return; }
+    deck = nuevo; editando = null; marcarSucio(); cambiarBaraja('BP'); cerrar('mImport');
+    if (faltan.length) alerta(`Importadas ${tot} cartas. No se encontraron: ${faltan.slice(0, 8).join(', ')}${faltan.length > 8 ? '…' : ''}`, '📥');
+    else toast(`📥 ${tot} cartas importadas`);
+  };
 
-    document.getElementById('confirmSaveBtn').addEventListener('click', () => {
-      const name = document.getElementById('deckNameInput').value.trim();
-      if (!name) {
-        customAlert('Ingresa un nombre para la baraja', '✏️');
-        return;
-      }
+  // ════════════════ MANO DE PRUEBA ════════════════
+  let mazo = [], mano = [];
+  window.abrirMano = () => {
+    if (deck.BP.length < MANO_INICIAL) { toast('Agrega cartas a la Baraja Principal primero', true); return; }
+    nuevaMano(); abrir('mMano');
+  };
+  window.nuevaMano = () => {
+    mazo = deck.BP.slice(); for (let i = mazo.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [mazo[i], mazo[j]] = [mazo[j], mazo[i]]; }
+    mano = mazo.splice(0, MANO_INICIAL); pintarMano();
+  };
+  window.robarUna = () => { if (!mazo.length) { toast('Ya no quedan cartas', true); return; } mano.push(mazo.shift()); pintarMano(); };
+  function pintarMano() {
+    const pj = mano.filter(id => (porId[id] || {}).tipoJuego === 'Personaje').length;
+    $('manoNota').innerHTML = `Mano inicial de ${MANO_INICIAL} cartas de tu BP (${deck.BP.length}). Personajes en mano: <b>${pj}</b> · Quedan ${mazo.length} en la baraja.`;
+    $('manoCartas').innerHTML = mano.map(id => { const c = porId[id]; return c ? tarjeta(c, { sinCuenta: true, sinInfo: true, click: `detalle('${esc(id)}')` }) : ''; }).join('');
+  }
 
-      const saved = JSON.parse(localStorage.getItem('chh_decks') || '[]');
-      const nuevaBaraja = {
-        name,
-        date: new Date().toISOString(),
-        decks: JSON.parse(JSON.stringify(deckState))
-      };
-      saved.push(nuevaBaraja);
-      localStorage.setItem('chh_decks', JSON.stringify(saved));
+  // ════════════════ SIMULACIÓN / ACADEMIA ════════════════
+  window.probarEnSimulacion = () => {
+    if (deck.BP.length !== 40) { alerta('Para jugarla en la Simulación la Baraja Principal debe tener 40 cartas (tienes ' + deck.BP.length + ').', '📦'); return; }
+    if (deck.BA.length !== 15) { alerta('Para jugarla en la Simulación la Baraja de Almas debe tener 15 cartas (tienes ' + deck.BA.length + ').', '💙'); return; }
+    if (!lsSet('chh_sim_probar', { name: editando ? editando.name : 'Baraja del Constructor', date: new Date().toISOString(), decks: paraGuardar() })) { alerta('No se pudo preparar la baraja para la Simulación.', '⚠️'); return; }
+    location.href = 'simulacion.html?baraja=probar';
+  };
+  window.abrirAcademia = () => {
+    if (!jugadorActual) { alerta('Debes iniciar sesión primero.', '🔒'); return; }
+    if (!esAdminAcademia) { alerta('Solo los admins pueden compartir barajas.', '🛡️'); return; }
+    if (deck.BP.length !== 40 || deck.BA.length !== 15) { alerta('La baraja debe estar completa (40 BP y 15 BA) para compartir.', '📦'); return; }
+    if (editando && !$('share-titulo').value) $('share-titulo').value = editando.name;
+    abrir('shareAcademiaModal');
+  };
+  window.publicarAcademia = async () => {
+    const titulo = $('share-titulo').value.trim(), descripcion = $('share-descripcion').value.trim(), arquetipo = $('share-arquetipo').value.trim(), dificultad = $('share-dificultad').value;
+    if (!titulo) { toast('Falta el título de la baraja', true); return; }
+    if (!descripcion) { toast('Falta la descripción / estrategia', true); return; }
+    const compactar = ids => { const m = {}; ids.forEach(id => { m[id] = (m[id] || 0) + 1; }); return Object.entries(m).map(([id, cant]) => ({ id, cant })); };
+    const body = new URLSearchParams({ action: 'publicar', autor_id: jugadorActual.id, titulo, descripcion, arquetipo, dificultad,
+      bp_json: JSON.stringify(compactar(deck.BP)), ba_json: JSON.stringify(compactar(deck.BA)), bs_json: JSON.stringify(compactar(deck.BS)) });
+    const btn = $('confirmShareAcademiaBtn'); btn.disabled = true; const t0 = btn.textContent; btn.textContent = '⏳ Publicando…';
+    try {
+      const res = await fetch(ACADEMIA_URL, { method: 'POST', body }); const data = await res.json();
+      if (data.status !== 'ok') throw new Error(data.message);
+      cerrar('shareAcademiaModal'); alerta('¡Baraja publicada en Academia Heroica!', '📚');
+      ['share-titulo', 'share-descripcion', 'share-arquetipo'].forEach(i => { $(i).value = ''; }); $('share-dificultad').value = 'intermedio';
+    } catch (e) { alerta('Error: ' + e.message, '⚠️'); }
+    finally { btn.disabled = false; btn.textContent = t0; }
+  };
 
-      // Barajas guardadas en chh_decks — perfil lee directo de ahí
-
-      saveModal.classList.remove('active');
-      customAlert('Baraja guardada correctamente', '✅');
+  // ════════════════ VENTANAS / AVISOS ════════════════
+  function abrir(id) { $(id).classList.add('active'); }
+  window.cerrar = el => { (typeof el === 'string' ? $(el) : el).classList.remove('active'); };
+  function toast(msg, warn) { const t = $('toast'); t.textContent = msg; t.classList.toggle('warn', !!warn); t.classList.add('show'); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 2000); }
+  function alerta(msg, ico) {
+    $('alIco').textContent = ico || '⚠️'; $('alMsg').textContent = msg;
+    $('alBtns').innerHTML = '<button class="mbtn pri" onclick="cerrar(\'mAlerta\')">Entendido</button>'; abrir('mAlerta');
+  }
+  function confirmar(msg, ico) {
+    return new Promise(res => {
+      $('alIco').textContent = ico || '❓'; $('alMsg').textContent = msg;
+      $('alBtns').innerHTML = '<button class="mbtn" id="alNo">Cancelar</button><button class="mbtn pri" id="alSi">Aceptar</button>';
+      $('alNo').onclick = () => { cerrar('mAlerta'); res(false); }; $('alSi').onclick = () => { cerrar('mAlerta'); res(true); };
+      abrir('mAlerta');
     });
-
-    function openLoadModal() {
-      const saved = JSON.parse(localStorage.getItem('chh_decks') || '[]');
-      const list = document.getElementById('savedDecksList');
-      
-      if (saved.length === 0) {
-        list.innerHTML = `
-          <div class="empty-state">
-            <div class="empty-state-icon">📁</div>
-            <div>No hay barajas guardadas</div>
-          </div>
-        `;
-      } else {
-        list.innerHTML = saved.map((deck, index) => `
-          <div class="saved-deck-item" data-index="${index}">
-            <div>
-              <div class="saved-deck-name">${deck.name}</div>
-              <div class="saved-deck-info">
-                BP: ${deck.decks.BP.length} • BA: ${deck.decks.BA.length} • BS: ${deck.decks.BS.length}
-              </div>
-            </div>
-            <button class="saved-deck-delete" data-index="${index}">🗑</button>
-          </div>
-        `).join('');
-
-        list.querySelectorAll('.saved-deck-item').forEach(el => {
-          el.addEventListener('click', (e) => {
-            if (e.target.classList.contains('saved-deck-delete')) return;
-            const index = el.dataset.index;
-            loadDeck(index);
-          });
-        });
-
-        list.querySelectorAll('.saved-deck-delete').forEach(btn => {
-          btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            deleteDeck(btn.dataset.index);
-          });
-        });
-      }
-      
-      loadModal.classList.add('active');
-    }
-
-    document.getElementById('cancelLoadBtn').addEventListener('click', () => {
-      loadModal.classList.remove('active');
+  }
+  function pedirTexto(titulo, valor) {
+    return new Promise(res => {
+      $('alIco').textContent = '✏️'; $('alMsg').innerHTML = `${esc(titulo)}<input class="minput" id="alIn" maxlength="40" style="margin-top:12px" value="${esc(valor)}">`;
+      $('alBtns').innerHTML = '<button class="mbtn" id="alNo">Cancelar</button><button class="mbtn pri" id="alSi">Aceptar</button>';
+      $('alNo').onclick = () => { cerrar('mAlerta'); res(null); }; $('alSi').onclick = () => { const v = $('alIn').value.trim(); cerrar('mAlerta'); res(v || null); };
+      abrir('mAlerta'); setTimeout(() => { $('alIn').focus(); $('alIn').select(); }, 50);
     });
-
-    function loadDeck(index) {
-      const saved = JSON.parse(localStorage.getItem('chh_decks') || '[]');
-      const deck = saved[index];
-      
-      if (!deck) return;
-      
-      deckState = JSON.parse(JSON.stringify(deck.decks));
-      renderCards();
-      renderDeck();
-      updateCounter();
-      loadModal.classList.remove('active');
-    }
-
-    async function deleteDeck(index) {
-      const confirmed = await customConfirm('¿Eliminar esta baraja?', '🗑️');
-      if (!confirmed) return;
-      
-      const saved = JSON.parse(localStorage.getItem('chh_decks') || '[]');
-      saved.splice(index, 1);
-      localStorage.setItem('chh_decks', JSON.stringify(saved));
-      openLoadModal();
-    }
-
-    // ── Enlace con la Simulación: la baraja actual se guarda en "chh_sim_probar"
-    //    y simulacion.html la ofrece como "🧪 Baraja del Constructor" (las barajas
-    //    guardadas en "chh_decks" también aparecen allá en "Mis barajas").
-    function probarEnSimulacion() {
-      if (deckState.BP.length !== 40) { customAlert('Para jugarla en la Simulación la Baraja Principal debe tener 40 cartas (tienes ' + deckState.BP.length + ')', '📦'); return; }
-      if (deckState.BA.length !== 15) { customAlert('Para jugarla en la Simulación la Baraja de Almas debe tener 15 cartas (tienes ' + deckState.BA.length + ')', '👻'); return; }
-      try {
-        localStorage.setItem('chh_sim_probar', JSON.stringify({ name: 'Baraja del Constructor', date: new Date().toISOString(), decks: deckState }));
-      } catch (e) { customAlert('No se pudo preparar la baraja para la Simulación', '⚠️'); return; }
-      window.location.href = 'simulacion.html?baraja=probar';
-    }
-
-    function openExportModal() {
-      const bp = deckState.BP;
-      const ba = deckState.BA;
-      const bs = deckState.BS;
-
-      let text = '═══════════════════════════════════════\n';
-      text += 'CHOQUE DE HÉROES - BARAJA COMPLETA\n';
-      text += '═══════════════════════════════════════\n\n';
-      
-      if (bp.length > 0) {
-        text += `━━━ BARAJA PRINCIPAL (${bp.length}/40) ━━━\n`;
-        text += exportDeckList(bp) + '\n\n';
-      }
-      
-      if (ba.length > 0) {
-        text += `━━━ BARAJA DE ALMAS (${ba.length}/15) ━━━\n`;
-        text += exportDeckList(ba) + '\n\n';
-      }
-      
-      if (bs.length > 0) {
-        text += `━━━ BARAJA DE AMALGAMAS (${bs.length}) ━━━\n`;
-        text += exportDeckList(bs) + '\n\n';
-      }
-      
-      const totalCards = bp.length + ba.length + bs.length;
-      text += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
-      text += `TOTAL: ${totalCards} cartas (BP: ${bp.length} | BA: ${ba.length} | BS: ${bs.length})`;
-
-      document.getElementById('exportText').value = text;
-      exportModal.classList.add('active');
-    }
-
-    function exportDeckList(deck) {
-      const grouped = {};
-      deck.forEach(card => {
-        if (!grouped[card.id]) {
-          grouped[card.id] = { card, count: 0 };
-        }
-        grouped[card.id].count++;
-      });
-
-      return Object.values(grouped)
-        .sort((a, b) => a.card.nombre.localeCompare(b.card.nombre))
-        .map(({ card, count }) => `  ${count}x ${card.nombre} [${card.tipoJuego}]`)
-        .join('\n');
-    }
-
-    document.getElementById('closeExportBtn').addEventListener('click', () => {
-      exportModal.classList.remove('active');
-    });
-
-    document.getElementById('copyExportBtn').addEventListener('click', () => {
-      const text = document.getElementById('exportText');
-      text.select();
-      document.execCommand('copy');
-      customAlert('Baraja copiada al portapapeles', '📋');
-    });
-
-    // ═══════════════════════════════════════════════════════
-    // COMPARTIR EN ACADEMIA HEROICA
-    // ═══════════════════════════════════════════════════════
-    const shareAcademiaModal = document.getElementById('shareAcademiaModal');
-
-    document.getElementById('shareAcademiaBtn').addEventListener('click', () => {
-      if (!jugadorActual) { customAlert('Debes iniciar sesión primero', '🔒'); return; }
-      if (!esAdminAcademia) { customAlert('Solo los admins pueden compartir barajas', '🛡️'); return; }
-
-      if (deckState.BP.length !== 40) {
-        customAlert('La Baraja Principal debe tener 40 cartas para compartir', '📦');
-        return;
-      }
-      if (deckState.BA.length !== 15) {
-        customAlert('La Baraja de Almas debe tener 15 cartas para compartir', '👻');
-        return;
-      }
-
-      shareAcademiaModal.classList.add('active');
-    });
-
-    document.getElementById('cancelShareAcademiaBtn').addEventListener('click', () => {
-      shareAcademiaModal.classList.remove('active');
-    });
-
-    document.getElementById('confirmShareAcademiaBtn').addEventListener('click', async () => {
-      const titulo = document.getElementById('share-titulo').value.trim();
-      const descripcion = document.getElementById('share-descripcion').value.trim();
-      const arquetipo = document.getElementById('share-arquetipo').value.trim();
-      const dificultad = document.getElementById('share-dificultad').value;
-
-      if (!titulo) { customAlert('Falta el título de la baraja', '✏️'); return; }
-      if (!descripcion) { customAlert('Falta la descripción / estrategia', '📝'); return; }
-
-      // Convertir baraja a formato compacto {id, cant}
-      const compactar = (arr) => {
-        const conteo = {};
-        arr.forEach(c => { conteo[c.id] = (conteo[c.id] || 0) + 1; });
-        return Object.entries(conteo).map(([id, cant]) => ({ id, cant }));
-      };
-
-      const bp_json = JSON.stringify(compactar(deckState.BP));
-      const ba_json = JSON.stringify(compactar(deckState.BA));
-      const bs_json = JSON.stringify(compactar(deckState.BS));
-
-      const body = new URLSearchParams({
-        action: 'publicar',
-        autor_id: jugadorActual.id,
-        titulo, descripcion, arquetipo, dificultad,
-        bp_json, ba_json, bs_json
-      });
-
-      const btn = document.getElementById('confirmShareAcademiaBtn');
-      btn.disabled = true;
-      const originalText = btn.textContent;
-      btn.textContent = '⏳ Publicando...';
-
-      try {
-        const res = await fetch(ACADEMIA_URL, { method: 'POST', body });
-        const data = await res.json();
-        if (data.status !== 'ok') throw new Error(data.message);
-        customAlert('¡Baraja publicada en Academia Heroica!', '📚');
-        shareAcademiaModal.classList.remove('active');
-        document.getElementById('share-titulo').value = '';
-        document.getElementById('share-descripcion').value = '';
-        document.getElementById('share-arquetipo').value = '';
-        document.getElementById('share-dificultad').value = 'intermedio';
-      } catch(e) {
-        customAlert('Error: ' + e.message, '⚠️');
-      } finally {
-        btn.disabled = false;
-        btn.textContent = originalText;
-      }
-    });
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { const m = [...document.querySelectorAll('.modal.active')].pop(); if (m) cerrar(m); }
+    if (e.key === 'Enter' && $('mGuardar').classList.contains('active') && document.activeElement === $('gNombre')) guardar(!editando);
+    if (e.key === 'Enter' && document.activeElement && document.activeElement.classList.contains('ci')) document.activeElement.click();
+  });
+  addEventListener('beforeunload', guardarBorrador);
+  // Control: Y = guardar · B cierra ventanas
+  window.GP_CFG = {
+    principalTxt: 'Guardar', principal: () => $('saveBtn'),
+    inicial: () => document.querySelector('#cardsGrid .ci'),
+    atras: () => { const m = [...document.querySelectorAll('.modal.active')].pop(); if (m) { cerrar(m); return true; } return false; },
+    zonas: ['#searchBox', '#typeChips', '.frow', '#cardsGrid', '#deckTabs', '#deckList', '.acts']
+  };
+  window.agregar = agregar; window.quitar = quitar;
+  cargar();
   </script>
 </body>
 </html>

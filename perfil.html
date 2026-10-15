@@ -2071,7 +2071,14 @@ function colapsarHistorial() {
 }
 
 // ── BARAJAS ──
+// Barajas ligadas al ID (nube.js): al entrar al perfil se traen las de otros dispositivos
+let _nubeBarajas = false;
+const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 function cargarBarajas() {
+  if (!_nubeBarajas && window.CHH_NUBE && CHH_NUBE.sesionId()) {
+    _nubeBarajas = true;
+    CHH_NUBE.sincronizarBarajas().then(r => { if (r && r.ok && r.cambioLocal) cargarBarajas(); });
+  }
   let barajas = [];
   try { barajas = JSON.parse(localStorage.getItem('chh_decks') || '[]'); } catch(e){}
   document.getElementById('s-barajas').textContent = barajas.length;
@@ -2079,7 +2086,7 @@ function cargarBarajas() {
   if (!barajas.length) { cont.innerHTML='<div class="empty-msg">No tienes barajas guardadas aún.</div>'; return; }
   cont.innerHTML = barajas.map((b,i)=>`
     <div class="baraja-item" onclick="window.location.href='constructor.html?jugador=${jugador.id}&baraja=${i}'">
-      <div><div class="baraja-nombre">${b.nombre||`Baraja #${i+1}`}</div><div class="baraja-meta">BP:${b.bp?.length||0}/40 · BA:${b.ba?.length||0}/15 · BS:${b.bs?.length||0}/15</div></div>
+      <div><div class="baraja-nombre">${esc(b.name||b.nombre||`Baraja #${i+1}`)}</div><div class="baraja-meta">BP:${(b.decks?.BP||b.bp||[]).length}/40 · BA:${(b.decks?.BA||b.ba||[]).length}/15 · BS:${(b.decks?.BS||b.bs||[]).length}/15</div></div>
       <div class="baraja-arrow">›</div>
     </div>`).join('');
 
@@ -2196,6 +2203,7 @@ function mostrarToast(msg) {
 }
 </script>
 <script src="settings.js"></script>
+<script src="nube.js"></script>
 <!-- ════ PANEL TIENDA ════ -->
 <div id="tienda-panel">
 

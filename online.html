@@ -1276,7 +1276,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v68';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v69';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -1788,10 +1788,13 @@ function supp(o,slot){const p=G[o].pj[slot];if(p&&(p.neg||p.zomb||p.negP))return
 function sectOwner(o,side){return (G.owner&&G.owner[o+':'+side])||o;}
 // ARENA "Mictlán, el Lugar de los Muertos": lo que va al Mictlán regresa al fondo de su baraja y el Mictlán queda cerrado
 function mictlanCerrado(){return !!G&&['player','cpu'].some(o=>G[o].arena&&hasPassive(G[o].arena,'mictlan_cerrado'));}
+// Dueño actual de una zona (el lado puede cambiar de etiqueta, p. ej. en el modo online)
+function ladoDe(arr,prop,o){if(G){if(G.player&&G.player[prop]===arr)return 'player';if(G.cpu&&G.cpu[prop]===arr)return 'cpu';}return o;}
 function confArr(o){
   const a=[];
   Object.defineProperty(a,'push',{value:function(...xs){
-    if(G&&G[o]&&G[o].conf===this) xs.forEach(c=>{if(C[c]&&(C[c].efectos||[]).some(e=>e.cuando==='al_confinar'))(G._confQ=G._confQ||[]).push([o,c]);});
+    const w=ladoDe(this,'conf',o);
+    if(G&&G[w]&&G[w].conf===this) xs.forEach(c=>{if(C[c]&&(C[c].efectos||[]).some(e=>e.cuando==='al_confinar'))(G._confQ=G._confQ||[]).push([w,c]);});
     return Array.prototype.push.apply(this,xs);
   }});
   return a;
@@ -1839,25 +1842,26 @@ async function procConfQ(){
 }
 function amalGuard(o,kind){
   const a=[];
-  const split=xs=>{const ok=[],am=[];xs.forEach(c=>(C[c]&&C[c].type==='amalgama'?am:ok).push(c));
-    if(am.length){const P=G&&G[o];if(P&&P.bs)P.bs.push(...am);
-      if(G&&typeof lg==='function')lg('✦ '+am.map(c=>'<b>'+C[c].name+'</b>').join(', ')+who(o)+' es AMALGAMA: regresa a la Baraja de Soporte en lugar de '+(kind==='hand'?'la mano':'la BP')+'.','var(--muted)');}
+  const split=(xs,self)=>{const ok=[],am=[];xs.forEach(c=>(C[c]&&C[c].type==='amalgama'?am:ok).push(c));
+    if(am.length){const o2=ladoDe(self,kind,o),P=G&&G[o2];if(P&&P.bs)P.bs.push(...am);
+      if(G&&typeof lg==='function')lg('✦ '+am.map(c=>'<b>'+C[c].name+'</b>').join(', ')+who(o2)+' es AMALGAMA: regresa a la Baraja de Soporte en lugar de '+(kind==='hand'?'la mano':'la BP')+'.','var(--muted)');}
     return ok;};
   Object.defineProperty(a,'_raw',{value:function(xs){return Array.prototype.push.apply(this,xs);}});
-  Object.defineProperty(a,'push',{value:function(...xs){return Array.prototype.push.apply(this,split(xs));}});
-  Object.defineProperty(a,'unshift',{value:function(...xs){return Array.prototype.unshift.apply(this,split(xs));}});
-  Object.defineProperty(a,'splice',{value:function(i,n,...xs){return xs.length?Array.prototype.splice.call(this,i,n,...split(xs)):Array.prototype.splice.apply(this,arguments);}});
+  Object.defineProperty(a,'push',{value:function(...xs){return Array.prototype.push.apply(this,split(xs,this));}});
+  Object.defineProperty(a,'unshift',{value:function(...xs){return Array.prototype.unshift.apply(this,split(xs,this));}});
+  Object.defineProperty(a,'splice',{value:function(i,n,...xs){return xs.length?Array.prototype.splice.call(this,i,n,...split(xs,this)):Array.prototype.splice.apply(this,arguments);}});
   return a;
 }
 function mictlanArr(o){
   const a=[];
   Object.defineProperty(a,'push',{value:function(...xs){
-    if(G&&G[o]&&G[o].mictlan===this&&mictlanCerrado()){
-      xs.forEach(c=>{const z=C[c].type==='alma'?'ba':C[c].type==='amalgama'?'bs':'bp';G[o][z].push(c);});
-      lg('🌀 Mictlán cerrado: '+xs.map(c=>'<b>'+C[c].name+'</b>').join(', ')+who(o)+' regresa al fondo de su baraja.','var(--muted)');
+    const w=ladoDe(this,'mictlan',o);
+    if(G&&G[w]&&G[w].mictlan===this&&mictlanCerrado()){
+      xs.forEach(c=>{const z=C[c].type==='alma'?'ba':C[c].type==='amalgama'?'bs':'bp';G[w][z].push(c);});
+      lg('🌀 Mictlán cerrado: '+xs.map(c=>'<b>'+C[c].name+'</b>').join(', ')+who(w)+' regresa al fondo de su baraja.','var(--muted)');
       return this.length;
     }
-    try{fxMictlan(o,xs);}catch(e){}
+    try{fxMictlan(w,xs);}catch(e){}
     return Array.prototype.push.apply(this,xs);
   }});
   return a;
@@ -5394,6 +5398,11 @@ function eR(p){return Math.max(1,p.res);}
 function eI(p){return Math.max(0,p.imp);}
 // Usar una habilidad activable (anunciándola primero)
 async function useAbility(o,cid,e,i,src){
+  // "1 vez por turno": se aparta al iniciar (evita doble toque / botón viejo mientras se anuncia)
+  if(e.limite==='turno'&&i!=null&&i>=0){
+    if(G.used[o][effKey(cid,i)]){lg('✨ '+C[cid].name+': ya lo usaste este turno.','var(--muted)');renderAll();return;}
+    G.used[o][effKey(cid,i)]=true;
+  }
   const accs=accsOf([e]);
   if(e.sinAnuncio||await announce(o,cid,'habilidad',whereOf(src),{anade:anadeORoba(accs),accs})) await runEffect(o,cid,e,i,src);
   renderAll();

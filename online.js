@@ -15,7 +15,7 @@
 // ════════════════════════════════════════════════════════════════════════════
 (function () {
 'use strict';
-const ONLINE_VER = 'Online v1.0';
+const ONLINE_VER = 'Online v1.2';
 const FB_CFG = {
   apiKey: 'AIzaSyDif80xeOdjhJ2_-jcRwQK80bPqiVgzCPY',
   authDomain: 'choque-heroes-online.firebaseapp.com',
@@ -73,7 +73,9 @@ async function netInit() {
 }
 const ahora = () => Date.now() + NET.off;
 const ref = p => NET.db.ref('salas/' + ON.code + (p ? '/' + p : ''));
+function limpio(o) { return JSON.parse(JSON.stringify(o)); }   // quita los 'undefined' (Firebase los rechaza)
 function netSend(canal, msg) {
+  msg = limpio(msg);
   if (LOCAL) { NET.bc.postMessage({ code: ON.code, canal, v: msg }); return; }
   msg.ts = firebase.database.ServerValue.TIMESTAMP;
   ref(canal).push(msg).catch(e => console.warn('online send', e));
@@ -82,7 +84,10 @@ function netOn(canal, cb) {
   (NET.subs[canal] = NET.subs[canal] || []).push(cb);
   if (LOCAL) return;
   NET.t0 = NET.t0 || ahora() - 3000;
-  ref(canal).orderByChild('ts').startAt(NET.t0).on('child_added', s => { const v = s.val(); if (v) cb(v); });
+  ref(canal).orderByChild('ts').startAt(NET.t0).on('child_added', s => {
+    const v = s.val();
+    try { if (v) cb(v); } finally { s.ref.remove().catch(() => {}); }   // leído = borrado
+  });
 }
 function netSetEstado(str) {
   if (LOCAL) { NET.bc.postMessage({ code: ON.code, canal: 'estado', v: str }); return; }
@@ -95,7 +100,7 @@ function netOnEstado(cb) {
 }
 function netInfoSet(obj) {
   if (LOCAL) { NET._info = Object.assign(NET._info || {}, obj); NET.bc.postMessage({ code: ON.code, canal: 'info', v: obj }); NET.infoCb && NET.infoCb(NET._info); return Promise.resolve(); }
-  return ref('info').update(obj);
+  return ref('info').update(limpio(obj));
 }
 function netOnInfo(cb) {
   NET.infoCb = cb;
@@ -109,8 +114,14 @@ async function netInfoGet() {
 function netPresencia(campo) {
   if (LOCAL) { netInfoSet({ [campo]: true }); addEventListener('pagehide', () => netInfoSet({ [campo]: false })); return; }
   const r = ref('info/' + campo);
-  NET.db.ref('.info/connected').on('value', s => { if (s.val() === true) { r.onDisconnect().set(false); r.set(true); } });
+  NET.db.ref('.info/connected').on('value', s => {
+    if (s.val() !== true) return;
+    // El anfitrión corre la partida: si se va, la sala completa se borra sola en el servidor
+    if (campo === 'hostOn') ref().onDisconnect().remove(); else r.onDisconnect().set(false);
+    r.set(true);
+  });
 }
+function netBorrarSala() { if (!LOCAL && NET.db && ON.code) { try { ref().remove(); } catch (e) {} } }
 
 // ════════════════════════════════════
 // SERIALIZAR EL ESTADO (con referencias: equipos → personajes, enlaces, etc.)
@@ -131,6 +142,79 @@ function ser(root) {
     return o;
   };
   return JSON.stringify(enc(root));
+}
+// Árbol con ids = ruta de la primera aparición, solo para objetos compartidos (equipos → personajes…)
+function encTree(root) {
+  const cuenta = new Map();
+  const contar = v => {
+    if (!v || typeof v !== 'object' || v instanceof Node) return;
+    const c = cuenta.get(v) || 0; cuenta.set(v, c + 1); if (c) return;
+    if (Array.isArray(v) || v instanceof Set) { for (const x of v) contar(x); return; }
+    for (const k of Object.keys(v)) contar(v[k]);
+  };
+  contar(root);
+  const ids = new Map();
+  const enc = (v, ruta) => {
+    if (v === null) return null;
+    if (typeof v === 'function' || v === undefined) return undefined;
+    if (typeof v !== 'object') return (typeof v === 'number' && !isFinite(v)) ? null : v;
+    if (v instanceof Node) return undefined;
+    if (ids.has(v)) return { $r: ids.get(v) };
+    const comp = cuenta.get(v) > 1; if (comp) ids.set(v, ruta);
+    let o;
+    if (Array.isArray(v)) o = { $a: v.map((x, i) => { const e = enc(x, ruta + '/' + i); return e === undefined ? null : e; }) };
+    else if (v instanceof Set) o = { $s: [...v].map((x, i) => enc(x, ruta + '/s' + i)) };
+    else { o = {}; for (const k of Object.keys(v)) { const e = enc(v[k], ruta + '/' + k); if (e !== undefined) o[k] = e; } }
+    if (comp) o.$i = ruta;
+    return o;
+  };
+  return enc(root, '');
+}
+function decTree(t) {
+  const byId = new Map(), pend = [];
+  const dec = x => {
+    if (x === null || typeof x !== 'object') return x;
+    if ('$r' in x) { if (byId.has(x.$r)) return byId.get(x.$r); const ph = { __ref: x.$r }; pend.push(ph); return ph; }
+    let o;
+    if ('$a' in x) { o = []; if (x.$i != null) byId.set(x.$i, o); (x.$a || []).forEach(y => o.push(dec(y))); return o; }
+    if ('$s' in x) { o = new Set(); if (x.$i != null) byId.set(x.$i, o); (x.$s || []).forEach(y => o.add(dec(y))); return o; }
+    o = {}; if (x.$i != null) byId.set(x.$i, o);
+    for (const k of Object.keys(x)) if (k !== '$i') o[k] = dec(x[k]);
+    return o;
+  };
+  const r = dec(t);
+  if (pend.length) {   // referencias hacia adelante (raro): se resuelven al final
+    const fix = o => { if (!o || typeof o !== 'object') return; for (const k of Object.keys(o)) { const v = o[k]; if (v && v.__ref != null) o[k] = byId.get(v.__ref); else fix(v); } };
+    fix(r);
+  }
+  return r;
+}
+const BORRAR = { $del: 1 };
+function difTree(a, b, p, ops) {
+  if (a === b) return;
+  const obj = x => x !== null && typeof x === 'object';
+  if (!obj(a) || !obj(b)) { ops.push([p, b]); return; }
+  if ('$r' in a || '$r' in b) { if (a.$r !== b.$r) ops.push([p, b]); return; }
+  if (('$a' in a) !== ('$a' in b) || ('$s' in a) !== ('$s' in b) || a.$i !== b.$i) { ops.push([p, b]); return; }
+  if ('$s' in a) { if (JSON.stringify(a) !== JSON.stringify(b)) ops.push([p, b]); return; }
+  if ('$a' in a) {
+    const A = a.$a, B = b.$a;
+    if (A.length !== B.length) { ops.push([p.concat('$a'), B]); return; }
+    for (let i = 0; i < B.length; i++) difTree(A[i], B[i], p.concat('$a', i), ops);
+    return;
+  }
+  for (const k of Object.keys(b)) { if (!(k in a)) ops.push([p.concat(k), b[k]]); else difTree(a[k], b[k], p.concat(k), ops); }
+  for (const k of Object.keys(a)) if (!(k in b)) ops.push([p.concat(k), BORRAR]);
+}
+function aplicarDif(t, ops) {
+  for (const [p, v] of ops) {
+    if (!p.length) { t = v; continue; }
+    let o = t;
+    for (let i = 0; i < p.length - 1; i++) { o = o[p[i]]; if (o == null) throw new Error('ruta'); }
+    const k = p[p.length - 1];
+    if (v && v.$del) delete o[k]; else o[k] = v;
+  }
+  return t;
 }
 function des(str) {
   const byId = new Map();
@@ -193,7 +277,7 @@ const _rx = new RegExp(PARES.flatMap(p => p).sort((a, b) => b.length - a.length)
 const _mapa = new Map(); PARES.forEach(([a, b]) => { _mapa.set(a, b); _mapa.set(b, a); });
 function voltearTexto(t) { return String(t).replace(_rx, m => _mapa.get(m) ?? m); }
 function sinCPU(t) {
-  return String(t).replace(/\bLa CPU\b/g, 'El rival').replace(/\bla CPU\b/g, 'el rival').replace(/\(CPU\)/g, '(rival)').replace(/\bCPU\b/g, 'RIVAL');
+  return String(t).replace(/\bde la CPU\b/g, 'del rival').replace(/\ba la CPU\b/g, 'al rival').replace(/\bLa CPU\b/g, 'El rival').replace(/\bla CPU\b/g, 'el rival').replace(/\(CPU\)/g, '(rival)').replace(/\bCPU\b/g, 'RIVAL');
 }
 // ¿El texto que se acaba de escribir es del punto de vista de este teléfono?
 function textoPara(destino, t) {   // destino: 'host' | 'guest'
@@ -254,7 +338,7 @@ function montarLobby() {
   $('onCode').addEventListener('input', e => { e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); });
   $('onCrear').onclick = () => crearSala().catch(errLobby);
   $('onUnir').onclick = () => unirseSala().catch(errLobby);
-  $('onSalir').onclick = () => { location.href = 'online.html' + (LOCAL ? '?local=1' : ''); };
+  $('onSalir').onclick = () => { if (ON.rol === 'host') netBorrarSala(); sessionStorage.removeItem('chh_online_sala'); location.href = 'online.html' + (LOCAL ? '?local=1' : ''); };
   $('onJugar').onclick = () => hostIniciar();
   const prev = sessionStorage.getItem('chh_online_sala');   // regresar a la sala tras recargar
   if (prev) { try { const p = JSON.parse(prev); if (p.rol === 'guest') { $('onCode').value = p.code; } } catch (e) {} }
@@ -319,9 +403,16 @@ async function unirseSala() {
   netPresencia('guestOn');
   sessionStorage.setItem('chh_online_sala', JSON.stringify({ rol: 'guest', code }));
   mostrarSala('SALA ' + code, 'Te uniste. Esperando a que el anfitrión inicie el choque…');
-  netOnInfo(info => { ON.rivalOnline = !!info.hostOn; if (info.host) ON.rivalNombre = info.host; marcaConexion(); });
+  let _sinHost = null;
+  netOnInfo(info => {
+    ON.rivalOnline = !!info.hostOn; if (info.host) ON.rivalNombre = info.host; marcaConexion();
+    clearTimeout(_sinHost);
+    if (!info.hostOn && ON.jugando && G && !G.over) _sinHost = setTimeout(() => {
+      if (!G || G.over || ON.rivalOnline) return;
+      _egGuest(true, (ON.rivalNombre || 'El anfitrión') + ' se desconectó y la partida terminó');
+    }, 60000);
+  });
   netOn('h2g', m => guestRecibe(m));
-  netOnEstado(str => guestEstado(str));
   netSend('g2h', { t: 'hola' });
 }
 
@@ -331,15 +422,31 @@ async function unirseSala() {
 let _sendT = null, _askN = 0;
 const PEND = new Map();
 function enviar(m) { netSend('h2g', m); }
-function enviarEstado() {
+let _ultTree = null, _seq = 0, _forzarCompleto = true, _desdeCompleto = 0;
+ON.stats = { completos: 0, cambios: 0, bytes: 0 };
+function enviarEstado(completo) {
   if (ON.rol !== 'host' || !G) return;
+  if (completo) _forzarCompleto = true;
   clearTimeout(_sendT);
   _sendT = setTimeout(() => {
     if (!G) return;
-    let s;
-    if (ON.swapped) s = ser(G); else { swapFrame(G); try { s = ser(G); } finally { swapFrame(G); } }
-    netSetEstado(JSON.stringify({ g: s, n: Date.now(), host: ON.nombre, guest: ON.rivalNombre, ver: ONLINE_VER }));
-  }, 250);
+    let t;
+    if (ON.swapped) t = encTree(G); else { swapFrame(G); try { t = encTree(G); } finally { swapFrame(G); } }
+    const meta = { host: ON.nombre, guest: ON.rivalNombre };
+    if (_forzarCompleto || !_ultTree || _desdeCompleto >= 60) {
+      const g = JSON.stringify(t);
+      enviar({ t: 'full', s: ++_seq, g, m: meta });
+      ON.stats.completos++; ON.stats.bytes += g.length;
+      _forzarCompleto = false; _desdeCompleto = 0;
+    } else {
+      const ops = []; difTree(_ultTree, t, [], ops);
+      if (!ops.length) { _ultTree = t; return; }
+      const o = JSON.stringify(ops);
+      enviar({ t: 'd', s: ++_seq, o });
+      ON.stats.cambios++; ON.stats.bytes += o.length; _desdeCompleto++;
+    }
+    _ultTree = t;
+  }, 220);
 }
 function preguntar(kind, p, porDefecto, ms) {
   const id = ++_askN;
@@ -360,7 +467,7 @@ const _cola = [];
 let _colaOn = false;
 function hostRecibe(m) {
   if (!m) return;
-  if (m.t === 'hola') { if (LOCAL) netInfoSet({ hostOn: true }); enviarEstado(); PEND.forEach((x, id) => enviar({ t: 'ask', id, kind: x.kind, p: x.p })); if (G && G.over) enviar({ t: 'fin', won: !!ON.finGuestGana, r: ON.finTexto || '' }); return; }
+  if (m.t === 'hola') { if (LOCAL) netInfoSet({ hostOn: true }); enviarEstado(true); PEND.forEach((x, id) => enviar({ t: 'ask', id, kind: x.kind, p: x.p })); if (G && G.over) enviar({ t: 'fin', won: !!ON.finGuestGana, r: ON.finTexto || '' }); return; }
   if (m.t === 'ans') { const p = PEND.get(m.id); if (p) { PEND.delete(m.id); if (!PEND.size) esperaUI(false); p.res(m.v); } return; }
   if (m.t === 'abandono') { finPorAbandono(true); return; }
   if (m.t === 'cmd') { esperaUI(PEND.size > 0); _cola.push(m); if (!_colaOn) procesarCola(); return; }
@@ -427,6 +534,24 @@ function parchesHost() {
     _tmp = true; swapFrame(G); setTimeout(fuera, 0);
   }, true);
   window.addEventListener('click', fuera, false);
+  // Animaciones (robo, ataque, daño…) apuntan a ids del marco volteado: se reflejan al lado correcto
+  const rid = id => {
+    if (typeof id !== 'string') return id;
+    if (id === 'handrow') return 'cpuhand';
+    if (id === 'cpuhand') return 'handrow';
+    let m = /^player(.*)$/.exec(id); if (m) return 'cpu' + m[1];
+    m = /^cpu(.*)$/.exec(id); if (m) return 'player' + m[1];
+    m = /^p([A-Z].*)$/.exec(id); if (m) return 'c' + m[1];
+    m = /^c([A-Z].*)$/.exec(id); if (m) return 'p' + m[1];
+    return id;
+  };
+  const refl = (n, idx) => {
+    const f = window[n]; if (typeof f !== 'function') return;
+    window[n] = function () { const a = [...arguments]; if (ON.swapped && !_tmp) idx.forEach(i => { a[i] = rid(a[i]); }); return f.apply(this, a); };
+  };
+  refl('fxFly', [0, 1]); refl('fxNum', [0]); refl('fxHit', [0]);
+  refl('animDestroy', [0]); refl('animCall', [0]); refl('animAttack', [0]); refl('animDefeated', [0]);
+  { const f = window.fxMictlan; if (f) window.fxMictlan = function (o, xs) { return f.call(this, (ON.swapped && !_tmp) ? rl(o) : o, xs); }; }
   // 2) Ventanas de decisión: van al teléfono de quien decide
   const _ask = window.askChoice, _pick = window.pickCards;
   window.askChoice = (t, opts) => dev('player') === 'host' ? _ask(sinCPU(t), opts.map(sinCPU)) : preguntar('choice', { t: textoPara('guest', t), opts: opts.map(o => textoPara('guest', o)) }, null);
@@ -536,14 +661,15 @@ function parchesHost() {
     const f = window[n];
     window[n] = function () { if (ON.swapped && !ON.remoto) return; return f.apply(this, arguments); };
   });
-  window.restartGame = function () { if (!ON.jugando) return; ON.finGuestGana = null; ON.swapped = false; enviar({ t: 'revancha' }); netInfoSet({ estado: 'jugando' }); initGame(); };
-  window.showDeckSelect = () => { location.href = 'online.html' + (LOCAL ? '?local=1' : ''); };
+  window.restartGame = function () { if (!ON.jugando) return; ON.finGuestGana = null; ON.swapped = false; enviar({ t: 'revancha' }); netInfoSet({ estado: 'jugando' }); _forzarCompleto = true; initGame(); };
+  window.showDeckSelect = () => { netBorrarSala(); sessionStorage.removeItem('chh_online_sala'); location.href = 'online.html' + (LOCAL ? '?local=1' : ''); };
   window.sorteoInicio = sorteoOnline;
+  addEventListener('pagehide', () => { if (!G || G.over) netBorrarSala(); });
   window.salirPartida = function (ev, a) {
     ev.preventDefault();
     if (!G || G.over) { location.href = 'online.html' + (LOCAL ? '?local=1' : ''); return false; }
     ventanaConfirmar('¿ABANDONAR LA PARTIDA?', 'Abandonar cuenta como <b>DERROTA</b> y tu rival gana.', '🚪 SÍ, ABANDONAR', '↩ SEGUIR JUGANDO', '⚠️').then(ok => {
-      if (!ok) return; enviar({ t: 'abandono' }); finPorAbandono(false); setTimeout(() => { location.href = 'online.html' + (LOCAL ? '?local=1' : ''); }, 500);
+      if (!ok) return; enviar({ t: 'abandono' }); finPorAbandono(false); setTimeout(() => { netBorrarSala(); sessionStorage.removeItem('chh_online_sala'); location.href = 'online.html' + (LOCAL ? '?local=1' : ''); }, 900);
     });
     return false;
   };
@@ -660,13 +786,18 @@ let REAL_EG = null, _egGuest = null;
 // ════════════════════════════════════
 // INVITADO
 // ════════════════════════════════════
-let _ultN = 0;
-function guestEstado(str) {
-  let o; try { o = JSON.parse(str); } catch (e) { return; }
-  if (!o || !o.g || o.n < _ultN) return;
-  _ultN = o.n;
-  if (o.host && o.host !== ON.rivalNombre) { ON.rivalNombre = o.host; marcaConexion(); }
-  const nuevo = des(o.g);
+let _ultN = 0, _tree = null, _gSeq = 0, _pidio = 0;
+function guestTablero(m) {
+  try {
+    if (m.t === 'full') { _tree = JSON.parse(m.g); _gSeq = m.s; if (m.m && m.m.host && m.m.host !== ON.rivalNombre) { ON.rivalNombre = m.m.host; marcaConexion(); } }
+    else {
+      if (!_tree || m.s !== _gSeq + 1) { if (Date.now() - _pidio > 1500) { _pidio = Date.now(); netSend('g2h', { t: 'hola' }); } return; }
+      _tree = aplicarDif(_tree, JSON.parse(m.o)); _gSeq = m.s;
+    }
+  } catch (e) { console.warn('tablero', e); _tree = null; if (Date.now() - _pidio > 1500) { _pidio = Date.now(); netSend('g2h', { t: 'hola' }); } return; }
+  guestPintar(decTree(_tree));
+}
+function guestPintar(nuevo) {
   const habia = !!G;
   const over = G && G.over;
   G = nuevo;
@@ -694,6 +825,7 @@ function guestRecibe(m) {
     case 'combate': if (m.ver) { mostrarCombate(m.d); } break;
     case 'dados': guestDados(m.a, m.b); break;
     case 'fin': if (G) { G.over = false; } _egGuest(!!m.won, m.r || ''); break;
+    case 'full': case 'd': guestTablero(m); break;
     case 'revancha': _ultN = 0; $('endgameModal').classList.remove('show'); $('logwrap').innerHTML = ''; break;
   }
 }
@@ -703,8 +835,8 @@ async function guestPregunta(m) {
   _resp.add(m.id);
   let v = null;
   const p = m.p || {};
-  if (m.kind === 'choice') { const s = $('sorteoModal'); if (s) s.classList.remove('show'); v = await GA(p.t, p.opts || []); }
-  else if (m.kind === 'pick') v = await GP_(p);
+  if (m.kind === 'choice') { const s = $('sorteoModal'); if (s) s.classList.remove('show'); v = await GA(p.t, Array.isArray(p.opts) ? p.opts : Object.values(p.opts || {})); }
+  else if (m.kind === 'pick') { const a = {}; Object.keys(p).forEach(k => { if (p[k] != null) a[k] = p[k]; }); a.items = Array.isArray(p.items) ? p.items : Object.values(p.items || {}); v = await GP_(a); }
   else if (m.kind === 'combate') { mostrarCombate(p); await new Promise(r => { _combatClose = r; }); v = true; }
   netSend('g2h', { t: 'ans', id: m.id, v: v == null ? null : v });
 }

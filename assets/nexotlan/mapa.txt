@@ -1,0 +1,432 @@
+# ════════════════════════════════════════════════════════════════════
+#  MODO AVENTURA · NEXOTLAN — MAPA, DISTRITOS Y PERSONAJES
+#  Edita este archivo con el Bloc de notas (guárdalo en UTF-8).
+#  Mismo estilo que assets/arcade/rivales.txt:  campo = valor
+#
+#  TIP: abre  nexotlan.html?editor=1  para mover los puntos con el dedo/ratón
+#       y copiar este archivo ya con las coordenadas nuevas.
+#
+#  Hay 3 tipos de bloque:
+#   [config]            ajustes generales
+#   [distrito:ID]       una zona del mapa (ID sin espacios: puerta, mercado…)
+#   [punto:ID]          un rival, héroe o guardián en el mapa (ID único, sin espacios)
+#
+#  ── [config] ──
+#   titulo, subtitulo
+#   mapa        imagen del mapa en assets/nexotlan/ (ej. mapa.jpg). Vacío = mapa neón generado
+#   musica      música del mapa (ruta como en el Arcade, ej. musica_choque/pista_9.mp3)
+#   dias        nombres de los días separados por coma
+#
+#  ── [distrito:ID] ──
+#   nombre, descripcion, color
+#   x, y        centro del distrito en el mapa (en %, 0-100)
+#   radio       tamaño aproximado (en %) para el mapa neón generado
+#   forma       (opcional) contorno exacto: puntos "x,y x,y x,y …" en %
+#   requiere    ID del punto que hay que vencer para abrirlo (vacío = abierto desde el inicio)
+#   musica      (opcional) música al seleccionar este distrito
+#   paisaje     (opcional) imagen panorámica angosta en assets/nexotlan/paisajes/ (ej. 1600×500 px)
+#               aparece detrás de los rivales y héroes de este distrito al hablar con ellos
+#
+#  ── [punto:ID] ──
+#   tipo        rival | heroe | guardian
+#               rival = jugador que explora Nexotlan · heroe = personaje del juego de cartas que te habla · guardian = jefe del distrito
+#   nombre, titulo, distrito
+#   x, y        posición en el mapa (en %)
+#   dias        días en que aparece, por sus 3 primeras letras (lun, mar, mie…). Vacío = todos
+#   imagen      PNG del personaje en assets/nexotlan/personajes/
+#               (o con carpeta: arcade/personajes/rival_01.png toma la del Arcade)
+#   carta       id o nombre de una carta: su arte se usa si falta la imagen
+#   baraja      id de la baraja de la CPU (rival y guardian)
+#   dificultad  facil | medio | dificil | muy_dificil | auto  (auto = según el distrito)
+#   corazones   corazones EXTRA de la CPU
+#   musica      música del Choque (la partida)
+#   paisaje     (opcional) paisaje propio de este punto (si no, usa el de su distrito)
+#   requiere    ID de punto que hay que vencer/visitar antes de que aparezca
+#   monedas     monedas que da al vencerlo (rival/guardian) o al hablarle la 1a vez (heroe)
+#   entrada     lo que dice al acercarte          (usa | para separar cuadros de diálogo)
+#   victoria    lo que dice cuando TÚ ganas
+#   derrota     lo que dice cuando TÚ pierdes
+#   revancha    lo que dice si ya lo venciste antes
+#   dialogo     (heroe) lo que dice la primera vez
+#   dialogo2    (heroe) lo que dice las siguientes veces
+#
+#  Las líneas que empiezan con # son comentarios.
+# ════════════════════════════════════════════════════════════════════
+
+[config]
+titulo = NEXOTLAN
+subtitulo = La ciudad entre dimensiones
+mapa =
+musica = musica_choque/pista_9.mp3
+dias = Lunes, Martes, Miércoles, Jueves, Viernes, Sábado, Domingo
+
+# ─────────────────────────── DISTRITOS ───────────────────────────
+
+[distrito:puerta]
+nombre = Puerta de Obsidiana
+descripcion = La entrada a Nexotlan. Aquí se ponen a prueba los recién llegados.
+color = #00cfff
+x = 20
+y = 68
+radio = 15
+requiere =
+paisaje = puerta.jpg
+
+[distrito:mercado]
+nombre = Mercado de Cristal
+descripcion = Puestos, coleccionistas y jugadores de todas las dimensiones.
+color = #f5a623
+x = 46
+y = 44
+radio = 15
+requiere = g_aurora
+paisaje = mercado.jpg
+
+[distrito:archivos]
+nombre = Archivos de Nexotlan
+descripcion = La biblioteca infinita donde el Oráculo guarda la memoria de la ciudad.
+color = #cc55ff
+x = 74
+y = 70
+radio = 14
+requiere = g_vulcar
+paisaje = archivos.jpg
+
+[distrito:ciudadela]
+nombre = Ciudadela del Regente
+descripcion = El trono de Vellond. Solo los más fuertes cruzan sus murallas.
+color = #ff2244
+x = 76
+y = 24
+radio = 15
+requiere = g_khalet
+paisaje = ciudadela.jpg
+
+# ──────────────────── PUERTA DE OBSIDIANA ────────────────────
+
+[punto:koatl]
+tipo = heroe
+nombre = Koatl
+titulo = El Defensor
+distrito = puerta
+x = 12
+y = 58
+carta = koatl_dd
+monedas = 50
+dialogo = ¡Bienvenido a Nexotlan! | Esta ciudad está dividida en distritos. Cada uno tiene un GUARDIÁN que te bloquea el paso. | Vence a los rivales, gánate su respeto… y reta al guardián para abrir el siguiente distrito. | Toma estas monedas para el camino. ¡Suerte, héroe!
+dialogo2 = Los rivales cambian de lugar según el día. Si no encuentras a alguien, descansa y vuelve mañana.
+
+[punto:vika]
+tipo = rival
+nombre = Vika Cosplay
+titulo = La fan número uno
+distrito = puerta
+x = 20
+y = 78
+imagen = arcade/personajes/rival_01.png
+carta = vc_kali
+baraja = vika_cosplay
+dificultad = auto
+monedas = 30
+entrada = ¡Un turista! Perfecto, necesito practicar para la convención. | ¿Un Choque?
+victoria = ¡Nooo, mi cosplay! Bueno… te ganaste el paso, novato.
+derrota = Jeje, ni el cosplay de Koatl te salvaría.
+revancha = ¡Volviste! Esta vez traigo mi mejor disfraz.
+
+[punto:stephanie]
+tipo = rival
+nombre = Stephanie Tyler
+titulo = HELL-RIDER
+distrito = puerta
+x = 29
+y = 62
+dias = lun, mie, vie, dom
+imagen = arcade/personajes/rival_02.png
+carta = hr_joann
+baraja = hell_riders
+dificultad = auto
+monedas = 40
+entrada = El escuadrón patrulla esta puerta. | Nadie entra a Nexotlan sin pasar por nosotras.
+victoria = Hmph… pasa. Pero el escuadrón no olvida.
+derrota = Te dije que te quitaras del camino.
+
+[punto:jaguar]
+tipo = rival
+nombre = Defensor Jaguar
+titulo = Muralla viviente
+distrito = puerta
+x = 9
+y = 76
+dias = mar, jue, sab
+carta = defensor_jaguar
+baraja = r2_muralla
+dificultad = auto
+monedas = 40
+entrada = Mi muralla no se rompe. | Si quieres pasar, tendrás que derribarla carta por carta.
+victoria = Mi muralla… cayó.
+derrota = Nadie atraviesa mi defensa.
+
+[punto:g_aurora]
+tipo = guardian
+nombre = Aurora
+titulo = Guardiana de la Puerta
+distrito = puerta
+x = 28
+y = 76
+imagen = arcade/personajes/rival_04.png
+carta = hdf_aurora
+baraja = herederos
+dificultad = auto
+corazones = 2
+monedas = 100
+requiere = vika
+entrada = Así que eres tú el que anda retando a todos. | Soy la guardiana de la Puerta de Obsidiana. | Si me vences, el Mercado de Cristal es tuyo.
+victoria = Tu fuego es real. La puerta está abierta… el Mercado te espera.
+derrota = Aún no estás listo. Vuelve cuando tu llama sea más fuerte.
+revancha = ¿Otra vez? Me gusta tu espíritu.
+
+# ──────────────────── MERCADO DE CRISTAL ────────────────────
+
+[punto:taiyo]
+tipo = heroe
+nombre = Taiyō
+titulo = Mercader de recuerdos
+distrito = mercado
+x = 40
+y = 34
+carta = taiyo
+monedas = 40
+dialogo = Bienvenido al Mercado de Cristal. Aquí todo se compra y se vende… hasta los recuerdos. | Pronto abriré mi puesto de sobres. Junta monedas venciendo rivales. | Un consejo: Vulcar, el guardián de este distrito, solo acepta retos de quien haya vencido a dos mercaderes.
+dialogo2 = Mi puesto abre pronto. ¡Sigue juntando monedas!
+
+[punto:ballerina]
+tipo = rival
+nombre = Ballerina MK-34
+titulo = Ladrona de héroes
+distrito = mercado
+x = 50
+y = 33
+dias = lun, mie, vie, sab
+carta = ballerina
+baraja = r2_ladrones
+dificultad = auto
+monedas = 50
+entrada = Shhh… estoy de compras. | De compras de TUS cartas.
+victoria = Mis manos… ¡me ganaste con mis propios trucos!
+derrota = Gracias por la donación.
+
+[punto:meteorix]
+tipo = rival
+nombre = Meteorix
+titulo = Asedio de sectores
+distrito = mercado
+x = 56
+y = 48
+dias = mar, jue, sab, dom
+carta = meteorix
+baraja = r2_asedio
+dificultad = auto
+monedas = 50
+entrada = Este puesto es mío. Y este también. Y ese. | ¡Todo el sector es mío!
+victoria = Perdí el sector… y el puesto.
+derrota = Te lo dije: todo el sector es mío.
+
+[punto:grace]
+tipo = rival
+nombre = Grace Omay
+titulo = Legión del Mar
+distrito = mercado
+x = 37
+y = 52
+dias = dom
+imagen = arcade/personajes/rival_05.png
+carta = violet
+baraja = legion_mar
+dificultad = auto
+monedas = 80
+entrada = Los domingos la Legión baja al mercado a cobrar… | ¿Pagas o peleas?
+victoria = La Legión recordará tu nombre, marinero.
+derrota = Al fondo del mar con tu baraja.
+
+[punto:g_vulcar]
+tipo = guardian
+nombre = Vulcar
+titulo = Guardián del Mercado
+distrito = mercado
+x = 48
+y = 54
+imagen = arcade/personajes/rival_07.png
+carta = vulcar_caballero
+baraja = caballero_cristal
+dificultad = auto
+corazones = 3
+monedas = 150
+requiere = ballerina, meteorix
+entrada = Los mercaderes hablan de ti. | Soy Vulcar, Caballero de Cristal. El camino a los Archivos pasa por mi espada.
+victoria = Mi cristal se quebró… Los Archivos te esperan. El Oráculo sabrá qué hacer contigo.
+derrota = El cristal no se rompe tan fácil.
+
+# ──────────────────── ARCHIVOS DE NEXOTLAN ────────────────────
+
+[punto:madatzin]
+tipo = heroe
+nombre = Madatzin
+titulo = Oráculo de Nexotlan
+distrito = archivos
+x = 70
+y = 62
+carta = madatzin
+monedas = 60
+dialogo = Te vi llegar mucho antes de que llegaras. | Estos son los Archivos de Nexotlan: cada carta que existe tiene aquí su recuerdo. | Hellw Khalet custodia el camino a la Ciudadela. No lo subestimes: lo que confina, no regresa.
+dialogo2 = El Regente Vellond observa desde su trono. Cuando estés listo, él también lo sabrá.
+
+[punto:naddezhda]
+tipo = rival
+nombre = Naddezhda
+titulo = Encantadora Bruxa
+distrito = archivos
+x = 80
+y = 62
+dias = lun, mar, jue, vie
+imagen = arcade/personajes/rival_06.png
+carta = naddezhda
+baraja = encantadoras
+dificultad = auto
+monedas = 60
+entrada = Los libros me cuentan cosas… | Uno dice que hoy vas a perder.
+victoria = Ese libro mentía.
+derrota = Te lo dije: estaba escrito.
+
+[punto:yao]
+tipo = rival
+nombre = Yao
+titulo = Gran Vigilante del Tiempo
+distrito = archivos
+x = 66
+y = 78
+imagen = arcade/personajes/rival_12.png
+carta = yao
+baraja = guardianes_tiempo
+dificultad = auto
+monedas = 60
+entrada = Ya te vencí en otra línea del tiempo. | Veamos si en esta tienes más suerte.
+victoria = Interesante… esta línea temporal es diferente.
+derrota = En todas las líneas pasa lo mismo.
+
+[punto:infernity]
+tipo = rival
+nombre = Infernity
+titulo = Forja de Amalgamas
+distrito = archivos
+x = 84
+y = 76
+dias = mie, sab, dom
+carta = infernity
+baraja = r2_forja
+dificultad = auto
+monedas = 70
+entrada = Fundo cartas para crear Amalgamas. | Tu baraja sería un excelente material.
+victoria = Mi forja se apagó…
+derrota = Material de primera.
+
+[punto:g_khalet]
+tipo = guardian
+nombre = Hellw Khalet
+titulo = Guardián de los Archivos
+distrito = archivos
+x = 76
+y = 84
+imagen = arcade/personajes/rival_11.png
+carta = hellw_khalet
+baraja = ornamentum_khalet
+dificultad = auto
+corazones = 3
+monedas = 200
+requiere = naddezhda, yao
+entrada = El Oráculo te mandó, ¿verdad? | Muchos han cruzado esta sala. Ninguno ha salido completo.
+victoria = Imposible… La Ciudadela es tuya. Vellond te está esperando.
+derrota = Uno más para mi colección.
+
+# ──────────────────── CIUDADELA DEL REGENTE ────────────────────
+
+[punto:vulcar_nx]
+tipo = heroe
+nombre = Vulcar
+titulo = Caballero de Nexotlan
+distrito = ciudadela
+x = 68
+y = 30
+carta = p3_vulcar_nexotlan
+monedas = 80
+requiere = g_khalet
+dialogo = Llegaste a la Ciudadela. Ya no soy tu rival: aquí servimos al Regente. | Vellond solo recibe a quien venza a sus tres campeones. | Ten cuidado con Nikkon: su dragón protege la ciudad desde hace siglos.
+dialogo2 = Los campeones del Regente no descansan. Tú sí deberías.
+
+[punto:nikkon]
+tipo = rival
+nombre = Nikkon Trolas
+titulo = Dragón de Nexotlan
+distrito = ciudadela
+x = 80
+y = 16
+carta = nikkon
+baraja = r2_nexotlan
+dificultad = auto
+monedas = 90
+entrada = Mi dragón protege Nexotlan desde antes de que existieras. | Demuéstrame que mereces entrar.
+victoria = El dragón… te reconoce.
+derrota = Nexotlan sigue a salvo.
+
+[punto:roboto]
+tipo = rival
+nombre = Roboto
+titulo = Dios Meka
+distrito = ciudadela
+x = 88
+y = 30
+dias = lun, mie, vie, dom
+imagen = arcade/personajes/rival_14.png
+carta = SERIES_008
+baraja = arcade_roboto
+dificultad = auto
+monedas = 90
+entrada = ANALIZANDO… PROBABILIDAD DE VICTORIA DEL HUMANO: 3%.
+victoria = ERROR… RECALCULANDO…
+derrota = CÁLCULO CORRECTO.
+
+[punto:aldo]
+tipo = rival
+nombre = Aldo
+titulo = El que cambia de piel
+distrito = ciudadela
+x = 64
+y = 18
+dias = mar, jue, sab, dom
+imagen = arcade/personajes/rival_13.png
+carta = SERIES_004
+baraja = arcade_aldo
+dificultad = auto
+monedas = 90
+entrada = Hoy me veo así. Mañana, quién sabe. | Lo único seguro es que vas a perder.
+victoria = Quizá debí cambiar de piel antes.
+derrota = Ni me reconociste.
+
+[punto:g_vellond]
+tipo = guardian
+nombre = Vellond
+titulo = Gran Regente de Nexotlan
+distrito = ciudadela
+x = 77
+y = 30
+imagen = arcade/personajes/rival_15.png
+carta = vellond
+baraja = nexotlan
+dificultad = muy_dificil
+corazones = 5
+monedas = 500
+musica = musica_choque/pista_10.mp3
+requiere = nikkon, roboto, aldo
+entrada = Así que tú eres quien recorrió mi ciudad. | Nexotlan ha visto nacer y caer a mil héroes. | Muéstrame si eres digno de su leyenda.
+victoria = …Nexotlan tiene un nuevo campeón. | Mientras estés aquí, esta ciudad es tu hogar.
+derrota = La ciudad no está lista para ti. Todavía.
+revancha = ¿Vuelves a desafiar al Regente? Que así sea.

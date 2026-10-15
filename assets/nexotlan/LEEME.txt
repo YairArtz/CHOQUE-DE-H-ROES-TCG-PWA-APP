@@ -1,0 +1,32 @@
+MODO AVENTURA · NEXOTLAN — CÓMO PERSONALIZARLO
+==============================================
+
+1) mapa.txt  → todo el contenido: distritos, rivales, héroes, guardianes y diálogos.
+   Mismo formato que assets/arcade/rivales.txt (campo = valor). Las instrucciones están al inicio del archivo.
+
+2) personajes/  → PNG de los personajes (fondo transparente, de preferencia vertical, ~800 px de alto).
+   En mapa.txt:  imagen = mi_personaje.png
+   Para reusar las del Arcade:  imagen = arcade/personajes/rival_01.png
+   Si no hay imagen, se usa el arte de la carta indicada en  carta = …
+
+3) mapa.jpg (opcional)  → tu ilustración de Nexotlan. Proporción 16:10 (ej. 3200 × 2000 px).
+   En mapa.txt, sección [config]:  mapa = mapa.jpg
+   Sin imagen se dibuja el mapa neón automático con los distritos.
+   Con imagen, los distritos cerrados se oscurecen usando  x, y, radio  (o  forma  para un contorno exacto).
+
+4) paisajes/  → franjas panorámicas de cada distrito (estilo de los juegos retro), ej. 1600 × 500 px.
+   En mapa.txt, en el distrito:  paisaje = puerta.jpg   (o en un punto, para un paisaje propio).
+   Aparecen detrás del rival o héroe cuando hablas con él. Sin imagen se dibuja una ciudad neón del color del distrito.
+
+5) EDITOR: abre  nexotlan.html?editor=1
+   · Se ven todos los puntos (sin importar día ni candados).
+   · Toca el mapa → te da las coordenadas x, y.
+   · Arrastra un punto para moverlo.
+   · "COPIAR mapa.txt" copia el archivo completo con las coordenadas nuevas: pégalo aquí.
+
+REGLAS DEL MODO
+· Cada Choque (partida) o "Descansar" avanza un día. Los rivales con  dias = …  solo aparecen esos días.
+· Un distrito se abre al vencer al punto indicado en su  requiere  (normalmente su GUARDIÁN).
+· Un guardián solo acepta el reto cuando venciste a los puntos de su  requiere.
+· Revanchas: puedes volver a retar a cualquiera; da 1/4 de las monedas.
+· La partida se guarda en el dispositivo y en la nube con el ID de jugador (Mi Perfil).

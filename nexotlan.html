@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#050a1c">
+<title>Nexotlan · Modo Aventura · Choque de Héroes</title>
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=VT323&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#050a1c;--bg2:#0a1430;--panel:rgba(8,14,34,.94);--line:#1d2e5c;--text:#e8f0ff;--muted:#7d90bb;
+  --cyan:#36d6ff;--gold:#f5a623;--purple:#cc55ff;--red:#ff2f5a;--green:#00ff9d;--hud:56px}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;overflow:hidden;-webkit-tap-highlight-color:transparent;user-select:none}
+button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:none}
+.orb{font-family:'Orbitron',monospace}
+.scr{position:fixed;inset:0;display:none;flex-direction:column}
+.scr.on{display:flex}
+
+/* ═══ TÍTULO ═══ */
+#sTitulo{align-items:center;justify-content:center;gap:18px;padding:24px;text-align:center;
+  background:radial-gradient(ellipse at 50% 30%,rgba(54,214,255,.18),transparent 60%),radial-gradient(ellipse at 80% 90%,rgba(204,85,255,.16),transparent 60%),var(--bg)}
+#sTitulo::before{content:'';position:absolute;inset:0;pointer-events:none;opacity:.35;
+  background-image:linear-gradient(rgba(54,214,255,.12) 1px,transparent 1px),linear-gradient(90deg,rgba(54,214,255,.12) 1px,transparent 1px);background-size:46px 46px;
+  mask-image:radial-gradient(ellipse at center,#000 30%,transparent 75%)}
+.t-kicker{font-family:'Orbitron',monospace;font-size:11px;letter-spacing:6px;color:var(--cyan);text-transform:uppercase}
+.t-title{font-family:'Orbitron',monospace;font-weight:900;font-size:clamp(40px,10vw,92px);letter-spacing:6px;line-height:1;
+  background:linear-gradient(180deg,#fff,#9fe9ff 45%,#36d6ff 70%,#7a4dff);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 18px rgba(54,214,255,.55)) drop-shadow(0 4px 0 #0a1a40)}
+.t-sub{font-size:18px;color:#b8c8ee;letter-spacing:2px}
+.t-btns{display:flex;flex-direction:column;gap:10px;width:min(340px,100%);margin-top:10px;position:relative;z-index:1}
+.bt{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 18px;border-radius:12px;font-family:'Orbitron',monospace;font-size:12px;font-weight:900;letter-spacing:2px;text-transform:uppercase;
+  background:linear-gradient(135deg,#36d6ff,#7a4dff);color:#020616;box-shadow:0 0 22px rgba(54,214,255,.35)}
+.bt.sec{background:rgba(10,20,48,.9);color:var(--text);border:1px solid var(--line);box-shadow:none}
+.bt.red{background:linear-gradient(135deg,#ff2f5a,#a3123a);color:#fff}
+.bt.gold{background:linear-gradient(135deg,#ffd166,#f5a623);color:#1a0f00}
+.bt:disabled{opacity:.35;cursor:default}
+.t-info{font-size:14px;color:var(--muted);min-height:20px;position:relative;z-index:1}
+.t-save{font-size:15px;color:#cfe0ff;background:rgba(10,20,48,.7);border:1px solid var(--line);border-radius:10px;padding:10px 14px;position:relative;z-index:1}
+.t-save b{color:var(--cyan)}
+.esq{position:fixed;top:14px;left:14px;z-index:5;padding:8px 12px;border-radius:9px;border:1px solid var(--line);background:rgba(10,20,48,.8);font-family:'Orbitron',monospace;font-size:10px;letter-spacing:1.5px;color:var(--cyan);text-decoration:none}
+
+/* ═══ NUEVA PARTIDA ═══ */
+#sNueva{background:var(--bg);overflow-y:auto;align-items:center;padding:22px 16px 40px}
+.n-box{width:min(760px,100%)}
+.h2{font-family:'Orbitron',monospace;font-size:16px;font-weight:900;letter-spacing:3px;color:var(--cyan);margin:6px 0 14px;text-transform:uppercase}
+.inp{width:100%;padding:13px 14px;border-radius:10px;border:1px solid var(--line);background:var(--bg2);color:var(--text);font-size:17px;font-weight:600;outline:none;margin-bottom:16px;font-family:'Rajdhani',sans-serif}
+.inp:focus{border-color:var(--cyan)}
+.lbl{font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);margin:4px 0 8px;text-transform:uppercase}
+.decks{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-bottom:18px}
+.dk{display:flex;align-items:center;gap:10px;padding:8px;border-radius:10px;border:1px solid var(--line);background:var(--bg2);text-align:left}
+.dk img,.dk .ph{width:42px;height:59px;border-radius:5px;object-fit:cover;flex-shrink:0;background:#0d1838;display:flex;align-items:center;justify-content:center;font-size:20px}
+.dk b{display:block;font-size:15px;line-height:1.1}
+.dk small{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+.dk.av{flex-direction:column;align-items:stretch;text-align:center;padding:12px}
+.dk.av img{width:100%;height:auto;aspect-ratio:5/7;border-radius:10px;margin-bottom:8px}
+.dk.av b{font-family:'Orbitron',monospace;font-size:13px;letter-spacing:1px;margin-bottom:4px}
+.dk.av small{font-size:13.5px;line-height:1.3}
+.dk.on{border-color:var(--cyan);background:rgba(54,214,255,.1);box-shadow:0 0 14px rgba(54,214,255,.2)}
+
+/* ═══ MAPA ═══ */
+#sMapa{background:#020614}
+.hud{height:var(--hud);flex-shrink:0;display:flex;align-items:center;gap:8px;padding:0 10px;background:linear-gradient(180deg,rgba(5,10,28,.98),rgba(5,10,28,.9));border-bottom:1px solid var(--line);z-index:20;position:relative}
+.hud::after{content:'';position:absolute;left:4%;right:4%;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),var(--purple),transparent);opacity:.7}
+.hb{height:38px;min-width:38px;padding:0 10px;border-radius:9px;border:1px solid var(--line);background:rgba(10,20,48,.85);display:flex;align-items:center;justify-content:center;gap:6px;font-family:'Orbitron',monospace;font-size:10px;font-weight:700;letter-spacing:1px;flex-shrink:0}
+.hb:hover{border-color:var(--cyan)}
+.hb .t{display:none}
+.h-title{font-family:'Orbitron',monospace;font-weight:900;font-size:13px;letter-spacing:3px;color:var(--cyan);text-shadow:0 0 10px rgba(54,214,255,.5);white-space:nowrap}
+.h-sp{flex:1}
+.dia{display:flex;align-items:center;gap:8px;padding:5px 12px 5px 6px;border-radius:20px;background:linear-gradient(90deg,#fff,#dfe8ff);color:#0a1430;font-family:'Orbitron',monospace;font-weight:900;font-size:11px;letter-spacing:1px;white-space:nowrap;box-shadow:0 0 0 2px #0a1430,0 0 0 3px var(--red)}
+.dia i{font-style:normal;background:var(--red);color:#fff;border-radius:12px;padding:3px 7px;font-size:9px}
+.mon{font-family:'Orbitron',monospace;font-size:12px;font-weight:900;color:#ffd166;white-space:nowrap}
+.mapa{flex:1;position:relative;overflow:auto;scrollbar-width:none;cursor:grab;touch-action:pan-x pan-y}
+.mapa::-webkit-scrollbar{display:none}
+.mapa.drag{cursor:grabbing}
+.mi{position:relative;margin:0 auto;transform-origin:0 0}
+.mi>svg,.mi>img.fondo{position:absolute;inset:0;width:100%;height:100%;display:block}
+.mi>img.fondo{object-fit:cover}
+.lock-layer{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+/* Puntos */
+.pt{position:absolute;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;z-index:3;filter:drop-shadow(0 4px 4px rgba(0,0,0,.6));transition:transform .15s}
+.pt:hover,.pt:focus-visible,.pt.sel{transform:translate(-50%,-100%) scale(1.18);z-index:6}
+.pin{width:34px;height:44px;position:relative}
+.pin svg{width:100%;height:100%;display:block}
+.pt .lab{margin-top:1px;padding:1px 6px;border-radius:5px;background:rgba(2,6,20,.82);font-family:'Orbitron',monospace;font-size:8.5px;font-weight:700;letter-spacing:.5px;white-space:nowrap;color:#dfe8ff;opacity:0;transition:opacity .15s;pointer-events:none}
+.pt:hover .lab,.pt:focus-visible .lab,.pt.sel .lab,.mapa.etq .pt .lab{opacity:1}
+.pt .ok{position:absolute;top:-4px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--green);color:#002417;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;box-shadow:0 0 8px var(--green)}
+.pt .ex{position:absolute;top:-10px;left:50%;transform:translateX(-50%);font-family:'Orbitron',monospace;font-weight:900;font-size:16px;color:#ffd166;text-shadow:0 0 8px #f5a623,0 2px 0 #000;animation:bob 1s ease-in-out infinite}
+@keyframes bob{50%{transform:translateX(-50%) translateY(-4px)}}
+.pt.guardian .pin{width:46px;height:46px}
+.pt.guardian .pin{animation:gpul 1.6s ease-in-out infinite}
+@keyframes gpul{50%{filter:drop-shadow(0 0 10px rgba(255,47,90,.9))}}
+.pt.jefe-ok .pin{animation:none;opacity:.75}
+.dlab{position:absolute;transform:translate(-50%,-50%);font-family:'Orbitron',monospace;font-weight:900;letter-spacing:2px;font-size:11px;text-transform:uppercase;white-space:nowrap;pointer-events:none;
+  color:#fff;text-shadow:0 0 6px var(--dc),0 0 14px var(--dc),0 2px 2px #000;z-index:2;opacity:.9}
+.dlab.lock{color:#8b98bd;text-shadow:0 2px 2px #000}
+.dlab small{display:block;text-align:center;font-size:8px;letter-spacing:1px;opacity:.85;margin-top:2px}
+.zoom{position:absolute;right:12px;bottom:14px;display:flex;flex-direction:column;gap:6px;z-index:15}
+.zoom .hb{width:42px;height:42px;font-size:18px}
+.toast{position:fixed;left:50%;top:calc(var(--hud) + 12px);transform:translateX(-50%) translateY(-10px);opacity:0;z-index:300;padding:10px 18px;border-radius:12px;background:rgba(5,10,28,.95);border:1px solid var(--cyan);
+  color:var(--cyan);font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:1px;transition:all .25s;pointer-events:none;max-width:92vw;text-align:center}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.noche{position:fixed;inset:0;z-index:250;background:radial-gradient(ellipse at center,#0b1640,#000);display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;opacity:0;transition:opacity .5s}
+.noche.on{display:flex;opacity:1}
+.noche b{font-family:'Orbitron',monospace;font-size:clamp(22px,5vw,40px);font-weight:900;letter-spacing:4px;color:#fff;text-shadow:0 0 20px var(--cyan)}
+.noche span{font-size:18px;color:#9fb2dd;letter-spacing:2px}
+
+/* ═══ FICHA (panel del punto) ═══ */
+.ficha{position:fixed;left:0;right:0;bottom:0;z-index:60;background:var(--panel);border-top:1px solid var(--line);border-radius:18px 18px 0 0;padding:14px 16px 18px;
+  transform:translateY(105%);transition:transform .25s ease;backdrop-filter:blur(10px);box-shadow:0 -10px 40px rgba(0,0,0,.6)}
+.ficha.on{transform:none}
+.f-top{display:flex;gap:14px;align-items:flex-end}
+.f-ret{width:96px;height:120px;flex-shrink:0;border-radius:12px;overflow:hidden;background:linear-gradient(180deg,var(--fc,#36d6ff),#0a1430);border:2px solid var(--fc,#36d6ff);position:relative}
+.f-ret img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top}
+.f-tipo{display:inline-block;font-family:'Orbitron',monospace;font-size:9px;font-weight:900;letter-spacing:2px;padding:3px 8px;border-radius:6px;background:var(--fc);color:#020616;margin-bottom:6px}
+.f-n{font-family:'Orbitron',monospace;font-size:17px;font-weight:900;letter-spacing:1px;line-height:1.15}
+.f-t{font-size:15px;color:#b8c8ee}
+.f-d{font-size:13px;color:var(--muted);margin-top:4px}
+.f-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{font-size:12.5px;font-weight:700;padding:4px 9px;border-radius:7px;background:rgba(255,255,255,.05);border:1px solid var(--line);color:#cfe0ff}
+.chip.ok{color:var(--green);border-color:rgba(0,255,157,.35)}
+.chip.no{color:#ffb3c2;border-color:rgba(255,47,90,.4)}
+.f-btns{display:flex;gap:8px;margin-top:14px}
+.f-btns .bt{flex:1;padding:13px 8px;font-size:11px}
+.f-x{position:absolute;top:10px;right:12px;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:rgba(10,20,48,.9);font-size:15px;color:var(--muted)}
+
+/* ═══ DIÁLOGO RETRO ═══ */
+.dlg{position:fixed;inset:0;z-index:200;display:none;flex-direction:column;justify-content:flex-end;background:rgba(0,0,0,.35)}
+.dlg.on{display:flex}
+.d-escena{position:absolute;inset:0;overflow:hidden;background:#000}
+/* Franja panorámica del distrito (estilo GBA): paisaje angosto detrás del personaje */
+.d-banda{position:absolute;left:0;right:0;top:9vh;height:min(40vh,380px);background:#0b1a44 center/cover no-repeat;
+  box-shadow:0 -2px 0 var(--fc,#36d6ff),0 2px 0 var(--fc,#36d6ff),0 0 30px color-mix(in srgb,var(--fc,#36d6ff) 40%,transparent);animation:bandaIn .35s ease both}
+.d-banda svg{width:100%;height:100%;display:block}
+@keyframes bandaIn{from{clip-path:inset(50% 0 50% 0)}to{clip-path:inset(0 0 0 0)}}
+.d-escena::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 70%,color-mix(in srgb,var(--fc,#36d6ff) 35%,transparent),transparent 65%)}
+.d-escena::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.12) 3px,rgba(0,0,0,.12) 4px);pointer-events:none}
+.d-ret{position:absolute;left:50%;bottom:min(31vh,240px);transform:translateX(-50%);height:min(64vh,580px);z-index:1;max-width:92vw;animation:retIn .35s ease both;image-rendering:auto;filter:drop-shadow(0 10px 30px rgba(0,0,0,.6))}
+.d-ret.carta{height:min(48vh,420px);border-radius:14px;border:3px solid var(--fc,#36d6ff);box-shadow:0 0 40px color-mix(in srgb,var(--fc,#36d6ff) 50%,transparent)}
+@keyframes retIn{from{opacity:0;transform:translateX(-50%) translateY(30px)}to{opacity:1;transform:translateX(-50%)}}
+.d-caja{position:relative;margin:0 auto calc(14px + env(safe-area-inset-bottom));width:min(980px,calc(100% - 20px));min-height:min(30vh,210px);
+  border-radius:18px;padding:16px 20px 18px;background:#f7f9ff;color:#0a0f1e;
+  box-shadow:0 0 0 4px #0a1430,0 0 0 7px var(--fc,#36d6ff),0 0 0 9px #0a1430,0 20px 50px rgba(0,0,0,.6)}
+.d-nom{position:absolute;top:-18px;left:22px;padding:5px 14px;border-radius:9px;background:#0a1430;color:#fff;font-family:'Orbitron',monospace;font-size:12px;font-weight:900;letter-spacing:2px;border:2px solid var(--fc,#36d6ff)}
+.d-txt{font-family:'VT323',monospace;font-size:clamp(24px,3.4vw,34px);line-height:1.12;min-height:3.4em;white-space:pre-wrap}
+.d-sig{position:absolute;right:18px;bottom:10px;font-size:18px;color:var(--red);animation:bob2 .8s ease-in-out infinite}
+@keyframes bob2{50%{transform:translateY(4px)}}
+.d-ops{display:flex;gap:10px;margin-top:10px;justify-content:flex-end;flex-wrap:wrap}
+.d-ops .bt{padding:12px 18px;font-size:11px}
+
+/* ═══ VENTANAS ═══ */
+.modal{position:fixed;inset:0;z-index:150;display:none;align-items:center;justify-content:center;padding:14px;background:rgba(0,0,0,.7);backdrop-filter:blur(6px)}
+.modal.on{display:flex}
+.mbox{width:min(720px,100%);max-height:88vh;overflow-y:auto;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;position:relative}
+.mt{font-family:'Orbitron',monospace;font-size:14px;font-weight:900;letter-spacing:3px;color:var(--cyan);margin-bottom:12px;padding-right:40px}
+.dist{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:8px;background:rgba(10,20,48,.6);border-left:4px solid var(--dc)}
+.dist.lock{opacity:.55}
+.dist-n{display:flex;justify-content:space-between;gap:8px;font-family:'Orbitron',monospace;font-size:12px;font-weight:900;letter-spacing:1px}
+.dist-n span{color:var(--dc)}
+.bar{height:6px;border-radius:4px;background:rgba(0,0,0,.4);margin:8px 0 6px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--dc);border-radius:4px}
+.dist small{font-size:13px;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.st{background:rgba(10,20,48,.7);border:1px solid var(--line);border-radius:10px;padding:10px 4px;text-align:center}
+.st b{display:block;font-family:'Orbitron',monospace;font-size:18px;color:var(--cyan)}
+.st small{font-family:'Orbitron',monospace;font-size:8px;letter-spacing:1.5px;color:var(--muted)}
+
+/* ═══ EDITOR ═══ */
+.ed{position:fixed;left:10px;bottom:10px;z-index:70;width:min(420px,calc(100% - 20px));background:rgba(5,10,28,.95);border:1px solid var(--gold);border-radius:12px;padding:10px 12px;font-size:13px;display:none}
+body.editor .ed{display:block}
+.ed b{color:var(--gold);font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px}
+.ed pre{font-size:11.5px;white-space:pre-wrap;color:#cfe0ff;max-height:150px;overflow:auto;margin:6px 0;background:#020614;border-radius:8px;padding:6px 8px}
+.ed .row{display:flex;gap:6px}
+.ed .row .bt{flex:1;padding:9px 6px;font-size:9.5px}
+body.editor .pt{cursor:move}
+
+@media (max-width:620px){
+  .h-title{display:none}
+  .dia span{display:none}
+  .hb{min-width:34px;height:34px;padding:0 6px}
+  .hud{gap:6px;padding:0 8px}
+}
+@media (min-width:900px){
+  .hb .t{display:inline}
+  .ficha{left:auto;right:16px;bottom:16px;width:420px;border-radius:18px;border:1px solid var(--line)}
+  .ficha:not(.on){transform:translateX(120%)}
+  .d-caja{min-height:200px;padding:20px 28px}
+}
+@media (max-width:620px) and (orientation:portrait){
+  .d-banda{top:12vh;height:30vh}
+  .d-ret{height:52vh;bottom:30vh}
+}
+@media (max-height:520px){
+  .d-banda{top:4vh;height:46vh}
+  .d-ret{height:58vh;bottom:44vh}
+  .d-caja{min-height:auto}
+  .d-txt{min-height:2.3em;font-size:24px}
+  .f-ret{width:70px;height:88px}
+}
+</style>
+</head>
+<body>
+<!-- ══════ TÍTULO ══════ -->
+<section class="scr on" id="sTitulo">
+  <a class="esq" href="index.html">← MENÚ</a>
+  <div class="t-kicker">Choque de Héroes · Modo Aventura</div>
+  <div class="t-title" id="tTitulo">NEXOTLAN</div>
+  <div class="t-sub" id="tSub">La ciudad entre dimensiones</div>
+  <div class="t-save" id="tSave" hidden></div>
+  <div class="t-btns">
+    <button class="bt" id="tCont" disabled>▶ CONTINUAR</button>
+    <button class="bt sec" id="tNueva">✨ NUEVA AVENTURA</button>
+  </div>
+  <div class="t-info" id="tInfo">Cargando Nexotlan…</div>
+</section>
+
+<!-- ══════ NUEVA PARTIDA / CAMBIAR BARAJA ══════ -->
+<section class="scr" id="sNueva">
+  <div class="n-box">
+    <button class="bt sec" style="width:auto;display:inline-flex;margin-bottom:12px" id="nVolver">← VOLVER</button>
+    <div class="h2" id="nTit">Nueva aventura</div>
+    <div id="nNombreBox"><div class="lbl">Tu nombre de jugador</div><input class="inp" id="nNombre" maxlength="20" placeholder="Tu nombre"></div>
+    <div class="lbl">Elige tu baraja inicial</div>
+    <div class="decks" id="nDecks"></div>
+    <button class="bt" id="nGo" disabled style="width:100%">🗺 ENTRAR A NEXOTLAN</button>
+  </div>
+</section>
+
+<!-- ══════ MAPA ══════ -->
+<section class="scr" id="sMapa">
+  <div class="hud" id="hud">
+    <button class="hb" id="hSalir" aria-label="Salir">←<span class="t">SALIR</span></button>
+    <div class="h-title" id="hTitulo">NEXOTLAN</div>
+    <div class="h-sp"></div>
+    <div class="dia" id="hDia"><i>DÍA 1</i><span>LUNES</span></div>
+    <div class="mon" id="hMon">🪙 0</div>
+    <button class="hb" id="hDescansar" title="Descansar (avanza un día)">🌙<span class="t">DESCANSAR</span></button>
+    <button class="hb" id="hDiario" title="Diario">📖<span class="t">DIARIO</span></button>
+    <button class="hb" id="hBaraja" title="Cambiar baraja">🃏<span class="t">BARAJA</span></button>
+    <button class="hb" id="hMute" title="Música">🔊</button>
+  </div>
+  <div class="mapa" id="mapa"><div class="mi" id="mi"></div></div>
+  <div class="zoom"><button class="hb" id="zMas" aria-label="Acercar">＋</button><button class="hb" id="zMenos" aria-label="Alejar">－</button></div>
+</section>
+
+<!-- Ficha del punto -->
+<div class="ficha" id="ficha"><button class="f-x" id="fX" aria-label="Cerrar">✕</button><div id="fBody"></div></div>
+
+<!-- Diálogo -->
+<div class="dlg" id="dlg">
+  <div class="d-escena" id="dEsc"></div>
+  <div class="d-caja" id="dCaja"><div class="d-nom" id="dNom"></div><div class="d-txt" id="dTxt"></div><div class="d-ops" id="dOps"></div><div class="d-sig" id="dSig">▼</div></div>
+</div>
+
+<!-- Diario -->
+<div class="modal" id="mDiario"><div class="mbox"><button class="f-x" onclick="cerrarModal('mDiario')">✕</button><div class="mt">📖 DIARIO DE AVENTURA</div><div id="diBody"></div></div></div>
+<!-- Mensaje -->
+<div class="modal" id="mMsg"><div class="mbox" style="max-width:420px;text-align:center"><div class="mt" id="msgT" style="padding:0"></div><div id="msgB" style="font-size:16px;line-height:1.45;margin-bottom:14px"></div><div class="f-btns" id="msgOps"></div></div></div>
+
+<div class="noche" id="noche"><b id="nocheT">DÍA 2</b><span id="nocheS">MARTES</span></div>
+<div class="toast" id="toast"></div>
+<div class="ed" id="ed"><b>✏️ MODO EDITOR</b><div id="edInfo" style="margin-top:4px;color:var(--muted)">Toca el mapa para ver coordenadas. Arrastra un punto para moverlo.</div><pre id="edPre"></pre>
+  <div class="row"><button class="bt gold" id="edCopiar">📋 COPIAR mapa.txt</button><button class="bt sec" id="edEtq">🏷 NOMBRES</button></div></div>
+<audio id="aud" loop preload="none"></audio>
+
+<script src="nube.js"></script>
+<script>
+// ════════════════════════════════════════════════════════════════════
+//  MODO AVENTURA · NEXOTLAN  (Fase 1)
+//  · Mapa por distritos (se abren al vencer a su GUARDIÁN), puntos de
+//    rivales, héroes y guardianes, ciclo de días, diálogos retro.
+//  · Las partidas (Choques) usan el Simulador por el mismo canal del Arcade:
+//    escribe "chh_arcade_match" (con volver:'nexotlan.html') y lee
+//    "chh_arcade_result" al regresar con ?r=<id>.
+//  · Todo se personaliza en assets/nexotlan/mapa.txt (ver LEEME.txt).
+//  · Partida: localStorage "chh_nexotlan" + nube (jugadores/<ID>/nexotlan).
+// ════════════════════════════════════════════════════════════════════
+'use strict';
+const $ = id => document.getElementById(id);
+const esc = t => String(t ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const NK = t => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+const DIR = 'assets/nexotlan/';
+const KEY = 'chh_nexotlan';
+const EDITOR = new URLSearchParams(location.search).get('editor') === '1';
+const MW = 1600, MH = 1000;                 // espacio del mapa (proporción 16:10)
+const NIVELES = ['facil', 'medio', 'dificil', 'muy_dificil'];
+const NIV_TXT = { facil: 'Fácil', medio: 'Medio', dificil: 'Difícil', muy_dificil: 'Muy difícil' };
+
+let CFG = {}, DIST = [], PTS = [], RAW = [];
+let DATA = { cartas: [], barajas: [] }, CARD = {}, GALI = {};
+let S = null;                                // partida
+let SEL = null, ZOOM = 1, MUTE = false;
+
+// ════════════════ ARCHIVO DE TEXTO ════════════════
+function parseTxt(txt) {
+  const out = []; let cur = null;
+  String(txt).replace(/\r/g, '').split('\n').forEach(l => {
+    const t = l.trim();
+    if (!t || t.startsWith('#') || t.startsWith(';')) return;
+    const h = t.match(/^\[(.+)\]$/);
+    if (h) { const [tipo, id] = h[1].split(':').map(x => x.trim()); cur = { _sec: tipo.toLowerCase(), _id: id || tipo, _orden: [] }; out.push(cur); return; }
+    const m = t.match(/^([a-zA-Z0-9_]+)\s*=\s*(.*)$/);
+    if (m && cur) { const k = m[1].toLowerCase(); cur[k] = m[2].trim(); cur._orden.push(k); }
+  });
+  return out;
+}
+const lista = v => String(v || '').split(',').map(x => x.trim()).filter(Boolean);
+const num = (v, d) => { const n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? n : d; };
+
+function construirModelo(secs) {
+  RAW = secs;
+  CFG = Object.assign({ titulo: 'NEXOTLAN', subtitulo: '', dias: 'Lunes, Martes, Miércoles, Jueves, Viernes, Sábado, Domingo' }, secs.find(s => s._sec === 'config') || {});
+  CFG._dias = lista(CFG.dias); if (!CFG._dias.length) CFG._dias = ['Día'];
+  DIST = secs.filter(s => s._sec === 'distrito').map((s, i) => Object.assign(s, { id: s._id, _i: i, _x: num(s.x, 50), _y: num(s.y, 50), _r: num(s.radio, 12), color: s.color || '#36d6ff', _req: lista(s.requiere) }));
+  PTS = secs.filter(s => s._sec === 'punto').map(s => Object.assign(s, {
+    id: s._id, tipo: ({ personaje: 'heroe', 'héroe': 'heroe', heroe: 'heroe', guardian: 'guardian', 'guardián': 'guardian' }[(s.tipo || 'rival').toLowerCase()] || 'rival'), _x: num(s.x, 50), _y: num(s.y, 50),
+    _dias: lista(s.dias).map(d => NK(d).slice(0, 3)), _req: lista(s.requiere), _mon: parseInt(s.monedas, 10) || 0
+  }));
+}
+
+// ════════════════ CARTAS / BARAJAS / IMÁGENES ════════════════
+const galPath = f => !f ? '' : (/^(https?:|data:|\/|\.\/)/.test(f) ? f : './' + f);
+function cartaImg(id, grande) {
+  if (!id) return '';
+  id = String(id).trim();
+  if (/\.(png|jpe?g|webp|gif)$/i.test(id)) return galPath(id);
+  let g = null; const c = CARD[id];
+  if (c) g = GALI[String(c.galeriaId)];
+  if (!g) g = GALI[id] || null;
+  if (!g) { const k = NK(id); g = Object.values(GALI).find(x => NK(x.nombre) === k) || null;
+    if (!g) { const cc = Object.values(CARD).find(x => NK(x.nombre) === k); if (cc) g = GALI[String(cc.galeriaId)]; } }
+  if (!g) { const cc = CARD[id]; return cc && cc.img ? galPath(grande ? cc.img : (cc.imgMin || cc.img)) : ''; }
+  return galPath(grande ? (g.ampliada || g.miniatura) : (g.miniatura || g.ampliada));
+}
+// Paisaje panorámico: el del punto o el de su distrito (assets/nexotlan/paisajes/). Sin imagen se dibuja uno.
+function paisajeDe(p) { const d = distDe(p), f = p.paisaje || (d && d.paisaje); if (!f) return ''; return /\//.test(f) ? 'assets/' + f.replace(/^assets\//, '') : DIR + 'paisajes/' + f; }
+function skyline(d) {
+  const c = (d && d.color) || '#36d6ff', R = rnd(NK((d && d.id) || 'x').split('').reduce((a, ch) => a * 31 + ch.charCodeAt(0), 3));
+  let edif = '', x = 0; while (x < 1600) { const w = 40 + R() * 110, h = 90 + R() * 230; edif += `<rect x="${x.toFixed(0)}" y="${(500 - h).toFixed(0)}" width="${w.toFixed(0)}" height="${h.toFixed(0)}"/>`;
+    for (let k = 0; k < 4; k++) if (R() < .7) edif += `<rect x="${(x + 8 + R() * (w - 20)).toFixed(0)}" y="${(500 - h + 14 + R() * (h - 40)).toFixed(0)}" width="6" height="9" fill="${c}" opacity=".8"/>`;
+    x += w + 6; }
+  let lejos = ''; x = 0; while (x < 1600) { const w = 60 + R() * 160, h = 160 + R() * 220; lejos += `<rect x="${x.toFixed(0)}" y="${(500 - h).toFixed(0)}" width="${w.toFixed(0)}" height="${h.toFixed(0)}"/>`; x += w + 4; }
+  return `<svg viewBox="0 0 1600 500" preserveAspectRatio="xMidYMax slice"><defs><linearGradient id="cielo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#050a1c"/><stop offset=".55" stop-color="${c}" stop-opacity=".55"/><stop offset="1" stop-color="${c}"/></linearGradient></defs>
+    <rect width="1600" height="500" fill="url(#cielo)"/><circle cx="1180" cy="150" r="70" fill="#fff" opacity=".18"/>
+    <g fill="#0b1638" opacity=".75">${lejos}</g><g fill="#050a1c">${edif}</g></svg>`;
+}
+function imgPunto(p) { if (!p.imagen) return ''; return /\//.test(p.imagen) ? 'assets/' + p.imagen.replace(/^assets\//, '') : DIR + 'personajes/' + p.imagen; }
+const _imgOk = {};
+function probar(u) { if (!u) return Promise.resolve(false); if (u in _imgOk) return Promise.resolve(_imgOk[u]); return new Promise(r => { const im = new Image(); im.onload = () => r(_imgOk[u] = true); im.onerror = () => r(_imgOk[u] = false); im.src = u; }); }
+async function retrato(p) { const a = imgPunto(p); if (a && await probar(a)) return { src: a, carta: false }; const c = cartaImg(p.carta, true); return c ? { src: c, carta: true } : null; }
+function propias() { const out = []; try { (JSON.parse(localStorage.getItem('chh_decks') || '[]') || []).forEach((d, i) => { if (d && d.decks) out.push({ id: 'mis:' + i + ':' + (d.date || ''), nombre: d.name || ('Baraja ' + (i + 1)), estilo: 'Tu baraja del Constructor', propia: true }); }); } catch (e) {} return out; }
+// Barajas del modo: solo las básicas de la aventura ("aventura": true en data/cartas_simulacion.json).
+// Las del Constructor quedan fuera para que el reto no se rompa.
+const barajasJugador = () => { const a = (DATA.barajas || []).filter(b => b.aventura); return a.length ? a : (DATA.barajas || []).filter(b => !b.soloArcade).concat(propias()); };
+const esDelModo = id => barajasJugador().some(b => b.id === id);
+function sesionJug() { try { const s = JSON.parse(localStorage.getItem('nhSesion') || 'null'); return s && s.tipo !== 'tienda' && s.id ? s : null; } catch (e) { return null; } }
+function avatarPerfil() {          // mismo criterio que el Arcade (perfil.html guarda "nhAv_<ID>")
+  const j = sesionJug(); if (!j) return '';
+  let id = null; try { id = localStorage.getItem('nhAv_' + String(j.id).trim()) || localStorage.getItem('nhAv_' + String(j.id).trim().toUpperCase()); } catch (e) {}
+  if (!id) return 'avatares/avatar_1.jpg';
+  if (/^av_p\d+$/.test(id)) return 'avatares/' + id + '.jpg';
+  const m = id.match(/^av(\d+)$/); return m ? 'avatares/avatar_' + m[1] + '.jpg' : 'avatares/avatar_1.jpg';
+}
+
+// ════════════════ PARTIDA ════════════════
+function cargarLocal() { try { return JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { return null; } }
+function guardar(sinNube) {
+  if (!S) return; S.u = Date.now();
+  try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
+  if (!sinNube && window.CHH_NUBE && CHH_NUBE.sesionId()) CHH_NUBE.diferir('nexotlan', () => CHH_NUBE.sincronizarDoc('nexotlan', S), 1500);
+}
+function nueva(nombre, baraja, barajaNombre) {
+  return { v: 1, nombre, baraja, barajaNombre, dia: 0, monedas: 0, vencidos: {}, derrotas: {}, hablados: {}, abiertos: {}, victorias: 0, perdidas: 0, historial: [], inicio: Date.now(), u: Date.now(), pendiente: null };
+}
+const diaNombre = d => CFG._dias[((d % CFG._dias.length) + CFG._dias.length) % CFG._dias.length];
+const diaClave = d => NK(diaNombre(d)).slice(0, 3);
+const vencido = id => (S.vencidos[id] || 0) > 0;
+function cumple(req) { return req.every(r => vencido(r) || (S.hablados[r] || 0) > 0); }
+function distritoAbierto(d) { return EDITOR || !d._req.length || cumple(d._req) || S.abiertos[d.id]; }
+const distDe = p => DIST.find(d => d.id === p.distrito) || null;
+function visibleHoy(p) {
+  if (EDITOR) return true;
+  const d = distDe(p); if (d && !distritoAbierto(d)) return false;
+  if (p._req.length && !cumple(p._req) && p.tipo !== 'guardian') return false;
+  if (p._dias.length && !p._dias.includes(diaClave(S.dia))) return false;
+  return true;
+}
+function nivelDe(p) {
+  const v = String(p.dificultad || 'auto').toLowerCase();
+  if (NIVELES.includes(v)) return v;
+  const d = distDe(p), i = d ? d._i : 0;
+  return NIVELES[Math.min(3, i + (p.tipo === 'guardian' ? 1 : 0))];
+}
+function progresoDistrito(d) {
+  const pr = PTS.filter(p => p.distrito === d.id && (p.tipo === 'rival' || p.tipo === 'guardian'));
+  return { tot: pr.length, ven: pr.filter(p => vencido(p.id)).length, guard: pr.filter(p => p.tipo === 'guardian') };
+}
+
+// ════════════════ MAPA NEÓN GENERADO ════════════════
+function rnd(seed) { let s = seed >>> 0 || 1; return () => (s = (s * 1664525 + 1013904223) >>> 0) / 4294967296; }
+function formaDistrito(d) {
+  if (d.forma) { const pts = d.forma.trim().split(/\s+/).map(par => par.split(',').map(Number)).filter(a => a.length === 2 && a.every(isFinite)); if (pts.length >= 3) return pts.map(([x, y]) => [x / 100 * MW, y / 100 * MH]); }
+  const R = rnd(NK(d.id).split('').reduce((a, c) => a * 31 + c.charCodeAt(0), 7)), n = 14, out = [];
+  const cx = d._x / 100 * MW, cy = d._y / 100 * MH, r = d._r / 100 * MW * .85;
+  for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2, k = .72 + R() * .45; out.push([cx + Math.cos(a) * r * k, cy + Math.sin(a) * r * k * .8]); }
+  return out;
+}
+const pathDe = pts => {           // contorno suave que pasa por los puntos medios
+  const n = pts.length, mid = (a, b) => [((a[0] + b[0]) / 2).toFixed(1), ((a[1] + b[1]) / 2).toFixed(1)];
+  let s = 'M' + mid(pts[0], pts[1]).join(',');
+  for (let i = 1; i <= n; i++) { const p = pts[i % n], q = pts[(i + 1) % n]; s += ' Q' + p[0].toFixed(1) + ',' + p[1].toFixed(1) + ' ' + mid(p, q).join(','); }
+  return s + 'Z';
+};
+function svgMapa() {
+  const R = rnd(20261015);
+  let calles = '';
+  for (let i = 0; i < 46; i++) {           // red de calles
+    let x = R() * MW, y = R() * MH, d = 'M' + x.toFixed(0) + ',' + y.toFixed(0);
+    for (let k = 0; k < 5; k++) { if (R() < .5) x += (R() - .5) * 420; else y += (R() - .5) * 300; d += ' L' + x.toFixed(0) + ',' + y.toFixed(0); }
+    calles += `<path d="${d}" />`;
+  }
+  const rio = 'M-40,560 C180,520 300,640 470,600 S760,470 900,560 S1150,760 1320,690 S1560,540 1660,600 L1660,700 C1540,640 1400,780 1300,790 S1050,660 900,650 S650,560 470,690 S170,610 -40,660 Z';
+  // caminos entre distritos (en orden)
+  let caminos = '';
+  for (let i = 1; i < DIST.length; i++) { const a = DIST[i - 1], b = DIST[i]; const ax = a._x / 100 * MW, ay = a._y / 100 * MH, bx = b._x / 100 * MW, by = b._y / 100 * MH;
+    caminos += `<path d="M${ax},${ay} Q${(ax + bx) / 2 + (by - ay) * .2},${(ay + by) / 2 - (bx - ax) * .2} ${bx},${by}" />`; }
+  const zonas = DIST.map(d => { const ab = distritoAbierto(d); const p = pathDe(formaDistrito(d));
+    return `<g class="z" data-d="${esc(d.id)}"><path d="${p}" fill="${ab ? d.color : '#1a2242'}" fill-opacity="${ab ? .2 : .55}" stroke="${ab ? d.color : '#3a4670'}" stroke-width="${ab ? 4 : 3}" ${ab ? 'filter="url(#glow)"' : 'stroke-dasharray="14 10"'}/>
+      ${ab ? `<path d="${p}" fill="url(#rej)" opacity=".5"/>` : ''}</g>`; }).join('');
+  return `<svg viewBox="0 0 ${MW} ${MH}" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="fondo" cx="50%" cy="45%" r="75%"><stop offset="0" stop-color="#16306e"/><stop offset=".6" stop-color="#0b1a44"/><stop offset="1" stop-color="#040a1e"/></radialGradient>
+      <linearGradient id="agua" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0a3a9a"/><stop offset="1" stop-color="#062466"/></linearGradient>
+      <pattern id="rej" width="26" height="26" patternUnits="userSpaceOnUse"><path d="M26 0H0V26" fill="none" stroke="#fff" stroke-opacity=".12" stroke-width="1"/></pattern>
+      <filter id="glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    </defs>
+    <rect width="${MW}" height="${MH}" fill="url(#fondo)"/>
+    <rect width="${MW}" height="${MH}" fill="url(#rej)" opacity=".35"/>
+    <g fill="none" stroke="#5aa8ff" stroke-opacity=".22" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">${calles}</g>
+    <path d="${rio}" fill="url(#agua)" stroke="#36d6ff" stroke-opacity=".55" stroke-width="3"/>
+    <g fill="none" stroke="#ffd166" stroke-opacity=".35" stroke-width="7" stroke-dasharray="2 16" stroke-linecap="round">${caminos}</g>
+    ${zonas}
+  </svg>`;
+}
+function capaBloqueo() {      // con mapa ilustrado: oscurece los distritos cerrados
+  const z = DIST.filter(d => !distritoAbierto(d)).map(d => `<path d="${pathDe(formaDistrito(d))}" fill="#000" fill-opacity=".62" stroke="#3a4670" stroke-width="3" stroke-dasharray="14 10"/>`).join('');
+  return `<svg class="lock-layer" viewBox="0 0 ${MW} ${MH}" preserveAspectRatio="xMidYMid slice">${z}</svg>`;
+}
+const PIN = {
+  rival: c => `<svg viewBox="0 0 34 44"><path d="M17 43C17 43 3 26 3 16a14 14 0 0 1 28 0c0 10-14 27-14 27z" fill="url(#gg)" stroke="#5a3a00" stroke-width="2"/><defs><linearGradient id="gg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe9a0"/><stop offset="1" stop-color="#e09a12"/></linearGradient></defs><circle cx="17" cy="16" r="9" fill="#2a1a00" opacity=".85"/><text x="17" y="21" font-size="12" text-anchor="middle">⚔</text></svg>`,
+  heroe: c => `<svg viewBox="0 0 34 44"><rect x="2" y="3" width="30" height="26" rx="7" fill="#e8fbff" stroke="#0a6a8a" stroke-width="2"/><path d="M11 28l2 11 7-11z" fill="#e8fbff" stroke="#0a6a8a" stroke-width="2" stroke-linejoin="round"/><circle cx="10" cy="16" r="2.6" fill="#0a6a8a"/><circle cx="17" cy="16" r="2.6" fill="#0a6a8a"/><circle cx="24" cy="16" r="2.6" fill="#0a6a8a"/></svg>`,
+  guardian: c => `<svg viewBox="0 0 46 46"><circle cx="23" cy="23" r="20" fill="url(#rg)" stroke="#fff" stroke-width="3"/><defs><radialGradient id="rg" cx="40%" cy="35%"><stop offset="0" stop-color="#ff8aa2"/><stop offset=".55" stop-color="#ff2f5a"/><stop offset="1" stop-color="#8a0020"/></radialGradient></defs><path d="M23 9l4.2 8.6 9.4 1.3-6.8 6.6 1.6 9.4L23 30.4l-8.4 4.5 1.6-9.4-6.8-6.6 9.4-1.3z" fill="#ffd166" stroke="#7a3a00" stroke-width="1.5"/></svg>`
+};
+
+// ════════════════ PINTAR MAPA ════════════════
+function pintarMapa() {
+  const mi = $('mi');
+  const fondo = CFG.mapa ? `<img class="fondo" src="${esc(DIR + CFG.mapa)}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('div'),{innerHTML:svgMapa()}).firstElementChild)">${capaBloqueo()}` : svgMapa();
+  const etq = DIST.map(d => { const ab = distritoAbierto(d), pr = progresoDistrito(d);
+    return `<div class="dlab ${ab ? '' : 'lock'}" style="left:${d._x}%;top:${d._y - d._r * .55}%;--dc:${esc(d.color)}">${ab ? '' : '🔒 '}${esc(d.nombre || d.id)}<small>${ab ? pr.ven + '/' + pr.tot : 'Vence a ' + esc(nombresReq(d._req))}</small></div>`; }).join('');
+  const pts = PTS.filter(visibleHoy).map(p => {
+    const v = vencido(p.id), nuevoNpc = p.tipo === 'heroe' && !(S.hablados[p.id] > 0);
+    const bloq = p.tipo === 'guardian' && p._req.length && !cumple(p._req) && !EDITOR;
+    return `<button class="pt ${p.tipo} ${p.tipo === 'guardian' && v ? 'jefe-ok' : ''}" data-id="${esc(p.id)}" style="left:${p._x}%;top:${p._y}%" aria-label="${esc(p.nombre)}">
+      <span class="pin">${(PIN[p.tipo] || PIN.rival)()}${v ? '<span class="ok">✔</span>' : ''}${nuevoNpc ? '<span class="ex">!</span>' : ''}${bloq ? '<span class="ok" style="background:#3a4670;color:#fff;box-shadow:none">🔒</span>' : ''}</span>
+      <span class="lab">${esc(p.nombre)}</span></button>`;
+  }).join('');
+  mi.innerHTML = fondo + etq + pts;
+  mi.querySelectorAll('.pt').forEach(b => { b.onclick = e => { if (b._movido) { b._movido = false; return; } abrirFicha(b.dataset.id); }; });
+  if (EDITOR) activarEditor();
+  pintarHud();
+}
+function nombresReq(req) { return req.map(r => (PTS.find(p => p.id === r) || {}).nombre || r).join(', '); }
+function pintarHud() {
+  $('hTitulo').textContent = CFG.titulo || 'NEXOTLAN';
+  $('hDia').innerHTML = `<i>DÍA ${S.dia + 1}</i><span>${esc(diaNombre(S.dia).toUpperCase())}</span>`;
+  $('hMon').textContent = '🪙 ' + (S.monedas || 0);
+  $('hMute').textContent = MUTE ? '🔇' : '🔊';
+}
+// Zoom: el mapa mide (ancho visible × zoom) y se recorre con scroll (dedo, ratón o control)
+function ajustarZoom(z, cx, cy) {
+  const m = $('mapa'), mi = $('mi');
+  const w0 = m.clientWidth, h0 = m.clientHeight;
+  const base = Math.max(w0, h0 * MW / MH);          // cubre toda el área visible
+  const prevW = mi.offsetWidth || base;
+  ZOOM = Math.max(1, Math.min(2.6, z));
+  const W = base * ZOOM; mi.style.width = W + 'px'; mi.style.height = W * MH / MW + 'px';
+  const fx = cx == null ? w0 / 2 : cx, fy = cy == null ? h0 / 2 : cy;
+  const k = W / prevW;
+  m.scrollLeft = (m.scrollLeft + fx) * k - fx; m.scrollTop = (m.scrollTop + fy) * k - fy;
+}
+function centrarEn(xp, yp, suave) { const m = $('mapa'), mi = $('mi'); m.scrollTo({ left: mi.offsetWidth * xp / 100 - m.clientWidth / 2, top: mi.offsetHeight * yp / 100 - m.clientHeight / 2, behavior: suave ? 'smooth' : 'auto' }); }
+
+// Arrastrar con el ratón (en táctil el scroll es nativo); rueda = zoom
+(function () {
+  const m = $('mapa'); let dn = null;
+  m.addEventListener('pointerdown', e => { if (e.pointerType !== 'mouse' || e.button !== 0 || e.target.closest('.pt')) return; dn = { x: e.clientX, y: e.clientY, l: m.scrollLeft, t: m.scrollTop, mv: false }; });
+  addEventListener('pointermove', e => { if (!dn) return; const dx = e.clientX - dn.x, dy = e.clientY - dn.y; if (Math.abs(dx) + Math.abs(dy) > 4) { dn.mv = true; m.classList.add('drag'); } m.scrollLeft = dn.l - dx; m.scrollTop = dn.t - dy; });
+  addEventListener('pointerup', e => { if (dn && !dn.mv && EDITOR && !e.target.closest('.pt')) coordsEditor(e); dn = null; m.classList.remove('drag'); });
+  m.addEventListener('wheel', e => { if (!e.ctrlKey && Math.abs(e.deltaY) < 1) return; e.preventDefault(); const r = m.getBoundingClientRect(); ajustarZoom(ZOOM * (e.deltaY < 0 ? 1.15 : 1 / 1.15), e.clientX - r.left, e.clientY - r.top); }, { passive: false });
+  // pellizco
+  let p0 = null; const ts = new Map();
+  m.addEventListener('touchstart', e => { [...e.changedTouches].forEach(t => ts.set(t.identifier, t)); if (ts.size === 2) { const [a, b] = [...ts.values()]; p0 = { d: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY), z: ZOOM }; } }, { passive: true });
+  m.addEventListener('touchmove', e => { [...e.changedTouches].forEach(t => ts.set(t.identifier, t)); if (p0 && ts.size === 2) { const [a, b] = [...ts.values()]; const d = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY); const r = m.getBoundingClientRect(); ajustarZoom(p0.z * d / p0.d, (a.clientX + b.clientX) / 2 - r.left, (a.clientY + b.clientY) / 2 - r.top); e.preventDefault(); } }, { passive: false });
+  m.addEventListener('touchend', e => { [...e.changedTouches].forEach(t => ts.delete(t.identifier)); if (ts.size < 2) p0 = null; });
+  addEventListener('resize', () => { if ($('sMapa').classList.contains('on')) ajustarZoom(ZOOM); });
+})();
+
+// ════════════════ FICHA ════════════════
+const TIPO_TXT = { rival: ['RIVAL', '#f5a623'], heroe: ['HÉROE', '#36d6ff'], guardian: ['GUARDIÁN', '#ff2f5a'] };
+async function abrirFicha(id) {
+  const p = PTS.find(x => x.id === id); if (!p) return;
+  SEL = p; document.querySelectorAll('.pt').forEach(b => b.classList.toggle('sel', b.dataset.id === id));
+  if (EDITOR) { mostrarBloque(p); }
+  const d = distDe(p), [tt, tc] = TIPO_TXT[p.tipo] || TIPO_TXT.rival, ret = await retrato(p);
+  const v = S.vencidos[p.id] || 0, dr = S.derrotas[p.id] || 0;
+  const chips = [];
+  if (d) chips.push(`<span class="chip" style="color:${esc(d.color)}">📍 ${esc(d.nombre)}</span>`);
+  if (p.tipo !== 'heroe') { chips.push(`<span class="chip">⚔ ${NIV_TXT[nivelDe(p)]}</span>`); if (v) chips.push(`<span class="chip ok">✔ Vencido ×${v}</span>`); if (dr) chips.push(`<span class="chip no">✖ Derrotas ${dr}</span>`); if (p._mon) chips.push(`<span class="chip">🪙 ${p._mon}${v ? ' (revancha: ' + Math.ceil(p._mon / 4) + ')' : ''}</span>`); }
+  if (p._dias.length) chips.push(`<span class="chip">📅 ${p._dias.map(x => x.charAt(0) + x.slice(1).toLowerCase()).join(' · ')}</span>`);
+  const bloq = p.tipo === 'guardian' && p._req.length && !cumple(p._req);
+  if (bloq) chips.push(`<span class="chip no">🔒 Antes vence a: ${esc(nombresReq(p._req.filter(r => !vencido(r))))}</span>`);
+  let btns = '';
+  if (p.tipo === 'heroe') btns = `<button class="bt" id="fHablar">💬 HABLAR</button>`;
+  else btns = `<button class="bt ${p.tipo === 'guardian' ? 'red' : 'gold'}" id="fRetar" ${bloq ? 'disabled' : ''}>⚔ ${v ? 'REVANCHA' : 'RETAR'}</button><button class="bt sec" id="fHablar">💬 HABLAR</button>`;
+  $('fBody').innerHTML = `<div class="f-top" style="--fc:${tc}">
+      <div class="f-ret">${ret ? `<img src="${esc(ret.src)}" alt="">` : ''}</div>
+      <div style="min-width:0"><span class="f-tipo" style="--fc:${tc}">${tt}</span><div class="f-n">${esc(p.nombre)}</div><div class="f-t">${esc(p.titulo || '')}</div></div></div>
+    <div class="f-chips">${chips.join('')}</div><div class="f-btns">${btns}</div>`;
+  $('ficha').classList.add('on');
+  const h = $('fHablar'), r = $('fRetar');
+  if (h) h.onclick = () => hablar(p);
+  if (r) r.onclick = () => retar(p);
+  try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar(r && !r.disabled ? r : h), 60); } catch (e) {}
+}
+function cerrarFicha() { $('ficha').classList.remove('on'); SEL = null; document.querySelectorAll('.pt.sel').forEach(b => b.classList.remove('sel')); }
+$('fX').onclick = cerrarFicha;
+
+// ════════════════ DIÁLOGOS ════════════════
+let DLG = null;
+const paginas = t => String(t || '').split('|').map(x => x.trim()).filter(Boolean);
+async function dialogo(p, texto, ops) {
+  const pags = paginas(texto); if (!pags.length) pags.push('…');
+  const ret = await retrato(p), [, tc] = TIPO_TXT[p.tipo] || TIPO_TXT.rival;
+  const d = distDe(p);
+  $('dlg').style.setProperty('--fc', (d && d.color) || tc);
+  const pai = paisajeDe(p), hayPai = pai && await probar(pai);
+  $('dEsc').innerHTML = (hayPai ? `<div class="d-banda" style="background-image:url('${esc(pai)}')"></div>` : `<div class="d-banda">${skyline(d)}</div>`) +
+    (ret ? `<img class="d-ret ${ret.carta ? 'carta' : ''}" src="${esc(ret.src)}" alt="">` : '');
+  $('dNom').textContent = (p.nombre || '').toUpperCase();
+  $('dlg').classList.add('on');
+  return new Promise(res => { DLG = { pags, i: 0, ops: ops || [], res, esc: 0 }; mostrarPagina(); });
+}
+function mostrarPagina() {
+  const D = DLG; if (!D) return;
+  const txt = D.pags[D.i], el = $('dTxt'); el.textContent = '';
+  $('dOps').innerHTML = ''; $('dSig').style.display = 'none';
+  clearInterval(D.tm); let k = 0; D.esc = 1;
+  D.tm = setInterval(() => { k += 2; el.textContent = txt.slice(0, k); if (k >= txt.length) finEscritura(); }, 18);
+}
+function finEscritura() {
+  const D = DLG; if (!D) return; clearInterval(D.tm); D.esc = 0; $('dTxt').textContent = D.pags[D.i];
+  const ult = D.i >= D.pags.length - 1;
+  if (ult && D.ops.length) {
+    $('dOps').innerHTML = D.ops.map((o, i) => `<button class="bt ${o[1] || ''}" data-i="${i}">${o[0]}</button>`).join('');
+    $('dOps').querySelectorAll('button').forEach(b => b.onclick = e => { e.stopPropagation(); cerrarDialogo(+b.dataset.i); });
+    try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('dOps').querySelector('button')), 40); } catch (e) {}
+  } else $('dSig').style.display = '';
+}
+function avanzarDialogo() {
+  const D = DLG; if (!D) return;
+  if (D.esc) { finEscritura(); return; }
+  if (D.i < D.pags.length - 1) { D.i++; mostrarPagina(); return; }
+  if (!D.ops.length) cerrarDialogo(-1);
+}
+function cerrarDialogo(i) { const D = DLG; if (!D) return; clearInterval(D.tm); DLG = null; $('dlg').classList.remove('on'); D.res(i); }
+$('dlg').addEventListener('click', e => { if (e.target.closest('.d-ops')) return; avanzarDialogo(); });
+document.addEventListener('keydown', e => {
+  if (DLG && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); avanzarDialogo(); }
+  if (e.key === 'Escape') { if (DLG && !DLG.ops.length) cerrarDialogo(-1); else if ($('mDiario').classList.contains('on')) cerrarModal('mDiario'); else cerrarFicha(); }
+});
+
+async function hablar(p) {
+  if (p.tipo === 'heroe') {
+    const primera = !(S.hablados[p.id] > 0);
+    await dialogo(p, primera ? (p.dialogo || p.entrada) : (p.dialogo2 || p.dialogo || p.entrada));
+    S.hablados[p.id] = (S.hablados[p.id] || 0) + 1;
+    if (primera && p._mon) { S.monedas += p._mon; toast('🪙 +' + p._mon + ' monedas de ' + p.nombre); }
+    guardar(); revisarAperturas(); pintarMapa(); if (SEL) abrirFicha(p.id);
+    return;
+  }
+  const v = vencido(p.id);
+  const bloq = p.tipo === 'guardian' && p._req.length && !cumple(p._req);
+  if (bloq) { await dialogo(p, (p.entrada ? paginas(p.entrada)[0] + ' | ' : '') + 'Primero demuestra tu valor contra: ' + nombresReq(p._req.filter(r => !vencido(r))) + '.'); return; }
+  const r = await dialogo(p, v && p.revancha ? p.revancha : p.entrada, [['⚔ ¡CHOQUE!', p.tipo === 'guardian' ? 'red' : 'gold'], ['AHORA NO', 'sec']]);
+  if (r === 0) retar(p, true);
+}
+function retar(p, yaHablo) {
+  if (!yaHablo && !vencido(p.id)) { hablar(p); return; }
+  iniciarChoque(p);
+}
+
+// ════════════════ CHOQUES (Simulador) ════════════════
+async function iniciarChoque(p) {
+  const id = 'nx' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const d = distDe(p), ret = await retrato(p);
+  S.pendiente = { id, punto: p.id, dia: S.dia }; guardar(true);
+  const m = { id, slot: 0, ronda: 1, total: 1, jefe: p.tipo === 'guardian', jefeTxt: 'GUARDIÁN', jugador: S.baraja, cpu: p.baraja, nivel: nivelDe(p),
+    corazonesExtra: parseInt(p.corazones, 10) || 0, avatar: avatarPerfil() ? new URL(avatarPerfil(), location.href).href : '', nombre: p.nombre,
+    retrato: ret ? new URL(ret.src, location.href).href : '', musica: p.musica ? new URL(p.musica, location.href).href : '',
+    volver: 'nexotlan.html', volverTxt: 'NEXOTLAN', etiqueta: '🗺 NEXOTLAN · ' + (d ? d.nombre : '') };
+  try { localStorage.setItem('chh_arcade_match', JSON.stringify(m)); } catch (e) {}
+  location.href = 'simulacion.html?modo=arcade';
+}
+async function procesarResultado() {
+  if (!S || !S.pendiente) return false;
+  let res = null; try { res = JSON.parse(localStorage.getItem('chh_arcade_result') || 'null'); } catch (e) {}
+  const q = new URLSearchParams(location.search).get('r');
+  if (q) history.replaceState(null, '', location.pathname + (EDITOR ? '?editor=1' : ''));
+  if (!res || res.id !== S.pendiente.id) return false;
+  const p = PTS.find(x => x.id === S.pendiente.punto);
+  S.pendiente = null;
+  try { localStorage.removeItem('chh_arcade_result'); } catch (e) {}
+  if (!p) { guardar(); return false; }
+  const antes = vencido(p.id);
+  S.historial.push({ p: p.id, won: !!res.won, dia: S.dia, turnos: res.turnos || 0, ts: Date.now() });
+  if (S.historial.length > 200) S.historial = S.historial.slice(-200);
+  let premio = 0;
+  if (res.won) { S.vencidos[p.id] = (S.vencidos[p.id] || 0) + 1; S.victorias++; premio = antes ? Math.ceil(p._mon / 4) : p._mon; S.monedas += premio; }
+  else { S.derrotas[p.id] = (S.derrotas[p.id] || 0) + 1; S.perdidas++; }
+  S.dia++;                               // cada Choque consume el día
+  guardar();
+  irA('sMapa'); pintarMapa(); centrarEn(p._x, p._y);
+  await dialogo(p, res.won ? p.victoria : p.derrota);
+  if (res.abandono) await mensaje('🚪 CHOQUE ABANDONADO', 'Saliste del Choque antes de terminarlo: cuenta como <b>derrota</b>.');
+  if (premio) toast('🪙 +' + premio + ' monedas');
+  await revisarAperturas(true);
+  if (res.won && p.tipo === 'guardian' && DIST.every(d => distritoAbierto(d)) && PTS.filter(x => x.tipo === 'guardian').every(x => vencido(x.id)) && !S.campeon) {
+    S.campeon = Date.now(); guardar();
+    await mensaje('👑 ¡CAMPEÓN DE NEXOTLAN!', `Venciste a todos los guardianes en ${S.dia} días. Puedes seguir explorando y retando a todos para completar tu diario.`);
+  }
+  return true;
+}
+async function revisarAperturas(anunciar) {
+  for (const d of DIST) {
+    if (d._req.length && !S.abiertos[d.id] && cumple(d._req)) {
+      S.abiertos[d.id] = Date.now(); guardar();
+      if (anunciar) { pintarMapa(); centrarEn(d._x, d._y, true); await mensaje('🗺 ¡NUEVO DISTRITO!', `<b style="color:${esc(d.color)}">${esc(d.nombre)}</b><br>${esc(d.descripcion || '')}`); }
+    }
+  }
+}
+
+// ════════════════ DESCANSAR / DIARIO / BARAJA ════════════════
+async function descansar() {
+  cerrarFicha();
+  const n = $('noche'); S.dia++; guardar();
+  $('nocheT').textContent = 'DÍA ' + (S.dia + 1); $('nocheS').textContent = diaNombre(S.dia).toUpperCase();
+  n.style.display = 'flex'; requestAnimationFrame(() => n.classList.add('on'));
+  await new Promise(r => setTimeout(r, 1300));
+  pintarMapa();
+  n.classList.remove('on'); setTimeout(() => { n.style.display = ''; }, 500);
+  const hoy = PTS.filter(p => visibleHoy(p) && p.tipo === 'rival' && p._dias.length).map(p => p.nombre);
+  if (hoy.length) setTimeout(() => toast('📅 Hoy aparecen: ' + hoy.slice(0, 4).join(', ') + (hoy.length > 4 ? '…' : '')), 600);
+}
+function abrirDiario() {
+  const ab = DIST.filter(distritoAbierto).length, tot = PTS.filter(p => p.tipo !== 'heroe'), ven = tot.filter(p => vencido(p.id)).length;
+  let h = `<div class="stats"><div class="st"><b>${S.dia + 1}</b><small>DÍA</small></div><div class="st"><b>${ven}/${tot.length}</b><small>VENCIDOS</small></div>
+    <div class="st"><b>${S.victorias}-${S.perdidas}</b><small>V-D</small></div><div class="st"><b>${ab}/${DIST.length}</b><small>DISTRITOS</small></div></div>
+    <div class="lbl">Baraja: <b style="color:var(--text)">${esc(S.barajaNombre || S.baraja)}</b></div>`;
+  DIST.forEach(d => { const a = distritoAbierto(d), pr = progresoDistrito(d);
+    const pts = PTS.filter(p => p.distrito === d.id && p.tipo !== 'heroe');
+    h += `<div class="dist ${a ? '' : 'lock'}" style="--dc:${esc(d.color)}"><div class="dist-n"><span>${a ? '' : '🔒 '}${esc(d.nombre)}</span><b>${pr.ven}/${pr.tot}</b></div>
+      <div class="bar"><i style="width:${pr.tot ? pr.ven / pr.tot * 100 : 0}%"></i></div>
+      <small>${a ? pts.map(p => (vencido(p.id) ? '✔ ' : (p.tipo === 'guardian' ? '👑 ' : '• ')) + esc(p.nombre)).join(' · ') : 'Se abre al vencer a ' + esc(nombresReq(d._req))}</small></div>`; });
+  h += `<div class="f-btns"><button class="bt red" id="diBorrar">🗑 BORRAR PARTIDA</button></div>`;
+  $('diBody').innerHTML = h; $('mDiario').classList.add('on');
+  $('diBorrar').onclick = async () => { if (await mensaje('¿BORRAR LA PARTIDA?', 'Se pierde todo tu progreso en Nexotlan (también en la nube).', [['🗑 BORRAR', 'red'], ['CANCELAR', 'sec']]) !== 0) return;
+    S = nueva(S.nombre, S.baraja, S.barajaNombre); S.u = Date.now(); guardar(); cerrarModal('mDiario'); irA('sTitulo'); pintarTitulo(); };
+}
+function cerrarModal(id) { $(id).classList.remove('on'); }
+let NSEL = null, NMODO = 'nueva';
+function pantallaBaraja(modo) {
+  NMODO = modo; NSEL = modo === 'cambiar' ? S.baraja : null;
+  $('nTit').textContent = modo === 'cambiar' ? 'Cambiar baraja' : 'Nueva aventura';
+  $('nNombreBox').style.display = modo === 'cambiar' ? 'none' : '';
+  $('nGo').textContent = modo === 'cambiar' ? '✔ USAR ESTA BARAJA' : '🗺 ENTRAR A NEXOTLAN';
+  if (!$('nNombre').value) { const j = sesionJug(); $('nNombre').value = (j && (j.nick || j.nombre)) || ''; }
+  pintarBarajas(); irA('sNueva');
+}
+function pintarBarajas() {
+  $('nDecks').innerHTML = barajasJugador().map(b => `<button class="dk ${b.aventura ? 'av' : ''} ${NSEL === b.id ? 'on' : ''}" data-id="${esc(b.id)}">${b.propia ? '<span class="ph">⭐</span>' : `<img src="${esc(cartaImg(b.portada || (b.bp && b.bp[0] && b.bp[0].id), b.aventura))}" alt="" loading="lazy">`}
+    <span style="min-width:0"><b>${esc(b.nombre)}</b><small>${esc(b.aventura ? (b.descripcion || '') : (b.estilo || ''))}</small></span></button>`).join('');
+  $('nDecks').querySelectorAll('.dk').forEach(el => el.onclick = () => { NSEL = el.dataset.id; pintarBarajas(); });
+  $('nGo').disabled = !NSEL;
+}
+$('nGo').onclick = () => {
+  const b = barajasJugador().find(x => x.id === NSEL); if (!b) return;
+  if (NMODO === 'cambiar') { S.baraja = b.id; S.barajaNombre = b.nombre; guardar(); entrarMapa(); toast('🃏 Ahora juegas con ' + b.nombre); return; }
+  S = nueva(($('nNombre').value || '').trim() || 'Jugador', b.id, b.nombre); guardar();
+  entrarMapa(true);
+};
+$('nVolver').onclick = () => { if (NMODO === 'cambiar') entrarMapa(); else irA('sTitulo'); };
+
+// ════════════════ PANTALLAS / AVISOS ════════════════
+function irA(id) { document.querySelectorAll('.scr').forEach(s => s.classList.toggle('on', s.id === id)); }
+function toast(t) { const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('on'), 2600); }
+function mensaje(t, html, ops) {
+  return new Promise(res => {
+    $('msgT').textContent = t; $('msgB').innerHTML = html;
+    ops = ops || [['ENTENDIDO', '']];
+    $('msgOps').innerHTML = ops.map((o, i) => `<button class="bt ${o[1] || ''}" data-i="${i}">${o[0]}</button>`).join('');
+    $('msgOps').querySelectorAll('button').forEach(b => b.onclick = () => { cerrarModal('mMsg'); res(+b.dataset.i); });
+    $('mMsg').classList.add('on');
+    try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('msgOps').querySelector('button')), 40); } catch (e) {}
+  });
+}
+async function entrarMapa(primeraVez) {
+  if (S && S.baraja && !esDelModo(S.baraja) && !EDITOR) {     // partidas viejas: elegir una baraja básica
+    await mensaje('🃏 ELIGE TU BARAJA', 'En Nexotlan se juega con una de las <b>barajas básicas</b> del modo. Elige con cuál seguirás tu aventura.');
+    pantallaBaraja('cambiar'); return;
+  }
+  irA('sMapa'); cerrarFicha();
+  pintarMapa(); ajustarZoom(innerWidth < 700 ? 1.6 : 1);
+  const d0 = DIST.find(distritoAbierto) || DIST[0]; if (d0) centrarEn(d0._x, d0._y);
+  musica(CFG.musica);
+  if (primeraVez) {
+    const guia = PTS.find(p => p.tipo === 'heroe' && visibleHoy(p));
+    await mensaje('🗺 ' + (CFG.titulo || 'NEXOTLAN'), `Bienvenido, <b>${esc(S.nombre)}</b>.<br>Toca los puntos del mapa: <b style="color:#ffd166">⚔ rivales</b>, <b style="color:#36d6ff">💬 héroes</b> y <b style="color:#ff2f5a">★ guardianes</b>.<br>Cada Choque o descanso avanza un día y los rivales cambian de lugar según el día.`);
+    if (guia) abrirFicha(guia.id);
+  }
+}
+function pintarTitulo() {
+  $('tTitulo').textContent = CFG.titulo || 'NEXOTLAN'; $('tSub').textContent = CFG.subtitulo || '';
+  const hay = S && S.baraja;
+  $('tCont').disabled = !hay;
+  if (hay) { const ven = PTS.filter(p => p.tipo !== 'heroe' && vencido(p.id)).length, tot = PTS.filter(p => p.tipo !== 'heroe').length;
+    $('tSave').hidden = false; $('tSave').innerHTML = `<b>${esc(S.nombre)}</b> · Día ${S.dia + 1} · ${ven}/${tot} vencidos · 🪙 ${S.monedas}${S.campeon ? ' · 👑' : ''}`; }
+  else $('tSave').hidden = true;
+}
+$('tCont').onclick = () => entrarMapa();
+$('tNueva').onclick = async () => {
+  if (S && S.baraja && await mensaje('¿NUEVA AVENTURA?', 'Tu partida actual se reemplaza (también en la nube).', [['✨ EMPEZAR DE NUEVO', 'red'], ['CANCELAR', 'sec']]) !== 0) return;
+  pantallaBaraja('nueva');
+};
+$('hSalir').onclick = () => { musica(null); irA('sTitulo'); pintarTitulo(); };
+$('hDescansar').onclick = descansar;
+$('hDiario').onclick = abrirDiario;
+$('hBaraja').onclick = () => pantallaBaraja('cambiar');
+$('zMas').onclick = () => ajustarZoom(ZOOM * 1.3);
+$('zMenos').onclick = () => ajustarZoom(ZOOM / 1.3);
+$('hMute').onclick = () => { MUTE = !MUTE; try { localStorage.setItem('chh_nexotlan_mute', MUTE ? '1' : '0'); } catch (e) {} pintarHud(); if (MUTE) $('aud').pause(); else if ($('aud').src) $('aud').play().catch(() => {}); };
+try { MUTE = localStorage.getItem('chh_nexotlan_mute') === '1'; } catch (e) {}
+let _mus = null;
+function musica(u) {
+  const a = $('aud');
+  if (!u) { a.pause(); _mus = null; return; }
+  if (_mus === u) { if (!MUTE && a.paused) a.play().catch(() => {}); return; }
+  _mus = u; a.src = u; a.volume = .55; if (!MUTE) a.play().catch(() => {});
+}
+
+// ════════════════ EDITOR (?editor=1) ════════════════
+function coordsEditor(e) {
+  const r = $('mi').getBoundingClientRect();
+  const x = ((e.clientX - r.left) / r.width * 100).toFixed(1), y = ((e.clientY - r.top) / r.height * 100).toFixed(1);
+  $('edInfo').innerHTML = `Punto tocado: <b style="color:#fff">x = ${x} · y = ${y}</b>`;
+  $('edPre').textContent = `x = ${x}\ny = ${y}`;
+  try { navigator.clipboard.writeText(`x = ${x}\ny = ${y}`); } catch (er) {}
+}
+function bloqueTxt(s) {
+  const head = s._sec === 'config' ? '[config]' : `[${s._sec}:${s._id}]`;
+  return head + '\n' + s._orden.map(k => `${k} = ${s[k] ?? ''}`).join('\n');
+}
+function mostrarBloque(p) { $('edInfo').textContent = 'Bloque de «' + p.nombre + '» (arrástralo para moverlo):'; $('edPre').textContent = bloqueTxt(p); }
+function activarEditor() {
+  document.body.classList.add('editor');
+  $('mi').querySelectorAll('.pt').forEach(b => {
+    b.onpointerdown = e => {
+      e.preventDefault(); const p = PTS.find(x => x.id === b.dataset.id); const r = $('mi').getBoundingClientRect(); let mv = false;
+      const mover = ev => { mv = true; const x = Math.max(0, Math.min(100, (ev.clientX - r.left) / r.width * 100)), y = Math.max(0, Math.min(100, (ev.clientY - r.top) / r.height * 100));
+        b.style.left = x + '%'; b.style.top = y + '%'; p._x = +x.toFixed(1); p._y = +y.toFixed(1); p.x = String(p._x); p.y = String(p._y); mostrarBloque(p); };
+      const fin = () => { removeEventListener('pointermove', mover); removeEventListener('pointerup', fin); b._movido = mv; };
+      addEventListener('pointermove', mover); addEventListener('pointerup', fin);
+    };
+  });
+}
+$('edCopiar').onclick = async () => {
+  const txt = '# mapa.txt generado con el editor de Nexotlan (' + new Date().toLocaleString('es-MX') + ')\n\n' + RAW.map(bloqueTxt).join('\n\n') + '\n';
+  try { await navigator.clipboard.writeText(txt); toast('📋 mapa.txt copiado: pégalo en assets/nexotlan/mapa.txt'); }
+  catch (e) { const b = new Blob([txt], { type: 'text/plain' }), a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'mapa.txt'; a.click(); toast('⬇ mapa.txt descargado'); }
+};
+$('edEtq').onclick = () => $('mapa').classList.toggle('etq');
+
+// ════════════════ CONTROL (gamepad.js) ════════════════
+window.GP_CFG = {
+  principalTxt: 'Hablar / Avanzar',
+  principal: () => DLG ? ($('dOps').querySelector('button') || $('dCaja')) : ($('ficha').classList.contains('on') ? ($('fRetar') && !$('fRetar').disabled ? $('fRetar') : $('fHablar')) : null),
+  atras: () => {
+    if (DLG) { if (DLG.ops.length) cerrarDialogo(DLG.ops.length - 1); else avanzarDialogo(); return true; }
+    if ($('mMsg').classList.contains('on')) { const b = $('msgOps').querySelectorAll('button'); b[b.length - 1].click(); return true; }
+    if ($('mDiario').classList.contains('on')) { cerrarModal('mDiario'); return true; }
+    if ($('ficha').classList.contains('on')) { const id = SEL && SEL.id; cerrarFicha(); const b = id && document.querySelector('.pt[data-id="' + id + '"]'); if (b && window.GP) GP.enfocar(b); return true; }
+    return false;
+  },
+  clicables: '#dCaja',
+  zonas: ['#hud', '#mi', '#ficha']
+};
+$('dCaja').addEventListener('click', e => { if (!e.target.closest('.d-ops')) { e.stopPropagation(); avanzarDialogo(); } });
+
+// ════════════════ ARRANQUE ════════════════
+(async function boot() {
+  if (EDITOR) document.body.classList.add('editor');
+  const leer = (u, j) => fetch(u, { cache: 'no-cache' }).then(r => { if (!r.ok) throw new Error(r.status); return j ? r.json() : r.text(); });
+  // Acceso restringido (pruebas): assets/nexotlan/testers.txt · una ID por línea · "*" = abierto a todos
+  let lista = [];
+  try { lista = (await leer(DIR + 'testers.txt')).split(/\r?\n/).map(l => l.replace(/#.*/, '').trim().toUpperCase()).filter(Boolean); } catch (e) {}
+  const yo = sesionJug();
+  if (!lista.includes('*') && !(yo && lista.includes(String(yo.id).toUpperCase()))) {
+    document.querySelector('#sTitulo .t-btns').style.display = 'none';
+    $('tSub').textContent = '🔒 En pruebas · Próximamente';
+    $('tInfo').innerHTML = yo ? 'Tu ID <b>' + yo.id + '</b> no tiene acceso a la versión de prueba.' : 'Inicia sesión en <a href="perfil.html" style="color:inherit">Mi Perfil</a> con una ID de prueba para entrar.';
+    window.GP_CFG = { principal: '.esq' };
+    return;
+  }
+  const [txt, data, gal] = await Promise.allSettled([leer(DIR + 'mapa.txt'),leer('data/cartas_simulacion.json', true), leer('cartas.json', true)]);
+  construirModelo(parseTxt(txt.status === 'fulfilled' ? txt.value : ''));
+  if (data.status === 'fulfilled') { DATA = data.value || DATA; (DATA.cartas || []).forEach(c => { if (c && c.id) CARD[c.id] = c; }); }
+  if (gal.status === 'fulfilled') (gal.value || []).forEach(x => { if (x && x.id != null) GALI[String(x.id)] = x; });
+  if (!DIST.length || !PTS.length) { $('tInfo').innerHTML = '⚠ No se pudo leer <b>assets/nexotlan/mapa.txt</b>.'; return; }
+  S = cargarLocal();
+  // Nube: trae la partida si es más reciente que la de este dispositivo
+  if (window.CHH_NUBE && CHH_NUBE.sesionId()) {
+    $('tInfo').textContent = '☁ Buscando tu partida en la nube…';
+    const r = await CHH_NUBE.sincronizarDoc('nexotlan', S && S.baraja ? S : null);
+    if (r.ok && r.bajada && r.datos) { S = r.datos; try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+    $('tInfo').textContent = r.ok ? '☁ Partida ligada a tu ID ' + CHH_NUBE.sesionId() : 'Sin conexión: se guarda en este dispositivo';
+  } else $('tInfo').textContent = 'Inicia sesión en Mi Perfil para guardar tu aventura en la nube.';
+  if (S && S.baraja) { ['vencidos', 'derrotas', 'hablados', 'abiertos'].forEach(k => S[k] = S[k] || {}); S.historial = S.historial || []; }
+  pintarTitulo();
+  if (S && S.pendiente && await procesarResultado()) return;
+  if (EDITOR && !(S && S.baraja)) { S = nueva('Editor', (DATA.barajas[0] || {}).id, 'Editor'); entrarMapa(); }
+  else if (EDITOR) entrarMapa();
+})();
+</script>
+<script src="gamepad.js"></script>
+</body>
+</html>

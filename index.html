@@ -487,6 +487,7 @@ footer      {animation:fadeUp .5s .4s  both;}
   html:not(.hz-off) .footer-copy{margin:0;}
 }
   </style>
+<style>.nx-gate{display:none!important}</style>
 </head>
 
 <!-- Banner notificaciones in-app -->
@@ -630,6 +631,15 @@ footer      {animation:fadeUp .5s .4s  both;}
       <div class="mod-info">
         <div class="mod-name">Modo Arcade</div>
         <div class="mod-desc">15 rivales y un jefe final · guarda tu progreso</div>
+      </div>
+      <div class="mod-arrow">›</div>
+    </a>
+
+    <a class="mod-card c-purple nx-gate" href="nexotlan.html">
+      <div class="mod-icon">🗺️</div>
+      <div class="mod-info">
+        <div class="mod-name">Aventura: Nexotlan</div>
+        <div class="mod-desc">Explora la ciudad, reta rivales y vence a sus guardianes</div>
       </div>
       <div class="mod-arrow">›</div>
     </a>
@@ -840,7 +850,7 @@ footer      {animation:fadeUp .5s .4s  both;}
 (function(){
   const nav = document.getElementById('hzNav'); if (!nav) return;
   const GRUPOS = [
-    { id:'jugar',     ico:'⚔️', txt:'Jugar',          c:'var(--red)',    hrefs:['calculadora.html','simulacion.html','arcade.html','online.html','tutorial.html'] },
+    { id:'jugar',     ico:'⚔️', txt:'Jugar',          c:'var(--red)',    hrefs:['calculadora.html','simulacion.html','arcade.html','nexotlan.html','online.html','tutorial.html'] },
     { id:'nexo',      ico:'🌐', txt:'Nexo de Héroes', c:'var(--neon)',   hrefs:[] },
     { id:'torneos',   ico:'🏆', txt:'Torneos',        c:'var(--gold)',   hrefs:[] },
     { id:'contenido', ico:'📡', txt:'Contenido',      c:'var(--blue)',   hrefs:[] }
@@ -1033,6 +1043,14 @@ async function _checkTorneosBanner() {
 }
 
 window.addEventListener('load', () => setTimeout(chhCheckNovedades, 4000));
+</script>
+<script>
+// Nexotlan en pruebas: la tarjeta solo aparece para las IDs de assets/nexotlan/testers.txt ("*" = todos)
+fetch('assets/nexotlan/testers.txt',{cache:'no-cache'}).then(r=>r.ok?r.text():'').then(t=>{
+  const l=t.split(/\r?\n/).map(x=>x.replace(/#.*/,'').trim().toUpperCase()).filter(Boolean);
+  let id='';try{const s=JSON.parse(localStorage.getItem('nhSesion')||'null');if(s&&s.tipo!=='tienda'&&s.id)id=String(s.id).toUpperCase();}catch(e){}
+  if(l.includes('*')||(id&&l.includes(id)))document.querySelectorAll('.nx-gate').forEach(e=>e.classList.remove('nx-gate'));
+}).catch(()=>{});
 </script>
 </body>
 </html>

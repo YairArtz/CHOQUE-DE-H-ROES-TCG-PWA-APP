@@ -866,6 +866,22 @@ function retar(p, yaHablo) {
 }
 
 // ════════════════ CHOQUES (Simulador) ════════════════
+// Fondo de mesa, playmat y fondo de inicio del Simulador para este Choque (forzados en el modo).
+// Campos fondo_mesa / playmat / fondo_inicio: en el punto, si no en su distrito, si no en [config].
+// Imágenes en assets/nexotlan/simulador/ (o con carpeta desde la raíz). fondo_mesa también acepta un tema: nexo, obsidiana, cristal…
+async function fondosChoque(p, d) {
+  const val = k => (p[k] || (d && d[k]) || CFG[k] || '').trim();
+  const ruta = f => /\//.test(f) ? f : DIR + 'simulador/' + f;
+  const abs = u => new URL(u, location.href).href;
+  const out = {};
+  const mesa = val('fondo_mesa') || 'nexo';
+  if (/^[a-z]+$/.test(mesa)) out.mesa = mesa; else if (await probar(ruta(mesa))) out.mesa = abs(ruta(mesa)); else out.mesa = 'nexo';
+  const pm = val('playmat'); if (pm && await probar(ruta(pm))) out.playmat = abs(ruta(pm));
+  const fi = val('fondo_inicio');
+  if (fi && await probar(ruta(fi))) out.fondoInicio = abs(ruta(fi));
+  else { const pai = paisajeDe(p); if (pai && await probar(pai)) out.fondoInicio = abs(pai); }   // por defecto: el paisaje del distrito
+  return out;
+}
 async function iniciarChoque(p) {
   const id = 'nx' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   const d = distDe(p), ret = await retrato(p);
@@ -878,6 +894,7 @@ async function iniciarChoque(p) {
     corazonesExtra: parseInt(p.corazones, 10) || 0, avatar: avatarPerfil() ? new URL(avatarPerfil(), location.href).href : '', nombre: p.nombre,
     retrato: ret ? new URL(ret.src, location.href).href : '', musica: p.musica ? new URL(p.musica, location.href).href : '',
     volver: 'nexotlan.html', volverTxt: 'NEXOTLAN', etiqueta: '🗺 NEXOTLAN · ' + (d ? d.nombre : '') };
+  Object.assign(m, await fondosChoque(p, d));
   try { localStorage.setItem('chh_arcade_match', JSON.stringify(m)); } catch (e) {}
   location.href = 'simulacion.html?modo=arcade';
 }

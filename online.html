@@ -1276,7 +1276,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v72';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v73';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -7862,7 +7862,8 @@ function apVS(){
   document.getElementById('bootCfg').onclick=apAbrir;
   apBrasas();
   const [fondo,logo,mesa]=await Promise.all([apProbar(AP_FILES.fondo.map(f=>AP_DIR+f)),apProbar(AP_FILES.logo.map(f=>AP_DIR+f)),apProbar(AP_FILES.mesa.map(f=>AP_DIR+f))]);
-  if(fondo){const b=document.getElementById('bootBg');b.style.backgroundImage='url("'+fondo+'")';b.classList.add('img');}
+  let fzI=null;try{fzI=ARCADE&&ARCADE.fondoInicio;}catch(e){}       // v73 · un modo puede traer su propio fondo de inicio
+  if(fondo&&!fzI){const b=document.getElementById('bootBg');b.style.backgroundImage='url("'+fondo+'")';b.classList.add('img');}
   if(logo){window._logoInicio=logo;document.getElementById('bootLogo').src=logo;}
   if(mesa){AP.mesaImg=mesa;apAplicarMesa(apMesaGuardada());}
 })();
@@ -8009,6 +8010,25 @@ const ARCADE=(()=>{try{if(new URLSearchParams(location.search).get('modo')!=='ar
 //       "volver" (página a la que regresa), "volverTxt" (texto del botón) y "etiqueta" (texto de la barra).
 const ARC_VOLVER=ARCADE&&ARCADE.volver&&/^[a-z0-9_\-]+\.html$/i.test(ARCADE.volver)?ARCADE.volver:'arcade.html';
 const ARC_TXT=ARCADE&&ARCADE.volverTxt?String(ARCADE.volverTxt).slice(0,24):'ARCADE';
+// v73 · Fondo de mesa, playmat y fondo de inicio FORZADOS por el modo que abre el combate (p. ej. Nexotlan):
+//       "mesa" = id de un fondo de mesa (nexo, obsidiana…) o URL de imagen · "playmat" = URL · "fondoInicio" = URL.
+//       Mientras dure ese combate reemplazan lo que el jugador tenga elegido.
+function arcFondosForzados(){
+  if(!ARCADE) return;
+  try{
+    if(ARCADE.playmat){const b=document.getElementById('board');
+      if(b){b.classList.add('pm');b.style.setProperty('--pm-img','linear-gradient(rgba(4,8,3,.25),rgba(4,8,3,.25)),url("'+String(ARCADE.playmat).replace(/"/g,'%22')+'")');}}
+    if(ARCADE.mesa){const m=String(ARCADE.mesa),bg=document.querySelector('.aztec-bg');
+      if(/^[a-z]+$/.test(m)&&MESAS.some(x=>x.id===m&&x.id!=='imagen'&&x.id!=='auto')){document.documentElement.dataset.mesa=m;if(bg)bg.style.backgroundImage='';}
+      else{document.documentElement.dataset.mesa='imagen';if(bg)bg.style.backgroundImage='linear-gradient(rgba(5,4,8,.4),rgba(5,4,8,.4)),url("'+m.replace(/"/g,'%22')+'")';}}
+    if(ARCADE.fondoInicio){const b=document.getElementById('bootBg');if(b){b.style.backgroundImage='url("'+String(ARCADE.fondoInicio).replace(/"/g,'%22')+'")';b.classList.add('img');}}
+  }catch(e){}
+}
+if(ARCADE&&(ARCADE.mesa||ARCADE.playmat||ARCADE.fondoInicio)){
+  {const _am=apAplicarMesa;apAplicarMesa=function(){const r=_am.apply(this,arguments);arcFondosForzados();return r;};}
+  {const _ca=cosmAplicar;cosmAplicar=async function(){const r=await _ca.apply(this,arguments);arcFondosForzados();return r;};}
+  arcFondosForzados();
+}
 function arcadeEsc(t){return String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function arcadePreparar(){
   if(!ARCADE) return;
@@ -8051,7 +8071,7 @@ function arcadePreparar(){
      for(let k=0;k<ae&&G.cpu.ba.length;k++){const z=freeApo('cpu');if(z<0)break;G.cpu.apoyo[z]={card:G.cpu.ba.shift(),type:'alma',bonus:0,eot:false};}
      const pod=[me?'+'+me+' carta(s) en su mano inicial':'',ae?ae+' alma(s) activas desde el inicio':'',ARCADE.roboExtra?'roba '+ARCADE.roboExtra+' carta(s) extra cada turno':''].filter(Boolean);
      if(pod.length) lg('☠ <b>PODER ÉPICO</b> · '+arcadeEsc(ARCADE.nombre)+': '+pod.join(' · ')+'.','#ff2244');}
-    lg(ARCADE.etiqueta?'🗺 '+arcadeEsc(ARCADE.etiqueta)+' · contra <b>'+arcadeEsc(ARCADE.nombre)+'</b>.':'🕹 <b>ARCADE</b> · Combate '+ARCADE.ronda+'/'+ARCADE.total+' contra <b>'+arcadeEsc(ARCADE.nombre)+'</b>.','var(--gold2)');
+    lg(ARCADE.etiqueta?arcadeEsc(ARCADE.etiqueta)+' · contra <b>'+arcadeEsc(ARCADE.nombre)+'</b>.':'🕹 <b>ARCADE</b> · Combate '+ARCADE.ronda+'/'+ARCADE.total+' contra <b>'+arcadeEsc(ARCADE.nombre)+'</b>.','var(--gold2)');
     if(ARCADE.musica){try{const rq=++MP.req;const am=ARCADE.musica;
       (window.CHH_MEDIOS?CHH_MEDIOS.blobUrl(am):Promise.resolve(null)).then(b=>{if(rq!==MP.req)return;mpAudio.src=b||am;mpAudio.loop=true;
       mpAudio.play().then(()=>{MP.on=true;MP.idx=-1;document.getElementById('mpName').textContent='🕹 Tema de '+ARCADE.nombre;mpUI();}).catch(()=>{});});}catch(e){}}

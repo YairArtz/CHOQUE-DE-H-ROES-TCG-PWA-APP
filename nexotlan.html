@@ -507,7 +507,7 @@ function cargarLocal() { try { return JSON.parse(localStorage.getItem(KEY) || 'n
 function guardar(sinNube) {
   if (!S) return; S.u = Date.now();
   try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
-  if (!sinNube && window.CHH_NUBE && CHH_NUBE.sesionId()) CHH_NUBE.diferir('nexotlan', () => CHH_NUBE.sincronizarDoc('nexotlan', S), 1500);
+  if (!sinNube && window.CHH_NUBE && typeof CHH_NUBE.diferir === 'function' && typeof CHH_NUBE.sincronizarDoc === 'function' && CHH_NUBE.sesionId()) CHH_NUBE.diferir('nexotlan', () => CHH_NUBE.sincronizarDoc('nexotlan', S), 1500);
 }
 function nueva(nombre, baraja, barajaNombre) {
   return { v: 1, nombre, baraja, barajaNombre, dia: 0, monedas: 0, vencidos: {}, derrotas: {}, hablados: {}, abiertos: {}, victorias: 0, perdidas: 0, historial: [], inicio: Date.now(), u: Date.now(), pendiente: null };
@@ -534,6 +534,9 @@ function asegurarColeccion() {
   if (b && (!S.mazo || !S.mazo.bp)) S.mazo = { nombre: b.nombre, bp: copiaLista(b.bp), ba: copiaLista(b.ba), bs: copiaLista(b.bs) };
   if (S.mazo) S.mazo.bs = S.mazo.bs || [];
   S.col = S.col || {}; S.nuevas = S.nuevas || {};
+  if (b) [...(b.bp || []), ...(b.ba || []), ...(b.bs || [])].forEach(x => { if ((S.col[x.id] || 0) < (x.copias || 1)) S.col[x.id] = x.copias || 1; });
+  // Cartas excluidas (Heroísmo/Bastión) fuera de la baraja guardada; si queda incompleta se completa en 🃏 BARAJA
+  if (S.mazo) ['bp', 'ba', 'bs'].forEach(z => { S.mazo[z] = (S.mazo[z] || []).filter(x => !excluida(x.id)); });
 }
 const enLista = (l, id) => ((l || []).find(x => x.id === id) || {}).copias || 0;
 const enMazo = (m, id) => enLista(m.bp, id) + enLista(m.ba, id) + enLista(m.bs, id);
@@ -559,11 +562,23 @@ function validarMazo(m) {
   m.bp.forEach(x => { if (CARD[x.id] && (CARD[x.id].tipo === 'alma' || CARD[x.id].tipo === 'amalgama')) e.push(nomC(x.id) + ' no va en la Baraja Principal.'); });
   m.ba.forEach(x => { if (CARD[x.id] && CARD[x.id].tipo !== 'alma') e.push(nomC(x.id) + ' no es un Alma.'); });
   m.bs.forEach(x => { if (CARD[x.id] && CARD[x.id].tipo !== 'amalgama') e.push(nomC(x.id) + ' no es una Amalgama.'); });
+  [...m.bp, ...m.ba, ...m.bs].forEach(x => { if (excluida(x.id)) e.push(nomC(x.id) + ' no se permite en Nexotlan por ahora (Heroísmo/Bastión).'); });
   return { ok: !e.length, bp, ba, bs, nBP, nBA, nBS, errores: e };
 }
 // Cartas que puede soltar un rival: las de su propia baraja (sin Amalgamas, condenadas ni expansiones prohibidas)
+// Habilidades fuera del modo por ahora (mapa.txt [config] excluir_habilidades): las cartas que las tienen
+// o que las otorgan no salen como premio, no se venden y no se pueden meter a la baraja.
+let _excl = null;
+function excluida(id) {
+  const c = CARD[id]; if (!c) return false;
+  if (!_excl) _excl = lista(CFG.excluir_habilidades == null ? 'HEROISMO, BASTION' : CFG.excluir_habilidades).map(NK).filter(Boolean);
+  if (!_excl.length) return false;
+  if ((c.habilidades || []).some(h => _excl.some(k => NK(h).includes(k)))) return true;
+  const t = String(c.texto || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+  return _excl.some(k => new RegExp('(ADQUIER|COMPARTIR)\\w*[^.]{0,30}' + k).test(t));
+}
 function premiable(id) {
-  const c = CARD[id]; if (!c || maxCopias(id) === 0) return false;
+  const c = CARD[id]; if (!c || maxCopias(id) === 0 || excluida(id)) return false;
   const g = GALI[String(c.galeriaId)]; if (g && (DATA.expansionesProhibidas || []).includes(g.expansion)) return false;
   return true;
 }
@@ -847,6 +862,7 @@ async function iniciarChoque(p) {
   S.pendiente = { id, punto: p.id, dia: S.dia }; guardar(true);
   // La baraja armada en 🃏 BARAJA viaja al Simulador como "nx_mia"
   asegurarColeccion(); let jug = S.baraja;
+  if (S.mazo && !validarMazo(S.mazo).ok) toast('⚠ Tu baraja no está lista: juegas con la básica. Revísala en 🃏 BARAJA');
   if (S.mazo && validarMazo(S.mazo).ok) { try { localStorage.setItem('chh_nexotlan_baraja', JSON.stringify({ nombre: S.mazo.nombre || S.barajaNombre, bp: S.mazo.bp, ba: S.mazo.ba, bs: S.mazo.bs || [] })); jug = 'nx_mia'; } catch (e) {} }
   const m = { id, slot: 0, ronda: 1, total: 1, jefe: p.tipo === 'guardian', jefeTxt: 'GUARDIÁN', jugador: jug, cpu: p.baraja, nivel: nivelDe(p),
     corazonesExtra: parseInt(p.corazones, 10) || 0, avatar: avatarPerfil() ? new URL(avatarPerfil(), location.href).href : '', nombre: p.nombre,
@@ -982,6 +998,7 @@ function guardarMazo(callado) {
 }
 function mzAgregar(id) {
   const m = MZ.m, z = zonaDe(id), v = validarMazo(m), lim = z === 'bp' ? v.nBP : z === 'ba' ? v.nBA : v.nBS;
+  if (excluida(id)) return toast('Esta carta no se permite en Nexotlan por ahora (Heroísmo/Bastión)');
   if (enMazo(m, id) >= (S.col[id] || 0)) return toast('No tienes más copias de ' + nomC(id));
   if (porNombre(m, id) >= maxCopias(id)) return toast('Máximo ' + maxCopias(id) + ' copias de ' + nomC(id));
   if (totL(m[z]) >= lim) return toast(({ bp: 'La Baraja Principal', ba: 'La Baraja de Almas', bs: 'La Baraja de Soporte' })[z] + ' ya tiene ' + lim + ': quita una primero');
@@ -1345,20 +1362,36 @@ $('dCaja').addEventListener('click', e => { if (!e.target.closest('.d-ops')) { e
   if (data.status === 'fulfilled') { DATA = data.value || DATA; (DATA.cartas || []).forEach(c => { if (c && c.id) CARD[c.id] = c; }); }
   if (gal.status === 'fulfilled') (gal.value || []).forEach(x => { if (x && x.id != null) GALI[String(x.id)] = x; });
   if (!DIST.length || !PTS.length) { $('tInfo').innerHTML = '⚠ No se pudo leer <b>assets/nexotlan/mapa.txt</b>.'; return; }
-  S = cargarLocal();
-  // Nube: trae la partida si es más reciente que la de este dispositivo
-  if (window.CHH_NUBE && CHH_NUBE.sesionId()) {
-    $('tInfo').textContent = '☁ Buscando tu partida en la nube…';
-    const r = await CHH_NUBE.sincronizarDoc('nexotlan', S && S.baraja ? S : null);
-    if (r.ok && r.bajada && r.datos) { S = r.datos; try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
-    $('tInfo').textContent = r.ok ? '☁ Partida ligada a tu ID ' + CHH_NUBE.sesionId() : 'Sin conexión: se guarda en este dispositivo';
-  } else $('tInfo').textContent = 'Inicia sesión en Mi Perfil para guardar tu aventura en la nube.';
-  if (S && S.baraja) { ['vencidos', 'derrotas', 'hablados', 'abiertos'].forEach(k => S[k] = S[k] || {}); S.historial = S.historial || []; }
+  // La partida se guarda sola en este dispositivo en cada cambio; la nube se sincroniza en segundo plano
+  // (si la nube tarda o falla, el modo sigue funcionando con la copia local).
+  S = normalizar(cargarLocal());
   pintarTitulo();
-  if (S && S.pendiente && await procesarResultado()) return;
+  if (S && S.baraja && S.pendiente) {               // venimos de un Choque (terminado, abandonado o sin empezar)
+    if (!(await procesarResultado())) { S.pendiente = null; guardar(true); entrarMapa(); }
+    nubeFondo(false); return;
+  }
   if (EDITOR && !(S && S.baraja)) { S = nueva('Editor', (DATA.barajas[0] || {}).id, 'Editor'); entrarMapa(); }
   else if (EDITOR) entrarMapa();
+  nubeFondo(true);
 })();
+function normalizar(x) {
+  if (x && x.baraja) { ['vencidos', 'derrotas', 'hablados', 'abiertos'].forEach(k => x[k] = x[k] || {}); x.historial = x.historial || []; }
+  return x;
+}
+async function nubeFondo(aplicar) {
+  const N = window.CHH_NUBE;
+  if (!N || typeof N.sincronizarDoc !== 'function') { $('tInfo').textContent = '💾 Tu aventura se guarda en este dispositivo.'; return; }
+  if (!N.sesionId()) { $('tInfo').textContent = '💾 Se guarda en este dispositivo · inicia sesión en Mi Perfil para guardarla en la nube.'; return; }
+  $('tInfo').textContent = '☁ Buscando tu partida en la nube…';
+  let r;
+  try { r = await Promise.race([N.sincronizarDoc('nexotlan', S && S.baraja ? S : null), new Promise(ok => setTimeout(() => ok({ ok: false, motivo: 'tiempo' }), 8000))]); }
+  catch (e) { r = { ok: false }; }
+  // Solo se reemplaza la partida local si sigues en la portada (no a media exploración)
+  if (r && r.ok && r.bajada && r.datos && r.datos.baraja && aplicar && $('sTitulo').classList.contains('on')) {
+    S = normalizar(r.datos); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} pintarTitulo();
+  }
+  $('tInfo').textContent = r && r.ok ? '☁ Partida guardada y ligada a tu ID ' + N.sesionId() : '💾 Guardada en este dispositivo (la nube no respondió; se reintenta al guardar).';
+}
 </script>
 <script src="gamepad.js"></script>
 </body>

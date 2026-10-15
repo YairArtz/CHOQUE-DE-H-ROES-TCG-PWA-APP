@@ -217,6 +217,26 @@
   }
   function marcarFisicasCambio() { const id = sesionId(); if (id) ls.set('nhColFisicaU_' + id, Date.now()); }
 
+  // ════════════════════ DOCUMENTOS GENÉRICOS ════════════════════
+  // Para partidas guardadas de otros módulos (p. ej. Modo Aventura Nexotlan).
+  // Gana la copia más reciente (campo "u" en ms). Firebase: jugadores/<ID>/<nombre> = { j, u }
+  async function sincronizarDoc(nombre, local) {
+    const id = sesionId();
+    if (!id) return { ok: false, motivo: 'sinid', datos: local };
+    if (!/^[a-z0-9_]+$/i.test(nombre)) return { ok: false, motivo: 'nombre', datos: local };
+    avisar('sync');
+    try {
+      const D = await db(), ruta = 'jugadores/' + id + '/' + nombre;
+      const r = await conTiempo(D.leer(ruta));
+      let remoto = null; if (r && r.j) { try { remoto = JSON.parse(r.j); } catch (e) {} }
+      const uL = (local && local.u) || 0, uR = (remoto && remoto.u) || 0;
+      if (remoto && uR > uL) { avisar('ok'); return { ok: true, datos: remoto, bajada: true }; }
+      if (local && uL > uR) await conTiempo(D.escribir(ruta, { j: JSON.stringify(local), u: uL }));
+      avisar('ok');
+      return { ok: true, datos: local || remoto };
+    } catch (e) { avisar('error', e && e.message); return { ok: false, motivo: e && e.message, datos: local }; }
+  }
+
   // Subida diferida (para no escribir en cada toque)
   const _dif = {};
   function diferir(nombre, fn, ms) { clearTimeout(_dif[nombre]); _dif[nombre] = setTimeout(fn, ms || 1500); }
@@ -225,6 +245,6 @@
   window.CHH_NUBE = {
     sesionId, estado: () => estado, alCambiar: f => subs.push(f),
     sincronizarBarajas, marcarBorrada, nuevoUid, barajasLocales,
-    sincronizarFisicas, marcarFisicasCambio, diferir
+    sincronizarFisicas, marcarFisicasCambio, diferir, sincronizarDoc
   };
 })();

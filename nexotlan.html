@@ -28,6 +28,11 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
   background:linear-gradient(180deg,#fff,#9fe9ff 45%,#36d6ff 70%,#7a4dff);-webkit-background-clip:text;background-clip:text;color:transparent;
   filter:drop-shadow(0 0 18px rgba(54,214,255,.55)) drop-shadow(0 4px 0 #0a1a40)}
 .t-sub{font-size:18px;color:#b8c8ee;letter-spacing:2px}
+.t-logo{max-width:min(560px,86vw);max-height:34vh;object-fit:contain;position:relative;z-index:1;filter:drop-shadow(0 6px 24px rgba(0,0,0,.6));animation:logoIn .6s ease both}
+@keyframes logoIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
+#sTitulo.con-fondo{background-size:cover;background-position:center}
+#sTitulo.con-fondo::before{opacity:.12}
+#sTitulo.con-fondo .t-kicker,#sTitulo.con-fondo .t-sub,#sTitulo.con-fondo .t-info,#sTitulo.con-fondo .t-cont{text-shadow:0 2px 6px #000,0 0 2px #000}
 .t-btns{display:flex;flex-direction:column;gap:10px;width:min(340px,100%);margin-top:10px;position:relative;z-index:1}
 .bt{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 18px;border-radius:12px;font-family:'Orbitron',monospace;font-size:12px;font-weight:900;letter-spacing:2px;text-transform:uppercase;
   background:linear-gradient(135deg,#36d6ff,#7a4dff);color:#020616;box-shadow:0 0 22px rgba(54,214,255,.35)}
@@ -317,6 +322,7 @@ body.editor .pt{cursor:move}
 <section class="scr on" id="sTitulo">
   <a class="esq" href="index.html">← MENÚ</a>
   <div class="t-kicker">Choque de Héroes · Modo Aventura</div>
+  <img class="t-logo" id="tLogo" alt="" hidden>
   <div class="t-title" id="tTitulo">NEXOTLAN</div>
   <div class="t-sub" id="tSub">La ciudad entre dimensiones</div>
   <div class="t-save" id="tSave" hidden></div>
@@ -1323,6 +1329,7 @@ function itemsContenido() {
   const aud = f => { f = String(f || '').trim(); if (f) add([f], 'aud'); };
   const fondos = o => { ['playmat', 'fondo_inicio'].forEach(k => o[k] && add(candidatos(o[k], 'simulador'), 'img')); if (o.fondo_mesa && !/^[a-z]+$/.test(o.fondo_mesa)) add(candidatos(o.fondo_mesa, 'simulador'), 'img'); };
   if (CFG.mapa) add([DIR + CFG.mapa], 'img');
+  img(CFG.fondo_titulo, 'titulo'); img(CFG.logo, 'titulo');
   aud(CFG.musica); aud(CFG.musica_choque); fondos(CFG);
   DIST.forEach(d => { img(d.paisaje, 'paisajes'); aud(d.musica); aud(d.musica_choque); fondos(d); });
   PTS.forEach(p => {
@@ -1445,6 +1452,13 @@ async function entrarMapa(primeraVez) {
     await mensaje('🗺 ' + (CFG.titulo || 'NEXOTLAN'), `Bienvenido, <b>${esc(S.nombre)}</b>.<br>Toca los puntos del mapa: <b style="color:#ffd166">⚔ rivales</b>, <b style="color:#36d6ff">💬 héroes</b> y <b style="color:#ff2f5a">★ guardianes</b>.<br>Cada Choque o descanso avanza un día y los rivales cambian de lugar según el día.`);
     if (guia) abrirFicha(guia.id);
   }
+}
+// Portada personalizable ([config] fondo_titulo / logo): si la imagen no existe se quedan los de siempre
+async function portadaPersonal() {
+  const fondo = await primeraImg(candidatos(CFG.fondo_titulo, 'titulo')), logo = await primeraImg(candidatos(CFG.logo, 'titulo'));
+  const t = $('sTitulo');
+  if (fondo) { t.classList.add('con-fondo'); t.style.backgroundImage = `linear-gradient(rgba(5,10,28,.25),rgba(5,10,28,.78)),url("${fondo}")`; }
+  if (logo) { $('tLogo').src = logo; $('tLogo').alt = CFG.titulo || 'NEXOTLAN'; $('tLogo').hidden = false; $('tTitulo').hidden = true; }
 }
 function pintarTitulo() {
   $('tTitulo').textContent = CFG.titulo || 'NEXOTLAN'; $('tSub').textContent = CFG.subtitulo || '';
@@ -1585,7 +1599,7 @@ $('dCaja').addEventListener('click', e => { if (!e.target.closest('.d-ops')) { e
   // La partida se guarda sola en este dispositivo en cada cambio; la nube se sincroniza en segundo plano
   // (si la nube tarda o falla, el modo sigue funcionando con la copia local).
   S = normalizar(cargarLocal());
-  pintarTitulo();
+  pintarTitulo(); portadaPersonal();
   const avisosMapa = revisarMapa();
   if (S && S.baraja && S.pendiente) {               // venimos de un Choque (terminado, abandonado o sin empezar)
     if (!(await procesarResultado())) { S.pendiente = null; guardar(true); entrarMapa(); }

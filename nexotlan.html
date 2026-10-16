@@ -1534,6 +1534,8 @@ async function copiarSlot(i) {
 async function borrarSlot(i) {
   const a = leerSlots(); if (!viva(a[i])) return;
   if (await mensaje('🗑 ¿BORRAR LA PARTIDA ' + (i + 1) + '?', '<b>' + esc(a[i].nombre || '') + '</b> · Día ' + ((a[i].dia || 0) + 1) + '<br>Se pierde todo su progreso (también en la nube).', [['🗑 BORRAR', 'red'], ['CANCELAR', 'sec']]) !== 0) return;
+  // 2ª confirmación: botones en orden invertido para que un doble toque accidental no borre
+  if (await mensaje('⚠ ÚLTIMA ADVERTENCIA', 'Vas a borrar <b>' + esc(a[i].nombre || '') + '</b> (' + (a[i].victorias || 0) + ' victorias · ' + (a[i].monedas || 0) + ' <i class="mn"></i>).<br><b style="color:#ff5a7a">Esto no se puede deshacer.</b>', [['NO, CONSERVARLA', 'gold'], ['SÍ, BORRAR PARA SIEMPRE', 'red']]) !== 1) return;
   a[i] = { borrada: true, u: Date.now() }; escribirSlots(a); nubeSlot(i, a[i]);
   if (i === SLOT) S = null;
   pintarTitulo(); toast('🗑 Partida ' + (i + 1) + ' borrada');

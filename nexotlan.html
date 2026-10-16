@@ -786,7 +786,7 @@ async function abrirFicha(id) {
   const v = S.vencidos[p.id] || 0, dr = S.derrotas[p.id] || 0;
   const chips = [];
   if (d) chips.push(`<span class="chip" style="color:${esc(d.color)}">📍 ${esc(d.nombre)}</span>`);
-  if (p.tipo !== 'heroe') { chips.push(`<span class="chip">⚔ ${NIV_TXT[nivelDe(p)]}</span>`); if (v) chips.push(`<span class="chip ok">✔ Vencido ×${v}</span>`); if (dr) chips.push(`<span class="chip no">✖ Derrotas ${dr}</span>`); if (p._mon) chips.push(`<span class="chip">🪙 ${p._mon}${v ? ' (revancha: ' + Math.ceil(p._mon / 4) + ')' : ''}</span>`); chips.push(`<span class="chip">🎁 ${v ? 'Puede soltar una carta' : (p.tipo === 'guardian' ? '2 cartas + 1 Amalgama' : '1 carta') + ' de su baraja'}</span>`); }
+  if (p.tipo !== 'heroe') { chips.push(`<span class="chip">⚔ ${NIV_TXT[nivelDe(p)]}</span>`); if (v) chips.push(`<span class="chip ok">✔ Vencido ×${v}</span>`); if (dr) chips.push(`<span class="chip no">✖ Derrotas ${dr}</span>`); if (p._mon) chips.push(`<span class="chip">🪙 ${p._mon}${v ? ' (revancha: ' + Math.ceil(p._mon / 4) + ')' : ''}</span>`); chips.push(`<span class="chip">🎁 ${v ? 'Puede soltar una carta' : (p.tipo === 'guardian' ? '2 cartas + 1 Amalgama' : '1 carta') + ' de su baraja'}</span>`); if (tieneFase2(p)) chips.push(`<span class="chip no">☠ 2 fases${enFase2(p) ? ' · falta la 2ª' : ''}</span>`); }
   if (p._dias.length) chips.push(`<span class="chip">📅 ${p._dias.map(x => x.charAt(0) + x.slice(1).toLowerCase()).join(' · ')}</span>`);
   const bloq = p.tipo === 'guardian' && p._req.length && !cumple(p._req);
   if (bloq) chips.push(`<span class="chip no">🔒 Antes vence a: ${esc(nombresReq(p._req.filter(r => !vencido(r))))}</span>`);
@@ -822,7 +822,9 @@ async function dialogo(p, texto, ops) {
     (ret ? `<img class="d-ret ${ret.carta ? 'carta' : ''}" src="${esc(ret.src)}" alt="">` : '');
   $('dNom').textContent = (p.nombre || '').toUpperCase();
   $('dlg').classList.add('on');
-  return new Promise(res => { DLG = { pags, i: 0, ops: ops || [], res, esc: 0 }; mostrarPagina(); });
+  // Música propia al hablar con este personaje (musica_dialogo); al cerrar regresa la que sonaba
+  const previa = _mus; if (p.musica_dialogo) musica(p.musica_dialogo);
+  return new Promise(res => { DLG = { pags, i: 0, ops: ops || [], res: i => { if (p.musica_dialogo && i !== 0) musica(previa || CFG.musica); res(i); }, esc: 0 }; mostrarPagina(); });
 }
 function mostrarPagina() {
   const D = DLG; if (!D) return;
@@ -853,7 +855,23 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') { if (DLG && !DLG.ops.length) cerrarDialogo(-1); else if ($('mMsg').classList.contains('on')) return; else if ($('mSobre').classList.contains('on')) return; else if ($('mCarta').classList.contains('on')) cerrarModal('mCarta'); else if ($('sTienda').classList.contains('on')) salirTienda(); else if ($('mDiario').classList.contains('on')) cerrarModal('mDiario'); else if ($('sMazo').classList.contains('on')) salirMazo(); else cerrarFicha(); }
 });
 
+// ── Jefes de 2 fases (campos fase2_* en mapa.txt): al vencer la 1ª forma se transforma y hay un 2º Choque ──
+const tieneFase2 = p => !!(p && p.fase2_baraja);
+const enFase2 = p => !!(S.fase2 && S.fase2[p.id]);
+function forma2(p) {      // el mismo punto con los datos de su transformación
+  return Object.assign({}, p, {
+    nombre: p.fase2_nombre || p.nombre, titulo: p.fase2_titulo || p.titulo, imagen: p.fase2_imagen || p.imagen, carta: p.fase2_carta || p.carta,
+    baraja: p.fase2_baraja, musica: p.fase2_musica || p.musica, corazones: p.fase2_corazones || p.corazones, dificultad: p.fase2_dificultad || p.dificultad,
+    musica_dialogo: p.fase2_musica_dialogo || p.musica_dialogo, paisaje: p.fase2_paisaje || p.paisaje,
+    victoria: p.fase2_victoria || p.victoria, derrota: p.fase2_derrota || p.derrota, _fase: 2 });
+}
+async function retoFase2(p) {
+  const q = forma2(p);
+  const r = await dialogo(q, p.fase2_revancha && S.fase2[p.id] > 1 ? p.fase2_revancha : (p.fase2_entrada || '…'), [['⚔ ¡CHOQUE!', 'red'], ['AHORA NO', 'sec']]);
+  if (r === 0) iniciarChoque(p, 2);
+}
 async function hablar(p) {
+  if (tieneFase2(p) && enFase2(p) && !(p._req.length && !cumple(p._req))) { retoFase2(p); return; }
   if (p.tipo === 'heroe') {
     const primera = !(S.hablados[p.id] > 0);
     await dialogo(p, primera ? (p.dialogo || p.entrada) : (p.dialogo2 || p.dialogo || p.entrada));
@@ -890,18 +908,22 @@ async function fondosChoque(p, d) {
   if (u) out.fondoInicio = u;
   return out;
 }
-async function iniciarChoque(p) {
+async function iniciarChoque(p0, fase) {
+  fase = fase === 2 && tieneFase2(p0) ? 2 : 1;
+  const p = fase === 2 ? forma2(p0) : p0;
   const id = 'nx' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   const d = distDe(p), ret = await retrato(p);
-  S.pendiente = { id, punto: p.id, dia: S.dia }; guardar(true);
+  S.pendiente = { id, punto: p.id, dia: S.dia, fase }; guardar(true);
   // La baraja armada en 🃏 BARAJA viaja al Simulador como "nx_mia"
   asegurarColeccion(); let jug = S.baraja;
   if (S.mazo && !validarMazo(S.mazo).ok) toast('⚠ Tu baraja no está lista: juegas con la básica. Revísala en 🃏 BARAJA');
   if (S.mazo && validarMazo(S.mazo).ok) { try { localStorage.setItem('chh_nexotlan_baraja', JSON.stringify({ nombre: S.mazo.nombre || S.barajaNombre, bp: S.mazo.bp, ba: S.mazo.ba, bs: S.mazo.bs || [] })); jug = 'nx_mia'; } catch (e) {} }
-  const m = { id, slot: 0, ronda: 1, total: 1, jefe: p.tipo === 'guardian', jefeTxt: 'GUARDIÁN', jugador: jug, cpu: p.baraja, nivel: nivelDe(p),
+  const m = { id, slot: 0, ronda: 1, total: 1, jefe: p.tipo === 'guardian', jefeTxt: fase === 2 ? (p0.fase2_etiqueta || 'TRANSFORMACIÓN') : 'GUARDIÁN', jugador: jug, cpu: p.baraja, nivel: nivelDe(p),
     corazonesExtra: parseInt(p.corazones, 10) || 0, avatar: avatarPerfil() ? new URL(avatarPerfil(), location.href).href : '', nombre: p.nombre,
     retrato: ret ? new URL(ret.src, location.href).href : '', musica: p.musica ? new URL(p.musica, location.href).href : '',
-    volver: 'nexotlan.html', volverTxt: 'NEXOTLAN', etiqueta: '🗺 NEXOTLAN · ' + (d ? d.nombre : '') };
+    volver: 'nexotlan.html', volverTxt: 'NEXOTLAN', etiqueta: '🗺 NEXOTLAN · ' + (d ? d.nombre : '') + (fase === 2 ? ' · 2ª FASE' : '') };
+  // Música del Choque: la del punto (o de su fase), si no la del distrito (musica_choque), si no la de [config] (musica_choque)
+  const mc = p.musica || (d && d.musica_choque) || CFG.musica_choque; m.musica = mc ? new URL(mc, location.href).href : '';
   Object.assign(m, await fondosChoque(p, d));
   try { localStorage.setItem('chh_arcade_match', JSON.stringify(m)); } catch (e) {}
   location.href = 'simulacion.html?modo=arcade';
@@ -912,10 +934,26 @@ async function procesarResultado() {
   const q = new URLSearchParams(location.search).get('r');
   if (q) history.replaceState(null, '', location.pathname + (EDITOR ? '?editor=1' : ''));
   if (!res || res.id !== S.pendiente.id) return false;
-  const p = PTS.find(x => x.id === S.pendiente.punto);
+  const p0 = PTS.find(x => x.id === S.pendiente.punto), fase = S.pendiente.fase || 1;
   S.pendiente = null;
   try { localStorage.removeItem('chh_arcade_result'); } catch (e) {}
-  if (!p) { guardar(); return false; }
+  if (!p0) { guardar(); return false; }
+  const p = fase === 2 ? forma2(p0) : p0;
+  // 1ª forma vencida de un jefe de 2 fases: se transforma (aún no cuenta como vencido)
+  if (res.won && !res.abandono && fase === 1 && tieneFase2(p0)) {
+    S.historial.push({ p: p0.id, won: true, dia: S.dia, turnos: res.turnos || 0, ts: Date.now(), fase: 1 });
+    S.fase2 = S.fase2 || {}; S.fase2[p0.id] = 1; S.victorias++; S.dia++; guardar();
+    mostrarMapa(); centrarEn(p0._x, p0._y);
+    if (p0.victoria) await dialogo(p0, p0.victoria);          // su reacción al caer la 1ª forma
+    await retoFase2(p0);
+    return true;
+  }
+  if (fase === 2) {
+    S.fase2 = S.fase2 || {};
+    if (res.won) delete S.fase2[p0.id];
+    else if (String(p0.fase2_reintento || 'si').toLowerCase() === 'inicio') delete S.fase2[p0.id];   // al perder se reinicia desde la 1ª forma
+    else S.fase2[p0.id] = 2;                                                                            // al perder se reintenta directo la 2ª forma
+  }
   const antes = vencido(p.id);
   S.historial.push({ p: p.id, won: !!res.won, dia: S.dia, turnos: res.turnos || 0, ts: Date.now() });
   if (S.historial.length > 200) S.historial = S.historial.slice(-200);

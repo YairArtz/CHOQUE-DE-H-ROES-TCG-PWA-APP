@@ -18,6 +18,7 @@
 #   titulo, subtitulo
 #   mapa        imagen del mapa en assets/nexotlan/ (ej. mapa.jpg). Vacío = mapa neón generado
 #   musica      música del mapa (ruta como en el Arcade, ej. musica_choque/pista_9.mp3)
+#   musica_choque (opcional) música de los Choques de todo el modo (si el distrito o el punto no tienen una)
 #   dias        nombres de los días separados por coma
 #   excluir_habilidades  cartas con (o que otorgan) estas habilidades no se usan en el modo:
 #               no salen de premio ni en la tienda y no entran a la baraja. Vacío = ninguna
@@ -35,6 +36,7 @@
 #   etiqueta    (opcional) dónde va el nombre del distrito: "x,y" en %
 #   requiere    ID del punto que hay que vencer para abrirlo (vacío = abierto desde el inicio)
 #   musica      (opcional) música al seleccionar este distrito
+#   musica_choque (opcional) música de TODOS los Choques de este distrito (un punto con musica = … la cambia)
 #   paisaje     (opcional) imagen panorámica angosta en assets/nexotlan/paisajes/ (ej. 1600×500 px)
 #               aparece detrás de los rivales y héroes de este distrito al hablar con ellos
 #
@@ -62,6 +64,15 @@
 #   revancha    lo que dice si ya lo venciste antes
 #   dialogo     (heroe) lo que dice la primera vez
 #   dialogo2    (heroe) lo que dice las siguientes veces
+#   musica_dialogo (opcional) música mientras hablas con este personaje (al cerrar regresa la del mapa)
+#   ── Jefes de 2 fases (opcional): al vencer la 1ª forma se transforma y empieza otro Choque ──
+#   fase2_baraja      baraja de la 2ª forma (si este campo existe, el punto tiene 2 fases)
+#   fase2_nombre, fase2_titulo, fase2_imagen, fase2_carta, fase2_paisaje   cómo se ve transformado
+#   fase2_musica      música del 2º Choque · fase2_musica_dialogo  música al hablar con la 2ª forma
+#   fase2_corazones, fase2_dificultad, fase2_etiqueta (texto del VS, ej. FORMA VERDADERA)
+#   fase2_entrada     lo que dice al transformarse · fase2_revancha  si vuelves a retar su 2ª forma
+#   fase2_victoria / fase2_derrota   lo que dice al final (si no, usa victoria / derrota)
+#   fase2_reintento   si = al perder, reintentas directo la 2ª forma · inicio = vuelves a empezar desde la 1ª
 #
 #  Las líneas que empiezan con # son comentarios.
 # ════════════════════════════════════════════════════════════════════
@@ -83,6 +94,7 @@ fondo_inicio = puerta.jpg
 #  Orden del recorrido: Puerta → Mercado → Archivos → Santuario → Fortaleza → Ciudadela → Cima
 
 [distrito:puerta]
+musica_choque = assets/nexotlan/musica/puerta.mp3
 nombre = Puerta de Obsidiana
 descripcion = La entrada a Nexotlan. Aquí se ponen a prueba los recién llegados.
 color = #00cfff
@@ -95,6 +107,7 @@ requiere =
 paisaje = puerta.jpg
 
 [distrito:mercado]
+musica_choque = assets/nexotlan/musica/mercado.mp3
 nombre = Mercado Dimensional
 descripcion = Puestos, coleccionistas y jugadores de todas las dimensiones.
 color = #f5a623
@@ -107,6 +120,7 @@ requiere = g_aurora
 paisaje = mercado.jpg
 
 [distrito:archivos]
+musica_choque = assets/nexotlan/musica/archivos.mp3
 nombre = Archivos de Nexotlan
 descripcion = La biblioteca infinita donde Madatzin, la Oráculo, guarda la memoria de la ciudad.
 color = #cc55ff
@@ -119,6 +133,7 @@ requiere = g_vulcar
 paisaje = archivos.jpg
 
 [distrito:santuario]
+musica_choque = assets/nexotlan/musica/santuario.mp3
 nombre = Santuario del Dragón Multiversal
 descripcion = La pirámide flotante donde Nikkon Trolas vigila Nexotlan desde hace siglos.
 color = #00ff9d
@@ -131,6 +146,7 @@ requiere = g_madatzin
 paisaje = santuario.jpg
 
 [distrito:fortaleza]
+musica_choque = assets/nexotlan/musica/fortaleza.mp3
 nombre = Fortaleza de Cristal Multiversal
 descripcion = El bastión de Vulcar, el Caballero de Nexotlan. Sus muros reflejan otras dimensiones.
 color = #7ad7ff
@@ -143,6 +159,7 @@ requiere = g_nikkon
 paisaje = fortaleza.jpg
 
 [distrito:ciudadela]
+musica_choque = assets/nexotlan/musica/ciudadela.mp3
 nombre = Ciudadela del Regente
 descripcion = La base de la torre central. Koatl, el Defensor de Nexotlan, custodia el camino a la cima.
 color = #ffd166
@@ -156,6 +173,7 @@ paisaje = ciudadela.jpg
 
 [distrito:cima]
 nombre = Cima de la Torre Convergente
+musica_choque = assets/nexotlan/musica/cima.mp3
 descripcion = El trono de Vellond, el Gran Regente. Solo llega quien recorrió toda Nexotlan.
 color = #ff2f5a
 x = 47
@@ -680,3 +698,17 @@ entrada = Así que tú eres quien recorrió mi ciudad. | Nexotlan ha visto nacer
 victoria = …Nexotlan...¡esto no puede ser!. | No tienes idea de lo que puedes provocar...| Yo...Arrghh...
 derrota = Uno más que viene a retarme y cae...Por lo que me informaron esperaba más...
 revancha = ¿Vuelves a desafiar al Regente? Que así sea.
+musica_dialogo = musica_choque/pista_12.mp3
+fase2_nombre = Vellond Transformado
+fase2_titulo = Forma verdadera del Gran Regente
+fase2_imagen = vellond_transformado.png
+fase2_baraja = nxr_g_vellond2
+fase2_musica = musica_choque/pista_13.mp3
+fase2_corazones = 7
+fase2_dificultad = muy_dificil
+fase2_etiqueta = FORMA VERDADERA
+fase2_entrada = …Impresionante. Nadie había llegado tan lejos. | Pero lo que venciste fue solo el Regente. | Ahora conocerás el poder que mantiene unidas a todas las dimensiones de Nexotlan.
+fase2_revancha = ¿Vuelves a enfrentar mi verdadera forma? Esta vez no habrá piedad.
+fase2_victoria = Imposible… Nexotlan… te elige a ti. | Mientras estés aquí, esta ciudad es tu hogar.
+fase2_derrota = Así termina toda leyenda: a los pies de la torre.
+fase2_reintento = si

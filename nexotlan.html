@@ -34,6 +34,23 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 #sTitulo.con-fondo::before{opacity:.12}
 #sTitulo.con-fondo .t-kicker,#sTitulo.con-fondo .t-sub,#sTitulo.con-fondo .t-info,#sTitulo.con-fondo .t-cont{text-shadow:0 2px 6px #000,0 0 2px #000}
 .t-btns{display:flex;flex-direction:column;gap:10px;width:min(340px,100%);margin-top:10px;position:relative;z-index:1}
+#sTitulo{overflow-y:auto;justify-content:safe center}
+#sTitulo .t-btns{width:min(920px,100%);align-items:center}
+#tDescargar{width:min(340px,100%)}
+#tCont,#tNueva{display:none!important}
+.slots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;width:100%}
+.sl{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:14px;border:1px solid var(--line);background:rgba(8,14,34,.86);text-align:left;backdrop-filter:blur(6px)}
+.sl.act{border-color:var(--cyan);box-shadow:0 0 18px rgba(54,214,255,.25)}
+.sl .num{font-family:'Orbitron',monospace;font-size:9.5px;letter-spacing:3px;color:var(--cyan);display:flex;justify-content:space-between}
+.sl .nom{font-family:'Orbitron',monospace;font-size:14px;font-weight:900;letter-spacing:1px;line-height:1.15;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sl .inf{font-size:13.5px;color:#b8c8ee;line-height:1.3}
+.sl .bar{height:5px;border-radius:3px;background:rgba(0,0,0,.45);overflow:hidden}
+.sl .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--purple))}
+.sl .vac{flex:1;display:flex;align-items:center;justify-content:center;min-height:62px;border:1px dashed #2a3a66;border-radius:10px;color:var(--muted);font-size:14px}
+.sl .acts{display:flex;gap:6px;margin-top:auto}
+.sl .acts .bt{flex:1;padding:10px 6px;font-size:9.5px;letter-spacing:1px}
+.sl .acts .bt.mini{flex:0 0 auto;width:40px;padding:10px 0}
+@media (max-width:760px){.slots{grid-template-columns:1fr}.sl{padding:10px;gap:6px}.sl .vac{min-height:38px}}
 .bt{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 18px;border-radius:12px;font-family:'Orbitron',monospace;font-size:12px;font-weight:900;letter-spacing:2px;text-transform:uppercase;
   background:linear-gradient(135deg,#36d6ff,#7a4dff);color:#020616;box-shadow:0 0 22px rgba(54,214,255,.35)}
 .bt.sec{background:rgba(10,20,48,.9);color:var(--text);border:1px solid var(--line);box-shadow:none}
@@ -327,8 +344,9 @@ body.editor .pt{cursor:move}
   <div class="t-sub" id="tSub">La ciudad entre dimensiones</div>
   <div class="t-save" id="tSave" hidden></div>
   <div class="t-btns">
-    <button class="bt" id="tCont" disabled>▶ CONTINUAR</button>
-    <button class="bt sec" id="tNueva">✨ NUEVA AVENTURA</button>
+    <div class="slots" id="tSlots"></div>
+    <button class="bt" id="tCont" disabled hidden>▶ CONTINUAR</button>
+    <button class="bt sec" id="tNueva" hidden>✨ NUEVA AVENTURA</button>
     <button class="bt sec" id="tDescargar">⬇ DESCARGAR CONTENIDO</button>
   </div>
   <div class="t-cont" id="tContenido" hidden><div class="bar"><i id="tcBar"></i></div><span id="tcTxt"></span></div>
@@ -521,11 +539,26 @@ function avatarPerfil() {          // mismo criterio que el Arcade (perfil.html 
 }
 
 // ════════════════ PARTIDA ════════════════
-function cargarLocal() { try { return JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { return null; } }
+// ── 3 partidas (slots) ── localStorage "chh_nexotlan_slots" = [p1, p2, p3] · slot activo en "chh_nexotlan_slot"
+//    Nube: jugadores/<ID>/nexotlan (1), nexotlan2 (2), nexotlan3 (3). Una partida borrada se guarda como {borrada, u}
+//    para que la nube no la regrese.
+const NSLOTS = 3, SLOTS_KEY = 'chh_nexotlan_slots', SLOT_KEY = 'chh_nexotlan_slot';
+let SLOT = 0; try { SLOT = Math.min(NSLOTS - 1, Math.max(0, parseInt(localStorage.getItem(SLOT_KEY), 10) || 0)); } catch (e) {}
+const docSlot = i => i ? 'nexotlan' + (i + 1) : 'nexotlan';
+const viva = x => !!(x && x.baraja && !x.borrada);
+function leerSlots() {
+  let a = null; try { a = JSON.parse(localStorage.getItem(SLOTS_KEY) || 'null'); } catch (e) {}
+  if (!Array.isArray(a)) { a = []; try { const v = JSON.parse(localStorage.getItem(KEY) || 'null'); if (v && v.baraja) a[0] = v; } catch (e) {} }   // partida de antes de los slots
+  while (a.length < NSLOTS) a.push(null); return a.slice(0, NSLOTS);
+}
+function escribirSlots(a) { try { localStorage.setItem(SLOTS_KEY, JSON.stringify(a)); } catch (e) {} }
+function usarSlot(i) { SLOT = i; try { localStorage.setItem(SLOT_KEY, String(i)); } catch (e) {} S = normalizar(leerSlots()[i]); if (!viva(S)) S = null; }
+function nubeSlot(i, datos) { const N = window.CHH_NUBE; if (N && typeof N.diferir === 'function' && typeof N.sincronizarDoc === 'function' && N.sesionId()) N.diferir(docSlot(i), () => N.sincronizarDoc(docSlot(i), datos), 1500); }
+function cargarLocal() { const x = leerSlots()[SLOT]; return viva(x) ? x : null; }
 function guardar(sinNube) {
-  if (!S) return; S.u = Date.now();
-  try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
-  if (!sinNube && window.CHH_NUBE && typeof CHH_NUBE.diferir === 'function' && typeof CHH_NUBE.sincronizarDoc === 'function' && CHH_NUBE.sesionId()) CHH_NUBE.diferir('nexotlan', () => CHH_NUBE.sincronizarDoc('nexotlan', S), 1500);
+  if (!S || EDITOR) return; S.u = Date.now();
+  const a = leerSlots(); a[SLOT] = S; escribirSlots(a);
+  if (!sinNube) nubeSlot(SLOT, S);
 }
 function nueva(nombre, baraja, barajaNombre) {
   return { v: 1, nombre, baraja, barajaNombre, dia: 0, monedas: 0, vencidos: {}, derrotas: {}, hablados: {}, abiertos: {}, victorias: 0, perdidas: 0, historial: [], inicio: Date.now(), u: Date.now(), pendiente: null };
@@ -1463,19 +1496,48 @@ async function portadaPersonal() {
   if (fondo) { t.classList.add('con-fondo'); t.style.backgroundImage = `linear-gradient(rgba(5,10,28,.25),rgba(5,10,28,.78)),url("${fondo}")`; }
   if (logo) { $('tLogo').src = logo; $('tLogo').alt = CFG.titulo || 'NEXOTLAN'; $('tLogo').hidden = false; $('tTitulo').hidden = true; }
 }
+function resumenSlot(x) {
+  const lucha = PTS.filter(p => p.tipo !== 'heroe'), ven = lucha.filter(p => (x.vencidos || {})[p.id] > 0).length;
+  const gd = PTS.filter(p => p.tipo === 'guardian'), gv = gd.filter(p => (x.vencidos || {})[p.id] > 0).length;
+  const sig = DIST.find(d => !(x.abiertos || {})[d.id] && !(d._req.length === 0) && !d._req.every(r => (x.vencidos || {})[r] > 0));
+  return { ven, tot: lucha.length, gv, gt: gd.length, sig };
+}
 function pintarTitulo() {
   $('tTitulo').textContent = CFG.titulo || 'NEXOTLAN'; $('tSub').textContent = CFG.subtitulo || '';
-  const hay = S && S.baraja;
-  $('tCont').disabled = !hay;
-  if (hay) { const ven = PTS.filter(p => p.tipo !== 'heroe' && vencido(p.id)).length, tot = PTS.filter(p => p.tipo !== 'heroe').length;
-    $('tSave').hidden = false; $('tSave').innerHTML = `<b>${esc(S.nombre)}</b> · Día ${S.dia + 1} · ${ven}/${tot} vencidos · 🪙 ${S.monedas}${S.campeon ? ' · 👑' : ''}`; }
-  else $('tSave').hidden = true;
+  $('tSave').hidden = true;
+  const a = leerSlots();
+  $('tSlots').innerHTML = a.map((x, i) => {
+    if (!viva(x)) return `<div class="sl"><div class="num"><span>PARTIDA ${i + 1}</span></div><div class="vac">Vacía</div>
+      <div class="acts"><button class="bt" data-nueva="${i}">✨ NUEVA AVENTURA</button></div></div>`;
+    const r = resumenSlot(x), mb = (x.mazo && x.mazo.nombre) || x.barajaNombre || '';
+    return `<div class="sl ${i === SLOT ? 'act' : ''}"><div class="num"><span>PARTIDA ${i + 1}</span><span>${x.campeon ? '👑 CAMPEÓN' : ''}</span></div>
+      <div class="nom">${esc(x.nombre || 'Jugador')}</div>
+      <div class="inf">Día ${(x.dia || 0) + 1} · 🪙 ${x.monedas || 0} · ${r.gv}/${r.gt} guardianes<br><small style="color:var(--muted)">🃏 ${esc(mb)}${r.sig ? ' · Siguiente: ' + esc(r.sig.nombre || r.sig.id) : ''}</small></div>
+      <div class="bar"><i style="width:${r.tot ? r.ven / r.tot * 100 : 0}%"></i></div>
+      <div class="acts"><button class="bt" data-jugar="${i}">▶ JUGAR</button><button class="bt sec mini" data-copiar="${i}" title="Copiar a otra partida" aria-label="Copiar">⧉</button><button class="bt sec mini" data-borrar="${i}" title="Borrar partida" aria-label="Borrar">🗑</button></div></div>`;
+  }).join('');
+  $('tSlots').querySelectorAll('[data-jugar]').forEach(b => b.onclick = () => { usarSlot(+b.dataset.jugar); entrarMapa(); });
+  $('tSlots').querySelectorAll('[data-nueva]').forEach(b => b.onclick = () => { usarSlot(+b.dataset.nueva); S = null; pantallaBaraja('nueva'); });
+  $('tSlots').querySelectorAll('[data-copiar]').forEach(b => b.onclick = () => copiarSlot(+b.dataset.copiar));
+  $('tSlots').querySelectorAll('[data-borrar]').forEach(b => b.onclick = () => borrarSlot(+b.dataset.borrar));
+}
+async function copiarSlot(i) {
+  const a = leerSlots(), otros = [0, 1, 2].filter(j => j !== i);
+  const r = await mensaje('⧉ COPIAR PARTIDA ' + (i + 1), 'Elige a qué partida copiarla. Si ya tiene una aventura, <b>se reemplaza</b>.',
+    otros.map(j => ['PARTIDA ' + (j + 1) + (viva(a[j]) ? ' · ' + esc(a[j].nombre || '') + ' (reemplazar)' : ' · vacía'), viva(a[j]) ? 'red' : 'gold']).concat([['CANCELAR', 'sec']]));
+  if (r < 0 || r >= otros.length) return;
+  const j = otros[r], c = JSON.parse(JSON.stringify(a[i])); c.u = Date.now(); c.pendiente = null; a[j] = c; escribirSlots(a); nubeSlot(j, c);
+  pintarTitulo(); toast('⧉ Copiada a la partida ' + (j + 1));
+}
+async function borrarSlot(i) {
+  const a = leerSlots(); if (!viva(a[i])) return;
+  if (await mensaje('🗑 ¿BORRAR LA PARTIDA ' + (i + 1) + '?', '<b>' + esc(a[i].nombre || '') + '</b> · Día ' + ((a[i].dia || 0) + 1) + '<br>Se pierde todo su progreso (también en la nube).', [['🗑 BORRAR', 'red'], ['CANCELAR', 'sec']]) !== 0) return;
+  a[i] = { borrada: true, u: Date.now() }; escribirSlots(a); nubeSlot(i, a[i]);
+  if (i === SLOT) S = null;
+  pintarTitulo(); toast('🗑 Partida ' + (i + 1) + ' borrada');
 }
 $('tCont').onclick = () => entrarMapa();
-$('tNueva').onclick = async () => {
-  if (S && S.baraja && await mensaje('¿NUEVA AVENTURA?', 'Tu partida actual se reemplaza (también en la nube).', [['✨ EMPEZAR DE NUEVO', 'red'], ['CANCELAR', 'sec']]) !== 0) return;
-  pantallaBaraja('nueva');
-};
+$('tNueva').onclick = () => pantallaBaraja('nueva');
 $('hSalir').onclick = () => { musica(null); irA('sTitulo'); pintarTitulo(); };
 $('hDescansar').onclick = descansar;
 $('hDiario').onclick = abrirDiario;
@@ -1624,6 +1686,8 @@ function normalizar(x) {
 // Revisión de mapa.txt: avisa si un punto apunta a un distrito o requisito que no existe (p. ej. un id cambiado)
 function revisarMapa() {
   const ids = new Set(PTS.map(p => p.id)), ds = new Set(DIST.map(d => d.id)), av = [];
+  const rep = (L, t) => { const v = {}; L.forEach(x => { v[x.id] = (v[x.id] || 0) + 1; }); Object.keys(v).filter(k => v[k] > 1).forEach(k => av.push(`hay ${v[k]} bloques [${t}:${k}] con el mismo ID (cada uno necesita uno distinto)`)); };
+  rep(PTS, 'punto'); rep(DIST, 'distrito');
   PTS.forEach(p => { if (p.distrito && !ds.has(p.distrito)) av.push(`«${p.nombre || p.id}» usa distrito = ${p.distrito}, que no existe`); p._req.forEach(r => { if (!ids.has(r)) av.push(`«${p.nombre || p.id}» requiere ${r}, que no existe`); }); });
   DIST.forEach(d => { if (/\./.test(d.id)) av.push(`[distrito:${d.id}] tiene un punto en el id (¿quisiste poner la imagen en paisaje = …?)`); d._req.forEach(r => { if (!ids.has(r)) av.push(`el distrito ${d.nombre || d.id} requiere ${r}, que no existe`); }); });
   if (av.length) { console.warn('[nexotlan] mapa.txt:', av); $('tInfo').innerHTML = '⚠ Revisa mapa.txt: ' + av.slice(0, 3).map(esc).join(' · ') + (av.length > 3 ? ' …' : ''); }
@@ -1633,15 +1697,18 @@ async function nubeFondo(aplicar) {
   const N = window.CHH_NUBE;
   if (!N || typeof N.sincronizarDoc !== 'function') { $('tInfo').textContent = '💾 Tu aventura se guarda en este dispositivo.'; return; }
   if (!N.sesionId()) { $('tInfo').textContent = '💾 Se guarda en este dispositivo · inicia sesión en Mi Perfil para guardarla en la nube.'; return; }
-  $('tInfo').textContent = '☁ Buscando tu partida en la nube…';
-  let r;
-  try { r = await Promise.race([N.sincronizarDoc('nexotlan', S && S.baraja ? S : null), new Promise(ok => setTimeout(() => ok({ ok: false, motivo: 'tiempo' }), 8000))]); }
-  catch (e) { r = { ok: false }; }
-  // Solo se reemplaza la partida local si sigues en la portada (no a media exploración)
-  if (r && r.ok && r.bajada && r.datos && r.datos.baraja && aplicar && $('sTitulo').classList.contains('on')) {
-    S = normalizar(r.datos); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} pintarTitulo();
-  }
-  $('tInfo').textContent = r && r.ok ? '☁ Partida guardada y ligada a tu ID ' + N.sesionId() : '💾 Guardada en este dispositivo (la nube no respondió; se reintenta al guardar).';
+  $('tInfo').textContent = '☁ Buscando tus partidas en la nube…';
+  const a = leerSlots(); let ok = true, cambio = false;
+  const una = async i => {
+    let r; const loc = a[i] && a[i].u ? a[i] : null;
+    try { r = await Promise.race([N.sincronizarDoc(docSlot(i), loc), new Promise(res => setTimeout(() => res({ ok: false }), 8000))]); } catch (e) { r = { ok: false }; }
+    if (!r || !r.ok) { ok = false; return; }
+    // Solo se reemplaza una partida local si sigues en la portada (no a media exploración)
+    if (r.bajada && r.datos && aplicar && $('sTitulo').classList.contains('on')) { a[i] = r.datos; cambio = true; }
+  };
+  await Promise.all([0, 1, 2].map(una));
+  if (cambio && $('sTitulo').classList.contains('on')) { escribirSlots(a); usarSlot(SLOT); pintarTitulo(); }
+  $('tInfo').textContent = ok ? '☁ Partidas guardadas y ligadas a tu ID ' + N.sesionId() : '💾 Guardadas en este dispositivo (la nube no respondió; se reintenta al guardar).';
 }
 </script>
 <script src="gamepad.js"></script>

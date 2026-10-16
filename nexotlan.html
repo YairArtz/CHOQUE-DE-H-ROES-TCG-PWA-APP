@@ -36,6 +36,9 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 .bt.gold{background:linear-gradient(135deg,#ffd166,#f5a623);color:#1a0f00}
 .bt:disabled{opacity:.35;cursor:default}
 .t-info{font-size:14px;color:var(--muted);min-height:20px;position:relative;z-index:1}
+.t-cont{width:min(340px,100%);position:relative;z-index:1;font-size:13px;color:var(--muted);text-align:center}
+.t-cont .bar{height:6px;border-radius:4px;background:rgba(0,0,0,.45);overflow:hidden;margin:6px 0 4px;--dc:var(--cyan)}
+.t-cont .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--purple));transition:width .2s}
 .t-save{font-size:15px;color:#cfe0ff;background:rgba(10,20,48,.7);border:1px solid var(--line);border-radius:10px;padding:10px 14px;position:relative;z-index:1}
 .t-save b{color:var(--cyan)}
 .esq{position:fixed;top:14px;left:14px;z-index:5;padding:8px 12px;border-radius:9px;border:1px solid var(--line);background:rgba(10,20,48,.8);font-family:'Orbitron',monospace;font-size:10px;letter-spacing:1.5px;color:var(--cyan);text-decoration:none}
@@ -320,7 +323,9 @@ body.editor .pt{cursor:move}
   <div class="t-btns">
     <button class="bt" id="tCont" disabled>▶ CONTINUAR</button>
     <button class="bt sec" id="tNueva">✨ NUEVA AVENTURA</button>
+    <button class="bt sec" id="tDescargar">⬇ DESCARGAR CONTENIDO</button>
   </div>
+  <div class="t-cont" id="tContenido" hidden><div class="bar"><i id="tcBar"></i></div><span id="tcTxt"></span></div>
   <div class="t-info" id="tInfo">Cargando Nexotlan…</div>
 </section>
 
@@ -405,6 +410,7 @@ body.editor .pt{cursor:move}
 <audio id="aud" loop preload="none"></audio>
 
 <script src="nube.js"></script>
+<script src="medios.js"></script>
 <script>
 // ════════════════════════════════════════════════════════════════════
 //  MODO AVENTURA · NEXOTLAN  (Fase 1 + cofre y constructor de aventura)
@@ -1304,6 +1310,108 @@ async function comprarSobre(sb) {
 $('tdSalir').onclick = salirTienda;
 $('tdTabs').querySelectorAll('button').forEach(b => b.onclick = () => { TD.tab = b.dataset.t; pintarTienda(); });
 
+// ════════════════ CONTENIDO DEL MODO (música, imágenes y fondos) ════════════════
+// Junta todo lo que usan mapa.txt y comerciante.txt y lo guarda en el dispositivo (Cache Storage, el mismo de
+// medios.js: música en "chh-musica-v1", imágenes en "chh-medios-v1"). Con red, compara cada archivo con el del sitio
+// (ETag / fecha) y vuelve a bajar los que cambiaron aunque se llamen igual.
+const C_MUS = 'chh-musica-v1', C_MED = 'chh-medios-v1';
+const esAud = u => /\.(mp3|m4a|ogg|wav|aac|opus)$/i.test(u.split('?')[0]);
+function itemsContenido() {
+  const it = [], ya = new Set();
+  const add = (cands, tipo) => { cands = cands.filter(Boolean).map(u => new URL(u, location.href).href); if (!cands.length || ya.has(cands[0])) return; ya.add(cands[0]); it.push({ cands, tipo }); };
+  const img = (f, sub) => add(candidatos(f, sub), 'img');
+  const aud = f => { f = String(f || '').trim(); if (f) add([f], 'aud'); };
+  const fondos = o => { ['playmat', 'fondo_inicio'].forEach(k => o[k] && add(candidatos(o[k], 'simulador'), 'img')); if (o.fondo_mesa && !/^[a-z]+$/.test(o.fondo_mesa)) add(candidatos(o.fondo_mesa, 'simulador'), 'img'); };
+  if (CFG.mapa) add([DIR + CFG.mapa], 'img');
+  aud(CFG.musica); aud(CFG.musica_choque); fondos(CFG);
+  DIST.forEach(d => { img(d.paisaje, 'paisajes'); aud(d.musica); aud(d.musica_choque); fondos(d); });
+  PTS.forEach(p => {
+    img(p.imagen, 'personajes'); img(p.fase2_imagen, 'personajes'); img(p.paisaje, 'paisajes'); img(p.fase2_paisaje, 'paisajes');
+    ['musica', 'musica_dialogo', 'fase2_musica', 'fase2_musica_dialogo'].forEach(k => aud(p[k])); fondos(p);
+    if (p.carta) add([cartaImg(p.carta, true)], 'img');
+  });
+  (DATA.barajas || []).filter(b => b.aventura).forEach(b => add(b.imagen ? [galPath(b.imagen)] : ['jpg', 'png', 'webp'].map(e => DIR + 'barajas/' + b.id + '.' + e), 'img'));
+  (COM.sobres || []).forEach(sb => sb.imagen && add(/\//.test(sb.imagen) ? [sb.imagen] : [DIR + 'sobres/' + sb.imagen, DIR + sb.imagen], 'img'));
+  return it;
+}
+async function enCache(u) { try { return await caches.match(u, { ignoreSearch: true }); } catch (e) { return null; } }
+const firma = r => r ? (r.headers.get('etag') || '') + '|' + (r.headers.get('last-modified') || '') + '|' + (r.headers.get('content-length') || '') : '';
+async function revisarItem(it, conRed, soloFaltantes) {
+  let local = null, uLocal = null;
+  for (const u of it.cands) { const r = await enCache(u); if (r) { local = r; uLocal = u; break; } }
+  if (!conRed) return { estado: local ? 'ok' : 'falta' };
+  if (local && soloFaltantes) return { estado: 'ok' };
+  // ¿Cuál existe en el sitio y cuál es su versión?
+  for (const u of it.cands) {
+    let h = null;
+    try { h = await fetch(u, { method: 'HEAD', cache: 'no-store' }); } catch (e) { return { estado: local ? 'ok' : 'falta' }; }
+    if (!h.ok || /text\/html/i.test(h.headers.get('content-type') || '')) continue;
+    if (local && uLocal === u) {
+      const a = local.headers.get('etag'), b = h.headers.get('etag'), la = local.headers.get('last-modified'), lb = h.headers.get('last-modified');
+      const igual = (a && b) ? a === b : (la && lb) ? la === lb : true;
+      if (igual) return { estado: 'ok' };
+      return { estado: 'cambio', url: u };
+    }
+    return { estado: local ? 'cambio' : 'nuevo', url: u };
+  }
+  return { estado: local ? 'ok' : 'noexiste' };
+}
+async function guardarArchivo(u) {
+  const r = await fetch(u, { cache: 'reload' }); if (!r.ok) return false;
+  // Borra la copia vieja de todas las cachés (si no, la vieja podría seguir ganando)
+  try { for (const k of await caches.keys()) { const c = await caches.open(k); await c.delete(u, { ignoreSearch: true }); } } catch (e) {}
+  await (await caches.open(esAud(u) ? C_MUS : C_MED)).put(u, r);
+  return true;
+}
+let _cont = null;
+async function contenido(op) {          // op: { auto, musica }
+  if (_cont) return _cont;
+  op = op || {};
+  const box = $('tContenido'), bar = $('tcBar'), txt = $('tcTxt'), btn = $('tDescargar');
+  const pinta = (n, t, msg) => { box.hidden = false; bar.style.width = (t ? n / t * 100 : 100) + '%'; txt.textContent = msg; };
+  _cont = (async () => {
+    if (!('caches' in window)) { pinta(1, 1, 'Este navegador no permite guardar contenido.'); return; }
+    const L = itemsContenido(), red = navigator.onLine, musica = op.musica !== false;
+    btn.disabled = true;
+    let n = 0, bajados = 0, cambios = 0, faltan = 0, sinMusica = 0;
+    pinta(0, L.length, red ? 'Revisando contenido…' : 'Sin conexión: revisando lo guardado…');
+    let i = 0; const hechos = new Set();
+    const trabajador = async () => {
+      while (i < L.length) {
+        const it = L[i++];
+        const e = await revisarItem(it, red, op.auto && !op.revisar);
+        if (e.url && hechos.has(e.url)) { /* el mismo archivo usado en dos lugares */ }
+        else if (e.url) {
+          hechos.add(e.url);
+          if (it.tipo === 'aud' && !musica) sinMusica++;
+          else { try { if (await guardarArchivo(e.url)) { bajados++; if (e.estado === 'cambio') cambios++; } else faltan++; } catch (er) { faltan++; } }
+        } else if (e.estado === 'falta') faltan++;
+        n++; pinta(n, L.length, (red ? 'Descargando ' : 'Revisando ') + n + '/' + L.length + (bajados ? ' · ' + bajados + ' nuevo(s)' : ''));
+      }
+    };
+    await Promise.all([trabajador(), trabajador(), trabajador()]);
+    try { localStorage.setItem('chh_nx_contenido', String(Date.now())); } catch (e) {}
+    const partes = [];
+    if (bajados) partes.push('⬇ ' + bajados + ' archivo(s) descargado(s)' + (cambios ? ' (' + cambios + ' actualizado(s))' : ''));
+    if (sinMusica) partes.push('🎵 ' + sinMusica + ' canción(es) esperan Wi-Fi');
+    if (faltan && !red) partes.push(faltan + ' sin descargar (sin conexión)');
+    pinta(1, 1, partes.length ? partes.join(' · ') : '✔ Contenido al día: listo para jugar sin esperas.');
+    if (cambios && !op.auto) toast('🔄 Contenido actualizado: recarga para ver los cambios');
+    btn.disabled = false;
+    if (op.auto && !bajados && !sinMusica) setTimeout(() => { box.hidden = true; }, 4000);
+  })().finally(() => { _cont = null; });
+  return _cont;
+}
+// Automático al abrir: baja lo que falte; una vez al día revisa también si cambió algo.
+// La música solo se baja sola con Wi-Fi o datos ilimitados (mismo criterio que el Simulador).
+function contenidoAuto() {
+  if (!navigator.onLine || !DIST.length) return;
+  let ult = 0; try { ult = +localStorage.getItem('chh_nx_contenido') || 0; } catch (e) {}
+  const auto = window.CHH_MEDIOS ? CHH_MEDIOS.puedeAuto() : true;
+  contenido({ auto: true, revisar: Date.now() - ult > 12 * 3600e3, musica: auto });
+}
+$('tDescargar').onclick = () => contenido({ auto: false, revisar: true, musica: true });
+
 // ════════════════ PANTALLAS / AVISOS ════════════════
 function irA(id) { document.querySelectorAll('.scr').forEach(s => s.classList.toggle('on', s.id === id)); }
 function toast(t) { const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('on'), 2600); }
@@ -1486,6 +1594,7 @@ $('dCaja').addEventListener('click', e => { if (!e.target.closest('.d-ops')) { e
   if (EDITOR && !(S && S.baraja)) { S = nueva('Editor', (DATA.barajas[0] || {}).id, 'Editor'); entrarMapa(); }
   else if (EDITOR) entrarMapa();
   if (avisosMapa.length) setTimeout(() => nubeFondo(true), 6000); else nubeFondo(true);
+  setTimeout(() => contenidoAuto(), 2500);       // revisa/descarga el contenido nuevo en segundo plano
 })();
 function normalizar(x) {
   if (x && x.baraja) {

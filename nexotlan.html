@@ -1381,7 +1381,10 @@ async function contenido(op) {          // op: { auto, musica }
     const L = itemsContenido(), red = navigator.onLine, musica = op.musica !== false;
     btn.disabled = true;
     let n = 0, bajados = 0, cambios = 0, faltan = 0, sinMusica = 0;
-    pinta(0, L.length, red ? 'Revisando contenido…' : 'Sin conexión: revisando lo guardado…');
+    // En automático no se muestra nada mientras solo revisa lo guardado: la barra aparece si de verdad hay algo que bajar
+    const visible = () => !op.auto || bajando > 0;
+    let bajando = 0;
+    if (visible()) pinta(0, L.length, red ? 'Revisando contenido…' : 'Sin conexión: revisando lo guardado…');
     let i = 0; const hechos = new Set();
     const trabajador = async () => {
       while (i < L.length) {
@@ -1391,9 +1394,9 @@ async function contenido(op) {          // op: { auto, musica }
         else if (e.url) {
           hechos.add(e.url);
           if (it.tipo === 'aud' && !musica) sinMusica++;
-          else { try { if (await guardarArchivo(e.url)) { bajados++; if (e.estado === 'cambio') cambios++; } else faltan++; } catch (er) { faltan++; } }
+          else { bajando++; try { if (await guardarArchivo(e.url)) { bajados++; if (e.estado === 'cambio') cambios++; } else faltan++; } catch (er) { faltan++; } }
         } else if (e.estado === 'falta') faltan++;
-        n++; pinta(n, L.length, (red ? 'Descargando ' : 'Revisando ') + n + '/' + L.length + (bajados ? ' · ' + bajados + ' nuevo(s)' : ''));
+        n++; if (visible()) pinta(n, L.length, bajando ? 'Descargando contenido nuevo… ' + bajados + '/' + bajando : 'Revisando ' + n + '/' + L.length);
       }
     };
     await Promise.all([trabajador(), trabajador(), trabajador()]);
@@ -1402,7 +1405,7 @@ async function contenido(op) {          // op: { auto, musica }
     if (bajados) partes.push('⬇ ' + bajados + ' archivo(s) descargado(s)' + (cambios ? ' (' + cambios + ' actualizado(s))' : ''));
     if (sinMusica) partes.push('🎵 ' + sinMusica + ' canción(es) esperan Wi-Fi');
     if (faltan && !red) partes.push(faltan + ' sin descargar (sin conexión)');
-    pinta(1, 1, partes.length ? partes.join(' · ') : '✔ Contenido al día: listo para jugar sin esperas.');
+    if (visible() || sinMusica) pinta(1, 1, partes.length ? partes.join(' · ') : '✔ Contenido al día: listo para jugar sin esperas.');
     if (cambios && !op.auto) toast('🔄 Contenido actualizado: recarga para ver los cambios');
     btn.disabled = false;
     if (op.auto && !bajados && !sinMusica) setTimeout(() => { box.hidden = true; }, 4000);

@@ -80,6 +80,7 @@ playmat = playmat.jpg
 fondo_inicio = puerta.jpg
 
 # ─────────────────────────── DISTRITOS ───────────────────────────
+#  Orden del recorrido: Puerta → Mercado → Archivos → Santuario → Fortaleza → Ciudadela → Cima
 
 [distrito:puerta]
 nombre = Puerta de Obsidiana
@@ -90,7 +91,7 @@ y = 89
 forma = 40,77 54,77 59,88 58,100 36,100 35,88
 radio = 8
 etiqueta = 34,95
-requiere =
+requiere = 
 paisaje = puerta.jpg
 
 [distrito:mercado]
@@ -107,7 +108,7 @@ paisaje = mercado.jpg
 
 [distrito:archivos]
 nombre = Archivos de Nexotlan
-descripcion = La biblioteca infinita donde el Oráculo guarda la memoria de la ciudad.
+descripcion = La biblioteca infinita donde Madatzin, la Oráculo, guarda la memoria de la ciudad.
 color = #cc55ff
 x = 29
 y = 70
@@ -117,17 +118,53 @@ etiqueta = 25,57
 requiere = g_vulcar
 paisaje = archivos.jpg
 
+[distrito:santuario]
+nombre = Santuario del Dragón
+descripcion = La pirámide flotante donde Nikkon Trolas vigila Nexotlan desde hace siglos.
+color = #00ff9d
+x = 11
+y = 70
+forma = 1,58 12,49 23,56 24,73 18,89 3,86
+radio = 9
+etiqueta = 12,46
+requiere = g_madatzin
+paisaje = santuario.jpg
+
+[distrito:fortaleza]
+nombre = Fortaleza de Cristal
+descripcion = El bastión de Vulcar, el Caballero de Nexotlan. Sus muros reflejan otras dimensiones.
+color = #7ad7ff
+x = 89
+y = 42
+forma = 79,30 91,21 99,29 99,53 88,59 80,51
+radio = 9
+etiqueta = 88,18
+requiere = g_nikkon
+paisaje = fortaleza.jpg
+
 [distrito:ciudadela]
 nombre = Ciudadela del Regente
-descripcion = El trono de Vellond. Solo los más fuertes cruzan sus murallas.
-color = #ff2244
+descripcion = La base de la torre central. Koatl, el Defensor de Nexotlan, custodia el camino a la cima.
+color = #ffd166
 x = 47
 y = 57
-forma = 36,50 41,38 53,38 59,48 61,62 55,73 39,73 34,62
+forma = 36,50 41,39 53,39 59,48 61,62 55,73 39,73 34,62
 radio = 10
-etiqueta = 47,41
-requiere = g_khalet
+etiqueta = 33,46
+requiere = g_vulcar_nx
 paisaje = ciudadela.jpg
+
+[distrito:cima]
+nombre = Cima de la Torre
+descripcion = El trono de Vellond, el Gran Regente. Solo llega quien recorrió toda Nexotlan.
+color = #ff2f5a
+x = 47
+y = 20
+forma = 41,32 41,9 47,2 53,9 54,32 50,38 44,38
+radio = 8
+etiqueta = 60,9
+requiere = g_koatl_nx
+paisaje = cima.jpg
 
 # ──────────────────── PUERTA DE OBSIDIANA ────────────────────
 
@@ -294,19 +331,7 @@ entrada = Los mercaderes hablan de ti. | Soy Vulcar, Caballero de Cristal. El ca
 victoria = Mi cristal se quebró… Los Archivos te esperan. El Oráculo sabrá qué hacer contigo.
 derrota = El cristal no se rompe tan fácil.
 
-# ──────────────────── ARCHIVOS DE NEXOTLAN ────────────────────
-
-[punto:madatzin]
-tipo = heroe
-nombre = Madatzin
-titulo = Oráculo de Nexotlan
-distrito = archivos
-x = 27
-y = 66
-carta = madatzin
-monedas = 60
-dialogo = Te vi llegar mucho antes de que llegaras. | Estos son los Archivos de Nexotlan: cada carta que existe tiene aquí su recuerdo. | Hellw Khalet custodia el camino a la Ciudadela. No lo subestimes: lo que confina, no regresa.
-dialogo2 = El Regente Vellond observa desde su trono. Cuando estés listo, él también lo sabrá.
+# ──────────────────── ARCHIVOS DE NEXOTLAN · Madatzin, la Oráculo ────────────────────
 
 [punto:naddezhda]
 tipo = rival
@@ -357,67 +382,264 @@ entrada = Fundo cartas para crear Amalgamas. | Tu baraja sería un excelente mat
 victoria = Mi forja se apagó…
 derrota = Material de primera.
 
-[punto:g_khalet]
+[punto:g_madatzin]
 tipo = guardian
-nombre = Hellw Khalet
-titulo = Guardián de los Archivos
+nombre = Madatzin
+titulo = Oráculo de Nexotlan
 distrito = archivos
 x = 29
 y = 84
+carta = madatzin
+baraja = nxr_g_madatzin
+dificultad = auto
+corazones = 2
+monedas = 250
+requiere = naddezhda, yao
+entrada = Te vi llegar mucho antes de que pisaras la Puerta. | Cada carta que juegues ya está escrita en mis archivos. | Veamos si puedes cambiar el final.
+victoria = El futuro… se reescribió. | Ve al Santuario. Nikkon Trolas ya sabe que vas en camino.
+derrota = Tal como lo predije.
+revancha = ¿Otra vez? Ya leí cómo termina… pero adelante.
+
+# ──────────────────── SANTUARIO DEL DRAGÓN · Nikkon Trolas ────────────────────
+
+[punto:khalet]
+antes = g_khalet
+tipo = rival
+nombre = Hellw Khalet
+titulo = Señor del Ornamentum
+distrito = santuario
+x = 6
+y = 76
 imagen = arcade/personajes/rival_11.png
 carta = hellw_khalet
-baraja = nxr_g_khalet
+baraja = nxr_khalet
 dificultad = auto
-corazones = 3
-monedas = 200
-requiere = naddezhda, yao
-entrada = El Oráculo te mandó, ¿verdad? | Muchos han cruzado esta sala. Ninguno ha salido completo.
-victoria = Imposible… La Ciudadela es tuya. Vellond te está esperando.
+monedas = 80
+entrada = ¿Cruzaste los Archivos? Interesante. | Aquí arriba nadie te va a ayudar.
+victoria = Imposible… Ve con el dragón, si te atreves.
 derrota = Uno más para mi colección.
 
-# ──────────────────── CIUDADELA DEL REGENTE ────────────────────
-
-[punto:vulcar_nx]
-tipo = heroe
-nombre = Vulcar
-titulo = Caballero de Nexotlan
-distrito = ciudadela
-x = 40
-y = 63
-carta = p3_vulcar_nexotlan
-monedas = 80
-requiere = g_khalet
-dialogo = Llegaste a la Ciudadela. Ya no soy tu rival: aquí servimos al Regente. | Vellond solo recibe a quien venza a sus tres campeones. | Ten cuidado con Nikkon: su dragón protege la ciudad desde hace siglos.
-dialogo2 = Los campeones del Regente no descansan. Tú sí deberías.
-
-[punto:nikkon]
+[punto:drake]
 tipo = rival
+nombre = Capitán Drake
+titulo = Terror de los Siete Mares
+distrito = santuario
+x = 16
+y = 81
+imagen = arcade/personajes/rival3_06.png
+carta = drake
+baraja = nxr_drake
+dificultad = auto
+monedas = 80
+entrada = En mi barco nadie usa habilidades. | Nadie… excepto mi tripulación.
+victoria = ¡Arrr! Hundiste al Capitán…
+derrota = Al fondo del mar. Con los demás.
+
+[punto:kitsune]
+tipo = rival
+nombre = Kitsuné
+titulo = La Reencarnación Infinita
+distrito = santuario
+x = 20
+y = 67
+dias = lun, mie, vie, dom
+imagen = arcade/personajes/rival3_02.png
+carta = kitsune
+baraja = nxr_kitsune
+dificultad = auto
+monedas = 80
+entrada = Mátame las veces que quieras. | Del Mictlán siempre se regresa.
+victoria = Nueve colas… y ninguna fue suficiente.
+derrota = Una vida menos para ti. A mí me sobran.
+
+[punto:g_nikkon]
+tipo = guardian
 nombre = Nikkon Trolas
 titulo = Dragón de Nexotlan
-distrito = ciudadela
-x = 54
-y = 52
+distrito = santuario
+x = 12
+y = 62
 carta = nikkon
-baraja = nxr_nikkon
+baraja = nxr_g_nikkon
+dificultad = auto
+corazones = 2
+monedas = 300
+requiere = khalet, drake
+entrada = Mi dragón protege Nexotlan desde antes de que existieras. | La Oráculo te dejó pasar… yo no soy tan amable.
+victoria = El dragón… te reconoce. | La Fortaleza de Cristal te espera. Vulcar no perdona errores.
+derrota = Nexotlan sigue a salvo.
+revancha = Mi dragón no olvida. Ni perdona.
+
+# ──────────────────── FORTALEZA DE CRISTAL · Vulcar, Caballero de Nexotlan ────────────────────
+
+[punto:cosmika]
+tipo = rival
+nombre = Cosmika
+titulo = Bruja de las Constelaciones
+distrito = fortaleza
+x = 83
+y = 49
+imagen = arcade/personajes/rival3_01.png
+carta = cosmika
+baraja = nxr_cosmika
 dificultad = auto
 monedas = 90
-entrada = Mi dragón protege Nexotlan desde antes de que existieras. | Demuéstrame que mereces entrar.
-victoria = El dragón… te reconoce.
-derrota = Nexotlan sigue a salvo.
+entrada = ¿Banlist? Las reglas son para los mortales. | Mis aprendices ya viven en tu campo.
+victoria = Las estrellas… se apagan…
+derrota = Tu destino ya estaba escrito en mis constelaciones.
+
+[punto:khaleydoh]
+tipo = rival
+nombre = Khaleydoh
+titulo = Dragón de Cristal
+distrito = fortaleza
+x = 94
+y = 47
+imagen = arcade/personajes/rival3_03.png
+carta = khaleydoh
+baraja = nxr_khaleydoh
+dificultad = auto
+monedas = 90
+entrada = Mis dragones no pueden ser tocados. | Y vuelven de tres en tres.
+victoria = El cristal… se agrieta.
+derrota = Brillas poco. Te rompes fácil.
+
+[punto:ixchell]
+tipo = rival
+nombre = Ixchell
+titulo = Conspiradora Insurgente
+distrito = fortaleza
+x = 84
+y = 30
+dias = mar, jue, sab, dom
+imagen = arcade/personajes/rival4_09.png
+carta = p3_ixchell
+baraja = nxr_ixchell
+dificultad = auto
+monedas = 90
+entrada = Llama a quien quieras. | Yo decido si llega al campo.
+victoria = La insurrección… terminó.
+derrota = Tu ejército ahora es mío.
+
+[punto:g_vulcar_nx]
+antes = vulcar_nx
+tipo = guardian
+nombre = Vulcar
+titulo = Caballero de Nexotlan
+distrito = fortaleza
+x = 89
+y = 38
+carta = p3_vulcar_nexotlan
+baraja = nxr_g_vulcar_nx
+dificultad = auto
+corazones = 3
+monedas = 400
+requiere = cosmika, khaleydoh
+entrada = Nos vimos en el Mercado. Ahí probé tu fuerza. | Aquí arriba pruebo tu voluntad. | Mi espada sirve a Nexotlan. Desenváinala si puedes.
+victoria = Mi espada… baja ante ti. | Ve a la Ciudadela. Koatl custodia el último camino a la torre.
+derrota = El cristal no se rompe tan fácil.
+revancha = ¿Otra vez? Bien. Un caballero nunca rechaza un duelo de honor.
+
+# ──────────────────── CIUDADELA DEL REGENTE · Koatl, Defensor de Nexotlan ────────────────────
+
+[punto:tezca]
+tipo = rival
+nombre = Tezcatlipoca
+titulo = El Espejo Humeante
+distrito = ciudadela
+x = 40
+y = 53
+imagen = arcade/personajes/rival4_10.png
+carta = tezcatlipoca
+baraja = nxr_tezca
+dificultad = auto
+monedas = 100
+entrada = Mira el espejo humeante. | Lo que ves es el caos… y el caos soy yo.
+victoria = El humo se disipa… | y tú sigues en pie. Eres el dueño del caos.
+derrota = El espejo se rompe. Tú con él.
+
+[punto:grandor]
+tipo = rival
+nombre = Grandor el León
+titulo = Rey de los Reencarnados
+distrito = ciudadela
+x = 55
+y = 53
+imagen = arcade/personajes/rival4_03.png
+carta = p3_grandor
+baraja = nxr_grandor
+dificultad = auto
+monedas = 100
+entrada = Mi manada no muere. | Solo cambia de piel.
+victoria = El león… vuelve a dormir.
+derrota = Ruge conmigo… o cae.
+
+[punto:micte]
+tipo = rival
+nombre = Micté
+titulo = Dama del Mictlán
+distrito = ciudadela
+x = 56
+y = 66
+dias = lun, mar, jue, sab
+imagen = arcade/personajes/rival4_06.png
+carta = p3_micte_dama
+baraja = nxr_micte
+dificultad = auto
+monedas = 100
+entrada = Todo lo que envías al Mictlán… | yo lo recibo.
+victoria = Regresa a la luz… por ahora.
+derrota = Tu ánima ya tiene dueña.
+
+[punto:g_koatl_nx]
+tipo = guardian
+nombre = Koatl
+titulo = El Defensor de Nexotlan
+distrito = ciudadela
+x = 47
+y = 48
+carta = p3_koatl_nexotlan
+baraja = nxr_g_koatl_nx
+dificultad = auto
+corazones = 3
+monedas = 450
+requiere = tezca, grandor
+entrada = Recorriste toda la ciudad para llegar aquí. | Arriba está el Regente. Nadie sube sin pasar por mí. | Defiendo Nexotlan… incluso de sus héroes.
+victoria = Eres digno de la cima. | Herman, Aldo y Roboto guardan la torre. Después… Vellond.
+derrota = Nexotlan sigue protegida.
+revancha = El Defensor siempre está listo.
+
+# ──────────────────── CIMA DE LA TORRE · Vellond, Gran Regente ────────────────────
+
+[punto:herman]
+tipo = rival
+nombre = Herman
+titulo = Capitán de la Legión del Mar
+distrito = cima
+x = 47
+y = 33
+imagen = arcade/personajes/rival5_13.png
+carta = SERIES_025
+baraja = nxr_herman
+dificultad = auto
+monedas = 120
+entrada = ¡Arriad las velas, Legión! | En mi mar, tus cartas se van al fondo.
+victoria = Buen viento, rival. Te lo ganaste.
+derrota = ¡Al abordaje… y a la victoria!
 
 [punto:roboto]
 tipo = rival
 nombre = Roboto
 titulo = Dios Meka
-distrito = ciudadela
-x = 55
-y = 66
+distrito = cima
+x = 42
+y = 28
 dias = lun, mie, vie, dom
 imagen = arcade/personajes/rival_14.png
 carta = SERIES_008
 baraja = nxr_roboto
 dificultad = auto
-monedas = 90
+monedas = 120
 entrada = ANALIZANDO… PROBABILIDAD DE VICTORIA DEL HUMANO: 3%.
 victoria = ERROR… RECALCULANDO…
 derrota = CÁLCULO CORRECTO.
@@ -426,15 +648,15 @@ derrota = CÁLCULO CORRECTO.
 tipo = rival
 nombre = Aldo
 titulo = El que cambia de piel
-distrito = ciudadela
-x = 40
-y = 52
+distrito = cima
+x = 52
+y = 28
 dias = mar, jue, sab, dom
 imagen = arcade/personajes/rival_13.png
 carta = SERIES_004
 baraja = nxr_aldo
 dificultad = auto
-monedas = 90
+monedas = 120
 entrada = Hoy me veo así. Mañana, quién sabe. | Lo único seguro es que vas a perder.
 victoria = Quizá debí cambiar de piel antes.
 derrota = Ni me reconociste.
@@ -443,9 +665,9 @@ derrota = Ni me reconociste.
 tipo = guardian
 nombre = Vellond
 titulo = Gran Regente de Nexotlan
-distrito = ciudadela
+distrito = cima
 x = 47
-y = 47
+y = 13
 imagen = arcade/personajes/rival_15.png
 carta = vellond
 baraja = nxr_g_vellond
@@ -453,7 +675,7 @@ dificultad = muy_dificil
 corazones = 5
 monedas = 500
 musica = musica_choque/pista_10.mp3
-requiere = nikkon, roboto, aldo
+requiere = herman, aldo, roboto
 entrada = Así que tú eres quien recorrió mi ciudad. | Nexotlan ha visto nacer y caer a mil héroes. | Muéstrame si eres digno de su leyenda.
 victoria = …Nexotlan tiene un nuevo campeón. | Mientras estés aquí, esta ciudad es tu hogar.
 derrota = La ciudad no está lista para ti. Todavía.

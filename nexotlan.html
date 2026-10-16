@@ -647,7 +647,9 @@ function nivelDe(p) {
   const v = String(p.dificultad || 'auto').toLowerCase();
   if (NIVELES.includes(v)) return v;
   const d = distDe(p), i = d ? d._i : 0;
-  return NIVELES[Math.min(3, i + (p.tipo === 'guardian' ? 1 : 0))];
+  // La dificultad sube a lo largo de todos los distritos (con 7: 2 fáciles, 2 medios, 2 difíciles, 1 muy difícil); el guardián, un nivel arriba
+  const base = Math.min(3, Math.floor(i * 4 / Math.max(1, DIST.length)));
+  return NIVELES[Math.min(3, base + (p.tipo === 'guardian' ? 1 : 0))];
 }
 function progresoDistrito(d) {
   const pr = PTS.filter(p => p.distrito === d.id && (p.tipo === 'rival' || p.tipo === 'guardian'));
@@ -1126,7 +1128,7 @@ function parseCom(txt) {
   });
   return out;
 }
-const FUERTES = ['TRAZADORDEPESADILLAS', 'ACECHODELCAZARECOMPENSAS', 'NINAPINATA', 'EXPLOSIONABISMAL', 'RESURRECCIONANCESTRAL'];
+const FUERTES = ['TRAZADORDEPESADILLAS', 'ACECHODELCAZARECOMPENSAS', 'NINAPINATA', 'EXPLOSIONABISMAL', 'RESURRECCIONANCESTRAL', 'TORNEODEHEROES'];
 const r5 = n => Math.max(5, Math.round(n / 5) * 5);
 const hashS = t => String(t).split('').reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
 const esComerciante = p => p && p.tipo === 'heroe' && COM.cfg.punto && p.id === COM.cfg.punto;
@@ -1157,7 +1159,8 @@ function stockHoy() {
   if (S.tienda && S.tienda.dia === S.dia && Array.isArray(S.tienda.stock)) return S.tienda;
   const abiertos = DIST.filter(distritoAbierto).map(d => d.id);
   const R = rnd(hashS('stock') + S.dia * 104729 + (S.inicio || 0) % 99991);
-  const todo = [...new Set(poolDe(abiertos.join(','), ['bp', 'ba']).concat(poolDe(abiertos.join(','), ['bs'])).concat(Object.keys(CARD).filter(id => NK(nomC(id)) in COM.precios && precioBase(id) > 0)))];
+  // Solo cartas de las barajas de los distritos ya abiertos: las fuertes aparecen al avanzar
+  const todo = [...new Set(poolDe(abiertos.join(','), ['bp', 'ba']).concat(poolDe(abiertos.join(','), ['bs'])))];
   const normal = todo.filter(id => precioBase(id) < 450), joyas = todo.filter(id => precioBase(id) >= 450);
   const toma = (L, n) => { L = L.slice(); const o = []; while (o.length < n && L.length) o.push(L.splice(Math.floor(R() * L.length), 1)[0]); return o; };
   const nj = Math.min(parseInt(COM.cfg.joyas_dia, 10) || 0, joyas.length), nt = parseInt(COM.cfg.cartas_dia, 10) || 8;

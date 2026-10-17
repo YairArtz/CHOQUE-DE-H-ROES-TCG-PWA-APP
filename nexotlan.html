@@ -780,7 +780,7 @@ function pintarMapa() {
   const fondo = CFG.mapa ? `<img class="fondo" src="${esc(DIR + CFG.mapa)}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('div'),{innerHTML:svgMapa()}).firstElementChild)">${capaBloqueo()}` : svgMapa();
   const etq = DIST.map(d => { const ab = distritoAbierto(d), pr = progresoDistrito(d);
     const et = String(d.etiqueta || '').split(',').map(Number), lx = isFinite(et[0]) && et.length === 2 ? et[0] : d._x, ly = isFinite(et[1]) && et.length === 2 ? et[1] : d._y - d._r * .55;
-    return `<div class="dlab ${ab ? '' : 'lock'}" style="left:${lx}%;top:${ly}%;--dc:${esc(d.color)}">${ab ? '' : '🔒 '}${esc(d.nombre || d.id)}<small>${ab ? pr.ven + '/' + pr.tot : 'Vence a ' + esc(nombresReq(d._req))}</small></div>`; }).join('');
+    return `<div class="dlab ${ab ? '' : 'lock'}" style="left:${lx}%;top:${ly}%;--dc:${esc(d.color)}">${ab ? '' : '🔒 '}${esc(d.nombre || d.id)}${ab ? '<small>' + pr.ven + '/' + pr.tot + '</small>' : ''}</div>`; }).join('');
   const pts = PTS.filter(visibleHoy).map(p => {
     const v = vencido(p.id), nuevoNpc = p.tipo === 'heroe' && !(S.hablados[p.id] > 0);
     const bloq = p.tipo === 'guardian' && p._req.length && !cumple(p._req) && !EDITOR;

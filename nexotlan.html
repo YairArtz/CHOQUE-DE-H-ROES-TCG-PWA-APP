@@ -695,7 +695,8 @@ const diaNombre = d => CFG._dias[((d % CFG._dias.length) + CFG._dias.length) % C
 const diaClave = d => NK(diaNombre(d)).slice(0, 3);
 const vencido = id => (S.vencidos[id] || 0) > 0;
 function cumple(req) { return req.every(r => vencido(r) || (S.hablados[r] || 0) > 0); }
-function distritoAbierto(d) { return EDITOR || !d._req.length || cumple(d._req) || S.abiertos[d.id]; }
+// Solo cuenta la ruta actual de mapa.txt (requiere); lo abierto con un orden anterior ya no se salta la ruta
+function distritoAbierto(d) { return EDITOR || !d._req.length || cumple(d._req); }
 const distDe = p => DIST.find(d => d.id === p.distrito) || null;
 function visibleHoy(p) {
   if (EDITOR) return true;
@@ -1515,7 +1516,7 @@ async function portadaPersonal() {
 function resumenSlot(x) {
   const lucha = PTS.filter(p => p.tipo !== 'heroe'), ven = lucha.filter(p => (x.vencidos || {})[p.id] > 0).length;
   const gd = PTS.filter(p => p.tipo === 'guardian'), gv = gd.filter(p => (x.vencidos || {})[p.id] > 0).length;
-  const sig = DIST.find(d => !(x.abiertos || {})[d.id] && !(d._req.length === 0) && !d._req.every(r => (x.vencidos || {})[r] > 0));
+  const sig = DIST.find(d => d._req.length && !d._req.every(r => (x.vencidos || {})[r] > 0));
   return { ven, tot: lucha.length, gv, gt: gd.length, sig };
 }
 function pintarTitulo() {

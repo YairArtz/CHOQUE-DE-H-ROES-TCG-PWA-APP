@@ -508,7 +508,21 @@ function cartaImg(id, grande) {
 // Imágenes: se buscan en su carpeta (paisajes/, personajes/, simulador/, sobres/) y, si no están, directo en assets/nexotlan/.
 // Con carpeta en el nombre (arcade/personajes/x.png) se toma desde assets/.
 function candidatos(f, sub) { f = String(f || '').trim(); if (!f) return []; return /\//.test(f) ? ['assets/' + f.replace(/^assets\//, ''), f] : [DIR + sub + '/' + f, DIR + f]; }
-async function primeraImg(L) { for (const u of L) if (await probar(u)) return u; return ''; }
+// Busca la primera imagen que exista. Orden: lo ya visto en esta sesión → lo descargado (caché, sin red)
+// → la red. Las rutas que no existen (404) se recuerdan 1 día para no volver a pedirlas con datos móviles.
+const NO_KEY = 'chh_nx_img404', NO_TTL = 864e5;
+let _no = null;
+function no404() { if (!_no) { try { _no = JSON.parse(localStorage.getItem(NO_KEY) || '{}') || {}; } catch (e) { _no = {}; } const t = Date.now(); for (const k in _no) if (t - _no[k] > NO_TTL) delete _no[k]; } return _no; }
+function marcar404(u) { fetch(u, { method: 'HEAD' }).then(r => { if (r.status === 404) { no404()[u] = Date.now(); try { localStorage.setItem(NO_KEY, JSON.stringify(_no)); } catch (e) {} } }).catch(() => {}); }
+function olvidar404() { _no = {}; try { localStorage.removeItem(NO_KEY); } catch (e) {} for (const k in _imgOk) if (!_imgOk[k]) delete _imgOk[k]; }
+async function primeraImg(L) {
+  L = (L || []).filter(Boolean); if (!L.length) return '';
+  for (const u of L) if (_imgOk[u]) return u;
+  if ('caches' in window) for (const u of L) if (await enCache(new URL(u, location.href).href)) { _imgOk[u] = true; return u; }
+  const no = no404();
+  for (const u of L) { if (no[u] || _imgOk[u] === false) continue; if (await probar(u)) return u; if (navigator.onLine) marcar404(u); }
+  return '';
+}
 function paisajeDe(p) { const d = distDe(p), f = p.paisaje || (d && d.paisaje); return candidatos(f, 'paisajes')[0] || ''; }
 const paisajeUrl = p => { const d = distDe(p); return primeraImg(candidatos(p.paisaje || (d && d.paisaje), 'paisajes')); };
 function skyline(d) {
@@ -861,10 +875,10 @@ let DLG = null;
 const paginas = t => String(t || '').split('|').map(x => x.trim()).filter(Boolean);
 async function dialogo(p, texto, ops) {
   const pags = paginas(texto); if (!pags.length) pags.push('…');
-  const ret = await retrato(p), [, tc] = TIPO_TXT[p.tipo] || TIPO_TXT.rival;
+  const [ret, pai] = await Promise.all([retrato(p), paisajeUrl(p)]), [, tc] = TIPO_TXT[p.tipo] || TIPO_TXT.rival;
   const d = distDe(p);
   $('dlg').style.setProperty('--fc', (d && d.color) || tc);
-  const pai = await paisajeUrl(p), hayPai = !!pai;
+  const hayPai = !!pai;
   $('dEsc').innerHTML = (hayPai ? `<div class="d-banda" style="background-image:url('${esc(pai)}')"></div>` : `<div class="d-banda">${skyline(d)}</div>`) +
     (ret ? `<img class="d-ret ${ret.carta ? 'carta' : ''}" src="${esc(ret.src)}" alt="">` : '');
   $('dNom').textContent = (p.nombre || '').toUpperCase();
@@ -947,11 +961,11 @@ async function fondosChoque(p, d) {
   const abs = u => new URL(u, location.href).href;
   const img = async f => { const u = await primeraImg(candidatos(f, 'simulador').concat(candidatos(f, 'paisajes').slice(0, 1))); return u ? abs(u) : ''; };
   const out = {};
-  const mesa = val('fondo_mesa') || 'nexo';
-  out.mesa = /^[a-z]+$/.test(mesa) ? mesa : ((await img(mesa)) || 'nexo');
-  const pm = val('playmat'); if (pm) { const u = await img(pm); if (u) out.playmat = u; }
-  const fi = val('fondo_inicio'); let u = fi ? await img(fi) : '';
-  if (!u) { const pai = await paisajeUrl(p); if (pai) u = abs(pai); }   // por defecto: el paisaje del distrito
+  const mesa = val('fondo_mesa') || 'nexo', pm = val('playmat'), fi = val('fondo_inicio');
+  const [um, up, ufi, pai] = await Promise.all([/^[a-z]+$/.test(mesa) ? '' : img(mesa), pm ? img(pm) : '', fi ? img(fi) : '', paisajeUrl(p)]);
+  out.mesa = /^[a-z]+$/.test(mesa) ? mesa : (um || 'nexo');
+  if (up) out.playmat = up;
+  const u = ufi || (pai ? abs(pai) : '');   // por defecto: el paisaje del distrito
   if (u) out.fondoInicio = u;
   return out;
 }
@@ -959,7 +973,7 @@ async function iniciarChoque(p0, fase) {
   fase = fase === 2 && tieneFase2(p0) ? 2 : 1;
   const p = fase === 2 ? forma2(p0) : p0;
   const id = 'nx' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-  const d = distDe(p), ret = await retrato(p);
+  const d = distDe(p), [ret, fch] = await Promise.all([retrato(p), fondosChoque(p, distDe(p))]);
   S.pendiente = { id, punto: p.id, dia: S.dia, fase }; guardar(true);
   // La baraja armada en 🃏 BARAJA viaja al Simulador como "nx_mia"
   asegurarColeccion(); let jug = S.baraja;
@@ -971,7 +985,7 @@ async function iniciarChoque(p0, fase) {
     volver: 'nexotlan.html', volverTxt: 'NEXOTLAN', etiqueta: '🗺 NEXOTLAN · ' + (d ? d.nombre : '') + (fase === 2 ? ' · 2ª FASE' : '') };
   // Música del Choque: la del punto (o de su fase), si no la del distrito (musica_choque), si no la de [config] (musica_choque)
   const mc = p.musica || (d && d.musica_choque) || CFG.musica_choque; m.musica = mc ? new URL(mc, location.href).href : '';
-  Object.assign(m, await fondosChoque(p, d));
+  Object.assign(m, fch);
   try { localStorage.setItem('chh_arcade_match', JSON.stringify(m)); } catch (e) {}
   location.href = 'simulacion.html?modo=arcade';
 }
@@ -1408,7 +1422,7 @@ async function guardarArchivo(u) {
 let _cont = null;
 async function contenido(op) {          // op: { auto, musica }
   if (_cont) return _cont;
-  op = op || {};
+  op = op || {}; if (!op.auto) olvidar404();
   const box = $('tContenido'), bar = $('tcBar'), txt = $('tcTxt'), btn = $('tDescargar');
   const pinta = (n, t, msg) => { box.hidden = false; bar.style.width = (t ? n / t * 100 : 100) + '%'; txt.textContent = msg; };
   _cont = (async () => {

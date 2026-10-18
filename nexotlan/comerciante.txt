@@ -1,0 +1,131 @@
+# ════════════════════════════════════════════════════════════════════
+#  MODO AVENTURA · NEXOTLAN — COMERCIANTE
+#  Edita este archivo con el Bloc de notas (guárdalo en UTF-8).  campo = valor
+#
+#  El puesto lo atiende un HÉROE del mapa (mapa.txt). Al tocarlo aparece "🛒 TIENDA".
+#  Se paga con las 🪙 monedas de la aventura (no con Hero Pesos) y las cartas
+#  van al COFRE de Nexotlan, no a tu colección real.
+#
+#  Hay 3 tipos de bloque:
+#   [comerciante]     ajustes del puesto
+#   [sobre:ID]        un sobre a la venta (ID sin espacios)
+#   [precios]         precios fijos de cartas sueltas:  Nombre de la carta = precio
+#
+#  ── [comerciante] ──
+#   punto          ID del héroe de mapa.txt que atiende el puesto
+#   saludo         lo que dice al abrir la tienda (usa | para varios mensajes; sale uno al azar)
+#   cartas_dia     cuántas cartas sueltas ofrece cada día (cambian al avanzar el día)
+#   joyas_dia      cuántas de esas son "joyas" (cartas fuertes, muy caras)
+#   precio_cartas  % sobre los precios automáticos (100 = normal, 150 = 50 % más caras)
+#   variacion      % que suben o bajan los precios cada día (20 = entre -20 % y +20 %)
+#   compra         % del precio que te paga por las cartas que le vendes
+#   siempre        cartas que vende TODOS los días aparte de las del día (nombres separados por coma). Ej. Cataclismo
+#
+#  ── [sobre:ID] ──
+#   nombre, descripcion
+#   imagen      en assets/nexotlan/sobres/ (ej. sobre_puerta.png). Con carpeta toma otra ruta:
+#               hero_pesos/sobres/sobre_nexo.png. Sin imagen se dibuja un sobre del color del distrito.
+#   precio      monedas
+#   cartas      cartas por sobre
+#   pool        de dónde salen las cartas: IDs de distrito (puerta, mercado…) = las barajas de sus
+#               rivales y guardián · o IDs de baraja (nxr_vika) · o "todo" (todos los distritos)
+#   amalgama    % de que el sobre traiga 1 Amalgama (de los guardianes de su pool). 0 = nunca
+#   requiere    ID de punto que hay que vencer para que aparezca a la venta
+#   color       color del sobre dibujado (si no hay imagen)
+#   Las cartas caras salen menos: la probabilidad baja según su precio.
+#
+#  ── Precios automáticos de cartas sueltas ──
+#   Personaje 30 + 12 por coste · Apoyo/Sector/Arena 70 · Alma 40 · Amalgama 450+
+#   Semi-limitada 800 · Limitada 1500 · Trazador/Acecho/Niña Piñata/Explosión Abismal 1200
+#   Arquetipo Nexotlan (llevan "Nexotlan" en el nombre): Personaje 700 + 100 por coste · Alma 500 · otras 900.
+#   Son "joyas" en la tienda y salen poco en sobres y premios de Choque.
+#   Cualquier carta en [precios] usa ese precio (0 = no se vende).
+# ════════════════════════════════════════════════════════════════════
+
+[comerciante]
+punto = taiyo
+saludo = ¡Pasa, pasa! Lo mejor de Nexotlan, recién llegado de otras dimensiones. | Los precios cambian cada día… hoy tienes suerte. O no. | ¿Monedas? Yo tengo lo que necesitas. ¿Cartas repetidas? También te las compro.
+cartas_dia = 8
+joyas_dia = 1
+precio_cartas = 100
+variacion = 20
+compra = 20
+siempre = Cataclismo
+
+[sobre:puerta]
+nombre = Sobre de la Puerta
+descripcion = Cartas de los rivales de la Puerta de Obsidiana.
+imagen = sobre_puerta.png
+precio = 100
+cartas = 5
+pool = puerta
+amalgama = 0
+color = #00cfff
+
+[sobre:mercado]
+nombre = Sobre de Cristal
+descripcion = Cartas del Mercado de Cristal.
+imagen = sobre_mercado.png
+precio = 150
+cartas = 5
+pool = mercado
+amalgama = 0
+requiere = g_aurora
+color = #f5a623
+
+[sobre:archivos]
+nombre = Sobre de los Archivos
+descripcion = Cartas de los Archivos de Nexotlan. Puede traer una Amalgama.
+imagen = sobre_archivos.png
+precio = 200
+cartas = 5
+pool = archivos
+amalgama = 5
+requiere = g_vulcar
+color = #cc55ff
+
+[sobre:islas]
+nombre = Sobre de las Islas
+descripcion = Cartas del Santuario del Dragón y la Fortaleza de Cristal. Aquí empiezan las cartas fuertes.
+imagen = sobre_islas.png
+precio = 300
+cartas = 5
+pool = santuario, fortaleza
+amalgama = 12
+requiere = g_madatzin
+color = #00ff9d
+
+[sobre:torre]
+nombre = Sobre de la Torre
+descripcion = Lo más poderoso de la Ciudadela y la Cima. Puede traer Amalgamas devastadoras.
+imagen = sobre_torre.png
+precio = 450
+cartas = 5
+pool = ciudadela, cima
+amalgama = 25
+requiere = g_ateotl
+color = #ff2f5a
+
+# ── [carpetero] · ruleta de cambio de cartas ──
+#   punto       ID del héroe de mapa.txt que hace los cambios (aparece "🎰 RULETA" al tocarlo)
+#               Para que salga solo el fin de semana, en mapa.txt ponle  dias = sab, dom
+#   saludo      lo que dice al abrir la ruleta (usa | para varios; sale uno al azar)
+#   entrega     cuántas cartas le das por giro (de tu cofre, que no estén en tu baraja)
+#   giros_dia   cuántas veces puedes girar por día
+#   comun, rara, joya   probabilidad (%) de cada categoría. Sale 1 carta de las barajas de los distritos abiertos.
+#               Común = precio menor a 100 · Rara = 100 a 449 · Joya = 450 o más (limitadas, fuertes, Nexotlan, Amalgamas)
+[carpetero]
+punto = carpetero
+saludo = ¡Psst! ¿Traes cartas repetidas? Dame unas y gira la ruleta. | Mi carpeta tiene de todo… y algunas joyas escondidas. | Tres cartas tuyas, una vuelta a la ruleta. ¡Suerte!
+entrega = 3
+giros_dia = 2
+comun = 78
+rara = 19
+joya = 3
+
+[precios]
+# Nombre de la carta = precio   (0 = no se vende)
+Trazador de Pesadillas = 2500
+Acecho del Cazarecompensas = 2200
+Niña Piñata = 1800
+Cataclismo = 350

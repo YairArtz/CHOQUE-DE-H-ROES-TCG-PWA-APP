@@ -16,7 +16,7 @@
 :root.rot{--uw:1vh;--uh:1vw}
 @supports (height:100dvh){:root.rot{--uw:1dvh}}
 #stage{position:fixed;inset:0;overflow:hidden}
-:root.rot #stage{inset:auto;top:0;left:0;width:calc(100 * var(--uw));height:100vw;transform-origin:top left;transform:rotate(90deg) translateY(-100%)}
+:root.rot #stage{inset:auto;top:0;left:0;width:calc(100 * var(--uw));height:calc(100 * var(--uh));touch-action:none;transform-origin:top left;transform:rotate(90deg) translateY(-100%)}
 :root.rot.flip #stage{transform:rotate(-90deg) translateX(-100%)}
 #gFlip{display:none;position:fixed;top:calc(var(--hud) + 10px);right:10px;opacity:.75;z-index:400;width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:rgba(10,20,48,.85);color:var(--cyan);font-size:18px;align-items:center;justify-content:center}
 :root.rot #gFlip{display:flex}
@@ -504,6 +504,9 @@ const ALTO = () => document.documentElement.classList.contains('rot') ? innerWid
 function ajustaVista() {
   const Rt = document.documentElement, port = MOVIL && innerHeight > innerWidth;
   Rt.classList.toggle('rot', port); Rt.classList.toggle('movil', MOVIL);
+  // Medidas reales de la pantalla visible (100dvh puede incluir la barra de navegación de Android y cortar el borde)
+  if (port) { Rt.style.setProperty('--uw', innerHeight / 100 + 'px'); Rt.style.setProperty('--uh', innerWidth / 100 + 'px'); }
+  else { Rt.style.removeProperty('--uw'); Rt.style.removeProperty('--uh'); }
   const W = ANCHO(), H = ALTO();
   Rt.classList.toggle('q760', W <= 760); Rt.classList.toggle('q620', W <= 620); Rt.classList.toggle('q900', W >= 900);
   Rt.classList.toggle('q620p', W <= 620 && H > W); Rt.classList.toggle('h520', H <= 520);
@@ -528,6 +531,34 @@ addEventListener('pointerdown', function primero() { removeEventListener('pointe
 addEventListener('pagehide', () => { try { screen.orientation.unlock(); } catch (e) {} });
 document.getElementById('gFlip').onclick = () => { const f = !document.documentElement.classList.contains('flip'); document.documentElement.classList.toggle('flip', f); try { localStorage.setItem('cdh_sim_flip', f ? '1' : '0'); } catch (e) {} };
 ajustaVista();
+// Desplazamiento con el dedo cuando la vista está girada: el navegador no traduce bien el gesto dentro de un
+// elemento rotado, así que aquí se mueve a mano el contenedor con scroll más cercano (con inercia).
+(function () {
+  const Rt = document.documentElement;
+  let el = null, last = null, mov = false, vx = 0, vy = 0, lt = 0, raf = 0;
+  const desplazable = n => { for (; n && n.nodeType === 1 && n.id !== 'stage'; n = n.parentElement) { const cs = getComputedStyle(n);
+      if ((/(auto|scroll)/.test(cs.overflowY) && n.scrollHeight > n.clientHeight + 1) || (/(auto|scroll)/.test(cs.overflowX) && n.scrollWidth > n.clientWidth + 1)) return n; } return null; };
+  const local = (dx, dy) => Rt.classList.contains('flip') ? { x: -dy, y: dx } : { x: dy, y: -dx };
+  addEventListener('touchstart', e => {
+    cancelAnimationFrame(raf); el = null;
+    if (!Rt.classList.contains('rot') || e.touches.length !== 1) return;
+    el = desplazable(e.target); const t = e.touches[0]; last = { x: t.clientX, y: t.clientY, x0: t.clientX, y0: t.clientY }; mov = false; vx = vy = 0; lt = performance.now();
+  }, { passive: true, capture: true });
+  addEventListener('touchmove', e => {
+    if (!el || e.touches.length !== 1) { el = e.touches.length === 1 ? el : null; return; }
+    const t = e.touches[0];
+    if (!mov && Math.hypot(t.clientX - last.x0, t.clientY - last.y0) < 6) return;
+    mov = true; const d = local(t.clientX - last.x, t.clientY - last.y), now = performance.now(), dt = Math.max(1, now - lt);
+    el.scrollLeft -= d.x; el.scrollTop -= d.y; vx = d.x / dt; vy = d.y / dt; lt = now; last.x = t.clientX; last.y = t.clientY;
+    if (e.cancelable) e.preventDefault();
+  }, { passive: false, capture: true });
+  addEventListener('touchend', () => {
+    if (!el || !mov) { el = null; return; }
+    const n = el; el = null; let p = performance.now();
+    const paso = now => { const dt = now - p; p = now; n.scrollLeft -= vx * dt; n.scrollTop -= vy * dt; vx *= .94; vy *= .94; if (Math.abs(vx) + Math.abs(vy) > .02) raf = requestAnimationFrame(paso); };
+    if (performance.now() - lt < 80) raf = requestAnimationFrame(paso);
+  }, { capture: true });
+})();
 // ════════════════════════════════════════════════════════════════════
 //  MODO AVENTURA · NEXOTLAN  (Fase 1 + cofre y constructor de aventura)
 //  · Mapa por distritos (se abren al vencer a su GUARDIÁN), puntos de

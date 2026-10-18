@@ -247,6 +247,20 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 .mz-c .qq{position:absolute;left:4px;bottom:4px;padding:2px 6px;border-radius:6px;background:rgba(2,6,20,.88);font-family:'Orbitron',monospace;font-size:10px;font-weight:900;color:var(--cyan)}
 .mz-c .nw{position:absolute;right:4px;top:4px;padding:2px 6px;border-radius:6px;background:var(--gold);color:#1a0f00;font-family:'Orbitron',monospace;font-size:8.5px;font-weight:900;letter-spacing:1px;box-shadow:0 0 8px var(--gold)}
 .mz-c.agot img{opacity:.35;filter:grayscale(.7)}
+.cp-mesa{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line);flex-wrap:wrap;flex-shrink:0;background:rgba(8,14,34,.6)}
+.cp-slots{display:flex;gap:6px}
+.cp-slot{width:52px;aspect-ratio:5/7;border:1px dashed #2a3a66;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:18px;background:#0d1838;position:relative;padding:0}
+.cp-slot img{width:100%;height:100%;object-fit:cover;display:block}
+.cp-prob{flex:1;min-width:180px;font-size:12.5px;color:var(--muted);line-height:1.35}
+.cp-prob b{font-family:'Orbitron',monospace;font-size:10px;letter-spacing:1px}
+#cpGirar{padding:12px 16px}
+.rl-win{position:relative;width:min(900px,calc(96 * var(--uw)));height:min(230px,calc(40 * var(--uh)));overflow:hidden;border:2px solid var(--gold);border-radius:14px;background:#050b1e;box-shadow:0 0 30px rgba(245,166,35,.25)}
+.rl-tira{position:absolute;top:10px;bottom:10px;left:0;display:flex;gap:8px;will-change:transform}
+.rl-tira .rc{height:100%;aspect-ratio:5/7;border-radius:8px;overflow:hidden;border:2px solid #2a3a66;flex-shrink:0;background:#0d1838}
+.rl-tira .rc img{width:100%;height:100%;object-fit:cover;display:block}
+.rl-tira .rc.t2{border-color:#cc55ff}.rl-tira .rc.t3{border-color:#ffd166;box-shadow:0 0 12px rgba(255,209,102,.7)}
+.rl-marca{position:absolute;top:0;bottom:0;left:50%;width:4px;margin-left:-2px;background:#ff2f5a;box-shadow:0 0 14px #ff2f5a;z-index:2}
+.rl-tier{font-family:'Orbitron',monospace;font-weight:900;letter-spacing:3px;font-size:13px;margin-top:6px}
 .mz-vacio{color:var(--muted);font-size:15px;text-align:center;padding:30px 10px}
 .mc-box{max-width:640px;display:flex;gap:16px;align-items:flex-start}
 .mc-box>img{width:min(240px,calc(42 * var(--uw)));border-radius:12px;flex-shrink:0;box-shadow:0 0 24px rgba(54,214,255,.25)}
@@ -443,6 +457,19 @@ body.editor .pt{cursor:move}
   <div class="td-tabs" id="tdTabs"><button class="on" data-t="sobres">📦 SOBRES</button><button data-t="cartas">🃏 CARTAS DEL DÍA</button><button data-t="vender">💰 VENDER</button></div>
   <div class="td-body" id="tdBody"></div>
 </section>
+<!-- ══════ CARPETERO (ruleta de cambio de cartas) ══════ -->
+<section class="scr" id="sCarpeta">
+  <div class="hud">
+    <button class="hb" id="cpSalir" aria-label="Volver al mapa">←<span class="t">MAPA</span></button>
+    <div class="h-title">CARPETERO</div>
+    <div class="h-sp"></div>
+    <div class="mon" id="cpGiros"></div>
+  </div>
+  <div class="td-banda" id="cpBanda"></div>
+  <div class="cp-mesa" id="cpMesa"></div>
+  <div class="td-body" id="cpBody"></div>
+</section>
+<div class="sob" id="mRuleta"><div class="hint" id="rlHint">🎰 GIRANDO…</div><div class="rl-win" id="rlWin"><div class="rl-tira" id="rlTira"></div><div class="rl-marca"></div></div><div id="rlRes"></div><button class="bt gold" id="rlOk" style="display:none">✔ CONTINUAR</button></div>
 <div class="sob" id="mSobre"><div class="pkg" id="sbPkg"></div><div class="hint" id="sbHint">TOCA EL SOBRE PARA ABRIRLO</div><div id="sbRes"></div><button class="bt gold" id="sbOk" hidden>✔ CONTINUAR</button></div>
 
 <!-- Ficha del punto -->
@@ -926,6 +953,7 @@ async function abrirFicha(id) {
   if (bloq) chips.push(`<span class="chip no">🔒 Antes vence a: ${esc(nombresReq(p._req.filter(r => !vencido(r))))}</span>`);
   let btns = '';
   if (esComerciante(p)) btns = `<button class="bt gold" id="fTienda">🛒 TIENDA</button><button class="bt sec" id="fHablar">💬 HABLAR</button>`;
+  else if (esCarpetero(p)) btns = `<button class="bt gold" id="fRuleta">🎰 RULETA</button><button class="bt sec" id="fHablar">💬 HABLAR</button>`;
   else if (p.tipo === 'heroe') btns = `<button class="bt" id="fHablar">💬 HABLAR</button>`;
   else btns = `<button class="bt ${p.tipo === 'guardian' ? 'red' : 'gold'}" id="fRetar" ${bloq ? 'disabled' : ''}>⚔ ${v ? 'REVANCHA' : 'RETAR'}</button><button class="bt sec" id="fHablar">💬 HABLAR</button>`;
   $('fBody').innerHTML = `<div class="f-top" style="--fc:${tc}">
@@ -938,7 +966,8 @@ async function abrirFicha(id) {
   if (h) h.onclick = () => hablar(p);
   if (r) r.onclick = () => retar(p);
   if ($('fTienda')) $('fTienda').onclick = () => abrirTienda(p);
-  try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('fTienda') || (r && !r.disabled ? r : h)), 60); } catch (e) {}
+  if ($('fRuleta')) $('fRuleta').onclick = () => abrirCarpeta(p);
+  try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('fTienda') || $('fRuleta') || (r && !r.disabled ? r : h)), 60); } catch (e) {}
 }
 function cerrarFicha() { $('ficha').classList.remove('on'); SEL = null; document.querySelectorAll('.pt.sel').forEach(b => b.classList.remove('sel')); }
 $('fX').onclick = cerrarFicha;
@@ -1285,14 +1314,14 @@ $('mzTabs').querySelectorAll('button').forEach(b => b.onclick = () => { $('mzTab
 $('mCarta').addEventListener('click', e => { if (e.target === $('mCarta')) cerrarModal('mCarta'); });
 
 // ════════════════ COMERCIANTE (assets/nexotlan/comerciante.txt) ════════════════
-let COM = { cfg: {}, sobres: [], precios: {} };
+let COM = { cfg: {}, sobres: [], precios: {}, carp: {} };
 function parseCom(txt) {
-  const out = { cfg: {}, sobres: [], precios: {} }; let cur = null, tipo = '';
+  const out = { cfg: {}, sobres: [], precios: {}, carp: {} }; let cur = null, tipo = '';
   String(txt || '').replace(/\r/g, '').split('\n').forEach(l => {
     const t = l.trim(); if (!t || t.startsWith('#') || t.startsWith(';')) return;
     const h = t.match(/^\[(.+)\]$/);
     if (h) { const [a, id] = h[1].split(':').map(x => x.trim()); tipo = a.toLowerCase();
-      cur = tipo === 'sobre' ? { id: id || 'sobre' + out.sobres.length } : tipo === 'comerciante' ? out.cfg : null; if (tipo === 'sobre') out.sobres.push(cur); return; }
+      cur = tipo === 'sobre' ? { id: id || 'sobre' + out.sobres.length } : tipo === 'comerciante' ? out.cfg : tipo === 'carpetero' ? out.carp : null; if (tipo === 'sobre') out.sobres.push(cur); return; }
     const i = t.indexOf('='); if (i < 0) return;
     const k = t.slice(0, i).trim(), v = t.slice(i + 1).trim();
     if (tipo === 'precios') { const n = parseInt(v, 10); if (isFinite(n)) out.precios[NK(k)] = n; }
@@ -1440,6 +1469,79 @@ async function comprarSobre(sb) {
   $('mSobre').classList.remove('on'); pintarTienda();
 }
 $('tdSalir').onclick = salirTienda;
+
+// ════════════════ CARPETERO · ruleta de cambio de cartas ════════════════
+// [carpetero] en comerciante.txt. Das N cartas de tu cofre (que no estén en tu baraja) y giras la ruleta:
+// sale 1 carta de las barajas de los distritos abiertos. Común / Rara / Joya según las probabilidades.
+const esCarpetero = p => p && p.tipo === 'heroe' && COM.carp && COM.carp.punto && p.id === COM.carp.punto;
+let CP = { sel: [] };
+const cpCfg = () => { const c = COM.carp || {}; return { entrega: Math.max(1, num(c.entrega, 3)), giros: Math.max(1, num(c.giros_dia, 2)), pc: num(c.comun, 78), pr: num(c.rara, 19), pj: num(c.joya, 3) }; };
+const cpTier = id => { const p = precioBase(id); return p >= 450 ? 3 : p >= 100 ? 2 : 1; };
+const cpUsados = () => (S.carp && S.carp.dia === S.dia) ? S.carp.n : 0;
+function cpPool() {
+  const abiertos = DIST.filter(distritoAbierto).map(d => d.id).join(',');
+  return [...new Set(poolDe(abiertos, ['bp', 'ba']).concat(poolDe(abiertos, ['bs'])))].filter(id => precioBase(id) > 0);
+}
+const cpLibres = id => (S.col[id] || 0) - enMazo(S.mazo, id) - CP.sel.filter(x => x === id).length;
+async function abrirCarpeta(p) {
+  cerrarFicha(); asegurarColeccion(); CP = { sel: [], p };
+  const [ret, pai] = await Promise.all([retrato(p), paisajeUrl(p)]), d = distDe(p);
+  const sal = String((COM.carp || {}).saludo || '').split('|').map(x => x.trim()).filter(Boolean); if (!sal.length) sal.push('¿Cambiamos cartas? Dame algunas y gira la ruleta.');
+  $('cpBanda').style.backgroundImage = pai ? `url('${pai}')` : '';
+  $('cpBanda').innerHTML = (pai ? '' : skyline(d)) + (ret ? `<img class="ret ${ret.carta ? 'carta' : ''}" src="${esc(ret.src)}" alt="">` : '') +
+    `<div class="td-bur"><b>${esc((p.nombre || '').toUpperCase())}</b>${esc(sal[Math.floor(Math.random() * sal.length)])}</div>`;
+  irA('sCarpeta'); pintarCarpeta();
+  try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('cpBody').querySelector('button') || $('cpSalir')), 60); } catch (e) {}
+}
+function pintarCarpeta() {
+  const c = cpCfg(), quedan = c.giros - cpUsados(), lleno = CP.sel.length >= c.entrega;
+  $('cpGiros').textContent = '🎰 ' + Math.max(0, quedan) + '/' + c.giros + ' hoy';
+  let slots = ''; for (let i = 0; i < c.entrega; i++) { const id = CP.sel[i]; slots += id ? `<button class="cp-slot" data-quita="${i}" aria-label="Quitar ${esc(nomC(id))}"><img src="${esc(cartaImg(id))}" alt=""></button>` : '<div class="cp-slot">?</div>'; }
+  $('cpMesa').innerHTML = `<div class="cp-slots">${slots}</div>
+    <div class="cp-prob">Dame <b style="color:var(--text)">${c.entrega} cartas</b> y gira: <b style="color:#7ad7ff">COMÚN ${c.pc} %</b> · <b style="color:#cc55ff">RARA ${c.pr} %</b> · <b style="color:#ffd166">✨ JOYA ${c.pj} %</b><br>${quedan > 0 ? 'Te quedan ' + quedan + ' giro(s) hoy.' : 'Ya no hay giros hoy: vuelve otro día.'}</div>
+    <button class="bt ${lleno && quedan > 0 ? 'gold' : 'sec'}" id="cpGirar" ${lleno && quedan > 0 ? '' : 'disabled'}>🎰 GIRAR</button>`;
+  const ids = Object.keys(S.col).filter(id => cpLibres(id) > 0).sort(ordenCarta);
+  $('cpBody').innerHTML = `<div class="td-nota">Toca las cartas que quieres darle. Solo aparecen las copias que <b style="color:var(--text)">no están en tu baraja</b>. Las cartas que le das no regresan.</div>` +
+    (ids.length ? `<div class="mz-grid">${ids.map(id => `<button class="mz-c" data-da="${esc(id)}" aria-label="${esc(nomC(id))}" ${lleno ? 'style="opacity:.45"' : ''}><img src="${esc(cartaImg(id))}" alt="" loading="lazy"><span class="qq">×${cpLibres(id)}</span></button>`).join('')}</div>` : '<div class="mz-vacio">No tienes cartas fuera de tu baraja para cambiar.</div>');
+  $('cpMesa').querySelectorAll('[data-quita]').forEach(b => b.onclick = () => { CP.sel.splice(+b.dataset.quita, 1); pintarCarpeta(); });
+  $('cpBody').querySelectorAll('[data-da]').forEach(b => b.onclick = () => { if (CP.sel.length >= cpCfg().entrega || cpLibres(b.dataset.da) <= 0) return; CP.sel.push(b.dataset.da); pintarCarpeta(); });
+  $('cpGirar').onclick = girarRuleta;
+}
+async function girarRuleta() {
+  const c = cpCfg(); if (CP.sel.length < c.entrega || cpUsados() >= c.giros) return;
+  const pool = cpPool(); if (!pool.length) return toast('El Carpetero no tiene cartas todavía');
+  // 1) Entregas tus cartas
+  CP.sel.forEach(id => { S.col[id]--; if (S.col[id] <= 0) { delete S.col[id]; delete S.nuevas[id]; } });
+  CP.sel = []; S.carp = { dia: S.dia, n: cpUsados() + 1 };
+  // 2) Sorteo: categoría y luego carta (prefiere las que no tienes completas)
+  const r = Math.random() * (c.pc + c.pr + c.pj);
+  let t = r < c.pj ? 3 : r < c.pj + c.pr ? 2 : 1, cand = [];
+  for (; t >= 1 && !cand.length; t--) cand = pool.filter(id => cpTier(id) === t);
+  t++;
+  const utiles = cand.filter(id => tieneNombre(id) < topeDe(id)), de = utiles.length ? utiles : cand;
+  const gana = de[Math.floor(Math.random() * de.length)];
+  const res = entregar([gana])[0]; guardar();
+  // 3) Ruleta
+  const N = 40, META = 33, tira = [];
+  for (let i = 0; i < N; i++) tira.push(i === META ? gana : pool[Math.floor(Math.random() * pool.length)]);
+  $('rlTira').style.transition = 'none'; $('rlTira').style.transform = 'translateX(0)';
+  $('rlTira').innerHTML = tira.map(id => `<div class="rc t${cpTier(id)}"><img src="${esc(cartaImg(id))}" alt=""></div>`).join('');
+  $('rlRes').innerHTML = ''; $('rlOk').style.display = 'none'; $('rlHint').hidden = false; $('mRuleta').classList.add('on');
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  const card = $('rlTira').children[0], w = card.offsetWidth + 8, ancho = $('rlWin').clientWidth;
+  const x = -(META * w + card.offsetWidth / 2 - ancho / 2) + (Math.random() - .5) * card.offsetWidth * .6;
+  $('rlTira').style.transition = 'transform 4.6s cubic-bezier(.1,.7,.12,1)'; $('rlTira').style.transform = `translateX(${x}px)`;
+  await new Promise(r => setTimeout(r, 4800));
+  $('rlHint').hidden = true;
+  const TT = { 1: ['COMÚN', '#7ad7ff'], 2: ['RARA', '#cc55ff'], 3: ['✨ ¡JOYA!', '#ffd166'] }[t];
+  $('rlRes').innerHTML = `<div class="premio"><figure><img src="${esc(cartaImg(gana, true))}" alt=""><figcaption>${esc(nomC(gana))}<div class="rl-tier" style="color:${TT[1]}">${TT[0]}</div>${res.repetida ? `<span style="color:#5cc8ff">Ya la tienes completa · +${res.repetida} <i class="mn"></i></span>` : ''}</figcaption></figure></div>`;
+  if (res.repetida) sonMonedas();
+  $('rlOk').style.display = '';
+  try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('rlOk')), 60); } catch (e) {}
+  await new Promise(r => { $('rlOk').onclick = r; });
+  $('mRuleta').classList.remove('on'); pintarCarpeta();
+}
+$('cpSalir').onclick = () => { guardar(); irA('sMapa'); pintarHud(); ajustarZoom(ZOOM); };
 $('tdTabs').querySelectorAll('button').forEach(b => b.onclick = () => { TD.tab = b.dataset.t; pintarTienda(); });
 
 // ════════════════ CONTENIDO DEL MODO (música, imágenes y fondos) ════════════════

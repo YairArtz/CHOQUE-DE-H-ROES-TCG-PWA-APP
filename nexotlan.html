@@ -41,7 +41,7 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
   background:linear-gradient(180deg,#fff,#9fe9ff 45%,#36d6ff 70%,#7a4dff);-webkit-background-clip:text;background-clip:text;color:transparent;
   filter:drop-shadow(0 0 18px rgba(54,214,255,.55)) drop-shadow(0 4px 0 #0a1a40)}
 .t-sub{font-size:18px;color:#b8c8ee;letter-spacing:2px}
-.t-logo{max-width:min(720px,calc(90 * var(--uw)));max-height:calc(44 * var(--uh));object-fit:contain;position:relative;z-index:1;filter:drop-shadow(0 6px 24px rgba(0,0,0,.6));animation:logoIn .6s ease both}
+.t-logo{max-width:min(560px,calc(86 * var(--uw)));max-height:calc(34 * var(--uh));object-fit:contain;position:relative;z-index:1;filter:drop-shadow(0 6px 24px rgba(0,0,0,.6));animation:logoIn .6s ease both}
 @keyframes logoIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
 #sTitulo.con-fondo{background-size:cover;background-position:center}
 #sTitulo.con-fondo::before{opacity:.12}
@@ -336,6 +336,7 @@ body.editor .pt{cursor:move}
 :root.q900 .ficha{left:auto;right:16px;bottom:16px;width:420px;border-radius:18px;border:1px solid var(--line)}
 :root.q900 .ficha:not(.on){transform:translateX(120%)}
 :root.q900 .d-caja{min-height:200px;padding:20px 28px}
+:root.q900:not(.movil) .t-logo{max-width:min(720px,calc(90 * var(--uw)));max-height:calc(44 * var(--uh))}
 /* antes @media (max-width:620px) and (orientation:portrait) */
 :root.q620p .d-banda{top:calc(12 * var(--uh));height:calc(30 * var(--uh))}
 :root.q620p .d-ret{height:calc(64 * var(--uh));bottom:calc(22 * var(--uh))}
@@ -343,6 +344,9 @@ body.editor .pt{cursor:move}
 :root.h520 .d-banda{top:calc(4 * var(--uh));height:calc(46 * var(--uh))}
 :root.h520 .d-ret{height:calc(72 * var(--uh));bottom:calc(30 * var(--uh))}
 :root.h520 .d-caja{min-height:auto}
+/* Celulares: retrato más grande (la caja de texto queda encima de las piernas) */
+:root.movil .d-ret:not(.carta){height:calc(86 * var(--uh));bottom:calc(14 * var(--uh))}
+:root.movil .d-ret.carta{height:calc(66 * var(--uh));bottom:calc(26 * var(--uh))}
 :root.h520 .d-txt{min-height:2.3em;font-size:24px}
 :root.h520 .f-ret{width:70px;height:88px}
 </style>
@@ -458,7 +462,7 @@ const ANCHO = () => document.documentElement.classList.contains('rot') ? innerHe
 const ALTO = () => document.documentElement.classList.contains('rot') ? innerWidth : innerHeight;
 function ajustaVista() {
   const Rt = document.documentElement, port = MOVIL && innerHeight > innerWidth;
-  Rt.classList.toggle('rot', port);
+  Rt.classList.toggle('rot', port); Rt.classList.toggle('movil', MOVIL);
   const W = ANCHO(), H = ALTO();
   Rt.classList.toggle('q760', W <= 760); Rt.classList.toggle('q620', W <= 620); Rt.classList.toggle('q900', W >= 900);
   Rt.classList.toggle('q620p', W <= 620 && H > W); Rt.classList.toggle('h520', H <= 520);

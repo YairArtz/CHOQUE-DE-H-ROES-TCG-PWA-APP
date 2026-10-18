@@ -600,7 +600,13 @@ function asegurarColeccion() {
   if (b && (!S.mazo || !S.mazo.bp)) S.mazo = { nombre: b.nombre, bp: copiaLista(b.bp), ba: copiaLista(b.ba), bs: copiaLista(b.bs) };
   if (S.mazo) S.mazo.bs = S.mazo.bs || [];
   S.col = S.col || {}; S.nuevas = S.nuevas || {};
-  if (b) [...(b.bp || []), ...(b.ba || []), ...(b.bs || [])].forEach(x => { if ((S.col[x.id] || 0) < (x.copias || 1)) S.col[x.id] = x.copias || 1; });
+  // Cartas de la básica: se entregan UNA sola vez (S.dadas). Antes se rellenaban siempre y se podían vender sin fin.
+  // Partidas anteriores: la básica completa cuenta como ya entregada. Si la básica gana cartas nuevas, solo llega la diferencia.
+  if (b) {
+    const lst = [...(b.bp || []), ...(b.ba || []), ...(b.bs || [])];
+    if (!S.dadas) { S.dadas = {}; lst.forEach(x => { S.dadas[x.id] = Math.max(S.dadas[x.id] || 0, x.copias || 1); }); }
+    lst.forEach(x => { const falta = (x.copias || 1) - (S.dadas[x.id] || 0); if (falta > 0) { S.col[x.id] = (S.col[x.id] || 0) + falta; S.dadas[x.id] = x.copias || 1; } });
+  }
   // Cartas excluidas (Heroísmo/Bastión) fuera de la baraja guardada; si queda incompleta se completa en 🃏 BARAJA
   if (S.mazo) ['bp', 'ba', 'bs'].forEach(z => { S.mazo[z] = (S.mazo[z] || []).filter(x => !excluida(x.id)); });
 }
@@ -658,7 +664,9 @@ function sortear(p, n, zonas) {
     // Preferir cartas que todavía no tienes completas
     const utiles = bolsa.filter(id => tieneNombre(id) + out.filter(o => NK(nomC(o)) === NK(nomC(id))).length < topeDe(id));
     const de = utiles.length ? utiles : bolsa;
-    out.push(de[Math.floor(Math.random() * de.length)]);
+    let id = de[Math.floor(Math.random() * de.length)];
+    if (esNexo(id) && Math.random() > NEXO_PROB) { const otras = de.filter(x => !esNexo(x)); if (otras.length) id = otras[Math.floor(Math.random() * otras.length)]; }
+    out.push(id);
   }
   return out;
 }
@@ -1232,11 +1240,15 @@ const FUERTES = ['TRAZADORDEPESADILLAS', 'ACECHODELCAZARECOMPENSAS', 'NINAPINATA
 const r5 = n => Math.max(5, Math.round(n / 5) * 5);
 const hashS = t => String(t).split('').reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
 const esComerciante = p => p && p.tipo === 'heroe' && COM.cfg.punto && p.id === COM.cfg.punto;
+// Cartas del arquetipo Nexotlan (llevan "Nexotlan" en el nombre): más caras y salen menos en premios y sobres
+const esNexo = id => NK(nomC(id)).includes('NEXOTLAN');
+const NEXO_PROB = 0.3;   // en los premios de un Choque, una carta Nexotlan sorteada solo se queda el 30 % de las veces
 function precioBase(id) {
   const c = CARD[id]; if (!c || !premiable(id)) return 0;
   const k = NK(c.nombre); if (k in COM.precios) return COM.precios[k]; if (NK(id) in COM.precios) return COM.precios[NK(id)];
   const e = LIM[k]; let p;
-  if (e === 'limitada') p = 1500; else if (FUERTES.includes(k)) p = 1200; else if (e === 'semi-limitada') p = 800;
+  if (esNexo(id)) p = c.tipo === 'pj' ? 700 + 100 * (c.coste || 0) : c.tipo === 'alma' ? 500 : 900;   // arquetipo Nexotlan: caras y raras
+  else if (e === 'limitada') p = 1500; else if (FUERTES.includes(k)) p = 1200; else if (e === 'semi-limitada') p = 800;
   else p = ({ pj: 30 + 12 * (c.coste || 0), amalgama: 450 + 8 * ((c.fue || 0) + (c.res || 0)), alma: 40 })[c.tipo] || 70;
   return r5(p * num(COM.cfg.precio_cartas, 100) / 100);
 }

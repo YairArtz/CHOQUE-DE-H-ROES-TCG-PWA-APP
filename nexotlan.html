@@ -344,6 +344,20 @@ body.editor .pt{cursor:move}
 :root.h520 .d-banda{top:calc(4 * var(--uh));height:calc(46 * var(--uh))}
 :root.h520 .d-ret{height:calc(72 * var(--uh));bottom:calc(30 * var(--uh))}
 :root.h520 .d-caja{min-height:auto}
+/* Título compacto en pantallas bajas (celular en horizontal): todo cabe sin hacer scroll */
+:root.h520 #sTitulo{gap:6px;padding:8px 16px}
+:root.h520 .t-kicker{font-size:9px;letter-spacing:4px}
+:root.h520 .t-logo{max-height:calc(24 * var(--uh))}
+:root.h520 .t-title{font-size:clamp(30px,calc(13 * var(--uh)),56px)}
+:root.h520 .t-sub{font-size:13px}
+:root.h520 #sTitulo .t-btns{margin-top:2px;gap:6px}
+:root.h520 .sl{padding:8px 10px;gap:4px}
+:root.h520 .sl .nom{font-size:12px}
+:root.h520 .sl .inf{font-size:11.5px;line-height:1.2}
+:root.h520 .sl .vac{min-height:30px;font-size:12px}
+:root.h520 .sl .acts .bt{padding:8px 6px}
+:root.h520 #tDescargar{padding:9px 14px;font-size:10px}
+:root.h520 .t-info{font-size:12px;min-height:0}
 /* Celulares: retrato más grande (la caja de texto queda encima de las piernas) */
 :root.movil .d-ret:not(.carta){height:calc(86 * var(--uh));bottom:calc(14 * var(--uh))}
 :root.movil .d-ret.carta{height:calc(66 * var(--uh));bottom:calc(26 * var(--uh))}
@@ -1535,7 +1549,13 @@ function contenidoAuto() {
 $('tDescargar').onclick = () => contenido({ auto: false, revisar: true, musica: true });
 
 // ════════════════ PANTALLAS / AVISOS ════════════════
-function irA(id) { document.querySelectorAll('.scr').forEach(s => s.classList.toggle('on', s.id === id)); }
+// Al volver al título se cierra todo lo que quedó abierto (ficha de un punto, diálogos, ventanas): así no se puede retar fuera de la partida
+function limpiarVentanas() {
+  try { cerrarFicha(); } catch (e) {}
+  document.querySelectorAll('.modal.on,.sob.on,.dlg.on').forEach(m => m.classList.remove('on'));
+  if (DLG) clearInterval(DLG.tm); DLG = null;
+}
+function irA(id) { if (id === 'sTitulo') limpiarVentanas(); document.querySelectorAll('.scr').forEach(s => s.classList.toggle('on', s.id === id)); }
 function toast(t) { const el = $('toast'); el.innerHTML = esc(t).split(esc('<i class="mn"></i>')).join('<i class="mn"></i>'); el.classList.add('on'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('on'), 2600); }
 function mensaje(t, html, ops) {
   return new Promise(res => {
@@ -1619,7 +1639,10 @@ async function borrarSlot(i) {
 }
 $('tCont').onclick = () => entrarMapa();
 $('tNueva').onclick = () => pantallaBaraja('nueva');
-$('hSalir').onclick = () => { musica(null); irA('sTitulo'); pintarTitulo(); };
+$('hSalir').onclick = async () => {
+  if (await mensaje('🏠 PANTALLA DE TÍTULO', '¿Quieres volver a la pantalla de título?', [['SÍ', 'gold'], ['NO', 'sec']]) !== 0) return;
+  musica(null); irA('sTitulo'); pintarTitulo();
+};
 $('hDescansar').onclick = descansar;
 $('hDiario').onclick = abrirDiario;
 $('hBaraja').onclick = abrirMazo;

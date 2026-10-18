@@ -1361,7 +1361,10 @@ function poolDe(spec, zonas) {
   return [...set];
 }
 function stockHoy() {
-  if (S.tienda && S.tienda.dia === S.dia && Array.isArray(S.tienda.stock)) return S.tienda;
+  if (S.tienda && S.tienda.dia === S.dia && Array.isArray(S.tienda.stock)) {
+    lista(COM.cfg.siempre).map(resolverCarta).filter(id => id && CARD[id] && precioBase(id) > 0 && !S.tienda.stock.some(x => x.id === id)).forEach(id => S.tienda.stock.push({ id, fija: 1 }));
+    return S.tienda;
+  }
   const abiertos = DIST.filter(distritoAbierto).map(d => d.id);
   const R = rnd(hashS('stock') + S.dia * 104729 + (S.inicio || 0) % 99991);
   // Solo cartas de las barajas de los distritos ya abiertos: las fuertes aparecen al avanzar
@@ -1369,7 +1372,10 @@ function stockHoy() {
   const normal = todo.filter(id => precioBase(id) < 450), joyas = todo.filter(id => precioBase(id) >= 450);
   const toma = (L, n) => { L = L.slice(); const o = []; while (o.length < n && L.length) o.push(L.splice(Math.floor(R() * L.length), 1)[0]); return o; };
   const nj = Math.min(parseInt(COM.cfg.joyas_dia, 10) || 0, joyas.length), nt = parseInt(COM.cfg.cartas_dia, 10) || 8;
-  const stock = toma(joyas, nj).map(id => ({ id, joya: 1 })).concat(toma(normal, nt - nj).map(id => ({ id })));
+  let stock = toma(joyas, nj).map(id => ({ id, joya: 1 })).concat(toma(normal, nt - nj).map(id => ({ id })));
+  // [comerciante] siempre = cartas que están a la venta todos los días (por nombre o id), aparte de las del día
+  const fijas = lista(COM.cfg.siempre).map(resolverCarta).filter(id => id && CARD[id] && precioBase(id) > 0);
+  stock = stock.filter(x => !fijas.includes(x.id)).concat(fijas.map(id => ({ id, fija: 1 })));
   S.tienda = { dia: S.dia, stock, vendidas: {} };
   return S.tienda;
 }
@@ -1406,7 +1412,7 @@ function pintarTienda() {
     const T = stockHoy();
     h = `<div class="td-nota">Ofertas del <b style="color:var(--text)">día ${S.dia + 1}</b>: cambian (y sus precios también) cada vez que avanza el día. ${T.stock.some(x => x.joya) ? 'Las <b style="color:#ffd166">JOYAS</b> son cartas fuertes y muy caras.' : ''}</div><div class="mz-grid">`;
     h += T.stock.map((x, i) => { const pr = precioHoy(x.id), vd = T.vendidas[i];
-      return `<button class="mz-c ${x.joya ? 'joya' : ''}" data-of="${i}" aria-label="${esc(nomC(x.id))}"><img src="${esc(cartaImg(x.id))}" alt="" loading="lazy">${x.joya ? '<span class="jy">JOYA</span>' : ''}<span class="qq">${tieneNombre(x.id)}/${topeDe(x.id)}</span><span class="pr"><i class="mn"></i> ${pr}</span>${vd ? '<span class="vd">✔ COMPRADA</span>' : ''}</button>`; }).join('') + '</div>';
+      return `<button class="mz-c ${x.joya ? 'joya' : ''}" data-of="${i}" aria-label="${esc(nomC(x.id))}"><img src="${esc(cartaImg(x.id))}" alt="" loading="lazy">${x.joya ? '<span class="jy">JOYA</span>' : x.fija ? '<span class="jy" style="background:linear-gradient(135deg,#36d6ff,#cc55ff)">SIEMPRE</span>' : ''}<span class="qq">${tieneNombre(x.id)}/${topeDe(x.id)}</span><span class="pr"><i class="mn"></i> ${pr}</span>${vd ? '<span class="vd">✔ COMPRADA</span>' : ''}</button>`; }).join('') + '</div>';
   } else {
     const ids = Object.keys(S.col).filter(id => S.col[id] - enMazo(S.mazo, id) > 0 && precioBase(id) > 0).sort(ordenCarta);
     h = `<div class="td-nota">Te compra al <b style="color:var(--text)">${num(COM.cfg.compra, 20)} %</b> del precio del día. Solo aparecen las copias que <b style="color:var(--text)">no están en tu baraja</b>.</div>`;

@@ -1280,7 +1280,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v77';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v78';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -7490,6 +7490,26 @@ function cpuQuiereMano(cid,e){
   if(acc.has('descartar_esta')&&acc.has('llamado_descuento')) return G.cpu.hand.some(c=>c!==cid&&C[c].type==='pj'&&matchF(c,{nombreIncluye:'EVOLOTL',valorMax:2})&&C[c].cost<=almaT('cpu'));
   return false;
 }
+// v78 · Límite de mano de la CPU: al final de su turno descarta al Mictlán hasta quedar en R.manoMax (7)
+function cpuDescartaExceso(){
+  const P=G.cpu, need=P.hand.length-R.manoMax; if(need<=0) return;
+  const at=almaT('cpu');
+  // Personajes: su valor, castigado si aún no los puede pagar · Apoyos/Sectores/Arenas/Respuestas: valor fijo alto (no se tiran primero)
+  const val=(cid,rep)=>{const c=C[cid];let v;
+    if(isChar(cid)) v=SCORE(cid)-((c.cost||0)>at+1?20:0);
+    else if(c.type==='alma') v=P.apoyo.some(a=>!a)?40+(c.val||0)*5:20+(c.val||0)*3;
+    else v=48+((c.efectos||[]).some(e=>e.cuando==='respuesta')?10:0);
+    return v-rep*12;};
+  const fuera=[];
+  for(let k=0;k<need;k++){
+    let peor=-1,pv=Infinity;
+    P.hand.forEach((cid,i)=>{const rep=P.hand.filter((x,j)=>x===cid&&j!==i).length;const v=val(cid,rep);if(v<pv){pv=v;peor=i;}});
+    if(peor<0) break;
+    const c=P.hand.splice(peor,1)[0]; P.mictlan.push(c); fuera.push(c);
+  }
+  lg('🗑 <b>Mano excedente</b> (CPU): descarta '+fuera.length+' carta(s) al Mictlán · '+fuera.map(x=>'<b>'+C[x].name+'</b>').join(', ')+'.','var(--muted)');
+  playSound('card'); renderAll();
+}
 async function cpuTurn(){
   const g=GEN, alive=()=>g===GEN&&G&&!G.over, W=ms=>new Promise(r=>setTimeout(r,ms));
   const step=async ms=>{await W(ms);return alive();};
@@ -7781,6 +7801,7 @@ async function cpuTurn(){
   if(!await step(900)) return;
   await runEOT('cpu');
   if(!alive()) return;
+  cpuDescartaExceso();
   // Pasa el turno
   P.pj.forEach(p=>{if(p){p.res=p.resB;p.attacked=false;p.resting=wake(p);}});
   G.player.pj.forEach(p=>{if(p)p.resting=wake(p);});

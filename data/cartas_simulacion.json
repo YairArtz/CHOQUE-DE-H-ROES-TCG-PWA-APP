@@ -22428,7 +22428,7 @@
   },
   {
    "id": "evo_omni",
-   "galeriaId": "",
+   "galeriaId": "VAR_OMNI",
    "nombre": "Évolotl, Omni Axolotl",
    "tipo": "amalgama",
    "gama": 8,
@@ -36965,6 +36965,129 @@
    "imgMin": "./cartas_3/ATEOTL_CARTAS_007.jpg",
    "tester": true,
    "expansion": "tester_ateotl"
+  },
+  {
+   "id": "alma_maestra",
+   "galeriaId": "VAR_ALMA_MAESTRA",
+   "nombre": "Alma Maestra",
+   "tipo": "alma",
+   "valor": 0,
+   "texto": "Solo puedes tener 1 ALMA MAESTRA activa en tu lado del campo a la vez. Una vez activada, elige una resolución para esta carta; cuenta como X ALMAS, donde X es igual a: a) la cantidad de personajes que controlas en tu lado del campo; b) la cantidad de personajes del mismo arquetipo en tu Mictlán; c) la cantidad de cartas Alma presentes en tu Mictlán. Si esta carta es destruida, volverá a tu baraja de Almas; barajea tu baraja de Almas.",
+   "efectos": [
+    {
+     "cuando": "pasivo",
+     "accion": "max_activas",
+     "n": 1
+    },
+    {
+     "cuando": "alma",
+     "pasos": [
+      {
+       "accion": "alma_maestra"
+      }
+     ]
+    },
+    {
+     "cuando": "al_destruir",
+     "pasos": [
+      {
+       "accion": "esta_mictlan_a_mazo",
+       "mazo": "ba"
+      }
+     ]
+    }
+   ],
+   "rareza": "comun"
+  },
+  {
+   "id": "generador_almas",
+   "galeriaId": "VAR_GENERADOR",
+   "nombre": "Generador de Almas",
+   "tipo": "alma",
+   "valor": 0,
+   "noNegable": true,
+   "texto": "Solo puedes tener 2 \"Generador de Almas\" activos en tu lado del campo a la vez. La habilidad de esta carta no puede ser negada. Coloca contadores de ALMA sobre esta carta. Una vez por turno, durante tu fase principal, elige uno: girar un personaje que controles → genera 1 contador ALMA; o enviar una carta ALMA ACTIVA que controles al Mictlán → genera 2 contadores ALMA. Si fuera a ser destruida, remueve 2 contadores ALMA en su lugar. Si esta carta es destruida, volverá a tu Baraja de Almas; barajea tu Baraja de Almas.",
+   "efectos": [
+    {
+     "cuando": "pasivo",
+     "accion": "max_activas",
+     "n": 2
+    },
+    {
+     "cuando": "pasivo",
+     "accion": "generador_reemplazo"
+    },
+    {
+     "cuando": "accion",
+     "limite": "turno",
+     "texto": "Girar un personaje (+1 contador) o enviar un ALMA activa al Mictlán (+2 contadores)",
+     "pasos": [
+      {
+       "accion": "generador_almas"
+      }
+     ]
+    },
+    {
+     "cuando": "al_destruir",
+     "pasos": [
+      {
+       "accion": "esta_mictlan_a_mazo",
+       "mazo": "ba"
+      }
+     ]
+    }
+   ],
+   "rareza": "comun"
+  },
+  {
+   "id": "sector_personaje",
+   "galeriaId": "EXCL_021",
+   "nombre": "Sector de Personaje",
+   "tipo": "sector",
+   "texto": "Puedes activar esta carta SECTOR en una zona Sector vacía u ocupada del campo: mientras esta carta esté activa, será tratada como una zona de PERSONAJE extra (si había una carta SECTOR previamente, destrúyela y envíala al MICTLÁN). Si un personaje se encuentra en esta zona y esta carta deja el campo: destruye ese personaje y envíalo al MICTLÁN ignorando las condiciones de su habilidad o efecto. (Solo puedes activar \"SECTOR DE PERSONAJE\" una vez por turno).",
+   "efectos": [
+    {
+     "cuando": "pasivo",
+     "accion": "pj_extra"
+    }
+   ],
+   "rareza": "comun"
+  },
+  {
+   "id": "dimension_victoria",
+   "galeriaId": "VAR_PROMO_VR",
+   "nombre": "Dimensión Victoria",
+   "tipo": "arena",
+   "texto": "Paga 2 corazones de jugador para activar esta ARENA. Mientras esta ARENA se encuentre activa en tu lado del campo: tus personajes en ambos SECTORES ganan +1 punto de IMPACTO, VIDA, FUERZA y RESISTENCIA. Una vez por turno, uno de tus personajes no puede ser afectado por cartas APOYO que lo elijan como objetivo. Si esta ARENA es destruida y enviada al MICTLÁN, retórnala al fondo de tu BP. Roba una carta de tu BP.",
+   "efectos": [
+    {
+     "cuando": "pasivo",
+     "accion": "costo_activar",
+     "corazones": 2
+    },
+    {
+     "cuando": "pasivo",
+     "accion": "aura",
+     "imp": 1,
+     "cor": 1,
+     "fue": 1,
+     "res": 1
+    },
+    {
+     "cuando": "al_destruir",
+     "pasos": [
+      {
+       "accion": "esta_mictlan_a_mazo",
+       "mazo": "bp"
+      },
+      {
+       "accion": "robar",
+       "origen": "bp"
+      }
+     ]
+    }
+   ],
+   "rareza": "comun"
   }
  ],
  "expansionesProhibidas": [

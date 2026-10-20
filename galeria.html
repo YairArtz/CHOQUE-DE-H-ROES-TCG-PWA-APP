@@ -466,7 +466,7 @@
     let SIM = { porGaleria: {}, porImg: {}, porNombre: {} }, LIM = {};
     const NOMBRES_EXP = { exclusivas_de_barajas: 'Exclusivas de Barajas', sobre_torneo_1: 'Cartas de Liga' };
     const BETA = ['ancestros', 'azote_del_mictlan'];
-    const nombreExp = exp => NOMBRES_EXP[exp] || String(exp).split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    const nombreExp = exp => exp === 'tester_ateotl' ? '🧪 TESTER · Ateotl' : NOMBRES_EXP[exp] || String(exp).split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
     const K = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-Z0-9]/g, '');
     const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
     const $ = id => document.getElementById(id);
@@ -510,6 +510,17 @@
     }
     function limDe(card) { const s = simDe(card); return LIM[K(card.nombre)] || (s && LIM[K(s.nombre)]) || null; }
 
+// Cartas TESTER (expansión especial): solo para las IDs de testers.txt (raíz del sitio). Los demás no las ven.
+    async function cartasTester() {
+      try {
+        const s = JSON.parse(localStorage.getItem('nhSesion') || 'null');
+        if (!s || !s.id || s.tipo === 'tienda') return [];
+        const r = await fetch('testers.txt', { cache: 'no-cache' }); if (!r.ok) return [];
+        const L = (await r.text()).split(/\r?\n/).map(l => l.replace(/#.*/, '').trim().toUpperCase()).filter(Boolean);
+        if (!L.includes('*') && !L.includes(String(s.id).trim().toUpperCase())) return [];
+        const t = await fetch('cartas_tester.json', { cache: 'no-cache' }); return t.ok ? await t.json() : [];
+      } catch (e) { return []; }
+    }
     async function cargarJSON(url) { const r = await fetch(url); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }
 
     async function loadCards() {
@@ -520,6 +531,7 @@
         emptyState.classList.add('active');
         return;
       }
+      try { const tx = await cartasTester(); if (tx.length) allCards = allCards.concat(tx); } catch (e) {}
       allCards.forEach((c, i) => { c._i = i; });
       const [sim, lim] = await Promise.allSettled([cargarJSON('data/cartas_simulacion.json'), cargarJSON('cartas-limitadas.json')]);
       if (sim.status === 'fulfilled') {

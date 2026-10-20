@@ -773,6 +773,7 @@ function excluida(id) {
 }
 function premiable(id) {
   const c = CARD[id]; if (!c || maxCopias(id) === 0 || excluida(id)) return false;
+  if (c.tester) return false;   // cartas TESTER (Ateotl): solo las juega la CPU, nunca se dan ni se venden
   const g = GALI[String(c.galeriaId)]; if (g && (DATA.expansionesProhibidas || []).includes(g.expansion)) return false;
   return true;
 }

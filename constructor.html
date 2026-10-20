@@ -430,8 +430,21 @@
     c._sim = s; return s;
   }
   const cargarJSON = u => fetch(u).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
+  // Cartas TESTER (expansión especial): solo para las IDs de testers.txt (raíz del sitio). Los demás no las ven.
+  async function cartasTester() {
+    try {
+      const s = JSON.parse(localStorage.getItem('nhSesion') || 'null');
+      if (!s || !s.id || s.tipo === 'tienda') return [];
+      const r = await fetch('testers.txt', { cache: 'no-cache' }); if (!r.ok) return [];
+      const L = (await r.text()).split(/\r?\n/).map(l => l.replace(/#.*/, '').trim().toUpperCase()).filter(Boolean);
+      if (!L.includes('*') && !L.includes(String(s.id).trim().toUpperCase())) return [];
+      const t = await fetch('cartas_tester.json', { cache: 'no-cache' }); return t.ok ? await t.json() : [];
+    } catch (e) { return []; }
+  }
+
   async function cargar() {
-    const [cat, sim, lim] = await Promise.allSettled([cargarJSON('cartas.json'), cargarJSON('data/cartas_simulacion.json'), cargarJSON('cartas-limitadas.json')]);
+    const [cat, sim, lim, tx] = await Promise.allSettled([cargarJSON('cartas.json'), cargarJSON('data/cartas_simulacion.json'), cargarJSON('cartas-limitadas.json'), cartasTester()]);
+    if (cat.status === 'fulfilled' && tx.status === 'fulfilled' && tx.value.length) cat.value = (cat.value || []).concat(tx.value);
     if (sim.status === 'fulfilled') (sim.value.cartas || []).forEach(c => {
       if (!c || typeof c !== 'object') return;
       if (c.galeriaId) SIM.gal[c.galeriaId] = c;
@@ -458,7 +471,7 @@
     pintarTodo();
     sincronizar(false);
   }
-  const fmtExp = e => String(e || '').replace(/_/g, ' ').replace(/\b\w/g, m => m.toUpperCase());
+  const fmtExp = e => e === 'tester_ateotl' ? '🧪 TESTER · Ateotl' : String(e || '').replace(/_/g, ' ').replace(/\b\w/g, m => m.toUpperCase());
 
   // Cartas que el jugador tiene (Mi Colección: físicas + digitales guardadas)
   function cargarPropias() {

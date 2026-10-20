@@ -17540,7 +17540,7 @@
    "nombre": "Nexotlan · Tlatoani Ateotl",
    "portada": "p3_sacerdote_oscuro",
    "estilo": "Aventura Nexotlan · guardián",
-   "descripcion": "Baraja de Tlatoani Ateotl: el Sacerdote y la Sacerdotisa Oscura, D´ Absoluta Ornamentum, con Vika Hechicera Oscura y la Encantadora Cosmika en su B.SOP.",
+   "descripcion": "Tlatoani Ateotl: Sacerdotes Oscuros, Encantadoras y sus cartas exclusivas (expansión TESTER · Ateotl).",
    "bp": [
     {
      "id": "p3_sacerdote_oscuro",
@@ -17568,15 +17568,11 @@
     },
     {
      "id": "bruxa_lenna",
-     "copias": 2
-    },
-    {
-     "id": "bruxa_amelye",
-     "copias": 2
+     "copias": 1
     },
     {
      "id": "apprentiz_gabbiel",
-     "copias": 2
+     "copias": 1
     },
     {
      "id": "apprentiz_brittael",
@@ -17584,7 +17580,7 @@
     },
     {
      "id": "apprentiz_abbigael",
-     "copias": 2
+     "copias": 1
     },
     {
      "id": "jakkyel",
@@ -17596,7 +17592,7 @@
     },
     {
      "id": "villa_shalem",
-     "copias": 2
+     "copias": 1
     },
     {
      "id": "conjuro_maleficus",
@@ -17607,12 +17603,8 @@
      "copias": 2
     },
     {
-     "id": "formula_artes",
-     "copias": 1
-    },
-    {
      "id": "rito_kelare",
-     "copias": 2
+     "copias": 1
     },
     {
      "id": "trazador",
@@ -17627,8 +17619,28 @@
      "copias": 1
     },
     {
-     "id": "musa_clio",
+     "id": "tx_chanheko",
+     "copias": 2
+    },
+    {
+     "id": "tx_coyote",
+     "copias": 2
+    },
+    {
+     "id": "tx_alebrije",
      "copias": 1
+    },
+    {
+     "id": "tx_reflejo",
+     "copias": 1
+    },
+    {
+     "id": "tx_amalgamacion",
+     "copias": 1
+    },
+    {
+     "id": "tx_penachos",
+     "copias": 2
     }
    ],
    "ba": [
@@ -17667,7 +17679,7 @@
      "copias": 1
     },
     {
-     "id": "p3_koatl_inmaterial",
+     "id": "tx_chaman",
      "copias": 1
     }
    ],
@@ -18790,7 +18802,7 @@
    "cor": 2,
    "fue": 6,
    "res": 5,
-   "texto": "Cuando este personaje es llamado desde tu BS: puedes añadir a tu mano un personaje HÉROE INVITADO desde tu BP, revuelve tu BP. Gana 1 punto de fuerza y resistencia por cada personaje HÉROE INVITADO con diferente nombre en tu Mictlán. Una vez por turno en tu Fase de Acción: puedes llamar un personaje HÉROE INVITADO de valor 4 o menor de forma especial desde tu BP.",
+   "texto": "(Manda del campo y/o mano al MICTLÁN 2 PERSONAJES \"HÉROE INVITADO\" con diferente nombre y llama de forma especial a este personaje desde tu BS). Cuando es llamado desde tu BS: añade a tu mano un PERSONAJE \"HÉROE INVITADO\" desde tu BP, revuelve tu BP (no podrás activar sus habilidades hasta el final del siguiente turno). Gana +1 de FUERZA y RESISTENCIA por cada \"HÉROE INVITADO\" en tu MICTLÁN. Durante tu fase de ACCIÓN, puedes llamar un PERSONAJE \"HÉROE INVITADO\" de VALOR 4 o menor desde tu BP al campo con sus habilidades negadas, revuelve tu BP. (Solo puedes activar las habilidades de \"VIKA, HECHICERA OSCURA\" una vez por turno).",
    "llamadoEspecial": {
     "texto": "Manda de tu lado del campo y/o mano al Mictlán 2 personajes HÉROE INVITADO con diferente nombre.",
     "materiales": [
@@ -18818,7 +18830,8 @@
         "tipo": "pj",
         "invitado": true
        }
-      }
+      },
+      "desdeZona": "bs"
      },
      "pasos": [
       {
@@ -18827,9 +18840,11 @@
        "filtro": {
         "tipo": "pj",
         "invitado": true
-       }
+       },
+       "bloqueaHab": true
       }
-     ]
+     ],
+     "limite": "turno"
     },
     {
      "cuando": "pasivo",
@@ -18842,7 +18857,7 @@
     {
      "cuando": "accion",
      "limite": "turno",
-     "texto": "Llamar un HÉROE INVITADO (valor ≤4) desde tu BP",
+     "texto": "Llamar un HÉROE INVITADO (valor ≤4) desde tu BP con sus habilidades negadas",
      "condicion": {
       "zonaLibre": true,
       "hay": {
@@ -18862,12 +18877,15 @@
         "tipo": "pj",
         "invitado": true,
         "valorMax": 4
-       }
+       },
+       "negarHab": true
       }
      ]
     }
    ],
-   "rareza": "comun"
+   "rareza": "comun",
+   "img": "./cartas_3/ERRATA_01_001_full.jpg",
+   "imgMin": "./cartas_3/ERRATA_01_001.jpg"
   },
   {
    "id": "volkot_cristal",
@@ -36467,6 +36485,498 @@
    "prototipo": true,
    "expansion": "cartas_de_liga",
    "rareza": "comun"
+  },
+  {
+   "id": "clio_gran_musa",
+   "galeriaId": "OTAKON_021",
+   "nombre": "Clío, Gran Musa Historiadora",
+   "tipo": "amalgama",
+   "gama": 2,
+   "imp": 2,
+   "cor": 2,
+   "fue": 4,
+   "res": 8,
+   "invitado": true,
+   "texto": "(Manda de tu lado del campo y/o mano al MICTLÁN 2 PERSONAJES de VALOR 1 a 3 con diferente nombre y llama de forma especial a este personaje desde tu BS). Cuando este PERSONAJE es llamado al campo desde tu BS: puedes retornar una carta APOYO, ARENA o SECTOR desde tu MICTLÁN a tu mano. Una vez por turno, cuando una carta fuera a ser Confinada, puedes Confinar este PERSONAJE en su lugar; retorna a tu lado del campo al final del turno con un corazón menos. Si este personaje deja el campo: llama de forma especial 1 PERSONAJE con \"MUSA\" en su nombre desde tu BP (revuelve tu BP).",
+   "llamadoEspecial": {
+    "texto": "Manda de tu campo y/o mano al Mictlán 2 personajes de valor 1 a 3 con diferente nombre.",
+    "materiales": [
+     {
+      "cantidad": 2,
+      "valorMin": 1,
+      "valorMax": 3,
+      "distintos": true
+     }
+    ],
+    "origen": [
+     "campo",
+     "mano"
+    ],
+    "destino": "mictlan"
+   },
+   "efectos": [
+    {
+     "cuando": "al_llamar",
+     "opcional": true,
+     "texto": "¿Retornar un APOYO, ARENA o SECTOR de tu Mictlán a tu mano?",
+     "condicion": {
+      "desdeZona": "bs",
+      "hay": {
+       "origen": "mictlan",
+       "filtro": {
+        "tipos": [
+         "apoyo",
+         "arena",
+         "sector"
+        ]
+       }
+      }
+     },
+     "pasos": [
+      {
+       "accion": "buscar",
+       "origen": "mictlan",
+       "filtro": {
+        "tipos": [
+         "apoyo",
+         "arena",
+         "sector"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "cuando": "pasivo",
+     "accion": "clio_reemplazo"
+    },
+    {
+     "cuando": "al_salir",
+     "pasos": [
+      {
+       "accion": "llamar_especial",
+       "origen": "bp",
+       "filtro": {
+        "nombreIncluye": "MUSA",
+        "tipos": [
+         "pj"
+        ]
+       }
+      },
+      {
+       "accion": "revolver",
+       "mazo": "bp"
+      }
+     ]
+    }
+   ],
+   "rareza": "comun"
+  },
+  {
+   "id": "meteorix_nano",
+   "galeriaId": "1413",
+   "nombre": "Meteorix Nano Armor",
+   "tipo": "pj",
+   "coste": 6,
+   "imp": 2,
+   "cor": 1,
+   "fue": 7,
+   "res": 4,
+   "invitado": true,
+   "texto": "Puedes llamar este personaje de forma especial desde tu mano enviando una carta SECTOR desde tu BP a tu MICTLÁN, revuelve tu BP. Cuando este personaje es llamado a tu lado del campo, puedes activar una carta SECTOR desde tu BP, MICTLÁN o Confinamiento. Una vez por turno puedes mover un SECTOR del campo a otra zona Sector vacía u ocupada; si estaba ocupada por un SECTOR, destrúyelo y reemplázalo por el SECTOR elegido.",
+   "efectos": [
+    {
+     "cuando": "mano",
+     "sinAnuncio": true,
+     "texto": "Llamarlo (especial) enviando un SECTOR de tu BP al Mictlán",
+     "condicion": {
+      "zonaLibre": true,
+      "hay": {
+       "origen": "bp",
+       "filtro": {
+        "tipo": "sector"
+       },
+       "texto": "No hay SECTOR en tu BP"
+      }
+     },
+     "pasos": [
+      {
+       "accion": "llamarse_especial",
+       "costo": "sector_bp_mictlan"
+      }
+     ]
+    },
+    {
+     "cuando": "al_llamar",
+     "opcional": true,
+     "texto": "¿Activar un SECTOR desde tu BP, Mictlán o Confinamiento?",
+     "condicion": {
+      "sectorPropioLibre": true,
+      "hay": {
+       "origen": [
+        "bp",
+        "mictlan",
+        "conf"
+       ],
+       "filtro": {
+        "tipo": "sector"
+       }
+      }
+     },
+     "pasos": [
+      {
+       "accion": "activar_sector_bp",
+       "origen": [
+        "bp",
+        "mictlan",
+        "conf"
+       ]
+      }
+     ]
+    },
+    {
+     "cuando": "accion",
+     "limite": "turno",
+     "texto": "Mover un SECTOR a otra zona Sector (si está ocupada, destruye ese SECTOR)",
+     "condicion": {
+      "haySector": true
+     },
+     "pasos": [
+      {
+       "accion": "mover_sector_libre"
+      }
+     ]
+    }
+   ],
+   "rareza": "comun"
+  },
+  {
+   "id": "desde_cenizas",
+   "galeriaId": "PATRIO_009",
+   "nombre": "Desde las Cenizas",
+   "tipo": "apoyo",
+   "subtipo": "rapido",
+   "texto": "Envía las 2 cartas del tope de tu BP al MICTLÁN; destruye 2 cartas APOYO activas en el campo. (Solo puedes activar el efecto de \"DESDE LAS CENIZAS\" una vez por turno).",
+   "efectos": [
+    {
+     "cuando": "activar",
+     "limite": "turno",
+     "condicion": {
+      "hayApoyoCampo": true
+     },
+     "pasos": [
+      {
+       "accion": "tope_bp_mictlan",
+       "n": 2
+      },
+      {
+       "accion": "cartas_campo",
+       "modo": "destruir",
+       "cantidad": 2,
+       "zonas": [
+        "apoyo"
+       ]
+      }
+     ]
+    }
+   ],
+   "rareza": "comun"
+  },
+  {
+   "id": "mokozo_sagrado",
+   "galeriaId": "PATRIO_010",
+   "nombre": "Mo-Kozo, El Sagrado",
+   "tipo": "pj",
+   "coste": 6,
+   "imp": 1,
+   "cor": 1,
+   "fue": 8,
+   "res": 7,
+   "texto": "Cuando un PERSONAJE active su habilidad en el campo, o una carta APOYO active su efecto en campo, llama de forma especial a este PERSONAJE desde tu mano; si lo haces, destruye esa carta (solo puedes activar esta habilidad de \"MO-KOZO, EL SAGRADO\" una vez por turno y es considerada de uso rápido). Durante tu fase de ACCIÓN, si controlas un PERSONAJE con \"MAX-KARA\" en su nombre, puedes sacrificar este PERSONAJE en tu lado del campo; llama de forma especial un PERSONAJE con \"MAX-KARA\" en su nombre desde tu Confinamiento.",
+   "efectos": [
+    {
+     "cuando": "respuesta",
+     "accion": "mokozo_sagrado",
+     "limite": "turno"
+    },
+    {
+     "cuando": "accion",
+     "limite": "turno",
+     "texto": "Sacrificarlo y llamar un \"MAX-KARA\" desde tu Confinamiento",
+     "condicion": {
+      "controlas": {
+       "filtro": {
+        "nombreIncluye": "MAX-KARA"
+       },
+       "excluirEsta": true,
+       "texto": "No controlas un personaje con \"MAX-KARA\""
+      },
+      "hay": {
+       "origen": "conf",
+       "filtro": {
+        "nombreIncluye": "MAX-KARA",
+        "tipos": [
+         "pj",
+         "amalgama"
+        ]
+       },
+       "texto": "No tienes un \"MAX-KARA\" confinado"
+      }
+     },
+     "pasos": [
+      {
+       "accion": "sacrificar_esta"
+      },
+      {
+       "accion": "llamar_especial",
+       "origen": "conf",
+       "filtro": {
+        "nombreIncluye": "MAX-KARA"
+       }
+      }
+     ]
+    }
+   ],
+   "rareza": "comun"
+  },
+  {
+   "id": "tx_chaman",
+   "nombre": "Chamán del Caos Obsidiana",
+   "tipo": "amalgama",
+   "gama": 8,
+   "imp": 2,
+   "cor": 2,
+   "fue": 9,
+   "res": 8,
+   "habilidades": [
+    "BRUTALIDAD"
+   ],
+   "texto": "(Manda del campo y/o mano al MICTLÁN 2 PERSONAJES de diferente valor con \"SACERDOTE\", \"SACERDOTISA\", \"CHAMÁN\", \"ENVOKATEOTL\" o \"ENVOKATETL\" en su nombre y llama de forma especial a este personaje desde tu BS). Cuando es llamado: puedes retornar 1 carta APOYO desde cualquier MICTLÁN o Confinamiento a tu mano; no podrá activarse este turno. Si vence a otro en combate, Confina boca abajo al PERSONAJE vencido. Cuando es destruido o vencido en combate es Confinado. (Sus habilidades solo pueden activarse una vez por turno). BRUTALIDAD.",
+   "llamadoEspecial": {
+    "texto": "Manda de tu campo y/o mano al Mictlán 2 personajes de diferente valor con SACERDOTE, SACERDOTISA, CHAMÁN, ENVOKATEOTL o ENVOKATETL en su nombre.",
+    "materiales": [
+     {
+      "cantidad": 2,
+      "tipo": "pj",
+      "nombreIncluye": [
+       "SACERDOTE",
+       "SACERDOTISA",
+       "CHAMAN",
+       "ENVOKATEOTL",
+       "ENVOKATETL"
+      ],
+      "distintosValor": true
+     }
+    ],
+    "origen": [
+     "campo",
+     "mano"
+    ],
+    "destino": "mictlan"
+   },
+   "efectos": [
+    {
+     "cuando": "al_llamar",
+     "opcional": true,
+     "limite": "turno",
+     "texto": "¿Retornar un APOYO de cualquier Mictlán o Confinamiento a tu mano?",
+     "pasos": [
+      {
+       "accion": "apoyo_cualquier_mictlan_conf"
+      }
+     ]
+    },
+    {
+     "cuando": "vence",
+     "limite": "turno",
+     "pasos": [
+      {
+       "accion": "confinar_vencido"
+      }
+     ]
+    },
+    {
+     "cuando": "al_destruir",
+     "pasos": [
+      {
+       "accion": "confinar_esta"
+      }
+     ]
+    },
+    {
+     "cuando": "vencido",
+     "pasos": [
+      {
+       "accion": "confinar_esta"
+      }
+     ]
+    }
+   ],
+   "rareza": "comun",
+   "img": "./cartas_3/ATEOTL_CARTAS_001_full.jpg",
+   "imgMin": "./cartas_3/ATEOTL_CARTAS_001.jpg",
+   "tester": true,
+   "expansion": "tester_ateotl"
+  },
+  {
+   "id": "tx_chanheko",
+   "nombre": "Chanheko",
+   "tipo": "pj",
+   "coste": 1,
+   "imp": 1,
+   "cor": 1,
+   "fue": 3,
+   "res": 2,
+   "invitado": true,
+   "texto": "Durante el turno de tu adversario, cuando una habilidad, modo o efecto impacte daño en tus corazones de jugador: descarta esta carta de tu mano al MICTLÁN, niega el daño de ese efecto, modo o habilidad (uso rápido). (Solo puedes activar la habilidad de \"CHANHEKO\" una vez por turno).",
+   "efectos": [
+    {
+     "cuando": "pasivo",
+     "accion": "chanheko_mano"
+    }
+   ],
+   "rareza": "comun",
+   "img": "./cartas_3/ATEOTL_CARTAS_002_full.jpg",
+   "imgMin": "./cartas_3/ATEOTL_CARTAS_002.jpg",
+   "tester": true,
+   "expansion": "tester_ateotl"
+  },
+  {
+   "id": "tx_reflejo",
+   "nombre": "Fuerza del Reflejo de Obsidiana",
+   "tipo": "apoyo",
+   "subtipo": "rapido",
+   "texto": "Si tu adversario cuenta con 2 o más PERSONAJES en su lado del campo: cuando uno de sus PERSONAJES declara ataque, tu adversario debe destruir y enviar al MICTLÁN todos sus PERSONAJES en su lado del campo. (Solo puede activarse durante el turno de tu adversario, 1 vez por turno).",
+   "efectos": [
+    {
+     "cuando": "respuesta",
+     "accion": "reflejo_obsidiana"
+    }
+   ],
+   "rareza": "comun",
+   "img": "./cartas_3/ATEOTL_CARTAS_003_full.jpg",
+   "imgMin": "./cartas_3/ATEOTL_CARTAS_003.jpg",
+   "tester": true,
+   "expansion": "tester_ateotl"
+  },
+  {
+   "id": "tx_amalgamacion",
+   "nombre": "Amalgamación",
+   "tipo": "apoyo",
+   "texto": "Paga 3 corazones de Jugador y llama de forma especial a tu lado del campo desde tu BS a un PERSONAJE tipo AMALGAMA; revela y Confina boca abajo sus materiales requeridos desde tu BP. El PERSONAJE llamado por efecto de esta carta adquiere BRUTALIDAD. No podrás realizar llamados especiales el turno en que activaste esta carta. (1 vez por turno).",
+   "efectos": [
+    {
+     "cuando": "activar",
+     "limite": "turno",
+     "condicion": {
+      "amalgamacion": true
+     },
+     "pasos": [
+      {
+       "accion": "amalgamacion"
+      }
+     ]
+    }
+   ],
+   "rareza": "comun",
+   "img": "./cartas_3/ATEOTL_CARTAS_004_full.jpg",
+   "imgMin": "./cartas_3/ATEOTL_CARTAS_004.jpg",
+   "tester": true,
+   "expansion": "tester_ateotl"
+  },
+  {
+   "id": "tx_coyote",
+   "nombre": "El Coyote de Batalla",
+   "tipo": "pj",
+   "coste": 4,
+   "imp": 1,
+   "cor": 2,
+   "fue": 4,
+   "res": 2,
+   "invitado": true,
+   "habilidades": [
+    "ELITE"
+   ],
+   "texto": "Si este PERSONAJE vence a otro en batalla, inflige 1 IMPACTO a los corazones de Jugador de tu adversario. ÉLITE: cuando declara un ataque, duplica su FUERZA y RESISTENCIA hasta el fin de ese combate.",
+   "efectos": [
+    {
+     "cuando": "vence",
+     "pasos": [
+      {
+       "accion": "rival_pierde",
+       "n": 1
+      }
+     ]
+    }
+   ],
+   "rareza": "comun",
+   "img": "./cartas_3/ATEOTL_CARTAS_005_full.jpg",
+   "imgMin": "./cartas_3/ATEOTL_CARTAS_005.jpg",
+   "tester": true,
+   "expansion": "tester_ateotl"
+  },
+  {
+   "id": "tx_penachos",
+   "nombre": "Penachos Mágicos",
+   "tipo": "apoyo",
+   "subtipo": "rapido",
+   "texto": "Cuando uno de tus PERSONAJES con Sacerdote, Sacerdotisa o Chamán en su nombre es objetivo de un ataque, puedes activar esta carta (uso RÁPIDO): roba las 2 cartas del tope de tu BA y barajéalas boca abajo junto a tu PERSONAJE. Tu adversario ataca a ciegas: si la carta atacada es un ALMA, recibe 1 IMPACTO en sus corazones de jugador y el ALMA va al MICTLÁN; si es tu PERSONAJE, es destruido. Cuando tu PERSONAJE es la única carta restante, vuelve a la normalidad.",
+   "efectos": [
+    {
+     "cuando": "respuesta",
+     "accion": "penachos"
+    }
+   ],
+   "rareza": "comun",
+   "img": "./cartas_3/ATEOTL_CARTAS_006_full.jpg",
+   "imgMin": "./cartas_3/ATEOTL_CARTAS_006.jpg",
+   "tester": true,
+   "expansion": "tester_ateotl"
+  },
+  {
+   "id": "tx_alebrije",
+   "nombre": "Alebrije Iztac de Ixtelotin",
+   "tipo": "pj",
+   "coste": 8,
+   "imp": 1,
+   "cor": 2,
+   "fue": 9,
+   "res": 7,
+   "invitado": true,
+   "texto": "Puedes llamar de forma especial a este PERSONAJE desde tu mano sacrificando 2 PERSONAJES \"HÉROE INVITADO\" en tu campo o Confinando 2 PERSONAJES con \"DRAGÓN\" en su nombre desde tu MICTLÁN. Cuando este PERSONAJE es llamado, sacrifica 1 PERSONAJE de tu adversario y envíalo al MICTLÁN; suma a este PERSONAJE los IMPACTOS del PERSONAJE sacrificado. (Una vez por turno).",
+   "efectos": [
+    {
+     "cuando": "mano",
+     "sinAnuncio": true,
+     "texto": "Llamarlo (especial) sacrificando 2 HÉROES INVITADOS o confinando 2 DRAGÓN de tu Mictlán",
+     "condicion": {
+      "alebrije": true
+     },
+     "pasos": [
+      {
+       "accion": "llamarse_especial",
+       "costo": "alebrije"
+      }
+     ]
+    },
+    {
+     "cuando": "al_llamar",
+     "limite": "turno",
+     "condicion": {
+      "rivalConPJ": true
+     },
+     "pasos": [
+      {
+       "accion": "sacrificar_rival_imp"
+      }
+     ]
+    }
+   ],
+   "rareza": "comun",
+   "img": "./cartas_3/ATEOTL_CARTAS_007_full.jpg",
+   "imgMin": "./cartas_3/ATEOTL_CARTAS_007.jpg",
+   "tester": true,
+   "expansion": "tester_ateotl"
   }
  ],
  "expansionesProhibidas": [

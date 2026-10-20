@@ -236,6 +236,43 @@
       vertical-align: middle;
     }
 
+    /* Lista vigente: resumen, buscador, cambios y vista previa */
+    .bl-resumen { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 16px 0; }
+    .bl-stat { background: rgba(204, 85, 255, 0.08); border: 1px solid rgba(204, 85, 255, 0.3); border-radius: 10px; padding: 10px 8px; text-align: center; }
+    .bl-stat b { display: block; font-family: 'Orbitron', sans-serif; font-size: 24px; line-height: 1.1; }
+    .bl-stat span { font-size: 12px; color: #aaa; text-transform: uppercase; letter-spacing: .5px; }
+    @media (max-width: 560px) { .bl-resumen { grid-template-columns: repeat(2, minmax(0, 1fr)); } .bl-tabla th:nth-child(3), .bl-tabla td:nth-child(3) { display: none; } .bl-tabla td { padding: 8px 6px; font-size: 13px; } .bl-tabla thead th { padding: 10px 6px; font-size: 10px; } }
+    .bl-buscar { width: 100%; margin: 4px 0 0; padding: 11px 14px; border-radius: 10px; border: 1px solid rgba(204, 85, 255, 0.4); background: rgba(10, 5, 20, 0.6); color: #eee; font-size: 15px; outline: none; }
+    .bl-buscar:focus { border-color: #cc55ff; box-shadow: 0 0 0 3px rgba(204, 85, 255, 0.2); }
+    .bl-tabla-wrap { overflow-x: auto; margin: 14px 0 20px; border: 1px solid rgba(204, 85, 255, 0.3); border-radius: 10px; }
+    .bl-tabla { width: 100%; border-collapse: collapse; background: rgba(55, 10, 80, 0.1); }
+    .bl-tabla thead th { position: sticky; top: 0; background: #2a0d3d; padding: 12px 10px; text-align: left; color: #f5a623; font-family: 'Orbitron', sans-serif; font-size: 12px; border-bottom: 2px solid #cc55ff; white-space: nowrap; }
+    .bl-tabla td { padding: 10px; border-bottom: 1px solid rgba(204, 85, 255, 0.18); font-size: 14px; }
+    .bl-tabla tbody tr:nth-child(even) { background: rgba(255, 255, 255, 0.02); }
+    .bl-tabla tbody tr:hover { background: rgba(204, 85, 255, 0.1); }
+    .bl-nombre { color: #e6e9ee; cursor: pointer; text-decoration: underline dotted rgba(204, 85, 255, 0.6); text-underline-offset: 3px; }
+    .bl-nombre:hover, .bl-nombre:focus { color: #fff; outline: none; text-decoration-color: #cc55ff; }
+    .bl-arq { color: #888; }
+    .bl-cambio { display: inline-block; font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: 700; padding: 3px 7px; border-radius: 4px; white-space: nowrap; }
+    .bl-cambio.nueva { background: rgba(255, 209, 102, 0.18); color: #ffd166; border: 1px solid rgba(255, 209, 102, 0.5); }
+    .bl-cambio.sube { background: rgba(255, 68, 68, 0.14); color: #ff7777; border: 1px solid rgba(255, 68, 68, 0.45); }
+    .bl-cambio.baja { background: rgba(0, 255, 157, 0.12); color: #00ff9d; border: 1px solid rgba(0, 255, 157, 0.4); }
+    .bl-cambio.igual { color: #555; }
+    .bl-notas { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+    .bl-nota { border-radius: 10px; padding: 12px 14px; border: 1px solid; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+    .bl-nota b { width: 100%; font-family: 'Orbitron', sans-serif; font-size: 12px; letter-spacing: .5px; }
+    .bl-nota span { font-size: 13px; padding: 3px 9px; border-radius: 20px; background: rgba(255, 255, 255, 0.06); }
+    .bl-nota small { width: 100%; color: #999; font-size: 12px; }
+    .bl-nota.sale { border-color: rgba(0, 255, 157, 0.4); background: rgba(0, 255, 157, 0.05); } .bl-nota.sale b { color: #00ff9d; }
+    .bl-nota.errata { border-color: rgba(245, 166, 35, 0.4); background: rgba(245, 166, 35, 0.05); } .bl-nota.errata b { color: #f5a623; }
+    .bl-prev { position: fixed; inset: 0; z-index: 9000; display: none; align-items: center; justify-content: center; padding: 16px; background: rgba(0, 0, 0, 0.82); backdrop-filter: blur(6px); }
+    .bl-prev.on { display: flex; animation: blIn .2s ease; }
+    @keyframes blIn { from { opacity: 0; } to { opacity: 1; } }
+    .bl-prev-box { position: relative; text-align: center; }
+    .bl-prev-box img { max-width: min(380px, 88vw); max-height: 78vh; border-radius: 14px; box-shadow: 0 0 40px rgba(204, 85, 255, 0.45); display: block; margin: 0 auto; }
+    .bl-prev-nom { margin-top: 10px; font-family: 'Orbitron', sans-serif; font-size: 13px; color: #f5a623; }
+    .bl-prev-cargando { color: #ccc; padding: 30px; font-size: 15px; }
+    .bl-prev-x { position: absolute; top: -14px; right: -14px; width: 38px; height: 38px; border-radius: 50%; border: 1px solid #cc55ff; background: #1a0628; color: #fff; font-size: 16px; cursor: pointer; z-index: 2; }
     .banlist-version { display: none; }
     .banlist-version.active { display: block; }
 
@@ -904,7 +941,7 @@
   <!-- CTA — Lista de Cartas Limitadas -->
   <button type="button" class="cta-banlist" id="ctaBanlist">
     🚨 Consultar Lista de Cartas Limitadas Actualizada
-    <span class="cta-badge">JUNIO 2026</span>
+    <span class="cta-badge">OCT – NOV 2026</span>
     <span class="cta-sub">Nuevas restricciones vigentes · Toca para ver el listado completo</span>
   </button>
   
@@ -1609,12 +1646,14 @@
 
     <!-- Sub-tabs de versión -->
     <div class="banlist-subtabs">
-      <button class="banlist-subtab active" data-version="junio2026">Junio 2026 <span class="badge-new">VIGENTE</span></button>
+      <button class="banlist-subtab active" data-version="oct2026">Oct – Nov 2026 <span class="badge-new">VIGENTE</span></button>
+      <button class="banlist-subtab" data-version="junio2026">Junio 2026 <span class="badge-archive">ARCHIVO</span></button>
       <button class="banlist-subtab" data-version="marzo2026">Marzo 2026 <span class="badge-archive">ARCHIVO</span></button>
     </div>
 
-    <!-- ================= VERSIÓN JUNIO 2026 (VIGENTE) ================= -->
-    <div class="banlist-version active" id="version-junio2026">
+
+    <!-- ================= VERSIÓN OCTUBRE–NOVIEMBRE 2026 (VIGENTE) ================= -->
+    <div class="banlist-version active" id="version-oct2026">
       <div class="section open">
         <div class="section-header">
           <h3 class="section-title">🚫 Lista de Cartas Restringidas y Condenadas</h3>
@@ -1622,11 +1661,126 @@
         </div>
         <div class="section-content">
           <div class="section-body">
-            <h3>Actualización: Junio 2026 <span style="color:#ff2266; font-size:12px; margin-left:6px;">● VIGENTE</span></h3>
+            <h3>Actualización: Octubre – Noviembre 2026 <span style="color:#ff2266; font-size:12px; margin-left:6px;">● VIGENTE</span></h3>
+            <p>Activa desde el <strong>20 de octubre de 2026</strong>. Tres categorías: <strong style="color:#ff9933;">Limitada</strong> (1 copia por baraja), <strong style="color:#00cfff;">Semi Limitada</strong> (2 copias por baraja) y <strong style="color:#ff4444;">Condenada</strong> (ninguna copia permitida). Toca el nombre de una carta para verla.</p>
+            <div class="bl-resumen">
+              <div class="bl-stat"><b style="color:#ff9933">43</b><span>Limitadas</span></div>
+              <div class="bl-stat"><b style="color:#00cfff">19</b><span>Semi limitadas</span></div>
+              <div class="bl-stat"><b style="color:#ff4444">8</b><span>Condenadas</span></div>
+              <div class="bl-stat"><b style="color:#ffd166">41</b><span>Cambios vs. junio</span></div>
+            </div>
+            <div class="filter-bar bl-filtros">
+              <button type="button" class="filter-chip active" data-status="all">Todas</button>
+              <button type="button" class="filter-chip" data-status="limitada">Limitada</button>
+              <button type="button" class="filter-chip" data-status="semilimitada">Semi Limitada</button>
+              <button type="button" class="filter-chip" data-status="condenada">Condenada</button>
+              <button type="button" class="filter-chip" data-status="cambios">Solo cambios</button>
+            </div>
+            <input type="search" class="bl-buscar" placeholder="Buscar carta en la lista…" aria-label="Buscar carta en la lista">
+            <div class="bl-tabla-wrap">
+              <table class="bl-tabla">
+                <thead><tr><th>NOMBRE DE LA CARTA</th><th>TIPO</th><th>ARQUETIPO</th><th>ESTATUS</th><th>CAMBIO</th></tr></thead>
+                <tbody>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Loto Mágico de la Oscuridad">Loto Mágico de la Oscuridad</td><td style="color:#ff4444">APOYO</td><td class="bl-arq">N/A</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio igual">=</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Desterrador de Espíritus">Desterrador de Espíritus</td><td style="color:#ff4444">APOYO</td><td class="bl-arq">N/A</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio igual">=</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Arrebatador de Alma">Arrebatador de Alma</td><td style="color:#ff4444">APOYO</td><td class="bl-arq">N/A</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio igual">=</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Refuerzo Heróico">Refuerzo Heróico</td><td style="color:#ff4444">APOYO</td><td class="bl-arq">N/A</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio sube">▲ antes Semi</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Nenufar, La Legendaria Flor del Tiempo">Nenufar, La Legendaria Flor del Tiempo</td><td style="color:#ff4444">APOYO</td><td class="bl-arq">N/A</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio nueva">NUEVA</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Reencarnación de Ex-Padaz">Reencarnación de Ex-Padaz</td><td style="color:#ff4444">APOYO</td><td class="bl-arq">Ex-Pada</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio nueva">NUEVA</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Resurrección Ancestral">Resurrección Ancestral</td><td style="color:#ff4444">APOYO</td><td class="bl-arq">N/A</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio igual">=</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Sector Bloqueado">Sector Bloqueado</td><td style="color:#cc55ff">SECTOR</td><td class="bl-arq">N/A</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio igual">=</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Legión del Mar, Elizabeth Sparrow">Legión del Mar, Elizabeth Sparrow</td><td style="color:#ff9933">PERSONAJE</td><td class="bl-arq">Legión del Mar</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio nueva">NUEVA</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Legión del Mar, Violet Barbosa">Legión del Mar, Violet Barbosa</td><td style="color:#ff9933">PERSONAJE</td><td class="bl-arq">Legión del Mar</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio nueva">NUEVA</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Derris, El Agonista Aullador">Derris, El Agonista Aullador</td><td style="color:#ff9933">PERSONAJE</td><td class="bl-arq">Héroe Invitado</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio igual">=</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Encantadora Apprentiz, Brittael">Encantadora Apprentiz, Brittael</td><td style="color:#ff9933">PERSONAJE</td><td class="bl-arq">Encantadora</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio igual">=</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Encantadora Apprentiz, Jakkyel">Encantadora Apprentiz, Jakkyel</td><td style="color:#ff9933">PERSONAJE</td><td class="bl-arq">Encantadora</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio igual">=</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Ex-Pada Encarnada Águila">Ex-Pada Encarnada Águila</td><td style="color:#ff9933">PERSONAJE</td><td class="bl-arq">Ex-Pada</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio igual">=</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Balbox Max-Kara">Balbox Max-Kara</td><td style="color:#ff9933">PERSONAJE</td><td class="bl-arq">Max-Kara</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio igual">=</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="El Líder Fantasma">El Líder Fantasma</td><td style="color:#ff9933">PERSONAJE</td><td class="bl-arq">Héroe Invitado</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio igual">=</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="La Niña Piñata">La Niña Piñata</td><td style="color:#ff9933">PERSONAJE</td><td class="bl-arq">Héroe Invitado</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio igual">=</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Rayah, La Genio">Rayah, La Genio</td><td style="color:#ff9933">PERSONAJE</td><td class="bl-arq">Héroe Invitado</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio igual">=</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Quetzalcoatl Primigenio">Quetzalcoatl Primigenio</td><td style="color:#ff9933">PERSONAJE</td><td class="bl-arq">Koatl el Defensor</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio igual">=</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Vika Cosplay, Koatl el Defensor">Vika Cosplay, Koatl el Defensor</td><td style="color:#ff9933">PERSONAJE</td><td class="bl-arq">Vika Cosplay</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio nueva">NUEVA</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Vika Cosplay, Karma Chica">Vika Cosplay, Karma Chica</td><td style="color:#ff9933">PERSONAJE</td><td class="bl-arq">Vika Cosplay</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio nueva">NUEVA</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="M">M</td><td style="color:#ff9933">PERSONAJE</td><td class="bl-arq">Héroe Invitado</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio sube">▲ antes Semi</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Evangeline">Evangeline</td><td style="color:#ff9933">PERSONAJE</td><td class="bl-arq">Héroe Invitado</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio nueva">NUEVA</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="D´ Tempestad Ornamentum">D´ Tempestad Ornamentum</td><td style="color:#ff9933">PERSONAJE</td><td class="bl-arq">Ornamentum</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio sube">▲ antes Semi</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="D´ Explosiva Ornamentum">D´ Explosiva Ornamentum</td><td style="color:#ff9933">PERSONAJE</td><td class="bl-arq">Ornamentum</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio sube">▲ antes Semi</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="D´ Reactiva Ornamentum">D´ Reactiva Ornamentum</td><td style="color:#ff9933">PERSONAJE</td><td class="bl-arq">Ornamentum</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio sube">▲ antes Semi</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="D´ Marea Ornamentum">D´ Marea Ornamentum</td><td style="color:#ff9933">PERSONAJE</td><td class="bl-arq">Ornamentum</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio sube">▲ antes Semi</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Solid Heli Coil Metalúrgico">Solid Heli Coil Metalúrgico</td><td style="color:#ff9933">PERSONAJE</td><td class="bl-arq">Metalúrgicos</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio nueva">NUEVA</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Aqua Morfo Metalúrgico">Aqua Morfo Metalúrgico</td><td style="color:#ff9933">PERSONAJE</td><td class="bl-arq">Metalúrgicos</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio nueva">NUEVA</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Dekre Khalet">Dekre Khalet</td><td style="color:#ff9933">PERSONAJE</td><td class="bl-arq">Khalet</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio nueva">NUEVA</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Bonw Khalet">Bonw Khalet</td><td style="color:#ff9933">PERSONAJE</td><td class="bl-arq">Khalet</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio nueva">NUEVA</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Zethyr Khalet">Zethyr Khalet</td><td style="color:#ff9933">PERSONAJE</td><td class="bl-arq">Khalet</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio nueva">NUEVA</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Noth, Dragón Alfa de Cristal">Noth, Dragón Alfa de Cristal</td><td style="color:#ff9933">PERSONAJE</td><td class="bl-arq">Dragón de Cristal</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio igual">=</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Legión del Mar, Grace Omay">Legión del Mar, Grace Omay</td><td style="color:#f5a623">AMALGAMA</td><td class="bl-arq">Legión del Mar</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio sube">▲ antes Semi</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Cipacdragón, La Bestia Terrena">Cipacdragón, La Bestia Terrena</td><td style="color:#f5a623">AMALGAMA</td><td class="bl-arq">Koatl el Defensor</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio igual">=</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="D Emperatriz Ornamentum">D Emperatriz Ornamentum</td><td style="color:#f5a623">AMALGAMA</td><td class="bl-arq">Ornamentum</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio igual">=</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Ex-Pada Reencarnada, Kitsuné">Ex-Pada Reencarnada, Kitsuné</td><td style="color:#f5a623">AMALGAMA</td><td class="bl-arq">Ex-Pada</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio igual">=</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Hellw Khalet">Hellw Khalet</td><td style="color:#f5a623">AMALGAMA</td><td class="bl-arq">Khalet</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio igual">=</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Ozmozord Metalúrgico">Ozmozord Metalúrgico</td><td style="color:#f5a623">AMALGAMA</td><td class="bl-arq">Metalúrgico</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio igual">=</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Dragón de Cristal, Khaleydoh">Dragón de Cristal, Khaleydoh</td><td style="color:#f5a623">AMALGAMA</td><td class="bl-arq">Dragón de Cristal</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio igual">=</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Alma de Quetzal">Alma de Quetzal</td><td style="color:#00cfff">ALMA</td><td class="bl-arq">Koatl el Defensor</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio nueva">NUEVA</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Alma de Campeón X">Alma de Campeón X</td><td style="color:#00cfff">ALMA</td><td class="bl-arq">Codex Studio</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio igual">=</span></td></tr>
+                  <tr data-estatus="limitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="L.A.B - Lugar Avanzado de Batalla">L.A.B - Lugar Avanzado de Batalla</td><td style="color:#00ff9d">ARENA</td><td class="bl-arq">Metalúrgico</td><td><span class="estatus-pill estatus-limitada">LIMITADA</span></td><td><span class="bl-cambio sube">▲ antes Semi</span></td></tr>
+                  <tr data-estatus="semilimitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Évolotl, Poxak">Évolotl, Poxak</td><td style="color:#f5a623">AMALGAMA</td><td class="bl-arq">Évolotl</td><td><span class="estatus-pill estatus-semilimitada">SEMI LIMITADA</span></td><td><span class="bl-cambio baja">▼ antes Limitada</span></td></tr>
+                  <tr data-estatus="semilimitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Évolotl, Xoktl">Évolotl, Xoktl</td><td style="color:#f5a623">AMALGAMA</td><td class="bl-arq">Évolotl</td><td><span class="estatus-pill estatus-semilimitada">SEMI LIMITADA</span></td><td><span class="bl-cambio baja">▼ antes Limitada</span></td></tr>
+                  <tr data-estatus="semilimitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Évolotl, Tlatik">Évolotl, Tlatik</td><td style="color:#f5a623">AMALGAMA</td><td class="bl-arq">Évolotl</td><td><span class="estatus-pill estatus-semilimitada">SEMI LIMITADA</span></td><td><span class="bl-cambio baja">▼ antes Limitada</span></td></tr>
+                  <tr data-estatus="semilimitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Évolotl, Omni Axolotl">Évolotl, Omni Axolotl</td><td style="color:#f5a623">AMALGAMA</td><td class="bl-arq">Évolotl</td><td><span class="estatus-pill estatus-semilimitada">SEMI LIMITADA</span></td><td><span class="bl-cambio baja">▼ antes Limitada</span></td></tr>
+                  <tr data-estatus="semilimitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Tepoztli, Chatarrero Metalúrgico">Tepoztli, Chatarrero Metalúrgico</td><td style="color:#f5a623">AMALGAMA</td><td class="bl-arq">Dragón de Cristal</td><td><span class="estatus-pill estatus-semilimitada">SEMI LIMITADA</span></td><td><span class="bl-cambio nueva">NUEVA</span></td></tr>
+                  <tr data-estatus="semilimitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Évolotl, Xochi">Évolotl, Xochi</td><td style="color:#ff9933">PERSONAJE</td><td class="bl-arq">Évolotl</td><td><span class="estatus-pill estatus-semilimitada">SEMI LIMITADA</span></td><td><span class="bl-cambio nueva">NUEVA</span></td></tr>
+                  <tr data-estatus="semilimitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Évolotl, Kostli">Évolotl, Kostli</td><td style="color:#ff9933">PERSONAJE</td><td class="bl-arq">Évolotl</td><td><span class="estatus-pill estatus-semilimitada">SEMI LIMITADA</span></td><td><span class="bl-cambio nueva">NUEVA</span></td></tr>
+                  <tr data-estatus="semilimitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Évolotl, Tecoz">Évolotl, Tecoz</td><td style="color:#ff9933">PERSONAJE</td><td class="bl-arq">Évolotl</td><td><span class="estatus-pill estatus-semilimitada">SEMI LIMITADA</span></td><td><span class="bl-cambio nueva">NUEVA</span></td></tr>
+                  <tr data-estatus="semilimitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Évolotl, Cuezalli">Évolotl, Cuezalli</td><td style="color:#ff9933">PERSONAJE</td><td class="bl-arq">Évolotl</td><td><span class="estatus-pill estatus-semilimitada">SEMI LIMITADA</span></td><td><span class="bl-cambio nueva">NUEVA</span></td></tr>
+                  <tr data-estatus="semilimitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Baal">Baal</td><td style="color:#ff9933">PERSONAJE</td><td class="bl-arq">Héroe Invitado</td><td><span class="estatus-pill estatus-semilimitada">SEMI LIMITADA</span></td><td><span class="bl-cambio igual">=</span></td></tr>
+                  <tr data-estatus="semilimitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Koatl el Defensor Definitivo">Koatl el Defensor Definitivo</td><td style="color:#ff9933">PERSONAJE</td><td class="bl-arq">Koatl el Defensor</td><td><span class="estatus-pill estatus-semilimitada">SEMI LIMITADA</span></td><td><span class="bl-cambio nueva">NUEVA</span></td></tr>
+                  <tr data-estatus="semilimitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="La Musa Clío">La Musa Clío</td><td style="color:#ff9933">PERSONAJE</td><td class="bl-arq">Héroe Invitado</td><td><span class="estatus-pill estatus-semilimitada">SEMI LIMITADA</span></td><td><span class="bl-cambio nueva">NUEVA</span></td></tr>
+                  <tr data-estatus="semilimitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Mojito">Mojito</td><td style="color:#ff9933">PERSONAJE</td><td class="bl-arq">Héroe Invitado</td><td><span class="estatus-pill estatus-semilimitada">SEMI LIMITADA</span></td><td><span class="bl-cambio baja">▼ antes Limitada</span></td></tr>
+                  <tr data-estatus="semilimitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Oxkotetl, Coloso Devastador">Oxkotetl, Coloso Devastador</td><td style="color:#ff9933">PERSONAJE</td><td class="bl-arq">N/A</td><td><span class="estatus-pill estatus-semilimitada">SEMI LIMITADA</span></td><td><span class="bl-cambio igual">=</span></td></tr>
+                  <tr data-estatus="semilimitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Galeón Inquisidor">Galeón Inquisidor</td><td style="color:#00ff9d">ARENA</td><td class="bl-arq">Legión del Mar</td><td><span class="estatus-pill estatus-semilimitada">SEMI LIMITADA</span></td><td><span class="bl-cambio baja">▼ antes Limitada</span></td></tr>
+                  <tr data-estatus="semilimitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Xochimilko, El Cauce del Inicio">Xochimilko, El Cauce del Inicio</td><td style="color:#00ff9d">ARENA</td><td class="bl-arq">Évolotl</td><td><span class="estatus-pill estatus-semilimitada">SEMI LIMITADA</span></td><td><span class="bl-cambio igual">=</span></td></tr>
+                  <tr data-estatus="semilimitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Doblón Legionario">Doblón Legionario</td><td style="color:#ff4444">APOYO</td><td class="bl-arq">N/A</td><td><span class="estatus-pill estatus-semilimitada">SEMI LIMITADA</span></td><td><span class="bl-cambio nueva">NUEVA</span></td></tr>
+                  <tr data-estatus="semilimitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Trazador de Pesadillas">Trazador de Pesadillas</td><td style="color:#ff4444">APOYO</td><td class="bl-arq">N/A</td><td><span class="estatus-pill estatus-semilimitada">SEMI LIMITADA</span></td><td><span class="bl-cambio igual">=</span></td></tr>
+                  <tr data-estatus="semilimitada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Batalla entre Clanes">Batalla entre Clanes</td><td style="color:#cc55ff">SECTOR</td><td class="bl-arq">Dragón de Cristal</td><td><span class="estatus-pill estatus-semilimitada">SEMI LIMITADA</span></td><td><span class="bl-cambio igual">=</span></td></tr>
+                  <tr data-estatus="condenada"><td class="bl-nombre" role="button" tabindex="0" data-carta="X-Master PT">X-Master PT</td><td style="color:#ff4444">APOYO</td><td class="bl-arq">Codex Studio</td><td><span class="estatus-pill estatus-condenada">CONDENADA</span></td><td><span class="bl-cambio sube">▲ antes Semi</span></td></tr>
+                  <tr data-estatus="condenada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Epidemia">Epidemia</td><td style="color:#ff4444">APOYO</td><td class="bl-arq">Koatl el Defensor</td><td><span class="estatus-pill estatus-condenada">CONDENADA</span></td><td><span class="bl-cambio igual">=</span></td></tr>
+                  <tr data-estatus="condenada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Encantadora Apprentiz, Jenniel">Encantadora Apprentiz, Jenniel</td><td style="color:#ff9933">PERSONAJE</td><td class="bl-arq">Encantadora</td><td><span class="estatus-pill estatus-condenada">CONDENADA</span></td><td><span class="bl-cambio sube">▲ antes Limitada</span></td></tr>
+                  <tr data-estatus="condenada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Chepe">Chepe</td><td style="color:#ff9933">PERSONAJE</td><td class="bl-arq">Héroe Invitado</td><td><span class="estatus-pill estatus-condenada">CONDENADA</span></td><td><span class="bl-cambio nueva">NUEVA</span></td></tr>
+                  <tr data-estatus="condenada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Hestia, Cálida Diosa de las Brasas">Hestia, Cálida Diosa de las Brasas</td><td style="color:#f5a623">AMALGAMA</td><td class="bl-arq">Héroe Invitado</td><td><span class="estatus-pill estatus-condenada">CONDENADA</span></td><td><span class="bl-cambio sube">▲ antes Limitada</span></td></tr>
+                  <tr data-estatus="condenada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Legión del Mar, Capitán Drake">Legión del Mar, Capitán Drake</td><td style="color:#f5a623">AMALGAMA</td><td class="bl-arq">Legión del Mar</td><td><span class="estatus-pill estatus-condenada">CONDENADA</span></td><td><span class="bl-cambio igual">=</span></td></tr>
+                  <tr data-estatus="condenada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Quetzalli, La Encantadora Bruxa Ancestral">Quetzalli, La Encantadora Bruxa Ancestral</td><td style="color:#f5a623">AMALGAMA</td><td class="bl-arq">Encantadora</td><td><span class="estatus-pill estatus-condenada">CONDENADA</span></td><td><span class="bl-cambio nueva">NUEVA</span></td></tr>
+                  <tr data-estatus="condenada"><td class="bl-nombre" role="button" tabindex="0" data-carta="Encantadora Bruxa Magus, Cosmika">Encantadora Bruxa Magus, Cosmika</td><td style="color:#f5a623">AMALGAMA</td><td class="bl-arq">Encantadora</td><td><span class="estatus-pill estatus-condenada">CONDENADA</span></td><td><span class="bl-cambio sube">▲ antes Limitada</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="bl-notas">
+              <div class="bl-nota sale"><b>✅ Salen de la lista (errata)</b><span>Vika, Hechicera Oscura</span><span>Mictlantecuhtli Primigenio</span><small>Ya puedes usar hasta 3 copias.</small></div>
+              <div class="bl-nota errata"><b>📝 Cartas con errata</b><span>Metal X, Koatl</span><span>D`Absoluta Ornamentum</span><span>MO-KOZO, El Sagrado</span><span>Nexotlan (Arena)</span><span>Medallón Dimensional de Nexotlan</span><small>Su texto tiene correcciones oficiales; no cambia cuántas copias puedes usar.</small></div>
+            </div>
+            <p style="margin-top: 20px; color: #888; font-size: 14px; font-style: italic;">* Esta lista se actualiza periódicamente. Consulta siempre la versión más reciente antes de participar en torneos oficiales.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= VERSIÓN JUNIO 2026 (ARCHIVO) ================= -->
+    <div class="banlist-version" id="version-junio2026">
+      <div class="archive-notice">
+        📦 <strong>Versión de archivo</strong> — Esta lista corresponde a la banlist de Junio 2026 y ya no está vigente. Para torneos actuales usa la versión de Octubre – Noviembre 2026.
+      </div>
+      <div class="section open">
+        <div class="section-header">
+          <h3 class="section-title">🚫 Lista de Cartas Restringidas y Condenadas</h3>
+          <span class="section-icon">▼</span>
+        </div>
+        <div class="section-content">
+          <div class="section-body">
+            <h3>Actualización: Junio 2026 <span style="color:#888; font-size:12px; margin-left:6px;">● NO VIGENTE</span></h3>
             <p>Las siguientes cartas están sujetas a restricciones especiales en torneos oficiales de Choque de Héroes TCG. La lista incluye tres categorías: <strong style="color:#ff9933;">Limitada</strong> (1 copia por baraja), <strong style="color:#00cfff;">Semi Limitada</strong> (2 copias por baraja) y <strong style="color:#ff4444;">Condenada</strong> (ninguna copia permitida).</p>
 
             <!-- Filtro por estatus -->
-            <div class="filter-bar" id="banlistFilters">
+            <div class="filter-bar bl-filtros">
               <button type="button" class="filter-chip active" data-status="all">Todas</button>
               <button type="button" class="filter-chip" data-status="limitada">Limitada</button>
               <button type="button" class="filter-chip" data-status="semilimitada">Semi Limitada</button>
@@ -1713,7 +1867,7 @@
     <!-- ================= VERSIÓN MARZO 2026 (ARCHIVO) ================= -->
     <div class="banlist-version" id="version-marzo2026">
       <div class="archive-notice">
-        📦 <strong>Versión de archivo</strong> — Esta lista corresponde a la banlist de Marzo 2026 y ya no está vigente. Se conserva únicamente para consulta histórica. Para torneos actuales usa la versión de Junio 2026.
+        📦 <strong>Versión de archivo</strong> — Esta lista corresponde a la banlist de Marzo 2026 y ya no está vigente. Se conserva únicamente para consulta histórica. Para torneos actuales usa la versión de Octubre – Noviembre 2026.
       </div>
 
       <div class="section open">
@@ -1861,7 +2015,7 @@
           </div>
           
           <p style="margin-top: 20px; color: #888; font-size: 14px; font-style: italic;">
-            * Esta lista corresponde al archivo histórico de Marzo 2026. Para consultar las restricciones vigentes, ve a la pestaña <strong>Junio 2026</strong>.
+            * Esta lista corresponde al archivo histórico de Marzo 2026. Para consultar las restricciones vigentes, ve a la pestaña <strong>Oct – Nov 2026</strong>.
           </p>
         </div>
       </div>
@@ -1873,6 +2027,8 @@
 
 <!-- Botón flotante volver-arriba -->
 <button type="button" class="fab-top" id="fabTop" aria-label="Volver arriba">↑</button>
+<!-- Vista previa de carta (lista de cartas limitadas) -->
+<div class="bl-prev" id="blPrev" onclick="if(event.target===this)cerrarCarta()"><div class="bl-prev-box"><button type="button" class="bl-prev-x" id="blPrevX" onclick="cerrarCarta()" aria-label="Cerrar">✕</button><div id="blPrevBox"></div></div></div>
 
 <script>
 // ── Flags de tracking para badges (v3) ──
@@ -1914,11 +2070,11 @@ const ctaBanlist = document.getElementById('ctaBanlist');
 if (ctaBanlist) {
   ctaBanlist.addEventListener('click', () => {
     activateTab('limitadas');
-    // Asegurar que se muestre la versión vigente (Junio 2026)
+    // Asegurar que se muestre la versión vigente (Octubre – Noviembre 2026)
     document.querySelectorAll('.banlist-subtab').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.banlist-version').forEach(v => v.classList.remove('active'));
-    const activeBtn = document.querySelector('.banlist-subtab[data-version="junio2026"]');
-    const activeVer = document.getElementById('version-junio2026');
+    const activeBtn = document.querySelector('.banlist-subtab[data-version="oct2026"]');
+    const activeVer = document.getElementById('version-oct2026');
     if (activeBtn) activeBtn.classList.add('active');
     if (activeVer) activeVer.classList.add('active');
   });
@@ -1935,7 +2091,7 @@ document.querySelectorAll('.banlist-subtab').forEach(btn => {
     if (target) target.classList.add('active');
 
     // Flag para badge Historiador
-    if (version === 'marzo2026') {
+    if (version === 'marzo2026' || version === 'junio2026') {
       try { localStorage.setItem('chh_visto_archivo_banlist', '1'); } catch(e) {}
     }
   });
@@ -2034,25 +2190,57 @@ if (glosarioFilters) {
   });
 }
 
-// ── Filtros de banlist ──
-const banlistFilters = document.getElementById('banlistFilters');
-if (banlistFilters) {
-  banlistFilters.querySelectorAll('.filter-chip').forEach(chip => {
-    chip.addEventListener('click', () => {
-      const status = chip.dataset.status;
-      banlistFilters.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-      chip.classList.add('active');
-      const table = document.querySelector('#version-junio2026 table tbody');
-      if (!table) return;
-      table.querySelectorAll('tr').forEach(row => {
-        if (status === 'all') { row.style.display = ''; return; }
-        const pill = row.querySelector('.estatus-pill');
-        const cls = pill ? pill.className : '';
-        row.style.display = cls.includes('estatus-' + status) ? '' : 'none';
-      });
+// ── Filtros de banlist (cada versión tiene los suyos) + buscador de la lista ──
+document.querySelectorAll('.banlist-version').forEach(ver => {
+  const tbody = ver.querySelector('table tbody'); if (!tbody) return;
+  const bar = ver.querySelector('.bl-filtros'), q = ver.querySelector('.bl-buscar');
+  let estado = 'all';
+  const aplicar = () => {
+    const t = (q && q.value || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    tbody.querySelectorAll('tr').forEach(row => {
+      const pill = row.querySelector('.estatus-pill'), cls = pill ? pill.className : '';
+      const okE = estado === 'all' || (estado === 'cambios' ? !!row.querySelector('.bl-cambio:not(.igual)') : cls.includes('estatus-' + estado));
+      const okT = !t || row.textContent.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(t);
+      row.style.display = okE && okT ? '' : 'none';
     });
-  });
+  };
+  if (bar) bar.querySelectorAll('.filter-chip').forEach(chip => chip.addEventListener('click', () => {
+    estado = chip.dataset.status; bar.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active')); chip.classList.add('active'); aplicar();
+  }));
+  if (q) q.addEventListener('input', aplicar);
+});
+
+// ── Vista previa de la carta al tocar su nombre en la lista ──
+let _galeria = null;
+const nkCarta = t => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().replace(/^LA (?=NINA)/, '').replace(/[^A-Z0-9]/g, '');
+async function verCarta(nombre) {
+  const m = document.getElementById('blPrev'), box = document.getElementById('blPrevBox');
+  box.innerHTML = '<div class="bl-prev-cargando">Cargando…</div>'; m.classList.add('on');
+  try {
+    if (!_galeria) { const r = await fetch('cartas.json'); const g = await r.json(); _galeria = Array.isArray(g) ? g : (g.cartas || []); }
+    const ALIAS = { HESTIACALIDADIOSADELASBRASAS: 'HESTIACALIDADIOSADELASLLAMAS' };
+    let k = nkCarta(nombre); k = ALIAS[k] || k;
+    const c = _galeria.find(x => nkCarta(x.nombre) === k) || _galeria.find(x => nkCarta(x.nombre).includes(k) || k.includes(nkCarta(x.nombre)) && nkCarta(x.nombre).length > 4);
+    box.innerHTML = c ? `<img src="${c.ampliada || c.miniatura}" alt="" onerror="if(this.src.indexOf('${c.miniatura}')<0)this.src='${c.miniatura}'"><div class="bl-prev-nom">${c.nombre}</div>`
+      : `<div class="bl-prev-cargando">No encontré la imagen de «${nombre}».</div>`;
+  } catch (e) { box.innerHTML = '<div class="bl-prev-cargando">No se pudo cargar la galería.</div>'; }
+  setTimeout(() => { const x = document.getElementById('blPrevX'); if (window.GP && GP.activo && GP.activo()) try { GP.enfocar(x); } catch (er) {} }, 50);
 }
+function cerrarCarta() { document.getElementById('blPrev').classList.remove('on'); }
+document.addEventListener('click', e => { const n = e.target.closest('.bl-nombre'); if (n) verCarta(n.dataset.carta || n.textContent); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') cerrarCarta();
+  if (e.key === 'Enter' && document.activeElement && document.activeElement.classList.contains('bl-nombre')) verCarta(document.activeElement.dataset.carta);
+});
+
+// ── Control (Xbox / PlayStation): cruceta para moverse, A toca, B cierra, Y busca, LB/RB cambia de zona ──
+window.GP_CFG = {
+  principalTxt: 'Buscar', principal: () => document.getElementById('globalSearch'),
+  inicial: () => document.querySelector('.tab-btn.active'),
+  atras: () => { const m = document.getElementById('blPrev'); if (m.classList.contains('on')) { cerrarCarta(); return true; } return false; },
+  clicables: '.section-header, .phase-card, .bl-nombre, .glosario-item, .faq-q',
+  zonas: ['nav', '#ctaBanlist', '.search-wrapper', '.tabs', '.tab-content.active .banlist-subtabs', '.tab-content.active']
+};
 
 // ── Búsqueda global ──
 const searchInput = document.getElementById('globalSearch');
@@ -2170,5 +2358,6 @@ function showZone(title, desc) {
 }
 </script>
 
+<script src="gamepad.js"></script>
 </body>
 </html>

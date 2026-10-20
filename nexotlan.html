@@ -790,7 +790,7 @@ function sortear(p, n, zonas) {
     const utiles = bolsa.filter(id => tieneNombre(id) + out.filter(o => NK(nomC(o)) === NK(nomC(id))).length < topeDe(id));
     const de = utiles.length ? utiles : bolsa;
     let id = de[Math.floor(Math.random() * de.length)];
-    if (esNexo(id) && Math.random() > NEXO_PROB) { const otras = de.filter(x => !esNexo(x)); if (otras.length) id = otras[Math.floor(Math.random() * otras.length)]; }
+    if (esJoya(id) && Math.random() > NEXO_PROB) { const otras = de.filter(x => !esJoya(x)); if (otras.length) id = otras[Math.floor(Math.random() * otras.length)]; }
     out.push(id);
   }
   return out;
@@ -1349,7 +1349,7 @@ $('mCarta').addEventListener('click', e => { if (e.target === $('mCarta')) cerra
 
 // ════════════════ COMERCIANTE (assets/nexotlan/comerciante.txt) ════════════════
 let COM = { cfg: {}, sobres: [], precios: {}, carp: {} };
-function parseCom(txt) {
+function parseCom(txt) { _joyaCache = null;
   const out = { cfg: {}, sobres: [], precios: {}, carp: {} }; let cur = null, tipo = '';
   String(txt || '').replace(/\r/g, '').split('\n').forEach(l => {
     const t = l.trim(); if (!t || t.startsWith('#') || t.startsWith(';')) return;
@@ -1369,12 +1369,28 @@ const hashS = t => String(t).split('').reduce((a, c) => (a * 31 + c.charCodeAt(0
 const esComerciante = p => p && p.tipo === 'heroe' && COM.cfg.punto && p.id === COM.cfg.punto;
 // Cartas del arquetipo Nexotlan (llevan "Nexotlan" en el nombre): más caras y salen menos en premios y sobres
 const esNexo = id => NK(nomC(id)).includes('NEXOTLAN');
+// JOYAS extra (comerciante.txt → joyas = expansiones de la galería y/o nombres de carta): caras y raras como las Nexotlan
+let _joyaCache = null;
+function joyaExtra(id) {
+  if (!_joyaCache) {
+    const L = lista(COM.cfg.joyas), exps = new Set(L.map(x => x.toLowerCase().replace(/\s+/g, '_'))), noms = new Set(L.map(NK));
+    const galExp = new Set(Object.values(GALI).filter(g => exps.has(String(g.expansion || '').toLowerCase())).map(g => NK(g.nombre)));
+    _joyaCache = {};
+    Object.values(CARD).forEach(c => {
+      const g = c.galeriaId != null ? GALI[String(c.galeriaId)] : null, k = NK(c.nombre);
+      if (noms.has(k) || (g ? exps.has(String(g.expansion || '').toLowerCase()) : galExp.has(k))) _joyaCache[c.id] = 1;
+    });
+  }
+  return !!_joyaCache[id];
+}
+const esJoya = id => esNexo(id) || joyaExtra(id);
 const NEXO_PROB = 0.3;   // en los premios de un Choque, una carta Nexotlan sorteada solo se queda el 30 % de las veces
 function precioBase(id) {
   const c = CARD[id]; if (!c || !premiable(id)) return 0;
   const k = NK(c.nombre); if (k in COM.precios) return COM.precios[k]; if (NK(id) in COM.precios) return COM.precios[NK(id)];
   const e = LIM[k]; let p;
   if (esNexo(id)) p = c.tipo === 'pj' ? 700 + 100 * (c.coste || 0) : c.tipo === 'alma' ? 500 : 900;   // arquetipo Nexotlan: caras y raras
+  else if (joyaExtra(id)) p = Math.max(c.tipo === 'pj' ? 600 + 80 * (c.coste || 0) : c.tipo === 'amalgama' ? 1000 : c.tipo === 'alma' ? 500 : 800, e === 'limitada' ? 1500 : 0);   // joyas de comerciante.txt
   else if (e === 'limitada') p = 1500; else if (FUERTES.includes(k)) p = 1200; else if (e === 'semi-limitada') p = 800;
   else p = ({ pj: 30 + 12 * (c.coste || 0), amalgama: 450 + 8 * ((c.fue || 0) + (c.res || 0)), alma: 40 })[c.tipo] || 70;
   return r5(p * num(COM.cfg.precio_cartas, 100) / 100);
@@ -1490,7 +1506,12 @@ async function comprarSobre(sb) {
   if (!sb) return; const pr = parseInt(sb.precio, 10) || 100; if (S.monedas < pr) return;
   const n = parseInt(sb.cartas, 10) || 5, pool = poolDe(sb.pool, ['bp', 'ba']); if (!pool.length) return toast('Este sobre no tiene cartas (revisa su pool)');
   const ids = []; let L = pool.slice();
-  for (let i = 0; i < n; i++) { if (!L.length) L = pool.slice(); const id = sorteoPeso(L); ids.push(id); L = L.filter(x => x !== id); }
+  const esAlma = x => CARD[x] && CARD[x].tipo === 'alma';   // máximo 1 ALMA por sobre
+  for (let i = 0; i < n; i++) {
+    if (!L.length) L = pool.filter(x => !(ids.some(esAlma) && esAlma(x)));
+    if (!L.length) L = pool.slice();
+    const id = sorteoPeso(L); ids.push(id); L = L.filter(x => x !== id && !(esAlma(id) && esAlma(x)));
+  }
   const am = poolDe(sb.pool, ['bs']);
   if (am.length && Math.random() * 100 < (parseInt(sb.amalgama, 10) || 0)) ids[ids.length - 1] = sorteoPeso(am);
   S.monedas -= pr; sonMonedas(); const res = entregar(ids); guardar(); pintarTienda();

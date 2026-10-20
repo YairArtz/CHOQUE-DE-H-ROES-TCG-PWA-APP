@@ -362,8 +362,6 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 }
 
 /* Sector de Apoyo: espacio extra sobre el sector */
-.bc-sect .pjx{position:absolute!important;left:6%;top:6%;width:88%!important;height:88%!important;z-index:2;border:2px solid var(--gold)!important;border-radius:4px}
-.bc-sect .pjx .zlbl{font-size:9px}
 .bc-sect .apx{position:absolute!important;right:4%;bottom:4%;width:58%!important;height:auto!important;aspect-ratio:5/7;z-index:3;
   border:1.5px dashed rgba(232,90,0,.9)!important;border-radius:6px;background:rgba(10,6,4,.85);box-shadow:0 0 10px rgba(232,90,0,.6);display:flex;align-items:center;justify-content:center;overflow:hidden}
 .bc-sect .apx.has-alma{border-style:solid!important}
@@ -1280,7 +1278,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v77';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v76';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -1996,19 +1994,7 @@ function despiertaClanes(){
   if(G.turn<=1) return;
   ['player','cpu'].forEach(o=>G[o].pj.forEach((p,i)=>{if(p&&!p.attacked&&(p.resting||p.lock>0)&&enSinDescanso(o,i)){p.resting=false;p.lock=0;}}));
 }
-function freePJ(o){for(let k=0;k<4;k++)if(G[o].pj[k]===null)return k;for(const k of [4,5])if(pjExtraOn(o,k)&&!G[o].pj[k])return k;return -1;}
-// v77 · SECTOR DE PERSONAJE: como el Sector de Apoyo, pero el espacio extra es una zona de PERSONAJE
-// (índice 4 = sector izquierdo, 5 = derecho). Si el sector deja el campo, el personaje se destruye.
-function pjExtraOn(o,k){const sd=k===4?'left':k===5?'right':null;return !!sd&&!!G&&hasPassive(G[o].sect[sd],'pj_extra')&&sectOwner(o,sd)===o;}
-function limpiaPjExtra(){
-  ['player','cpu'].forEach(o=>[4,5].forEach(k=>{
-    const p=G[o].pj[k];
-    if(p&&!pjExtraOn(o,k)){leaveField(o,k,'mictlan');marcaDestruida(o,p.id);
-      lg('💥 Sin <b>Sector de Personaje</b>, <b>'+C[p.id].name+'</b>'+who(o)+' es destruido.','var(--red)');}
-    if(!G[o].pj[k]&&k in G[o].pj&&!pjExtraOn(o,k)) G[o].pj[k]=undefined;
-  }));
-  ['player','cpu'].forEach(o=>{while(G[o].pj.length>4&&G[o].pj[G[o].pj.length-1]===undefined)G[o].pj.length--;[4,5].forEach(k=>{if(pjExtraOn(o,k)&&G[o].pj[k]===undefined)G[o].pj[k]=null;});});
-}
+function freePJ(o){return G[o].pj.findIndex(x=>x===null);}
 function bastion(o){return G[o].pj.some(p=>p&&hasKw(p,'BASTION'));}
 function lg(msg,col){
   const d=document.createElement('div');
@@ -3810,7 +3796,7 @@ async function sobreviveBatalla(o,i){
 async function temakEnteReaccion(o,cid){
   if(!G||G.over||!isChar(cid)) return;
   const r=opp(o), v=C[cid].type==='amalgama'?C[cid].gama:C[cid].cost;
-  for(let i=0;i<6;i++){
+  for(let i=0;i<4;i++){
     const p=G[r].pj[i];
     if(!p||supp(r,i)||!hasPassive(p.id,'temak_ente')) continue;
     const key='temakEnte@'+p.id;
@@ -3997,7 +3983,7 @@ async function finTurnoPrototipos(o){
     await PASOS.llamar_especial({o,cid:a.card,vars:{},interactive:o==='player'},{origen:'mictlan',filtro:{tipos:['pj'],valorMax:a.cs}});
     if(!G||G.over) return;
   }
-  for(const s of ['player','cpu']) for(let i=0;i<6;i++){
+  for(const s of ['player','cpu']) for(let i=0;i<4;i++){
     const p=G[s].pj[i];
     if(!p||!hasPassive(p.id,'inmaterial')||supp(s,i)) continue;
     p.cor--;
@@ -5551,7 +5537,7 @@ function hurt(o,n,why){
 //    "niveles":[{"min":2,"fue":1},{"min":3,"res":1},{"min":4,"cor":1}]}
 // ════════════════════════════════════
 function auraBonus(o){
-  const B=[0,1,2,3,4,5].map(()=>({f:0,r:0,c:0,i:0,kw:[],inmD:false,inmA:false})), P=G[o];
+  const B=[0,1,2,3].map(()=>({f:0,r:0,c:0,i:0,kw:[],inmD:false,inmA:false})), P=G[o];
   const fuentes=[];
   if(P.arena) fuentes.push({cid:P.arena,slot:null});
   ['left','right'].forEach(sd=>{if(P.sect[sd])fuentes.push({cid:P.sect[sd],slot:null,side:sd});});
@@ -5638,7 +5624,7 @@ function equipStats(o,a){
 function equiposDe(o,p){return G[o].apoyo.filter(a=>a&&a.type==='equipo'&&a.tgt===p);}
 function applyMods(){
   if(!G) return;
-  limpiaApoExtra(); limpiaPjExtra(); despiertaClanes(); necroSinPJ();
+  limpiaApoExtra(); despiertaClanes(); necroSinPJ();
   ['player','cpu'].forEach(o=>{
     const B=auraBonus(o);
     G[o].pj.forEach((p,i)=>{
@@ -5684,7 +5670,7 @@ async function callFromHand(o,cid,opt){
 // ════════════════════════════════════
 // ENTRAR Y SALIR DEL CAMPO
 // ════════════════════════════════════
-function sideOfSlot(o,slot){if(slot===4)return 'left';if(slot===5)return 'right';return o==='player'?(slot<2?'left':'right'):(slot<2?'right':'left');}
+function sideOfSlot(o,slot){return o==='player'?(slot<2?'left':'right'):(slot<2?'right':'left');}
 function bestSlot(o,side,cid){
   if(side){const s=freeIn(o,side);if(s!==undefined)return s;}
   if(cid){const ok=['left','right'].filter(sd=>sectorPermite(o,sd,cid)&&freeIn(o,sd)!==undefined);const h=ok.find(sd=>entersActive(o,sd))||ok[0];return h?freeIn(o,h):undefined;}
@@ -5817,7 +5803,7 @@ function openChoose(title,opts){
 // MODAL SECTOR (dónde colocar a un personaje)
 // ════════════════════════════════════
 let _pendingCall=null;
-function slotsOf(o,side){const b=o==='player'?(side==='left'?[0,1]:[2,3]):(side==='right'?[0,1]:[2,3]);const k=side==='left'?4:5;return G&&pjExtraOn(o,k)?b.concat(k):b;}
+function slotsOf(o,side){return o==='player'?(side==='left'?[0,1]:[2,3]):(side==='right'?[0,1]:[2,3]);}
 function freeIn(o,side,freed){return slotsOf(o,side).find(i=>G[o].pj[i]===null||(freed&&freed.has(i)));}
 function freedBy(sel){return new Set((sel||[]).filter(x=>x.src==='campo').map(x=>x.i));}
 // p = {kind:'normal'|'valentia', handIdx, cid}  |  {kind:'esp', cid, sel}
@@ -6610,13 +6596,9 @@ function renderPJs(o){
   const px=o==='player'?'pP':'cP';
   for(let i=0;i<4;i++){
     const el=document.getElementById(px+i);
-    if(!G[o].pj[i]){el.className='bc bc-pj';el.onclick=null;el.innerHTML='<span class="zlbl">ZONA<br>PJ</span>';continue;}
-    pintaPJ(el,o,i);
-  }
-}
-function pintaPJ(el,o,i){
-  {el.className='bc bc-pj'; el.onclick=null;
+    el.className='bc bc-pj'; el.onclick=null;
     const card=G[o].pj[i];
+    if(!card){el.innerHTML='<span class="zlbl">ZONA<br>PJ</span>';continue;}
     el.classList.add('occ');
     if(C[card.id].type==='amalgama') el.classList.add('amal');
     if(card.resting) el.classList.add('rest');
@@ -6723,12 +6705,6 @@ function renderSects(o){
     if(cid&&sectOwner(o,side)!==o) el.insertAdjacentHTML('beforeend','<div class="rest-tag" style="background:rgba(192,64,255,.85)">'+(sectOwner(o,side)==='player'?'TUYA':'CPU')+'</div>');
     el.onclick=cid?()=>showDetail(cid,{title:'SECTOR '+(side==='left'?'IZQ':'DER'),
       acts:sectOwner(o,side)==='player'&&o==='player'&&myAction()?activables('player',cid,'sector',{zone:'sector',side}):[]}):null;
-    // Sector de Personaje: zona de PERSONAJE extra dibujada sobre el sector
-    {const kp=side==='left'?4:5;
-     if(pjExtraOn(o,kp)){const mini=document.createElement('div');mini.id=(o==='player'?'pP':'cP')+kp;
-       if(G[o].pj[kp]){pintaPJ(mini,o,kp);mini.classList.add('pjx');const fn=mini.onclick;mini.onclick=e=>{e.stopPropagation();fn&&fn();};}
-       else{mini.className='bc bc-pj pjx';mini.innerHTML='<span class="zlbl">+PJ</span>';mini.onclick=e=>{e.stopPropagation();showDetail(cid,{title:'SECTOR DE PERSONAJE · zona de personaje extra libre'});};}
-       el.appendChild(mini);}}
     // Sector de Apoyo: espacio extra para un APOYO, dibujado sobre la carta del sector
     const k=side==='left'?4:5;
     if(apoExtraOn(o,k)){
@@ -6844,10 +6820,9 @@ function buildMenuActions(cid,idx,at,card){
         acts.push({label:'🟣 Colocar en '+SIDE_NOM('cpu',side)+(G.cpu.sect[side]?' (destruye '+C[G.cpu.sect[side]].name+')':''),ok,why:ok?'':(bloq?'BASTIÓN: su sector no puede ser destruido':phaseWhy()),fn:()=>doSector(idx,side,'cpu')});
       });
     } else ['left','right'].forEach(side=>{
-      const px=hasPassive(cid,'pj_extra'), ya=px&&G.used.player.sectPJ===turnKey();
-      const ok=G.phase==='action'&&(G.player.sect[side]===null||px)&&!ya;
-      acts.push({label:'🟣 Colocar en Sector '+(side==='left'?'IZQ':'DER')+(px&&G.player.sect[side]?' (destruye '+C[G.player.sect[side]].name+')':''),ok,
-        why:ok?'':(G.phase!=='action'?phaseWhy():ya?'Solo una vez por turno':'Sector ocupado'),fn:()=>doSector(idx,side,px?'propio':undefined)});
+      const ok=G.phase==='action'&&G.player.sect[side]===null;
+      acts.push({label:'🟣 Colocar en Sector '+(side==='left'?'IZQ':'DER'),ok,
+        why:ok?'':(G.phase!=='action'?phaseWhy():'Sector ocupado'),fn:()=>doSector(idx,side)});
     });
   }
   if(G.phase==='action') acts.push(...activables('player',cid,'mano',{zone:'mano',handIdx:idx}).map(a=>{const f=a.fn;return Object.assign(a,{fn:async()=>{clearSel();await f();}});}));
@@ -7096,10 +7071,8 @@ async function doSector(handIdx,side,tgtO){
   if(tgtO!=='player'&&errBloqSector('player',tgtO)){lg('🦅 <b>Errantes de Phorus</b>: no puedes activar SECTORES en el lado de la CPU.','var(--purple)');return;}
   if(tgtO==='player'&&G.player.sect[side]!==null&&!ambosPropio){lg('⚠ Sector ocupado.','var(--red)');return;}
   const cid=G.player.hand[handIdx];
-  if(hasPassive(cid,'pj_extra')){if(G.used.player.sectPJ===turnKey()){lg('⚠ Solo puedes activar "'+C[cid].name+'" una vez por turno.','var(--red)');return;}}
   if(!await announce('player',cid,'activacion',{z:'mano'})){renderAll();return;}
   const hi=G.player.hand.indexOf(cid);if(hi<0||(tgtO==='player'&&G.player.sect[side]!==null&&!ambosPropio)) return;
-  if(hasPassive(cid,'pj_extra')) G.used.player.sectPJ=turnKey();
   G.player.hand.splice(hi,1);
   clearSel(cid);
   if(C[cid].costoColocar&&C[cid].costoColocar.descartar) await PASOS.descartar_mano({o:'player',cid,vars:{},interactive:true},{cantidad:C[cid].costoColocar.descartar});
@@ -7322,7 +7295,7 @@ async function closeCombat(){
 async function devolucionesFinTurno(){
   for(const s of ['player','cpu']){
     G[s].apoyo.forEach(a=>{if(a&&a.tmpB){a.bonus-=a.tmpB;a.tmpB=0;}});
-    for(let i=0;i<6;i++){
+    for(let i=0;i<4;i++){
       const p=G[s].pj[i];
       if(!p||!p.devolver) continue;
       const r=p.devolver; delete p.devolver;
@@ -7336,7 +7309,7 @@ async function devolucionesFinTurno(){
 async function retirosFinTurno(){
   await devolucionesFinTurno();
   for(const s of ['player','cpu']){
-    for(let i=0;i<6;i++){
+    for(let i=0;i<4;i++){
       const p=G[s].pj[i];
       if(!p||p.turnoLlamado!==turnKey()) continue;
       if(p.alFinal==='confinar'){
@@ -7358,7 +7331,7 @@ async function runEOT(o){
   if(G.clioRet&&G.clioRet.length){const L=G.clioRet;G.clioRet=[];for(const x of L){const i=G[x.o].conf.lastIndexOf(x.cid);if(i<0||freePJ(x.o)===-1)continue;
     G[x.o].conf.splice(i,1);await placeChar(x.o,x.cid,{via:'especial',from:'el Confinamiento',por:x.cid,desde:'conf'});
     const q=G[x.o].pj.find(p=>p&&p.id===x.cid);if(q){q.cor=Math.max(1,q.cor-1);lg('🏛 <b>'+C[x.cid].name+'</b>'+who(x.o)+' regresa al campo con un corazón menos.','var(--purple)');}if(!G||G.over)return;}}
-  for(let i=0;i<6;i++){const p=G[o].pj[i];if(p&&(C[p.id].efectos||[]).some(e=>e.cuando==='fin_turno')){await runTrigger(o,p.id,'fin_turno',{zone:'campo',slot:i});if(!G||G.over)return;}}
+  for(let i=0;i<4;i++){const p=G[o].pj[i];if(p&&(C[p.id].efectos||[]).some(e=>e.cuando==='fin_turno')){await runTrigger(o,p.id,'fin_turno',{zone:'campo',slot:i});if(!G||G.over)return;}}
   if(G.finTurno&&G.finTurno.length){
     const mios=G.finTurno.filter(x=>x.o===o);G.finTurno=G.finTurno.filter(x=>x.o!==o);
     for(const x of mios){
@@ -7370,7 +7343,7 @@ async function runEOT(o){
     }
   }
   // Epidemia
-  for(let i=0;i<6;i++){const p=G[o].pj[i];if(p&&p.epidemia){delete p.epidemia;const v=C[p.id].cost;leaveField(o,i,'mictlan');marcaDestruida(o,p.id);
+  for(let i=0;i<4;i++){const p=G[o].pj[i];if(p&&p.epidemia){delete p.epidemia;const v=C[p.id].cost;leaveField(o,i,'mictlan');marcaDestruida(o,p.id);
     lg('🦠 <b>Epidemia</b>'+who(o)+': <b>'+C[p.id].name+'</b> es destruido; durante 2 turnos del rival se destruirán sus personajes de valor '+v+' o menor.','var(--red)');
     G.epidemia={o:opp(o),v,n:2};renderAll();await fireLeave(o,p.id);await procDestrQ();if(!G||G.over)return;}}
   if(G.epidemia&&G.epidemia.o===o){const ep=G.epidemia;const list=campoTargets({o:opp(o)},'destruir').filter(t=>t.o===o&&t.z==='campo'&&C[t.cid].cost<=ep.v);
@@ -7549,7 +7522,6 @@ async function cpuTurn(){
   // 4) Sectores
   for(const cid of [...P.hand]){
     if(C[cid].type!=='sector'||C[cid].colocar==='rival'||C[cid].colocar==='ambos'||C[cid].soloResp) continue;
-    if(hasPassive(cid,'pj_extra')&&(G.used.cpu.sectPJ===turnKey()||freePJ('cpu')!==-1&&P.hand.filter(c=>isChar(c)).length<2)) continue;
     const fp=freePJ('cpu');
     const want=fp!==-1?(fp<2?'right':'left'):'right';
     const side=P.sect[want]===null?want:(P.sect[want==='right'?'left':'right']===null?(want==='right'?'left':'right'):null);
@@ -7557,7 +7529,7 @@ async function cpuTurn(){
     if(!await step(450)) return;
     if(!await announce('cpu',cid,'activacion',{z:'mano'})){renderAll();continue;}
     if(P.hand.indexOf(cid)<0||P.sect[side]!==null) continue;
-    P.hand.splice(P.hand.indexOf(cid),1);P.sect[side]=cid;if(hasPassive(cid,'pj_extra'))G.used.cpu.sectPJ=turnKey();
+    P.hand.splice(P.hand.indexOf(cid),1);P.sect[side]=cid;
     lg('🟣 CPU coloca <b>'+C[cid].name+'</b> en Sector '+(side==='left'?'IZQ':'DER')+'.','var(--as)');playSound('call');renderAll();
   }
   // 4a) SECTOR que se coloca del lado rival (Sector Bloqueado): donde el jugador tenga más fuerza
@@ -7729,7 +7701,7 @@ async function cpuTurn(){
   if(!await step(700)) return;
   await faseBanner('cpu','combat'); if(!alive()) return;
   const combatAbilities=async()=>{
-    for(let i=0;i<6;i++){
+    for(let i=0;i<4;i++){
       const p=P.pj[i];if(!p) continue;
       for(const {e,k} of (C[p.id].efectos||[]).map((e,k)=>({e,k})).filter(x=>x.e.cuando==='combate'&&!x.e.pendiente)){
         if(effWhy('cpu',p.id,e,k,{zone:'campo',slot:i})||!G.player.pj.some(Boolean)) continue;
@@ -7740,7 +7712,7 @@ async function cpuTurn(){
   };
   await combatAbilities();
   if(!alive()) return;
-  for(let j=0;j<6;j++){if(!alive())return;if(!oblivionPuede('cpu','player',j))continue;if(!await step(700))return;await oblivionAtaque('cpu','player',j);if(!alive()||checkEnd())return;}
+  for(let j=0;j<4;j++){if(!alive())return;if(!oblivionPuede('cpu','player',j))continue;if(!await step(700))return;await oblivionAtaque('cpu','player',j);if(!alive()||checkEnd())return;}
   const atkers0=P.pj.map((p,i)=>canAtk('cpu',i)?i:-1).filter(i=>i>=0);
   // v52 · Nivel ÉPICO: si los ataques directos posibles bastan para ganar, va por los corazones
   if(nivelAlto()&&atkers0.length){

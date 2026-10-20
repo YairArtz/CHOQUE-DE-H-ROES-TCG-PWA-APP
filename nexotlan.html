@@ -779,9 +779,11 @@ function premiable(id) {
 }
 function resolverCarta(t) { t = String(t || '').trim(); if (CARD[t]) return t; const k = NK(t); const c = Object.values(CARD).find(x => NK(x.nombre) === k); return c ? c.id : null; }
 // zonas: qué partes de su baraja entran al sorteo ('bp','ba' normales · 'bs' Amalgamas, solo guardianes)
+// Almas regulares (sin efecto: Alma de Caballero, Cristal Dragón, Candelalma…) no se dan como premio de Choque
+function almaRegular(id) { const c = CARD[id]; return !!c && c.tipo === 'alma' && !(c.efectos || []).length && !esNexo(id); }
 function sortear(p, n, zonas) {
   const b = (DATA.barajas || []).find(x => x.id === p.baraja); if (!b || n <= 0) return [];
-  const bolsa = []; (zonas || ['bp', 'ba']).flatMap(z => b[z] || []).forEach(x => { if (premiable(x.id)) for (let k = 0; k < (x.copias || 1); k++) bolsa.push(x.id); });
+  const bolsa = []; (zonas || ['bp', 'ba']).flatMap(z => b[z] || []).forEach(x => { if (premiable(x.id) && !almaRegular(x.id)) for (let k = 0; k < (x.copias || 1); k++) bolsa.push(x.id); });
   const out = [];
   for (let i = 0; i < n && bolsa.length; i++) {
     // Preferir cartas que todavía no tienes completas

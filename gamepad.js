@@ -180,6 +180,16 @@
   //  1) se prefiere lo que está en la misma fila/columna (se solapa en el otro eje), el más cercano;
   //  2) si no hay, lo que cae dentro de un cono de ~60° hacia esa dirección;
   //  3) si tampoco, lo más cercano por delante (comportamiento anterior).
+  // Sliders (input range): izquierda/derecha cambian el valor (dirección lógica, también con la pantalla girada)
+  function esRango(el) { return !!el && el.tagName === 'INPUT' && el.type === 'range' && !el.disabled; }
+  function ajustarRango(el, dir) {
+    const mn = parseFloat(el.min || 0), mx = parseFloat(el.max || 100), st = parseFloat(el.step) || (mx - mn) / 20 || 1;
+    const v0 = parseFloat(el.value), v = Math.max(mn, Math.min(mx, Math.round((v0 + dir * st) / st) * st));
+    if (v === v0) { vibrar(25, .2); return; }
+    el.value = String(+v.toFixed(4));
+    el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true }));
+    vibrar(15, .15); dibujarAnillo();
+  }
   function mover(dx, dy) {
     if (!valido(foco)) { enfocar(inicial()); return; }
     const [fx, fy, fr] = centro(foco);
@@ -350,8 +360,9 @@
         // Direcciones con repetición al mantener
         [['up', 0, -1], ['down', 0, 1], ['left', -1, 0], ['right', 1, 0]].forEach(([k, dx, dy]) => {
           if (est[k]) {
-            if (!prev[k]) { repT[k] = now + REP0; const [sx, sy] = aPantalla(dx, dy); mover(sx, sy); }
-            else if (now >= repT[k]) { repT[k] = now + REP; const [sx, sy] = aPantalla(dx, dy); mover(sx, sy); }
+            const ir = () => { if (dx && !modoPuntero && esRango(foco) && valido(foco)) { ajustarRango(foco, dx); return; } const [sx, sy] = aPantalla(dx, dy); mover(sx, sy); };
+            if (!prev[k]) { repT[k] = now + REP0; ir(); }
+            else if (now >= repT[k]) { repT[k] = now + REP; ir(); }
           }
         });
         const nuevo = i => est['b' + i] && !prev['b' + i];

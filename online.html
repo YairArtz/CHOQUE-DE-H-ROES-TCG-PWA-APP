@@ -1285,7 +1285,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v80';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v81';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -1301,12 +1301,12 @@ const SYNTH_BASE=.45;
 let _sfxBus=null;
 function sfxBus(){const ac=getAC();if(!_sfxBus){_sfxBus=ac.createGain();_sfxBus.connect(ac.destination);}_sfxBus.gain.value=SYNTH_BASE*AJ.sfx;return _sfxBus;}
 // Nivelado: cada archivo de efecto se ajusta a un mismo volumen percibido (RMS de su parte audible)
-const SFX_OBJ=-21;
+const SFX_OBJ=-19;
 function sfxNivel(b){try{const d=b.getChannelData(0),fr=512,rs=[];let mx=0;
   for(let i=0;i+fr<=d.length;i+=fr){let t=0;for(let j=i;j<i+fr;j++)t+=d[j]*d[j];const r=Math.sqrt(t/fr);rs.push(r);if(r>mx)mx=r;}
   if(!mx) return 1; const umbral=mx*Math.pow(10,-30/20), act=rs.filter(r=>r>=umbral);
   const rms=Math.sqrt(act.reduce((t,r)=>t+r*r,0)/act.length), db=20*Math.log10(rms);
-  return Math.max(.12,Math.min(1.6,Math.pow(10,(SFX_OBJ-db)/20)));}catch(e){return 1;}}
+  return Math.max(.5,Math.min(1.6,Math.pow(10,(SFX_OBJ-db)/20)));}catch(e){return 1;}}
 
 // ════════════════════════════════════
 // AUDIO ÉPICO — síntesis avanzada
@@ -8092,7 +8092,8 @@ function ajAbrir(){
     '<h4>⏱ VELOCIDAD DEL RIVAL (CPU)</h4>'+chips('ajVel',[['lenta','🐢 Lenta'],['normal','▶ Normal'],['rapida','⏩ Rápida']],AJ.vel)+
     '<h4>📣 AVISOS DE FASE</h4>'+chips('ajFases',[['todos','📣 Todos'],['propios','🙋 Solo mis fases'],['off','🔕 Apagados']],avisosFase())+
     '<h4>✨ EFECTOS VISUALES</h4>'+chips('ajFx',[['on','✨ Completos'],['off','🔋 Reducidos']],fxModo())+
-    ('vibrate' in navigator?'<h4>📳 VIBRACIÓN</h4>'+chips('ajVib',[['1','📳 Al perder corazones'],['0','✖ Apagada']],AJ.vib?'1':'0'):'')+
+    '<h4>📳 VIBRACIÓN (control y celular)</h4>'+chips('ajVib',[['1','📳 Activada'],['0','✖ Apagada']],AJ.vib?'1':'0')+
+    '<div class="ap-note">Se siente al atacar o ser atacado, al perder corazones o personajes, en llamados especiales, Amalgamas y al final del Choque.</div>'+
     '<div class="ds-chips" style="margin-top:14px"><button class="ds-chip" id="ajAp">🎨 Apariencia de la mesa…</button><button class="ds-chip" id="ajReset">↺ Valores por defecto</button></div>';
   const $=id=>document.getElementById(id);
   $('ajMus').oninput=e=>{AJ.mus=+e.target.value;$('ajMusV').textContent=pct(AJ.mus);mpVol();ajGuardar();};
@@ -8104,7 +8105,7 @@ function ajAbrir(){
   grupo('ajVel',v=>{AJ.vel=v;ajGuardar();});
   grupo('ajFases',v=>{try{localStorage.setItem('cdh_sim_fases',v);}catch(e){}});
   grupo('ajFx',v=>{try{localStorage.setItem('cdh_sim_fx',v);}catch(e){}fxAplicar();});
-  if($('ajVib')) grupo('ajVib',v=>{AJ.vib=v==='1';ajGuardar();if(AJ.vib&&navigator.vibrate)try{navigator.vibrate(60);}catch(e){}});
+  if($('ajVib')) grupo('ajVib',v=>{AJ.vib=v==='1';ajGuardar();if(AJ.vib){try{navigator.vibrate&&navigator.vibrate(60);}catch(e){}rumble(150,.6);}});
   $('ajAp').onclick=apAbrir;
   $('ajReset').onclick=()=>{AJ=Object.assign({},AJ_DEF);ajGuardar();MUTED=false;try{localStorage.setItem('cdh_sim_mute','0');localStorage.setItem('cdh_sim_fases','todos');localStorage.setItem('cdh_sim_fx','on');}catch(e){}
     fxAplicar();mpVol();const b=$('btnMute');if(b)b.textContent='🔊';ajAbrir();};
@@ -8579,8 +8580,34 @@ window.GP_CFG={
     return false;
   }
 };
-// Vibración del control al recibir daño
-try{const _gpH=hurt;hurt=function(o,n,why){const r=_gpH.apply(this,arguments);try{if(r>0&&o==='player'&&window.GP&&GP.activo())GP.vibrar(220,.8);}catch(e){}return r;};}catch(e){}
+// v81 · Vibración del control (y del celular) en los momentos importantes · se apaga en ⚙ Ajustes
+function rumble(ms,f){if(!AJ.vib)return;try{if(window.GP&&GP.activo())GP.vibrar(ms,f);}catch(e){}}
+function rumbleSeq(L){L.forEach(([t,ms,f])=>setTimeout(()=>rumble(ms,f),t));}
+function vibraCel(p){if(!AJ.vib||!navigator.vibrate)return;try{navigator.vibrate(p);}catch(e){}}
+try{const _gpH=hurt;hurt=function(o,n,why){const r=_gpH.apply(this,arguments);
+  try{if(r>0&&o==='player')rumble(Math.min(600,200+80*r),Math.min(1,.6+.1*r));
+      if(r>0&&o==='cpu')rumble(90,.3);}catch(e){}return r;};}catch(e){}
+// Combate: atacas (golpe corto) · te atacan (más fuerte) · si cae uno de tus personajes, un segundo golpe
+try{const _bt=battle;battle=async function(o,as,ds){
+  const antes=G?G.player.pj.filter(Boolean).length:0;
+  try{if(o==='player')rumble(90,.4);else rumbleSeq([[0,140,.55],[200,160,.75]]);}catch(e){}
+  const r=await _bt.apply(this,arguments);
+  try{if(G&&G.player.pj.filter(Boolean).length<antes){rumble(220,.85);vibraCel(80);}
+      else if(o==='player'&&G&&r)rumble(70,.3);}catch(e){}
+  return r;};}catch(e){}
+// Llamados especiales y Amalgamas (tuyos o del rival)
+try{const _pc=placeChar;placeChar=async function(o,cid,opt){const r=await _pc.apply(this,arguments);
+  try{if(opt&&(opt.via==='especial'||opt.desde==='bs')){
+    if(C[cid]&&C[cid].type==='amalgama') rumbleSeq([[0,110,.6],[170,140,.8],[360,300,1]]);
+    else rumble(o==='player'?120:90,o==='player'?.5:.35);}}catch(e){}
+  return r;};}catch(e){}
+// Efectos que destruyen tus personajes
+try{const _md=marcaDestruida;marcaDestruida=function(o,cid,how){try{if(o==='player'&&G&&!G.over)rumble(160,.7);}catch(e){}return _md.apply(this,arguments);};}catch(e){}
+// Fin del Choque
+try{const _eg=endGame;endGame=function(won){const ya=!G||G.over;const r=_eg.apply(this,arguments);
+  try{if(ya){}else if(won){rumbleSeq([[0,120,.6],[200,120,.8],[400,400,1]]);vibraCel([80,60,80,60,200]);}
+      else{rumbleSeq([[0,700,1]]);vibraCel(500);}}catch(e){}
+  return r;};}catch(e){}
 </script>
 <script src="gamepad.js"></script>
 <script>

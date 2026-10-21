@@ -316,15 +316,21 @@
     if (horiz) s.scrollBy({ left: dir * 160, behavior: 'smooth' }); else s.scrollBy({ top: dir * 120, behavior: 'smooth' });
   }
   function vibrar(ms, f) {
+    // Vibra en todos los controles conectados que lo soporten (no solo el primero de la lista)
     try {
-      const g = [...navigator.getGamepads()].find(Boolean);
-      const v = g && g.vibrationActuator;
-      if (v && v.playEffect) {
-        v.playEffect('dual-rumble', { duration: ms || 120, strongMagnitude: f || .6, weakMagnitude: f || .6 }).catch(() => {});
-        // Seguro: apaga el motor al terminar (algunos controles se quedan vibrando si la página cambia)
-        clearTimeout(vibrar._t); vibrar._t = setTimeout(parar, (ms || 120) + 80);
-      }
-    } catch (e) {}
+      const pads = [...(navigator.getGamepads ? navigator.getGamepads() : [])].filter(g => g && g.vibrationActuator);
+      if (!pads.length) return false;
+      const d = Math.max(20, ms || 120), m = Math.max(.15, Math.min(1, f || .6));
+      pads.forEach(g => {
+        const v = g.vibrationActuator;
+        if (v.playEffect) v.playEffect(v.effects && !v.effects.includes('dual-rumble') && v.effects.includes('trigger-rumble') ? 'trigger-rumble' : 'dual-rumble',
+          { startDelay: 0, duration: d, strongMagnitude: m, weakMagnitude: Math.min(1, m + .1) }).catch(() => {});
+        else if (v.pulse) v.pulse(m, d).catch(() => {});   // navegadores con la API anterior
+      });
+      // Seguro: apaga el motor al terminar (algunos controles se quedan vibrando si la página cambia)
+      clearTimeout(vibrar._t); vibrar._t = setTimeout(parar, d + 150);
+      return true;
+    } catch (e) { return false; }
   }
   // Detiene la vibración de todos los controles
   function parar() {

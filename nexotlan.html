@@ -577,8 +577,14 @@ const DIR = 'assets/nexotlan/';
 const KEY = 'chh_nexotlan';
 const EDITOR = new URLSearchParams(location.search).get('editor') === '1';
 const MW = 1600, MH = 1000;                 // espacio del mapa (proporción 16:10)
-const NIVELES = ['facil', 'medio', 'dificil', 'muy_dificil'];
-const NIV_TXT = { facil: 'Fácil', medio: 'Medio', dificil: 'Difícil', muy_dificil: 'Muy difícil' };
+const NIVELES = ['facil', 'medio', 'dificil', 'muy_dificil', 'legendario', 'epico', 'caotico'];
+const NIV_TXT = { facil: 'Fácil', medio: 'Medio', dificil: 'Difícil', muy_dificil: 'Muy difícil', legendario: '⭐ Legendario', epico: '☠ Épico', caotico: '🌀 Caótico' };
+// Dificultades del Arcade: "legendario" es la de la Ruta Legendaria (Muy difícil del Simulador)
+const NIV_SIM = { legendario: 'muy_dificil' };
+// Escala automática por distrito (con 9 distritos): los rivales suben poco a poco y desde el 3.er distrito entran las
+// dificultades del Arcade; los guardianes siempre son Legendarios, Épicos o Caóticos.
+const AUTO_RIVAL = ['facil', 'medio', 'dificil', 'muy_dificil', 'muy_dificil', 'epico', 'epico', 'caotico', 'caotico'];
+const AUTO_GUARD = ['legendario', 'legendario', 'legendario', 'epico', 'epico', 'epico', 'caotico', 'caotico', 'caotico'];
 
 let CFG = {}, DIST = [], PTS = [], RAW = [];
 let DATA = { cartas: [], barajas: [] }, CARD = {}, GALI = {};
@@ -842,9 +848,8 @@ function nivelDe(p) {
   const v = String(p.dificultad || 'auto').toLowerCase();
   if (NIVELES.includes(v)) return v;
   const d = distDe(p), i = d ? d._i : 0;
-  // La dificultad sube a lo largo de todos los distritos (con 7: 2 fáciles, 2 medios, 2 difíciles, 1 muy difícil); el guardián, un nivel arriba
-  const base = Math.min(3, Math.floor(i * 4 / Math.max(1, DIST.length)));
-  return NIVELES[Math.min(3, base + (p.tipo === 'guardian' ? 1 : 0))];
+  const k = DIST.length > 1 ? Math.min(8, Math.round(i * 8 / (DIST.length - 1))) : 0;
+  return (p.tipo === 'guardian' ? AUTO_GUARD : AUTO_RIVAL)[k];
 }
 function progresoDistrito(d) {
   const pr = PTS.filter(p => p.distrito === d.id && (p.tipo === 'rival' || p.tipo === 'guardian'));
@@ -1115,7 +1120,7 @@ async function iniciarChoque(p0, fase) {
   asegurarColeccion(); let jug = S.baraja;
   if (S.mazo && !validarMazo(S.mazo).ok) toast('⚠ Tu baraja no está lista: juegas con la básica. Revísala en 🃏 BARAJA');
   if (S.mazo && validarMazo(S.mazo).ok) { try { localStorage.setItem('chh_nexotlan_baraja', JSON.stringify({ nombre: S.mazo.nombre || S.barajaNombre, bp: S.mazo.bp, ba: S.mazo.ba, bs: S.mazo.bs || [] })); jug = 'nx_mia'; } catch (e) {} }
-  const m = { id, slot: 0, ronda: 1, total: 1, jefe: p.tipo === 'guardian', jefeTxt: fase === 2 ? (p0.fase2_etiqueta || 'TRANSFORMACIÓN') : 'GUARDIÁN', jugador: jug, cpu: p.baraja, nivel: nivelDe(p),
+  const m = { id, slot: 0, ronda: 1, total: 1, jefe: p.tipo === 'guardian', jefeTxt: fase === 2 ? (p0.fase2_etiqueta || 'TRANSFORMACIÓN') : 'GUARDIÁN', jugador: jug, cpu: p.baraja, nivel: NIV_SIM[nivelDe(p)] || nivelDe(p),
     corazonesExtra: parseInt(p.corazones, 10) || 0, avatar: avatarPerfil() ? new URL(avatarPerfil(), location.href).href : '', nombre: p.nombre,
     retrato: ret ? new URL(ret.src, location.href).href : '', musica: p.musica ? new URL(p.musica, location.href).href : '',
     volver: 'nexotlan.html', volverTxt: 'NEXOTLAN', etiqueta: '🗺 NEXOTLAN · ' + (d ? d.nombre : '') + (fase === 2 ? ' · 2ª FASE' : '') };

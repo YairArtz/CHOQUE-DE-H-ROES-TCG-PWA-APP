@@ -24577,7 +24577,7 @@
    "galeriaId": "050_R7",
    "nombre": "Merequetengue",
    "tipo": "apoyo",
-   "texto": "Añade a tu mano una carta con \"Ninjiachi\" desde tu BP, revuelve tu BP. Si está en tu Mictlán: confínala y llama de forma especial a 2 \"Ninjiachi\" de diferente nombre desde tu BP a zonas vacías de tu lado (Apoyo, Sector o Arena). (La segunda parte aún no está programada.)",
+   "texto": "Añade a tu mano una carta con \"Ninjiachi\" desde tu BP, revuelve tu BP. Si está en tu Mictlán: confínala y llama de forma especial a 2 \"Ninjiachi\" de diferente nombre desde tu BP a zonas vacías de tu lado (Apoyo, Sector o Arena).",
    "efectos": [
     {
      "cuando": "activar",
@@ -24601,7 +24601,28 @@
     },
     {
      "cuando": "mictlan",
-     "pendiente": true
+     "limite": "turno",
+     "texto": "Confinarla y llamar 2 Ninjiachi de diferente nombre a zonas vacías de tu lado",
+     "condicion": {
+      "zonaOtraLibre": true,
+      "hay": {
+       "origen": "bp",
+       "filtro": {
+        "tipo": "pj",
+        "nombreIncluye": "NINJIACHI"
+       }
+      }
+     },
+     "pasos": [
+      {
+       "accion": "confinar_esta"
+      },
+      {
+       "accion": "ninjiachi_zona",
+       "cantidad": 2,
+       "distintos": true
+      }
+     ]
     }
    ],
    "rareza": "comun"
@@ -24663,11 +24684,11 @@
    "usarAmpliada": true,
    "nombre": "Templo Celestia",
    "tipo": "arena",
-   "texto": "Mientras esté en tu lado del campo, esta carta es tratada como personaje y su control no puede cambiar (Corazón 1 / Fuerza 0 / Resistencia 10) y gana FORTALEZA: no puede atacar. (Aún no se trata como personaje en la simulación.)",
+   "texto": "Mientras esté en tu lado del campo, esta carta es tratada como personaje y su control no puede cambiar (Corazón 1 / Fuerza 0 / Resistencia 10) y gana FORTALEZA: no puede atacar.",
    "efectos": [
     {
      "cuando": "pasivo",
-     "pendiente": true
+     "accion": "templo_personaje"
     }
    ],
    "rareza": "comun"
@@ -24682,13 +24703,8 @@
    "cor": 1,
    "fue": 2,
    "res": 3,
-   "texto": "Si está en una zona SECTOR: sigue siendo personaje, puede atacar a los personajes de tu adversario y no defiende tus corazones; todos tus personajes ganan un corazón extra al ser llamados. (Su habilidad de jugar en otras zonas aún no está programada.)",
-   "efectos": [
-    {
-     "cuando": "pasivo",
-     "pendiente": true
-    }
-   ],
+   "texto": "Si está en una zona SECTOR: sigue siendo personaje, puede atacar a los personajes de tu adversario y no defiende tus corazones; todos tus personajes ganan un corazón extra al ser llamados.",
+   "efectos": [],
    "rareza": "comun"
   },
   {
@@ -24701,11 +24717,29 @@
    "cor": 1,
    "fue": 3,
    "res": 2,
-   "texto": "Cuando es llamado de forma normal: puedes llamar un \"Ninjiachi\" desde tu BP a una zona vacía de tu lado (Apoyo, Sector o Arena). (Su habilidad de jugar en otras zonas aún no está programada.)",
+   "texto": "Cuando es llamado de forma normal: puedes llamar un \"Ninjiachi\" desde tu BP a una zona vacía de tu lado (Apoyo, Sector o Arena).",
    "efectos": [
     {
      "cuando": "al_llamar",
-     "pendiente": true
+     "opcional": true,
+     "texto": "Llamar un Ninjiachi de tu BP a una zona vacía (Apoyo, Sector o Arena)",
+     "condicion": {
+      "via": "normal",
+      "zonaOtraLibre": true,
+      "hay": {
+       "origen": "bp",
+       "filtro": {
+        "tipo": "pj",
+        "nombreIncluye": "NINJIACHI"
+       }
+      }
+     },
+     "pasos": [
+      {
+       "accion": "ninjiachi_zona",
+       "cantidad": 1
+      }
+     ]
     }
    ],
    "rareza": "comun"
@@ -24720,13 +24754,8 @@
    "cor": 1,
    "fue": 3,
    "res": 4,
-   "texto": "Si está en una zona APOYO: sigue siendo personaje, puede atacar y no defiende tus corazones; todos tus personajes ganan +1 de resistencia. (Su habilidad de jugar en otras zonas aún no está programada.)",
-   "efectos": [
-    {
-     "cuando": "pasivo",
-     "pendiente": true
-    }
-   ],
+   "texto": "Si está en una zona APOYO: sigue siendo personaje, puede atacar y no defiende tus corazones; todos tus personajes ganan +1 de resistencia.",
+   "efectos": [],
    "rareza": "comun"
   },
   {
@@ -24739,13 +24768,8 @@
    "cor": 1,
    "fue": 4,
    "res": 3,
-   "texto": "Si está en una zona APOYO: sigue siendo personaje, puede atacar y no defiende tus corazones; todos tus personajes ganan +1 de fuerza. (Su habilidad de jugar en otras zonas aún no está programada.)",
-   "efectos": [
-    {
-     "cuando": "pasivo",
-     "pendiente": true
-    }
-   ],
+   "texto": "Si está en una zona APOYO: sigue siendo personaje, puede atacar y no defiende tus corazones; todos tus personajes ganan +1 de fuerza.",
+   "efectos": [],
    "rareza": "comun"
   },
   {
@@ -24754,7 +24778,7 @@
    "nombre": "Alma de Campeón X",
    "tipo": "alma",
    "valor": 1,
-   "texto": "Cuando es activada: revela la carta del tope de tu BA, confínala y suma su valor a esta carta. Mientras esté en una zona APOYO se considera personaje (Impacto 1 / Corazón 1 / Fuerza 10 / Resistencia 7) con BRUTALIDAD y su control no puede cambiar. (La parte de personaje aún no está programada.)",
+   "texto": "Cuando es activada: revela la carta del tope de tu BA, confínala y suma su valor a esta carta. Mientras esté en una zona APOYO se considera personaje (Impacto 1 / Corazón 1 / Fuerza 10 / Resistencia 7) con BRUTALIDAD y su control no puede cambiar.",
    "efectos": [
     {
      "cuando": "alma",

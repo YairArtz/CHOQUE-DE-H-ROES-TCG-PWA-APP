@@ -1280,7 +1280,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v78';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v79';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -5918,7 +5918,9 @@ function spFind(o,cid){
   const sp=C[cid].esp;
   if(!sp) return null;
   const ord={mano:0,mictlan:1,campo:2};
-  const cs=spCandidates(o,sp).sort((a,b)=>ord[a.src]-ord[b.src]||SCORE(a.cid)-SCORE(b.cid));
+  // v79 · la CPU usa como material lo que menos le sirve (no gasta sus mejores cartas de la mano)
+  const peso=x=>SCORE(x.cid)*({mano:.7,mictlan:.3,campo:1}[x.src]||1)+(x.src==='campo'?12:0);
+  const cs=spCandidates(o,sp).sort(o==='cpu'?(a,b)=>peso(a)-peso(b):(a,b)=>ord[a.src]-ord[b.src]||SCORE(a.cid)-SCORE(b.cid));
   const total=spTotal(sp), pick=[];
   let tries=0;
   const go=start=>{
@@ -7478,6 +7480,7 @@ function cpuQuiereMano(cid,e){
     if(['conf_mictlan','retirar_cen','equipo_mictlan_mano','confinar_filtro','equipo_a_mictlan','conf_a_bp'].includes(st.costo)) return true;
     if(st.costo==='descartar') return G.cpu.hand.length>=3;
     if(st.costo==='sacrificar') return true;
+    if(st.costo==='alebrije') return G.player.pj.some(Boolean)&&G.cpu.pj.filter(p=>p&&C[p.id].invitado).sort((a,b)=>SCORE(a.id)-SCORE(b.id)).slice(0,2).reduce((t,p)=>t+SCORE(p.id),0)<SCORE(cid)+30;
     return sectorArenaTargets().some(t=>t.own==='player'&&t.z===(st.costo==='retornar_sector'?'sector':'arena'));
   }
   if(acc.has('llamar_especial')&&acc.has('confinar_esta')) return freePJ('cpu')!==-1;  // Vulcar Caballero desde el Mictlán
@@ -7562,7 +7565,7 @@ async function cpuTurn(){
     const sel=spFind('cpu',cid);
     if(!sel||cpuFalla(.6)||!llamadoOk('cpu',cid)) continue;
     // No sacrifica personajes del campo que valen más que la Amalgama
-    if(sel.filter(x=>x.src==='campo').reduce((t,x)=>t+SCORE(x.cid),0)>SCORE(cid)) continue;
+    if(sel.reduce((t,x)=>t+(x.src==='campo'?SCORE(x.cid):x.src==='mano'?SCORE(x.cid)*.6:0),0)>SCORE(cid)*(cid==='tx_chaman'&&G.player.pj.some(Boolean)?2:1)) continue;
     const side=['right','left'].find(sd=>freeIn('cpu',sd,freedBy(sel))!==undefined);
     if(side){if(!await step(500)) return;await doSpecialCall('cpu',cid,sel,side);}
   }
@@ -7607,7 +7610,7 @@ async function cpuTurn(){
     if(!alive()) return;
     const at=almaT('cpu');
     // Oxkotetl se guarda para revelarlo (salvo que el rival no tenga personajes)
-    const best=P.hand.map((c,i)=>({c,i})).filter(x=>C[x.c].type==='pj'&&C[x.c].cost<=almaT('cpu',x.c)&&llamadoOk('cpu',x.c)&&!puedeNormal('cpu',x.c)&&!hasPassive(x.c,'tortura')&&!(x.c==='oxkotetl'&&G.player.pj.some(Boolean))).sort((a,b)=>C[b.c].cost-C[a.c].cost)[0];
+    const best=P.hand.map((c,i)=>({c,i})).filter(x=>C[x.c].type==='pj'&&!hasPassive(x.c,'chanheko_mano')&&C[x.c].cost<=almaT('cpu',x.c)&&llamadoOk('cpu',x.c)&&!puedeNormal('cpu',x.c)&&!hasPassive(x.c,'tortura')&&!(x.c==='oxkotetl'&&G.player.pj.some(Boolean))).sort((a,b)=>C[b.c].cost-C[a.c].cost)[0];
     if(!best||freePJ('cpu')===-1) break;
     if(!await step(550)) return;
     await callFromHand('cpu',best.c,{via:'normal'});

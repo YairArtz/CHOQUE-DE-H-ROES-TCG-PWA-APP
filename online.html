@@ -212,6 +212,9 @@ html,body{
 .ap-opt.on{border-color:var(--gold2);box-shadow:0 0 12px rgba(245,166,35,.4)}
 .ap-opt:disabled{opacity:.35;cursor:not-allowed}
 .ap-note{font-size:10px;color:var(--muted);margin-top:8px;line-height:1.4}
+.aj-r{width:100%;accent-color:var(--gold2);height:22px;cursor:pointer}
+.aj-v{float:right;color:var(--gold2);font-family:'Orbitron',sans-serif}
+.sr-top .tpill{min-width:0}
 .ap-note code{color:#7fe9ff}
 /* Fondos de mesa (detrás del tablero) */
 html[data-mesa="nexo"],html[data-mesa="nexo"] body{background:#03050a}
@@ -1085,7 +1088,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
   <div class="boot-fx"></div>
   <div class="boot-top">
     <a class="boot-pill" href="index.html" id="bootHome" title="Volver al menú principal">← MENÚ</a>
-    <button class="boot-pill cfg" id="bootCfg" type="button" title="Fondo de mesa">🎨 APARIENCIA</button>
+    <button class="boot-pill cfg" id="bootCfg" type="button" title="Volumen, velocidad y apariencia">⚙ AJUSTES</button>
   </div>
   <div class="boot-card">
   <span class="hbk tl"></span><span class="hbk tr"></span><span class="hbk bl"></span><span class="hbk br"></span>
@@ -1165,6 +1168,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
   <aside class="panel side-r">
     <div class="sr-top">
       <div class="tpill p" id="tpill">T1 TÚ</div>
+      <button class="ibtn" id="btnAjustes" onclick="ajAbrir()" title="Ajustes: volumen, velocidad y más">⚙</button>
       <button class="ibtn" id="btnMusic" onclick="mpPanel()" title="Soundtrack">🎵</button>
       <button class="ibtn" id="btnMute" onclick="toggleMute()" title="Efectos de sonido">🔊</button>
       <button class="ibtn" id="btnFlip" onclick="flipRot()" title="Voltear 180°">⟲</button>
@@ -1281,10 +1285,28 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v79';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v80';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
+// v80 · AJUSTES (⚙): volumen de música y efectos, velocidad de la CPU, vibración
+const AJ_DEF={mus:.8,sfx:.8,vel:'normal',vib:true};
+let AJ=Object.assign({},AJ_DEF);
+try{Object.assign(AJ,JSON.parse(localStorage.getItem('cdh_sim_ajustes')||'{}'));}catch(e){}
+function ajGuardar(){try{localStorage.setItem('cdh_sim_ajustes',JSON.stringify(AJ));}catch(e){}}
+const VEL_CPU={lenta:1.6,normal:1,rapida:.5};
+function velCPU(){return VEL_CPU[AJ.vel]||1;}
+// Los efectos sintetizados suenan más fuerte que la música: base más baja
+const SYNTH_BASE=.45;
+let _sfxBus=null;
+function sfxBus(){const ac=getAC();if(!_sfxBus){_sfxBus=ac.createGain();_sfxBus.connect(ac.destination);}_sfxBus.gain.value=SYNTH_BASE*AJ.sfx;return _sfxBus;}
+// Nivelado: cada archivo de efecto se ajusta a un mismo volumen percibido (RMS de su parte audible)
+const SFX_OBJ=-21;
+function sfxNivel(b){try{const d=b.getChannelData(0),fr=512,rs=[];let mx=0;
+  for(let i=0;i+fr<=d.length;i+=fr){let t=0;for(let j=i;j<i+fr;j++)t+=d[j]*d[j];const r=Math.sqrt(t/fr);rs.push(r);if(r>mx)mx=r;}
+  if(!mx) return 1; const umbral=mx*Math.pow(10,-30/20), act=rs.filter(r=>r>=umbral);
+  const rms=Math.sqrt(act.reduce((t,r)=>t+r*r,0)/act.length), db=20*Math.log10(rms);
+  return Math.max(.12,Math.min(1.6,Math.pow(10,(SFX_OBJ-db)/20)));}catch(e){return 1;}}
 
 // ════════════════════════════════════
 // AUDIO ÉPICO — síntesis avanzada
@@ -1327,7 +1349,7 @@ async function sfxCargar(){
   await Promise.all(SFX.evts.map(async ev=>{
     const L=[].concat(mapa[ev]||(ev+'.mp3')).filter(Boolean).map(f=>/[\/]/.test(f)?f:SFX_DIR+f);
     const bufs=[];
-    for(const u of L){const b=await CHH_MEDIOS.bytes(u);if(!b)continue;const d=await dec(b);if(d)bufs.push(d);}
+    for(const u of L){const b=await CHH_MEDIOS.bytes(u);if(!b)continue;const d=await dec(b);if(d){d._g=sfxNivel(d);bufs.push(d);}}
     if(bufs.length){SFX.buf[ev]=bufs;SFX.encontrados++;}
   }));
   try{ac.close&&ac.close();}catch(e){}
@@ -1337,17 +1359,17 @@ function sfxPlay(type){
   if(sfxModo()!=='custom') return false;
   const L=SFX.buf[type]; if(!L||!L.length) return false;
   try{const ac=getAC(),src=ac.createBufferSource(),g=ac.createGain();
-    src.buffer=L[Math.floor(Math.random()*L.length)];g.gain.value=SFX.vol;src.connect(g);g.connect(ac.destination);src.start();return true;}
+    src.buffer=L[Math.floor(Math.random()*L.length)];g.gain.value=SFX.vol*(src.buffer._g||1)*AJ.sfx;src.connect(g);g.connect(ac.destination);src.start();return true;}
   catch(e){return false;}
 }
 function playSound(type){
-  if(MUTED) return;
+  if(MUTED||!(AJ.sfx>0)) return;
   if(sfxPlay(type)) return;
   try{
     const ac=getAC();
     const rev=getRev();
     const now=ac.currentTime;
-    const dest=ac.destination;
+    const dest=sfxBus();
 
     if(type==='combat'){
       // Golpe épico: impacto grave + armónico
@@ -1494,7 +1516,7 @@ function faseBanner(o,fase){
 function toggleMute(){
   MUTED=!MUTED;
   try{localStorage.setItem('cdh_sim_mute',MUTED?'1':'0');}catch(e){}
-  document.getElementById('btnMute').textContent=MUTED?'🔇':'🔊';
+  document.getElementById('btnMute').textContent=(MUTED||!(AJ.sfx>0))?'🔇':'🔊';
 }
 
 // ════════════════════════════════════
@@ -5542,6 +5564,7 @@ function hurt(o,n,why){
     return 0;}
   if(why!=='costo'&&protegeCorazones(o)){lg('🌀 <b>'+C[G[o].arena].name+'</b>: los corazones de '+(o==='player'?'tu lado':'la CPU')+' no pueden disminuir.','var(--green)');return 0;}
   G[o].hp=Math.max(0,G[o].hp-n);
+  if(o==='player'&&AJ.vib&&navigator.vibrate){try{navigator.vibrate(n>1?[70,50,70]:60);}catch(e){}}
   return n;
 }
 
@@ -7515,7 +7538,7 @@ function cpuDescartaExceso(){
   playSound('card'); renderAll();
 }
 async function cpuTurn(){
-  const g=GEN, alive=()=>g===GEN&&G&&!G.over, W=ms=>new Promise(r=>setTimeout(r,ms));
+  const g=GEN, alive=()=>g===GEN&&G&&!G.over, W=ms=>new Promise(r=>setTimeout(r,ms*velCPU()));
   const step=async ms=>{await W(ms);return alive();};
   const P=G.cpu;
   if(!await step(500)) return;
@@ -7843,7 +7866,23 @@ function restartGame(){initGame();}
 // ════════════════════════════════════
 const MP={carpeta:'musica_choque/',pistas:[],tracks:[],idx:-1,on:false,loop:true,blob:null,req:0};
 const mpAudio=new Audio();
-mpAudio.volume=.5;
+// v80 · Nivelado de música: volumen integrado (LUFS) medido de cada pista → todas suenan a -17 LUFS
+const MUS_LUFS={'musica_choque/pista_1.mp3':-13.7,'musica_choque/pista_2.mp3':-13.0,'musica_choque/pista_3.mp3':-13.2,'musica_choque/pista_4.mp3':-9.5,
+  'musica_choque/pista_5.mp3':-12.7,'musica_choque/pista_6.mp3':-12.5,'musica_choque/pista_7.mp3':-12.9,'musica_choque/pista_8.mp3':-13.1,
+  'musica_choque/pista_9.mp3':-14.1,'musica_choque/pista_10.mp3':-12.5,'musica_choque/pista_11.mp3':-14.1,'musica_choque/pista_12.mp3':-12.6,
+  'musica_choque/pista_13.mp3':-14.4,'musica_choque/pista_14.mp3':-12.9,'musica_choque/pista_15.mp3':-12.1,
+  'musica/legendaria.mp3':-14.0,'musica/titulo.mp3':-11.2,'audio/Koatl_Campeon.mp3':-13.1,'audio/bgm.mp3':-13.1,'audio/mercado.mp3':-14.1,
+  'musica/archivos.mp3':-13.9,'musica/citadela.mp3':-16.5,'musica/coliseo.mp3':-15.0,'musica/elite.mp3':-14.2,'musica/fortaleza.mp3':-16.4,
+  'musica/guardian.mp3':-12.2,'musica/koatl.mp3':-13.6,'musica/mercado.mp3':-13.0,'musica/piramide.mp3':-16.0,'musica/piramide_2.mp3':-16.9,
+  'musica/puerta.mp3':-12.0,'musica/santuario.mp3':-13.9,'musica/torre.mp3':-15.1,'musica/vellond_transf.mp3':-15.4,'intro/tema_intro.mp3':-14.1};
+const MUS_OBJ=-17;
+function musGanancia(u){
+  const k=decodeURIComponent(String(u||'')).split(/[?#]/)[0].split('/').slice(-2).join('/');
+  const L=MUS_LUFS[k];
+  return L==null?.7:Math.min(1,Math.pow(10,(MUS_OBJ-L)/20));   // pistas nuevas: un nivel medio
+}
+function mpVol(){try{mpAudio.volume=Math.max(0,Math.min(1,AJ.mus*musGanancia(MP.cur)));}catch(e){}}
+mpAudio.addEventListener('play',mpVol);
 try{const st=JSON.parse(localStorage.getItem('cdh_sim_mp')||'{}');if(st.loop===false)MP.loop=false;}catch(e){}
 function mpSave(extra){
   try{const st=JSON.parse(localStorage.getItem('cdh_sim_mp')||'{}');
@@ -7898,7 +7937,8 @@ function mpSelect(i){
   MP.idx=i;
   const req=++MP.req;
   const url=new URL(MP.carpeta+t.file,location.href).href;
-  const suena=src=>{if(req!==MP.req)return;mpAudio.src=src;mpAudio.loop=MP.loop;
+  MP.cur=url;
+  const suena=src=>{if(req!==MP.req)return;mpAudio.src=src;mpAudio.loop=MP.loop;mpVol();
     mpAudio.play().then(()=>{MP.on=true;mpUI();}).catch(()=>{MP.on=false;mpUI();});};
   if(window.CHH_MEDIOS){CHH_MEDIOS.blobUrl(url).then(b=>suena(b||url));document.getElementById('mpName').textContent=t.title;mpSave({id:t.id,auto:true});mpRender();return;}
   suena(url);
@@ -8040,6 +8080,36 @@ function apAplicarMesa(id){
   const bg=document.querySelector('.aztec-bg');
   if(bg) bg.style.backgroundImage=id==='imagen'?'linear-gradient(rgba(5,4,8,.55),rgba(5,4,8,.55)),url("'+AP.mesaImg+'")':'';
 }
+function ajAbrir(){
+  const box=document.getElementById('dsListBox');
+  const pct=v=>Math.round(v*100)+'%';
+  const chips=(id,ops,act)=>'<div class="ds-chips" id="'+id+'">'+ops.map(([v,t])=>'<button class="ds-chip'+(act===v?' on':'')+'" data-v="'+v+'">'+t+'</button>').join('')+'</div>';
+  box.innerHTML='<button class="ds-close" onclick="document.getElementById(\'dsList\').classList.remove(\'show\')">✕</button>'+
+    '<h3>⚙ AJUSTES</h3>'+
+    '<h4>🎵 MÚSICA <span class="aj-v" id="ajMusV">'+pct(AJ.mus)+'</span></h4><input type="range" class="aj-r" id="ajMus" min="0" max="1" step="0.05" value="'+AJ.mus+'">'+
+    '<h4>🔊 EFECTOS DE SONIDO <span class="aj-v" id="ajSfxV">'+(MUTED?'silencio':pct(AJ.sfx))+'</span></h4><input type="range" class="aj-r" id="ajSfx" min="0" max="1" step="0.05" value="'+(MUTED?0:AJ.sfx)+'">'+
+    '<div class="ap-note">Las pistas y los efectos ya vienen nivelados para que ninguno suene más fuerte que otro.</div>'+
+    '<h4>⏱ VELOCIDAD DEL RIVAL (CPU)</h4>'+chips('ajVel',[['lenta','🐢 Lenta'],['normal','▶ Normal'],['rapida','⏩ Rápida']],AJ.vel)+
+    '<h4>📣 AVISOS DE FASE</h4>'+chips('ajFases',[['todos','📣 Todos'],['propios','🙋 Solo mis fases'],['off','🔕 Apagados']],avisosFase())+
+    '<h4>✨ EFECTOS VISUALES</h4>'+chips('ajFx',[['on','✨ Completos'],['off','🔋 Reducidos']],fxModo())+
+    ('vibrate' in navigator?'<h4>📳 VIBRACIÓN</h4>'+chips('ajVib',[['1','📳 Al perder corazones'],['0','✖ Apagada']],AJ.vib?'1':'0'):'')+
+    '<div class="ds-chips" style="margin-top:14px"><button class="ds-chip" id="ajAp">🎨 Apariencia de la mesa…</button><button class="ds-chip" id="ajReset">↺ Valores por defecto</button></div>';
+  const $=id=>document.getElementById(id);
+  $('ajMus').oninput=e=>{AJ.mus=+e.target.value;$('ajMusV').textContent=pct(AJ.mus);mpVol();ajGuardar();};
+  let prueba=0;
+  $('ajSfx').oninput=e=>{AJ.sfx=+e.target.value;if(MUTED&&AJ.sfx>0){MUTED=false;try{localStorage.setItem('cdh_sim_mute','0');}catch(x){}}
+    $('ajSfxV').textContent=pct(AJ.sfx);ajGuardar();const b=$('btnMute');if(b)b.textContent=(MUTED||!AJ.sfx)?'🔇':'🔊';
+    clearTimeout(prueba);prueba=setTimeout(()=>playSound('card'),150);};
+  const grupo=(id,fn)=>box.querySelectorAll('#'+id+' .ds-chip').forEach(b=>b.onclick=()=>{fn(b.dataset.v);box.querySelectorAll('#'+id+' .ds-chip').forEach(x=>x.classList.toggle('on',x===b));});
+  grupo('ajVel',v=>{AJ.vel=v;ajGuardar();});
+  grupo('ajFases',v=>{try{localStorage.setItem('cdh_sim_fases',v);}catch(e){}});
+  grupo('ajFx',v=>{try{localStorage.setItem('cdh_sim_fx',v);}catch(e){}fxAplicar();});
+  if($('ajVib')) grupo('ajVib',v=>{AJ.vib=v==='1';ajGuardar();if(AJ.vib&&navigator.vibrate)try{navigator.vibrate(60);}catch(e){}});
+  $('ajAp').onclick=apAbrir;
+  $('ajReset').onclick=()=>{AJ=Object.assign({},AJ_DEF);ajGuardar();MUTED=false;try{localStorage.setItem('cdh_sim_mute','0');localStorage.setItem('cdh_sim_fases','todos');localStorage.setItem('cdh_sim_fx','on');}catch(e){}
+    fxAplicar();mpVol();const b=$('btnMute');if(b)b.textContent='🔊';ajAbrir();};
+  document.getElementById('dsList').classList.add('show');
+}
 function apAbrir(){
   const act=apMesaGuardada();
   const box=document.getElementById('dsListBox');
@@ -8168,7 +8238,7 @@ function apVS(){
 {const _rds=renderDeckSelect;renderDeckSelect=function(){_rds.apply(this,arguments);try{apVS();}catch(e){}};}
 (async function apInit(){
   apAplicarMesa(apMesaGuardada());
-  document.getElementById('bootCfg').onclick=apAbrir;
+  document.getElementById('bootCfg').onclick=ajAbrir;
   apBrasas();
   const [fondo,logo,mesa]=await Promise.all([apProbar(AP_FILES.fondo.map(f=>AP_DIR+f)),apProbar(AP_FILES.logo.map(f=>AP_DIR+f)),apProbar(AP_FILES.mesa.map(f=>AP_DIR+f))]);
   let fzI=null;try{fzI=ARCADE&&ARCADE.fondoInicio;}catch(e){}       // v73 · un modo puede traer su propio fondo de inicio
@@ -8381,7 +8451,7 @@ function arcadePreparar(){
      const pod=[me?'+'+me+' carta(s) en su mano inicial':'',ae?ae+' alma(s) activas desde el inicio':'',ARCADE.roboExtra?'roba '+ARCADE.roboExtra+' carta(s) extra cada turno':''].filter(Boolean);
      if(pod.length) lg('☠ <b>PODER ÉPICO</b> · '+arcadeEsc(ARCADE.nombre)+': '+pod.join(' · ')+'.','#ff2244');}
     lg(ARCADE.etiqueta?arcadeEsc(ARCADE.etiqueta)+' · contra <b>'+arcadeEsc(ARCADE.nombre)+'</b>.':'🕹 <b>ARCADE</b> · Combate '+ARCADE.ronda+'/'+ARCADE.total+' contra <b>'+arcadeEsc(ARCADE.nombre)+'</b>.','var(--gold2)');
-    if(ARCADE.musica){try{const rq=++MP.req;const am=ARCADE.musica;
+    if(ARCADE.musica){try{const rq=++MP.req;const am=ARCADE.musica;MP.cur=am;
       (window.CHH_MEDIOS?CHH_MEDIOS.blobUrl(am):Promise.resolve(null)).then(b=>{if(rq!==MP.req)return;mpAudio.src=b||am;mpAudio.loop=true;
       mpAudio.play().then(()=>{MP.on=true;MP.idx=-1;document.getElementById('mpName').textContent='🕹 Tema de '+ARCADE.nombre;mpUI();}).catch(()=>{});});}catch(e){}}
     renderAll();

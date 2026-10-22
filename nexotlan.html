@@ -1103,9 +1103,10 @@ async function fondosChoque(p, d) {
   const img = async f => { const u = await primeraImg(candidatos(f, 'simulador').concat(candidatos(f, 'paisajes').slice(0, 1))); return u ? abs(u) : ''; };
   const out = {};
   const mesa = val('fondo_mesa') || 'nexo', pm = val('playmat'), fi = val('fondo_inicio');
-  const [um, up, ufi, pai] = await Promise.all([/^[a-z]+$/.test(mesa) ? '' : img(mesa), pm ? img(pm) : '', fi ? img(fi) : '', paisajeUrl(p)]);
+  const [um, up, ufi, pai] = await Promise.all([/^[a-z]+$/.test(mesa) ? '' : img(mesa), pm && !/^(ninguno|no|off|sin|vacio|vacío)$/i.test(pm) ? img(pm) : '', fi ? img(fi) : '', paisajeUrl(p)]);
   out.mesa = /^[a-z]+$/.test(mesa) ? mesa : (um || 'nexo');
-  if (up) out.playmat = up;
+  if (/^(ninguno|no|off|sin|vacio|vacío)$/i.test(pm)) out.playmat = 'ninguno';   // sin playmat: el tablero deja ver la mesa
+  else if (up) out.playmat = up;
   const u = ufi || (pai ? abs(pai) : '');   // por defecto: el paisaje del distrito
   if (u) out.fondoInicio = u;
   return out;

@@ -202,6 +202,8 @@ html,body{
 /* Panel de apariencia */
 .ap-opt.mica .ap-prev{height:auto;aspect-ratio:5/7;width:62%;margin:0 auto}
 .ap-opt.lock{opacity:.45;cursor:default}
+#board.sin-pm{background:rgba(6,8,14,.22)!important;background-image:none!important;border-color:rgba(255,255,255,.18)}
+#board.sin-pm .bc:not(.occ){background-color:rgba(0,0,0,.28)}
 #board.pm{background-image:var(--pm-img)!important;background-size:cover!important;background-position:center!important}
 .ap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-top:6px}
 .ap-opt{display:flex;flex-direction:column;gap:5px;padding:6px;border-radius:9px;cursor:pointer;text-align:left;
@@ -1334,7 +1336,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v89';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v90';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -8664,7 +8666,9 @@ const ARC_TXT=ARCADE&&ARCADE.volverTxt?String(ARCADE.volverTxt).slice(0,24):'ARC
 function arcFondosForzados(){
   if(!ARCADE) return;
   try{
-    if(ARCADE.playmat){const b=document.getElementById('board');
+    if(ARCADE.playmat==='ninguno'){const b=document.getElementById('board');   // v90 · sin playmat: se ve la mesa a través del tablero
+      if(b){b.classList.remove('pm');b.classList.add('sin-pm');}}
+    else if(ARCADE.playmat){const b=document.getElementById('board');
       if(b){b.classList.add('pm');b.style.setProperty('--pm-img','linear-gradient(rgba(4,8,3,.25),rgba(4,8,3,.25)),url("'+String(ARCADE.playmat).replace(/"/g,'%22')+'")');}}
     if(ARCADE.mesa){const m=String(ARCADE.mesa),bg=document.querySelector('.aztec-bg');
       const catM=MESAS.find(x=>x.id==='cat_'+m&&x.foto);

@@ -1333,7 +1333,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v88';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v89';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -8303,11 +8303,16 @@ const MESAS=[
 MESAS.unshift({id:'auto',nom:'Según tu baraja',desc:'Cambia con el tema de la baraja que juegas',prev:"conic-gradient(#d4870a 0 25%,#00c48a 0 50%,#00cfff 0 75%,#ff5a1f 0)"});
 const MESA_BARAJA={metalurgicos:'metal',caballero_cristal:'cristal',mictlan:'mictlan',evolotl:'jade',legion_mar:'mar',
   ornamentum_khalet:'obsidiana',nexotlan:'nexo',herederos:'fuego',hell_riders:'fuego',dioses:'grecas'};
-function mesaDeBaraja(){const id=(typeof DK!=='undefined'&&DK&&DK.jugador&&DK.jugador.id)||(typeof DSEL!=='undefined'&&DSEL.jugador)||'';return MESA_BARAJA[id]||'grecas';}
+function mesaDeBaraja(){const id=(typeof DK!=='undefined'&&DK&&DK.jugador&&DK.jugador.id)||(typeof DSEL!=='undefined'&&DSEL.jugador)||'';const m=MESA_BARAJA[id];return m&&MESAS.some(x=>x.id===m)?m:'grecas';}
 function apMesaGuardada(){try{return localStorage.getItem('cdh_sim_mesa')||'auto';}catch(e){return 'auto';}}
 function apAplicarMesa(id){
   if(id==='auto') id=mesaDeBaraja();
   if(id==='imagen'&&!AP.mesaImg) id='grecas';
+  // v89 · Mesa del catálogo (assets/simulacion/mesas/mesas.txt)
+  const cat=MESAS.find(x=>x.id===id&&x.foto);
+  if(String(id).startsWith('cat_')&&!cat){id='grecas';}
+  if(cat){document.documentElement.dataset.mesa='imagen';const bg0=document.querySelector('.aztec-bg');
+    if(bg0)bg0.style.backgroundImage='linear-gradient(rgba(5,4,8,.4),rgba(5,4,8,.4)),url("'+cat.foto.replace(/"/g,'%22')+'")';return;}
   document.documentElement.dataset.mesa=id;
   const bg=document.querySelector('.aztec-bg');
   if(bg) bg.style.backgroundImage=id==='imagen'?'linear-gradient(rgba(5,4,8,.55),rgba(5,4,8,.55)),url("'+AP.mesaImg+'")':'';
@@ -8359,7 +8364,7 @@ function apAbrir(){
     [['on','✨ Completos'],['off','🔋 Reducidos']].map(([v,t])=>'<button class="ds-chip'+(fxModo()===v?' on':'')+'" data-fx="'+v+'">'+t+'</button>').join('')+
     '</div><h4>AVISOS DE FASE</h4><div class="ds-chips" id="apFases">'+
     [['todos','📣 Todos'],['propios','🙋 Solo mis fases'],['off','🔕 Apagados']].map(([v,t])=>'<button class="ds-chip'+(avisosFase()===v?' on':'')+'" data-f="'+v+'">'+t+'</button>').join('')+
-    '</div><div class="ap-note">Personaliza desde el repositorio subiendo a <code>assets/simulacion/</code>: <code>inicio_fondo.jpg</code> (fondo de esta pantalla), <code>inicio_logo.png</code> (logo) y <code>mesa_fondo.jpg</code> (opción "Imagen"). Si no existen, se usan los de siempre.</div>';
+    '</div><div class="ap-note">Personaliza desde el repositorio subiendo a <code>assets/simulacion/</code>: <code>inicio_fondo.jpg</code> (fondo de esta pantalla), <code>inicio_logo.png</code> (logo) y <code>mesa_fondo.jpg</code> (opción "Imagen"). Si no existen, se usan los de siempre. Para más mesas: pon las imágenes en <code>assets/simulacion/mesas/</code> y anótalas en <code>mesas.txt</code>.</div>';
   box.querySelectorAll('#apFases .ds-chip').forEach(b=>b.onclick=()=>{try{localStorage.setItem('cdh_sim_fases',b.dataset.f);}catch(e){}
     box.querySelectorAll('#apFases .ds-chip').forEach(x=>x.classList.toggle('on',x===b));});
   box.querySelectorAll('#apFx .ds-chip').forEach(b=>b.onclick=()=>{try{localStorage.setItem('cdh_sim_fx',b.dataset.fx);}catch(e){}fxAplicar();
@@ -8488,7 +8493,27 @@ function apVS(){
   if(m3){AP.mesa3d=m3;if(!AP.mesaImg)AP.mesaImg=m3;apAplicarMesa(apMesaGuardada());}
   if(hz) document.documentElement.style.setProperty('--cielo','linear-gradient(rgba(0,0,0,.15),rgba(0,0,0,.55)),url("'+hz+'")');
   try{mesa3dSync();}catch(e){}
+  try{await mesasCatalogo();}catch(e){}
 })();
+// v89 · CATÁLOGO DE MESAS: assets/simulacion/mesas/mesas.txt
+//   id | Nombre | archivo | descripción | barajas que la usan con "Según tu baraja" (opcional, separadas por coma)
+async function mesasCatalogo(){
+  let txt='';
+  try{const r=await fetch(AP_DIR+'mesas/mesas.txt',{cache:'no-cache'});if(!r.ok)return;txt=await r.text();}catch(e){return;}
+  const nuevas=[];
+  txt.split(/\r?\n/).forEach(l=>{
+    l=l.trim(); if(!l||l.startsWith('#')) return;
+    const c=l.split('|').map(x=>x.trim()); if(c.length<3||!c[0]||!c[2]) return;
+    const id='cat_'+c[0].toLowerCase().replace(/[^a-z0-9_-]/g,'');
+    if(MESAS.some(x=>x.id===id)) return;
+    const foto=/^(https?:|\/|\.\/)/.test(c[2])?c[2]:AP_DIR+'mesas/'+c[2];
+    nuevas.push({id,nom:c[1]||c[0],desc:c[3]||'',foto,prev:'url("'+foto.replace(/"/g,'%22')+'") center/cover'});
+    (c[4]||'').split(',').map(x=>x.trim()).filter(Boolean).forEach(b=>MESA_BARAJA[b]=id);
+  });
+  if(!nuevas.length) return;
+  const i=MESAS.findIndex(x=>x.id==='imagen'); MESAS.splice(i<0?MESAS.length:i,0,...nuevas);
+  apAplicarMesa(apMesaGuardada());
+}
 
 // ════════════════════════════════════
 // v35 · EFECTOS VISUALES — envuelven funciones existentes sin cambiar su resultado
@@ -8641,7 +8666,9 @@ function arcFondosForzados(){
     if(ARCADE.playmat){const b=document.getElementById('board');
       if(b){b.classList.add('pm');b.style.setProperty('--pm-img','linear-gradient(rgba(4,8,3,.25),rgba(4,8,3,.25)),url("'+String(ARCADE.playmat).replace(/"/g,'%22')+'")');}}
     if(ARCADE.mesa){const m=String(ARCADE.mesa),bg=document.querySelector('.aztec-bg');
-      if(/^[a-z]+$/.test(m)&&MESAS.some(x=>x.id===m&&x.id!=='imagen'&&x.id!=='auto')){document.documentElement.dataset.mesa=m;if(bg)bg.style.backgroundImage='';}
+      const catM=MESAS.find(x=>x.id==='cat_'+m&&x.foto);
+      if(catM){document.documentElement.dataset.mesa='imagen';if(bg)bg.style.backgroundImage='linear-gradient(rgba(5,4,8,.4),rgba(5,4,8,.4)),url("'+catM.foto.replace(/"/g,'%22')+'")';}
+      else if(/^[a-z]+$/.test(m)&&MESAS.some(x=>x.id===m&&x.id!=='imagen'&&x.id!=='auto')){document.documentElement.dataset.mesa=m;if(bg)bg.style.backgroundImage='';}
       else{document.documentElement.dataset.mesa='imagen';if(bg)bg.style.backgroundImage='linear-gradient(rgba(5,4,8,.4),rgba(5,4,8,.4)),url("'+m.replace(/"/g,'%22')+'")';}}
     if(ARCADE.fondoInicio){const b=document.getElementById('bootBg');if(b){b.style.backgroundImage='url("'+String(ARCADE.fondoInicio).replace(/"/g,'%22')+'")';b.classList.add('img');}}
   }catch(e){}
@@ -9080,7 +9107,7 @@ function mesa3dSync(){
   dm.classList.add('vista3d');
   const esFoto=dm.dataset.mesa==='imagen'||/url\("?(?!data:)/.test(img);
   let fondo=img;
-  if(esFoto&&AP.mesa3d&&dm.dataset.mesa==='imagen') fondo='linear-gradient(rgba(5,4,8,.35),rgba(5,4,8,.35)),url("'+AP.mesa3d+'")';
+  if(esFoto&&AP.mesa3d&&dm.dataset.mesa==='imagen'&&AP.mesaImg&&img.includes(AP.mesaImg)) fondo='linear-gradient(rgba(5,4,8,.35),rgba(5,4,8,.35)),url("'+AP.mesa3d+'")';
   if(esFoto){
     // v88 · la IMAGEN COMPLETA se ve: el plano mide lo que la imagen (≈2.3 tableros de ancho), centrado bajo el tablero
     const mu=[...fondo.matchAll(/url\("?([^")]+)"?\)/g)].pop(), url=mu&&mu[1];

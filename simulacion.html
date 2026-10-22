@@ -849,9 +849,14 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 @keyframes shake3d{0%,100%{translate:0 0}20%{translate:-5px 0}40%{translate:5px 0}60%{translate:-4px 0}80%{translate:4px 0}}
 :root.vista3d .board.shake{animation:shake3d .35s ease}
 /* v85 · El fondo de la mesa se inclina igual que el tablero (piso en perspectiva) */
-:root.vista3d .aztec-bg{inset:-34% -45% -6% -45%;transform:perspective(900px) rotateX(var(--tilt));transform-origin:50% 100%}
-:root.rot.vista3d .aztec-bg{inset:-45% -6% -45% -34%;transform:perspective(900px) rotateY(var(--tilt));transform-origin:0 50%}
-:root.rot.flip.vista3d .aztec-bg{inset:-45% -34% -45% -6%;transform:perspective(900px) rotateY(calc(var(--tilt) * -1));transform-origin:100% 50%}
+/* v86 · El piso de la mesa es un plano en el MISMO espacio 3D que el tablero (misma perspectiva y ángulo: siempre coinciden).
+   Detrás, un "cielo" fijo (assets/simulacion/mesa_horizonte.jpg si existe). */
+:root.vista3d .center{position:relative}
+:root.vista3d .game>.panel{position:relative;z-index:2}
+#mesa3d{position:absolute;z-index:-1;pointer-events:none;display:none;transform:rotateX(var(--tilt)) scale(1.04);
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0%,rgba(0,0,0,.25) 22%,#000 50%);mask-image:linear-gradient(to bottom,transparent 0%,rgba(0,0,0,.25) 22%,#000 50%)}
+:root{--cielo:radial-gradient(ellipse 75% 38% at 50% 14%,rgba(255,190,120,.10),transparent 70%),linear-gradient(#060409,#0d0907 55%,#0a0705)}
+:root.vista3d .aztec-bg{background:var(--cielo)!important;background-size:cover!important;background-position:center top!important;opacity:1!important;filter:none!important}
 /* v85 · Cartas del tablero: se levantan un poco al pasar el cursor o el control */
 :root.vista3d .board .bc.occ{transition:box-shadow .15s,translate .15s}
 :root.vista3d .board .bc.occ:hover,:root.vista3d.gp-on .board .bc.occ.gpf{translate:0 -4px;box-shadow:0 8px 0 rgba(0,0,0,.45),0 12px 14px rgba(0,0,0,.5),0 0 10px rgba(255,255,255,.25)}
@@ -1321,7 +1326,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v85';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v86';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -8270,7 +8275,7 @@ window.addEventListener('pagehide',()=>{try{screen.orientation.unlock();}catch(e
 // Si no existen o no cargan, se usan los de siempre.
 // ════════════════════════════════════
 const AP_DIR='assets/simulacion/';
-const AP_FILES={fondo:['inicio_fondo.jpg','inicio_fondo.png','inicio_fondo.webp'],logo:['inicio_logo.png','inicio_logo.webp','inicio_logo.jpg'],mesa:['mesa_fondo.jpg','mesa_fondo.png','mesa_fondo.webp']};
+const AP_FILES={fondo:['inicio_fondo.jpg','inicio_fondo.png','inicio_fondo.webp'],logo:['inicio_logo.png','inicio_logo.webp','inicio_logo.jpg'],mesa:['mesa_fondo.jpg','mesa_fondo.png','mesa_fondo.webp'],mesa3d:['mesa_3d.jpg','mesa_3d.png','mesa_3d.webp'],horizonte:['mesa_horizonte.jpg','mesa_horizonte.png','mesa_horizonte.webp']};
 const AP={mesaImg:null};
 function apProbar(lista){
   return new Promise(res=>{let i=0;const next=()=>{if(i>=lista.length)return res(null);const u=lista[i++],im=new Image();
@@ -8471,6 +8476,11 @@ function apVS(){
   if(fondo&&!fzI){const b=document.getElementById('bootBg');b.style.backgroundImage='url("'+fondo+'")';b.classList.add('img');}
   if(logo){window._logoInicio=logo;document.getElementById('bootLogo').src=logo;}
   if(mesa){AP.mesaImg=mesa;apAplicarMesa(apMesaGuardada());}
+  // v86 · vista 3D: textura del piso hecha para 3D (render cenital) y cielo/horizonte
+  const [m3,hz]=await Promise.all([apProbar(AP_FILES.mesa3d.map(f=>AP_DIR+f)),apProbar(AP_FILES.horizonte.map(f=>AP_DIR+f))]);
+  if(m3){AP.mesa3d=m3;if(!AP.mesaImg)AP.mesaImg=m3;apAplicarMesa(apMesaGuardada());}
+  if(hz) document.documentElement.style.setProperty('--cielo','linear-gradient(rgba(0,0,0,.15),rgba(0,0,0,.55)),url("'+hz+'")');
+  try{mesa3dSync();}catch(e){}
 })();
 
 // ════════════════════════════════════
@@ -9035,6 +9045,35 @@ if(window.GP_CFG){const _ae=GP_CFG.alEnfocar;GP_CFG.alEnfocar=el=>{try{if(_ae)_a
   try{const h=el&&el.closest&&el.closest('#handrow .hcard');if(h)peekShow(h);else peekHide();}catch(e){}
   try{document.querySelectorAll('.bc.gpf').forEach(x=>x.classList.remove('gpf'));const b=el&&el.closest&&el.closest('#board .bc');if(b)b.classList.add('gpf');}catch(e){}};}
 {const _eg=endGame;endGame=function(){peekHide();return _eg.apply(this,arguments);};}
+// ── v86 · Piso 3D de la mesa: mismo plano que el tablero ──
+function mesa3dSync(){
+  const c=document.querySelector('.center'), b=document.getElementById('board'), bg=document.querySelector('.aztec-bg');
+  if(!c||!b||!bg) return;
+  let m=document.getElementById('mesa3d');
+  if(!m){m=document.createElement('div');m.id='mesa3d';c.insertBefore(m,c.firstChild);}
+  if(!vista3d()){m.style.display='none';return;}
+  const bw=b.offsetWidth,bh=b.offsetHeight; if(bw<10) return;
+  const X=bw*1.7,Y=bh*3.4,Yb=bh*1.4;
+  // Toma el fondo de la mesa elegida (sin el "cielo" del modo 3D)
+  const dm=document.documentElement; dm.classList.remove('vista3d');
+  const cs=getComputedStyle(bg), img=cs.backgroundImage, col=cs.backgroundColor, rep=cs.backgroundRepeat, sz=cs.backgroundSize, op=cs.opacity;
+  dm.classList.add('vista3d');
+  const esFoto=dm.dataset.mesa==='imagen'||/url\("?(?!data:)/.test(img);
+  let fondo=img;
+  if(esFoto&&AP.mesa3d&&dm.dataset.mesa==='imagen') fondo='linear-gradient(rgba(5,4,8,.35),rgba(5,4,8,.35)),url("'+AP.mesa3d+'")';
+  m.style.cssText='display:block;left:'+(b.offsetLeft-X)+'px;top:'+(b.offsetTop-Y)+'px;width:'+(bw+2*X)+'px;height:'+(bh+Y+Yb)+'px;'+
+    'transform-origin:'+(X+bw/2)+'px '+(Y+bh)+'px;background-image:'+fondo+';background-color:'+col+';opacity:'+(esFoto?1:Math.max(+op,.06))+';'+
+    (esFoto?'background-size:'+Math.round(bw*2.6)+'px auto;background-position:center '+Math.round(Y+bh*.5)+'px;background-repeat:repeat':'background-size:'+sz+';background-repeat:'+rep);
+}
+{const _va=vistaAplicar;vistaAplicar=function(){_va.apply(this,arguments);try{mesa3dSync();}catch(e){}};}
+{const _am=apAplicarMesa;apAplicarMesa=function(){const r=_am.apply(this,arguments);try{mesa3dSync();}catch(e){}return r;};}
+try{
+  new MutationObserver(()=>{try{mesa3dSync();}catch(e){}}).observe(document.querySelector('.aztec-bg'),{attributes:true,attributeFilter:['style']});
+  new MutationObserver(()=>{try{mesa3dSync();}catch(e){}}).observe(document.documentElement,{attributes:true,attributeFilter:['data-mesa']});
+  const ro=new ResizeObserver(()=>{try{mesa3dSync();}catch(e){}});ro.observe(document.getElementById('board'));ro.observe(document.querySelector('.center'));
+}catch(e){}
+setTimeout(()=>{try{mesa3dSync();}catch(e){}},300);
+
 </script>
 <script src="gamepad.js"></script>
 <script>

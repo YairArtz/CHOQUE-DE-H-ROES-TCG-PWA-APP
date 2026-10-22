@@ -385,8 +385,10 @@
         if (nuevo(B.B)) atras();
         if (nuevo(B.X)) { const c = CFG(); const el = c.acciones && c.acciones(); if (el) enfocar(el); }
         if (nuevo(B.Y)) principal();
-        if (nuevo(B.LB)) zona(-1);
-        if (nuevo(B.RB)) zona(1);
+        // GP_CFG.lbrb(dir): la página puede usar LB/RB (p. ej. noticia anterior / siguiente); si no, saltan entre zonas
+        const lr = d => { const c = CFG(); let h = false; try { h = c.lbrb && c.lbrb(d); } catch (e) {} if (!h) zona(d); };
+        if (nuevo(B.LB)) lr(-1);
+        if (nuevo(B.RB)) lr(1);
         if (nuevo(B.START)) { const c = CFG(); const el = c.start && c.start(); if (valido(el)) tocar(el); }
         if (nuevo(B.VIEW)) { const c = CFG(); const el = c.select && c.select(); if (el) tocar(el); }
         if (nuevo(B.RS) && modoPuntero) tocarPuntero();

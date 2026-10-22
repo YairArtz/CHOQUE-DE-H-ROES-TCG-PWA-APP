@@ -406,5 +406,5 @@
   // Algunos navegadores no avisan "gamepadconnected" si el control ya estaba conectado
   if (navigator.getGamepads && [...navigator.getGamepads()].some(Boolean)) { bucle._on = true; requestAnimationFrame(bucle); }
 
-  window.GP = { activo: () => activo, vibrar, parar, enfocar, valido, refrescarHud: pintarHud };
+  window.GP = { activo: () => activo, vibrar, parar, enfocar, valido, foco: () => foco, refrescarHud: pintarHud };
 })();

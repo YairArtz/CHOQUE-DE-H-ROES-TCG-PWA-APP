@@ -856,8 +856,8 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 #mesa3d{position:absolute;z-index:-1;pointer-events:none;display:none;transform:rotateX(var(--tilt)) scale(1.04);
   -webkit-mask-image:linear-gradient(to bottom,transparent 0%,rgba(0,0,0,.25) 18%,#000 42%);mask-image:linear-gradient(to bottom,transparent 0%,rgba(0,0,0,.25) 18%,#000 42%)}
 /* v87 · Imagen de mesa: una sola, ampliada y sin repetir; los bordes se funden con el fondo (no se ve ninguna unión) */
-#mesa3d.foto{-webkit-mask-image:linear-gradient(to bottom,transparent 0%,rgba(0,0,0,.3) 16%,#000 40%),linear-gradient(to right,transparent 0%,#000 14%,#000 86%,transparent 100%);
-  -webkit-mask-composite:source-in;mask-image:linear-gradient(to bottom,transparent 0%,rgba(0,0,0,.3) 16%,#000 40%),linear-gradient(to right,transparent 0%,#000 14%,#000 86%,transparent 100%);mask-composite:intersect}
+#mesa3d.foto{-webkit-mask-image:linear-gradient(to bottom,transparent 0%,#000 14%,#000 94%,transparent 100%),linear-gradient(to right,transparent 0%,#000 9%,#000 91%,transparent 100%);
+  -webkit-mask-composite:source-in;mask-image:linear-gradient(to bottom,transparent 0%,#000 14%,#000 94%,transparent 100%),linear-gradient(to right,transparent 0%,#000 9%,#000 91%,transparent 100%);mask-composite:intersect}
 :root{--cielo:radial-gradient(ellipse 75% 38% at 50% 14%,rgba(255,190,120,.10),transparent 70%),linear-gradient(#060409,#0d0907 55%,#0a0705)}
 :root.vista3d .aztec-bg{background:var(--cielo)!important;background-size:cover!important;background-position:center top!important;opacity:1!important;filter:none!important}
 /* v85 · Cartas del tablero: se levantan un poco al pasar el cursor o el control */
@@ -1334,7 +1334,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v87';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v88';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -9066,6 +9066,7 @@ if(window.GP_CFG){const _ae=GP_CFG.alEnfocar;GP_CFG.alEnfocar=el=>{try{if(_ae)_a
     return !!(PEEK.h&&PEEK.h===el&&PEEK.el&&PEEK.el.classList.contains('on'));};}
 {const _eg=endGame;endGame=function(){peekHide();return _eg.apply(this,arguments);};}
 // ── v86 · Piso 3D de la mesa: mismo plano que el tablero ──
+const MESA_ASP={}, MESA_ANCHO=2.0;   // ancho de la imagen de mesa = 2.3 veces el tablero
 function mesa3dSync(){
   const c=document.querySelector('.center'), b=document.getElementById('board'), bg=document.querySelector('.aztec-bg');
   if(!c||!b||!bg) return;
@@ -9081,6 +9082,16 @@ function mesa3dSync(){
   const esFoto=dm.dataset.mesa==='imagen'||/url\("?(?!data:)/.test(img);
   let fondo=img;
   if(esFoto&&AP.mesa3d&&dm.dataset.mesa==='imagen') fondo='linear-gradient(rgba(5,4,8,.35),rgba(5,4,8,.35)),url("'+AP.mesa3d+'")';
+  if(esFoto){
+    // v88 · la IMAGEN COMPLETA se ve: el plano mide lo que la imagen (≈2.3 tableros de ancho), centrado bajo el tablero
+    const mu=[...fondo.matchAll(/url\("?([^")]+)"?\)/g)].pop(), url=mu&&mu[1];
+    const asp=url&&MESA_ASP[url];
+    if(url&&!asp&&!MESA_ASP['_c'+url]){MESA_ASP['_c'+url]=1;const im=new Image();im.onload=()=>{MESA_ASP[url]=im.naturalWidth/im.naturalHeight||1.5;mesa3dSync();};im.src=url;}
+    const W=bw*MESA_ANCHO, H=W/(asp||1.15), Yb2=bh*.5;
+    m.style.cssText='display:block;left:'+(b.offsetLeft+bw/2-W/2)+'px;top:'+(b.offsetTop+bh+Yb2-H)+'px;width:'+W+'px;height:'+H+'px;'+
+      'transform-origin:'+(W/2)+'px '+(H-Yb2)+'px;background-image:'+fondo+';background-color:transparent;opacity:1;background-size:100% 100%;background-repeat:no-repeat';
+    m.classList.add('foto'); return;
+  }
   m.style.cssText='display:block;left:'+(b.offsetLeft-X)+'px;top:'+(b.offsetTop-Y)+'px;width:'+(bw+2*X)+'px;height:'+(bh+Y+Yb)+'px;'+
     'transform-origin:'+(X+bw/2)+'px '+(Y+bh)+'px;background-image:'+fondo+';background-color:'+col+';opacity:'+(esFoto?1:Math.max(+op,.06))+';'+
     (esFoto?'background-size:cover;background-position:center bottom;background-repeat:no-repeat':'background-size:'+sz+';background-repeat:'+rep);

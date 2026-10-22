@@ -377,6 +377,69 @@ body.editor .pt{cursor:move}
 :root.movil .d-ret.carta{height:calc(66 * var(--uh));bottom:calc(26 * var(--uh))}
 :root.h520 .d-txt{min-height:2.3em;font-size:24px}
 :root.h520 .f-ret{width:70px;height:88px}
+
+/* ═══ Transformación del jefe (2ª forma) ═══ */
+#nxTrans{position:fixed;inset:0;z-index:9500;display:none;align-items:center;justify-content:center;flex-direction:column;overflow:hidden;
+  background:radial-gradient(ellipse at center,rgba(60,0,20,.85),#000 75%);opacity:0;transition:opacity .35s}
+#nxTrans.on{opacity:1}
+#nxTrans img{position:absolute;max-height:min(70vh,calc(var(--uh)*70));max-width:80vw;object-fit:contain;filter:drop-shadow(0 0 30px rgba(255,40,90,.6))}
+#nxTrans img.carta{border-radius:12px}
+#nxTrans .tr-a{animation:trTiembla .12s linear infinite;transition:opacity .25s,filter 2.2s}
+#nxTrans.f1 .tr-a{filter:drop-shadow(0 0 40px #ff2f5a) brightness(1.4) saturate(1.6)}
+#nxTrans .tr-b{opacity:0;transform:scale(.6)}
+#nxTrans.f2 .tr-a{opacity:0}
+#nxTrans.f2 .tr-b{animation:trSurge 1.1s cubic-bezier(.2,.9,.25,1.2) forwards;filter:drop-shadow(0 0 40px #cc55ff) drop-shadow(0 0 80px #ff2f5a)}
+#nxTrans .tr-ray{position:absolute;width:160vmax;height:160vmax;border-radius:50%;opacity:0;
+  background:repeating-conic-gradient(from 0deg,rgba(255,47,90,.5) 0 5deg,transparent 5deg 16deg);
+  -webkit-mask-image:radial-gradient(circle,#000 0%,transparent 60%);mask-image:radial-gradient(circle,#000 0%,transparent 60%);animation:trGira 6s linear infinite}
+#nxTrans.f1 .tr-ray{opacity:.35;transition:opacity 2s}
+#nxTrans.f2 .tr-ray{opacity:.7;background:repeating-conic-gradient(from 0deg,rgba(204,85,255,.55) 0 5deg,transparent 5deg 14deg);animation-duration:3s}
+#nxTrans .tr-cracks{position:absolute;inset:0;opacity:0;background:
+  linear-gradient(115deg,transparent 48%,rgba(255,80,120,.9) 49%,transparent 50%),linear-gradient(62deg,transparent 58%,rgba(255,80,120,.8) 59%,transparent 60%),
+  linear-gradient(160deg,transparent 30%,rgba(255,80,120,.7) 31%,transparent 32%),linear-gradient(20deg,transparent 70%,rgba(255,80,120,.7) 71%,transparent 72%)}
+#nxTrans.f1 .tr-cracks{animation:trGrieta 2.4s ease-in forwards}
+#nxTrans.f2 .tr-cracks{opacity:0;animation:none}
+#nxTrans .tr-flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
+#nxTrans.f2 .tr-flash{animation:trFlash .9s ease-out forwards}
+#nxTrans .tr-txt{position:absolute;bottom:9%;left:0;right:0;text-align:center;opacity:0;font-family:'Orbitron',monospace}
+#nxTrans.f2 .tr-txt{animation:trTxt 1.2s .5s ease-out forwards}
+#nxTrans .tr-txt small{display:block;font-size:12px;letter-spacing:6px;color:#ffb3c4}
+#nxTrans .tr-txt b{display:block;font-size:clamp(26px,6vw,58px);font-weight:900;letter-spacing:6px;color:#fff;text-shadow:0 0 12px #cc55ff,0 0 30px #ff2f5a,0 3px 0 #000}
+#nxTrans .tr-txt span{display:block;font-size:clamp(13px,2.4vw,20px);letter-spacing:4px;color:#e8c8ff;margin-top:4px}
+@keyframes trTiembla{0%{transform:translate(0,0)}25%{transform:translate(-4px,3px) rotate(-.6deg)}50%{transform:translate(5px,-2px)}75%{transform:translate(-3px,-4px) rotate(.6deg)}100%{transform:translate(2px,4px)}}
+@keyframes trSurge{0%{opacity:0;transform:scale(.55)}40%{opacity:1;transform:scale(1.12)}100%{opacity:1;transform:scale(1)}}
+@keyframes trGira{to{transform:rotate(360deg)}}
+@keyframes trGrieta{0%{opacity:0}60%{opacity:.4}100%{opacity:1}}
+@keyframes trFlash{0%{opacity:1}100%{opacity:0}}
+@keyframes trTxt{0%{opacity:0;transform:scale(1.6);letter-spacing:20px}100%{opacity:1;transform:none}}
+body.nx-sismo{animation:nxSismo .16s linear infinite}
+body.nx-sismo2{animation:nxSismo2 .09s linear infinite}
+@keyframes nxSismo{0%,100%{transform:translate(0,0)}25%{transform:translate(-3px,2px)}50%{transform:translate(3px,-2px)}75%{transform:translate(-2px,-3px)}}
+@keyframes nxSismo2{0%,100%{transform:translate(0,0)}25%{transform:translate(-9px,6px)}50%{transform:translate(8px,-7px)}75%{transform:translate(-7px,-6px)}}
+/* ═══ Pantalla de victoria final (como la del Arcade) ═══ */
+#nxFinal{position:fixed;inset:0;z-index:9400;display:none;align-items:center;justify-content:center;overflow:hidden;
+  background:radial-gradient(ellipse at 50% 35%,rgba(245,166,35,.22),rgba(5,10,28,0) 65%),#050a1c;opacity:0;transition:opacity .45s}
+#nxFinal.on{opacity:1}
+#nxFinal .fn-glow{position:absolute;width:150vmax;height:150vmax;border-radius:50%;opacity:.22;
+  background:repeating-conic-gradient(from 0deg,#f5c842 0 6deg,transparent 6deg 18deg);
+  -webkit-mask-image:radial-gradient(circle,#000 0%,transparent 60%);mask-image:radial-gradient(circle,#000 0%,transparent 60%);animation:trGira 14s linear infinite}
+#nxFinal .fn-ret{position:absolute;right:3%;bottom:0;max-height:78%;max-width:34%;object-fit:contain;opacity:.32;filter:grayscale(.5) drop-shadow(0 0 20px #000)}
+#nxFinal .fn-ret.carta{border-radius:10px;bottom:6%}
+#nxFinal .fn-box{position:relative;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;padding:16px;max-width:620px;width:100%}
+#nxFinal .fn-crown{font-size:64px;filter:drop-shadow(0 0 20px rgba(245,166,35,.8));animation:fnFlota 3s ease-in-out infinite}
+#nxFinal .fn-h1{font-family:'Orbitron',monospace;font-weight:900;font-size:clamp(20px,4.4vw,46px);letter-spacing:3px;color:#ffe9a8;
+  text-shadow:0 0 14px #ffb300,0 0 34px #ff7a00,0 3px 0 #000;animation:fnLatido 2s ease-in-out infinite}
+#nxFinal .fn-sub{font-family:'Orbitron',monospace;font-size:clamp(10px,1.8vw,14px);letter-spacing:3px;color:var(--cyan)}
+#nxFinal .fn-txt{font-size:16px;color:var(--text);opacity:.9;max-width:520px}
+#nxFinal .fn-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;width:min(560px,100%)}
+#nxFinal .fn-stats div{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px}
+#nxFinal .fn-stats b{display:block;font-family:'Orbitron',monospace;font-size:20px;color:#ffd166}
+#nxFinal .fn-stats small{font-size:10px;color:var(--muted);letter-spacing:1px}
+.nx-confeti{position:absolute;top:-14px;width:8px;height:12px;z-index:1;pointer-events:none;animation:nxCae linear forwards}
+@keyframes nxCae{to{transform:translateY(calc(var(--uh)*110)) rotate(720deg)}}
+@keyframes fnFlota{50%{transform:translateY(-8px)}}
+@keyframes fnLatido{50%{transform:scale(1.05)}}
+@media (prefers-reduced-motion:reduce){body.nx-sismo,body.nx-sismo2,#nxTrans .tr-a{animation:none}}
 </style>
 </head>
 <body>
@@ -484,6 +547,7 @@ body.editor .pt{cursor:move}
 <!-- Diario -->
 <div class="modal" id="mDiario"><div class="mbox"><button class="f-x" onclick="cerrarModal('mDiario')">✕</button><div class="mt">📖 DIARIO DE AVENTURA</div><div id="diBody"></div></div></div>
 <!-- Mensaje -->
+<div id="nxTrans"></div><div id="nxFinal"></div>
 <div class="modal" id="mMsg"><div class="mbox" style="max-width:420px;text-align:center"><div class="mt" id="msgT" style="padding:0"></div><div id="msgB" style="font-size:16px;line-height:1.45;margin-bottom:14px"></div><div class="f-btns" id="msgOps"></div></div></div>
 
 <div class="noche" id="noche"><b id="nocheT">DÍA 2</b><span id="nocheS">MARTES</span></div>
@@ -577,8 +641,8 @@ const DIR = 'assets/nexotlan/';
 const KEY = 'chh_nexotlan';
 const EDITOR = new URLSearchParams(location.search).get('editor') === '1';
 const MW = 1600, MH = 1000;                 // espacio del mapa (proporción 16:10)
-const NIVELES = ['facil', 'medio', 'dificil', 'muy_dificil', 'legendario', 'epico', 'caotico'];
-const NIV_TXT = { facil: 'Fácil', medio: 'Medio', dificil: 'Difícil', muy_dificil: 'Muy difícil', legendario: '⭐ Legendario', epico: '☠ Épico', caotico: '🌀 Caótico' };
+const NIVELES = ['facil', 'medio', 'dificil', 'muy_dificil', 'legendario', 'epico', 'caotico', 'creador'];
+const NIV_TXT = { facil: 'Fácil', medio: 'Medio', dificil: 'Difícil', muy_dificil: 'Muy difícil', legendario: '⭐ Legendario', epico: '☠ Épico', caotico: '🌀 Caótico', creador: '👑 Creador' };
 // Dificultades del Arcade: "legendario" es la de la Ruta Legendaria (Muy difícil del Simulador)
 const NIV_SIM = { legendario: 'muy_dificil' };
 // Escala automática por distrito (con 9 distritos): los rivales suben poco a poco y desde el 3.er distrito entran las
@@ -1065,14 +1129,18 @@ function forma2(p) {      // el mismo punto con los datos de su transformación
     nombre: p.fase2_nombre || p.nombre, titulo: p.fase2_titulo || p.titulo, imagen: p.fase2_imagen || p.imagen, carta: p.fase2_carta || p.carta,
     baraja: p.fase2_baraja, musica: p.fase2_musica || p.musica, corazones: p.fase2_corazones || p.corazones, dificultad: p.fase2_dificultad || p.dificultad,
     musica_dialogo: p.fase2_musica_dialogo || p.musica_dialogo, paisaje: p.fase2_paisaje || p.paisaje,
-    victoria: p.fase2_victoria || p.victoria, derrota: p.fase2_derrota || p.derrota, _fase: 2 });
+    victoria: p.fase2_victoria || p.victoria, derrota: p.fase2_derrota || p.derrota, arena_inicial: p.fase2_arena_inicial || p.arena_inicial, _fase: 2 });
 }
 async function retoFase2(p) {
   const q = forma2(p);
   const r = await dialogo(q, p.fase2_revancha && S.fase2[p.id] > 1 ? p.fase2_revancha : (p.fase2_entrada || '…'), [['⚔ ¡CHOQUE!', 'red'], ['AHORA NO', 'sec']]);
-  if (r === 0) iniciarChoque(p, 2);
+  if (r === 0) { iniciarChoque(p, 2); return; }
+  if (reiniciaFase2(p)) { delete S.fase2[p.id]; guardar(); pintarMapa(); toast('↺ ' + p.nombre + ' recupera su forma regular: tendrás que vencerlo de nuevo.'); }
 }
+// fase2_reintento = inicio → cada intento (revancha, derrota o retirada) empieza otra vez desde la forma regular
+const reiniciaFase2 = p => String(p.fase2_reintento || 'si').toLowerCase() === 'inicio';
 async function hablar(p) {
+  if (tieneFase2(p) && enFase2(p) && reiniciaFase2(p)) { delete S.fase2[p.id]; guardar(); }
   if (tieneFase2(p) && enFase2(p) && !(p._req.length && !cumple(p._req))) { retoFase2(p); return; }
   if (p.tipo === 'heroe') {
     const primera = !(S.hablados[p.id] > 0);
@@ -1128,6 +1196,7 @@ async function iniciarChoque(p0, fase) {
   // Música del Choque: la del punto (o de su fase), si no la del distrito (musica_choque), si no la de [config] (musica_choque)
   const mc = p.musica || (d && d.musica_choque) || CFG.musica_choque; m.musica = mc ? new URL(mc, location.href).href : '';
   Object.assign(m, fch);
+  if (p.arena_inicial) m.arenaInicial = String(p.arena_inicial).trim();   // el rival empieza con esta ARENA activa
   try { localStorage.setItem('chh_arcade_match', JSON.stringify(m)); } catch (e) {}
   location.href = 'simulacion.html?modo=arcade';
 }
@@ -1148,6 +1217,7 @@ async function procesarResultado() {
     S.fase2 = S.fase2 || {}; S.fase2[p0.id] = 1; S.victorias++; S.dia++; guardar();
     mostrarMapa(); centrarEn(p0._x, p0._y);
     if (p0.victoria) await dialogo(p0, p0.victoria);          // su reacción al caer la 1ª forma
+    await transformacion(p0);                                   // cinemática: temblor, destello y aparece su forma verdadera
     await retoFase2(p0);
     return true;
   }
@@ -1171,11 +1241,74 @@ async function procesarResultado() {
   if (premio) { sonMonedas(); toast('<i class="mn"></i> +' + premio + ' monedas'); }
   if (res.won && !res.abandono) { const cartas = darPremio(p, !antes); guardar(); pintarHud(); await mostrarPremio(cartas); }
   await revisarAperturas(true);
-  if (res.won && p.tipo === 'guardian' && DIST.every(d => distritoAbierto(d)) && PTS.filter(x => x.tipo === 'guardian').every(x => vencido(x.id)) && !S.campeon) {
-    S.campeon = Date.now(); guardar();
-    await mensaje('👑 ¡CAMPEÓN DE NEXOTLAN!', `Venciste a todos los guardianes en ${S.dia} días. Puedes seguir explorando y retando a todos para completar tu diario.`);
-  }
+  const esFinal = res.won && !res.abandono && /^(si|sí|1|true)$/i.test(String(p0.final || '').trim());
+  const campeon = res.won && p.tipo === 'guardian' && DIST.every(d => distritoAbierto(d)) && PTS.filter(x => x.tipo === 'guardian').every(x => vencido(x.id)) && !S.campeon;
+  if (campeon) { S.campeon = Date.now(); guardar(); }
+  if (esFinal) await pantallaFinal(p0, !antes);                // jefe final (final = si): pantalla de victoria épica con su audio
+  else if (campeon) await mensaje('👑 ¡CAMPEÓN DE NEXOTLAN!', `Venciste a todos los guardianes en ${S.dia} días. Puedes seguir explorando y retando a todos para completar tu diario.`);
   return true;
+}
+// ── Transformación del jefe entre su 1ª y 2ª forma: temblor, energía, destello y aparece su forma verdadera ──
+//    Campos opcionales del punto: fase2_sonido (audio de la transformación), fase2_etiqueta (texto grande)
+async function transformacion(p0) {
+  const q = forma2(p0), [r1, r2] = await Promise.all([retrato(p0), retrato(q)]);
+  const ov = $('nxTrans'), tag = (p0.fase2_etiqueta || 'TRANSFORMACIÓN').toUpperCase();
+  ov.innerHTML = `<div class="tr-ray"></div><div class="tr-cracks"></div>${r1 ? `<img class="tr-a ${r1.carta ? 'carta' : ''}" src="${esc(r1.src)}" alt="">` : ''}` +
+    `${r2 ? `<img class="tr-b ${r2.carta ? 'carta' : ''}" src="${esc(r2.src)}" alt="">` : ''}<div class="tr-flash"></div>` +
+    `<div class="tr-txt"><small>${esc(p0.nombre || '')}</small><b>${esc(tag)}</b><span>${esc(q.nombre || '')}</span></div>`;
+  musica(null);
+  if (!MUTE && p0.fase2_sonido) { try { const a = new Audio(p0.fase2_sonido); a.volume = .9; a.play().catch(() => {}); } catch (e) {} }
+  else if (!MUTE) truenoSint();
+  const vib = (ms, f) => { try { if (window.GP && GP.vibrar) GP.vibrar(ms, f); } catch (e) {} };
+  try { navigator.vibrate && navigator.vibrate([120, 80, 160, 80, 220, 60, 600]); } catch (e) {}
+  [[0, 200, .5], [500, 260, .7], [1100, 320, .85], [1800, 500, 1], [2500, 700, 1]].forEach(([t, ms, f]) => setTimeout(() => vib(ms, f), t));
+  ov.style.display = 'flex'; void ov.offsetWidth; ov.classList.add('on', 'f1');
+  document.body.classList.add('nx-sismo');
+  let listo = false; const fin = new Promise(res => {
+    setTimeout(() => { ov.classList.add('f2'); document.body.classList.remove('nx-sismo'); document.body.classList.add('nx-sismo2'); }, 2400);
+    setTimeout(() => { document.body.classList.remove('nx-sismo2'); listo = true; }, 3300);
+    setTimeout(res, 5200);
+    ov.onclick = () => { if (listo) res(); };
+  });
+  await fin;
+  ov.classList.remove('on'); document.body.classList.remove('nx-sismo', 'nx-sismo2');
+  await new Promise(r => setTimeout(r, 350)); ov.style.display = 'none'; ov.className = ''; ov.innerHTML = '';
+}
+function truenoSint() {          // retumbo sintetizado si el punto no trae fase2_sonido
+  try {
+    const c = _ctxM = _ctxM || new (window.AudioContext || window.webkitAudioContext)(); if (c.state === 'suspended') c.resume();
+    const t0 = c.currentTime + .02, len = 3.2, buf = c.createBuffer(1, c.sampleRate * len, c.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 1.6);
+    const src = c.createBufferSource(), lp = c.createBiquadFilter(), g = c.createGain(); src.buffer = buf;
+    lp.type = 'lowpass'; lp.frequency.setValueAtTime(120, t0); lp.frequency.linearRampToValueAtTime(900, t0 + 2.4); lp.frequency.exponentialRampToValueAtTime(80, t0 + len);
+    g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(.5, t0 + 2.2); g.gain.linearRampToValueAtTime(.9, t0 + 2.45); g.gain.exponentialRampToValueAtTime(.001, t0 + len);
+    src.connect(lp); lp.connect(g); g.connect(c.destination); src.start(t0); src.stop(t0 + len);
+  } catch (e) {}
+}
+// ── Pantalla de VICTORIA final (rescatada del Arcade): corona, estadísticas, confeti y audio propio ──
+//    Audio: final_audio en el punto o audio_final en [config] (si no hay, sigue la música)
+async function pantallaFinal(p0, primera) {
+  const ov = $('nxFinal'), ret = await retrato(forma2(p0));
+  const guard = PTS.filter(x => x.tipo === 'guardian'), gv = guard.filter(x => vencido(x.id)).length;
+  const stats = [[S.dia, 'DÍAS'], [S.victorias || 0, 'VICTORIAS'], [S.perdidas || 0, 'DERROTAS'], [gv + '/' + guard.length, 'GUARDIANES']];
+  const nom = (S.nombre || 'HÉROE').toUpperCase();
+  ov.innerHTML = `<div class="fn-glow"></div>${ret ? `<img class="fn-ret ${ret.carta ? 'carta' : ''}" src="${esc(ret.src)}" alt="">` : ''}<div class="fn-box"><div class="fn-crown">👑</div>` +
+    `<div class="fn-h1">${primera ? '¡CAMPEÓN DE NEXOTLAN!' : '¡VICTORIA!'}</div>` +
+    `<div class="fn-sub">${esc(nom)} VENCIÓ A ${esc((p0.fase2_nombre || p0.nombre || '').toUpperCase())}${p0.titulo ? ', ' + esc(p0.titulo.toUpperCase()) : ''}</div>` +
+    `<div class="fn-stats">${stats.map(([v, t]) => `<div><b>${v}</b><small>${t}</small></div>`).join('')}</div>` +
+    `${p0.final_texto ? `<div class="fn-txt">${esc(p0.final_texto)}</div>` : ''}<button class="bt gold" id="fnOk">🗺 SEGUIR EXPLORANDO</button></div>`;
+  const previa = _mus, au = String(p0.final_audio || CFG.audio_final || '').trim();
+  if (au) musica(au);
+  ov.style.display = 'flex'; void ov.offsetWidth; ov.classList.add('on');
+  for (let k = 0; k < 90; k++) { const c = document.createElement('div'); c.className = 'nx-confeti'; c.style.left = Math.random() * 100 + '%';
+    c.style.background = ['#f5c842', '#ff8c42', '#36d6ff', '#00ff9d', '#cc55ff', '#fff'][k % 6]; c.style.animationDuration = (2.6 + Math.random() * 3) + 's'; c.style.animationDelay = (Math.random() * 2) + 's';
+    ov.appendChild(c); }
+  try { navigator.vibrate && navigator.vibrate([80, 60, 80, 60, 200]); } catch (e) {}
+  try { if (window.GP && GP.vibrar) { GP.vibrar(120, .6); setTimeout(() => GP.vibrar(120, .8), 200); setTimeout(() => GP.vibrar(400, 1), 400); } } catch (e) {}
+  try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('fnOk')), 60); } catch (e) {}
+  await new Promise(res => { $('fnOk').onclick = res; });
+  ov.classList.remove('on'); await new Promise(r => setTimeout(r, 400)); ov.style.display = 'none'; ov.innerHTML = '';
+  if (au) musica(previa || CFG.musica);
 }
 async function revisarAperturas(anunciar) {
   for (const d of DIST) {
@@ -1625,11 +1758,11 @@ function itemsContenido() {
   const fondos = o => { ['playmat', 'fondo_inicio'].forEach(k => o[k] && add(candidatos(o[k], 'simulador'), 'img')); if (o.fondo_mesa && !/^[a-z]+$/.test(o.fondo_mesa)) add(candidatos(o.fondo_mesa, 'simulador'), 'img'); };
   if (CFG.mapa) add([DIR + CFG.mapa], 'img');
   img(CFG.fondo_titulo, 'titulo'); img(CFG.logo, 'titulo');
-  aud(CFG.musica); aud(CFG.musica_choque); aud(CFG.sonido_monedas); fondos(CFG);
+  aud(CFG.musica); aud(CFG.musica_choque); aud(CFG.sonido_monedas); aud(CFG.audio_final); fondos(CFG);
   DIST.forEach(d => { img(d.paisaje, 'paisajes'); aud(d.musica); aud(d.musica_choque); fondos(d); });
   PTS.forEach(p => {
     img(p.imagen, 'personajes'); img(p.fase2_imagen, 'personajes'); img(p.paisaje, 'paisajes'); img(p.fase2_paisaje, 'paisajes');
-    ['musica', 'musica_dialogo', 'fase2_musica', 'fase2_musica_dialogo'].forEach(k => aud(p[k])); fondos(p);
+    ['musica', 'musica_dialogo', 'fase2_musica', 'fase2_musica_dialogo', 'fase2_sonido', 'final_audio'].forEach(k => aud(p[k])); fondos(p);
     if (p.carta) add([cartaImg(p.carta, true)], 'img');
   });
   (DATA.barajas || []).filter(b => b.aventura).forEach(b => add(b.imagen ? [galPath(b.imagen)] : ['jpg', 'png', 'webp'].map(e => DIR + 'barajas/' + b.id + '.' + e), 'img'));

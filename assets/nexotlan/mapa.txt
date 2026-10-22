@@ -21,6 +21,7 @@
 #   mapa        imagen del mapa en assets/nexotlan/ (ej. mapa.jpg). Vacío = mapa neón generado
 #   musica      música del mapa (ruta como en el Arcade, ej. musica_choque/pista_9.mp3)
 #   musica_choque (opcional) música de los Choques de todo el modo (si el distrito o el punto no tienen una)
+#   audio_final  (opcional) audio de la pantalla de VICTORIA del jefe final (el punto puede traer el suyo: final_audio)
 #   dias        nombres de los días separados por coma
 #   excluir_habilidades  cartas con (o que otorgan) estas habilidades no se usan en el modo:
 #               no salen de premio ni en la tienda y no entran a la baraja. Vacío = ninguna
@@ -53,7 +54,7 @@
 #               (o con carpeta: arcade/personajes/rival_01.png toma la del Arcade)
 #   carta       id o nombre de una carta: su arte se usa si falta la imagen
 #   baraja      id de la baraja de la CPU (rival y guardian)
-#   dificultad  facil | medio | dificil | muy_dificil | legendario | epico | caotico | auto
+#   dificultad  facil | medio | dificil | muy_dificil | legendario | epico | caotico | creador | auto
 #               auto = según el distrito: rivales de Fácil a Caótico; guardianes Legendario (1-3), Épico (4-6), Caótico (7-9)
 #   corazones   corazones EXTRA de la CPU
 #   musica      música del Choque (la partida)
@@ -76,7 +77,12 @@
 #   fase2_corazones, fase2_dificultad, fase2_etiqueta (texto del VS, ej. FORMA VERDADERA)
 #   fase2_entrada     lo que dice al transformarse · fase2_revancha  si vuelves a retar su 2ª forma
 #   fase2_victoria / fase2_derrota   lo que dice al final (si no, usa victoria / derrota)
-#   fase2_reintento   si = al perder, reintentas directo la 2ª forma · inicio = vuelves a empezar desde la 1ª
+#   fase2_reintento   si = al perder, reintentas directo la 2ª forma · inicio = cada intento (derrota, retirada o revancha) empieza desde la 1ª
+#   fase2_sonido      audio de la transformación (si no hay, suena un retumbo). La cinemática tiembla, destella y muestra la 2ª forma
+#   arena_inicial     id de una carta ARENA que el rival ya tiene activa al empezar (ej. nexotlan_arena) · fase2_arena_inicial para su 2ª forma
+#   final             si = jefe final: al vencerlo (su última forma) aparece la pantalla de VICTORIA con corona, estadísticas y confeti
+#   final_audio       audio de esa pantalla (si no, se usa audio_final de [config]; si tampoco hay, sigue la música)
+#   final_texto       texto opcional bajo las estadísticas de la pantalla final
 #
 #  Las líneas que empiezan con # son comentarios.
 # ════════════════════════════════════════════════════════════════════
@@ -87,6 +93,7 @@ subtitulo = La ciudad entre dimensiones
 fondo_titulo = assets/nexotlan/titulo/titulo.jpg
 logo = assets/nexotlan/titulo/logo.png
 mapa = mapa_nexotlan.jpg
+audio_final = 
 musica = assets/intro/tema_intro.mp3
 sonido_monedas = 
 dias = Lunes, Martes, Miércoles, Jueves, Viernes, Sábado, Domingo
@@ -1452,10 +1459,14 @@ fase2_imagen = vellond_transformado.png
 fase2_baraja = nxr_g_vellond2
 fase2_musica = assets/nexotlan/musica/vellond_transf.mp3
 fase2_corazones = 7
-fase2_dificultad = caotico
+fase2_dificultad = creador
 fase2_etiqueta = FORMA VERDADERA
 fase2_entrada = …Impresionante. Nadie había llegado tan lejos. | Pero lo que venciste fue solo el Regente. | Ahora conocerás el poder que mantiene unidas a todas las dimensiones de Nexotlan.
 fase2_revancha = ¿Vuelves a enfrentar mi verdadera forma? Esta vez no habrá piedad.
 fase2_victoria = Imposible… Nexotlan… te elige a ti. | Mientras estés aquí, esta ciudad es tu hogar.
 fase2_derrota = Así termina tu leyenda: a los pies de esta torre...
-fase2_reintento = si
+fase2_reintento = inicio
+arena_inicial = nexotlan_arena
+fase2_sonido = 
+final = si
+final_audio = 

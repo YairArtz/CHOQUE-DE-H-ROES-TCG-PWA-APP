@@ -1335,7 +1335,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v91';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v92';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -8743,6 +8743,11 @@ function arcadePreparar(){
      for(let k=0;k<ae&&G.cpu.ba.length;k++){const z=freeApo('cpu');if(z<0)break;G.cpu.apoyo[z]={card:G.cpu.ba.shift(),type:'alma',bonus:0,eot:false};}
      const pod=[me?'+'+me+' carta(s) en su mano inicial':'',ae?ae+' alma(s) activas desde el inicio':'',ARCADE.roboExtra?'roba '+ARCADE.roboExtra+' carta(s) extra cada turno':''].filter(Boolean);
      if(pod.length) lg('☠ <b>PODER ÉPICO</b> · '+arcadeEsc(ARCADE.nombre)+': '+pod.join(' · ')+'.','#ff2244');}
+    // v92 · El rival empieza con una ARENA ya activa (Aventura: arena_inicial). Si la tiene en su baraja, se usa esa copia.
+    if(ARCADE.arenaInicial&&C[ARCADE.arenaInicial]&&C[ARCADE.arenaInicial].type==='arena'&&!G.cpu.arena){
+      const ai=ARCADE.arenaInicial;for(const z of ['hand','bp']){const k=G.cpu[z].indexOf(ai);if(k>=0){G.cpu[z].splice(k,1);break;}}
+      if(G.player.arena===ai&&hasPassive(ai,'unica_en_campo')){}else{G.cpu.arena=ai;
+        lg('🏟 '+arcadeEsc(ARCADE.nombre)+' empieza con la ARENA <b>'+C[ai].name+'</b> activa.','#ff4d6d');}}
     lg(ARCADE.etiqueta?arcadeEsc(ARCADE.etiqueta)+' · contra <b>'+arcadeEsc(ARCADE.nombre)+'</b>.':'🕹 <b>ARCADE</b> · Combate '+ARCADE.ronda+'/'+ARCADE.total+' contra <b>'+arcadeEsc(ARCADE.nombre)+'</b>.','var(--gold2)');
     if(ARCADE.musica){try{const rq=++MP.req;const am=ARCADE.musica;MP.cur=am;
       (window.CHH_MEDIOS?CHH_MEDIOS.blobUrl(am):Promise.resolve(null)).then(b=>{if(rq!==MP.req)return;mpAudio.src=b||am;mpAudio.loop=true;

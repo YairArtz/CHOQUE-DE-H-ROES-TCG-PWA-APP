@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <link rel="manifest" href="manifest.json">
+<script src="nexo-ui.js"></script>
 <title>Choque de Héroes TCG</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -41,20 +42,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 #bgm-btn{display:none!important}           /* la música se controla desde la barra superior */
 .nx-gate{display:none!important}
 
-/* ═══ FONDO: haces diagonales + partículas ═══ */
-#bg{position:fixed;inset:0;overflow:hidden;z-index:0;
-  background:radial-gradient(ellipse 60% 70% at 78% 55%,rgba(139,92,255,.28),transparent 70%),
-             radial-gradient(ellipse 50% 40% at 10% 100%,rgba(54,214,255,.10),transparent 70%),
-             linear-gradient(160deg,#060a24 0%,#04061a 55%,#120a2e 100%)}
-#bg .sh{position:absolute;top:-50%;height:200%;transform:rotate(36deg);
-  background:linear-gradient(90deg,rgba(43,63,134,0),rgba(60,90,180,.42) 45%,rgba(43,63,134,.18) 75%,rgba(43,63,134,0))}
-#bg .a{left:38%;width:30vmax}#bg .b{left:68%;width:12vmax;opacity:.55}#bg .c{left:6%;width:7vmax;opacity:.35}
-#bg .grid{position:absolute;inset:0;opacity:.35;
-  background-image:linear-gradient(rgba(143,176,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(143,176,255,.05) 1px,transparent 1px);background-size:48px 48px;
-  -webkit-mask-image:linear-gradient(180deg,transparent,#000 40%,transparent);mask-image:linear-gradient(180deg,transparent,#000 40%,transparent)}
-.mote{position:absolute;width:3px;height:3px;border-radius:50%;background:#9fb6ff;box-shadow:0 0 6px #7b8fff;opacity:0;animation:mote linear infinite}
-@keyframes mote{0%{opacity:0;transform:translateY(0)}20%{opacity:.8}100%{opacity:0;transform:translateY(-34vh)}}
-
+/* El fondo (haces, partículas y gama elegida en la Tienda) lo pone nexo-ui.js */
 /* ═══ ESTRUCTURA ═══ */
 #app{position:relative;z-index:1;height:100dvh;display:grid;grid-template-rows:auto 1fr;padding:var(--safeT) var(--safeR) var(--safeB) var(--safeL)}
 #hub{position:relative;display:grid;grid-template-columns:minmax(340px,40%) minmax(0,1fr);min-height:0}
@@ -150,7 +138,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 #art .run{fill:none;stroke-width:2.2;stroke-linecap:round;stroke-dasharray:70 520;animation:flow linear infinite}
 @keyframes flow{from{stroke-dashoffset:590}to{stroke-dashoffset:0}}
 #art .glow{position:absolute;left:50%;top:44%;width:70%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;
-  background:radial-gradient(circle,rgba(198,155,255,.35),rgba(139,92,255,.12) 45%,transparent 70%)}
+  background:radial-gradient(circle,rgba(var(--nx-g1,139,92,255),.38),rgba(var(--nx-g1,139,92,255),.12) 45%,transparent 70%)}
 #art .name{position:absolute;right:0;bottom:12px;text-align:right;font-family:'Orbitron',sans-serif;font-weight:700;font-size:13px;letter-spacing:.1em;color:#d8ccff;
   padding:6px 14px;background:linear-gradient(270deg,rgba(10,15,46,.85),transparent)}
 #art .name small{display:block;font-family:'Rajdhani',sans-serif;font-weight:600;font-size:12px;letter-spacing:.02em;color:var(--mut)}
@@ -210,7 +198,6 @@ footer{position:fixed;left:var(--safeL);bottom:2px;font-size:11px;color:#5d6893;
 </head>
 <body>
 <div id="chh-notif-container"></div>
-<div id="bg"><div class="grid"></div><div class="sh c"></div><div class="sh a"></div><div class="sh b"></div><div id="motes"></div></div>
 
 <div id="app">
   <header id="top">
@@ -402,7 +389,6 @@ $('art').addEventListener('click', () => ponerHeroe((hi + 1) % HEROES.length, tr
 })();
 
 // ── Partículas del fondo ──
-(function () { const m = $('motes'); for (let k = 0; k < 22; k++) { const d = document.createElement('i'); d.className = 'mote'; d.style.left = Math.random() * 100 + '%'; d.style.top = (40 + Math.random() * 70) + '%'; d.style.animationDuration = (8 + Math.random() * 10) + 's'; d.style.animationDelay = (-Math.random() * 14) + 's'; m.appendChild(d); } })();
 
 // ── Novedades (carrusel) ──
 let slideIndex = 0, autoSlide = null;

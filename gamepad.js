@@ -76,7 +76,7 @@
     if (!activo) return;
     activo = false; modoPuntero = false;
     document.documentElement.classList.remove('gp-on');
-    ring.style.display = 'none'; ptr.style.display = 'none'; hud.style.display = 'none';
+    ring.style.display = 'none'; ptr.style.display = 'none'; hud.style.display = 'none'; try { marcar(null); } catch (e) {}
     cancelAnimationFrame(raf);
   }
   addEventListener('pointerdown', e => { if (e.isTrusted && !e._gp) desactivar(); }, true);
@@ -237,8 +237,17 @@
     const c = CFG(); if (c.alEnfocar) try { c.alEnfocar(el); } catch (e) {}
     dibujarAnillo();
   }
+  // El elemento enfocado lleva la clase "gp-foco" (las páginas pueden dibujar su propio marco, p. ej. en un tablero en perspectiva)
+  let marcado = null;
+  function marcar(el) {
+    if (marcado === el) return;
+    if (marcado) marcado.classList.remove('gp-foco');
+    marcado = el; if (el) el.classList.add('gp-foco');
+  }
   function dibujarAnillo() {
-    if (!activo || modoPuntero || !foco || !foco.isConnected) { ring.style.display = 'none'; return; }
+    if (!activo || modoPuntero || !foco || !foco.isConnected) { ring.style.display = 'none'; marcar(null); return; }
+    marcar(foco);
+    const c = CFG(); if (c.sinAnillo) { let no = false; try { no = c.sinAnillo(foco); } catch (e) {} if (no) { ring.style.display = 'none'; return; } }
     const r = foco.getBoundingClientRect();
     if (r.width < 2) { ring.style.display = 'none'; return; }
     ring.style.display = 'block';
@@ -390,7 +399,7 @@
         if (Math.hypot(rx, ry) > DZ_R) { const c = CFG(); try { stickPag = !!(c.stickDerecho && c.stickDerecho(rx, ry)); } catch (e) {} if (stickPag) dibujarAnillo(); }
         if (!stickPag && Math.hypot(rx, ry) > DZ_R) {
           if (!modoPuntero) {
-            modoPuntero = true; ring.style.display = 'none';
+            modoPuntero = true; ring.style.display = 'none'; marcar(null);
             if (foco && foco.isConnected) { const [x, y] = centro(foco); px = x; py = y; } else { px = vw() / 2; py = vh() / 2; }
           }
           const [sx, sy] = aPantalla(rx, ry), v = 11;

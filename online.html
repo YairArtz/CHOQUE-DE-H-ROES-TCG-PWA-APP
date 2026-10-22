@@ -854,12 +854,15 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 :root.vista3d .center{position:relative}
 :root.vista3d .game>.panel{position:relative;z-index:2}
 #mesa3d{position:absolute;z-index:-1;pointer-events:none;display:none;transform:rotateX(var(--tilt)) scale(1.04);
-  -webkit-mask-image:linear-gradient(to bottom,transparent 0%,rgba(0,0,0,.25) 22%,#000 50%);mask-image:linear-gradient(to bottom,transparent 0%,rgba(0,0,0,.25) 22%,#000 50%)}
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0%,rgba(0,0,0,.25) 18%,#000 42%);mask-image:linear-gradient(to bottom,transparent 0%,rgba(0,0,0,.25) 18%,#000 42%)}
+/* v87 · Imagen de mesa: una sola, ampliada y sin repetir; los bordes se funden con el fondo (no se ve ninguna unión) */
+#mesa3d.foto{-webkit-mask-image:linear-gradient(to bottom,transparent 0%,rgba(0,0,0,.3) 16%,#000 40%),linear-gradient(to right,transparent 0%,#000 14%,#000 86%,transparent 100%);
+  -webkit-mask-composite:source-in;mask-image:linear-gradient(to bottom,transparent 0%,rgba(0,0,0,.3) 16%,#000 40%),linear-gradient(to right,transparent 0%,#000 14%,#000 86%,transparent 100%);mask-composite:intersect}
 :root{--cielo:radial-gradient(ellipse 75% 38% at 50% 14%,rgba(255,190,120,.10),transparent 70%),linear-gradient(#060409,#0d0907 55%,#0a0705)}
 :root.vista3d .aztec-bg{background:var(--cielo)!important;background-size:cover!important;background-position:center top!important;opacity:1!important;filter:none!important}
 /* v85 · Cartas del tablero: se levantan un poco al pasar el cursor o el control */
 :root.vista3d .board .bc.occ{transition:box-shadow .15s,translate .15s}
-:root.vista3d .board .bc.occ:hover,:root.vista3d.gp-on .board .bc.occ.gpf{translate:0 -4px;box-shadow:0 8px 0 rgba(0,0,0,.45),0 12px 14px rgba(0,0,0,.5),0 0 10px rgba(255,255,255,.25)}
+:root.vista3d .board .bc.occ:hover,:root.vista3d .board .bc.occ.gp-foco{translate:0 -4px;box-shadow:0 8px 0 rgba(0,0,0,.45),0 12px 14px rgba(0,0,0,.5),0 0 10px rgba(255,255,255,.25)}
 :root.vista3d .board .bc.tgt{translate:0 -2px}
 /* Carta de la mano: al pasar el cursor o el control encima, se levanta ampliada */
 #handPeek{position:absolute;z-index:460;pointer-events:none;border-radius:7px;opacity:0;transform:translateY(10px) scale(.86);transform-origin:50% 100%;
@@ -868,6 +871,10 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 #handPeek.on{opacity:1;transform:none}
 #handPeek.ok{border-color:var(--green);box-shadow:0 10px 26px rgba(0,0,0,.75),0 0 18px rgba(0,232,122,.55)}
 #handPeek.no{filter:saturate(.55) brightness(.8)}
+#handPeek.sel{border-color:#f5c842;box-shadow:0 10px 26px rgba(0,0,0,.75),0 0 0 2px rgba(0,0,0,.5),0 0 22px rgba(245,200,66,.75)}
+/* v87 · Marco del control en perspectiva (se dibuja en la propia casilla del tablero inclinado) */
+@keyframes gpP3{50%{box-shadow:0 0 0 3px #fff3c4,0 0 0 5px rgba(0,0,0,.6),0 0 30px 10px rgba(245,200,66,.9)}}
+:root.vista3d #board .gp-foco{box-shadow:0 0 0 3px #f5c842,0 0 0 5px rgba(0,0,0,.6),0 0 22px 6px rgba(245,200,66,.65)!important;z-index:6;animation:gpP3 .9s ease-in-out infinite!important}
 .hcard.peek .hcard-img{opacity:.25}
 @media (prefers-reduced-motion:reduce){#handPeek{transition:none}}
 </style>
@@ -1327,7 +1334,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v86';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v87';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -9026,25 +9033,37 @@ function peekShow(h){
   pk.style.cssText='left:'+x+'px;top:'+y+'px;width:'+w+'px;height:'+ht+'px;background-image:url("'+src+'")'+(C[cid].imgMin?',url("'+C[cid].imgMin+'")':'');
   const ok=!h.classList.contains('unplay');
   pk.classList.toggle('ok',ok);pk.classList.toggle('no',!ok);
+  pk.classList.toggle('sel',h.classList.contains('sel')||h.classList.contains('gp-foco'));
   h.classList.add('peek');
   requestAnimationFrame(()=>pk.classList.add('on'));
 }
 function peekHide(){if(PEEK.el)PEEK.el.classList.remove('on');if(PEEK.h)PEEK.h.classList.remove('peek');PEEK.h=null;}
+// v87 · la carta queda ampliada mientras está ELEGIDA (al hacer clic para usarla ya no se achica)
+function peekCandidata(){
+  const L=document.querySelectorAll('#handrow .hcard');
+  const hov=!PEEK.tactil&&document.querySelector('#handrow .hcard:hover'); if(hov) return hov;
+  let gf=null;try{gf=window.GP&&GP.activo()&&GP.foco&&GP.foco();}catch(e){}
+  const g=gf&&gf.isConnected&&gf.closest&&gf.closest('#handrow .hcard'); if(g) return g;
+  if(!PEEK.tactil&&typeof SEL_IDX!=='undefined'&&SEL_IDX>=0&&L[SEL_IDX]) return L[SEL_IDX];
+  return null;
+}
+function peekRefrescar(){try{const h=peekCandidata();if(h)peekShow(h);else peekHide();}catch(e){}}
 (function(){
   const hr=document.getElementById('handrow'); if(!hr) return;
   const raton=e=>e.pointerType==='mouse'||e.pointerType==='pen';
-  hr.addEventListener('pointerover',e=>{if(!raton(e))return;const h=e.target.closest&&e.target.closest('.hcard');if(h)peekShow(h);else peekHide();});
-  hr.addEventListener('pointerleave',e=>{if(raton(e))peekHide();});
-  hr.addEventListener('pointerdown',e=>{if(!raton(e))peekHide();});
+  hr.addEventListener('pointerover',e=>{if(!raton(e))return;PEEK.tactil=false;peekRefrescar();});
+  hr.addEventListener('pointerleave',e=>{if(raton(e))setTimeout(peekRefrescar,0);});
+  hr.addEventListener('pointerdown',e=>{if(!raton(e)){PEEK.tactil=true;peekHide();}});
+  hr.addEventListener('click',()=>setTimeout(peekRefrescar,30));
   hr.addEventListener('scroll',()=>{if(PEEK.h)peekShow(PEEK.h);},{passive:true});
 })();
-{const _rh=renderHand;renderHand=function(){const tenia=!!PEEK.h;peekHide();const r=_rh.apply(this,arguments);
-  if(tenia) setTimeout(()=>{try{const gf=window.GP&&GP.activo()&&GP.foco&&GP.foco();
-    const h=(gf&&gf.closest&&gf.closest('#handrow .hcard'))||document.querySelector('#handrow .hcard:hover');if(h)peekShow(h);}catch(e){}},40);
-  return r;};}
-if(window.GP_CFG){const _ae=GP_CFG.alEnfocar;GP_CFG.alEnfocar=el=>{try{if(_ae)_ae(el);}catch(e){}
-  try{const h=el&&el.closest&&el.closest('#handrow .hcard');if(h)peekShow(h);else peekHide();}catch(e){}
-  try{document.querySelectorAll('.bc.gpf').forEach(x=>x.classList.remove('gpf'));const b=el&&el.closest&&el.closest('#board .bc');if(b)b.classList.add('gpf');}catch(e){}};}
+{const _rh=renderHand;renderHand=function(){peekHide();const r=_rh.apply(this,arguments);
+  peekRefrescar();setTimeout(peekRefrescar,90);return r;};}
+if(window.GP_CFG){const _ae=GP_CFG.alEnfocar;GP_CFG.alEnfocar=el=>{try{if(_ae)_ae(el);}catch(e){}setTimeout(peekRefrescar,0);};
+  // En la vista 3D el marco del control se dibuja DENTRO del tablero (queda en perspectiva); en la mano lo marca la carta ampliada
+  const _sa=GP_CFG.sinAnillo;GP_CFG.sinAnillo=el=>{try{if(_sa&&_sa(el))return true;}catch(e){}
+    if(vista3d()&&el.closest&&el.closest('#board'))return true;
+    return !!(PEEK.h&&PEEK.h===el&&PEEK.el&&PEEK.el.classList.contains('on'));};}
 {const _eg=endGame;endGame=function(){peekHide();return _eg.apply(this,arguments);};}
 // ── v86 · Piso 3D de la mesa: mismo plano que el tablero ──
 function mesa3dSync(){
@@ -9054,7 +9073,7 @@ function mesa3dSync(){
   if(!m){m=document.createElement('div');m.id='mesa3d';c.insertBefore(m,c.firstChild);}
   if(!vista3d()){m.style.display='none';return;}
   const bw=b.offsetWidth,bh=b.offsetHeight; if(bw<10) return;
-  const X=bw*1.7,Y=bh*3.4,Yb=bh*1.4;
+  const X=bw*1.45,Y=bh*2.4,Yb=bh*1.1;
   // Toma el fondo de la mesa elegida (sin el "cielo" del modo 3D)
   const dm=document.documentElement; dm.classList.remove('vista3d');
   const cs=getComputedStyle(bg), img=cs.backgroundImage, col=cs.backgroundColor, rep=cs.backgroundRepeat, sz=cs.backgroundSize, op=cs.opacity;
@@ -9064,7 +9083,8 @@ function mesa3dSync(){
   if(esFoto&&AP.mesa3d&&dm.dataset.mesa==='imagen') fondo='linear-gradient(rgba(5,4,8,.35),rgba(5,4,8,.35)),url("'+AP.mesa3d+'")';
   m.style.cssText='display:block;left:'+(b.offsetLeft-X)+'px;top:'+(b.offsetTop-Y)+'px;width:'+(bw+2*X)+'px;height:'+(bh+Y+Yb)+'px;'+
     'transform-origin:'+(X+bw/2)+'px '+(Y+bh)+'px;background-image:'+fondo+';background-color:'+col+';opacity:'+(esFoto?1:Math.max(+op,.06))+';'+
-    (esFoto?'background-size:'+Math.round(bw*2.6)+'px auto;background-position:center '+Math.round(Y+bh*.5)+'px;background-repeat:repeat':'background-size:'+sz+';background-repeat:'+rep);
+    (esFoto?'background-size:cover;background-position:center bottom;background-repeat:no-repeat':'background-size:'+sz+';background-repeat:'+rep);
+  m.classList.toggle('foto',esFoto);
 }
 {const _va=vistaAplicar;vistaAplicar=function(){_va.apply(this,arguments);try{mesa3dSync();}catch(e){}};}
 {const _am=apAplicarMesa;apAplicarMesa=function(){const r=_am.apply(this,arguments);try{mesa3dSync();}catch(e){}return r;};}

@@ -4,11 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#04061a">
-<title>Tienda física · Choque de Héroes TCG</title>
+<title>Tienda Online · Choque de Héroes TCG</title>
 <link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
 <!--
-  TIENDA FÍSICA · productos físicos y preventas con envío a domicilio, cobrados con Mercado Pago.
+  TIENDA ONLINE · productos físicos y preventas, cobrados con Mercado Pago.
+  Entregas: Mexpost · Paquetería express · Repartidor (misma ciudad) · Entrega personal (se acuerda por Instagram/Facebook).
   · PEDIDOS_URL = URL del Apps Script "TiendaFisica.gs" (Implementar → Aplicación web). Vacío = MODO DEMOSTRACIÓN
     (catálogo de ejemplo y pago simulado; no se cobra nada).
   · El catálogo, el cupo, los precios y los costos de envío viven en la hoja de cálculo (pestaña "Productos").
@@ -188,7 +189,7 @@ html.gp-on .gpHint{display:block}
 <body>
 <header class="top-bar">
   <a href="index.html" class="back-btn" aria-label="Regresar al menú">‹</a>
-  <h1 class="top-title">TIENDA FÍSICA<small id="sub">Preventas y productos con envío a todo México</small></h1>
+  <h1 class="top-title">TIENDA ONLINE<small id="sub">Preventas y productos con envío o entrega personal</small></h1>
   <button type="button" id="bCarro" aria-label="Carrito"><span aria-hidden="true">🛒</span><span class="t">Carrito</span><span class="n" id="nCarro">0</span></button>
 </header>
 <main>
@@ -235,6 +236,19 @@ const fechaTxt = s => { if (!s) return ''; const m = String(s).match(/^(\d{4})-(
 const mesTxt = s => { const m = String(s || '').match(/^(\d{4})-(\d{2})/); return m ? new Date(+m[1], m[2] - 1, 1).toLocaleDateString('es-MX', { month: 'long', year: 'numeric' }) : fechaTxt(s); };
 function toast(t, bad) { const el = $('toast'); el.textContent = t; el.classList.toggle('bad', !!bad); el.classList.add('on'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('on'), 2600); }
 function sesion() { const s = ls.get('nhSesion', null); return s && s.tipo !== 'tienda' && s.id ? s : null; }
+const costoTxt = n => Number(n) > 0 ? $$(n) : 'Sin costo';
+const esPersonal = p => p && p.envio && p.envio.id === 'personal';
+const linkIG = () => 'https://ig.me/m/' + encodeURIComponent((CAT.contacto || {}).instagram || 'choquedeheroestcg');
+const linkFB = () => 'https://m.me/' + encodeURIComponent((CAT.contacto || {}).facebook || 'choquedheroes');
+function botonesContacto(folio) {   // abre el chat de Instagram/Facebook y deja copiado un mensaje con el folio
+  return `<div class="guia" data-folio="${esc(folio)}"><a class="chip" href="${linkIG()}" target="_blank" rel="noopener" data-msg>📷 Instagram</a><a class="chip" href="${linkFB()}" target="_blank" rel="noopener" data-msg>💬 Facebook</a></div>`;
+}
+function activarContacto() {
+  document.querySelectorAll('[data-folio] [data-msg]').forEach(a => a.addEventListener('click', () => {
+    const f = a.closest('[data-folio]').dataset.folio, txt = 'Hola, mi pedido de la Tienda Online es ' + f + '.';
+    try { navigator.clipboard.writeText(txt).then(() => toast('Mensaje copiado: pégalo en el chat')).catch(() => {}); } catch (e) {}
+  }));
+}
 const ESTADOS_MX = ['Aguascalientes', 'Baja California', 'Baja California Sur', 'Campeche', 'Chiapas', 'Chihuahua', 'Ciudad de México', 'Coahuila', 'Colima', 'Durango', 'Estado de México', 'Guanajuato', 'Guerrero', 'Hidalgo', 'Jalisco', 'Michoacán', 'Morelos', 'Nayarit', 'Nuevo León', 'Oaxaca', 'Puebla', 'Querétaro', 'Quintana Roo', 'San Luis Potosí', 'Sinaloa', 'Sonora', 'Tabasco', 'Tamaulipas', 'Tlaxcala', 'Veracruz', 'Yucatán', 'Zacatecas'];
 
 // ════════════════════════════════════════════════════════════════════
@@ -250,7 +264,9 @@ async function llamar(params, cuerpo) {
   finally { clearTimeout(to); }
 }
 const DEMO_CAT = {
-  envios: [{ id: 'mexpost', nombre: 'Nacional · Mexpost', detalle: 'Correos de México, con número de guía', costo: 70 }, { id: 'express', nombre: 'Paquetería express', detalle: 'Estafeta o FedEx, entrega más rápida', costo: 150 }],
+  envios: [{ id: 'mexpost', nombre: 'Nacional · Mexpost', detalle: 'Correos de México, con número de guía', costo: 70, domicilio: true }, { id: 'express', nombre: 'Paquetería express', detalle: 'Estafeta o FedEx, entrega más rápida', costo: 150, domicilio: true },
+    { id: 'repartidor', nombre: 'Repartidor', detalle: 'Solo San Luis Potosí · Uber, inDrive o DiDi', costo: 99, domicilio: true, ciudad: 'San Luis Potosí' }, { id: 'personal', nombre: 'Entrega personal', detalle: 'Sin costo · acordamos lugar y hora por mensaje', costo: 0, domicilio: false }],
+  contacto: { instagram: 'choquedeheroestcg', facebook: 'choquedheroes' },
   politica: 'Ejemplo de política (edítala en la hoja "Config"):\n• Las preventas se envían en la fecha estimada de lanzamiento; si cambia, te avisamos por correo.\n• Puedes cancelar una preventa antes de su fecha límite y se te reembolsa el pago completo.\n• Los productos disponibles se envían en 3 a 5 días hábiles después de que captures tus datos de envío.',
   productos: [
     { sku: 'exp5_caja', nombre: 'Caja de sobres · Expansión 5', tipo: 'preventa', precio: 1200, disponibles: 48, limite: 2, entrega: '2027-03-15', cierre: '2027-02-15', imagen: 'Banner_1.jpg', categoria: 'Expansión 5', descripcion: 'Caja sellada con 24 sobres de la quinta expansión.\nIncluye carta promocional exclusiva de preventa.' },
@@ -356,7 +372,7 @@ function abrirProducto(sku) {
     <span class="tag ${c}" style="position:static;display:inline-block">${t}</span>
     <div class="dpr" style="margin-top:8px">${$$(p.precio)}</div>
     ${p.descripcion ? `<p class="dtx">${esc(p.descripcion)}</p>` : ''}
-    <div class="datos">${p.tipo === 'preventa' ? `<span>Entrega estimada</span><b>${esc(fechaTxt(p.entrega) || 'Por anunciar')}</b>${p.cierre ? `<span>Preventa hasta</span><b>${esc(fechaTxt(p.cierre))}</b>` : ''}` : '<span>Envío</span><b>Después de capturar tus datos</b>'}
+    <div class="datos">${p.tipo === 'preventa' ? `<span>Entrega estimada</span><b>${esc(fechaTxt(p.entrega) || 'Por anunciar')}</b>${p.cierre ? `<span>Preventa hasta</span><b>${esc(fechaTxt(p.cierre))}</b>` : ''}` : '<span>Entrega</span><b>Después de pagar</b>'}
       ${p.limite ? `<span>Límite</span><b>${p.limite} por persona</b>` : ''}<span>Disponibles</span><b>${p.disponibles > 0 ? p.disponibles : 'Agotado'}</b>${en ? `<span>En tu carrito</span><b>${en}</b>` : ''}</div>
     ${max - en > 0 ? `<div class="fila2"><div class="cant"><button type="button" id="pMen" aria-label="Menos">−</button><span id="pN">${n}</span><button type="button" id="pMas" aria-label="Más">+</button></div><span id="pSub" style="font-weight:700;font-size:16px">${$$(p.precio * n)}</span></div>` : ''}`,
     max - en > 0 ? `<button class="btn" type="button" id="pAdd">Agregar al carrito</button>` : `<button class="btn sec" type="button" id="pVer">${p.disponibles <= 0 ? 'Agotado · ver carrito' : 'Ya tienes el máximo · ver carrito'}</button>`);
@@ -368,7 +384,7 @@ function abrirProducto(sku) {
 
 function abrirCarro() {
   const C = carro().filter(i => prod(i.sku)), s = sesion();
-  if (!C.length) { abrirHoja('carro', 'Carrito', '<div class="vacio"><b>Tu carrito está vacío</b>Agrega productos o preventas para pedirlos con envío a domicilio.</div>', '<button class="btn sec" type="button" id="cSeguir">Ver productos</button>'); $('cSeguir').onclick = cerrarHoja; return; }
+  if (!C.length) { abrirHoja('carro', 'Carrito', '<div class="vacio"><b>Tu carrito está vacío</b>Agrega productos o preventas para pedirlos.</div>', '<button class="btn sec" type="button" id="cSeguir">Ver productos</button>'); $('cSeguir').onclick = cerrarHoja; return; }
   let envio = ls.get(K_ENVIO, (CAT.envios[0] || {}).id); if (!CAT.envios.find(e => e.id === envio)) envio = (CAT.envios[0] || {}).id;
   const grupo = tipo => C.filter(i => prod(i.sku).tipo === tipo).map(i => { const p = prod(i.sku);
     return `<div class="ci"><div class="im" style="background-image:url('${esc(p.imagen || 'REVERSO_2021.jpg')}')"></div><div><b>${esc(p.nombre)}</b><small>${$$(p.precio)} c/u</small><br>
@@ -376,14 +392,15 @@ function abrirCarro() {
       <div class="der"><b>${$$(p.precio * i.cant)}</b><button type="button" class="quitar" data-q="${esc(i.sku)}">Quitar</button></div></div>`; }).join('');
   const disp = grupo('disponible'), pre = grupo('preventa');
   const fechas = C.map(i => prod(i.sku)).filter(p => p.tipo === 'preventa' && p.entrega).map(p => p.entrega).sort(), ultima = fechas[fechas.length - 1];
-  const sub = C.reduce((t, i) => t + prod(i.sku).precio * i.cant, 0), env = CAT.envios.find(e => e.id === envio) || { costo: 0 };
+  const sub = C.reduce((t, i) => t + prod(i.sku).precio * i.cant, 0), env = CAT.envios.find(e => e.id === envio) || { costo: 0, domicilio: true };
   abrirHoja('carro', 'Carrito', `${disp ? '<h3>Disponible ahora</h3>' + disp : ''}${pre ? '<h3>Preventa</h3>' + pre : ''}
-    ${disp && pre ? `<p class="aviso">Tu pedido mezcla productos disponibles y de preventa: <b>se envía todo junto</b> cuando llegue la preventa${ultima ? ' (estimado ' + esc(mesTxt(ultima)) + ')' : ''}. Si quieres recibir antes lo disponible, haz dos pedidos por separado.</p>` : pre ? `<p class="aviso">Se envía cuando llegue la preventa${ultima ? ' (estimado ' + esc(mesTxt(ultima)) + ')' : ''}.</p>` : ''}
-    <h3>Envío a domicilio</h3>
-    ${CAT.envios.map(e => `<button type="button" class="env${e.id === envio ? ' on' : ''}" data-e="${esc(e.id)}" aria-pressed="${e.id === envio}"><i></i><span><b>${esc(e.nombre)}</b><small>${esc(e.detalle || '')}</small></span><span class="c">${$$(e.costo)}</span></button>`).join('')}
-    <p class="pol" style="margin-top:2px">Capturas tu dirección después de pagar.</p>
-    <div class="tot"><span>Subtotal</span><span>${$$(sub)}</span><span>Envío</span><span>${$$(env.costo)}</span><span class="g">Total</span><span class="g">${$$(sub + env.costo)}</span></div>
+    ${disp && pre ? `<p class="aviso">Tu pedido mezcla productos disponibles y de preventa: <b>se entrega todo junto</b> cuando llegue la preventa${ultima ? ' (estimado ' + esc(mesTxt(ultima)) + ')' : ''}. Si quieres recibir antes lo disponible, haz dos pedidos por separado.</p>` : pre ? `<p class="aviso">Se entrega cuando llegue la preventa${ultima ? ' (estimado ' + esc(mesTxt(ultima)) + ')' : ''}.</p>` : ''}
+    <h3>Entrega</h3>
+    ${CAT.envios.map(e => `<button type="button" class="env${e.id === envio ? ' on' : ''}" data-e="${esc(e.id)}" aria-pressed="${e.id === envio}"><i></i><span><b>${esc(e.nombre)}</b><small>${esc(e.detalle || '')}</small></span><span class="c">${costoTxt(e.costo)}</span></button>`).join('')}
+    <p class="pol" style="margin-top:2px">${env.domicilio === false ? 'Después de pagar nos escribes por Instagram o Facebook con tu folio y acordamos lugar y hora.' : 'Capturas tu dirección después de pagar.'}</p>
+    <div class="tot"><span>Subtotal</span><span>${$$(sub)}</span><span>${esc(env.nombre || 'Entrega')}</span><span>${costoTxt(env.costo)}</span><span class="g">Total</span><span class="g">${$$(sub + env.costo)}</span></div>
     ${CAT.politica ? `<details><summary>Política de compra y preventas</summary><p class="pol">${esc(CAT.politica)}</p></details>` : ''}
+    ${s && env.ciudad ? `<label class="chk"><input type="checkbox" id="cCiudad"> Confirmo que la entrega es dentro de ${esc(env.ciudad)}.</label>` : ''}
     ${s ? `<label class="chk"><input type="checkbox" id="cAcepto"> Acepto la política de compra y preventas.</label>` : `<p class="aviso">Para pagar necesitas iniciar sesión con tu ID de jugador. Tu carrito se queda guardado.</p>`}
     <p class="gpHint"><i>B</i> cerrar</p>`,
     s ? `<button class="btn mp" type="button" id="cPagar" disabled>Pagar ${$$(sub + env.costo)} con Mercado Pago</button>` : `<a class="btn" href="perfil.html">Iniciar sesión</a>`);
@@ -393,7 +410,8 @@ function abrirCarro() {
   $('hBody').querySelectorAll('[data-p]').forEach(b => b.onclick = () => { cambiarCant(b.dataset.p, 1); rehacer(); });
   $('hBody').querySelectorAll('[data-q]').forEach(b => b.onclick = () => { guardarCarro(carro().filter(i => i.sku !== b.dataset.q)); pintarGrid(); abrirCarro(); });
   $('hBody').querySelectorAll('[data-e]').forEach(b => b.onclick = () => { ls.set(K_ENVIO, b.dataset.e); rehacer(); });
-  if ($('cAcepto')) $('cAcepto').onchange = () => { $('cPagar').disabled = !$('cAcepto').checked; };
+  const listo = () => { if ($('cPagar')) $('cPagar').disabled = !($('cAcepto') && $('cAcepto').checked) || !!($('cCiudad') && !$('cCiudad').checked); };
+  if ($('cAcepto')) $('cAcepto').onchange = listo; if ($('cCiudad')) $('cCiudad').onchange = listo;
   if ($('cPagar')) $('cPagar').onclick = () => pagar(envio);
 }
 
@@ -422,7 +440,7 @@ const ESTADO = {
   pendiente: ['e-pend', 'Pago pendiente'], pagado: ['e-falta', 'Falta tu dirección'], por_enviar: ['e-ok', 'Preparando envío'], enviado: ['e-env', 'Enviado'],
   entregado: ['e-fin', 'Entregado'], rechazado: ['e-bad', 'Pago rechazado'], vencido: ['e-fin', 'Venció el pago'], cancelado: ['e-fin', 'Cancelado'], reembolsado: ['e-fin', 'Reembolsado'], revisar: ['e-pend', 'En revisión']
 };
-const est = e => ESTADO[e] || ['e-fin', e];
+const est = (e, p) => esPersonal(p) && e === 'pagado' ? ['e-falta', 'Faltan tus datos'] : esPersonal(p) && e === 'por_enviar' ? ['e-ok', 'Por acordar entrega'] : ESTADO[e] || ['e-fin', e];
 async function cargarPedidos() {
   const claves = ls.get(K_CLAVES, {});
   if (!Object.keys(claves).length) { PEDS = []; pintarPedidos(); return; }
@@ -433,37 +451,44 @@ async function cargarPedidos() {
 }
 function pintarPedidos() {
   const falta = PEDS.filter(p => p.estado === 'pagado').length; $('bPend').hidden = !falta; $('bPend').textContent = falta;
-  if (!PEDS.length) { $('peds').innerHTML = '<div class="vacio"><b>Aún no tienes pedidos</b>Tus compras de la tienda física aparecerán aquí con su estado de envío.</div>'; return; }
-  $('peds').innerHTML = PEDS.map(p => { const [c, t] = est(p.estado);
+  if (!PEDS.length) { $('peds').innerHTML = '<div class="vacio"><b>Aún no tienes pedidos</b>Tus compras de la Tienda Online aparecerán aquí con su estado de entrega.</div>'; return; }
+  $('peds').innerHTML = PEDS.map(p => { const [c, t] = est(p.estado, p);
     return `<button type="button" class="ped" data-id="${esc(p.id)}"><b>${esc(p.id)}</b><span class="tt">${$$(p.total)}</span>
       <small>${esc(p.items.map(i => i.cant + '× ' + i.nombre).join(', '))}</small><span class="est ${c}">${t}</span></button>`; }).join('') +
-    '<p class="pol" style="margin-top:8px">Tus pedidos se guardan en este dispositivo. Cuando captures tu dirección te llegará un correo con el enlace de seguimiento para verlos desde cualquier lugar.</p>';
+    '<p class="pol" style="margin-top:8px">Tus pedidos se guardan en este dispositivo. Cuando captures tus datos de entrega te llegará un correo con el enlace de seguimiento para verlos desde cualquier lugar.</p>';
   $('peds').querySelectorAll('[data-id]').forEach(b => b.onclick = () => abrirPedido(b.dataset.id));
 }
 function abrirPedido(id, recien) {
   const p = PEDS.find(x => x.id === id); if (!p) return; const clave = ls.get(K_CLAVES, {})[id];
-  const [c, t] = est(p.estado), paso = { pendiente: 0, pagado: 1, por_enviar: 2, enviado: 3, entregado: 4 }[p.estado];
-  const pasos = ['Pago', 'Dirección', 'Envío', 'Entrega'].map((n, i) => `<div class="${paso == null ? '' : i < paso ? 'ok' : i === paso ? 'ya' : ''}">${n}</div>`).join('');
+  const per = esPersonal(p), [c, t] = est(p.estado, p);
+  const paso = per ? { pendiente: 0, pagado: 1, por_enviar: 2, enviado: 2, entregado: 3 }[p.estado] : { pendiente: 0, pagado: 1, por_enviar: 2, enviado: 3, entregado: 4 }[p.estado];
+  const pasos = (per ? ['Pago', 'Tus datos', 'Entrega'] : ['Pago', 'Dirección', 'Envío', 'Entrega']).map((n, i) => `<div class="${paso == null ? '' : i < paso ? 'ok' : i === paso ? 'ya' : ''}">${n}</div>`).join('');
   const fechas = p.items.filter(i => i.tipo === 'preventa' && i.entrega).map(i => i.entrega).sort(), ultima = fechas[fechas.length - 1];
-  let cuerpo = `<p style="margin-bottom:10px"><span class="est ${c}">${t}</span> <span class="pol">· ${esc(fechaTxt(p.fecha))}</span></p>${paso != null ? `<div class="pasos">${pasos}</div>` : ''}`;
+  let cuerpo = `<p style="margin-bottom:10px"><span class="est ${c}">${t}</span> <span class="pol">· ${esc(fechaTxt(p.fecha))}</span></p>${paso != null ? `<div class="pasos"${per ? ' style="grid-template-columns:repeat(3,1fr)"' : ''}>${pasos}</div>` : ''}`;
   if (p.estado === 'pendiente') cuerpo += `<p class="aviso">${recien ? 'Estamos esperando la confirmación de Mercado Pago. Si pagaste en OXXO o por transferencia, puede tardar hasta 1 día hábil.' : 'Aún no recibimos tu pago. Si elegiste OXXO o transferencia, completa el pago antes de que venza (72 horas).'}</p>`;
   if (p.estado === 'rechazado') cuerpo += `<p class="aviso bad">Mercado Pago rechazó el pago. No se hizo ningún cargo. Puedes volver a intentarlo desde el carrito con otra forma de pago.</p>`;
   if (p.estado === 'vencido') cuerpo += `<p class="aviso bad">El tiempo para pagar terminó y el cupo se liberó.</p>`;
-  if (p.estado === 'pagado') cuerpo += `<p class="aviso ok">✓ Pago recibido. Ahora captura la dirección a donde enviaremos tu pedido.</p>` + formEnvio(p);
+  if (p.estado === 'pagado') cuerpo += (per ? `<p class="aviso ok">✓ Pago recibido. Déjanos tus datos de contacto y después escríbenos para acordar lugar y hora.</p>` : `<p class="aviso ok">✓ Pago recibido. Ahora captura la dirección a donde ${p.envio.id === 'repartidor' ? 'llevará el repartidor' : 'enviaremos'} tu pedido.</p>`) + formEnvio(p);
   if (p.estado === 'revisar') cuerpo += `<p class="aviso">Estamos revisando tu pago. Te escribiremos si necesitamos algo.</p>`;
   if (['por_enviar', 'enviado', 'entregado'].includes(p.estado) && p.datos) {
     const d = p.datos;
-    cuerpo += `<h3>Dirección de envío</h3><div class="dir">${esc(d.nombre)} · ${esc(d.telefono)}<br>${esc(d.calle)}${d.interior ? ', int. ' + esc(d.interior) : ''}<br>Col. ${esc(d.colonia)}, C.P. ${esc(d.cp)}<br>${esc(d.municipio)}, ${esc(d.estado)}${d.referencias ? '<br><span class="pol">' + esc(d.referencias) + '</span>' : ''}</div>`;
+    if (per) {
+      cuerpo += `<h3>Entrega personal</h3><div class="dir">${esc(d.nombre)} · ${esc(d.telefono)}${d.referencias ? '<br><span class="pol">' + esc(d.referencias) + '</span>' : ''}</div>`;
+      if (p.estado !== 'entregado') cuerpo += `<p class="aviso">${ultima ? 'Incluye preventa: la entregamos cuando llegue (estimado ' + esc(mesTxt(ultima)) + '). ' : ''}Escríbenos con tu folio <b>${esc(p.id)}</b> para acordar lugar y hora. Al tocar un botón se copia un mensaje listo para pegar.</p>${botonesContacto(p.id)}<button type="button" class="chip" id="oEdit" style="margin-top:10px">✎ Corregir mis datos</button>`;
+    } else {
+    cuerpo += `<h3>${p.envio.id === 'repartidor' ? 'Dirección para el repartidor' : 'Dirección de envío'}</h3><div class="dir">${esc(d.nombre)} · ${esc(d.telefono)}<br>${esc(d.calle)}${d.interior ? ', int. ' + esc(d.interior) : ''}<br>Col. ${esc(d.colonia)}, C.P. ${esc(d.cp)}<br>${esc(d.municipio)}, ${esc(d.estado)}${d.referencias ? '<br><span class="pol">' + esc(d.referencias) + '</span>' : ''}</div>`;
     if (p.estado === 'por_enviar') cuerpo += `<p class="pol" style="margin-top:6px">${ultima ? 'Incluye preventa: se envía cuando llegue (estimado ' + esc(mesTxt(ultima)) + ').' : 'Te avisaremos cuando salga tu paquete.'}</p><button type="button" class="chip" id="oEdit" style="margin-top:10px">✎ Corregir dirección</button>`;
+    }
     if (p.guia) cuerpo += `<h3>Rastreo</h3><div class="guia"><span>${esc(p.paqueteria || p.envio.nombre)}</span><code>${esc(p.guia)}</code><button type="button" class="chip" id="oCopia">Copiar</button>${/^https:\/\//.test(p.rastreo || '') ? `<a class="chip" href="${esc(p.rastreo)}" target="_blank" rel="noopener">Rastrear</a>` : ''}</div>`;
   }
   cuerpo += `<h3>Productos</h3>${p.items.map(i => `<div class="ci" style="grid-template-columns:minmax(0,1fr) auto"><div><b>${i.cant}× ${esc(i.nombre)}</b>${i.tipo === 'preventa' ? `<small>Preventa${i.entrega ? ' · ' + esc(mesTxt(i.entrega)) : ''}</small>` : ''}</div><b style="font-family:Orbitron,sans-serif;font-size:13px">${$$(i.precio * i.cant)}</b></div>`).join('')}
-    <div class="tot"><span>Subtotal</span><span>${$$(p.subtotal)}</span><span>${esc(p.envio.nombre)}</span><span>${$$(p.envio.costo)}</span><span class="g">Total</span><span class="g">${$$(p.total)}</span></div>
-    <p class="pol">¿Dudas con tu pedido? Menciona el folio <b>${esc(p.id)}</b>.</p><p class="gpHint"><i>B</i> cerrar</p>`;
-  const pie = p.estado === 'pagado' ? `<button class="btn" type="button" id="oGuardar">Guardar dirección</button>` : p.estado === 'pendiente' && p.pagoUrl ? `<a class="btn mp" href="${esc(p.pagoUrl)}">Terminar pago en Mercado Pago</a>` : '';
-  abrirHoja('ped', 'Pedido ' + p.id, cuerpo, pie);
+    <div class="tot"><span>Subtotal</span><span>${$$(p.subtotal)}</span><span>${esc(p.envio.nombre)}</span><span>${costoTxt(p.envio.costo)}</span><span class="g">Total</span><span class="g">${$$(p.total)}</span></div>
+    ${per && p.datos && p.estado !== 'entregado' ? '' : `<h3>¿Dudas con tu pedido?</h3><p class="pol">Escríbenos y menciona el folio <b>${esc(p.id)}</b>.</p>${botonesContacto(p.id)}`}<p class="gpHint"><i>B</i> cerrar</p>`;
+  const guardarTxt = per ? 'Guardar mis datos' : 'Guardar dirección';
+  const pie = p.estado === 'pagado' ? `<button class="btn" type="button" id="oGuardar">${guardarTxt}</button>` : p.estado === 'pendiente' && p.pagoUrl ? `<a class="btn mp" href="${esc(p.pagoUrl)}">Terminar pago en Mercado Pago</a>` : '';
+  abrirHoja('ped', 'Pedido ' + p.id, cuerpo, pie); activarContacto();
   if ($('oGuardar')) { prepararForm(); $('oGuardar').onclick = () => guardarEnvio(p, clave); }
-  if ($('oEdit')) $('oEdit').onclick = () => { $('hBody').innerHTML = '<h3>Corregir dirección</h3>' + formEnvio(p); $('hPie').hidden = false; $('hPie').innerHTML = '<button class="btn" type="button" id="oGuardar">Guardar dirección</button><button class="btn sec" type="button" id="oCanc">Cancelar</button>'; prepararForm(); $('oGuardar').onclick = () => guardarEnvio(p, clave); $('oCanc').onclick = () => abrirPedido(id); };
+  if ($('oEdit')) $('oEdit').onclick = () => { $('hBody').innerHTML = '<h3>' + (per ? 'Corregir mis datos' : 'Corregir dirección') + '</h3>' + formEnvio(p); $('hPie').hidden = false; $('hPie').innerHTML = '<button class="btn" type="button" id="oGuardar">' + guardarTxt + '</button><button class="btn sec" type="button" id="oCanc">Cancelar</button>'; prepararForm(); $('oGuardar').onclick = () => guardarEnvio(p, clave); $('oCanc').onclick = () => abrirPedido(id); };
   if ($('oCopia')) $('oCopia').onclick = () => navigator.clipboard.writeText(p.guia).then(() => toast('✓ Guía copiada')).catch(() => toast(p.guia));
   clearInterval(_sondeo);
   if (p.estado === 'pendiente' && recien) { let n = 0; _sondeo = setInterval(async () => { if (++n > 15 || _hoja !== 'ped') { clearInterval(_sondeo); return; }
@@ -473,6 +498,9 @@ function actualizarPed(p) { const i = PEDS.findIndex(x => x.id === p.id); if (i 
 function formEnvio(p) {
   const d = p.datos || ls.get(K_DIR, {}) || {}, s = sesion() || {};
   const campo = (k, t, extra, w) => `<label class="${w ? 'w' : ''}" data-c="${k}">${t}<input id="f_${k}" value="${esc(d[k] || (k === 'nombre' ? s.nombre || '' : ''))}" ${extra || ''}><span class="msg"></span></label>`;
+  if (esPersonal(p)) return `<div class="frm">${campo('nombre', 'Nombre de quien recoge', 'autocomplete="name" maxlength="80"', 1)}
+    ${campo('telefono', 'Teléfono (10 dígitos)', 'type="tel" inputmode="numeric" autocomplete="tel-national" maxlength="14"')}${campo('email', 'Correo', 'type="email" autocomplete="email" maxlength="80"')}
+    <label class="w" data-c="referencias">¿Dónde y cuándo te queda bien? (opcional)<textarea id="f_referencias" maxlength="200" placeholder="Zona, punto de encuentro, días y horarios…">${esc(p.datos ? p.datos.referencias || '' : '')}</textarea></label></div>`;
   return `<div class="frm">${campo('nombre', 'Nombre de quien recibe', 'autocomplete="name" maxlength="80"', 1)}
     ${campo('telefono', 'Teléfono (10 dígitos)', 'type="tel" inputmode="numeric" autocomplete="tel-national" maxlength="14"')}${campo('email', 'Correo', 'type="email" autocomplete="email" maxlength="80"')}
     ${campo('calle', 'Calle y número exterior', 'autocomplete="address-line1" maxlength="120"', 1)}
@@ -482,22 +510,23 @@ function formEnvio(p) {
     <label class="w" data-c="referencias">Referencias (opcional)<textarea id="f_referencias" maxlength="200" placeholder="Entre calles, color de fachada…">${esc(d.referencias || '')}</textarea></label>
     <label class="chk w" style="flex-direction:row;color:#d6dcff"><input type="checkbox" id="f_recordar" checked> Recordar esta dirección en este dispositivo</label></div>`;
 }
-function prepararForm() { $('f_telefono').addEventListener('input', e => e.target.value = e.target.value.replace(/[^\d ]/g, '')); $('f_cp').addEventListener('input', e => e.target.value = e.target.value.replace(/\D/g, '')); }
+function prepararForm() { $('f_telefono').addEventListener('input', e => e.target.value = e.target.value.replace(/[^\d ]/g, '')); if ($('f_cp')) $('f_cp').addEventListener('input', e => e.target.value = e.target.value.replace(/\D/g, '')); }
 function leerForm() {
-  const v = k => ($('f_' + k).value || '').trim(), d = {}; let ok = true;
+  const v = k => $('f_' + k) ? ($('f_' + k).value || '').trim() : '', d = {}, per = !$('f_calle'); let ok = true;
   ['nombre', 'telefono', 'email', 'calle', 'interior', 'cp', 'colonia', 'municipio', 'estado', 'referencias'].forEach(k => d[k] = v(k));
   d.telefono = d.telefono.replace(/\D/g, '');
   const err = { nombre: d.nombre.length < 5 && 'Escribe nombre y apellido', telefono: !/^\d{10}$/.test(d.telefono) && 'Deben ser 10 dígitos', email: !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(d.email) && 'Revisa el correo',
-    calle: d.calle.length < 4 && 'Escribe calle y número', cp: !/^\d{5}$/.test(d.cp) && 'Deben ser 5 dígitos', colonia: !d.colonia && 'Escribe la colonia', municipio: !d.municipio && 'Escribe el municipio', estado: !d.estado && 'Elige el estado' };
+    calle: !per && d.calle.length < 4 && 'Escribe calle y número', cp: !per && !/^\d{5}$/.test(d.cp) && 'Deben ser 5 dígitos', colonia: !per && !d.colonia && 'Escribe la colonia', municipio: !per && !d.municipio && 'Escribe el municipio', estado: !per && !d.estado && 'Elige el estado' };
   document.querySelectorAll('.frm [data-c]').forEach(l => { const m = err[l.dataset.c]; l.classList.toggle('err', !!m); const s = l.querySelector('.msg'); if (s) s.textContent = m || ''; if (m) ok = false; });
   if (!ok) { const f = document.querySelector('.frm .err input,.frm .err select'); f && f.focus(); toast('Revisa los campos marcados', true); return null; }
   return d;
 }
 async function guardarEnvio(p, clave) {
   const d = leerForm(); if (!d) return; const b = $('oGuardar'); b.disabled = true; b.textContent = 'Guardando…';
-  try { if ($('f_recordar').checked) ls.set(K_DIR, Object.assign({}, d)); else localStorage.removeItem(K_DIR);
-    const r = await API.envio(p.id, clave, d); actualizarPed(r.pedido); toast('✓ Dirección guardada. Te avisaremos cuando salga tu pedido.'); abrirPedido(p.id); }
-  catch (e) { toast(e.message, true); b.disabled = false; b.textContent = 'Guardar dirección'; }
+  const per = esPersonal(p);
+  try { if ($('f_recordar')) { if ($('f_recordar').checked) ls.set(K_DIR, Object.assign({}, d)); else localStorage.removeItem(K_DIR); }
+    const r = await API.envio(p.id, clave, d); actualizarPed(r.pedido); toast(per ? '✓ Datos guardados. Ahora escríbenos para acordar la entrega.' : '✓ Dirección guardada. Te avisaremos cuando salga tu pedido.'); abrirPedido(p.id); }
+  catch (e) { toast(e.message, true); b.disabled = false; b.textContent = per ? 'Guardar mis datos' : 'Guardar dirección'; }
 }
 
 // ── Regreso desde Mercado Pago: ?pedido=…&clave=…&status=approved|pending|rejected ──

@@ -19,6 +19,7 @@
     titulo_fondo.jpg  fondo del título (si falta: fondo generado)
     titulo_heroe.png  héroe del título (opcional)
     titulo.mp3        música del título (suena si el navegador lo permite)
+    comenzar.mp3      sonido al pulsar el botón de inicio (si falta: sonido sintetizado)
   Tocar durante los logos los salta. Dentro de la misma sesión se va directo al título.
 -->
 <style>
@@ -173,8 +174,11 @@ body.out .scene{transition:opacity .45s;opacity:0}
     try{if(localStorage.getItem('bgm_muted')==='1'||localStorage.getItem('chh_bgm_mute')==='1')return;}catch(e){}
     fetch(DIR+'titulo.mp3',{method:'HEAD'}).then(function(r){if(!r.ok)return;aud=new Audio(DIR+'titulo.mp3');aud.loop=true;aud.volume=.55;aud.play().catch(function(){});}).catch(function(){});
   }
-  // Sonido al comenzar (sintetizado)
+  // Sonido al comenzar: assets/inicio/comenzar.mp3 si existe; si no, el sintetizado
+  var sfx=null;
+  try{fetch(DIR+'comenzar.mp3',{method:'HEAD'}).then(function(r){if(!r.ok)return;sfx=new Audio(DIR+'comenzar.mp3');sfx.preload='auto';sfx.volume=.9;sfx.load();}).catch(function(){});}catch(e){}
   function sonInicio(){
+    if(sfx){try{sfx.currentTime=0;var p=sfx.play();if(p&&p.catch)p.catch(function(){});return;}catch(e){}}
     try{var C=new (window.AudioContext||window.webkitAudioContext)(),t=C.currentTime+.02;
       [[392,0],[587.3,.09],[784,.18],[1174.7,.27]].forEach(function(n){var o=C.createOscillator(),g=C.createGain();o.type='triangle';o.frequency.value=n[0];
         g.gain.setValueAtTime(0,t+n[1]);g.gain.linearRampToValueAtTime(.18,t+n[1]+.01);g.gain.exponentialRampToValueAtTime(.001,t+n[1]+.6);o.connect(g);g.connect(C.destination);o.start(t+n[1]);o.stop(t+n[1]+.65);});
@@ -186,8 +190,10 @@ body.out .scene{transition:opacity .45s;opacity:0}
     try{if(window.GP&&GP.vibrar)GP.vibrar(120,.6);}catch(e){}
     $('fx').classList.add('go');
     if(aud){var a=aud,v=a.volume,iv=setInterval(function(){v-=.08;if(v<=0){clearInterval(iv);a.pause();}else a.volume=v;},40);}
-    setTimeout(function(){document.body.classList.add('out');},350);
-    setTimeout(function(){location.href='index.html';},850);
+    // Con sonido propio se espera a que termine (máximo 2.5 s) antes de pasar al menú
+    var dur=(sfx&&isFinite(sfx.duration)&&sfx.duration>0)?Math.min(2500,Math.max(850,sfx.duration*1000)):850;
+    setTimeout(function(){document.body.classList.add('out');},dur-500);
+    setTimeout(function(){location.href='index.html';},dur);
   }
   $('sTitle').addEventListener('click',function(){if(enTitulo)comenzar();});
   $('press').addEventListener('click',function(e){e.stopPropagation();if(enTitulo)comenzar();});

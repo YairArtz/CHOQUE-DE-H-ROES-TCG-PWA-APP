@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#04061a">
+<title>Tienda física · Choque de Héroes TCG</title>
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<!--
+  TIENDA FÍSICA · productos físicos y preventas con envío a domicilio, cobrados con Mercado Pago.
+  · PEDIDOS_URL = URL del Apps Script "TiendaFisica.gs" (Implementar → Aplicación web). Vacío = MODO DEMOSTRACIÓN
+    (catálogo de ejemplo y pago simulado; no se cobra nada).
+  · El catálogo, el cupo, los precios y los costos de envío viven en la hoja de cálculo (pestaña "Productos").
+  · Flujo: carrito → tipo de envío → pago en Mercado Pago → el jugador captura sus datos de envío → "Mis pedidos".
+-->
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{--acc:var(--neon,#f5c842)}
+:root{--line:rgba(var(--nx-ln,143,176,255),.18);--mut:#8d9bc7;--txt:#eef2ff;--oro:#f5c842;--ok:#3ee08f;--warn:#ffb36b;--bad:#ff5c7a;
+  --safeT:max(10px,env(safe-area-inset-top));--safeB:max(14px,env(safe-area-inset-bottom))}
+html,body{min-height:100%;background:rgb(var(--nx-k1,4,6,26));color:var(--txt);font-family:'Rajdhani',system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
+button,input,select,textarea{font:inherit;color:inherit;background:none;border:0}
+button{cursor:pointer}
+button:disabled{cursor:not-allowed;opacity:.45}
+a{color:inherit}
+.top-bar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:12px;padding:calc(var(--safeT) + 2px) 16px 12px}
+.back-btn{width:42px;height:38px;display:flex;align-items:center;justify-content:center;font-size:22px;text-decoration:none}
+.top-title{font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(19px,5.2vw,28px);letter-spacing:.06em;line-height:1;border-left:4px solid var(--acc);padding-left:12px;flex:1;min-width:0}
+.top-title small{display:block;font-family:'Rajdhani',sans-serif;font-weight:600;font-size:13px;letter-spacing:.02em;color:var(--mut);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#bCarro{position:relative;height:40px;padding:0 14px;display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;background:var(--acc);color:#04061a;
+  clip-path:polygon(0 0,100% 0,calc(100% - 9px) 100%,0 100%)}
+#bCarro .n{min-width:22px;height:22px;padding:0 6px;display:inline-flex;align-items:center;justify-content:center;border-radius:11px;background:#04061a;color:var(--acc);font-family:'Orbitron',sans-serif;font-size:12px}
+#bCarro:hover,#bCarro:focus-visible{outline:2px solid #fff;outline-offset:2px}
+#bCarro.pop{animation:pop .35s ease}
+@keyframes pop{50%{transform:scale(1.1)}}
+@media (max-width:420px){#bCarro .t{display:none}#aDig span{display:none}#tabs button{padding:10px 12px}}
+
+main{max-width:1180px;margin:0 auto;padding:4px 16px calc(var(--safeB) + 24px)}
+.demo{margin:0 0 12px;padding:10px 14px;border:1px dashed var(--warn);color:var(--warn);font-size:15px;font-weight:600}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:7px 14px 7px 12px;font-weight:700;font-size:15px;white-space:nowrap;background:rgba(var(--nx-k4,10,15,46),.85);border:1px solid var(--line);
+  clip-path:polygon(0 0,100% 0,calc(100% - 9px) 100%,0 100%);text-decoration:none}
+.chip.on{background:var(--acc);color:#04061a;border-color:var(--acc)}
+.chip:hover,.chip:focus-visible{outline:2px solid #fff;outline-offset:-2px}
+#tabs{display:flex;gap:0;margin-bottom:14px;border-bottom:1px solid var(--line)}
+#tabs button{white-space:nowrap;padding:10px 16px;font-family:'Orbitron',sans-serif;font-weight:700;font-size:14px;letter-spacing:.04em;color:var(--mut);border-bottom:3px solid transparent;margin-bottom:-1px}
+#tabs button.on{color:var(--txt);border-bottom-color:var(--acc)}
+#tabs button:hover,#tabs button:focus-visible{color:var(--txt);outline:none;background:rgba(255,255,255,.05)}
+#tabs .b[hidden]{display:none}
+#tabs .b{display:inline-block;min-width:18px;margin-left:6px;padding:0 5px;border-radius:9px;background:var(--warn);color:#04061a;font-size:11px;line-height:18px;text-align:center}
+#filtros{display:flex;gap:8px;overflow-x:auto;padding:2px 0 14px;scrollbar-width:none}
+#filtros::-webkit-scrollbar{display:none}
+.vacio{padding:40px 12px;text-align:center;color:var(--mut);font-size:16px}
+.vacio b{display:block;color:var(--txt);font-size:18px;margin-bottom:6px}
+
+/* ═══ Productos ═══ */
+#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+@media (max-width:520px){#grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}}
+.prod{position:relative;display:flex;flex-direction:column;text-align:left;border:1px solid var(--line);background:rgba(var(--nx-k3,9,13,40),.9);min-width:0;
+  clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,0 100%)}
+.prod:hover,.prod:focus-visible{border-color:var(--acc);outline:none}
+.prod .img{aspect-ratio:1;background:rgb(var(--nx-k2,6,10,30)) center/cover no-repeat}
+.prod .tag{position:absolute;top:10px;left:0;padding:3px 10px 3px 8px;font-weight:700;font-size:13px;clip-path:polygon(0 0,100% 0,calc(100% - 7px) 100%,0 100%)}
+.tag.pre{background:#8b5cff;color:#fff}.tag.disp{background:var(--ok);color:#04061a}.tag.ago{background:#555c78;color:#fff}
+.prod .tx{padding:10px 12px 12px;display:flex;flex-direction:column;gap:3px;flex:1}
+.prod b{font-family:'Orbitron',sans-serif;font-weight:700;font-size:13px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.prod .pr{font-family:'Orbitron',sans-serif;font-weight:900;font-size:18px;color:var(--acc);margin-top:auto;padding-top:4px}
+.prod small{font-size:14px;color:var(--mut)}
+.prod small.poco{color:var(--warn)}
+.prod.ago{opacity:.55}
+.prod .enc{position:absolute;top:10px;right:10px;min-width:26px;height:26px;padding:0 7px;border-radius:13px;background:var(--acc);color:#04061a;font:700 13px 'Orbitron',sans-serif;display:flex;align-items:center;justify-content:center}
+
+/* ═══ Pedidos ═══ */
+#peds{display:flex;flex-direction:column;gap:8px;max-width:760px}
+.ped{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center;width:100%;padding:12px 14px;text-align:left;border:1px solid var(--line);
+  background:rgba(var(--nx-k3,9,13,40),.9);clip-path:polygon(0 0,100% 0,calc(100% - 12px) 100%,0 100%)}
+.ped:hover,.ped:focus-visible{border-color:var(--acc);outline:none}
+.ped b{font-family:'Orbitron',sans-serif;font-size:13px}
+.ped .tt{font-family:'Orbitron',sans-serif;font-weight:900;color:var(--acc);text-align:right}
+.ped small{font-size:14px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.est{display:inline-block;padding:2px 9px;font-size:13px;font-weight:700;border:1px solid currentColor;justify-self:end}
+.e-pend{color:var(--warn)}.e-falta{color:var(--warn)}.e-ok{color:var(--ok)}.e-env{color:#54c8ff}.e-fin{color:var(--mut)}.e-bad{color:var(--bad)}
+
+/* ═══ Paneles (detalle, carrito, pedido) ═══ */
+#velo{position:fixed;inset:0;z-index:80;background:rgba(2,3,12,.72);opacity:0;pointer-events:none;transition:opacity .2s}
+#velo.on{opacity:1;pointer-events:auto}
+.hoja{position:fixed;z-index:81;left:0;right:0;bottom:0;max-height:92vh;display:flex;flex-direction:column;background:rgb(var(--nx-k2,6,10,30));border-top:2px solid var(--acc);
+  transform:translateY(105%);transition:transform .25s ease;visibility:hidden}
+.hoja.on{transform:none;visibility:visible}
+@media (min-width:760px){.hoja{left:auto;top:0;bottom:0;width:480px;max-height:none;border-top:0;border-left:2px solid var(--acc);transform:translateX(105%)}}
+.hh{display:flex;align-items:center;gap:12px;padding:16px 18px 12px;border-bottom:1px solid var(--line)}
+.hh b{flex:1;min-width:0;font-family:'Orbitron',sans-serif;font-weight:900;font-size:16px;letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.x{width:40px;height:40px;font-size:20px;border:1px solid var(--line);flex-shrink:0}
+.x:hover,.x:focus-visible{border-color:var(--acc);color:var(--acc);outline:none}
+.hb{flex:1;overflow-y:auto;padding:14px 18px;-webkit-overflow-scrolling:touch}
+.hf{padding:12px 18px calc(var(--safeB) + 4px);border-top:1px solid var(--line);background:rgb(var(--nx-k2,6,10,30))}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:48px;padding:0 16px;font-family:'Orbitron',sans-serif;font-weight:700;font-size:14px;letter-spacing:.04em;
+  background:var(--acc);color:#04061a;clip-path:polygon(0 0,100% 0,calc(100% - 12px) 100%,0 100%);text-decoration:none}
+.btn:hover,.btn:focus-visible{outline:2px solid #fff;outline-offset:-3px}
+.btn.sec{background:transparent;color:var(--txt);border:1px solid var(--line)}
+.btn.mp{background:#00b1ea;color:#fff}
+.btn + .btn{margin-top:8px}
+.dimg{aspect-ratio:4/3;background:#000 center/contain no-repeat;margin:-14px -18px 14px}
+.dpr{font-family:'Orbitron',sans-serif;font-weight:900;font-size:26px;color:var(--acc)}
+.dtx{font-size:16px;line-height:1.5;color:#d6dcff;white-space:pre-line;margin:10px 0}
+.datos{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:15px;margin:12px 0}
+.datos span{color:var(--mut)}
+.cant{display:inline-flex;align-items:center;border:1px solid var(--line)}
+.cant button{width:40px;height:40px;font-size:20px;font-weight:700}
+.cant button:hover,.cant button:focus-visible{background:rgba(255,255,255,.08);outline:none;color:var(--acc)}
+.cant span{min-width:36px;text-align:center;font-family:'Orbitron',sans-serif;font-weight:700}
+.fila2{display:flex;align-items:center;gap:12px;margin-top:14px}
+.aviso{margin:10px 0;padding:10px 12px;font-size:15px;line-height:1.4;border-left:3px solid var(--warn);background:rgba(255,179,107,.08)}
+.aviso.ok{border-color:var(--ok);background:rgba(62,224,143,.08)}
+.aviso.bad{border-color:var(--bad);background:rgba(255,92,122,.08)}
+h3{font-family:'Orbitron',sans-serif;font-weight:700;font-size:13px;letter-spacing:.06em;color:var(--mut);margin:16px 0 8px;display:flex;align-items:center;gap:10px}
+h3::after{content:"";flex:1;height:1px;background:var(--line)}
+h3:first-child{margin-top:0}
+.ci{display:grid;grid-template-columns:56px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.ci .im{width:56px;height:56px;background:#000 center/cover no-repeat}
+.ci b{display:block;font-size:15px;line-height:1.25}
+.ci small{font-size:14px;color:var(--mut)}
+.ci .cant button{width:32px;height:32px;font-size:17px}
+.ci .cant span{min-width:28px;font-size:13px}
+.ci .der{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.ci .der b{font-family:'Orbitron',sans-serif;font-size:13px}
+.quitar{font-size:13px;color:var(--mut);text-decoration:underline}
+.env{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:10px;align-items:center;width:100%;padding:12px;margin-bottom:8px;text-align:left;border:1px solid var(--line);background:rgba(var(--nx-k3,9,13,40),.9)}
+.env.on{border-color:var(--acc);background:rgba(var(--nx-g1,139,92,255),.14)}
+.env:hover,.env:focus-visible{border-color:var(--acc);outline:none}
+.env i{width:18px;height:18px;border-radius:50%;border:2px solid var(--mut)}
+.env.on i{border-color:var(--acc);box-shadow:inset 0 0 0 4px rgb(var(--nx-k2,6,10,30));background:var(--acc)}
+.env b{display:block;font-size:16px}
+.env small{font-size:14px;color:var(--mut)}
+.env .c{font-family:'Orbitron',sans-serif;font-weight:700}
+.tot{display:grid;grid-template-columns:1fr auto;gap:4px;font-size:16px;margin:12px 0 6px}
+.tot span:nth-child(even){text-align:right;font-variant-numeric:tabular-nums}
+.tot .g{font-family:'Orbitron',sans-serif;font-weight:900;font-size:20px;color:var(--acc);padding-top:6px;border-top:1px solid var(--line)}
+.chk{display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.4;color:#d6dcff;margin:10px 0;cursor:pointer}
+.chk input{width:20px;height:20px;margin-top:1px;accent-color:var(--acc);flex-shrink:0}
+.pol{font-size:14px;line-height:1.5;color:var(--mut);white-space:pre-line}
+details summary{cursor:pointer;font-weight:700;font-size:15px;color:var(--acc);padding:4px 0}
+details summary:focus-visible{outline:2px solid var(--acc)}
+
+/* Línea de estado del pedido */
+.pasos{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:4px 0 14px}
+.pasos div{text-align:center;font-size:13px;color:var(--mut);padding-top:10px;border-top:4px solid rgba(255,255,255,.12)}
+.pasos div.ok{color:var(--txt);border-top-color:var(--acc)}
+.pasos div.ya{color:var(--acc);font-weight:700;border-top-color:var(--acc)}
+
+/* Formulario de envío */
+.frm{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start}
+.frm label{display:flex;flex-direction:column;gap:4px;font-size:14px;font-weight:600;color:var(--mut);min-width:0}
+.frm label.w{grid-column:1/-1}
+.frm input,.frm select,.frm textarea{width:100%;min-height:44px;padding:8px 10px;font-size:16px;font-weight:600;color:var(--txt);background:rgba(var(--nx-k1,4,6,26),.9);border:1px solid var(--line)}
+.frm textarea{min-height:64px;resize:vertical}
+.frm select option{background:#0a0f2e}
+.frm input:focus,.frm select:focus,.frm textarea:focus{outline:none;border-color:var(--acc)}
+.frm .err input,.frm .err select{border-color:var(--bad)}
+.frm .msg{font-size:13px;color:var(--bad);min-height:0}
+.dir{font-size:15px;line-height:1.5;padding:10px 12px;border:1px solid var(--line);background:rgba(var(--nx-k3,9,13,40),.9)}
+.guia{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:16px;margin-top:8px}
+.guia code{font-family:'Orbitron',sans-serif;font-size:14px;padding:6px 10px;background:rgba(255,255,255,.08)}
+
+/* Pago simulado (modo demostración) */
+#sim{position:fixed;inset:0;z-index:95;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.8)}
+#sim.on{display:flex}
+#sim .c{width:min(420px,100%);padding:20px;background:#fff;color:#1a1a1a;border-radius:8px;font-size:16px}
+#sim .c b{display:block;font-size:20px;margin-bottom:6px;color:#009ee3}
+#sim .c p{margin-bottom:14px;color:#555}
+#sim .c button{display:block;width:100%;padding:12px;margin-top:8px;border-radius:6px;font-weight:700;background:#eef6fb;color:#1a1a1a}
+#sim .c button.a{background:#009ee3;color:#fff}
+#sim .c button:focus-visible{outline:3px solid #04061a}
+
+#toast{position:fixed;left:50%;bottom:calc(var(--safeB) + 96px);transform:translateX(-50%) translateY(20px);opacity:0;z-index:99;padding:10px 18px;background:var(--acc);color:#04061a;font-weight:700;font-size:15px;
+  transition:opacity .2s,transform .2s;pointer-events:none;width:max-content;max-width:92vw;text-align:center}
+#toast.on{opacity:1;transform:translateX(-50%)}
+#toast.bad{background:var(--bad);color:#fff}
+.gpHint{display:none;margin-top:10px;font-size:13px;color:var(--mut);text-align:center}
+html.gp-on .gpHint{display:block}
+.gpHint i{font-style:normal;display:inline-block;padding:0 5px;border-radius:4px;background:#9fb3cc;color:#04061a;font-weight:700;font-size:11px;margin:0 2px}
+.carga{height:260px;background:linear-gradient(90deg,rgba(var(--nx-k3,9,13,40),.8),rgba(var(--nx-k5,20,26,70),.9),rgba(var(--nx-k3,9,13,40),.8));background-size:200% 100%;animation:shim 1.2s linear infinite}
+@keyframes shim{to{background-position:-200% 0}}
+@media (prefers-reduced-motion:reduce){.hoja{transition:none}.carga,#bCarro.pop{animation:none}}
+</style>
+<script src="nexo-ui.js"></script>
+</head>
+<body>
+<header class="top-bar">
+  <a href="index.html" class="back-btn" aria-label="Regresar al menú">‹</a>
+  <h1 class="top-title">TIENDA FÍSICA<small id="sub">Preventas y productos con envío a todo México</small></h1>
+  <button type="button" id="bCarro" aria-label="Carrito"><span aria-hidden="true">🛒</span><span class="t">Carrito</span><span class="n" id="nCarro">0</span></button>
+</header>
+<main>
+  <p class="demo" id="demo" hidden>Modo demostración: el catálogo es de ejemplo y el pago es simulado. No se cobra nada.</p>
+  <nav id="tabs" role="tablist">
+    <button type="button" role="tab" class="on" data-tab="productos">Productos</button>
+    <button type="button" role="tab" data-tab="pedidos">Mis pedidos<span class="b" id="bPend" hidden></span></button>
+    <a class="chip" id="aDig" href="tienda.html" style="margin:0 0 6px auto;align-self:center" aria-label="Tienda digital">💎<span> Tienda digital</span></a>
+  </nav>
+  <section id="vProd">
+    <div id="filtros"></div>
+    <div id="grid"><div class="carga"></div><div class="carga"></div><div class="carga"></div></div>
+  </section>
+  <section id="vPed" hidden>
+    <div id="peds"></div>
+  </section>
+</main>
+
+<div id="velo"></div>
+<section class="hoja" id="hoja" role="dialog" aria-modal="true" aria-labelledby="hTit" aria-hidden="true">
+  <div class="hh"><b id="hTit"></b><button class="x" id="hX" type="button" aria-label="Cerrar">✕</button></div>
+  <div class="hb" id="hBody"></div>
+  <div class="hf" id="hPie"></div>
+</section>
+<div id="sim" role="dialog" aria-modal="true"><div class="c"><b>Mercado Pago · prueba</b><p id="simTxt"></p>
+  <button class="a" type="button" data-r="approved">Aprobar pago</button><button type="button" data-r="pending">Dejar pendiente (como OXXO)</button><button type="button" data-r="rejected">Rechazar pago</button></div></div>
+<div id="toast" role="status"></div>
+
+<script>
+// ════════════════════════════════════════════════════════════════════
+//  CONFIGURACIÓN
+// ════════════════════════════════════════════════════════════════════
+const PEDIDOS_URL = '';   // ← pega aquí la URL de la aplicación web de TiendaFisica.gs (vacío = modo demostración)
+// ════════════════════════════════════════════════════════════════════
+
+try { const s = JSON.parse(localStorage.getItem('chh_secciones_visitadas') || '[]'); if (!s.includes('tienda-fisica')) { s.push('tienda-fisica'); localStorage.setItem('chh_secciones_visitadas', JSON.stringify(s)); } } catch (e) {}
+const DEMO = !PEDIDOS_URL;
+const K_CARRO = 'chh_carrito_fisico', K_CLAVES = 'chh_pedidos_fisicos', K_ENVIO = 'chh_envio_tipo', K_DIR = 'chh_envio_datos';
+const $ = id => document.getElementById(id);
+const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const ls = { get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} } };
+const $$ = n => '$' + Number(n || 0).toLocaleString('es-MX', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+const fechaTxt = s => { if (!s) return ''; const m = String(s).match(/^(\d{4})-(\d{2})-(\d{2})/); const d = m ? new Date(+m[1], m[2] - 1, +m[3]) : new Date(s); return isNaN(d) ? String(s) : d.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' }); };
+const mesTxt = s => { const m = String(s || '').match(/^(\d{4})-(\d{2})/); return m ? new Date(+m[1], m[2] - 1, 1).toLocaleDateString('es-MX', { month: 'long', year: 'numeric' }) : fechaTxt(s); };
+function toast(t, bad) { const el = $('toast'); el.textContent = t; el.classList.toggle('bad', !!bad); el.classList.add('on'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('on'), 2600); }
+function sesion() { const s = ls.get('nhSesion', null); return s && s.tipo !== 'tienda' && s.id ? s : null; }
+const ESTADOS_MX = ['Aguascalientes', 'Baja California', 'Baja California Sur', 'Campeche', 'Chiapas', 'Chihuahua', 'Ciudad de México', 'Coahuila', 'Colima', 'Durango', 'Estado de México', 'Guanajuato', 'Guerrero', 'Hidalgo', 'Jalisco', 'Michoacán', 'Morelos', 'Nayarit', 'Nuevo León', 'Oaxaca', 'Puebla', 'Querétaro', 'Quintana Roo', 'San Luis Potosí', 'Sinaloa', 'Sonora', 'Tabasco', 'Tamaulipas', 'Tlaxcala', 'Veracruz', 'Yucatán', 'Zacatecas'];
+
+// ════════════════════════════════════════════════════════════════════
+//  API (Apps Script) · en modo demostración se simula en este dispositivo
+// ════════════════════════════════════════════════════════════════════
+async function llamar(params, cuerpo) {
+  const ctrl = new AbortController(), to = setTimeout(() => ctrl.abort(), 25000);
+  try {
+    const url = PEDIDOS_URL + '?' + new URLSearchParams(params);
+    const r = cuerpo ? await fetch(PEDIDOS_URL, { method: 'POST', body: JSON.stringify(cuerpo), signal: ctrl.signal }) : await fetch(url, { signal: ctrl.signal });
+    const d = await r.json(); if (!d.ok) throw new Error(d.error || 'Error del servidor'); return d;
+  } catch (e) { if (e.name === 'AbortError') throw new Error('El servidor tardó demasiado. Intenta de nuevo.'); if (e instanceof TypeError) throw new Error('Sin conexión. Revisa tu internet.'); throw e; }
+  finally { clearTimeout(to); }
+}
+const DEMO_CAT = {
+  envios: [{ id: 'mexpost', nombre: 'Nacional · Mexpost', detalle: 'Correos de México, con número de guía', costo: 70 }, { id: 'express', nombre: 'Paquetería express', detalle: 'Estafeta o FedEx, entrega más rápida', costo: 150 }],
+  politica: 'Ejemplo de política (edítala en la hoja "Config"):\n• Las preventas se envían en la fecha estimada de lanzamiento; si cambia, te avisamos por correo.\n• Puedes cancelar una preventa antes de su fecha límite y se te reembolsa el pago completo.\n• Los productos disponibles se envían en 3 a 5 días hábiles después de que captures tus datos de envío.',
+  productos: [
+    { sku: 'exp5_caja', nombre: 'Caja de sobres · Expansión 5', tipo: 'preventa', precio: 1200, disponibles: 48, limite: 2, entrega: '2027-03-15', cierre: '2027-02-15', imagen: 'Banner_1.jpg', categoria: 'Expansión 5', descripcion: 'Caja sellada con 24 sobres de la quinta expansión.\nIncluye carta promocional exclusiva de preventa.' },
+    { sku: 'exp5_sobre', nombre: 'Sobre · Expansión 5', tipo: 'preventa', precio: 60, disponibles: 400, limite: 24, entrega: '2027-03-15', cierre: '2027-02-15', imagen: 'Banner_2.jpg', categoria: 'Expansión 5', descripcion: 'Sobre de 10 cartas de la quinta expansión.' },
+    { sku: 'mazo_koatl', nombre: 'Mazo de inicio · Koatl el Defensor', tipo: 'disponible', precio: 350, disponibles: 20, limite: 3, imagen: 'Banner_3.jpg', categoria: 'Mazos', descripcion: 'Baraja lista para jugar con 40 cartas y guía rápida de reglas.' },
+    { sku: 'playmat_nexo', nombre: 'Playmat Nexotlan', tipo: 'disponible', precio: 450, disponibles: 3, limite: 1, imagen: 'Banner_4.jpg', categoria: 'Accesorios', descripcion: 'Tapete de neopreno de 60 × 35 cm con base antiderrapante.' },
+    { sku: 'micas_chh', nombre: 'Micas oficiales (60 piezas)', tipo: 'disponible', precio: 120, disponibles: 0, limite: 5, imagen: 'Banner_5.jpg', categoria: 'Accesorios', descripcion: 'Micas mate con reverso de Choque de Héroes.' }
+  ]
+};
+const demoPeds = () => ls.get('chh_pedidos_demo', {});
+const API = DEMO ? {
+  async catalogo() { await new Promise(r => setTimeout(r, 250)); const P = demoPeds(); const cat = JSON.parse(JSON.stringify(DEMO_CAT));
+    cat.productos.forEach(p => Object.values(P).forEach(o => { if (!['rechazado', 'vencido', 'cancelado'].includes(o.estado)) o.items.forEach(i => { if (i.sku === p.sku) p.disponibles = Math.max(0, p.disponibles - i.cant); }); })); return cat; },
+  async crear(d) { await new Promise(r => setTimeout(r, 400)); const cat = await this.catalogo(), env = cat.envios.find(e => e.id === d.envio); if (!env) throw new Error('Elige un tipo de envío');
+    const items = d.items.map(i => { const p = cat.productos.find(x => x.sku === i.sku); if (!p) throw new Error('Producto no disponible'); if (i.cant > p.disponibles) throw new Error('Ya no hay suficiente cupo de "' + p.nombre + '"'); return { sku: p.sku, nombre: p.nombre, tipo: p.tipo, entrega: p.entrega || '', precio: p.precio, cant: i.cant }; });
+    const sub = items.reduce((s, i) => s + i.precio * i.cant, 0), id = 'CHH-DEMO-' + Math.random().toString(36).slice(2, 6).toUpperCase(), clave = Math.random().toString(36).slice(2) + Date.now().toString(36);
+    const P = demoPeds(); P[id] = { id, clave, fecha: new Date().toISOString(), estado: 'pendiente', items, subtotal: sub, envio: { id: env.id, nombre: env.nombre, costo: env.costo }, total: sub + env.costo, datos: null }; ls.set('chh_pedidos_demo', P);
+    return { pedido: id, clave, url: '#demo-pago' }; },
+  async pedidos(claves) { const P = demoPeds(); return { pedidos: Object.keys(claves).map(k => P[k] && P[k].clave === claves[k] ? P[k] : null).filter(Boolean) }; },
+  async pedido(id, clave) { const p = demoPeds()[id]; if (!p || p.clave !== clave) throw new Error('Pedido no encontrado'); return { pedido: p }; },
+  async envio(id, clave, datos) { await new Promise(r => setTimeout(r, 400)); const P = demoPeds(), p = P[id]; if (!p || p.clave !== clave) throw new Error('Pedido no encontrado');
+    if (!['pagado', 'por_enviar'].includes(p.estado)) throw new Error('Este pedido ya no acepta cambios de dirección'); p.datos = datos; p.estado = 'por_enviar'; ls.set('chh_pedidos_demo', P); return { pedido: p }; }
+} : {
+  catalogo: () => llamar({ accion: 'catalogo' }),
+  crear: d => llamar(null, Object.assign({ accion: 'crear' }, d)),
+  pedidos: claves => llamar({ accion: 'pedidos', claves: Object.entries(claves).map(([k, v]) => k + ':' + v).join(',') }),
+  pedido: (id, clave) => llamar({ accion: 'pedido', id, clave }),
+  envio: (id, clave, datos) => llamar(null, { accion: 'envio', id, clave, datos })
+};
+
+// ════════════════════════════════════════════════════════════════════
+//  Catálogo
+// ════════════════════════════════════════════════════════════════════
+let CAT = { productos: [], envios: [], politica: '' }, FILTRO = 'todos', TAB = 'productos';
+const prod = sku => CAT.productos.find(p => p.sku === sku);
+async function cargarCatalogo() {
+  try { CAT = await API.catalogo(); ls.set('chh_tf_cache', CAT); }
+  catch (e) { const c = ls.get('chh_tf_cache', null); if (c) { CAT = c; toast('Sin conexión · mostrando el último catálogo', true); } else { $('grid').innerHTML = '<div class="vacio" style="grid-column:1/-1"><b>No se pudo cargar la tienda</b>' + esc(e.message) + '</div>'; return; } }
+  limpiarCarro(); pintarFiltros(); pintarGrid(); pintarCarroN();
+}
+function pintarFiltros() {
+  const cats = [...new Set(CAT.productos.map(p => p.categoria).filter(Boolean))];
+  const hayPre = CAT.productos.some(p => p.tipo === 'preventa');
+  const F = [['todos', 'Todo']].concat(hayPre ? [['preventa', 'Preventas'], ['disponible', 'Disponibles']] : []).concat(cats.map(c => ['c:' + c, c]));
+  $('filtros').innerHTML = F.map(([k, t]) => `<button type="button" class="chip${FILTRO === k ? ' on' : ''}" data-f="${esc(k)}">${esc(t)}</button>`).join('');
+  $('filtros').querySelectorAll('[data-f]').forEach(b => b.onclick = () => { FILTRO = b.dataset.f; pintarFiltros(); pintarGrid(); });
+}
+function etiqueta(p) { return p.disponibles <= 0 ? ['ago', 'Agotado'] : p.tipo === 'preventa' ? ['pre', 'Preventa'] : ['disp', 'Disponible']; }
+function pintarGrid() {
+  const L = CAT.productos.filter(p => FILTRO === 'todos' || p.tipo === FILTRO || 'c:' + p.categoria === FILTRO);
+  if (!L.length) { $('grid').innerHTML = '<div class="vacio" style="grid-column:1/-1"><b>No hay productos aquí por ahora</b>Pronto anunciaremos nuevas preventas.</div>'; return; }
+  const C = carro();
+  $('grid').innerHTML = L.map(p => { const [c, t] = etiqueta(p), en = (C.find(i => i.sku === p.sku) || {}).cant;
+    return `<button type="button" class="prod${p.disponibles <= 0 ? ' ago' : ''}" data-sku="${esc(p.sku)}">
+      <div class="img" style="background-image:url('${esc(p.imagen || 'REVERSO_2021.jpg')}')"></div><span class="tag ${c}">${t}</span>${en ? `<span class="enc" aria-label="${en} en el carrito">${en}</span>` : ''}
+      <div class="tx"><b>${esc(p.nombre)}</b>${p.tipo === 'preventa' && p.entrega ? `<small>Llega en ${esc(mesTxt(p.entrega))}</small>` : ''}${p.disponibles > 0 && p.disponibles <= 5 ? `<small class="poco">Quedan ${p.disponibles}</small>` : ''}
+      <span class="pr">${$$(p.precio)}</span></div></button>`; }).join('');
+  $('grid').querySelectorAll('[data-sku]').forEach(b => b.onclick = () => abrirProducto(b.dataset.sku));
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  Carrito (se guarda en este dispositivo; precios y cupo se revisan al pagar)
+// ════════════════════════════════════════════════════════════════════
+const carro = () => ls.get(K_CARRO, []);
+function guardarCarro(C) { ls.set(K_CARRO, C.filter(i => i.cant > 0)); pintarCarroN(); }
+const maxPara = p => Math.max(0, Math.min(p.disponibles, p.limite || 99));
+function limpiarCarro() { if (!CAT.productos.length) return; guardarCarro(carro().filter(i => prod(i.sku)).map(i => ({ sku: i.sku, cant: Math.min(i.cant, maxPara(prod(i.sku))) }))); }
+function pintarCarroN() { const n = carro().reduce((s, i) => s + i.cant, 0); $('nCarro').textContent = n; $('bCarro').setAttribute('aria-label', 'Carrito, ' + n + ' productos'); }
+function agregar(sku, cant) {
+  const p = prod(sku), C = carro(), it = C.find(i => i.sku === sku), ya = it ? it.cant : 0, max = maxPara(p);
+  if (ya + cant > max) { toast(p.limite && ya + cant > p.limite ? 'Máximo ' + p.limite + ' por persona' : 'Solo quedan ' + p.disponibles, true); cant = max - ya; if (cant <= 0) return false; }
+  if (it) it.cant += cant; else C.push({ sku, cant });
+  guardarCarro(C); pintarGrid(); $('bCarro').classList.remove('pop'); void $('bCarro').offsetWidth; $('bCarro').classList.add('pop'); return true;
+}
+function cambiarCant(sku, d) { const C = carro(), it = C.find(i => i.sku === sku); if (!it) return; const p = prod(sku);
+  it.cant = Math.max(0, Math.min(maxPara(p), it.cant + d)); if (d > 0 && it.cant === maxPara(p)) toast(p.limite && it.cant >= p.limite ? 'Máximo ' + p.limite + ' por persona' : 'No hay más cupo');
+  guardarCarro(C); pintarGrid(); }
+
+// ════════════════════════════════════════════════════════════════════
+//  Hoja lateral (producto · carrito · pedido)
+// ════════════════════════════════════════════════════════════════════
+let _volver = null, _hoja = null;
+function abrirHoja(tipo, tit, body, pie) {
+  if (!$('hoja').classList.contains('on')) _volver = (window.GP && GP.activo() && GP.foco()) || document.activeElement;
+  _hoja = tipo; $('hTit').textContent = tit; $('hBody').innerHTML = body; $('hPie').innerHTML = pie || ''; $('hPie').hidden = !pie; $('hBody').scrollTop = 0;
+  $('hoja').classList.add('on'); $('velo').classList.add('on'); $('hoja').setAttribute('aria-hidden', 'false');
+  setTimeout(() => { const f = $('hoja').querySelector('.hb button:not(:disabled),.hb input,.hf .btn:not(:disabled)') || $('hX'); if (window.GP && GP.activo()) GP.enfocar(f); else $('hX').focus({ preventScroll: true }); }, 80);
+}
+function cerrarHoja() {
+  if (!$('hoja').classList.contains('on')) return false;
+  $('hoja').classList.remove('on'); $('velo').classList.remove('on'); $('hoja').setAttribute('aria-hidden', 'true'); _hoja = null; clearInterval(_sondeo);
+  let v = _volver && document.contains(_volver) ? _volver : null;
+  if (!v && _volver && _volver.dataset) v = (_volver.dataset.sku && document.querySelector(`#grid [data-sku="${CSS.escape(_volver.dataset.sku)}"]`)) || (_volver.dataset.id && document.querySelector(`#peds [data-id="${CSS.escape(_volver.dataset.id)}"]`)) || (TAB === 'productos' ? document.querySelector('#grid .prod') : document.querySelector('#peds .ped'));
+  setTimeout(() => { if (!v) return; if (window.GP && GP.activo()) GP.enfocar(v); else v.focus({ preventScroll: true }); }, 60); return true;
+}
+$('hX').onclick = cerrarHoja; $('velo').addEventListener('click', cerrarHoja);
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('sim').classList.contains('on')) cerrarHoja(); });
+
+function abrirProducto(sku) {
+  const p = prod(sku); if (!p) return; const max = maxPara(p), en = (carro().find(i => i.sku === sku) || {}).cant || 0; let n = Math.min(1, max - en);
+  const [c, t] = etiqueta(p);
+  abrirHoja('prod', p.nombre, `<div class="dimg" style="background-image:url('${esc(p.imagen || 'REVERSO_2021.jpg')}')"></div>
+    <span class="tag ${c}" style="position:static;display:inline-block">${t}</span>
+    <div class="dpr" style="margin-top:8px">${$$(p.precio)}</div>
+    ${p.descripcion ? `<p class="dtx">${esc(p.descripcion)}</p>` : ''}
+    <div class="datos">${p.tipo === 'preventa' ? `<span>Entrega estimada</span><b>${esc(fechaTxt(p.entrega) || 'Por anunciar')}</b>${p.cierre ? `<span>Preventa hasta</span><b>${esc(fechaTxt(p.cierre))}</b>` : ''}` : '<span>Envío</span><b>Después de capturar tus datos</b>'}
+      ${p.limite ? `<span>Límite</span><b>${p.limite} por persona</b>` : ''}<span>Disponibles</span><b>${p.disponibles > 0 ? p.disponibles : 'Agotado'}</b>${en ? `<span>En tu carrito</span><b>${en}</b>` : ''}</div>
+    ${max - en > 0 ? `<div class="fila2"><div class="cant"><button type="button" id="pMen" aria-label="Menos">−</button><span id="pN">${n}</span><button type="button" id="pMas" aria-label="Más">+</button></div><span id="pSub" style="font-weight:700;font-size:16px">${$$(p.precio * n)}</span></div>` : ''}`,
+    max - en > 0 ? `<button class="btn" type="button" id="pAdd">Agregar al carrito</button>` : `<button class="btn sec" type="button" id="pVer">${p.disponibles <= 0 ? 'Agotado · ver carrito' : 'Ya tienes el máximo · ver carrito'}</button>`);
+  const upd = () => { $('pN').textContent = n; $('pSub').textContent = $$(p.precio * n); };
+  if ($('pMen')) { $('pMen').onclick = () => { n = Math.max(1, n - 1); upd(); }; $('pMas').onclick = () => { if (n < max - en) n++; else toast(p.limite && en + n >= p.limite ? 'Máximo ' + p.limite + ' por persona' : 'No hay más cupo'); upd(); }; }
+  if ($('pAdd')) $('pAdd').onclick = () => { if (agregar(sku, n)) { toast('✓ Agregado al carrito'); abrirCarro(); } };
+  if ($('pVer')) $('pVer').onclick = abrirCarro;
+}
+
+function abrirCarro() {
+  const C = carro().filter(i => prod(i.sku)), s = sesion();
+  if (!C.length) { abrirHoja('carro', 'Carrito', '<div class="vacio"><b>Tu carrito está vacío</b>Agrega productos o preventas para pedirlos con envío a domicilio.</div>', '<button class="btn sec" type="button" id="cSeguir">Ver productos</button>'); $('cSeguir').onclick = cerrarHoja; return; }
+  let envio = ls.get(K_ENVIO, (CAT.envios[0] || {}).id); if (!CAT.envios.find(e => e.id === envio)) envio = (CAT.envios[0] || {}).id;
+  const grupo = tipo => C.filter(i => prod(i.sku).tipo === tipo).map(i => { const p = prod(i.sku);
+    return `<div class="ci"><div class="im" style="background-image:url('${esc(p.imagen || 'REVERSO_2021.jpg')}')"></div><div><b>${esc(p.nombre)}</b><small>${$$(p.precio)} c/u</small><br>
+      <div class="cant"><button type="button" data-m="${esc(i.sku)}" aria-label="Menos">−</button><span>${i.cant}</span><button type="button" data-p="${esc(i.sku)}" aria-label="Más">+</button></div></div>
+      <div class="der"><b>${$$(p.precio * i.cant)}</b><button type="button" class="quitar" data-q="${esc(i.sku)}">Quitar</button></div></div>`; }).join('');
+  const disp = grupo('disponible'), pre = grupo('preventa');
+  const fechas = C.map(i => prod(i.sku)).filter(p => p.tipo === 'preventa' && p.entrega).map(p => p.entrega).sort(), ultima = fechas[fechas.length - 1];
+  const sub = C.reduce((t, i) => t + prod(i.sku).precio * i.cant, 0), env = CAT.envios.find(e => e.id === envio) || { costo: 0 };
+  abrirHoja('carro', 'Carrito', `${disp ? '<h3>Disponible ahora</h3>' + disp : ''}${pre ? '<h3>Preventa</h3>' + pre : ''}
+    ${disp && pre ? `<p class="aviso">Tu pedido mezcla productos disponibles y de preventa: <b>se envía todo junto</b> cuando llegue la preventa${ultima ? ' (estimado ' + esc(mesTxt(ultima)) + ')' : ''}. Si quieres recibir antes lo disponible, haz dos pedidos por separado.</p>` : pre ? `<p class="aviso">Se envía cuando llegue la preventa${ultima ? ' (estimado ' + esc(mesTxt(ultima)) + ')' : ''}.</p>` : ''}
+    <h3>Envío a domicilio</h3>
+    ${CAT.envios.map(e => `<button type="button" class="env${e.id === envio ? ' on' : ''}" data-e="${esc(e.id)}" aria-pressed="${e.id === envio}"><i></i><span><b>${esc(e.nombre)}</b><small>${esc(e.detalle || '')}</small></span><span class="c">${$$(e.costo)}</span></button>`).join('')}
+    <p class="pol" style="margin-top:2px">Capturas tu dirección después de pagar.</p>
+    <div class="tot"><span>Subtotal</span><span>${$$(sub)}</span><span>Envío</span><span>${$$(env.costo)}</span><span class="g">Total</span><span class="g">${$$(sub + env.costo)}</span></div>
+    ${CAT.politica ? `<details><summary>Política de compra y preventas</summary><p class="pol">${esc(CAT.politica)}</p></details>` : ''}
+    ${s ? `<label class="chk"><input type="checkbox" id="cAcepto"> Acepto la política de compra y preventas.</label>` : `<p class="aviso">Para pagar necesitas iniciar sesión con tu ID de jugador. Tu carrito se queda guardado.</p>`}
+    <p class="gpHint"><i>B</i> cerrar</p>`,
+    s ? `<button class="btn mp" type="button" id="cPagar" disabled>Pagar ${$$(sub + env.costo)} con Mercado Pago</button>` : `<a class="btn" href="perfil.html">Iniciar sesión</a>`);
+  const rehacer = () => { const y = $('hBody').scrollTop, f = document.activeElement && (document.activeElement.dataset.m || document.activeElement.dataset.p || document.activeElement.dataset.e) && document.activeElement.outerHTML.match(/data-(m|p|e)="([^"]*)"/);
+    abrirCarro(); $('hBody').scrollTop = y; if (f) { const el = $('hBody').querySelector(`[data-${f[1]}="${CSS.escape(f[2])}"]`); if (el) setTimeout(() => { if (window.GP && GP.activo()) GP.enfocar(el); else el.focus({ preventScroll: true }); }, 90); } };
+  $('hBody').querySelectorAll('[data-m]').forEach(b => b.onclick = () => { cambiarCant(b.dataset.m, -1); rehacer(); });
+  $('hBody').querySelectorAll('[data-p]').forEach(b => b.onclick = () => { cambiarCant(b.dataset.p, 1); rehacer(); });
+  $('hBody').querySelectorAll('[data-q]').forEach(b => b.onclick = () => { guardarCarro(carro().filter(i => i.sku !== b.dataset.q)); pintarGrid(); abrirCarro(); });
+  $('hBody').querySelectorAll('[data-e]').forEach(b => b.onclick = () => { ls.set(K_ENVIO, b.dataset.e); rehacer(); });
+  if ($('cAcepto')) $('cAcepto').onchange = () => { $('cPagar').disabled = !$('cAcepto').checked; };
+  if ($('cPagar')) $('cPagar').onclick = () => pagar(envio);
+}
+
+async function pagar(envio) {
+  const s = sesion(); if (!s) return; const b = $('cPagar'); b.disabled = true; b.textContent = 'Preparando el pago…';
+  try {
+    const r = await API.crear({ jugadorId: s.id, jugadorNombre: s.nombre || s.nick || '', items: carro().map(i => ({ sku: i.sku, cant: i.cant })), envio });
+    const claves = ls.get(K_CLAVES, {}); claves[r.pedido] = r.clave; ls.set(K_CLAVES, claves);
+    guardarCarro([]); pintarGrid();
+    if (DEMO) { simularPago(r.pedido, r.clave); return; }
+    location.href = r.url;   // página de pago de Mercado Pago (tarjeta, Google Pay si lo habilitas, OXXO, SPEI, saldo MP)
+  } catch (e) { toast(e.message, true); b.disabled = false; b.textContent = 'Reintentar pago'; cargarCatalogo(); }
+}
+function simularPago(id, clave) {
+  const p = demoPeds()[id]; $('simTxt').textContent = 'Pedido ' + id + ' · ' + $$(p.total) + '. Elige qué resultado simular:'; $('sim').classList.add('on');
+  $('sim').querySelectorAll('[data-r]').forEach(b => b.onclick = () => { const P = demoPeds(); P[id].estado = { approved: 'pagado', pending: 'pendiente', rejected: 'rechazado' }[b.dataset.r]; ls.set('chh_pedidos_demo', P);
+    $('sim').classList.remove('on'); cerrarHoja(); history.replaceState(null, '', '?pedido=' + id + '&clave=' + clave + '&status=' + b.dataset.r); alRegresar(); });
+  setTimeout(() => { const f = $('sim').querySelector('.a'); if (window.GP && GP.activo()) GP.enfocar(f); else f.focus(); }, 60);
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  Mis pedidos
+// ════════════════════════════════════════════════════════════════════
+let PEDS = [], _sondeo = 0;
+const ESTADO = {
+  pendiente: ['e-pend', 'Pago pendiente'], pagado: ['e-falta', 'Falta tu dirección'], por_enviar: ['e-ok', 'Preparando envío'], enviado: ['e-env', 'Enviado'],
+  entregado: ['e-fin', 'Entregado'], rechazado: ['e-bad', 'Pago rechazado'], vencido: ['e-fin', 'Venció el pago'], cancelado: ['e-fin', 'Cancelado'], reembolsado: ['e-fin', 'Reembolsado'], revisar: ['e-pend', 'En revisión']
+};
+const est = e => ESTADO[e] || ['e-fin', e];
+async function cargarPedidos() {
+  const claves = ls.get(K_CLAVES, {});
+  if (!Object.keys(claves).length) { PEDS = []; pintarPedidos(); return; }
+  if (TAB === 'pedidos' && !PEDS.length) $('peds').innerHTML = '<div class="carga" style="height:70px"></div><div class="carga" style="height:70px"></div>';
+  try { PEDS = (await API.pedidos(claves)).pedidos || []; PEDS.sort((a, b) => String(b.fecha).localeCompare(String(a.fecha))); ls.set('chh_tf_peds', PEDS); }
+  catch (e) { PEDS = ls.get('chh_tf_peds', []); if (TAB === 'pedidos') toast(e.message, true); }
+  pintarPedidos();
+}
+function pintarPedidos() {
+  const falta = PEDS.filter(p => p.estado === 'pagado').length; $('bPend').hidden = !falta; $('bPend').textContent = falta;
+  if (!PEDS.length) { $('peds').innerHTML = '<div class="vacio"><b>Aún no tienes pedidos</b>Tus compras de la tienda física aparecerán aquí con su estado de envío.</div>'; return; }
+  $('peds').innerHTML = PEDS.map(p => { const [c, t] = est(p.estado);
+    return `<button type="button" class="ped" data-id="${esc(p.id)}"><b>${esc(p.id)}</b><span class="tt">${$$(p.total)}</span>
+      <small>${esc(p.items.map(i => i.cant + '× ' + i.nombre).join(', '))}</small><span class="est ${c}">${t}</span></button>`; }).join('') +
+    '<p class="pol" style="margin-top:8px">Tus pedidos se guardan en este dispositivo. Cuando captures tu dirección te llegará un correo con el enlace de seguimiento para verlos desde cualquier lugar.</p>';
+  $('peds').querySelectorAll('[data-id]').forEach(b => b.onclick = () => abrirPedido(b.dataset.id));
+}
+function abrirPedido(id, recien) {
+  const p = PEDS.find(x => x.id === id); if (!p) return; const clave = ls.get(K_CLAVES, {})[id];
+  const [c, t] = est(p.estado), paso = { pendiente: 0, pagado: 1, por_enviar: 2, enviado: 3, entregado: 4 }[p.estado];
+  const pasos = ['Pago', 'Dirección', 'Envío', 'Entrega'].map((n, i) => `<div class="${paso == null ? '' : i < paso ? 'ok' : i === paso ? 'ya' : ''}">${n}</div>`).join('');
+  const fechas = p.items.filter(i => i.tipo === 'preventa' && i.entrega).map(i => i.entrega).sort(), ultima = fechas[fechas.length - 1];
+  let cuerpo = `<p style="margin-bottom:10px"><span class="est ${c}">${t}</span> <span class="pol">· ${esc(fechaTxt(p.fecha))}</span></p>${paso != null ? `<div class="pasos">${pasos}</div>` : ''}`;
+  if (p.estado === 'pendiente') cuerpo += `<p class="aviso">${recien ? 'Estamos esperando la confirmación de Mercado Pago. Si pagaste en OXXO o por transferencia, puede tardar hasta 1 día hábil.' : 'Aún no recibimos tu pago. Si elegiste OXXO o transferencia, completa el pago antes de que venza (72 horas).'}</p>`;
+  if (p.estado === 'rechazado') cuerpo += `<p class="aviso bad">Mercado Pago rechazó el pago. No se hizo ningún cargo. Puedes volver a intentarlo desde el carrito con otra forma de pago.</p>`;
+  if (p.estado === 'vencido') cuerpo += `<p class="aviso bad">El tiempo para pagar terminó y el cupo se liberó.</p>`;
+  if (p.estado === 'pagado') cuerpo += `<p class="aviso ok">✓ Pago recibido. Ahora captura la dirección a donde enviaremos tu pedido.</p>` + formEnvio(p);
+  if (p.estado === 'revisar') cuerpo += `<p class="aviso">Estamos revisando tu pago. Te escribiremos si necesitamos algo.</p>`;
+  if (['por_enviar', 'enviado', 'entregado'].includes(p.estado) && p.datos) {
+    const d = p.datos;
+    cuerpo += `<h3>Dirección de envío</h3><div class="dir">${esc(d.nombre)} · ${esc(d.telefono)}<br>${esc(d.calle)}${d.interior ? ', int. ' + esc(d.interior) : ''}<br>Col. ${esc(d.colonia)}, C.P. ${esc(d.cp)}<br>${esc(d.municipio)}, ${esc(d.estado)}${d.referencias ? '<br><span class="pol">' + esc(d.referencias) + '</span>' : ''}</div>`;
+    if (p.estado === 'por_enviar') cuerpo += `<p class="pol" style="margin-top:6px">${ultima ? 'Incluye preventa: se envía cuando llegue (estimado ' + esc(mesTxt(ultima)) + ').' : 'Te avisaremos cuando salga tu paquete.'}</p><button type="button" class="chip" id="oEdit" style="margin-top:10px">✎ Corregir dirección</button>`;
+    if (p.guia) cuerpo += `<h3>Rastreo</h3><div class="guia"><span>${esc(p.paqueteria || p.envio.nombre)}</span><code>${esc(p.guia)}</code><button type="button" class="chip" id="oCopia">Copiar</button>${/^https:\/\//.test(p.rastreo || '') ? `<a class="chip" href="${esc(p.rastreo)}" target="_blank" rel="noopener">Rastrear</a>` : ''}</div>`;
+  }
+  cuerpo += `<h3>Productos</h3>${p.items.map(i => `<div class="ci" style="grid-template-columns:minmax(0,1fr) auto"><div><b>${i.cant}× ${esc(i.nombre)}</b>${i.tipo === 'preventa' ? `<small>Preventa${i.entrega ? ' · ' + esc(mesTxt(i.entrega)) : ''}</small>` : ''}</div><b style="font-family:Orbitron,sans-serif;font-size:13px">${$$(i.precio * i.cant)}</b></div>`).join('')}
+    <div class="tot"><span>Subtotal</span><span>${$$(p.subtotal)}</span><span>${esc(p.envio.nombre)}</span><span>${$$(p.envio.costo)}</span><span class="g">Total</span><span class="g">${$$(p.total)}</span></div>
+    <p class="pol">¿Dudas con tu pedido? Menciona el folio <b>${esc(p.id)}</b>.</p><p class="gpHint"><i>B</i> cerrar</p>`;
+  const pie = p.estado === 'pagado' ? `<button class="btn" type="button" id="oGuardar">Guardar dirección</button>` : p.estado === 'pendiente' && p.pagoUrl ? `<a class="btn mp" href="${esc(p.pagoUrl)}">Terminar pago en Mercado Pago</a>` : '';
+  abrirHoja('ped', 'Pedido ' + p.id, cuerpo, pie);
+  if ($('oGuardar')) { prepararForm(); $('oGuardar').onclick = () => guardarEnvio(p, clave); }
+  if ($('oEdit')) $('oEdit').onclick = () => { $('hBody').innerHTML = '<h3>Corregir dirección</h3>' + formEnvio(p); $('hPie').hidden = false; $('hPie').innerHTML = '<button class="btn" type="button" id="oGuardar">Guardar dirección</button><button class="btn sec" type="button" id="oCanc">Cancelar</button>'; prepararForm(); $('oGuardar').onclick = () => guardarEnvio(p, clave); $('oCanc').onclick = () => abrirPedido(id); };
+  if ($('oCopia')) $('oCopia').onclick = () => navigator.clipboard.writeText(p.guia).then(() => toast('✓ Guía copiada')).catch(() => toast(p.guia));
+  clearInterval(_sondeo);
+  if (p.estado === 'pendiente' && recien) { let n = 0; _sondeo = setInterval(async () => { if (++n > 15 || _hoja !== 'ped') { clearInterval(_sondeo); return; }
+    try { const r = await API.pedido(id, clave); if (r.pedido.estado !== 'pendiente') { clearInterval(_sondeo); actualizarPed(r.pedido); abrirPedido(id); } } catch (e) {} }, 4000); }
+}
+function actualizarPed(p) { const i = PEDS.findIndex(x => x.id === p.id); if (i >= 0) PEDS[i] = p; else PEDS.unshift(p); ls.set('chh_tf_peds', PEDS); pintarPedidos(); }
+function formEnvio(p) {
+  const d = p.datos || ls.get(K_DIR, {}) || {}, s = sesion() || {};
+  const campo = (k, t, extra, w) => `<label class="${w ? 'w' : ''}" data-c="${k}">${t}<input id="f_${k}" value="${esc(d[k] || (k === 'nombre' ? s.nombre || '' : ''))}" ${extra || ''}><span class="msg"></span></label>`;
+  return `<div class="frm">${campo('nombre', 'Nombre de quien recibe', 'autocomplete="name" maxlength="80"', 1)}
+    ${campo('telefono', 'Teléfono (10 dígitos)', 'type="tel" inputmode="numeric" autocomplete="tel-national" maxlength="14"')}${campo('email', 'Correo', 'type="email" autocomplete="email" maxlength="80"')}
+    ${campo('calle', 'Calle y número exterior', 'autocomplete="address-line1" maxlength="120"', 1)}
+    ${campo('interior', 'Núm. interior (opcional)', 'maxlength="20"')}${campo('cp', 'Código postal', 'inputmode="numeric" autocomplete="postal-code" maxlength="5"')}
+    ${campo('colonia', 'Colonia', 'maxlength="80"', 1)}${campo('municipio', 'Municipio o alcaldía', 'autocomplete="address-level2" maxlength="80"')}
+    <label data-c="estado">Estado<select id="f_estado" autocomplete="address-level1"><option value="">Elige…</option>${ESTADOS_MX.map(e => `<option${d.estado === e ? ' selected' : ''}>${e}</option>`).join('')}</select><span class="msg"></span></label>
+    <label class="w" data-c="referencias">Referencias (opcional)<textarea id="f_referencias" maxlength="200" placeholder="Entre calles, color de fachada…">${esc(d.referencias || '')}</textarea></label>
+    <label class="chk w" style="flex-direction:row;color:#d6dcff"><input type="checkbox" id="f_recordar" checked> Recordar esta dirección en este dispositivo</label></div>`;
+}
+function prepararForm() { $('f_telefono').addEventListener('input', e => e.target.value = e.target.value.replace(/[^\d ]/g, '')); $('f_cp').addEventListener('input', e => e.target.value = e.target.value.replace(/\D/g, '')); }
+function leerForm() {
+  const v = k => ($('f_' + k).value || '').trim(), d = {}; let ok = true;
+  ['nombre', 'telefono', 'email', 'calle', 'interior', 'cp', 'colonia', 'municipio', 'estado', 'referencias'].forEach(k => d[k] = v(k));
+  d.telefono = d.telefono.replace(/\D/g, '');
+  const err = { nombre: d.nombre.length < 5 && 'Escribe nombre y apellido', telefono: !/^\d{10}$/.test(d.telefono) && 'Deben ser 10 dígitos', email: !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(d.email) && 'Revisa el correo',
+    calle: d.calle.length < 4 && 'Escribe calle y número', cp: !/^\d{5}$/.test(d.cp) && 'Deben ser 5 dígitos', colonia: !d.colonia && 'Escribe la colonia', municipio: !d.municipio && 'Escribe el municipio', estado: !d.estado && 'Elige el estado' };
+  document.querySelectorAll('.frm [data-c]').forEach(l => { const m = err[l.dataset.c]; l.classList.toggle('err', !!m); const s = l.querySelector('.msg'); if (s) s.textContent = m || ''; if (m) ok = false; });
+  if (!ok) { const f = document.querySelector('.frm .err input,.frm .err select'); f && f.focus(); toast('Revisa los campos marcados', true); return null; }
+  return d;
+}
+async function guardarEnvio(p, clave) {
+  const d = leerForm(); if (!d) return; const b = $('oGuardar'); b.disabled = true; b.textContent = 'Guardando…';
+  try { if ($('f_recordar').checked) ls.set(K_DIR, Object.assign({}, d)); else localStorage.removeItem(K_DIR);
+    const r = await API.envio(p.id, clave, d); actualizarPed(r.pedido); toast('✓ Dirección guardada. Te avisaremos cuando salga tu pedido.'); abrirPedido(p.id); }
+  catch (e) { toast(e.message, true); b.disabled = false; b.textContent = 'Guardar dirección'; }
+}
+
+// ── Regreso desde Mercado Pago: ?pedido=…&clave=…&status=approved|pending|rejected ──
+async function alRegresar() {
+  const u = new URLSearchParams(location.search), id = u.get('pedido'), clave = u.get('clave');
+  if (!id || !clave) return;
+  const claves = ls.get(K_CLAVES, {}); claves[id] = clave; ls.set(K_CLAVES, claves);
+  history.replaceState(null, '', location.pathname); verTab('pedidos');
+  try { const r = await API.pedido(id, clave); actualizarPed(r.pedido); abrirPedido(id, true);
+    if (r.pedido.estado === 'pagado') toast('✓ ¡Pago recibido! Captura tu dirección de envío'); }
+  catch (e) { toast(e.message, true); }
+}
+
+// ── Pestañas ──
+function verTab(t) { TAB = t; $('tabs').querySelectorAll('[data-tab]').forEach(b => { b.classList.toggle('on', b.dataset.tab === t); b.setAttribute('aria-selected', b.dataset.tab === t); });
+  $('vProd').hidden = t !== 'productos'; $('vPed').hidden = t !== 'pedidos'; if (t === 'pedidos') cargarPedidos(); }
+$('tabs').querySelectorAll('[data-tab]').forEach(b => b.onclick = () => verTab(b.dataset.tab));
+$('bCarro').onclick = abrirCarro;
+if (DEMO) $('demo').hidden = false;
+
+// ── Control (gamepad.js) ──
+window.GP_CFG = {
+  zonas: ['#tabs', '#filtros', '#grid', '#peds'],
+  inicial: () => document.querySelector('#grid .prod') || document.querySelector('#tabs .on'),
+  ambito: () => $('sim').classList.contains('on') ? $('sim') : $('hoja').classList.contains('on') ? $('hoja') : null,
+  get scroll() { return $('hoja').classList.contains('on') ? '#hBody' : null; },
+  lbrb: d => { if ($('hoja').classList.contains('on')) return false; verTab(TAB === 'productos' ? 'pedidos' : 'productos'); return true; },
+  atras: () => { if ($('sim').classList.contains('on')) return true; if (cerrarHoja()) return true; location.href = 'index.html'; return true; },
+  principal: () => $('hoja').classList.contains('on') ? $('hPie').querySelector('.btn:not(:disabled)') : $('bCarro'),
+  get principalTxt() { return $('hoja').classList.contains('on') ? 'Confirmar' : 'Carrito'; }
+};
+cargarCatalogo().then(() => { cargarPedidos(); alRegresar(); });
+</script>
+<script src="settings.js"></script>
+<script src="bgm.js"></script>
+<script src="gamepad.js"></script>
+</body>
+</html>

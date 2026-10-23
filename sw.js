@@ -60,7 +60,7 @@
 //  v8.1: precache de la Simulación v17.
 //  v8:   shell cache-first + revalidación, JSON red-primero, fallbacks por tipo.
 // ================================================================
-const CACHE_NAME    = 'chh-tcg-v181';
+const CACHE_NAME    = 'chh-tcg-v182';
 const CACHE_DYNAMIC = 'chh-paginas-v1';    // estable: páginas/JSON/JS visitados (NO subir; lo precargado se renueva solo)
 const CACHE_IMG     = 'chh-img-v1';      // estable: imágenes, fuentes y PDFs. Subir SOLO si reemplazas imágenes con el mismo nombre
 const CACHE_AUDIO   = 'chh-audio-v1';    // estable: pistas de bgm.js. Subir SOLO si reemplazas un .mp3 con el mismo nombre
@@ -82,7 +82,7 @@ const CATALOG_JSON = /(cartas\.json|cartas_simulacion\.json|comics_config\.json|
 const CACHE_CORE = [
   './', './boot.html', './index.html', './calculadora.html',
   './perfil.html', './calendario.html', './constructor.html',
-  './torneo-director.html', './noticias.html', './tienda.html',
+  './torneo-director.html', './noticias.html', './tienda.html', './tienda-fisica.html',
   './ajustes.html', './intro.html', './intro_config.json',
   './manifest.json', './icon-192.png', './icon-512.png',
   './logo-hd.png', './footer-logo.png',

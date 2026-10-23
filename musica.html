@@ -63,7 +63,9 @@ input[type=range]:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 .cb.play{width:64px;height:64px;background:var(--acc);color:#04061a;opacity:1}
 .cb.play svg{width:30px;height:30px}
 .cb.play:hover,.cb.play:focus-visible{box-shadow:0 0 0 3px #fff}
-.ex{display:flex;justify-content:center;gap:10px;margin-top:12px}
+.ex{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:12px}
+.fondoInfo{margin-top:10px;text-align:center;font-size:14px;color:var(--mut)}
+.fondoInfo button{color:var(--acc);font-weight:700;text-decoration:underline;margin-left:4px}
 .chip{display:inline-flex;align-items:center;gap:6px;padding:7px 14px 7px 12px;font-weight:700;font-size:14px;background:rgba(var(--nx-k4,10,15,46),.85);border:1px solid var(--line);
   clip-path:polygon(0 0,100% 0,calc(100% - 9px) 100%,0 100%)}
 .chip.on{background:var(--acc);color:#04061a;border-color:var(--acc)}
@@ -140,7 +142,9 @@ html.gp-on .gpHint{display:block}
     <div class="ex">
       <button class="chip" id="bFav" type="button" aria-pressed="false">♡ Favorita</button>
       <button class="chip" id="bSave" type="button">⬇ Guardar</button>
+      <button class="chip" id="bFondo" type="button" aria-pressed="false">♪ Usar de fondo</button>
     </div>
+    <p class="fondoInfo" id="fondoInfo"></p>
     <div class="gpHint"><i>Y</i> play/pausa · <i>LB</i><i>RB</i> anterior/siguiente · <i>LT</i><i>RT</i> retroceder/adelantar</div>
   </section>
 
@@ -210,6 +214,15 @@ function construir() {
   pintar();
 }
 const urlPista = t => new URL(CARPETA + t.file, location.href).href;
+// Música de fondo de la app (la usa bgm.js en el menú y los módulos)
+const K_BGM = 'chh_bgm_pista', fondo = () => ls.get(K_BGM, null);
+function pintarFondo() {
+  const f = fondo(), t = TRACKS[cur], es = !!(f && t && f.id === t.id);
+  $('bFondo').classList.toggle('on', es); $('bFondo').setAttribute('aria-pressed', es); $('bFondo').textContent = es ? '✓ Es tu fondo' : '♪ Usar de fondo';
+  $('bFondo').disabled = !t || !t.libre;
+  $('fondoInfo').innerHTML = f ? 'Música de fondo de la app: <b>' + esc(f.titulo) + '</b><button type="button" id="bFondoRest">Restaurar la original</button>' : 'Música de fondo de la app: la original';
+  if ($('bFondoRest')) $('bFondoRest').onclick = () => { localStorage.removeItem(K_BGM); toast('Se restauró la música original de la app'); pintarFondo(); pintar(); };
+}
 async function revisarGuardadas() {
   guardadas = new Set();
   if (!('caches' in window)) return;
@@ -230,7 +243,7 @@ function pintar() {
     return `<button type="button" class="tr${act ? ' act' : ''}${t.libre ? '' : ' lock'}" role="listitem" data-i="${i}">
       <span class="n">${act && isPlaying ? '<span class="eq"><i></i><i></i><i></i></span>' : String(t.n).padStart(2, '0')}</span>
       <span><b>${esc(t.title)}</b><small>${t.libre ? esc(t.artist) : '🔒 Desbloquéala en la Tienda'}</small></span>
-      <span class="ico">${favs.includes(t.id) ? '<span class="fav">♥</span>' : ''}${guardadas.has(t.id) ? '<span title="Guardada">⬇</span>' : ''}</span>
+      <span class="ico">${(fondo() || {}).id === t.id ? '<span title="Fondo de la app">♪</span>' : ''}${favs.includes(t.id) ? '<span class="fav">♥</span>' : ''}${guardadas.has(t.id) ? '<span title="Guardada">⬇</span>' : ''}</span>
       <span class="d">${t.libre ? esc(t.duration || '') : t.pts + ' pts'}</span></button>`; }).join('');
   L.querySelectorAll('.tr').forEach(b => b.onclick = () => elegir(+b.dataset.i, true));
 }
@@ -244,6 +257,7 @@ function mostrarActual() {
   $('art').style.backgroundImage = t.portada ? 'url("' + t.portada.replace(/"/g, '%22') + '")' : 'none';
   $('bFav').classList.toggle('on', favs.includes(t.id)); $('bFav').textContent = favs.includes(t.id) ? '♥ Favorita' : '♡ Favorita'; $('bFav').setAttribute('aria-pressed', favs.includes(t.id));
   $('bSave').textContent = guardadas.has(t.id) ? '✓ Guardada' : '⬇ Guardar';
+  pintarFondo();
   if ('mediaSession' in navigator) try {
     navigator.mediaSession.metadata = new MediaMetadata({ title: t.title, artist: t.artist, album: 'Choque de Héroes · Soundtrack',
       artwork: [{ src: new URL(t.portada || 'icon-512.png', location.href).href, sizes: '512x512', type: 'image/png' }] });
@@ -343,6 +357,10 @@ $('bShuf').onclick = () => { aleatorio = !aleatorio; toast(aleatorio ? '🔀 Ale
 $('bRep').onclick = () => { repetir = repetir === 'todo' ? 'una' : repetir === 'una' ? 'no' : 'todo'; audio.loop = repetir === 'una';
   toast(repetir === 'todo' ? '🔁 Repetir todas' : repetir === 'una' ? '🔂 Repetir esta pista' : 'Sin repetir'); ui(); guardarEstado(); };
 $('bFav').onclick = () => { const t = TRACKS[cur]; if (!t) return; favs = favs.includes(t.id) ? favs.filter(x => x !== t.id) : favs.concat(t.id); ls.set(K_FAV, favs); mostrarActual(); };
+$('bFondo').onclick = () => { const t = TRACKS[cur]; if (!t || !t.libre) return; const f = fondo();
+  if (f && f.id === t.id) { localStorage.removeItem(K_BGM); toast('Se restauró la música original de la app'); }
+  else { ls.set(K_BGM, { id: t.id, titulo: t.title, url: CARPETA + t.file }); toast('♪ "' + t.title + '" sonará de fondo en la app'); }
+  pintarFondo(); pintar(); };
 $('bSave').onclick = async () => { const t = TRACKS[cur]; if (!t || guardadas.has(t.id)) return; const c = new AbortController(); $('bSave').textContent = '⬇ 0%';
   try { await bajar(t, (n, tot) => { if (tot) $('bSave').textContent = '⬇ ' + Math.round(n / tot * 100) + '%'; }, c); toast('✓ "' + t.title + '" se puede escuchar sin conexión'); } catch (e) { toast('No se pudo guardar. Revisa tu conexión.'); }
   mostrarActual(); };
@@ -397,7 +415,7 @@ window.GP_CFG = {
   gatillo: d => { saltar(d * 10); return true; },
   atras: () => { location.href = 'index.html'; return true; }
 };
-ui(); cargarCatalogo();
+ui(); pintarFondo(); cargarCatalogo();
 window.addEventListener('load', viz);
 </script>
 <script src="settings.js"></script>

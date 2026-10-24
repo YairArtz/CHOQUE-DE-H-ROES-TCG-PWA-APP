@@ -790,15 +790,15 @@ function irFase(faseId) {
   window.scrollTo(0,0);
 }
 
-function volverAtras() {
-  if (confirm('¿Volver al perfil? El torneo en curso no se guardará.')) {
+async function volverAtras() {
+  if (await NX_UI.confirmar('El torneo en curso no se guardará.', { titulo: '¿Volver al perfil?', si: 'Volver', peligro: true })) {
     if (window.opener) window.close();
     else window.location.href = 'perfil.html';
   }
 }
 
-function nuevoTorneo() {
-  if (confirm('¿Iniciar un nuevo torneo? Se perderán los datos actuales.')) {
+async function nuevoTorneo() {
+  if (await NX_UI.confirmar('Se perderán los datos actuales.', { titulo: '¿Iniciar un nuevo torneo?', si: 'Nuevo torneo', peligro: true })) {
     jugadores = []; rondas = []; rondaActual = 0;
     semis = []; final_ = null;
     rondasManualmenteAjustado = false;

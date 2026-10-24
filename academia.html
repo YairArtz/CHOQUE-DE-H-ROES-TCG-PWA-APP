@@ -587,7 +587,7 @@ async function confirmarEdicion() {
 
 async function eliminarBaraja() {
   if (!barajaActual || !jugador) return;
-  if (!confirm('¿Eliminar esta baraja de la Academia? No se puede deshacer.')) return;
+  if (!(await NX_UI.confirmar('¿Eliminar esta baraja de la Academia? No se puede deshacer.', { titulo: 'Eliminar baraja', si: 'Eliminar', peligro: true }))) return;
   const body = new URLSearchParams({
     action: 'eliminar',
     id: barajaActual.id,

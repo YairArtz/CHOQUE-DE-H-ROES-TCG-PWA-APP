@@ -412,7 +412,7 @@ async function hacerImport(input) {
   const file = input.files?.[0];
   input.value = '';
   if (!file) return;
-  if (!confirm('¿Restaurar este respaldo?\n\nSe REEMPLAZARÁN todos tus datos actuales (desbloqueos, badges, HP, tema).\n\nSe recargará la app al finalizar.')) return;
+  if (!(await NX_UI.confirmar('Se REEMPLAZARÁN todos tus datos actuales (desbloqueos, badges, HP, tema).\n\nSe recargará la app al finalizar.', { titulo: '¿Restaurar este respaldo?', si: 'Restaurar', peligro: true }))) return;
   try {
     const n = await CHH_SETTINGS.importar(file);
     toast(`${n} entradas importadas — recargando`);
@@ -438,7 +438,7 @@ async function refrescarStorage() {
 }
 
 async function hacerLimpiarCache() {
-  if (!confirm('¿Limpiar caché y recargar?\n\nTus datos y desbloqueos se conservan.')) return;
+  if (!(await NX_UI.confirmar('Tus datos y desbloqueos se conservan.', { titulo: '¿Limpiar caché y recargar?', si: 'Limpiar' }))) return;
   try {
     await CHH_SETTINGS.limpiarCache();
     toast('Caché limpiado — recargando');
@@ -449,8 +449,8 @@ async function hacerLimpiarCache() {
   }
 }
 
-function resetSettings() {
-  if (!confirm('¿Restaurar TODOS los ajustes a valores por defecto?\n\nEsto no borra tus desbloqueos ni Hero Pesos, solo las preferencias.')) return;
+async function resetSettings() {
+  if (!(await NX_UI.confirmar('Esto no borra tus desbloqueos ni Hero Pesos, solo las preferencias.', { titulo: '¿Restaurar TODOS los ajustes?', si: 'Restaurar', peligro: true }))) return;
   // Preserva desbloqueos y datos del jugador — solo resetea preferencias de UI
   const preserve = {};
   const s = CHH_SETTINGS.load();

@@ -1825,7 +1825,7 @@ async function comprarCreditos(id) {
   const p = (_credVenta || []).find(x => String(x.pack_id) === id); if (!p) return;
   const costo = Number(p.costo) || 0, cant = Math.max(1, parseInt(p.descripcion) || 1);
   if (hpSaldo < costo) { mostrarToast('Saldo insuficiente'); return; }
-  if (!confirm(`¿Comprar ${cant} crédito${cant === 1 ? '' : 's'} para el Arcade por ${costo} HP?`)) return;
+  if (!(await NX_UI.confirmar(`¿Comprar ${cant} crédito${cant === 1 ? '' : 's'} para el Arcade por ${costo} HP?`, { titulo: 'Confirmar compra', si: 'Comprar' }))) return;
   comprando = true; document.querySelectorAll('.cosm-btn').forEach(b => b.disabled = true);
   try {
     const r = await fetch(`${HERO_PESOS_URL}?action=comprar_sobre&playerid=${encodeURIComponent(jugador.id)}&packid=${encodeURIComponent(id)}`);
@@ -1918,7 +1918,7 @@ async function comprarCosmetico(id) {
   if (!p) return;
   const costo = Number(p.costo) || 0, tipo = String(p.tipo).toLowerCase();
   if (hpSaldo < costo) { mostrarToast('Saldo insuficiente'); return; }
-  if (!confirm(`¿Comprar ${tipo === 'mica' ? 'la mica' : 'el playmat'} "${p.nombre}" por ${costo} HP?`)) return;
+  if (!(await NX_UI.confirmar(`¿Comprar ${tipo === 'mica' ? 'la mica' : 'el playmat'} "${p.nombre}" por ${costo} HP?`, { titulo: 'Confirmar compra', si: 'Comprar' }))) return;
   comprando = true;
   document.querySelectorAll('.cosm-btn').forEach(b => b.disabled = true);
   try {
@@ -2000,7 +2000,7 @@ async function comprarHeroe(id) {
   const p = (_heroVenta || []).find(x => String(x.pack_id) === id); if (!p) return;
   const costo = Number(p.costo) || 0;
   if (hpSaldo < costo) { mostrarToast('Saldo insuficiente'); return; }
-  if (!confirm(`¿Comprar el héroe "${p.nombre}" para el menú principal por ${costo} HP?`)) return;
+  if (!(await NX_UI.confirmar(`¿Comprar el héroe "${p.nombre}" para el menú principal por ${costo} HP?`, { titulo: 'Confirmar compra', si: 'Comprar' }))) return;
   comprando = true; document.querySelectorAll('#heroes-cont .cosm-btn').forEach(b => b.disabled = true);
   try {
     const r = await fetch(`${HERO_PESOS_URL}?action=comprar_sobre&playerid=${encodeURIComponent(jugador.id)}&packid=${encodeURIComponent(id)}`);

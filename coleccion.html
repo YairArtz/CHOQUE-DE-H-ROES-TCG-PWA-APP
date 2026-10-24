@@ -789,7 +789,7 @@ function importarFisicas(){
       const nNuevo = Object.keys(limpio).length;
       if (!nNuevo) { toast('El archivo no contiene cartas válidas'); return; }
       const nActual = Object.keys(fisicas).length;
-      if (nActual && !confirm(`¿Reemplazar tu colección física actual (${nActual} entradas) con el respaldo (${nNuevo} entradas)?`)) return;
+      if (nActual && !(await NX_UI.confirmar(`¿Reemplazar tu colección física actual (${nActual} entradas) con el respaldo (${nNuevo} entradas)?`, { titulo: 'Importar respaldo', si: 'Reemplazar', peligro: true }))) return;
       fisicas = limpio; guardarFisicas(); nubeCambio();
       render();
       toast(`Respaldo restaurado: ${nNuevo} entradas`);

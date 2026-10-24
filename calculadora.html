@@ -613,10 +613,10 @@ function chhResetGame(){
   over=false;S.p1.h=S.p1.max;S.p2.h=S.p2.max;S.p1.c=[0,0,0,0];S.p2.c=[0,0,0,0];
   document.getElementById('ov').classList.remove('on');chhRenderAll();
 }
-function chhEditNames(){
-  const n1=prompt('Nombre del Jugador 1:',S.p1.name);
+async function chhEditNames(){
+  const n1=await NX_UI.pedir('Nombre del Jugador 1:',S.p1.name,{titulo:'Nombres',max:20});
   if(n1&&n1.trim())S.p1.name=n1.trim().toUpperCase();
-  const n2=prompt('Nombre del Jugador 2:',S.p2.name);
+  const n2=await NX_UI.pedir('Nombre del Jugador 2:',S.p2.name,{titulo:'Nombres',max:20});
   if(n2&&n2.trim())S.p2.name=n2.trim().toUpperCase();
   document.getElementById('nm1').textContent=S.p1.name;
   document.getElementById('nm2').textContent=S.p2.name;

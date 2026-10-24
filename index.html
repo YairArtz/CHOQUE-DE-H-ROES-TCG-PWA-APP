@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <link rel="manifest" href="manifest.json">
 <script src="nexo-ui.js"></script>
+<script src="cosmeticos.js"></script>
 <title>Choque de Héroes TCG</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -23,8 +24,8 @@
   · Izquierda: menú grande (JUGAR, BARAJAS, COMUNIDAD, TIENDA, EXTRAS). Cada uno abre su lista de módulos.
   · Derecha: un héroe con su energía. Toca al héroe para cambiarlo.
   · Abajo: Novedades (banners) y un acceso destacado.
-  Héroes del menú (opcional): assets/inicio/heroes.txt  →  una línea por héroe:  imagen | nombre
-  Si no existe, se usan los del intro (assets/intro/regente.png, guardian.png).
+  Héroes del menú: incluidos en assets/inicio/heroes.txt (imagen | nombre | subtítulo) + los comprados
+  en la Tienda digital → HÉROES DEL MENÚ (cosmeticos.js). El equipado aparece primero; tocar cambia al siguiente.
   Para agregar/quitar módulos: edita SECCIONES más abajo (un solo lugar).
 -->
 <style>
@@ -131,7 +132,8 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 /* ═══ HÉROE ═══ */
 #art{position:relative;z-index:2;min-height:0;cursor:pointer}
 #art .hero{position:absolute;left:50%;bottom:0;height:100%;max-width:100%;object-fit:contain;object-position:bottom;transform:translateX(-50%);
-  filter:drop-shadow(0 0 26px rgba(139,92,255,.45)) drop-shadow(0 20px 40px rgba(0,0,0,.6));transition:opacity .45s}
+  filter:drop-shadow(0 0 26px rgba(139,92,255,.45)) drop-shadow(0 20px 40px rgba(0,0,0,.6));transition:opacity .45s;
+  -webkit-mask-image:linear-gradient(180deg,#000 72%,rgba(0,0,0,.55) 86%,transparent);mask-image:linear-gradient(180deg,#000 72%,rgba(0,0,0,.55) 86%,transparent)}
 #art .hero.fade{opacity:0}
 #art svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
 #art .str{fill:none;stroke-width:1.3;stroke-linecap:round}
@@ -358,20 +360,32 @@ function pintarMus() { let m = false; try { m = localStorage.getItem('bgm_muted'
 $('tbMus').onclick = () => { const b = document.getElementById('bgm-btn'); if (b) b.click(); setTimeout(pintarMus, 30); };
 pintarMus();
 
-// ── Héroe del menú ──
-let HEROES = [{ img: 'assets/intro/regente.png', nom: 'Vellond', sub: 'Gran Regente de Nexotlan' }, { img: 'assets/intro/guardian.png', nom: 'Guardián del Nexo', sub: 'Custodio del Omniverso' }];
+// ── Héroe del menú: incluidos (heroes.txt) + comprados en la Tienda; el equipado sale primero ──
+const C = window.CHH_COSM;
+let HEROES = C ? C.HEROES_BASE.slice() : [{ id: 'base_regente', img: 'assets/intro/regente.png', nombre: 'Vellond', sub: 'Gran Regente de Nexotlan' }];
 let hi = 0;
 function ponerHeroe(i, anim) {
   const h = HEROES[i]; if (!h) return; hi = i;
   const img = $('hero');
-  const set = () => { img.src = h.img; $('heroName').innerHTML = h.nom ? (h.nom + (h.sub ? '<small>' + h.sub + '</small>' : '')) : ''; img.classList.remove('fade'); };
+  const set = () => { img.src = h.img; $('heroName').innerHTML = h.nombre ? (h.nombre + (h.sub ? '<small>' + h.sub + '</small>' : '')) : ''; img.classList.remove('fade'); };
   if (anim) { img.classList.add('fade'); setTimeout(set, 380); } else set();
-  try { localStorage.setItem('chh_menu_heroe', String(i)); } catch (e) {}
+  try { localStorage.setItem('chh_menu_heroe', h.id || String(i)); } catch (e) {}
 }
-fetch('assets/inicio/heroes.txt', { cache: 'no-cache' }).then(r => r.ok ? r.text() : '').then(t => {
-  const L = t.split(/\r?\n/).map(l => l.trim()).filter(l => l && !l.startsWith('#')).map(l => { const [img, nom, sub] = l.split('|').map(x => (x || '').trim()); return { img: /[\/]/.test(img) ? img : 'assets/inicio/' + img, nom, sub }; }).filter(h => h.img);
-  if (L.length) HEROES = L;
-}).catch(() => {}).finally(() => { let i = 0; try { i = (parseInt(localStorage.getItem('chh_menu_heroe'), 10) + 1) % HEROES.length || 0; } catch (e) {} ponerHeroe(i); });
+function inicioHeroe() {
+  const eq = C && C.equipado('heroe'), k = HEROES.findIndex(h => h.id === eq);
+  if (k >= 0) return k;
+  let prev = null; try { prev = localStorage.getItem('chh_menu_heroe'); } catch (e) {}
+  const j = HEROES.findIndex(h => h.id === prev);
+  return j >= 0 ? (j + 1) % HEROES.length : 0;   // sin equipado: rota en cada visita
+}
+async function cargarHeroes(primera) {
+  if (!C) { ponerHeroe(0); return; }
+  const actual = HEROES[hi] && HEROES[hi].id;
+  HEROES = await C.heroes();
+  if (primera) ponerHeroe(inicioHeroe());
+  else { const k = HEROES.findIndex(h => h.id === actual); if (k >= 0) hi = k; else ponerHeroe(inicioHeroe(), true); }
+}
+cargarHeroes(true).then(() => C && C.sincronizar(12000)).then(() => cargarHeroes(false)).catch(() => {});
 $('art').addEventListener('click', () => ponerHeroe((hi + 1) % HEROES.length, true));
 
 // ── Hebras de energía detrás del héroe (se generan una vez) ──

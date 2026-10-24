@@ -1,5 +1,5 @@
 // ════════════════════════════════════════════════════════════════════
-//  COSMÉTICOS — micas (reverso de cartas) y playmats (tablero)
+//  COSMÉTICOS — micas (reverso de cartas), playmats (tablero) y héroes del menú principal
 //  Lo usan simulacion.html, arcade.html y tienda.html.
 //
 //  De dónde salen:
@@ -11,12 +11,16 @@
 //     Lo comprado se guarda en la hoja "Cosmeticos" del Apps Script de Hero Pesos
 //     y aquí en caché (localStorage "chh_cosmeticos") para jugar sin red.
 //
+//   · Héroes del menú (tipo "heroe"): los de assets/inicio/heroes.txt vienen incluidos;
+//     los de la Tienda son filas de Packs_Config con tipo "heroe" (D=imagen, E=subtítulo).
+//     Imágenes en assets/inicio/heroes/. index.html los muestra; el equipado sale primero.
+//
 //  Una opción solo aparece si su imagen existe (así puedes publicar el catálogo
 //  antes de terminar el arte).
 // ════════════════════════════════════════════════════════════════════
 (function () {
   const HP_URL   = 'https://script.google.com/macros/s/AKfycbwSrBH7yJiyTlPabzJ_WiXQDWPe7RpATmuTTWAe3uVRy6wuGh15QpuOMzSiZVixJK_S/exec';
-  const CARPETA  = { mica: 'assets/cosmeticos/micas/', playmat: 'assets/cosmeticos/playmats/' };
+  const CARPETA  = { mica: 'assets/cosmeticos/micas/', playmat: 'assets/cosmeticos/playmats/', heroe: 'assets/inicio/heroes/' };
   const CLASICO  = {
     mica:    { id: 'mica_clasica',    tipo: 'mica',    nombre: 'Clásica', img: 'img/simulacion/reverso.jpg', origen: 'clasico' },
     playmat: { id: 'playmat_clasico', tipo: 'playmat', nombre: 'Clásico', img: 'img/simulacion/tablero.jpg', origen: 'clasico' }
@@ -81,7 +85,7 @@
       .then(d => {
         if (d && d.status === 'ok') {
           ls.set(K_CACHE, { pid: yo, ts: Date.now(),
-            items: (d.cosmeticos || []).map(x => ({ id: x.id, tipo: x.tipo, nombre: x.nombre, img: ruta(x.tipo, x.imagen), origen: 'tienda' })),
+            items: (d.cosmeticos || []).map(x => ({ id: x.id, tipo: x.tipo, nombre: x.nombre, sub: x.descripcion || '', img: ruta(x.tipo, x.imagen), origen: 'tienda' })),
             logros: d.logros || [] });
         }
         return cache();
@@ -113,7 +117,7 @@
     const ok = await Promise.all(L.map(x => x.origen === 'clasico' ? true : probar(x.img)));
     return L.filter((x, i) => ok[i]);
   }
-  function equipado(tipo) { return ls.get(K_EQUIP + tipo, CLASICO[tipo].id); }
+  function equipado(tipo) { return ls.get(K_EQUIP + tipo, CLASICO[tipo] ? CLASICO[tipo].id : null); }
   function equipar(tipo, id) { ls.set(K_EQUIP + tipo, id); }
   // Imagen del equipado (si ya no está disponible, vuelve al clásico)
   async function imagenEquipada(tipo) {
@@ -128,5 +132,33 @@
     return L.filter((x, i) => ok[i]);
   }
 
-  window.CHH_COSM = { HP_URL, CARPETA, CLASICO, ruta, sesionId, catalogo, cache, guardarCompra, sincronizar, logros, todos, disponibles, equipado, equipar, imagenEquipada, recompensasDe, probar };
+  // ── Héroes del menú principal ──
+  // Incluidos: assets/inicio/heroes.txt (imagen | nombre | subtítulo). Sin líneas activas: Vellond y el Guardián.
+  const HEROES_BASE = [
+    { id: 'base_regente', tipo: 'heroe', img: 'assets/intro/regente.png', nombre: 'Vellond', sub: 'Gran Regente de Nexotlan', origen: 'clasico' },
+    { id: 'base_guardian', tipo: 'heroe', img: 'assets/intro/guardian.png', nombre: 'Guardián del Nexo', sub: 'Custodio del Omniverso', origen: 'clasico' }
+  ];
+  let _hb = null;
+  function heroesBase() {
+    if (_hb) return _hb;
+    _hb = fetch('assets/inicio/heroes.txt', { cache: 'no-cache' }).then(r => r.ok ? r.text() : '').then(t => {
+      const L = t.split(/\r?\n/).map(l => l.trim()).filter(l => l && !l.startsWith('#')).map(l => {
+        const [img, nom, sub] = l.split('|').map(x => (x || '').trim());
+        if (!img) return null;
+        return { id: 'base_' + img.split('/').pop().replace(/\.[a-z0-9]+$/i, '').toLowerCase(), tipo: 'heroe', img: /\//.test(img) ? img : 'assets/inicio/' + img, nombre: nom || '', sub: sub || '', origen: 'clasico' };
+      }).filter(Boolean);
+      return L.length ? L : HEROES_BASE.slice();
+    }).catch(() => HEROES_BASE.slice());
+    return _hb;
+  }
+  // Incluidos + comprados (solo los que tienen imagen)
+  async function heroes() {
+    const base = await heroesBase(), mios = cache().items.filter(x => x.tipo === 'heroe');
+    const L = base.concat(mios.filter(x => !base.some(b => b.id === x.id)).map(x => Object.assign({ origen: 'tienda' }, x)));
+    const ok = await Promise.all(L.map(x => probar(x.img)));
+    const out = L.filter((x, i) => ok[i]);
+    return out.length ? out : HEROES_BASE.slice();
+  }
+
+  window.CHH_COSM = { HP_URL, CARPETA, CLASICO, ruta, sesionId, catalogo, cache, guardarCompra, sincronizar, logros, todos, disponibles, equipado, equipar, imagenEquipada, recompensasDe, probar, heroesBase, heroes, HEROES_BASE };
 })();

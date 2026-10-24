@@ -209,6 +209,9 @@
     .cosm-prev{position:relative;background:rgb(var(--nx-k2)) center/cover no-repeat;display:flex;align-items:center;justify-content:center;font-size:2rem;}
     .cosm-prev.mica{aspect-ratio:5/7;margin:10px auto 0;width:62%;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.5);}
     .cosm-prev.playmat{aspect-ratio:4/3;}
+    .cosm-prev.heroe{aspect-ratio:3/4;background:radial-gradient(circle at 50% 45%,rgba(var(--nx-g1,139,92,255),.45),transparent 65%),rgb(var(--nx-k2));}
+    .cosm-prev.heroe img{position:absolute;left:0;right:0;bottom:0;width:100%;height:100%;object-fit:contain;object-position:bottom;
+      -webkit-mask-image:linear-gradient(180deg,#000 78%,transparent);mask-image:linear-gradient(180deg,#000 78%,transparent);filter:drop-shadow(0 0 12px rgba(139,92,255,.5));}
     .cosm-prev .tag{position:absolute;top:6px;left:6px;font-family:'Orbitron',monospace;font-size:.5rem;letter-spacing:1px;padding:3px 6px;border-radius:4px;background:rgba(0,0,0,.75);color:var(--accent);}
     .cosm-info{padding:10px;display:flex;flex-direction:column;gap:6px;flex:1;}
     .cosm-nombre{font-family:'Orbitron',monospace;font-size:.7rem;font-weight:700;color:#fff;}
@@ -510,6 +513,14 @@
           <div class="cat-desc">Desbloquea pistas con puntos de liga</div>
         </div>
 
+        <div class="cat-card" onclick="abrirSeccion('heroes')" style="--cat-color:#f5c842;--cat-dim:rgba(245,200,66,.1);grid-column:1/-1;display:flex;align-items:center;gap:16px;text-align:left;">
+          <div class="cat-icon" style="font-size:1.8rem;min-width:48px;text-align:center;">🦸</div>
+          <div>
+            <div class="cat-name">HÉROES DEL MENÚ</div>
+            <div class="cat-desc">Elige quién te recibe en el menú principal</div>
+          </div>
+        </div>
+
         <div class="cat-card" onclick="abrirSeccion('canjear')" style="--cat-color:#00ff9d;--cat-dim:rgba(0,255,157,.1);grid-column:1/-1;display:flex;align-items:center;gap:16px;text-align:left;">
           <div class="cat-icon" style="font-size:1.8rem;min-width:48px;text-align:center;">📷</div>
           <div>
@@ -589,6 +600,20 @@
         </div>
       </div>
       <div id="cosm-cont"><div class="empty-tab">⏳ Cargando...</div></div>
+    </div>
+
+    <!-- ═══ SECCIÓN HÉROES DEL MENÚ ═══ -->
+    <div id="sec-heroes" class="section-panel">
+      <button class="sec-back" onclick="volverMenu()">◀ TIENDA</button>
+      <div class="hp-balance" style="background-image:url('hero_pesos/banner_hp.jpg')">
+        <div class="hp-coin"><img src="hero_pesos/hp_coin.png" alt="HP" onerror="this.style.display='none';this.parentElement.textContent='💰'"/></div>
+        <div class="hp-info">
+          <div class="hp-label">HERO PESOS</div>
+          <div class="hp-amount" id="hp-heroes-val">—</div>
+          <div class="hp-sub">El héroe que elijas te recibe en el menú principal</div>
+        </div>
+      </div>
+      <div id="heroes-cont"><div class="empty-tab">⏳ Cargando...</div></div>
     </div>
 
     <!-- ═══ SECCIÓN CANJEAR QR ═══ -->
@@ -1037,6 +1062,7 @@ function abrirSeccion(sec) {
   else if (sec === 'canjear') { abrirCanjear(); }
   else if (sec === 'musica') { renderMusica(); }
   else if (sec === 'cosmeticos') { cargarCosmeticos(); }
+  else if (sec === 'heroes') { cargarHeroesTienda(); }
 }
 
 function volverMenu() {
@@ -1058,6 +1084,7 @@ async function cargarSaldoHP() {
       document.getElementById('hp-saldo-val').textContent = d.saldo;
       if (document.getElementById('hp-cartas-val')) document.getElementById('hp-cartas-val').textContent = d.saldo;
       if (document.getElementById('hp-cosm-val')) document.getElementById('hp-cosm-val').textContent = d.saldo;
+      if (document.getElementById('hp-heroes-val')) document.getElementById('hp-heroes-val').textContent = d.saldo;
       const ds = d.desglose || {};
       const parts = [`Ranking: ${ds.hp_ranking ?? 0}`, `Torneos: ${ds.hp_torneos ?? 0}`, `Badges: ${ds.hp_badges ?? 0}`];
       if (ds.hp_bonus) parts.push(`Bonus: ${ds.hp_bonus}`);
@@ -1139,7 +1166,7 @@ function _esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;'
 function _jsq(s) { return String(s ?? '').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
 
 function renderPacks(packs) {
-  packs = (packs || []).filter(p => !esTipoCosmetico(p.tipo) && String(p.tipo||'').toLowerCase().trim() !== 'creditos');   // micas/playmats/créditos van en su propia sección
+  packs = (packs || []).filter(p => !esTipoCosmetico(p.tipo) && !['creditos', 'heroe'].includes(String(p.tipo||'').toLowerCase().trim()));   // micas/playmats/créditos van en su propia sección
   const grid = document.getElementById('pack-grid');
   const est = document.getElementById('packs-estado');
   if (est) est.style.display = 'none';
@@ -1807,7 +1834,7 @@ async function comprarCreditos(id) {
     if (typeof d.bolsa === 'number') guardarBolsa(d.bolsa);
     if (typeof d.saldo_nuevo === 'number' && d.saldo_nuevo >= 0) {
       hpSaldo = d.saldo_nuevo;
-      ['hp-menu-val', 'hp-saldo-val', 'hp-cartas-val', 'hp-cosm-val'].forEach(k => { const el = document.getElementById(k); if (el) el.textContent = d.saldo_nuevo; });
+      ['hp-menu-val', 'hp-saldo-val', 'hp-cartas-val', 'hp-cosm-val', 'hp-heroes-val'].forEach(k => { const el = document.getElementById(k); if (el) el.textContent = d.saldo_nuevo; });
     } else { await cargarSaldoHP(); }
     mostrarToast(`🪙 ¡+${d.creditos || cant} crédito${(d.creditos || cant) === 1 ? '' : 's'}! Úsalos en el Arcade cuando te quedes sin créditos.`);
   } catch (e) { mostrarToast('Error de conexión'); }
@@ -1906,7 +1933,7 @@ async function comprarCosmetico(id) {
     CHH_COSM.equipar(c.tipo, c.id);
     if (typeof d.saldo_nuevo === 'number' && d.saldo_nuevo >= 0) {
       hpSaldo = d.saldo_nuevo;
-      ['hp-menu-val', 'hp-saldo-val', 'hp-cartas-val', 'hp-cosm-val'].forEach(k => { const el = document.getElementById(k); if (el) el.textContent = d.saldo_nuevo; });
+      ['hp-menu-val', 'hp-saldo-val', 'hp-cartas-val', 'hp-cosm-val', 'hp-heroes-val'].forEach(k => { const el = document.getElementById(k); if (el) el.textContent = d.saldo_nuevo; });
     } else { await cargarSaldoHP(); }
     mostrarToast(`¡${c.nombre} es tuy${tipo === 'mica' ? 'a' : 'o'}! Ya está equipad${tipo === 'mica' ? 'a' : 'o'} en el Simulador.`);
   } catch (e) {
@@ -1921,6 +1948,80 @@ function usarCosmetico(tipo, id) {
   CHH_COSM.equipar(tipo, id);
   mostrarToast('¡Listo! Se usará en el Simulador y el Arcade.');
   renderCosmeticos();
+}
+
+// ════════════════════════════════════════════
+//  HÉROES DEL MENÚ
+//  Incluidos: assets/inicio/heroes.txt. Venta: filas de Packs_Config con tipo 'heroe'
+//  (C=costo, D=imagen en assets/inicio/heroes/, E=subtítulo). Se compran una vez.
+//  El equipado aparece primero en el menú principal (index.html).
+// ════════════════════════════════════════════
+let _heroVenta = null;
+async function cargarHeroesTienda() {
+  const cont = document.getElementById('heroes-cont');
+  document.getElementById('hp-heroes-val').textContent = hpSaldo;
+  if (!window.CHH_COSM) { cont.innerHTML = '<div class="empty-tab">⚠ No se pudo cargar el módulo de cosméticos.</div>'; return; }
+  if (_packsCache) { _heroVenta = _packsCache.filter(p => String(p.tipo || '').toLowerCase().trim() === 'heroe'); await renderHeroesTienda(); }
+  try {
+    const [d] = await Promise.all([
+      fetchJSON(`${HERO_PESOS_URL}?action=packs_disponibles&playerid=${encodeURIComponent(jugador.id)}`, 25000),
+      CHH_COSM.sincronizar(15000)
+    ]);
+    if (d && d.status === 'ok') { _packsCache = Array.isArray(d.packs) ? d.packs : []; _heroVenta = _packsCache.filter(p => String(p.tipo || '').toLowerCase().trim() === 'heroe'); }
+  } catch (e) { console.warn('héroes:', e); }
+  await renderHeroesTienda();
+}
+async function renderHeroesTienda() {
+  const cont = document.getElementById('heroes-cont');
+  const mios = await CHH_COSM.heroes();                       // incluidos + comprados (con imagen)
+  const eq = CHH_COSM.equipado('heroe');
+  const usando = id => eq ? eq === id : false;
+  const idsMios = new Set(mios.map(h => h.id));
+  const venta = (_heroVenta || []).map(p => ({ id: String(p.pack_id), nombre: p.nombre, sub: p.descripcion || '', costo: Number(p.costo) || 0,
+    img: CHH_COSM.ruta('heroe', p.imagen) })).filter(x => !idsMios.has(x.id));
+  const okV = await Promise.all(venta.map(x => CHH_COSM.probar(x.img)));
+  const ventaOk = venta.filter((x, i) => okV[i]);
+  const tarjeta = (h, comprar) => {
+    let btn;
+    if (comprar) { const puede = hpSaldo >= h.costo; btn = `<button class="cosm-btn" ${puede ? '' : 'disabled'} onclick="comprarHeroe('${_jsq(h.id)}')">${puede ? 'COMPRAR · ' + h.costo + ' HP' : '🔒 ' + h.costo + ' HP'}</button>`; }
+    else btn = usando(h.id) ? `<button class="cosm-btn ok" onclick="usarHeroe('')">✓ EN EL MENÚ · QUITAR</button>` : `<button class="cosm-btn ok" onclick="usarHeroe('${_jsq(h.id)}')">USAR EN EL MENÚ</button>`;
+    return `<div class="cosm-card${comprar ? '' : ' tuyo'}">
+      <div class="cosm-prev heroe"><img src="${_esc(h.img)}" alt="" loading="lazy"><span class="tag">${comprar ? 'HÉROE' : (h.origen === 'clasico' ? 'INCLUIDO' : 'TUYO')}</span></div>
+      <div class="cosm-info"><div class="cosm-nombre">${_esc(h.nombre || 'Héroe')}</div><div class="cosm-sub">${_esc(h.sub || '')}</div>${btn}</div></div>`;
+  };
+  let html = `<div class="cosm-sub" style="margin:0 2px 12px">${eq && idsMios.has(eq) ? 'Tu héroe equipado aparece primero en el menú. Toca al héroe en el menú para ver los demás.' : 'Sin héroe equipado: el menú cambia de héroe en cada visita. Toca al héroe en el menú para ver el siguiente.'}</div>`;
+  if (ventaOk.length) html += `<div class="seccion-label">🦸 HÉROES A LA VENTA</div><div class="cosm-grid">${ventaOk.map(h => tarjeta(h, true)).join('')}</div>`;
+  html += `<div class="seccion-label">⭐ TUS HÉROES</div><div class="cosm-grid">${mios.map(h => tarjeta(h, false)).join('')}</div>`;
+  if (!ventaOk.length) html += `<div class="empty-tab">Próximamente más héroes a la venta.</div>`;
+  cont.innerHTML = html;
+}
+async function comprarHeroe(id) {
+  if (comprando) return;
+  const p = (_heroVenta || []).find(x => String(x.pack_id) === id); if (!p) return;
+  const costo = Number(p.costo) || 0;
+  if (hpSaldo < costo) { mostrarToast('Saldo insuficiente'); return; }
+  if (!confirm(`¿Comprar el héroe "${p.nombre}" para el menú principal por ${costo} HP?`)) return;
+  comprando = true; document.querySelectorAll('#heroes-cont .cosm-btn').forEach(b => b.disabled = true);
+  try {
+    const r = await fetch(`${HERO_PESOS_URL}?action=comprar_sobre&playerid=${encodeURIComponent(jugador.id)}&packid=${encodeURIComponent(id)}`);
+    const d = await r.json();
+    const item = { id, tipo: 'heroe', nombre: p.nombre, sub: p.descripcion || '', img: CHH_COSM.ruta('heroe', p.imagen), origen: 'tienda' };
+    if (d.status !== 'ok') { if (d.ya) CHH_COSM.guardarCompra(item); mostrarToast(d.message || 'No se pudo comprar'); return; }
+    if (d.cosmetico && d.cosmetico.tipo && d.cosmetico.tipo !== 'heroe') { mostrarToast('Revisa la versión del Apps Script de Hero Pesos (v3.8)'); }
+    CHH_COSM.guardarCompra(item);
+    CHH_COSM.equipar('heroe', id);
+    if (typeof d.saldo_nuevo === 'number' && d.saldo_nuevo >= 0) {
+      hpSaldo = d.saldo_nuevo;
+      ['hp-menu-val', 'hp-saldo-val', 'hp-cartas-val', 'hp-cosm-val', 'hp-heroes-val'].forEach(k => { const el = document.getElementById(k); if (el) el.textContent = d.saldo_nuevo; });
+    } else { await cargarSaldoHP(); }
+    mostrarToast(`¡${p.nombre} es tuyo! Ya te recibe en el menú principal.`);
+  } catch (e) { mostrarToast('Error de conexión'); }
+  finally { comprando = false; renderHeroesTienda(); }
+}
+function usarHeroe(id) {
+  CHH_COSM.equipar('heroe', id || null);
+  mostrarToast(id ? '¡Listo! Ese héroe te recibirá en el menú principal.' : 'Sin héroe fijo: el menú irá cambiando de héroe.');
+  renderHeroesTienda();
 }
 
 // ════════════════════════════════════════════

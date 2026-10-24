@@ -12,7 +12,23 @@ CORTINA (boot.html) · orden: © 2016–2026 CODEX STUDIO → logo 1 → logo 2 
                     Si falta: el sonido sintetizado de siempre
 
 MENÚ PRINCIPAL (index.html)
+  Fondo: el héroe se desvanece en la parte de abajo (celular y PC), así no se nota el corte de la imagen.
   heroes.txt        héroes que aparecen a la derecha (tocar al héroe cambia al siguiente)
                     una línea por héroe:  imagen | nombre | subtítulo
                     la imagen puede estar en esta carpeta (solo el nombre) o con su ruta completa
                     PNG con transparencia, vertical (~1080×1400)
+
+HÉROES A LA VENTA (Tienda digital → HÉROES DEL MENÚ, se pagan con Hero Pesos)
+  · Pon la imagen en assets/inicio/heroes/  (PNG con transparencia, vertical ~1080×1400, igual que los incluidos)
+  · Agrega una fila en la hoja Packs_Config del Apps Script de Hero Pesos (v3.8 o mayor):
+        A pack_id      heroe_koatl          (único, en minúsculas)
+        B nombre       Koatl                (nombre que aparece en el menú)
+        C costo        40                   (Hero Pesos)
+        D imagen       koatl.png            (solo el nombre si está en assets/inicio/heroes/)
+        E descripcion  El Defensor          (subtítulo bajo el nombre)
+        F activo       SI
+        H tipo         heroe
+    Las columnas de visibilidad (zonas, fechas, jugadores) funcionan igual que con los sobres.
+  · Cada héroe se compra una sola vez. Al comprarlo queda equipado: aparece primero en el menú.
+    Tocar al héroe en el menú muestra el siguiente (incluidos + comprados).
+  · Si la imagen todavía no existe, el héroe no aparece a la venta (puedes dar de alta la fila antes del arte).

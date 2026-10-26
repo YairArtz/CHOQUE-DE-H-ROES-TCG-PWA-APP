@@ -9294,6 +9294,16 @@ if(TUTO){(function(){
     const r=_ig.apply(this,arguments);
     if(G){G.cpu.hp=2;G.tuto=true;lg('🎓 <b>PARTIDA GUIADA</b> · El '+RIVAL.toLowerCase()+' empieza con 2 corazones (en un choque normal son '+R.corazones+').','var(--gold2)');renderAll();}
     return r;};}
+  // ── Mesa de la partida guiada: el Puente de Nexotlan (Modo Aventura), sin importar la que tenga elegida el jugador ──
+  const MESA_T='assets/simulacion/mesas/mesa_puente.jpg';
+  function tutoMesa(){try{
+    document.documentElement.dataset.mesa='imagen';
+    const bg=document.querySelector('.aztec-bg');if(bg)bg.style.backgroundImage='linear-gradient(rgba(5,4,8,.35),rgba(5,4,8,.35)),url("'+MESA_T+'")';
+    const bb=document.getElementById('bootBg');if(bb){bb.style.backgroundImage='url("'+MESA_T+'")';bb.classList.add('img');}
+  }catch(e){}}
+  {const _am=apAplicarMesa;apAplicarMesa=function(){const r=_am.apply(this,arguments);tutoMesa();return r;};}
+  {const _ca=cosmAplicar;cosmAplicar=async function(){const r=await _ca.apply(this,arguments);tutoMesa();return r;};}
+  tutoMesa();
   sorteoInicio=async function(){
     G.first='player';G.active='player';G.phase='draw';
     showBanner('player','INICIAS','TU TURNO',1400);

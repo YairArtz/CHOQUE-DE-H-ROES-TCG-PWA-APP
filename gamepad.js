@@ -13,6 +13,7 @@
 //  Stick derecho          puntero libre (A toca lo que esté debajo)
 //  Start                  menú de la pantalla (Apariencia…)
 //  View / Select          silenciar música
+//  Campos de texto: A abre un teclado en pantalla (B borra · X mayúsculas · Y espacio · LB/RB cursor · Start listo)
 //
 //  Cada página puede definir window.GP_CFG = { zonas, principal, atras, start, select, acciones, clicables, ambito,
 //    sinDestino(dx,dy), gatillo(dir), stickDerecho(rx,ry) }  (los tres últimos devuelven true si la página usó la entrada).
@@ -96,6 +97,7 @@
     const t = el.tagName;
     if (t === 'BUTTON' || t === 'SELECT' || (t === 'A' && el.hasAttribute('href'))) return true;
     if (t === 'INPUT' && el.type !== 'hidden') return true;
+    if (t === 'TEXTAREA') return true;
     const extra = CFG().clicables; if (extra && el.matches(extra)) return true;   // elementos con addEventListener (por página)
     return typeof el.onclick === 'function' || el.hasAttribute('onclick') || el.getAttribute('role') === 'button';
   }
@@ -164,6 +166,7 @@
   function centro(el) { const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2, r]; }
 
   function inicial() {
+    if (OSK.abierto()) { const k = OSK.panel.querySelector('button'); if (k) return k; }
     const c = CFG();
     const pref = c.inicial && c.inicial();
     if (valido(pref)) return pref;
@@ -196,7 +199,7 @@
     let b1 = null, s1 = 1e12, b2 = null, s2 = 1e12, b3 = null, s3 = 1e12;
     // Un menú abierto puede limitar el movimiento a su zona (GP_CFG.ambito)
     const c = CFG(); let raiz = null;
-    try { raiz = c.ambito && c.ambito(foco); } catch (e) {}
+    try { raiz = OSK.abierto() ? OSK.panel : (c.ambito && c.ambito(foco)); } catch (e) {}
     const antes = (a, b) => !!(a && b && (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING));   // ¿a va antes que b?
     candidatos(raiz || undefined).forEach(el => {
       if (el === foco || el.contains(foco) || foco.contains(el)) return;
@@ -274,6 +277,7 @@
     const [x, y] = centro(el);
     const opt = { bubbles: true, cancelable: true, clientX: x, clientY: y, view: window };
     try { const ev = new PointerEvent('pointerdown', opt); ev._gp = true; el.dispatchEvent(ev); } catch (e) {}
+    if (activo && OSK.esTexto(el)) { vibrar(18, .25); OSK.abrir(el); return; }   // v193 · teclado en pantalla
     if (el.tagName === 'INPUT' || el.tagName === 'SELECT') { el.focus(); if (el.tagName === 'SELECT') try { el.showPicker(); } catch (e) {} return; }
     vibrar(18, .25);   // antes del clic: si el clic cambia de página, la vibración ya terminó
     el.click();
@@ -285,6 +289,7 @@
   }
   const RX_ATRAS = /^\s*(✕|×|x|←|◀|cancelar|cerrar|atr[aá]s|volver|no\b|salir de|regresar)/i;
   function atras() {
+    if (OSK.abierto()) { OSK.borrar(); return; }
     const c = CFG();
     if (c.atras && c.atras() === true) return;
     const L = candidatos();
@@ -294,6 +299,7 @@
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
   }
   function principal() {
+    if (OSK.abierto()) { OSK.espacio(); return; }
     const c = CFG(); const el = c.principal && c.principal();
     if (valido(el)) { tocar(el); return; }
     // Si no hay, el primer botón dorado/primario visible
@@ -355,6 +361,128 @@
   addEventListener('beforeunload', parar);
   document.addEventListener('visibilitychange', () => { if (document.hidden) parar(); });
 
+  // ── Teclado en pantalla (v193) ──
+  // Al tocar con A un campo de texto se abre un teclado que se maneja con el control
+  // (PC sin teclado, TV o una versión instalada como juego). Con el dedo o el teclado físico no aparece.
+  //   Cruceta: mover · A: escribir · B: borrar · X: mayúsculas · Y: espacio · LB/RB: mover el cursor · Start: listo
+  const OSK = (function () {
+    const st = document.createElement('style');
+    st.textContent = `
+  #gpOsk{position:fixed;left:0;right:0;bottom:0;z-index:2147483640;display:none;justify-content:center;padding:0 8px 8px;
+    background:linear-gradient(transparent,rgba(2,4,8,.72) 30%);font-family:'Rajdhani',sans-serif}
+  #gpOsk.on{display:flex}
+  #gpOsk .k-caja{width:min(760px,100%);background:linear-gradient(180deg,rgba(18,24,38,.98),rgba(8,11,18,.98));border:1px solid rgba(245,166,35,.45);
+    border-radius:16px;padding:10px;box-shadow:0 -10px 40px rgba(0,0,0,.6)}
+  #gpOsk .k-tit{display:flex;justify-content:space-between;gap:10px;font:700 10px 'Orbitron',sans-serif;letter-spacing:.12em;color:#f5c842;margin:0 4px 6px}
+  #gpOsk .k-tit span:last-child{color:#7a8290;font-weight:600;letter-spacing:.06em}
+  #gpOsk .k-val{min-height:42px;display:flex;align-items:center;padding:6px 12px;margin-bottom:8px;border-radius:10px;background:#03050a;
+    border:1px solid rgba(255,255,255,.12);font:700 22px 'Rajdhani',sans-serif;color:#fff;white-space:pre;overflow:hidden;letter-spacing:.04em}
+  #gpOsk .k-val .ph{color:#4a5262;font-weight:600}
+  #gpOsk .k-val i{display:inline-block;width:2px;height:1.1em;background:#f5c842;margin:0 1px;vertical-align:middle;animation:kCur 1s steps(1) infinite}
+  @keyframes kCur{50%{opacity:0}}
+  #gpOsk .k-fila{display:flex;gap:5px;margin-top:5px}
+  #gpOsk button{flex:1 1 0;min-width:0;height:44px;border-radius:9px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.06);
+    color:#e8ecf0;font:700 19px 'Rajdhani',sans-serif;cursor:pointer;padding:0}
+  #gpOsk button:active{transform:translateY(1px)}
+  #gpOsk button.esp{font:700 11px 'Orbitron',sans-serif;letter-spacing:.06em;color:#cfd8e6;background:rgba(255,255,255,.1)}
+  #gpOsk button.on{background:rgba(245,166,35,.25);color:#ffd166;border-color:rgba(245,166,35,.6)}
+  #gpOsk button.ok{background:linear-gradient(180deg,#ffd166,#e59a1c);color:#1a1205;border:0}
+  #gpOsk button.ancho{flex-grow:3}
+  #gpOsk button.medio{flex-grow:1.6}
+  #gpOsk .k-ayuda{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 12px;margin-top:8px;font:600 11px 'Rajdhani',sans-serif;color:#8a93a2}
+  #gpOsk .k-ayuda b{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;padding:0 4px;border-radius:8px;font:900 9px 'Orbitron',sans-serif;color:#000;margin-right:3px}
+  #gpOsk .k-ayuda .a{background:#5dd55d}#gpOsk .k-ayuda .b{background:#ff5d5d}#gpOsk .k-ayuda .x{background:#4fa3ff}#gpOsk .k-ayuda .y{background:#f5c842}#gpOsk .k-ayuda .l{background:#9fb3cc;border-radius:4px}
+  #gpOsk.num .k-caja{width:min(340px,100%)}
+  #gpOsk.num button{height:50px;font-size:22px}
+  @media (max-height:460px){#gpOsk button{height:34px;font-size:16px}#gpOsk .k-val{min-height:34px;font-size:18px;margin-bottom:4px}#gpOsk .k-ayuda{display:none}#gpOsk .k-fila{margin-top:4px}}`;
+    document.head.appendChild(st);
+    const P = document.createElement('div'); P.id = 'gpOsk';
+    let el = null, txt = '', pos = 0, may = false, num = false, mail = false;
+    const LETRAS = ['1234567890', 'qwertyuiop', 'asdfghjklñ', 'zxcvbnm-_.'];
+    function tipoDe(e) {
+      const t = (e.type || 'text').toLowerCase(), im = (e.getAttribute('inputmode') || '').toLowerCase();
+      return { num: t === 'number' || t === 'tel' || im === 'numeric' || im === 'decimal' || /^\[?\\d|^\[0-9\]/.test(e.getAttribute('pattern') || ''), mail: t === 'email' };
+    }
+    function etiqueta(e) {
+      let l = '';
+      try { if (e.id) { const lb = document.querySelector('label[for="' + CSS.escape(e.id) + '"]'); if (lb) l = lb.textContent; } } catch (_) {}
+      if (!l) { const f = e.closest('label,.field,.campo,.fld'); const lb = f && (f.tagName === 'LABEL' ? f : f.querySelector('label')); if (lb) l = lb.textContent; }
+      return (l || e.getAttribute('aria-label') || e.placeholder || 'Escribe').trim().replace(/\s+/g, ' ').slice(0, 40);
+    }
+    const max = () => (el && el.maxLength > 0 ? el.maxLength : 200);
+    function escribir() {
+      if (!el) return;
+      const proto = el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+      try { Object.getOwnPropertyDescriptor(proto, 'value').set.call(el, txt); } catch (_) { el.value = txt; }
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      pintarValor();
+    }
+    function pintarValor() {
+      const v = P.querySelector('.k-val'); if (!v) return;
+      const ver = s => (el && el.type === 'password' ? '•'.repeat(s.length) : s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+      v.innerHTML = !txt ? '<i></i><span class="ph">' + ver(el && el.placeholder || '') + '</span>' : ver(txt.slice(0, pos)) + '<i></i>' + ver(txt.slice(pos));
+    }
+    function poner(s) {
+      if (num && !/^[0-9.+\-]$/.test(s)) return;
+      if (txt.length + s.length > max()) { vibrar(40, .3); return; }
+      txt = txt.slice(0, pos) + s + txt.slice(pos); pos += s.length; escribir();
+    }
+    function borrar() {
+      if (!txt.length) { cerrar(false); return; }
+      if (pos === 0) { vibrar(25, .2); return; }
+      txt = txt.slice(0, pos - 1) + txt.slice(pos); pos--; escribir();
+    }
+    function cursor(d) { pos = Math.max(0, Math.min(txt.length, pos + d)); pintarValor(); }
+    function mayus() { may = !may; armar(true); }
+    function boton(lbl, fn, cls) { const b = document.createElement('button'); b.type = 'button'; b.textContent = lbl; if (cls) b.className = cls; b.onclick = e => { e.stopPropagation(); fn(); }; return b; }
+    function armar(conservarFoco) {
+      const idx = conservarFoco && foco && P.contains(foco) ? [...P.querySelectorAll('button')].indexOf(foco) : -1;
+      P.className = 'on' + (num ? ' num' : '');
+      P.innerHTML = '<div class="k-caja"><div class="k-tit"><span></span><span>' + (el && el.maxLength > 0 ? 'máx. ' + el.maxLength : '') + '</span></div><div class="k-val"></div><div class="k-teclas"></div>' +
+        '<div class="k-ayuda"><span><b class="a">A</b>Escribir</span><span><b class="b">B</b>Borrar</span>' + (num ? '' : '<span><b class="x">X</b>Mayús.</span><span><b class="y">Y</b>Espacio</span>') +
+        '<span><b class="l">LB RB</b>Cursor</span><span><b class="l">START</b>Listo</span></div></div>';
+      P.querySelector('.k-tit span').textContent = etiqueta(el);
+      const K = P.querySelector('.k-teclas');
+      const fila = items => { const f = document.createElement('div'); f.className = 'k-fila'; items.forEach(b => f.appendChild(b)); K.appendChild(f); };
+      if (num) {
+        ['123', '456', '789'].forEach(r => fila([...r].map(c => boton(c, () => poner(c)))));
+        fila([boton('⌫', borrar, 'esp'), boton('0', () => poner('0')), boton('✓', listo, 'esp ok')]);
+      } else {
+        LETRAS.forEach(r => fila([...r].map(c => { const k = may ? c.toUpperCase() : c; return boton(k, () => poner(k)); })));
+        fila([boton('⇧ MAYÚS', mayus, 'esp medio' + (may ? ' on' : '')), mail ? boton('@', () => poner('@')) : boton(',', () => poner(',')),
+          boton('ESPACIO', () => poner(' '), 'esp ancho'), mail ? boton('.com', () => poner('.com'), 'esp') : boton('?', () => poner('?')),
+          boton('⌫ BORRAR', borrar, 'esp medio'), boton('✓ LISTO', listo, 'esp ok medio')]);
+      }
+      pintarValor();
+      const L = [...P.querySelectorAll('button')];
+      enfocar(L[idx >= 0 ? idx : (num ? 0 : 10)] || L[0]);
+    }
+    function abrir(e) {
+      el = e; txt = String(e.value || ''); pos = txt.length;
+      const t = tipoDe(e); num = t.num; mail = t.mail;
+      may = /uppercase/i.test(getComputedStyle(e).textTransform) || /^[A-Z0-9\-]+$/.test(e.placeholder || '');
+      (document.getElementById('stage') || document.body).appendChild(P);
+      armar(false);
+      hud.style.display = 'none';
+      try { e.blur(); } catch (_) {}
+    }
+    function cerrar(ok) {
+      if (!el) return;
+      const e = el; el = null; P.className = ''; P.innerHTML = '';
+      if (ok) {
+        e.dispatchEvent(new Event('change', { bubbles: true }));
+        ['keydown', 'keypress', 'keyup'].forEach(t => e.dispatchEvent(new KeyboardEvent(t, { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true, cancelable: true })));
+      }
+      if (e.isConnected && valido(e)) enfocar(e);
+    }
+    function listo() { cerrar(true); }
+    return {
+      abierto: () => !!el, panel: P, abrir, cerrar, borrar, mayus, cursor, listo,
+      espacio: () => { if (!num) poner(' '); },
+      esTexto: e => !!e && ((e.tagName === 'INPUT' && /^(text|search|email|password|tel|url|number|)$/i.test(e.type || '')) || e.tagName === 'TEXTAREA') && !e.readOnly && !e.disabled
+    };
+  })();
+
   // ── Lectura del control ──
   function pulsado(g, i) { const b = g.buttons[i]; return !!b && (b.pressed || b.value > .5); }
   function bucle() {
@@ -383,13 +511,15 @@
         const nuevo = i => est['b' + i] && !prev['b' + i];
         if (nuevo(B.A)) { if (modoPuntero) tocarPuntero(); else tocar(valido(foco) ? foco : inicial()); }
         if (nuevo(B.B)) atras();
-        if (nuevo(B.X)) { const c = CFG(); const el = c.acciones && c.acciones(); if (el) enfocar(el); }
+        if (nuevo(B.X) && OSK.abierto()) OSK.mayus();
+        else if (nuevo(B.X)) { const c = CFG(); const el = c.acciones && c.acciones(); if (el) enfocar(el); }
         if (nuevo(B.Y)) principal();
         // GP_CFG.lbrb(dir): la página puede usar LB/RB (p. ej. noticia anterior / siguiente); si no, saltan entre zonas
-        const lr = d => { const c = CFG(); let h = false; try { h = c.lbrb && c.lbrb(d); } catch (e) {} if (!h) zona(d); };
+        const lr = d => { if (OSK.abierto()) { OSK.cursor(d); return; } const c = CFG(); let h = false; try { h = c.lbrb && c.lbrb(d); } catch (e) {} if (!h) zona(d); };
         if (nuevo(B.LB)) lr(-1);
         if (nuevo(B.RB)) lr(1);
-        if (nuevo(B.START)) { const c = CFG(); const el = c.start && c.start(); if (valido(el)) tocar(el); }
+        if (nuevo(B.START) && OSK.abierto()) OSK.listo();
+        else if (nuevo(B.START)) { const c = CFG(); const el = c.start && c.start(); if (valido(el)) tocar(el); }
         if (nuevo(B.VIEW)) { const c = CFG(); const el = c.select && c.select(); if (el) tocar(el); }
         if (nuevo(B.RS) && modoPuntero) tocarPuntero();
         // Gatillos: desplazamiento continuo
@@ -417,5 +547,5 @@
   // Algunos navegadores no avisan "gamepadconnected" si el control ya estaba conectado
   if (navigator.getGamepads && [...navigator.getGamepads()].some(Boolean)) { bucle._on = true; requestAnimationFrame(bucle); }
 
-  window.GP = { activo: () => activo, vibrar, parar, enfocar, valido, foco: () => foco, refrescarHud: pintarHud };
+  window.GP = { activo: () => activo, vibrar, parar, enfocar, valido, foco: () => foco, refrescarHud: pintarHud, teclado: OSK };
 })();

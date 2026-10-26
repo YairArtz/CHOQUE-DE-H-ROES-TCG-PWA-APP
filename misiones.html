@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<script src="config.js"></script><script src="nucleo.js"></script>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#04061a">
+<title>Misiones · Choque de Héroes TCG</title>
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<!--
+  MISIONES · 3 diarias y 3 semanales, iguales para todos. Las da el servidor de Hero Pesos (v4.0):
+  catálogo y recompensas en MISIONES_DIARIAS / MISIONES_SEMANALES del Apps Script.
+  Un choque cuenta al terminar (3 turnos o más, sin abandonar). Se cobra con COBRAR (requiere sesión con PIN).
+-->
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{--acc:var(--neon,#f5c842)}
+:root{--line:rgba(var(--nx-ln,143,176,255),.18);--mut:#8d9bc7;--txt:#eef2ff;--oro:#f5c842;--ok:#3ee08f;--safeT:max(10px,env(safe-area-inset-top));--safeB:max(14px,env(safe-area-inset-bottom))}
+html,body{min-height:100%;background:rgb(var(--nx-k1,4,6,26));color:var(--txt);font-family:'Rajdhani',system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+a{color:inherit}
+.top-bar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:12px;padding:calc(var(--safeT) + 2px) 16px 12px}
+.back-btn{width:42px;height:38px;display:flex;align-items:center;justify-content:center;font-size:22px;text-decoration:none}
+.top-title{font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(20px,5.4vw,28px);letter-spacing:.06em;line-height:1;border-left:4px solid var(--acc);padding-left:12px;flex:1;min-width:0}
+.top-title small{display:block;font-family:'Rajdhani',sans-serif;font-weight:600;font-size:13px;letter-spacing:.02em;color:var(--mut);margin-top:4px}
+main{max-width:1000px;margin:0 auto;padding:6px 16px calc(var(--safeB) + 24px)}
+.resumen{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:14px 16px;margin-bottom:18px;border:1px solid var(--line);
+  background:linear-gradient(100deg,rgba(var(--nx-g1,139,92,255),.22),rgba(var(--nx-k3,9,13,40),.92));clip-path:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,0 100%)}
+.resumen .n{font-family:'Orbitron',sans-serif;font-weight:900;font-size:30px;color:var(--oro);line-height:1}
+.resumen .t{flex:1;min-width:180px;font-size:16px;line-height:1.35;color:#d6dcff}
+.resumen .t b{color:var(--txt)}
+.cols{display:grid;grid-template-columns:minmax(0,1fr);gap:22px}
+@media (min-width:860px){.cols{grid-template-columns:1fr 1fr}}
+h2{display:flex;align-items:baseline;gap:10px;font-family:'Orbitron',sans-serif;font-weight:700;font-size:15px;letter-spacing:.06em;margin-bottom:10px}
+h2 small{margin-left:auto;font-family:'Rajdhani',sans-serif;font-weight:600;font-size:14px;letter-spacing:0;color:var(--mut)}
+.lista{display:flex;flex-direction:column;gap:10px}
+.m{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--line);background:rgba(var(--nx-k3,9,13,40),.9);
+  clip-path:polygon(0 0,100% 0,calc(100% - 12px) 100%,0 100%)}
+.m.lista-ok{border-color:rgba(245,200,66,.6);background:linear-gradient(90deg,rgba(245,200,66,.14),rgba(var(--nx-k3,9,13,40),.92))}
+.m.hecha{opacity:.6}
+.m .ic{width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:22px;background:rgba(var(--nx-k5,20,26,70),.9)}
+.m b{display:block;font-size:17px;line-height:1.2}
+.m .pr{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:14px;font-weight:700;color:var(--mut);font-variant-numeric:tabular-nums}
+.m .bar{flex:1;height:6px;background:rgba(255,255,255,.1)}
+.m .bar i{display:block;height:100%;background:var(--acc)}
+.m.lista-ok .bar i{background:var(--oro)}
+.m .hp{display:flex;align-items:center;gap:4px;font-family:'Orbitron',sans-serif;font-weight:700;font-size:13px;color:var(--oro);white-space:nowrap;margin-bottom:6px;justify-content:flex-end}
+.m .hp img{width:18px;height:18px}
+.bt{display:inline-flex;align-items:center;justify-content:center;min-width:96px;height:38px;padding:0 12px;font-family:'Orbitron',sans-serif;font-weight:700;font-size:12px;letter-spacing:.05em;text-decoration:none;
+  border:1px solid var(--line);background:rgba(var(--nx-k4,10,15,46),.9);clip-path:polygon(0 0,100% 0,calc(100% - 9px) 100%,0 100%)}
+.bt.cobrar{background:var(--oro);color:#1a1200;border-color:transparent}
+.bt.ok{color:var(--ok);border-color:transparent;background:transparent}
+.bt:hover,.bt:focus-visible{outline:2px solid #fff;outline-offset:-2px}
+.bt:disabled{opacity:.6;cursor:wait}
+.nota{margin-top:22px;font-size:15px;line-height:1.5;color:var(--mut)}
+.nota b{color:var(--txt)}
+.aviso{margin-bottom:16px;padding:12px 14px;border-left:3px solid #ffb36b;background:rgba(255,179,107,.08);font-size:15px;line-height:1.4}
+.vacio{padding:40px 12px;text-align:center;color:var(--mut);font-size:16px}
+.vacio b{display:block;color:var(--txt);font-size:19px;margin-bottom:6px}
+.carga{height:72px;background:linear-gradient(90deg,rgba(var(--nx-k3,9,13,40),.8),rgba(var(--nx-k5,20,26,70),.9),rgba(var(--nx-k3,9,13,40),.8));background-size:200% 100%;animation:shim 1.2s linear infinite}
+@keyframes shim{to{background-position:-200% 0}}
+#toast{position:fixed;left:50%;bottom:calc(var(--safeB) + 20px);transform:translateX(-50%) translateY(20px);opacity:0;z-index:90;padding:10px 18px;background:var(--oro);color:#1a1200;font-weight:700;font-size:16px;
+  transition:opacity .2s,transform .2s;pointer-events:none;width:max-content;max-width:92vw;text-align:center}
+#toast.on{opacity:1;transform:translateX(-50%)}
+#toast.bad{background:#ff5c7a;color:#fff}
+.gana{animation:gana .7s ease}
+@keyframes gana{40%{transform:scale(1.03);box-shadow:0 0 0 3px var(--oro)}}
+@media (prefers-reduced-motion:reduce){.carga,.gana{animation:none}}
+</style>
+<script src="nexo-ui.js"></script>
+</head>
+<body>
+<header class="top-bar">
+  <a href="index.html" class="back-btn" aria-label="Regresar al menú">‹</a>
+  <h1 class="top-title">MISIONES<small>Retos diarios y semanales que dan Hero Pesos</small></h1>
+</header>
+<main>
+  <div id="sinSesion" hidden class="vacio"><b>Inicia sesión para hacer misiones</b>Entra en Mi Perfil con tu ID y tu PIN.<br><br><a class="bt cobrar" href="perfil.html">Ir a Mi Perfil</a></div>
+  <div id="contenido">
+    <div class="resumen" id="resumen"><span class="n" id="rN">—</span><span class="t" id="rT">Cargando misiones…</span></div>
+    <div id="cola" class="aviso" hidden></div>
+    <div class="cols">
+      <section><h2>Diarias <small id="cdD"></small></h2><div class="lista" id="dia"><div class="carga"></div><div class="carga"></div><div class="carga"></div></div></section>
+      <section><h2>Semanales <small id="cdS"></small></h2><div class="lista" id="sem"><div class="carga"></div><div class="carga"></div><div class="carga"></div></div></section>
+    </div>
+    <p class="nota">Un choque cuenta al terminar, si duró <b>3 turnos o más</b> y no lo abandonaste, en Simulación, Arcade, Nexotlan u Online. Tiene que pasar <b>al menos un minuto entre choques</b>. Las misiones se renuevan a la medianoche (diarias) y cada lunes (semanales), hora del centro de México.</p>
+  </div>
+</main>
+<div id="toast" role="status"></div>
+<script>
+try { const s = JSON.parse(localStorage.getItem('chh_secciones_visitadas') || '[]'); if (!s.includes('misiones')) { s.push('misiones'); localStorage.setItem('chh_secciones_visitadas', JSON.stringify(s)); } } catch (e) {}
+const $ = id => document.getElementById(id);
+const esc = t => String(t ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function toast(t, bad) { const el = $('toast'); el.textContent = t; el.classList.toggle('bad', !!bad); el.classList.add('on'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('on'), 2600); }
+const sesion = () => { try { const s = JSON.parse(localStorage.getItem('nhSesion') || 'null'); return s && s.tipo !== 'tienda' && s.id ? s : null; } catch (e) { return null; } };
+const IR = { victoria_arcade: ['🕹', 'arcade.html'], victoria_nexotlan: ['🗺️', 'nexotlan.html'], victoria_sim: ['🤖', 'simulacion.html'], online: ['🌐', 'online.html'],
+  victoria: ['🏆', 'simulacion.html'], choque: ['⚔️', 'simulacion.html'], torneo_inscripcion: ['📅', 'calendario.html'], academia_publicar: ['📚', 'constructor.html'] };
+let DATA = null;
+function falta(ms) { const m = Math.max(0, Math.round((ms - Date.now()) / 60000)); if (m < 60) return 'se renuevan en ' + m + ' min'; const h = Math.floor(m / 60); if (h < 24) return 'se renuevan en ' + h + ' h ' + (m % 60) + ' min'; const d = Math.floor(h / 24); return 'se renuevan en ' + d + (d === 1 ? ' día' : ' días') + ' ' + (h % 24) + ' h'; }
+function tarjeta(m) {
+  const [ic, href] = IR[m.evento] || ['📜', 'simulacion.html'], lista = m.completada && !m.cobrada;
+  const btn = m.cobrada ? '<span class="bt ok">✓ Cobrada</span>' : lista ? `<button class="bt cobrar" type="button" data-c="${esc(m.id)}">Cobrar</button>` : `<a class="bt" href="${href}">Ir</a>`;
+  return `<div class="m${lista ? ' lista-ok' : ''}${m.cobrada ? ' hecha' : ''}" data-m="${esc(m.id)}"><span class="ic">${ic}</span>
+    <span><b>${esc(m.texto)}</b><span class="pr"><span class="bar"><i style="width:${Math.round(m.progreso / m.meta * 100)}%"></i></span>${m.progreso}/${m.meta}</span></span>
+    <span><span class="hp"><img src="hero_pesos/hp_coin.png" alt="" onerror="this.remove()">+${m.hp} HP</span>${btn}</span></div>`;
+}
+function pintar() {
+  const d = DATA; if (!d) return;
+  $('dia').innerHTML = d.diarias.map(tarjeta).join(''); $('sem').innerHTML = d.semanales.map(tarjeta).join('');
+  $('cdD').textContent = falta(d.reinicioDiario); $('cdS').textContent = falta(d.reinicioSemanal);
+  const T = d.diarias.concat(d.semanales), porCobrar = T.filter(m => m.completada && !m.cobrada), libres = T.filter(m => !m.cobrada).reduce((s, m) => s + m.hp, 0);
+  $('rN').textContent = porCobrar.length ? porCobrar.reduce((s, m) => s + m.hp, 0) + ' HP' : libres + ' HP';
+  $('rT').innerHTML = porCobrar.length ? `<b>Tienes ${porCobrar.length} ${porCobrar.length === 1 ? 'misión lista' : 'misiones listas'} para cobrar.</b>`
+    : libres ? `Puedes ganar <b>${libres} Hero Pesos</b> más con las misiones de hoy y de esta semana.` : '<b>¡Cobraste todas las misiones!</b> Vuelve cuando se renueven.';
+  document.querySelectorAll('[data-c]').forEach(b => b.onclick = () => cobrar(b));
+  const n = window.CHH_MISIONES ? CHH_MISIONES.pendientes() : 0;
+  $('cola').hidden = !n; if (n) $('cola').innerHTML = `Tienes <b>${n}</b> choque${n === 1 ? '' : 's'} por registrar. Se envían solos cuando confirmas tu PIN. <button class="bt" type="button" id="bCola" style="margin-left:8px">Confirmar PIN</button>`;
+  if ($('bCola')) $('bCola').onclick = async () => { const r = await CHH_AUTH.asegurar('Confirma tu PIN para registrar tus choques en las misiones.'); if (r && r.token) { await CHH_MISIONES.enviarCola(); cargar(true); } };
+}
+async function cobrar(b) {
+  b.disabled = true; b.textContent = '…';
+  const r = await CHH_MISIONES.cobrar(b.dataset.c);
+  if (r.status === 'ok') { toast('🪙 ¡+' + r.hp + ' Hero Pesos!'); await cargar(true); const el = document.querySelector(`[data-m="${CSS.escape(b.dataset.c)}"]`); if (el) el.classList.add('gana'); }
+  else { toast(r.message || 'No se pudo cobrar', true); b.disabled = false; b.textContent = 'Cobrar'; if (r.ya) cargar(true); }
+}
+async function cargar(forzar) {
+  if (!sesion()) { $('sinSesion').hidden = false; $('contenido').hidden = true; return; }
+  const espera = () => new Promise(r => { const t0 = Date.now(), iv = setInterval(() => { if (window.CHH_MISIONES || Date.now() - t0 > 6000) { clearInterval(iv); r(); } }, 60); });
+  await espera();
+  if (!window.CHH_MISIONES) { $('rT').textContent = 'No se pudieron cargar las misiones.'; return; }
+  if (forzar === undefined) await CHH_MISIONES.enviarCola();
+  DATA = await CHH_MISIONES.estado(!!forzar || forzar === undefined);
+  if (!DATA) { $('rN').textContent = '—'; $('rT').innerHTML = '<b>No se pudieron cargar las misiones.</b> Revisa tu conexión.'; $('dia').innerHTML = $('sem').innerHTML = ''; return; }
+  pintar();
+}
+setInterval(() => { if (DATA) { $('cdD').textContent = falta(DATA.reinicioDiario); $('cdS').textContent = falta(DATA.reinicioSemanal); if (Date.now() > DATA.reinicioDiario) cargar(true); } }, 30000);
+window.GP_CFG = { zonas: ['#dia', '#sem'], inicial: () => document.querySelector('[data-c]') || document.querySelector('#dia .bt'), atras: () => { location.href = 'index.html'; return true; } };
+cargar();
+</script>
+<script src="settings.js"></script>
+<script src="bgm.js"></script>
+<script src="gamepad.js"></script>
+</body>
+</html>

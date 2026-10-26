@@ -559,7 +559,12 @@ window.GP_CFG = {
   principal: () => $('hoja').classList.contains('on') ? $('hPie').querySelector('.btn:not(:disabled)') : $('bCarro'),
   get principalTxt() { return $('hoja').classList.contains('on') ? 'Confirmar' : 'Carrito'; }
 };
-cargarCatalogo().then(() => { cargarPedidos(); alRegresar(); });
+cargarCatalogo().then(() => { cargarPedidos(); alRegresar();
+  // Desde la bandeja de avisos: tienda-fisica.html?ver=<folio> abre ese pedido
+  const ver = new URLSearchParams(location.search).get('ver');
+  if (ver && ls.get(K_CLAVES, {})[ver]) { history.replaceState(null, '', location.pathname); verTab('pedidos'); const t0 = Date.now(), iv = setInterval(() => { if (PEDS.some(p => p.id === ver)) { clearInterval(iv); abrirPedido(ver); } else if (Date.now() - t0 > 15000) clearInterval(iv); }, 300); }
+  else if (new URLSearchParams(location.search).get('tab') === 'pedidos') verTab('pedidos');
+});
 </script>
 <script src="settings.js"></script>
 <script src="bgm.js"></script>

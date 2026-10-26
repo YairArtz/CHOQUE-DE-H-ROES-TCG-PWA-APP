@@ -8901,6 +8901,12 @@ try{const _pc=placeChar;placeChar=async function(o,cid,opt){const r=await _pc.ap
   return r;};}catch(e){}
 // Efectos que destruyen tus personajes
 try{const _md=marcaDestruida;marcaDestruida=function(o,cid,how){try{if(o==='player'&&G&&!G.over)rumble(160,.7);}catch(e){}return _md.apply(this,arguments);};}catch(e){}
+// v190 · Misiones: cada choque terminado (3 turnos o más, sin abandonar) cuenta para las misiones diarias y semanales
+try{const _egM=endGame;endGame=function(won,reason){const ya=!G||G.over;const r=_egM.apply(this,arguments);
+  try{if(!ya&&G&&G.over&&window.CHH_MISIONES&&!/abandon/i.test(String(reason||''))&&(+G.turn||0)>=3){
+    const modo=/online\.html/i.test(location.pathname)?'online':(typeof ARCADE!=='undefined'&&ARCADE)?(/nexotlan/i.test(String(ARCADE.volver||''))?'nexotlan':'arcade'):'sim';
+    CHH_MISIONES.choque(modo,!!won);}}catch(e){}
+  return r;};}catch(e){}
 // Fin del Choque
 try{const _eg=endGame;endGame=function(won){const ya=!G||G.over;const r=_eg.apply(this,arguments);
   try{if(ya){}else if(won){rumbleSeq([[0,120,.6],[200,120,.8],[400,400,1]]);vibraCel([80,60,80,60,200]);}

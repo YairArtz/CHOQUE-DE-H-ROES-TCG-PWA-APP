@@ -869,7 +869,7 @@
     try {
       const res = await fetch(ACADEMIA_URL, { method: 'POST', body }); const data = await res.json();
       if (data.status !== 'ok') throw new Error(data.message);
-      cerrar('shareAcademiaModal'); alerta('¡Baraja publicada en Academia Heroica!', '📚');
+      cerrar('shareAcademiaModal'); alerta('¡Baraja publicada en Academia Heroica!', '📚'); try { window.CHH_MISIONES && CHH_MISIONES.evento('academia_publicar'); } catch (e) {}
       ['share-titulo', 'share-descripcion', 'share-arquetipo'].forEach(i => { $(i).value = ''; }); $('share-dificultad').value = 'intermedio';
     } catch (e) { alerta('Error: ' + e.message, '⚠️'); }
     finally { btn.disabled = false; btn.textContent = t0; }

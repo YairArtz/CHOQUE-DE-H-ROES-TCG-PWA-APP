@@ -485,6 +485,19 @@
   <!-- Dashboard rápido -->
   <div id="dashboard-hero-container"></div>
 
+  <!-- v190 · Misiones -->
+  <div class="card" style="margin-bottom:12px;">
+    <div class="badge">📜 MISIONES</div>
+    <div id="hub-misiones"><div class="empty-msg">⏳ Cargando misiones...</div></div>
+    <button class="btn-secondary" onclick="window.location.href='misiones.html'">VER TODAS LAS MISIONES</button>
+  </div>
+
+  <!-- v190 · Progreso de juego (Arcade y Nexotlan, guardado en este dispositivo) -->
+  <div class="card" style="margin-bottom:12px;">
+    <div class="badge">🎮 PROGRESO DE JUEGO</div>
+    <div id="hub-juego"></div>
+  </div>
+
   <!-- Ranking -->
   <div class="card" style="margin-bottom:12px;">
     <div class="badge">🏆 RANKING GLOBAL</div>
@@ -504,7 +517,7 @@
   </div>
 
   <!-- Badges / Logros -->
-  <div class="card" style="margin-bottom:12px;">
+  <div class="card" id="logros" style="margin-bottom:12px;scroll-margin-top:80px">
     <div class="badge">🏅 LOGROS Y BADGES</div>
     <div id="badges-container"><div class="badges-loading">⏳ Cargando logros...</div></div>
   </div>
@@ -522,12 +535,16 @@
     <button class="btn-secondary" onclick="window.location.href='constructor.html'">+ ARMAR NUEVA BARAJA</button>
   </div>
 
-  <!-- Mi Colección -->
+  <!-- v190 · Pedidos de la Tienda Online -->
   <div class="card" style="margin-bottom:12px;">
-    <div class="badge">🃏 MI COLECCIÓN</div>
-    <div id="coleccion-container">
-      <div class="empty-msg">⏳ Cargando colección...</div>
-    </div>
+    <div class="badge">📦 MIS PEDIDOS</div>
+    <div id="hub-pedidos"><div class="empty-msg">⏳ Cargando...</div></div>
+  </div>
+
+  <!-- v190 · Mi estilo (héroe del menú, micas y playmats) -->
+  <div class="card" style="margin-bottom:12px;">
+    <div class="badge">🎨 MI ESTILO</div>
+    <div id="hub-estilo"><div class="empty-msg">⏳ Cargando...</div></div>
   </div>
 
   <!-- Datos de registro -->
@@ -796,7 +813,7 @@ function mostrarPerfil() {
   cargarBarajas();
   cargarRanking();
   cargarInscripciones();
-  cargarColeccion();
+  try { hubPerfil(); } catch (e) { console.warn('hub perfil', e); }
 }
 
 
@@ -2221,6 +2238,79 @@ function mostrarToast(msg) {
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'), 2200);
+}
+</script>
+<script src="cosmeticos.js"></script>
+<script>
+// ════════════════════════════════════════════
+//  v190 · PERFIL COMO CENTRO DEL JUGADOR
+//  Misiones, progreso de juego (Arcade y Nexotlan), pedidos de la Tienda Online y estilo.
+//  (Mi Colección tiene su propio módulo: coleccion.html)
+// ════════════════════════════════════════════
+function hubLs(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }
+function hubEsc(t) { return String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+const HUB_CSS = `.hub-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}.hub-row:last-child{border-bottom:0}
+.hub-row .ic{width:34px;height:34px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:17px;background:rgba(var(--nx-k5),.8)}
+.hub-row .tx{flex:1;min-width:0}.hub-row .tx b{display:block;font-size:.95rem}.hub-row .tx small{display:block;color:var(--muted);font-size:.8rem;margin-top:2px}
+.hub-row .r{font-family:'Orbitron',sans-serif;font-size:.75rem;font-weight:700;white-space:nowrap}
+.hub-bar{height:5px;background:rgba(255,255,255,.1);margin-top:5px}.hub-bar i{display:block;height:100%;background:var(--accent)}
+.hub-kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:4px 0 8px}.hub-kpi div{text-align:center;padding:8px 4px;border:1px solid var(--border);background:rgba(var(--nx-k3),.6)}
+.hub-kpi b{display:block;font-family:'Orbitron',sans-serif;font-size:1.1rem}.hub-kpi span{font-size:.72rem;color:var(--muted)}
+.hub-sub{font-family:'Orbitron',sans-serif;font-size:.7rem;letter-spacing:.12em;color:var(--muted);margin:12px 0 4px}
+.hub-heroe{display:flex;gap:12px;align-items:flex-end}.hub-heroe .img{width:84px;height:104px;flex-shrink:0;background:radial-gradient(circle at 50% 40%,rgba(var(--nx-g1),.4),transparent 70%),rgba(var(--nx-k3),.8)}
+.hub-heroe .img img{width:100%;height:100%;object-fit:contain;object-position:bottom}
+.hub-lnk{display:inline-block;margin-top:10px;color:var(--accent);font-weight:700;font-size:.9rem}`;
+function hubPerfil() {
+  if (!document.getElementById('hubCss')) { const st = document.createElement('style'); st.id = 'hubCss'; st.textContent = HUB_CSS; document.head.appendChild(st); }
+  hubMisiones(); hubJuego(); hubPedidos(); hubEstilo();
+}
+async function hubMisiones() {
+  const el = document.getElementById('hub-misiones'); if (!el) return;
+  const espera = () => new Promise(r => { const t0 = Date.now(), iv = setInterval(() => { if (window.CHH_MISIONES || Date.now() - t0 > 6000) { clearInterval(iv); r(); } }, 80); });
+  await espera();
+  const d = window.CHH_MISIONES ? await CHH_MISIONES.estado(false) : null;
+  if (!d) { el.innerHTML = '<div class="empty-msg">No se pudieron cargar las misiones.</div>'; return; }
+  const T = d.diarias.concat(d.semanales), cobrar = T.filter(m => m.completada && !m.cobrada);
+  const fila = m => `<div class="hub-row"><span class="ic">${m.cobrada ? '✅' : m.completada ? '🪙' : '📜'}</span><span class="tx"><b>${hubEsc(m.texto)}</b>
+    <div class="hub-bar"><i style="width:${Math.round(m.progreso / m.meta * 100)}%"></i></div></span><span class="r" style="color:${m.completada && !m.cobrada ? '#f5c842' : 'inherit'}">${m.progreso}/${m.meta} · +${m.hp}</span></div>`;
+  el.innerHTML = `<div class="hub-kpi"><div><b>${d.diarias.filter(m => m.completada).length}/${d.diarias.length}</b><span>Diarias</span></div><div><b>${d.semanales.filter(m => m.completada).length}/${d.semanales.length}</b><span>Semanales</span></div>
+    <div><b style="color:${cobrar.length ? '#f5c842' : 'inherit'}">${cobrar.reduce((s, m) => s + m.hp, 0)}</b><span>HP por cobrar</span></div></div>
+    <div class="hub-sub">HOY</div>${d.diarias.map(fila).join('')}`;
+}
+function hubJuego() {
+  const el = document.getElementById('hub-juego'); if (!el) return;
+  const L = hubLs('chh_arcade_logros', null) || {}, logros = L.l ? Object.keys(L.l).length : 0, rutas = (L.st && L.st.rutas) || 0;
+  const arc = (hubLs('chh_arcade_slots', []) || []).filter(Boolean);
+  let nx = hubLs('chh_nexotlan_slots', null); if (!Array.isArray(nx)) nx = [];
+  nx = nx.filter(x => x && x.baraja && !x.borrada);
+  let h = `<div class="hub-kpi"><div><b>${logros}</b><span>Logros Arcade</span></div><div><b>${rutas}</b><span>Rutas completadas</span></div>
+    <div><b>${nx.reduce((s, x) => s + (x.victorias || 0), 0) + arc.reduce((s, x) => s + (x.victorias || 0), 0)}</b><span>Victorias</span></div></div>`;
+  h += '<div class="hub-sub">MODO ARCADE</div>' + (arc.length ? arc.map(x => `<div class="hub-row"><span class="ic">🕹</span><span class="tx"><b>${hubEsc(x.nombre || 'Partida')}</b><small>${hubEsc(x.barajaNombre || '')}</small></span>
+      <span class="r">${x.completado ? '🏆 Ruta completa' : 'Combate ' + Math.min((x.ronda || 0) + 1, 15) + ' · ' + (x.victorias || 0) + ' V'}</span></div>`).join('') : '<div class="empty-msg">Aún no tienes partidas. <a href="arcade.html" style="color:var(--accent)">Jugar Arcade</a></div>');
+  h += '<div class="hub-sub">AVENTURA: NEXOTLAN</div>' + (nx.length ? nx.map(x => `<div class="hub-row"><span class="ic">🗺️</span><span class="tx"><b>${hubEsc(x.nombre || 'Aventura')}</b><small>Día ${x.dia || 0} · ${x.monedas || 0} monedas</small></span>
+      <span class="r">${Object.keys(x.vencidos || {}).length} rivales vencidos</span></div>`).join('') : '<div class="empty-msg">Aún no exploras Nexotlan.</div>');
+  h += '<div class="empty-msg" style="padding:8px 0 0;font-size:.75rem">El progreso de juego se guarda en este dispositivo.</div>';
+  el.innerHTML = h;
+}
+function hubPedidos() {
+  const el = document.getElementById('hub-pedidos'); if (!el) return;
+  const L = (hubLs('chh_tf_peds', []) || []).slice(0, 3);
+  const EST = { pendiente: 'Pago pendiente', pagado: 'Faltan tus datos', por_enviar: 'Preparando', enviado: 'Enviado', entregado: 'Entregado', rechazado: 'Rechazado', vencido: 'Vencido', cancelado: 'Cancelado', reembolsado: 'Reembolsado', revisar: 'En revisión' };
+  el.innerHTML = L.length ? L.map(p => `<a class="hub-row" style="text-decoration:none;color:inherit" href="tienda-fisica.html?ver=${encodeURIComponent(p.id)}"><span class="ic">📦</span><span class="tx"><b>${hubEsc(p.id)}</b>
+      <small>${hubEsc((p.items || []).map(i => i.cant + '× ' + i.nombre).join(', '))}</small></span><span class="r">${hubEsc(EST[p.estado] || p.estado)}</span></a>`).join('') + '<a class="hub-lnk" href="tienda-fisica.html?tab=pedidos">Ver todos mis pedidos ›</a>'
+    : '<div class="empty-msg">Aún no tienes pedidos de la Tienda Online.</div><a class="hub-lnk" href="tienda-fisica.html">Ir a la Tienda Online ›</a>';
+}
+async function hubEstilo() {
+  const el = document.getElementById('hub-estilo'); if (!el || !window.CHH_COSM) { if (el) el.innerHTML = '<a class="hub-lnk" href="tienda.html">Personalizar en la Tienda digital ›</a>'; return; }
+  try { await CHH_COSM.sincronizar(8000); } catch (e) {}
+  const heroes = await CHH_COSM.heroes(), eq = CHH_COSM.equipado('heroe'), h = heroes.find(x => x.id === eq);
+  const comprados = CHH_COSM.cache().items, n = t => comprados.filter(x => x.tipo === t).length;
+  const mica = (await CHH_COSM.todos('mica')).find(x => x.id === CHH_COSM.equipado('mica')), pm = (await CHH_COSM.todos('playmat')).find(x => x.id === CHH_COSM.equipado('playmat'));
+  el.innerHTML = `<div class="hub-heroe"><div class="img">${h ? `<img src="${hubEsc(h.img)}" alt="">` : ''}</div><div style="flex:1;min-width:0">
+      <div class="hub-sub" style="margin-top:0">HÉROE DEL MENÚ</div><b>${h ? hubEsc(h.nombre) : 'Cambia en cada visita'}</b>
+      <div class="hub-sub">MICA · PLAYMAT</div><span>${hubEsc(mica ? mica.nombre : 'Clásica')} · ${hubEsc(pm ? pm.nombre : 'Clásico')}</span></div></div>
+    <div class="hub-kpi" style="margin-top:12px"><div><b>${heroes.length}</b><span>Héroes</span></div><div><b>${n('mica') + 1}</b><span>Micas</span></div><div><b>${n('playmat') + 1}</b><span>Playmats</span></div></div>
+    <a class="hub-lnk" href="tienda.html">Personalizar en la Tienda digital ›</a>`;
 }
 </script>
 <script src="settings.js"></script>

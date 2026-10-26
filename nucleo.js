@@ -7,12 +7,16 @@
 //     Hero Pesos y la agrega sola a las compras y canjes. Si el servidor la pide, abre la
 //     ventana de PIN y reintenta la operación automáticamente.
 //     API: CHH_AUTH.entrar(id) · CHH_AUTH.asegurar() · CHH_AUTH.cambiarPin() → Promise<{token,exp}|null>
+//  3. Carga hub.js: misiones diarias/semanales y bandeja de avisos.
 // ════════════════════════════════════════════════════════════════════
 (function () {
   if (window.CHH_AUTH) return;
   const CFG = window.CHH_CONFIG || {};
   const HP = CFG.heroPesos || 'https://script.google.com/macros/s/AKfycbwSrBH7yJiyTlPabzJ_WiXQDWPe7RpATmuTTWAe3uVRy6wuGh15QpuOMzSiZVixJK_S/exec';
   const HP_ID = (HP.match(/\/s\/([^/]+)\//) || [])[1] || '§';
+  // Carpeta del sitio (nucleo.js también se usa desde subcarpetas, p. ej. mercado/)
+  const BASE = (() => { try { const s = document.currentScript && document.currentScript.src; return s ? new URL('.', s).href : ''; } catch (e) { return ''; } })();
+  window.__NX_BASE = BASE;
 
   // ═══════════════ 1. TRANSICIONES ═══════════════
   (function () {
@@ -61,7 +65,7 @@
     if (!esSuyo) return res;
     try {
       const d = await res.clone().json();
-      if (d && d.auth === true) {
+      if (d && d.auth === true && !/[?&]nx_silencio=1/.test(url)) {
         const r = await asegurar(d.message);
         if (r && r.token) return pedir(conLlave(url.replace(/([?&])token=[^&]*(&|$)/, (m, a, b) => b ? a : '')));
       }
@@ -230,4 +234,8 @@ html.gp-on #nxPin .gp{display:block}
     tieneLlave: () => !!tokenVigente(),
     sesion
   };
+
+  // ═══════════════ 4. HUB DEL JUGADOR (misiones y avisos) ═══════════════
+  // Se carga aparte y sin bloquear la página.
+  try { const h = document.createElement('script'); h.src = BASE + 'hub.js'; h.async = true; (document.head || document.documentElement).appendChild(h); } catch (e) {}
 })();

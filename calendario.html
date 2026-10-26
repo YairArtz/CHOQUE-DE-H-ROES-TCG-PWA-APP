@@ -561,7 +561,7 @@ footer p{
       try {
         const res  = await fetch(API_URL + '?' + params.toString());
         const data = await res.json();
-        if (data.status === 'ok') showInscModal(true, data.message, data.lugar);
+        if (data.status === 'ok') { showInscModal(true, data.message, data.lugar); try { window.CHH_MISIONES && CHH_MISIONES.evento('torneo_inscripcion'); } catch (e) {} }
         else                      showInscModal(false, data.message, null);
       } catch(err){
         showInscModal(false, 'Error al conectar con el servidor.', null);

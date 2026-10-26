@@ -19,7 +19,7 @@
 //  antes de terminar el arte).
 // ════════════════════════════════════════════════════════════════════
 (function () {
-  const HP_URL   = 'https://script.google.com/macros/s/AKfycbwSrBH7yJiyTlPabzJ_WiXQDWPe7RpATmuTTWAe3uVRy6wuGh15QpuOMzSiZVixJK_S/exec';
+  const HP_URL   = ((window.CHH_CONFIG||{}).heroPesos||'https://script.google.com/macros/s/AKfycbwSrBH7yJiyTlPabzJ_WiXQDWPe7RpATmuTTWAe3uVRy6wuGh15QpuOMzSiZVixJK_S/exec');
   const CARPETA  = { mica: 'assets/cosmeticos/micas/', playmat: 'assets/cosmeticos/playmats/', heroe: 'assets/inicio/heroes/' };
   const CLASICO  = {
     mica:    { id: 'mica_clasica',    tipo: 'mica',    nombre: 'Clásica', img: 'img/simulacion/reverso.jpg', origen: 'clasico' },

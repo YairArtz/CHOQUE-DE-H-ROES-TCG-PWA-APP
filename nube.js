@@ -13,7 +13,7 @@
 (function () {
   'use strict';
   if (window.CHH_NUBE) return;
-  const FB_CFG = {
+  const FB_CFG = (window.CHH_CONFIG || {}).firebase || {
     apiKey: 'AIzaSyDif80xeOdjhJ2_-jcRwQK80bPqiVgzCPY',
     authDomain: 'choque-heroes-online.firebaseapp.com',
     databaseURL: 'https://choque-heroes-online-default-rtdb.firebaseio.com',

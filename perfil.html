@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8"/>
+<script src="config.js"></script><script src="nucleo.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Mi Perfil — Nexo de Héroes</title>
   <link rel="manifest" href="manifest.json"/>
@@ -540,6 +541,7 @@
   </div>
 
   <button class="btn-share" onclick="compartirPerfil()">⬡ COMPARTIR PERFIL</button>
+  <button class="btn-danger" style="border-color:var(--border);color:var(--text)" onclick="window.CHH_AUTH && CHH_AUTH.cambiarPin().then(r => { if (r && r.token && typeof mostrarToast === 'function') mostrarToast('🔐 PIN actualizado'); })">🔐 CAMBIAR PIN</button>
   <button class="btn-danger" onclick="cerrarSesion()">⬡ CERRAR SESIÓN</button>
 </div>
 
@@ -584,11 +586,11 @@
 // ══════════════════════════════════════════
 // CONFIG — solo cambia estas dos líneas
 // ══════════════════════════════════════════
-const SHEET_ID = '1A3pMANjIop9IES2zseTrKImAkHPu2K56_iJJoiQzbxc';
+const SHEET_ID = ((window.CHH_CONFIG||{}).hojaJugadores||'1A3pMANjIop9IES2zseTrKImAkHPu2K56_iJJoiQzbxc');
 const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
-const RANKING_URL = 'https://script.google.com/macros/s/AKfycbx1rOqnmqWhics45UF40n81V9s-W5VgmhQGtc-UNIERGjkZGN8n1mVHkk0B1VO8PYJWOQ/exec';
-const TORNEOS_URL  = 'https://script.google.com/macros/s/AKfycbxQwDgsNe-toSWetc2f-xkveQcywfGwOVQvsOEySgRc2z8YZG09mB20jUjrI9qO1yo9Uw/exec';
-const SHEET_TIENDAS_ID  = '1ZtJhnXtTbttIf57gqfx81UtrG28hkWHjVaom218479o';
+const RANKING_URL = ((window.CHH_CONFIG||{}).ranking||'https://script.google.com/macros/s/AKfycbx1rOqnmqWhics45UF40n81V9s-W5VgmhQGtc-UNIERGjkZGN8n1mVHkk0B1VO8PYJWOQ/exec');
+const TORNEOS_URL  = ((window.CHH_CONFIG||{}).torneos||'https://script.google.com/macros/s/AKfycbxQwDgsNe-toSWetc2f-xkveQcywfGwOVQvsOEySgRc2z8YZG09mB20jUjrI9qO1yo9Uw/exec');
+const SHEET_TIENDAS_ID  = ((window.CHH_CONFIG||{}).hojaTiendas||'1ZtJhnXtTbttIf57gqfx81UtrG28hkWHjVaom218479o');
 const SHEET_TIENDAS_URL = `https://docs.google.com/spreadsheets/d/${SHEET_TIENDAS_ID}/gviz/tq?tqx=out:json&sheet=ID%20TIENDA`;
 
 // ══════════════════════════════════════════
@@ -694,7 +696,15 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const s = JSON.parse(saved);
       if (s.tipo === 'tienda') { tienda = s; mostrarPanelTienda(); }
-      else { jugador = s; mostrarPerfil(); }
+      else {
+        jugador = s; mostrarPerfil();
+        // Sesiones de antes del PIN: se pide una vez por visita para proteger la cuenta
+        if (window.CHH_AUTH && !CHH_AUTH.tieneLlave()) {
+          try { if (!sessionStorage.getItem('chh_pin_pedido')) { sessionStorage.setItem('chh_pin_pedido', '1');
+            setTimeout(() => CHH_AUTH.asegurar('Tu cuenta ahora se protege con un PIN. Confírmalo (o créalo con el código de tu correo) para seguir comprando con Hero Pesos.')
+              .then(r => { if (r && r.token) { try { jugador = JSON.parse(localStorage.getItem('nhSesion')) || jugador; } catch (e) {} } }), 900); } } catch (e) {}
+        }
+      }
     } catch(e) { localStorage.removeItem('nhSesion'); }
   }
   document.getElementById('input-id').addEventListener('keypress', e => {
@@ -729,6 +739,16 @@ async function iniciarSesion() {
     } else {
       const j = await buscarJugador(id);
       if (j) {
+        // v189 · Seguridad: el ID solo no basta; se pide el PIN (o se crea con el código del correo)
+        if (window.CHH_AUTH) {
+          load.style.display='none';
+          const tk = await CHH_AUTH.entrar(j.id);
+          if (!tk) {
+            err.textContent='Necesitas tu PIN para entrar. Si aún no tienes, se crea con el código que llega a tu correo.';
+            err.classList.add('visible'); btn.disabled=false; btn.style.display='block'; return;
+          }
+          if (tk.token) { j.token = tk.token; j.tokenExp = tk.exp; }
+        }
         jugador = j;
         localStorage.setItem('nhSesion', JSON.stringify(j));
         mostrarPerfil();
@@ -1424,7 +1444,7 @@ async function cargarHistorialHP(datosHP) {
 
 async function cargarBadges(historial, totalPts, posGlobal) {
   const cont = document.getElementById('badges-container');
-  const HP_URL = 'https://script.google.com/macros/s/AKfycbwSrBH7yJiyTlPabzJ_WiXQDWPe7RpATmuTTWAe3uVRy6wuGh15QpuOMzSiZVixJK_S/exec';
+  const HP_URL = ((window.CHH_CONFIG||{}).heroPesos||'https://script.google.com/macros/s/AKfycbwSrBH7yJiyTlPabzJ_WiXQDWPe7RpATmuTTWAe3uVRy6wuGh15QpuOMzSiZVixJK_S/exec');
 
   // Traer datos de HP, historial de sobres y QR en paralelo
   let datosHP = null;
@@ -1576,7 +1596,7 @@ async function cargarInscripciones() {
   if (!jugador) return;
   try {
     // Fetch inscripciones y resultados en paralelo
-    const RESULTADOS_URL = `https://docs.google.com/spreadsheets/d/1cZ_cf7-y0ugtoI5Obr2lCxUrYwVLHGE8QKiInMSVwTA/gviz/tq?tqx=out:json&sheet=Resultados`;
+    const RESULTADOS_URL = `https://docs.google.com/spreadsheets/d/${(window.CHH_CONFIG||{}).hojaResultados||'1cZ_cf7-y0ugtoI5Obr2lCxUrYwVLHGE8QKiInMSVwTA'}/gviz/tq?tqx=out:json&sheet=Resultados`;
     const [resInsc, resRes] = await Promise.all([
       fetch(`${TORNEOS_URL}?action=mis_inscripciones&jugador_id=${encodeURIComponent(jugador.id)}`),
       fetch(RESULTADOS_URL + '&_t=' + Date.now())
@@ -2581,7 +2601,7 @@ async function generarTarjeta() {
 // ── Cambia esta ruta si tus imágenes viven en otra carpeta ──
 const CARTAS_IMG_BASE_COL = 'cartas/';
 
-const HERO_PESOS_URL_PERFIL = 'https://script.google.com/macros/s/AKfycbwSrBH7yJiyTlPabzJ_WiXQDWPe7RpATmuTTWAe3uVRy6wuGh15QpuOMzSiZVixJK_S/exec';
+const HERO_PESOS_URL_PERFIL = ((window.CHH_CONFIG||{}).heroPesos||'https://script.google.com/macros/s/AKfycbwSrBH7yJiyTlPabzJ_WiXQDWPe7RpATmuTTWAe3uVRy6wuGh15QpuOMzSiZVixJK_S/exec');
 
 const RAREZA_COLOR_COL = {
   comun:'var(--muted)', poco_comun:'#4fc3f7', rara:'#64c864',
@@ -2815,7 +2835,7 @@ async function _checkNoticiasBanner() {
 }
 
 async function _checkTorneosBanner() {
-  const API = 'https://script.google.com/macros/s/AKfycbxQwDgsNe-toSWetc2f-xkveQcywfGwOVQvsOEySgRc2z8YZG09mB20jUjrI9qO1yo9Uw/exec';
+  const API = ((window.CHH_CONFIG||{}).torneos||'https://script.google.com/macros/s/AKfycbxQwDgsNe-toSWetc2f-xkveQcywfGwOVQvsOEySgRc2z8YZG09mB20jUjrI9qO1yo9Uw/exec');
   const res  = await fetch(API + '?_t=' + Date.now());
   if (!res.ok) return;
   const data = await res.json();

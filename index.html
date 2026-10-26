@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<script src="config.js"></script><script src="nucleo.js"></script>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#04061a">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -344,7 +345,7 @@ if (location.hash && SECCIONES.some(s => '#' + s.id === location.hash)) abrirSec
     if (s.tipo !== 'tienda') {
       const hp = $('hp'), cache = localStorage.getItem('chh_hp_cache');
       if (cache) { $('hpVal').textContent = cache; hp.classList.add('on'); }
-      const URL_HP = 'https://script.google.com/macros/s/AKfycbwSrBH7yJiyTlPabzJ_WiXQDWPe7RpATmuTTWAe3uVRy6wuGh15QpuOMzSiZVixJK_S/exec';
+      const URL_HP = ((window.CHH_CONFIG||{}).heroPesos||'https://script.google.com/macros/s/AKfycbwSrBH7yJiyTlPabzJ_WiXQDWPe7RpATmuTTWAe3uVRy6wuGh15QpuOMzSiZVixJK_S/exec');
       setTimeout(() => {
         const ctrl = new AbortController(); setTimeout(() => ctrl.abort(), 15000);
         fetch(URL_HP + '?action=saldo&playerid=' + encodeURIComponent(s.id), { signal: ctrl.signal }).then(r => r.json()).then(d => {
@@ -486,7 +487,7 @@ function _nextNotif() {
 function _dismissNotif(el) { if (!el) return; clearTimeout(el._timer); el.classList.remove('visible'); setTimeout(() => { el.remove(); setTimeout(_nextNotif, 200); }, 350); }
 function fetchT(url, ms) { const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), ms || 8000); return fetch(url, { signal: ctrl.signal }).finally(() => clearTimeout(t)); }
 async function chhCheckNovedades() { try { await _checkNoticiasBanner(); } catch (e) {} try { await _checkTorneosBanner(); } catch (e) {} try { await _checkAcademiaBanner(); } catch (e) {} }
-const ACADEMIA_URL_NOTIF = 'https://script.google.com/macros/s/AKfycbxC8MztvNoOUGya3uVNIlOCFrGEWZeAfyu0Qho7KpBchuJKzpFkPyUPMqY3vimwA3Wi/exec';
+const ACADEMIA_URL_NOTIF = ((window.CHH_CONFIG||{}).academia||'https://script.google.com/macros/s/AKfycbxC8MztvNoOUGya3uVNIlOCFrGEWZeAfyu0Qho7KpBchuJKzpFkPyUPMqY3vimwA3Wi/exec');
 async function _checkAcademiaBanner() {
   const res = await fetchT(ACADEMIA_URL_NOTIF + '?action=novedad&_t=' + Date.now()); if (!res.ok) return;
   const data = await res.json(); if (data.status !== 'ok' || !data.baraja) return;
@@ -502,7 +503,7 @@ async function _checkNoticiasBanner() {
   chhNotif('noticia', primera.titulo, primera.resumen, './noticias.html');
 }
 async function _checkTorneosBanner() {
-  const API = 'https://script.google.com/macros/s/AKfycbxQwDgsNe-toSWetc2f-xkveQcywfGwOVQvsOEySgRc2z8YZG09mB20jUjrI9qO1yo9Uw/exec';
+  const API = ((window.CHH_CONFIG||{}).torneos||'https://script.google.com/macros/s/AKfycbxQwDgsNe-toSWetc2f-xkveQcywfGwOVQvsOEySgRc2z8YZG09mB20jUjrI9qO1yo9Uw/exec');
   const res = await fetchT(API + '?_t=' + Date.now()); if (!res.ok) return;
   const data = await res.json(); const torneos = data.torneos || []; if (!torneos.length) return;
   const vistos = JSON.parse(localStorage.getItem('chh_last_torneos') || '[]');

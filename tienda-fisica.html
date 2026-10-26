@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<script src="config.js"></script><script src="nucleo.js"></script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#04061a">
 <title>Tienda Online · Choque de Héroes TCG</title>
@@ -222,7 +223,7 @@ html.gp-on .gpHint{display:block}
 // ════════════════════════════════════════════════════════════════════
 //  CONFIGURACIÓN
 // ════════════════════════════════════════════════════════════════════
-const PEDIDOS_URL = 'https://script.google.com/macros/s/AKfycby4_GOCEo7lM-5R5iVBCgvT-5a9gzB27-FkNP589ZzExSXooFtFZnoq7DMCnuCcds1R/exec';   // URL de TiendaFisica.gs (vacío = modo demostración)
+const PEDIDOS_URL = (window.CHH_CONFIG && typeof CHH_CONFIG.tiendaOnline === 'string') ? CHH_CONFIG.tiendaOnline : 'https://script.google.com/macros/s/AKfycby4_GOCEo7lM-5R5iVBCgvT-5a9gzB27-FkNP589ZzExSXooFtFZnoq7DMCnuCcds1R/exec';   // URL de TiendaFisica.gs (vacío = modo demostración)
 // ════════════════════════════════════════════════════════════════════
 
 try { const s = JSON.parse(localStorage.getItem('chh_secciones_visitadas') || '[]'); if (!s.includes('tienda-fisica')) { s.push('tienda-fisica'); localStorage.setItem('chh_secciones_visitadas', JSON.stringify(s)); } } catch (e) {}

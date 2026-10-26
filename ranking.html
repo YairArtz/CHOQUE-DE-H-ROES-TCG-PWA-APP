@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<script src="config.js"></script><script src="nucleo.js"></script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#04061a">
 <title>Ranking Global · Choque de Héroes TCG</title>
@@ -203,7 +204,7 @@ html.gp-on .gpHint{display:block}
 // ── Flag de tracking para badges (v3) ──
 try { const s = JSON.parse(localStorage.getItem('chh_secciones_visitadas') || '[]'); if (!s.includes('ranking')) { s.push('ranking'); localStorage.setItem('chh_secciones_visitadas', JSON.stringify(s)); } } catch (e) {}
 
-const API_URL = "https://script.google.com/macros/s/AKfycbx1rOqnmqWhics45UF40n81V9s-W5VgmhQGtc-UNIERGjkZGN8n1mVHkk0B1VO8PYJWOQ/exec";
+const API_URL = ((window.CHH_CONFIG||{}).ranking||"https://script.google.com/macros/s/AKfycbx1rOqnmqWhics45UF40n81V9s-W5VgmhQGtc-UNIERGjkZGN8n1mVHkk0B1VO8PYJWOQ/exec");
 const POINTS = [8, 5, 4, 3, 2, 2, 1, 1], K_CACHE = 'chh_ranking_cache', PAG = 50;
 const $ = id => document.getElementById(id);
 const esc = t => String(t ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));

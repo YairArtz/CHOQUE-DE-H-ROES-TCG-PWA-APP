@@ -53,6 +53,26 @@ html.nx-ui .nav-back:hover,html.nx-ui .back-btn:hover,html.nx-ui .btn-menu:hover
 html.nx-ui .nav-back:focus-visible,html.nx-ui .back-btn:focus-visible,html.nx-ui .btn-menu:focus-visible,html.nx-ui .nav-btn:focus-visible{color:#f5c842!important;border-color:#f5c842!important;background:rgba(var(--nx-k5),.95)!important;outline:none}
 /* El botón flotante de música queda discreto */
 html.nx-ui #bgm-btn{background:rgba(var(--nx-k4),.85)!important;border-color:rgba(var(--nx-ln),.25)!important}
+/* ═══ Barra superior común (v189) ═══ */
+html.nx-ui .nx-barra{view-transition-name:nx-barra;justify-content:flex-start!important;gap:12px!important;align-self:stretch;max-width:100%;min-width:0;box-sizing:border-box}
+html.nx-ui .nx-barra .nav-logo,html.nx-ui .nx-barra .nav-spacer,html.nx-ui .nx-barra > img{display:none!important}
+html.nx-ui .nx-barra.nx-flex{display:flex!important;align-items:center!important}
+html.nx-ui .nx-barra.nx-flex > *{position:static!important}
+html.nx-ui .nx-barra .nx-volver{width:42px!important;min-width:42px;height:38px!important;padding:0 0 0 6px!important;display:inline-flex!important;align-items:center;justify-content:center;
+  font-size:22px!important;line-height:1!important;font-weight:400!important;flex-shrink:0;text-decoration:none!important;margin:0!important;position:static!important;transform:none!important}
+html.nx-ui .nx-barra .nx-titulo{flex:1 1 auto;min-width:0;margin:0!important;text-align:left!important;font-family:'Orbitron',sans-serif!important;font-weight:900!important;
+  font-size:clamp(16px,4.4vw,24px)!important;letter-spacing:.06em!important;text-transform:uppercase;line-height:1.05!important;color:#eef2ff!important;-webkit-text-fill-color:#eef2ff!important;
+  background:none!important;text-shadow:none!important;border-left:4px solid var(--neon,#f5c842);padding:0 0 0 12px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.nx-ui .nx-barra .nx-titulo small,html.nx-ui .nx-barra .nx-titulo .h-subtitle{text-transform:none;-webkit-text-fill-color:currentColor}
+html.nx-ui .nx-acc{display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0}
+html.nx-ui .nx-barra .nx-titulo ~ .nx-acc{margin-left:0}
+html.nx-ui .nx-hp{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px 0 8px;font:700 14px 'Orbitron',sans-serif;color:#f5c842;text-decoration:none;
+  background:rgba(var(--nx-k4),.88);border:1px solid rgba(245,200,66,.35);clip-path:polygon(0 0,100% 0,calc(100% - 8px) 100%,0 100%)}
+html.nx-ui .nx-hp img{width:20px;height:20px}
+html.nx-ui .nx-hp:hover,html.nx-ui .nx-hp:focus-visible{outline:2px solid #fff;outline-offset:-2px}
+html.nx-ui .nx-barra.nx-apretado .nx-hp{display:none}
+html.nx-ui .nx-acc #bgm-btn{position:static!important;inset:auto!important;width:36px!important;height:36px!important;opacity:1!important;flex-shrink:0;transform:none}
+@media (max-width:420px){html.nx-ui .nx-hp{padding:0 9px 0 6px;font-size:13px}html.nx-ui .nx-hp img{width:17px;height:17px}}
 `;
 
   function estilo() {
@@ -178,6 +198,54 @@ html.gp-on #nxDlg .gp{display:block}
   window.NX_UI = { paletas: PALETAS, aplicar, confirmar, alerta, pedir };
   aplicar();
   document.addEventListener('DOMContentLoaded', aplicar);
+
+  // ════════════════════════════════════════════════════════════════
+  //  BARRA SUPERIOR COMÚN: mismo botón de regresar, título con el mismo estilo,
+  //  saldo de Hero Pesos y botón de música. No cambia la estructura de cada módulo:
+  //  solo unifica lo que ya tiene. Una página puede evitarlo con <body data-nx-barra="no">.
+  // ════════════════════════════════════════════════════════════════
+  const BASE = (() => { try { const s = document.currentScript && document.currentScript.src; return s ? new URL('.', s).href : ''; } catch (e) { return ''; } })();
+  const SIN_HP = /\/(tienda|index)\.html$|\/$/;
+  function unificarBarra() {
+    if (!document.documentElement.classList.contains('nx-ui') || document.body.dataset.nxBarra === 'no' || document.querySelector('.nx-barra')) return;
+    const VOLVER = '.nav-back,.back-btn,.btn-menu,.nav-btn';
+    const bar = [...document.querySelectorAll('#chh-nav,.top-bar,body > header,body > nav,body > .container > header,body > div > header')]
+      .find(el => el.querySelector(VOLVER) && el.getBoundingClientRect().top < 200);
+    if (!bar) return;
+    bar.classList.add('nx-barra');
+    if (getComputedStyle(bar).display !== 'flex') bar.classList.add('nx-flex');
+    const back = bar.querySelector(VOLVER);
+    if (back && back.parentElement === bar && bar.firstElementChild !== back) bar.insertBefore(back, bar.firstChild);   // regresar siempre a la izquierda
+    if (back && /^\s*(◀|←|‹|<|⬅|volver|men[uú]|inicio)/i.test(back.textContent || '')) {
+      back.classList.add('nx-volver'); back.textContent = '‹';
+      if (!back.getAttribute('aria-label')) back.setAttribute('aria-label', 'Regresar');
+    }
+    const tit = ['.h-title', '.nav-title', '.top-title', '.header-title', 'h1'].map(q => bar.querySelector(q)).find(Boolean);
+    if (tit) {
+      tit.classList.add('nx-titulo');
+      // Sin emoji al inicio del título (el estilo ya lo distingue)
+      const w = document.createTreeWalker(tit, NodeFilter.SHOW_TEXT); let n;
+      while ((n = w.nextNode())) { if (!n.nodeValue.trim()) continue; n.nodeValue = n.nodeValue.replace(/^[\s\u2600-\u27BF\uFE0F\u200D\u2B00-\u2BFF]*(?:[\uD83C-\uDBFF][\uDC00-\uDFFF][\uFE0F\u200D\s]*)*/, ''); break; }
+    }
+    // Saldo de Hero Pesos y música, a la derecha
+    const acc = document.createElement('div'); acc.className = 'nx-acc';
+    let ses = null; try { ses = JSON.parse(localStorage.getItem('nhSesion') || 'null'); } catch (e) {}
+    const hp = localStorage.getItem('chh_hp_cache');
+    if (ses && ses.tipo !== 'tienda' && hp != null && !SIN_HP.test(location.pathname) && !bar.querySelector('.nav-pts')) {
+      acc.innerHTML = '<a class="nx-hp" href="' + BASE + 'tienda.html" aria-label="Hero Pesos: ' + hp + '"><img src="' + BASE + 'hero_pesos/hp_coin.png" alt="" onerror="this.remove()">' + String(hp).replace(/[^0-9]/g, '') + '</a>';
+    }
+    bar.appendChild(acc);
+    const pos = getComputedStyle(bar).position;
+    const fija = pos === 'sticky' || pos === 'fixed';
+    const moverMusica = () => { const b = document.getElementById('bgm-btn'); if (b && fija && !acc.contains(b)) acc.appendChild(b); ajustar(); };
+    // Si no cabe todo, se oculta el saldo (el título y los botones del módulo tienen prioridad)
+    const ajustar = () => { bar.classList.remove('nx-apretado');
+      const corto = tit && (tit.scrollWidth > tit.clientWidth + 1 || tit.getBoundingClientRect().width < 110);
+      if (bar.scrollWidth > bar.clientWidth + 2 || corto) bar.classList.add('nx-apretado'); };
+    moverMusica(); setTimeout(moverMusica, 400); window.addEventListener('load', moverMusica);
+    window.addEventListener('resize', ajustar);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', unificarBarra); else unificarBarra();
   window.addEventListener('load', () => { estilo(); aplicar(); });
   window.addEventListener('storage', e => { if (e.key === 'chh_settings') aplicar(); });
 })();

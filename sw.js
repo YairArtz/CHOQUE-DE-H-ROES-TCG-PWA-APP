@@ -60,7 +60,8 @@
 //  v8.1: precache de la Simulación v17.
 //  v8:   shell cache-first + revalidación, JSON red-primero, fallbacks por tipo.
 // ================================================================
-const CACHE_NAME    = 'chh-tcg-v188';
+try { importScripts('./config.js'); } catch (e) {}   // direcciones de los servidores (config.js)
+const CACHE_NAME    = 'chh-tcg-v189';
 const CACHE_DYNAMIC = 'chh-paginas-v1';    // estable: páginas/JSON/JS visitados (NO subir; lo precargado se renueva solo)
 const CACHE_IMG     = 'chh-img-v1';      // estable: imágenes, fuentes y PDFs. Subir SOLO si reemplazas imágenes con el mismo nombre
 const CACHE_AUDIO   = 'chh-audio-v1';    // estable: pistas de bgm.js. Subir SOLO si reemplazas un .mp3 con el mismo nombre
@@ -86,7 +87,7 @@ const CACHE_CORE = [
   './ajustes.html', './intro.html', './intro_config.json',
   './manifest.json', './icon-192.png', './icon-512.png',
   './logo-hd.png', './footer-logo.png',
-  './ranking.html', './coleccion.html', './settings.js', './nexo-ui.js', './bgm.js', './manual.js',
+  './ranking.html', './coleccion.html', './settings.js', './nexo-ui.js', './config.js', './nucleo.js', './bgm.js', './manual.js',
   './noticias.json', './comics.html', './lector.html', './comics_config.json'
 ];
 
@@ -267,7 +268,7 @@ async function checkNoticias() {
 }
 
 async function checkTorneos() {
-  const API = 'https://script.google.com/macros/s/AKfycbxQwDgsNe-toSWetc2f-xkveQcywfGwOVQvsOEySgRc2z8YZG09mB20jUjrI9qO1yo9Uw/exec';
+  const API = (self.CHH_CONFIG || {}).torneos || 'https://script.google.com/macros/s/AKfycbxQwDgsNe-toSWetc2f-xkveQcywfGwOVQvsOEySgRc2z8YZG09mB20jUjrI9qO1yo9Uw/exec';
   const res  = await fetchTimeout(API + '?_t=' + Date.now(), 15000);
   if (!res.ok) return;
   const data = await res.json();

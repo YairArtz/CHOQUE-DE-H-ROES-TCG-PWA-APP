@@ -16,7 +16,7 @@
 (function () {
 'use strict';
 const ONLINE_VER = 'Online v1.3';
-const FB_CFG = {
+const FB_CFG = (window.CHH_CONFIG || {}).firebase || {
   apiKey: 'AIzaSyDif80xeOdjhJ2_-jcRwQK80bPqiVgzCPY',
   authDomain: 'choque-heroes-online.firebaseapp.com',
   databaseURL: 'https://choque-heroes-online-default-rtdb.firebaseio.com',

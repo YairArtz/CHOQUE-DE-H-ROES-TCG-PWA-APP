@@ -8904,7 +8904,7 @@ try{const _pc=placeChar;placeChar=async function(o,cid,opt){const r=await _pc.ap
 try{const _md=marcaDestruida;marcaDestruida=function(o,cid,how){try{if(o==='player'&&G&&!G.over)rumble(160,.7);}catch(e){}return _md.apply(this,arguments);};}catch(e){}
 // v190 · Misiones: cada choque terminado (3 turnos o más, sin abandonar) cuenta para las misiones diarias y semanales
 try{const _egM=endGame;endGame=function(won,reason){const ya=!G||G.over;const r=_egM.apply(this,arguments);
-  try{if(!ya&&G&&G.over&&window.CHH_MISIONES&&!/abandon/i.test(String(reason||''))&&(+G.turn||0)>=3){
+  try{if(!ya&&G&&G.over&&!G.tuto&&window.CHH_MISIONES&&!/abandon/i.test(String(reason||''))&&(+G.turn||0)>=3){
     const modo=/online\.html/i.test(location.pathname)?'online':(typeof ARCADE!=='undefined'&&ARCADE)?(/nexotlan/i.test(String(ARCADE.volver||''))?'nexotlan':'arcade'):'sim';
     CHH_MISIONES.choque(modo,!!won);}}catch(e){}
   return r;};}catch(e){}
@@ -9251,6 +9251,317 @@ function salirPartida(ev,a){
   document.addEventListener('fullscreenchange',()=>{setTimeout(()=>{medir();try{checkOrientation();}catch(e){}},250);});
   if(window.visualViewport) visualViewport.addEventListener('resize',medir);
 })();
+</script>
+<script>
+// ════════════════════════════════════════════════════════════════════
+// v191 · PARTIDA GUIADA (simulacion.html?modo=tutorial)
+// Choque preestablecido contra un rival de práctica: barajas en orden fijo, sin revolver,
+// rival con jugadas guionizadas que nunca ataca, y el Guardián del Nexo señalando
+// exactamente qué tocar en cada paso (lo demás queda bloqueado).
+// ════════════════════════════════════════════════════════════════════
+const TUTO=(()=>{try{return new URLSearchParams(location.search).get('modo')==='tutorial'?{}:null;}catch(e){return null;}})();
+if(TUTO){(function(){
+  const GUIA='assets/intro/guardian.png';
+  const RIVAL='Rival de práctica';
+  const llenar=(id,n)=>Array.from({length:n},()=>id);
+  const MAZO_J={id:'tuto_j',nombre:'Héroes del Nexo (práctica)',
+    manoInicial:['primos_sur','vigilante_aguila','nj_panncho','nj_emmiliano'],
+    bp:['nj_addela','vigilante_aguila','nj_addela','metal_argon','nj_panncho','primos_sur'].concat(llenar('nj_emmiliano',10)).map(id=>({id,copias:1})),
+    ba:['alma_caballero','alma_defensor','alma_difunta'].concat(llenar('alma_caballero',10)).map(id=>({id,copias:1})),bs:[]};
+  const MAZO_C={id:'tuto_c',nombre:RIVAL,
+    manoInicial:['nj_addela','alma_caballero','nj_panncho','nj_emmiliano'],
+    bp:llenar('primos_sur',12).map(id=>({id,copias:1})),
+    ba:llenar('alma_caballero',12).map(id=>({id,copias:1})),bs:[]};
+  TUTO.cpuLlama=['nj_addela','nj_panncho'];
+
+  // ── Reglas de la partida guiada: nada al azar ──
+  sh=function(a){return a;};
+  drawFrom=function(o,src){const d=G[o][src];if(!d||!d.length)return null;const x=d.shift();G[o].hand.push(x);return x;};
+  resolveDecks=function(){DK={jugador:MAZO_J,cpu:MAZO_C,cpuModo:'tuto'};};
+  saveDeckSelect=function(){};
+  {const _rds=renderDeckSelect;renderDeckSelect=function(){_rds.apply(this,arguments);try{prepBoot();}catch(e){}};}
+  function prepBoot(){
+    const ds=document.getElementById('deckSel');if(ds)ds.hidden=true;
+    const cfg=document.getElementById('bootCfg');if(cfg)cfg.style.display='none';
+    document.getElementById('bootScreen').classList.add('arcade');
+    document.getElementById('bootStatus').innerHTML='<b style="color:var(--gold2)">PARTIDA GUIADA</b> · Aprende a jugar en 3 turnos';
+    const vs=document.getElementById('bootVs');
+    if(vs){vs.innerHTML='<div class="vs-side"><img src="'+GUIA+'" alt="" style="object-fit:cover;object-position:top"><span style="min-width:0"><small>TU GUÍA</small><b>Guardián del Nexo</b></span></div>';vs.hidden=false;}
+    document.getElementById('bootBtn').textContent='▶ EMPEZAR';
+    document.querySelectorAll('.hdr-back,#bootHome').forEach(a=>{a.href='tutorial.html';});
+  }
+  {const _ig=initGame;initGame=function(){
+    TUTO.cpuLlama=['nj_addela','nj_panncho'];
+    const r=_ig.apply(this,arguments);
+    if(G){G.cpu.hp=2;G.tuto=true;lg('🎓 <b>PARTIDA GUIADA</b> · El '+RIVAL.toLowerCase()+' empieza con 2 corazones (en un choque normal son '+R.corazones+').','var(--gold2)');renderAll();}
+    return r;};}
+  sorteoInicio=async function(){
+    G.first='player';G.active='player';G.phase='draw';
+    showBanner('player','INICIAS','TU TURNO',1400);
+    renderAll();
+    coach.iniciar();
+  };
+
+  // ── Rival guionizado: roba, activa un alma, llama a un personaje y pasa (nunca ataca) ──
+  cpuTurn=async function(){
+    const g=GEN,alive=()=>g===GEN&&G&&!G.over,W=ms=>new Promise(r=>setTimeout(r,ms));
+    const P=G.cpu;
+    await W(600);if(!alive())return;
+    await faseBanner('cpu','draw');if(!alive())return;
+    if(P.ba.length){drawFrom('cpu','ba');lg('💙 El rival roba de su B.Almas.','var(--ac)');playSound('card');renderAll();}
+    await W(600);if(!alive())return;
+    if(P.bp.length){drawFrom('cpu','bp');lg('🃏 El rival roba de su Baraja.','var(--muted)');playSound('card');renderAll();}
+    await W(900);if(!alive())return;
+    const ai=P.hand.findIndex(c=>C[c].type==='alma'),z=freeApo('cpu');
+    if(ai>=0&&z>=0){await activateAlma('cpu',ai,z);if(!alive())return;}
+    await W(1000);if(!alive())return;
+    const q=TUTO.cpuLlama.shift();
+    if(q&&P.hand.includes(q)&&freePJ('cpu')!==-1){await callFromHand('cpu',q,{via:'normal'});if(!alive())return;}
+    renderAll();
+    await W(1200);if(!alive())return;
+    await runEOT('cpu');if(!alive())return;
+    P.pj.forEach(p=>{if(p){p.res=p.resB;p.attacked=false;p.resting=wake(p);if(p.agot>0)p.agot--;}});
+    G.player.pj.forEach(p=>{if(p)p.resting=wake(p);});
+    tickTurn();
+    G.turn++;G.active='player';
+    G.callsLeft=R.llamadosPorTurno;G.almaUsed=false;
+    G.drewBA=false;G.drewBP=false;
+    G.used={player:{},cpu:{}};
+    showBanner('player','T'+G.turn,'TU TURNO',1400);
+    if(almaT('player')<=R.ofrendaSiAlmasMenorIgual){
+      G.phase='ofrenda';faseBanner('player','ofrenda');
+      lg('─── T'+G.turn+' · <b>TU TURNO</b> · <b>FASE DE OFRENDA</b> (almas: '+almaT('player')+' ≤ '+R.ofrendaSiAlmasMenorIgual+'). ───','var(--gold)');
+    }else{
+      G.phase='draw';faseBanner('player','draw');
+      lg('─── T'+G.turn+' · <b>TU TURNO</b> · Ofrenda cancelada ('+almaT('player')+' almas). Roba cartas. ───','var(--gold)');
+    }
+    renderAll();
+  };
+
+  // ── Fin: la pantalla de victoria lleva a jugar de verdad ──
+  {const _eg=endGame;endGame=function(won,reason){
+    const ya=G&&G.over;
+    _eg.apply(this,arguments);
+    if(ya) return;
+    coach.terminar(!!won);
+    if(!won) return;
+    try{localStorage.setItem('chh_tutorial_ok','1');}catch(e){}
+    const box=document.getElementById('endgameBox');
+    box.querySelectorAll('.endgame-btn,.tu-fin').forEach(b=>b.style.display='none');
+    document.getElementById('endgameReason').innerHTML='<b style="color:#ffd166">¡Ganaste tu primer choque!</b> Ya conoces lo esencial; ahora pruébalo contra la CPU con barajas reales.';
+    {const es=document.getElementById('endgameStats');if(es)es.style.display='none';}
+    const fin=document.createElement('div');fin.className='tu-fin';
+    fin.innerHTML='<ol class="tu-rec"><li><b>Roba</b> de tu B.Almas y tu Baraja</li><li><b>Activa</b> un alma por turno</li><li><b>Llama</b> personajes (almas ≥ coste)</li><li><b>Combate</b>: fuerza contra resistencia</li></ol>'+
+      '<a class="endgame-btn" href="simulacion.html">⚔ JUGAR CONTRA LA CPU</a>'+
+      '<div class="tu-fila"><a class="endgame-btn alt" href="simulacion.html?modo=tutorial">↺ REPETIR</a>'+
+      '<a class="endgame-btn alt" href="tutorial-reglas.html">📖 REGLAS</a></div>';
+    box.appendChild(fin);
+  };}
+
+  // ════════════════════════════════════
+  // EL GUÍA: burbuja + foco + bloqueo de toques
+  // ════════════════════════════════════
+  const $=id=>document.getElementById(id);
+  const slotDe=(o,id)=>G[o].pj.findIndex(p=>p&&p.id===id);
+  const pjEl=(o,id)=>{const i=slotDe(o,id);return i<0?null:$((o==='player'?'pP':'cP')+i);};
+  const manoEl=id=>{const i=G.player.hand.indexOf(id);return i<0?null:document.querySelectorAll('#handrow .hcard')[i]||null;};
+  const actBtn=txt=>[...document.querySelectorAll('#dtActs button,#dtActs .dt-btn')].find(b=>b.textContent.includes(txt)&&!b.disabled)||null;
+  const selEs=id=>SEL_IDX>=0&&G.player.hand[SEL_IDX]===id;
+  const hpBox=()=>{const e=$('cpuHB');return e?e.closest('.hp-row').parentElement:null;};
+  const sectorBox=()=>document.querySelector('#sectorModal.show .sector-box');
+  const sectorBtns=()=>[$('sectorBtnIzq'),$('sectorBtnDer')].filter(b=>b&&!b.disabled);
+  const combateBox=()=>document.querySelector('#combatMod.show .cbox');
+  const combateAbierto=()=>!!document.querySelector('#combatMod.show');
+  const enMesa=(o,id)=>slotDe(o,id)>=0;
+
+  // Pasos de una llamada completa (carta → Llamar → sector)
+  function llamar(id,nom,txtCarta,txtSector){return [
+    {t:'Llama '+nom,x:txtCarta,el:()=>manoEl(id),hecho:()=>selEs(id)||combateAbierto()||!!sectorBox()||enMesa('player',id)},
+    {t:'Toca «Llamar»',x:'Este botón pone al personaje en tu campo.',el:()=>actBtn('Llamar'),hecho:()=>!!sectorBox()||enMesa('player',id),atras:()=>!selEs(id)},
+    {t:'Elige un sector',x:txtSector||'Tu campo tiene dos sectores, izquierdo y derecho. Cada uno guarda hasta 2 personajes. Elige el que quieras.',el:sectorBox,ok:sectorBtns,hecho:()=>enMesa('player',id),atras:()=>!sectorBox()&&!enMesa('player',id)},
+  ];}
+  function robar(txtBA,txtBP){return [
+    {t:'Roba un Alma',x:txtBA,el:()=>$('playerBA'),hecho:()=>G.drewBA},
+    {t:'Roba de tu Baraja',x:txtBP,el:()=>$('playerBP'),hecho:()=>G.drewBP&&G.phase==='action'},
+  ];}
+  function activar(id,nom,txt){return [
+    {t:'Activa tu alma',x:'Toca <b>'+nom+'</b> en tu mano.',el:()=>manoEl(id),hecho:()=>selEs(id)||G.almaUsed},
+    {t:'Toca «Activar alma»',x:txt,el:()=>actBtn('Activar alma'),hecho:()=>G.almaUsed,atras:()=>!selEs(id)},
+  ];}
+  const esperaRival=(t,x,turno)=>({t,x,rival:true,hecho:()=>G.active==='player'&&G.turn===turno&&!document.querySelector('.choose-overlay.show')});
+
+  const PASOS=[
+    // ── TU 1er TURNO ──
+    {t:'¡Bienvenido al Nexo!',x:'Soy el <b>Guardián del Nexo</b>. Vamos a jugar un choque juntos, paso a paso.<br>Tú solo toca lo que brille.',sig:'¡VAMOS!'},
+    {t:'Cómo se gana',x:'Cada jugador tiene <b>corazones</b> ❤. Si dejas al rival en 0, ganas.<br>En un choque normal son 10; para practicar, tu rival solo tiene <b>2</b>.',el:hpBox,sig:'ENTENDIDO'},
+    {t:'Tu mano',x:'Estas son tus cartas. Los <b>personajes</b> pelean por ti, y las <b>almas</b> te dan el poder para llamarlos.',el:()=>$('handrow'),sig:'SIGUIENTE'},
+    ...robar('Cada turno empieza robando 2 cartas. Primero toca tu <b>Baraja de Almas</b>.','Ahora toca tu <b>Baraja principal</b>.'),
+    ...activar('alma_caballero','Alma de Caballero','Puedes activar <b>una alma por turno</b>. Vale <b>2</b>.'),
+    {t:'Tu poder de almas',x:'Tus almas suman <b>2</b>. Para llamar a un personaje, tus almas deben sumar <b>igual o más</b> que su <b>coste</b>.<br>Las almas no se gastan: se quedan en tu campo y siguen sumando.',el:()=>$('almaLbl'),sig:'SIGUIENTE'},
+    ...llamar('primos_sur','a Los Primos del Sur','<b>Los Primos del Sur</b> cuestan 2. ¡Justo lo que tienes! Tócalos.'),
+    {t:'Tu primer personaje',x:'Mira sus números: <b>⚔ Fuerza</b>, <b>🛡 Resistencia</b> y <b>❤ Corazones</b>.<br>Acaba de llegar, así que <b>descansa</b>: no puede atacar en este turno.',el:()=>pjEl('player','primos_sur'),sig:'SIGUIENTE'},
+    {t:'Paciencia',x:'El <b>Vigilante Águila</b> cuesta 4 y solo tienes 2 almas. Lo llamarás más adelante.',el:()=>manoEl('vigilante_aguila'),sig:'SIGUIENTE'},
+    {t:'Ve a combate',x:'Ya hiciste todo en tu <b>Fase de Acción</b>. Toca el botón para pasar al combate.',el:()=>$('btnMain'),hecho:()=>G.phase==='combat'||G.active==='cpu'},
+    {t:'Termina tu turno',x:'Quien empieza el choque <b>no puede atacar en su primer turno</b>. Toca <b>FIN DE TURNO</b>.',el:()=>$('btnMain'),hecho:()=>G.active==='cpu'},
+    esperaRival('Turno del rival','Observa: el rival también roba, activa un alma y llama a un personaje.',2),
+    // ── TU 2º TURNO ──
+    {t:'¡Un rival en la mesa!',x:'El rival llamó a <b>Ninjiachi Addela</b>: ⚔2 🛡3 ❤1. Vamos por él.',el:()=>pjEl('cpu','nj_addela'),sig:'SIGUIENTE'},
+    {t:'Fase de Ofrenda',x:'Desde tu 2º turno, si tus almas suman <b>4 o menos</b>, cambias tu mano completa por cartas nuevas. Toca <b>EJECUTAR OFRENDA</b>.',el:()=>$('btnMain'),hecho:()=>G.phase!=='ofrenda'},
+    ...robar('¡Mano nueva! Ahora roba como siempre: <b>Baraja de Almas</b>…','…y <b>Baraja principal</b>.'),
+    ...activar('alma_defensor','Alma de Defensor','El <b>Alma de Defensor</b> vale 3. Con ella sumarás <b>5</b>.'),
+    ...llamar('vigilante_aguila','al Vigilante Águila','Con 5 almas ya alcanza: llama al <b>Vigilante Águila</b> (coste 4).'),
+    ...llamar('nj_addela','a tu Addela','Puedes hacer <b>2 llamados por turno</b>. Llama también a tu <b>Ninjiachi Addela</b> (coste 2).'),
+    {t:'¡A combate!',x:'Tus nuevos personajes descansan, pero <b>Los Primos del Sur</b> ya pueden atacar. Toca el botón.',el:()=>$('btnMain'),hecho:()=>G.phase==='combat'},
+    {t:'Elige al atacante',x:'Toca a <b>Los Primos del Sur</b> (⚔3).',el:()=>pjEl('player','primos_sur'),hecho:()=>ATK_SLOT===slotDe('player','primos_sur')||combateAbierto()||!enMesa('cpu','nj_addela')},
+    {t:'Elige el objetivo',x:'Ahora toca a <b>Ninjiachi Addela</b> del rival.',el:()=>pjEl('cpu','nj_addela'),hecho:()=>combateAbierto()||!enMesa('cpu','nj_addela'),atras:()=>ATK_SLOT===null&&!combateAbierto()},
+    {t:'Así se resuelve',x:'Cada uno golpea con su <b>⚔ Fuerza</b> contra la <b>🛡 Resistencia</b> del otro. Si la resistencia llega a 0, pierde 1 ❤.<br>Tu ⚔3 dejó a Addela sin resistencia y perdió su único corazón: ¡eliminado! Tus Primos aguantan con 🛡1.',el:combateBox,ok:()=>[document.querySelector('#combatMod .cb-close')],hecho:()=>!combateAbierto()&&!enMesa('cpu','nj_addela')},
+    {t:'Termina tu turno',x:'Toca <b>FIN DE TURNO</b>. La resistencia de tus personajes se recupera al terminar el turno.',el:()=>$('btnMain'),hecho:()=>G.active==='cpu'},
+    esperaRival('Turno del rival','El rival prepara a su siguiente defensor…',3),
+    // ── TU 3er TURNO ──
+    {t:'Un defensor más fuerte',x:'Llegó <b>Ninjiachi Panncho</b>: ⚔3 🛡4.<br>Como ya tienes <b>5 almas</b>, esta vez no hay Ofrenda.',el:()=>pjEl('cpu','nj_panncho'),sig:'SIGUIENTE'},
+    ...robar('Roba tu alma…','…y tu carta.'),
+    {t:'¡A combate!',x:'Hoy todos tus personajes pueden atacar. Toca el botón.',el:()=>$('btnMain'),hecho:()=>G.phase==='combat'},
+    {t:'Elige bien',x:'Panncho tiene 🛡4: tu <b>Vigilante Águila</b> (⚔4) puede romperla y aguantar su golpe con 🛡6. Tócalo.',el:()=>pjEl('player','vigilante_aguila'),hecho:()=>ATK_SLOT===slotDe('player','vigilante_aguila')||combateAbierto()||!enMesa('cpu','nj_panncho')},
+    {t:'Ataca a Panncho',x:'Toca a <b>Ninjiachi Panncho</b>.',el:()=>pjEl('cpu','nj_panncho'),hecho:()=>combateAbierto()||!enMesa('cpu','nj_panncho'),atras:()=>ATK_SLOT===null&&!combateAbierto()},
+    {t:'¡Fuera Panncho!',x:'Tu ⚔4 acabó con su 🛡4. Su ⚔3 solo bajó tu resistencia de 6 a 3.',el:combateBox,ok:()=>[document.querySelector('#combatMod .cb-close')],hecho:()=>!combateAbierto()&&!enMesa('cpu','nj_panncho')},
+    {t:'¡Ataque directo!',x:'El rival se quedó <b>sin personajes</b>: ahora puedes atacar directo a sus corazones. Toca a <b>Los Primos del Sur</b>.',el:()=>pjEl('player','primos_sur'),hecho:()=>G.cpu.hp<2||G.over},
+    {t:'¡El golpe final!',x:'Le queda <b>1 ❤</b>. Toca a tu <b>Ninjiachi Addela</b>.',el:()=>pjEl('player','nj_addela'),hecho:()=>G.over},
+  ];
+
+  const coach={i:-1,on:false,iniciar(){this.on=true;this.ir(0);if(!this.tm)this.tm=setInterval(()=>this.tick(),140);},
+    terminar(){this.on=false;clearInterval(this.tm);this.tm=null;ocultar();},
+    ir(n){this.i=n;const p=PASOS[n];if(!p){this.terminar();return;}pintar(p,n);}
+    ,tick(){
+      if(!this.on||!G) return;
+      if(G.over){this.terminar();return;}
+      const p=PASOS[this.i];if(!p) return;
+      if(p.atras&&this.i>0&&p.atras()){this.ir(this.i-1);return;}
+      if(p.hecho&&p.hecho()){let n=this.i+1;while(PASOS[n]&&PASOS[n].hecho&&!PASOS[n].sig&&!PASOS[n].rival&&PASOS[n].hecho())n++;this.ir(n);return;}
+      R0.classList.toggle('espera',!p.rival&&typeof _bqOn!=='undefined'&&_bqOn);
+      colocar(p);
+    }};
+  TUTO.coach=coach;TUTO.pasos=PASOS;
+
+  // ── Interfaz del guía ──
+  const css=document.createElement('style');
+  css.textContent=`
+#tuto{position:absolute;inset:0;z-index:9000;pointer-events:none}
+#tuto[hidden]{display:none}
+#tuto{transition:opacity .2s}
+#tuto.espera{opacity:0}
+#tuto .tu-velo{position:absolute;inset:0;background:rgba(4,7,12,.66);transition:opacity .25s}
+#tuto .tu-foco{position:absolute;border-radius:12px;box-shadow:0 0 0 200vmax rgba(4,7,12,.66);transition:left .25s,top .25s,width .25s,height .25s}
+#tuto .tu-foco::after{content:"";position:absolute;inset:-4px;border-radius:14px;border:2px solid #ffd166;box-shadow:0 0 18px rgba(255,209,102,.75),inset 0 0 12px rgba(255,209,102,.35);animation:tuLat 1.3s ease-in-out infinite}
+#tuto.libre .tu-foco,#tuto.libre .tu-velo{display:none}
+@keyframes tuLat{50%{transform:scale(1.035);opacity:.55}}
+#tuto .tu-bub{position:absolute;pointer-events:none;display:flex;gap:10px;align-items:flex-end;width:min(440px,calc(100% - 20px));transition:top .25s,left .25s}
+#tuto .tu-bub.estrecho .tu-guia{display:none}
+#tuto .tu-guia{flex:0 0 auto;width:66px;height:84px;object-fit:cover;object-position:50% 8%;filter:drop-shadow(0 4px 10px rgba(0,0,0,.6))}
+#tuto .tu-caja{flex:1;min-width:0;background:linear-gradient(160deg,rgba(16,30,28,.97),rgba(9,14,22,.97));border:1px solid rgba(110,220,170,.45);border-radius:14px 14px 14px 4px;padding:9px 12px 10px;box-shadow:0 10px 30px rgba(0,0,0,.55);color:#e8ecf0}
+#tuto .tu-t{font-family:'Orbitron',sans-serif;font-weight:800;font-size:12px;letter-spacing:.04em;color:#ffd166;margin-bottom:3px}
+#tuto .tu-x{font-size:13.5px;line-height:1.38}
+#tuto .tu-x b{color:#7fe3b8}
+#tuto .tu-pie{display:flex;align-items:center;gap:8px;margin-top:8px}
+#tuto .tu-barra{flex:1;height:4px;border-radius:3px;background:rgba(255,255,255,.1);overflow:hidden}
+#tuto .tu-barra i{display:block;height:100%;background:linear-gradient(90deg,#3fbf8a,#ffd166);transition:width .3s}
+#tuto .tu-sig{pointer-events:auto;font-family:'Orbitron',sans-serif;font-weight:800;font-size:11px;letter-spacing:.05em;border:0;border-radius:8px;padding:8px 14px;background:linear-gradient(180deg,#ffd166,#e59a1c);color:#1a1205;cursor:pointer;box-shadow:0 3px 0 #8a5a0c}
+#tuto .tu-sig:active{transform:translateY(2px);box-shadow:0 1px 0 #8a5a0c}
+#tuto .tu-mano{position:absolute;font-size:30px;pointer-events:none;filter:drop-shadow(0 3px 4px rgba(0,0,0,.7));animation:tuMano 1s ease-in-out infinite}
+@keyframes tuMano{50%{transform:translateY(8px)}}
+#tuto.libre .tu-mano,#tuto.sin-foco .tu-mano{display:none}
+#tuto.sin-foco .tu-foco{width:0!important;height:0!important;left:50%!important;top:50%!important}
+#tuto.sin-foco .tu-foco::after{display:none}
+@media (max-height:420px){#tuto .tu-guia{width:52px;height:66px}#tuto .tu-x{font-size:12.5px}#tuto .tu-caja{padding:7px 10px 8px}}
+@media (prefers-reduced-motion:reduce){#tuto .tu-foco::after,#tuto .tu-mano{animation:none}}
+.tu-fin{margin-top:6px}
+.tu-fin .endgame-btn{display:block;text-decoration:none;text-align:center;margin:6px auto 0}
+.tu-fila{display:flex;gap:6px}.tu-fila .endgame-btn{flex:1;min-width:0}
+#endgameBox{max-height:calc(100% - 16px);overflow-y:auto}
+.tu-rec{text-align:left;margin:0 auto 8px;padding-left:22px;max-width:300px;font-size:13px;line-height:1.5;color:#dfe7ef}
+.tu-rec b{color:#ffd166}
+`;
+  document.head.appendChild(css);
+  const R0=document.createElement('div');R0.id='tuto';R0.hidden=true;
+  R0.innerHTML='<div class="tu-velo"></div><div class="tu-foco"></div><div class="tu-mano">👇</div>'+
+    '<div class="tu-bub"><img class="tu-guia" src="'+GUIA+'" alt=""><div class="tu-caja"><div class="tu-t"></div><div class="tu-x"></div>'+
+    '<div class="tu-pie"><div class="tu-barra"><i></i></div><button class="tu-sig" type="button"></button></div></div></div>';
+  ($('stage')||document.body).appendChild(R0);
+  const foco=R0.querySelector('.tu-foco'),velo=R0.querySelector('.tu-velo'),bub=R0.querySelector('.tu-bub'),mano=R0.querySelector('.tu-mano'),sig=R0.querySelector('.tu-sig');
+  sig.onclick=e=>{e.stopPropagation();const p=PASOS[coach.i];if(p&&p.sig){try{playSound('card');}catch(_){}coach.ir(coach.i+1);}};
+
+  // Pantalla → coordenadas locales de #tuto (funciona con el tablero girado en vertical)
+  const sondas=[0,1,2].map(()=>{const d=document.createElement('i');d.style.cssText='position:absolute;width:0;height:0;pointer-events:none';R0.appendChild(d);return d;});
+  sondas[1].style.left='1000px';sondas[2].style.top='1000px';
+  function aLocal(){
+    const [a,b,c]=sondas.map(s=>{const r=s.getBoundingClientRect();return [r.left,r.top];});
+    const ux=(b[0]-a[0])/1000,uy=(b[1]-a[1])/1000,vx=(c[0]-a[0])/1000,vy=(c[1]-a[1])/1000,det=ux*vy-uy*vx||1;
+    return (X,Y)=>{const dx=X-a[0],dy=Y-a[1];return [(dx*vy-dy*vx)/det,(ux*dy-uy*dx)/det];};
+  }
+  function rectLocal(el){
+    const r=el.getBoundingClientRect();if(!r.width&&!r.height) return null;
+    const f=aLocal(),P=[[r.left,r.top],[r.right,r.top],[r.left,r.bottom],[r.right,r.bottom]].map(q=>f(q[0],q[1]));
+    const xs=P.map(p=>p[0]),ys=P.map(p=>p[1]);
+    return {x:Math.min(...xs),y:Math.min(...ys),w:Math.max(...xs)-Math.min(...xs),h:Math.max(...ys)-Math.min(...ys)};
+  }
+  let ultimo='';
+  function pintar(p,n){
+    R0.hidden=false;
+    R0.querySelector('.tu-t').textContent=p.t;
+    R0.querySelector('.tu-x').innerHTML=p.x;
+    R0.querySelector('.tu-barra i').style.width=Math.round(100*n/(PASOS.length-1))+'%';
+    sig.hidden=!p.sig;sig.textContent=p.sig||'';
+    R0.classList.toggle('libre',!!p.rival);
+    ultimo='';colocar(p);
+    try{if(window.GP&&GP.activo()){const t=p.sig?sig:(p.ok?p.ok()[0]:p.el&&p.el());if(t)setTimeout(()=>GP.enfocar(t),60);}}catch(e){}
+  }
+  function ocultar(){R0.hidden=true;}
+  function colocar(p){
+    const W=R0.clientWidth,H=R0.clientHeight;
+    const el=p.el?p.el():null,r=el?rectLocal(el):null;
+    R0.classList.toggle('sin-foco',!r);
+    const pad=6;
+    if(r){foco.style.left=(r.x-pad)+'px';foco.style.top=(r.y-pad)+'px';foco.style.width=(r.w+pad*2)+'px';foco.style.height=(r.h+pad*2)+'px';
+      mano.style.left=(r.x+r.w/2-15)+'px';mano.style.top=Math.max(0,r.y-40)+'px';
+      mano.style.display=(p.sig||r.h>H*.5||r.w>W*.6)?'none':'';}
+    velo.style.opacity=r?0:1;
+    // Burbuja: del lado contrario al foco
+    bub.style.width='';bub.classList.remove('estrecho');
+    let bw=bub.offsetWidth,bh=bub.offsetHeight,bx,by;
+    if(!r||p.rival){bx=(W-bw)/2;by=p.rival?10:(H-bh)/2;}
+    else{
+      const cx=r.x+r.w/2,arriba=r.y+r.h/2>H/2;
+      bx=Math.min(Math.max(10,cx-bw/2),W-bw-10);
+      by=arriba?Math.max(8,r.y-pad-bh-46):Math.min(H-bh-8,r.y+r.h+pad+12);
+      // si no cabe arriba ni abajo, al costado con más espacio (más angosta si hace falta)
+      if((arriba&&r.y-pad-bh-46<8)||(!arriba&&r.y+r.h+pad+12+bh>H-8)){
+        const izq=r.x-pad-24,der=W-(r.x+r.w+pad)-24,lado=der>izq?'der':'izq',esp=Math.max(izq,der);
+        if(esp<bw){bub.style.width=Math.max(190,esp)+'px';if(esp<300)bub.classList.add('estrecho');bw=bub.offsetWidth;bh=bub.offsetHeight;}
+        by=Math.min(Math.max(8,r.y+r.h/2-bh/2),H-bh-8);
+        bx=lado==='der'?Math.min(W-bw-10,r.x+r.w+pad+14):Math.max(10,r.x-pad-bw-14);
+      }
+    }
+    const k=Math.round(bx)+','+Math.round(by);
+    if(k!==ultimo){bub.style.left=bx+'px';bub.style.top=by+'px';ultimo=k;}
+  }
+  addEventListener('resize',()=>{if(coach.on){ultimo='';colocar(PASOS[coach.i]||{});}});
+
+  // Solo se puede tocar lo que el guía señala
+  const SIEMPRE='.tu-bub,.hdr-back,#btnMute,#btnMusic,#btnFlip,.choose-overlay.show,#endgameModal,#epConfirm,.ds-list,#bootScreen';
+  function permitido(t){
+    if(!coach.on) return true;
+    if(t.closest&&t.closest(SIEMPRE)) return true;
+    const p=PASOS[coach.i];if(!p||p.rival) return false;
+    if(p.sig) return false;
+    const L=(p.ok?p.ok():[p.el&&p.el()]).filter(Boolean);
+    return L.some(e=>e===t||e.contains(t));
+  }
+  ['click','pointerdown','touchstart','contextmenu'].forEach(ev=>document.addEventListener(ev,e=>{
+    if(permitido(e.target)) return;
+    e.stopPropagation();if(ev!=='touchstart'&&ev!=='pointerdown')e.preventDefault();
+  },true));
+  // El botón B del control no deshace pasos del guía
+  try{const at=window.GP_CFG&&GP_CFG.atras;if(at)GP_CFG.atras=function(){if(coach.on)return true;return at.apply(this,arguments);};}catch(e){}
+})();}
 </script>
 <script src="online.js"></script>
 </body>

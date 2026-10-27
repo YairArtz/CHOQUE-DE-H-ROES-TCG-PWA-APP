@@ -15,7 +15,7 @@
 //  View / Select          silenciar música
 //  Campos de texto: A abre un teclado en pantalla (B borra · X mayúsculas · Y espacio · LB/RB cursor · Start listo)
 //
-//  Cada página puede definir window.GP_CFG = { zonas, principal, atras, start, select, acciones, clicables, ambito,
+//  Cada página puede definir window.GP_CFG = { zonas, principal, atras, start, select, acciones, clicables, ambito, moverLogico(dx,dy,foco),
 //    sinDestino(dx,dy), gatillo(dir), stickDerecho(rx,ry) }  (los tres últimos devuelven true si la página usó la entrada).
 //  (ambito(foco): devuelve un elemento para limitar la cruceta a esa zona, p. ej. un menú abierto)
 //  (clicables: selector CSS extra de elementos tocables que usan addEventListener en vez de onclick)
@@ -503,7 +503,10 @@
         // Direcciones con repetición al mantener
         [['up', 0, -1], ['down', 0, 1], ['left', -1, 0], ['right', 1, 0]].forEach(([k, dx, dy]) => {
           if (est[k]) {
-            const ir = () => { if (dx && !modoPuntero && esRango(foco) && valido(foco)) { ajustarRango(foco, dx); return; } const [sx, sy] = aPantalla(dx, dy); mover(sx, sy); };
+            const ir = () => { if (dx && !modoPuntero && esRango(foco) && valido(foco)) { ajustarRango(foco, dx); return; }
+              // v198 · GP_CFG.moverLogico(dx, dy, foco): la página puede mover el foco con su propia lógica (dirección lógica, sin girar); true = la usó
+              if (!modoPuntero && !OSK.abierto()) { const c = CFG(); let h = false; try { h = !!(c.moverLogico && c.moverLogico(dx, dy, foco)); } catch (e) {} if (h) return; }
+              const [sx, sy] = aPantalla(dx, dy); mover(sx, sy); };
             if (!prev[k]) { repT[k] = now + REP0; ir(); }
             else if (now >= repT[k]) { repT[k] = now + REP; ir(); }
           }

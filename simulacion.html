@@ -209,6 +209,7 @@ html,body{
 .ap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-top:6px}
 .ap-opt{display:flex;flex-direction:column;gap:5px;padding:6px;border-radius:9px;cursor:pointer;text-align:left;
   background:rgba(11,14,24,.6);border:1px solid #1b2433;color:var(--text);font:inherit}
+.ap-opt.sinpm .ap-prev{border:1px dashed rgba(255,255,255,.35)!important;background:repeating-linear-gradient(45deg,rgba(255,255,255,.05) 0 6px,transparent 6px 12px)!important}
 .ap-opt .ap-prev{height:56px;border-radius:6px;border:1px solid rgba(255,255,255,.08);background-size:cover;background-position:center}
 .ap-opt b{font-size:11px;color:var(--gold2)}
 .ap-opt small{font-size:9px;color:var(--muted);line-height:1.2}
@@ -8444,6 +8445,7 @@ async function mediosPanel(){
   await pinta();
 }
 // ── v44 · MICAS y PLAYMATS (cosmeticos.js) ──
+const SIN_PM='playmat_ninguno';   // v194 · opción "Sin playmat": el tablero deja ver la mesa
 async function cosmAplicar(){
   if(!window.CHH_COSM) return;
   try{
@@ -8452,7 +8454,8 @@ async function cosmAplicar(){
     window.MICA_P=esMica?mica:null;
     ['playerBP','playerBA','playerSOP'].forEach(id=>{const im=document.querySelector('#'+id+' img.rev');if(im)im.src=esMica?mica:REV;});
     const b=document.getElementById('board');
-    if(b){const esPm=pm&&pm!==CHH_COSM.CLASICO.playmat.img;
+    if(b){const sinPm=CHH_COSM.equipado('playmat')===SIN_PM, esPm=!sinPm&&pm&&pm!==CHH_COSM.CLASICO.playmat.img;
+      b.classList.toggle('sin-pm',sinPm);
       b.classList.toggle('pm',!!esPm);
       if(esPm)b.style.setProperty('--pm-img','linear-gradient(rgba(4,8,3,.35),rgba(4,8,3,.35)),url("'+pm+'")');}
   }catch(e){}
@@ -8463,11 +8466,12 @@ async function cosmPanel(){
   const nomLogro=id=>{try{const m={arc_primera_victoria:'Primer Crédito',arc_campeon:'Campeón Arcade',arc_fenix:'Fénix',arc_un_credito:'Un Solo Crédito',arc_forjador:'Forjador de Amalgamas',arc_centurion:'Centurión',arc_mitad:'Media Ruta',arc_jefe_intacto:'Verdugo del Jefe',arc_maestro_barajas:'Maestro de Barajas',arc_destructor:'Destructor',arc_gran_maestro:'Señor de las Barajas'};return m[id]||id;}catch(e){return id;}};
   const seccion=async(tipo,titulo)=>{
     const disp=await CHH_COSM.disponibles(tipo), todos=await CHH_COSM.todos(tipo), eq=CHH_COSM.equipado(tipo);
+    if(tipo==='playmat') disp.unshift({id:SIN_PM,nombre:'Sin playmat',img:'',origen:'ninguno'});
     const okIds=new Set(disp.map(x=>x.id));
     const bloq=[];for(const x of todos){if(!x.tuyo&&x.logro){const ok=await new Promise(r=>{const i=new Image();i.onload=()=>r(1);i.onerror=()=>r(0);i.src=x.img;});if(ok)bloq.push(x);}}
     const act=okIds.has(eq)?eq:CHH_COSM.CLASICO[tipo].id;
     return '<h4>'+titulo+'</h4><div class="ap-grid">'+
-      disp.map(x=>'<button class="ap-opt'+(tipo==='mica'?' mica':'')+(x.id===act?' on':'')+'" data-cosm="'+tipo+'" data-id="'+esc(x.id)+'"><span class="ap-prev" style="background-image:url(&quot;'+esc(x.img)+'&quot;)"></span><b>'+esc(x.nombre)+'</b><small>'+(x.origen==='tienda'?'Tienda':x.origen==='logro'?'Logro':'Incluida')+'</small></button>').join('')+
+      disp.map(x=>'<button class="ap-opt'+(tipo==='mica'?' mica':'')+(x.origen==='ninguno'?' sinpm':'')+(x.id===act?' on':'')+'" data-cosm="'+tipo+'" data-id="'+esc(x.id)+'"><span class="ap-prev" style="background-image:url(&quot;'+esc(x.img)+'&quot;)"></span><b>'+esc(x.nombre)+'</b><small>'+(x.origen==='ninguno'?'Se ve la mesa':x.origen==='tienda'?'Tienda':x.origen==='logro'?'Logro':'Incluida')+'</small></button>').join('')+
       bloq.map(x=>'<button class="ap-opt lock'+(tipo==='mica'?' mica':'')+'" disabled><span class="ap-prev" style="background-image:url(&quot;'+esc(x.img)+'&quot;);filter:grayscale(1) brightness(.5)"></span><b>🔒 '+esc(x.nombre)+'</b><small>Logro: '+esc(nomLogro(x.logro))+'</small></button>').join('')+'</div>';
   };
   const pinta=async()=>{

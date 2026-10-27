@@ -1338,7 +1338,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v93';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v94';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -9232,7 +9232,9 @@ function salirPartida(ev,a){
   ev.preventDefault();
   ventanaConfirmar('¿ABANDONAR LA PARTIDA?',arc?(ARC_VOLVER==='arcade.html'?'Abandonar cuenta como <b>DERROTA</b>: pierdes este combate y gastas un crédito.':'Abandonar cuenta como <b>DERROTA</b>.'):'Abandonar cuenta como <b>DERROTA</b>.','🚪 SÍ, ABANDONAR','↩ SEGUIR JUGANDO','⚠️').then(ok=>{if(!ok)return;
     if(G&&!G.over){try{endGame(false,'Abandonaste la partida');}catch(e){}if(arc)arcadeAbandonoGuardar();}
-    ir();});
+    // v199 · En el simulador libre la pantalla de derrota se queda (REVANCHA / CAMBIAR BARAJAS); el Arcade, la Aventura y el Online regresan solos
+    if(!arc&&!/online\.html/i.test(location.pathname)&&!(typeof TUTO!=='undefined'&&TUTO)) return;
+    setTimeout(ir,1600);});
   return false;
 }
 </script>
@@ -9268,7 +9270,12 @@ function salirPartida(ev,a){
 .hp-gems{gap:2px}
 
 /* ═══ v198 · Elegir objetivo de ataque: más notorio ═══ */
-#board.eligiendo .bc-pj.occ:not(.tgt):not(.atk-sel),#board.eligiendo .bc-ap.has-alma .pjz:not(.tgt):not(.atk-sel){filter:brightness(.5) saturate(.55);transition:filter .2s}
+#board.eligiendo.con-obj [id^="cP"].occ:not(.tgt){filter:brightness(.5) saturate(.55);transition:filter .2s}
+/* v199 · Sin objetivos (rival sin personajes atacables): se resalta el ataque directo */
+.dt-btn.atk-directo{border-color:#ff3355!important;color:#fff!important;background:linear-gradient(180deg,rgba(255,51,85,.45),rgba(160,10,40,.55))!important;
+  box-shadow:0 0 0 1px rgba(255,51,85,.6),0 0 16px rgba(255,51,85,.55);animation:atkDirP 1s ease-in-out infinite}
+@keyframes atkDirP{50%{box-shadow:0 0 0 2px #ff3355,0 0 26px rgba(255,51,85,.85)}}
+@media (prefers-reduced-motion:reduce){.dt-btn.atk-directo{animation:none}}
 .bc-pj.atk-sel{border-color:#ffd166!important;box-shadow:0 0 0 2px #ffd166,0 0 22px 6px rgba(255,209,102,.7)!important;animation:atkSelP .9s ease-in-out infinite}
 @keyframes atkSelP{50%{box-shadow:0 0 0 2px #fff1c2,0 0 34px 10px rgba(255,209,102,.9)}}
 .bc-pj.tgt{animation:tgtP2 .8s ease-in-out infinite!important}
@@ -9283,6 +9290,7 @@ function salirPartida(ev,a){
   animation:miraG 2.4s linear infinite;opacity:.85}
 @keyframes miraG{to{transform:rotate(360deg)}}
 .bc-pj.tgt.gp-foco .mira::before,.bc-pj.tgt:hover .mira::before{opacity:1;border-color:#fff}
+#centerLbl.directo{color:#5dffb0!important;text-shadow:0 0 8px rgba(0,232,122,.8),0 0 4px #000}
 #centerLbl.eligiendo{color:#ff5a76!important;text-shadow:0 0 8px rgba(255,51,85,.8),0 0 4px #000;animation:lblP 1s ease-in-out infinite}
 @keyframes lblP{50%{opacity:.55}}
 #atkFlecha{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:60;overflow:visible}
@@ -9384,6 +9392,11 @@ function salirPartida(ev,a){
     if(eligiendo()) ultAtk=slot;
     if(gpOn()&&eligiendo()){const L=objetivos();if(L.length)setTimeout(()=>{try{GP.enfocar(L[0]);}catch(e){}},30);}
     return r;};}
+  {const _sd=showDetail;showDetail=function(){const r=_sd.apply(this,arguments);
+    try{const sinObj=eligiendo()&&!document.querySelector('#board .tgt');
+      document.querySelectorAll('#dtActs button,#dtActs .dt-btn').forEach(x=>x.classList.toggle('atk-directo',/Atacar corazones/i.test(x.textContent)&&sinObj));
+      if(sinObj&&gpOn()){const d=document.querySelector('#dtActs .atk-directo');if(d)setTimeout(()=>{try{GP.enfocar(d);}catch(e){}},40);}}catch(e){}
+    return r;};}
   // Después del ataque (o al cancelarlo) el cursor regresa a tu atacante
   function volverAtacante(){
     if(ultAtk==null||eligiendo()||document.querySelector('#combatMod.show,.choose-overlay.show')) return;
@@ -9399,10 +9412,15 @@ function salirPartida(ev,a){
     try{
       const b=$('board'), sel=eligiendo();
       if(b) b.classList.toggle('eligiendo',sel);
+      const hayObj=sel&&!!document.querySelector('#board .tgt');
+      if(b) b.classList.toggle('con-obj',hayObj);
       document.querySelectorAll('#board .tgt').forEach(el=>{if(!el.querySelector('.mira'))el.insertAdjacentHTML('beforeend','<span class="mira"></span>');});
       document.querySelectorAll('#board .atk-sel').forEach(el=>{if(!el.querySelector('.atk-tag'))el.insertAdjacentHTML('beforeend','<span class="atk-tag">⚔ ATACA</span>');});
       const lb=$('centerLbl');
-      if(lb){lb.classList.toggle('eligiendo',sel);if(sel)lb.textContent=gpOn()?'⚔ ELIGE A QUIÉN ATACAR · B CANCELA':'⚔ ELIGE A QUIÉN ATACAR · TOCA DE NUEVO PARA CANCELAR';}
+      // Rival sin personajes en tu Fase de Combate: se avisa que tus personajes atacan directo
+      if(lb&&!sel&&G&&!G.over&&G.active==='player'&&G.phase==='combat'&&!G.cpu.pj.some(Boolean)&&document.querySelector('#board .can-atk')){lb.textContent='💥 EL RIVAL NO TIENE DEFENSORES · TOCA UN PERSONAJE PARA ATACAR DIRECTO';lb.classList.add('directo');}
+      else if(lb) lb.classList.remove('directo');
+      if(lb){lb.classList.toggle('eligiendo',sel);if(sel)lb.textContent=!hayObj?'💥 SIN DEFENSORES ATACABLES: ATACA DIRECTO A SUS CORAZONES':gpOn()?'⚔ ELIGE A QUIÉN ATACAR · B CANCELA':'⚔ ELIGE A QUIÉN ATACAR · TOCA DE NUEVO PARA CANCELAR';}
       if(sel) flechaLoop();
       else if(ultAtk!=null) setTimeout(volverAtacante,350);
     }catch(e){}

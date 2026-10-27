@@ -1723,8 +1723,8 @@ $('tdSalir').onclick = salirTienda;
 // Cada sobre sale de una CAJA con un número fijo de copias de cada carta: Común, Rara y Joya (1 copia).
 // Al abrir sobres la caja se va vaciando (lo que ya salió no vuelve a salir); cuando se vacía se rellena sola.
 // Se puede REINICIAR en cualquier momento (p. ej. cuando ya sacaste la Joya que buscabas).
-// Rareza por precio (igual que la ruleta del carpetero): Común < 100 · Rara 100-449 · Joya 450+ y Amalgamas.
-const RAREZA = id => ((CARD[id] || {}).tipo === 'amalgama' || precioBase(id) >= 450) ? 3 : precioBase(id) >= 100 ? 2 : 1;
+// Rareza por precio (igual que la ruleta del carpetero): Común < 100 · Rara 100-449 · Joya 450+, Amalgamas y las cartas de "joyas" en comerciante.txt.
+const RAREZA = id => ((CARD[id] || {}).tipo === 'amalgama' || esJoya(id) || precioBase(id) >= 450) ? 3 : precioBase(id) >= 100 ? 2 : 1;
 const RZ = { 1: ['COMÚN', '#7ad7ff'], 2: ['RARA', '#cc55ff'], 3: ['JOYA', '#ffd166'] };
 function cajaDef(sb) {
   const v = (k, d) => { const x = parseInt(sb['caja_' + k] ?? COM.cfg['caja_' + k], 10); return isFinite(x) && x >= 0 ? x : d; };
@@ -1770,7 +1770,7 @@ function pintarCajaSobre(sb) {
     <div class="cj-l"><span class="jq">★ Joyas ${k.jQ}/${k.jT}</span><span class="${k.tengo === k.tipos ? 'ok' : ''}">🃏 ${k.tengo}/${k.tipos}${k.tengo === k.tipos ? ' ✔' : ''}</span></div>${am ? `<div class="cj-l"><span style="color:#ffd166">✨ ${am} Amalgama${am > 1 ? 's' : ''} en la caja</span></div>` : ''}</div>`;
 }
 function verCaja(sb) {
-  const k = cajaInfo(sb);
+  const k = cajaInfo(sb), usada = k.quedan < k.def.total;   // v196 · se puede reiniciar en cuanto falte cualquier carta
   $('cjT').textContent = '📦 ' + (sb.nombre || sb.id).toUpperCase() + ' · CAJA ' + k.st.num;
   const sec = r => { const L = k.def.items.filter(x => x.r === r); if (!L.length) return '';
     const q = L.reduce((t, x) => t + (k.st.resto[x.id] || 0), 0), tot = L.reduce((t, x) => t + x.c, 0);
@@ -1779,16 +1779,18 @@ function verCaja(sb) {
   $('cjBody').innerHTML = `<div class="td-nota">Esta caja trae un número fijo de cartas. Lo que ya salió no vuelve a salir hasta que la caja se rellene: cuanto más la abres, más cerca está cada Joya. Cuando se vacía se rellena sola, y puedes <b style="color:var(--text)">reiniciarla</b> cuando quieras (por ejemplo, si ya sacaste la Joya que buscabas).</div>
     <div class="cj-res"><div>Sobres restantes<b>${k.sobresQ} / ${k.sobresT}</b><div class="cj-bar" style="margin-top:6px"><i style="width:${k.sobresT ? k.sobresQ / k.sobresT * 100 : 0}%"></i></div></div>
     <div>★ Joyas en la caja<b style="color:#ffd166">${k.jQ} / ${k.jT}</b></div><div>Tu colección de este sobre<b style="color:${k.tengo === k.tipos ? 'var(--green)' : 'var(--text)'}">${k.tengo} / ${k.tipos}${k.tengo === k.tipos ? ' ✔' : ''}</b></div></div>
-    <div class="f-btns" style="margin:0 0 4px"><button class="bt sec" id="cjCerrar">CERRAR</button><button class="bt ${k.st.abiertos ? 'gold' : 'sec'}" id="cjReset" ${k.st.abiertos ? '' : 'disabled'}>🔄 REINICIAR CAJA</button></div>
+    <div class="f-btns" style="margin:0 0 4px"><button class="bt sec" id="cjCerrar">CERRAR</button><button class="bt ${usada ? 'gold' : 'sec'}" id="cjReset" ${usada ? '' : 'disabled'}>${usada ? '🔄 REINICIAR CAJA' : '📦 CAJA LLENA'}</button></div>
+    ${usada ? '' : '<div class="td-nota" style="margin:6px 0 0">La caja está completa: se puede reiniciar en cuanto saques el primer sobre.</div>'}
     ${sec(3)}${sec(2)}${sec(1)}`;
   $('mCaja').classList.add('on');
   $('cjCerrar').onclick = () => cerrarModal('mCaja');
   $('cjReset').onclick = async () => {
+    if (!usada) return;
     const r = await mensaje('🔄 ¿REINICIAR LA CAJA?', `Se rellena con todas sus cartas (${k.sobresT} sobres)${k.jQ ? `.<br><b style="color:#ffd166">Aún quedan ${k.jQ} Joya${k.jQ > 1 ? 's' : ''} sin salir</b> en esta caja.` : '.'}<br>Reiniciarla no cuesta nada.`, [['🔄 REINICIAR', 'gold'], ['CANCELAR', 'sec']]);
     if (r !== 0) { verCaja(sb); return; }
     rellenarCaja(sb, k.def, k.st); guardar(); pintarTienda(); verCaja(sb); toast('📦 Caja ' + k.st.num + ' lista');
   };
-  try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar(k.st.abiertos ? $('cjReset') : $('cjCerrar')), 60); } catch (e) {}
+  try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar(usada ? $('cjReset') : $('cjCerrar')), 60); } catch (e) {}
 }
 
 

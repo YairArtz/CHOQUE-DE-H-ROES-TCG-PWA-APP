@@ -36,9 +36,37 @@
   }
   .btn-icon:hover{background:rgba(232,200,106,.15)}
   .btn-icon:active{transform:scale(.9)}
-  .hud-title{flex:1;text-align:center;overflow:hidden}
-  .hud-title h1{font-family:'Orbitron',sans-serif;font-size:.8rem;font-weight:700;color:var(--acc-gold);letter-spacing:2px;text-transform:uppercase;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
-  .hud-title .prog{font-family:'Orbitron',sans-serif;font-size:.65rem;color:var(--txt-2);letter-spacing:2px;margin-top:2px}
+  .hud-title{flex:1;min-width:0;overflow:hidden;border-left:4px solid var(--acc-gold);padding-left:12px}
+  .hud-title h1{font-family:'Orbitron',sans-serif;font-size:clamp(14px,3.6vw,20px);font-weight:900;color:#eef2ff;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;line-height:1.1}
+  .hud-title .prog{font-family:'Orbitron',sans-serif;font-size:.65rem;color:var(--txt-2);letter-spacing:2px;margin-top:3px}
+  /* v197 · Regresar: mismo botón que la barra común de los módulos (‹ a la izquierda) */
+  .btn-volver{width:42px;min-width:42px;height:38px;padding:0 0 0 6px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;
+    background:rgba(16,22,40,.88);border:1px solid rgba(143,176,255,.28);color:#eef2ff;font-size:22px;line-height:1;cursor:pointer;text-decoration:none;
+    clip-path:polygon(9px 0,100% 0,100% 100%,9px 100%,0 50%);transition:color .15s,border-color .15s,background .15s}
+  .btn-volver:hover,.btn-volver:focus-visible{color:#f5c842;border-color:#f5c842;outline:none}
+  .hud-acc{display:flex;align-items:center;gap:8px;flex-shrink:0}
+  .hud-acc #bgm-btn{position:static!important;inset:auto!important;width:36px!important;height:36px!important;opacity:1!important;transform:none!important}
+  /* Progreso de lectura */
+  .prog-bar{position:fixed;left:0;right:0;bottom:0;height:3px;z-index:29;background:rgba(232,200,106,.12)}
+  .prog-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc-gold),var(--acc-red));transition:width .4s ease}
+  /* Fin del cómic: botón para ver los créditos (solo en la última página) */
+  .fin-pill{position:fixed;right:16px;bottom:calc(92px + env(safe-area-inset-bottom));z-index:32;display:none;align-items:center;gap:8px;
+    padding:11px 18px;border:none;border-radius:24px;cursor:pointer;background:linear-gradient(135deg,var(--acc-gold),#c9a94d);color:#0a0e1a;
+    font-family:'Orbitron',sans-serif;font-size:.72rem;font-weight:900;letter-spacing:2px;box-shadow:0 6px 24px rgba(0,0,0,.6),0 0 18px rgba(232,200,106,.35)}
+  .fin-pill.show{display:inline-flex;animation:fadeIn .4s ease}
+  .nav-btn.fin{background:linear-gradient(135deg,var(--acc-gold),#c9a94d);color:#0a0e1a;border-color:transparent;font-size:15px}
+  /* Aviso para continuar donde te quedaste */
+  .aviso{position:fixed;left:50%;top:calc(78px + env(safe-area-inset-top));transform:translateX(-50%);z-index:35;display:none;align-items:center;gap:12px;
+    padding:10px 10px 10px 16px;border-radius:12px;background:rgba(10,14,26,.95);border:1px solid var(--border);box-shadow:0 10px 30px rgba(0,0,0,.6);
+    font-size:.95rem;color:var(--txt-1);max-width:calc(100vw - 24px)}
+  .aviso.show{display:flex;animation:fadeIn .3s ease}
+  .aviso button{flex-shrink:0;border:1px solid var(--border);background:rgba(232,200,106,.12);color:var(--acc-gold);border-radius:8px;padding:7px 12px;
+    font-family:'Orbitron',sans-serif;font-size:.62rem;font-weight:700;letter-spacing:1px;cursor:pointer}
+  /* Splash con la portada del cómic */
+  .splash-cover{width:min(150px,36vw);aspect-ratio:2/3;object-fit:cover;border-radius:6px;margin:0 auto 18px;display:none;
+    box-shadow:0 14px 40px rgba(0,0,0,.8),0 0 0 1px var(--border)}
+  .splash-cover.ok{display:block;animation:fadeIn .5s ease}
+  .splash-tit{font-family:'Orbitron',sans-serif;font-size:.85rem;font-weight:700;letter-spacing:3px;color:var(--acc-gold);margin-bottom:16px;text-transform:uppercase}
 
   /* Zona del libro */
   #stage{
@@ -140,7 +168,7 @@
   #creditos.show{display:block;animation:fadeIn .6s ease}
   @keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
   .cred-close{
-    position:fixed;top:calc(14px + env(safe-area-inset-top));right:16px;z-index:41;
+    position:fixed;top:calc(14px + env(safe-area-inset-top));left:16px;z-index:41;
   }
   .cred-inner{max-width:520px;margin:0 auto;text-align:center}
   .cred-fin{font-family:'Orbitron',sans-serif;font-size:2.2rem;font-weight:900;color:var(--acc-gold);letter-spacing:12px;margin-bottom:8px;text-shadow:0 0 20px rgba(232,200,106,.4)}
@@ -192,7 +220,9 @@
 
 <div id="splash">
   <div class="splash-inner">
-    <div class="splash-logo">NEXO</div>
+    <img class="splash-cover" id="splash-cover" alt="">
+    <div class="splash-tit" id="splash-tit"></div>
+    <div class="splash-logo" id="splash-logo">NEXO</div>
     <div class="splash-bar"><div id="splash-fill" class="splash-fill"></div></div>
     <div id="splash-msg" class="splash-msg">Abriendo el códice…</div>
     <div id="splash-err" class="splash-err" style="display:none"></div>
@@ -200,12 +230,12 @@
 </div>
 
 <div id="hud-top" class="hud-top hidden">
-  <button class="btn-icon" onclick="salir()" aria-label="Cerrar">✕</button>
+  <a class="btn-volver" href="comics.html" onclick="salir();return false" aria-label="Regresar a la Comicteca" title="Comicteca">‹</a>
   <div class="hud-title">
     <h1 id="titulo">—</h1>
     <div class="prog" id="prog">— / —</div>
   </div>
-  <button class="btn-icon" onclick="toggleFullscreen()" aria-label="Pantalla completa">⛶</button>
+  <div class="hud-acc" id="hud-acc"><button class="btn-icon" onclick="toggleFullscreen()" aria-label="Pantalla completa" title="Pantalla completa (F)">⛶</button></div>
 </div>
 
 <div id="stage">
@@ -218,6 +248,10 @@
   <span>🔍</span><span id="zoom-nivel">1.0×</span> ✕
 </button>
 
+<div class="prog-bar" aria-hidden="true"><i id="prog-fill"></i></div>
+<button class="fin-pill" id="fin-pill" onclick="mostrarCreditos()">★ VER CRÉDITOS ›</button>
+<div class="aviso" id="aviso"><span id="aviso-txt"></span><button id="aviso-ini">↺ DESDE EL INICIO</button></div>
+
 <div id="hud-bottom" class="hud-bottom hidden">
   <button class="nav-btn" id="btn-prev" aria-label="Anterior">‹</button>
   <div class="thumbs" id="thumbs"></div>
@@ -225,14 +259,15 @@
 </div>
 
 <div id="creditos">
-  <button class="btn-icon cred-close" onclick="cerrarCreditos()" aria-label="Cerrar">✕</button>
+  <button class="btn-volver cred-close" onclick="cerrarCreditos()" aria-label="Volver a la última página" title="Volver a la última página">‹</button>
   <div class="cred-inner">
     <div class="cred-fin">FIN</div>
     <div class="cred-sub" id="cred-titulo">— · — —</div>
     <div id="cred-personas"></div>
     <div class="cred-acciones">
       <button class="cred-btn gold" onclick="reiniciar()">↺ LEER DE NUEVO</button>
-      <a class="cred-btn" href="comics.html">← Volver a la Comicteca</a>
+      <button class="cred-btn" onclick="cerrarCreditos()" style="background:rgba(20,25,40,.85);border:1px solid var(--border);color:var(--acc-gold)">‹ VOLVER A LA ÚLTIMA PÁGINA</button>
+      <a class="cred-btn" href="comics.html">COMICTECA</a>
     </div>
   </div>
 </div>
@@ -266,7 +301,27 @@ function splashError(msg){
   $('splash-err').innerHTML=escapeHtml(msg)+'<br><br><a href="comics.html" style="color:var(--acc-gold)">← Volver a la Comicteca</a>';
   $('splash-msg').style.display='none';
 }
-function salir(){location.href='comics.html'}
+function salir(){guardarPagina();location.href='comics.html'}
+// v197 · Página donde te quedaste (por cómic) y lectura completada
+const K_PAG='comics_pagina';
+function guardarPagina(){try{if(!comic)return;const m=JSON.parse(localStorage.getItem(K_PAG)||'{}')||{};
+  if(paginaActual>0&&!enUltima())m[comic.id]=paginaActual;else delete m[comic.id];localStorage.setItem(K_PAG,JSON.stringify(m));}catch(e){}}
+function paginaGuardada(){try{return +((JSON.parse(localStorage.getItem(K_PAG)||'{}')||{})[comic.id])||0;}catch(e){return 0}}
+function marcarLeido(){try{const leidos=JSON.parse(localStorage.getItem('comics_leidos')||'[]');if(!leidos.includes(comic.id)){leidos.push(comic.id);localStorage.setItem('comics_leidos',JSON.stringify(leidos));}}catch(e){}}
+// ¿Se está viendo la última página? (en doble página, el último par)
+function enUltima(){return totalPaginas>0&&paginasVisibles().includes(totalPaginas)}
+function siguiente(){if(zoomScale>1.05)return;if(enUltima()){mostrarCreditos();return}flipBook?.flipNext()}
+function anterior(){if(zoomScale>1.05)return;if($('creditos').classList.contains('show')){cerrarCreditos();return}flipBook?.flipPrev()}
+function avisar(txt,fnIni){$('aviso-txt').textContent=txt;$('aviso').classList.add('show');
+  $('aviso-ini').onclick=()=>{$('aviso').classList.remove('show');fnIni&&fnIni();};
+  clearTimeout(avisar._t);avisar._t=setTimeout(()=>$('aviso').classList.remove('show'),7000);}
+function estadoFin(){
+  const u=enUltima();
+  $('fin-pill').classList.toggle('show',u&&!$('creditos').classList.contains('show'));
+  const b=$('btn-next');b.classList.toggle('fin',u);b.textContent=u?'★':'›';b.setAttribute('aria-label',u?'Ver créditos':'Siguiente');
+  $('prog-fill').style.width=(totalPaginas?Math.min(100,Math.max(...paginasVisibles(),1)/totalPaginas*100):0)+'%';
+  if(u)marcarLeido();
+}
 function toggleFullscreen(){
   if(!document.fullscreenElement){
     document.documentElement.requestFullscreen?.().catch(()=>{});
@@ -432,6 +487,9 @@ async function init(){
 
   $('titulo').textContent=comic.titulo;
   document.title=comic.titulo+' — Nexo de Héroes';
+  // Splash con la portada
+  $('splash-tit').textContent=comic.titulo+(comic.subtitulo?' · '+comic.subtitulo:'');
+  if(comic.portada){const cv=$('splash-cover');cv.onload=()=>{cv.classList.add('ok');$('splash-logo').style.display='none'};cv.src=comic.portada;}
 
   setSplashProgress(10,'Descargando PDF…');
 
@@ -512,6 +570,11 @@ async function init(){
     $('splash').classList.add('gone');
     setTimeout(()=>$('splash').style.display='none',500);
     mostrarHUD();
+    // Continuar donde te quedaste
+    const g=paginaGuardada();
+    if(g>0&&g<totalPaginas-1){flipBook.turnToPage(g);paginaActual=g;$('prog').textContent=(g+1)+' / '+totalPaginas;actualizarMiniaturas();actualizarBotones();
+      avisar('Continúas en la página '+(g+1),()=>{flipBook.turnToPage(0);paginaActual=0;$('prog').textContent='1 / '+totalPaginas;actualizarMiniaturas();actualizarBotones();guardarPagina();});}
+    try{if(window.GP&&GP.activo())GP.enfocar($('btn-next'))}catch(e){}
   },300);
 }
 
@@ -564,19 +627,19 @@ function construirLibro(){
     // Precarga HD de la página actual si acabamos de resetear con zoom > umbral
     // (no aplica aquí porque acabamos de resetear, pero por si en el futuro se
     // cambia el comportamiento, dejamos el hook.)
-    if(paginaActual>=totalPaginas-1){
-      setTimeout(mostrarCreditos,1200);
-    }
+    // v197 · Los créditos ya NO se abren solos: en la última página aparece "VER CRÉDITOS"
+    guardarPagina();
   });
 
-  $('btn-prev').onclick=()=>flipBook.flipPrev();
-  $('btn-next').onclick=()=>flipBook.flipNext();
+  $('btn-prev').onclick=()=>{anterior();mostrarHUD()};
+  $('btn-next').onclick=()=>{siguiente();mostrarHUD()};
   actualizarBotones();
 }
 
 function actualizarBotones(){
   $('btn-prev').disabled=paginaActual<=0;
-  $('btn-next').disabled=paginaActual>=totalPaginas-1;
+  $('btn-next').disabled=false;
+  estadoFin();
 }
 
 // ========== Miniaturas ==========
@@ -628,7 +691,7 @@ function obtenerCreditos(){
 
 function mostrarCreditos(){
   const creditos=obtenerCreditos();
-  if(!creditos.length){$('creditos').classList.add('show');return}
+  if(!creditos.length){$('cred-personas').innerHTML='';$('creditos').classList.add('show');ocultarHUD();estadoFin();marcarLeido();return}
 
   $('cred-titulo').textContent=(comic.titulo||'').toUpperCase()+(comic.subtitulo?' · '+comic.subtitulo.toUpperCase():'');
 
@@ -693,20 +756,14 @@ function mostrarCreditos(){
     cont.appendChild(bloque);
   });
 
-  $('creditos').classList.add('show');
-  // Registrar lectura completada
-  try{
-    const leidos=JSON.parse(localStorage.getItem('comics_leidos')||'[]');
-    if(!leidos.includes(comic.id)){
-      leidos.push(comic.id);
-      localStorage.setItem('comics_leidos',JSON.stringify(leidos));
-    }
-  }catch(e){}
+  $('creditos').classList.add('show');$('creditos').scrollTop=0;
+  ocultarHUD();estadoFin();marcarLeido();
+  try{if(window.GP&&GP.activo())setTimeout(()=>GP.enfocar(document.querySelector('#creditos .cred-btn.gold')),80)}catch(e){}
 }
-function cerrarCreditos(){$('creditos').classList.remove('show')}
+function cerrarCreditos(){$('creditos').classList.remove('show');estadoFin();mostrarHUD();try{if(window.GP&&GP.activo())GP.enfocar($('btn-next'))}catch(e){}}
 function reiniciar(){
   cerrarCreditos();
-  flipBook?.turnToPage(0);
+  flipBook?.turnToPage(0);paginaActual=0;$('prog').textContent='1 / '+totalPaginas;actualizarMiniaturas();actualizarBotones();guardarPagina();
 }
 
 // ========== Zoom táctil (pinch + pan + doble-tap) ==========
@@ -899,18 +956,23 @@ $('stage').addEventListener('click',e=>{
 });
 $('tap-left').addEventListener('click',e=>{
   if(zoomScale>1.05)return;
-  e.stopPropagation();flipBook?.flipPrev();mostrarHUD();
+  e.stopPropagation();anterior();mostrarHUD();
 });
 $('tap-right').addEventListener('click',e=>{
   if(zoomScale>1.05)return;
-  e.stopPropagation();flipBook?.flipNext();mostrarHUD();
+  e.stopPropagation();siguiente();mostrarHUD();
 });
+// Deslizar hacia la izquierda en la última página: créditos
+{let sx=null;$('stage').addEventListener('touchstart',e=>{sx=e.touches.length===1&&zoomScale<=1.05?e.touches[0].clientX:null},{passive:true});
+ $('stage').addEventListener('touchend',e=>{if(sx==null||e.touches.length)return;const dx=e.changedTouches[0].clientX-sx;sx=null;if(dx<-70&&enUltima())mostrarCreditos();},{passive:true});}
 
 // Teclado
 document.addEventListener('keydown',e=>{
-  if(e.key==='ArrowLeft'){if(zoomScale<=1.05)flipBook?.flipPrev()}
-  else if(e.key==='ArrowRight'||e.key===' '){if(zoomScale<=1.05)flipBook?.flipNext()}
-  else if(e.key==='Escape'){zoomScale>1.05?resetZoom():salir()}
+  if(e.key==='ArrowLeft'){anterior()}
+  else if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();siguiente()}
+  else if(e.key==='Home'){if(flipBook){flipBook.turnToPage(0);paginaActual=0;$('prog').textContent='1 / '+totalPaginas;actualizarMiniaturas();actualizarBotones();}}
+  else if(e.key==='End'){if(flipBook){flipBook.turnToPage(totalPaginas-1);paginaActual=totalPaginas-1;$('prog').textContent=totalPaginas+' / '+totalPaginas;actualizarMiniaturas();actualizarBotones();}}
+  else if(e.key==='Escape'){if(zoomScale>1.05)resetZoom();else if($('creditos').classList.contains('show'))cerrarCreditos();else salir()}
   else if(e.key==='f'||e.key==='F')toggleFullscreen();
   else if(e.key==='+'||e.key==='='){
     zoomScale=Math.min(ZOOM_MAX,zoomScale*1.25);aplicarZoom(true);
@@ -931,7 +993,7 @@ window.addEventListener('resize',()=>{
     resetZoom();
     const {w,h,single}=calcularTam();
     try{
-      flipBook.update({
+      flipBook.update&&flipBook.update({
         width:single?w:w/2,
         height:h,
         usePortrait:single
@@ -940,11 +1002,28 @@ window.addEventListener('resize',()=>{
   },200);
 });
 
+window.addEventListener('pagehide',guardarPagina);
+// v197 · Control (gamepad.js): LB/RB o la cruceta en los extremos pasan página · LT/RT zoom · B regresa
+window.GP_CFG={
+  principalTxt:'Siguiente',
+  principal:()=>$('creditos').classList.contains('show')?document.querySelector('#creditos .cred-btn.gold'):$('btn-next'),
+  inicial:()=>$('creditos').classList.contains('show')?document.querySelector('#creditos .cred-btn.gold'):$('btn-next'),
+  lbrb:d=>{if($('creditos').classList.contains('show'))return false;d>0?siguiente():anterior();mostrarHUD();return true},
+  sinDestino:(dx)=>{if($('creditos').classList.contains('show')||!dx)return false;dx>0?siguiente():anterior();mostrarHUD();return true},
+  gatillo:d=>{if($('creditos').classList.contains('show'))return false;zoomScale=Math.max(ZOOM_MIN,Math.min(ZOOM_MAX,zoomScale*(d>0?1.15:1/1.15)));if(zoomScale<=1){zoomX=0;zoomY=0}ajustarPan();aplicarZoom(false);return true},
+  stickDerecho:(rx,ry)=>{if(zoomScale<=1.05)return false;zoomX-=rx*14;zoomY-=ry*14;ajustarPan();aplicarZoom(false);return true},
+  atras:()=>{if($('aviso').classList.contains('show')){$('aviso').classList.remove('show');return true}if(zoomScale>1.05){resetZoom();return true}if($('creditos').classList.contains('show')){cerrarCreditos();return true}salir();return true},
+  start:()=>document.querySelector('.hud-acc .btn-icon')
+};
+// La música va en la barra superior (como en los demás módulos)
+function moverMusica(){const b=document.getElementById('bgm-btn');if(b&&!$('hud-acc').contains(b))$('hud-acc').appendChild(b)}
+window.addEventListener('load',()=>{moverMusica();setTimeout(moverMusica,500)});
+
 // Go
 init();
 </script>
-<!-- Música de fondo persistente -->
-<style>#bgm-btn{bottom:calc(92px + env(safe-area-inset-bottom))!important}</style>
+<!-- Música de fondo persistente (el botón se mueve a la barra superior) -->
 <script src="bgm.js"></script>
+<script src="gamepad.js"></script>
 </body>
 </html>

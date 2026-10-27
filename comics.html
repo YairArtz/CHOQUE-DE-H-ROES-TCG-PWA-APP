@@ -250,6 +250,7 @@
   }
 
   /* Badge "leído" */
+  .cont-badge{position:absolute;left:8px;bottom:8px;z-index:3;padding:3px 8px;border-radius:12px;background:rgba(0,0,0,.82);border:1px solid var(--acc-gold);color:var(--acc-gold);font-family:'Orbitron',sans-serif;font-size:.6rem;font-weight:700;letter-spacing:1px}
   .read-badge{
     position:absolute;top:8px;right:8px;z-index:3;
     background:linear-gradient(135deg,var(--acc-cyan),#38a89f);
@@ -528,9 +529,8 @@
 <body>
 
 <header>
-  <button class="nav-btn" onclick="history.length>1?history.back():location.href='index.html'" aria-label="Volver">←</button>
+  <a class="nav-btn" href="index.html" aria-label="Volver al menú">←</a>
   <h1 class="nav-title">Comicteca<small>ARCHIVO CODEX</small></h1>
-  <a class="nav-btn" href="index.html" aria-label="Menú principal" title="Menú principal">⌂</a>
 </header>
 
 <div class="container">
@@ -750,6 +750,7 @@
       return;
     }
     grid.innerHTML='';
+    let paginasLeidas={};try{paginasLeidas=JSON.parse(localStorage.getItem('comics_pagina')||'{}')||{}}catch(e){}
     lista.forEach((c,idx)=>{
       const bloqueado=c.desbloqueo?.requiere && !jugador.desbloqueados.includes(c.id);
       const leido=jugador.leidos.includes(c.id);
@@ -776,10 +777,11 @@
       el.innerHTML=`
         <div class="cover ${!c.portada?'placeholder':''}" style="--arc-color:${arcoColor}">
           ${c.portada
-            ? `<img src="${c.portada}" alt="${escapeHtml(c.titulo)}" loading="lazy" onerror="this.parentElement.classList.add('placeholder');this.remove();this.parentElement.textContent='${(c.titulo||'?').charAt(0)}'">`
+            ? `<img src="${c.portada}" alt="${escapeHtml(c.titulo)}" loading="lazy" onerror="this.parentElement.classList.add('placeholder');this.replaceWith(document.createTextNode('${escapeHtml((c.titulo||'?').charAt(0))}'))">`
             : (c.titulo||'?').charAt(0)}
           ${arcoNombre?`<span class="arc-tag">${escapeHtml(arcoNombre)}</span>`:''}
           ${leido && !bloqueado?`<span class="read-badge" title="Leído">✓</span>`:''}
+          ${!bloqueado&&paginasLeidas[c.id]?`<span class="cont-badge" title="Continúas donde te quedaste">▶ PÁG. ${paginasLeidas[c.id]+1}</span>`:''}
           ${bloqueado?`
             <div class="lock">
               <div class="lock-icon">🔒</div>
@@ -930,5 +932,14 @@
   function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 })();
 </script>
+<script>
+// v197 · Control (gamepad.js): las portadas se pueden elegir con A · B cierra la ventana o regresa al menú
+window.GP_CFG={
+  clicables:'.comic',
+  inicial:()=>document.querySelector('.comic'),
+  atras:()=>{const m=document.getElementById('modal-lock');if(m&&m.classList.contains('active'))return false;location.href='index.html';return true;}
+};
+</script>
+<script src="gamepad.js"></script>
 </body>
 </html>

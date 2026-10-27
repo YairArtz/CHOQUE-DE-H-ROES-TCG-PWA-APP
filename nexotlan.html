@@ -317,6 +317,36 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 .mz-c .jy{position:absolute;left:4px;top:4px;padding:2px 6px;border-radius:6px;background:linear-gradient(135deg,#ffd166,#ff2f5a);color:#1a0010;font-family:'Orbitron',monospace;font-size:8.5px;font-weight:900;letter-spacing:1px}
 .mz-c.joya{border-color:#ffd166;box-shadow:0 0 14px rgba(255,209,102,.35)}
 .mz-c .vd{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(2,6,20,.72);font-family:'Orbitron',monospace;font-weight:900;font-size:11px;letter-spacing:2px;color:var(--green)}
+/* v195 · Pantalla de carga al regresar de un Choque ([config] fondo_carga) */
+#carga{position:fixed;inset:0;z-index:190;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;text-align:center;
+  background:#050a1c center/cover no-repeat;transition:opacity .45s ease}
+#carga[hidden]{display:none}
+#carga.fuera{opacity:0;pointer-events:none}
+#carga::before{content:'';position:absolute;inset:0;background:linear-gradient(rgba(5,10,28,.15),rgba(5,10,28,.82))}
+#carga>*{position:relative}
+#carga .cg-logo{max-width:min(460px,calc(70 * var(--uw)));max-height:calc(30 * var(--uh));object-fit:contain;filter:drop-shadow(0 6px 24px rgba(0,0,0,.6))}
+#carga .cg-t{font-family:'Orbitron',monospace;font-weight:900;font-size:clamp(26px,calc(6 * var(--uw)),54px);letter-spacing:.12em;color:#fff;text-shadow:0 0 24px rgba(54,214,255,.55)}
+#carga .cg-bar{width:min(320px,70%);height:4px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden}
+#carga .cg-bar i{display:block;width:40%;height:100%;border-radius:3px;background:linear-gradient(90deg,#36d6ff,#ffd166);animation:cgVa 1.1s ease-in-out infinite alternate}
+@keyframes cgVa{from{transform:translateX(-10%)}to{transform:translateX(160%)}}
+#carga .cg-x{font-size:16px;font-weight:700;color:#cfe0ff;text-shadow:0 2px 6px #000;max-width:560px;line-height:1.35}
+@media (prefers-reduced-motion:reduce){#carga .cg-bar i{animation:none;width:100%}}
+/* v195 · Cajas de sobres */
+.td-caja{display:flex;flex-direction:column;gap:5px;font-size:12.5px;color:var(--muted);text-align:left;padding:7px 8px;border-radius:9px;background:rgba(2,6,20,.55);border:1px solid var(--line)}
+.td-caja .cj-l{display:flex;justify-content:space-between;gap:6px;align-items:center}
+.td-caja .cj-l b{font-family:'Rajdhani',sans-serif;font-size:13px;letter-spacing:0;color:var(--text)}
+.cj-bar{height:6px;border-radius:4px;background:rgba(255,255,255,.08);overflow:hidden}
+.cj-bar i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,#36d6ff,#ffd166);transition:width .3s}
+.td-caja .jq{color:#ffd166;font-weight:700}
+.td-caja .ok{color:var(--green);font-weight:700}
+.td-s .bt.caja{padding:8px 6px;font-size:9.5px}
+.cj-res{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:12px}
+.cj-res>div{padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:rgba(2,6,20,.55);font-size:13px;color:var(--muted)}
+.cj-res>div b{display:block;font-family:'Orbitron',monospace;font-size:16px;color:var(--text);margin-top:2px}
+.cj-sec{font-family:'Orbitron',monospace;font-size:11px;font-weight:900;letter-spacing:2px;margin:14px 0 8px;display:flex;justify-content:space-between}
+.mz-c.cero img{opacity:.28;filter:grayscale(1)}
+.mz-c .tg{position:absolute;right:4px;top:4px;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--green);color:#022;font-size:11px;font-weight:900}
+.premio .rz{display:inline-block;margin-top:2px;font-family:'Orbitron',monospace;font-size:9px;font-weight:900;letter-spacing:1px}
 .sob{position:fixed;inset:0;z-index:180;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:16px;background:radial-gradient(ellipse at center,rgba(20,30,70,.96),rgba(0,0,0,.97))}
 .sob.on{display:flex}
 .sob .pkg{width:min(240px,calc(56 * var(--uw)));aspect-ratio:5/7;position:relative;cursor:pointer;animation:pkFlota 2s ease-in-out infinite}
@@ -462,6 +492,26 @@ body.nx-sismo2{animation:nxSismo2 .09s linear infinite}
   <div class="t-cont" id="tContenido" hidden><div class="bar"><i id="tcBar"></i></div><span id="tcTxt"></span></div>
   <div class="t-info" id="tInfo">Cargando Nexotlan…</div>
 </section>
+<!-- v195 · Pantalla de carga al regresar de un Choque · [config] fondo_carga / logo / textos_carga -->
+<div id="carga" hidden><img class="cg-logo" id="cgLogo" alt="" hidden><div class="cg-t" id="cgT">NEXOTLAN</div><div class="cg-bar"><i></i></div><div class="cg-x" id="cgX">Regresando a Nexotlan…</div></div>
+<script>
+(function(){
+  // La portada y la pantalla de carga usan lo último que se cargó (se guarda al leer mapa.txt): aparecen al instante, sin "placeholder"
+  var c={};try{c=JSON.parse(localStorage.getItem('chh_nx_portada')||'{}')||{};}catch(e){}
+  var q=function(u){return 'url("'+String(u).replace(/"/g,'%22')+'")';};
+  var t=document.getElementById('sTitulo');
+  if(c.fondo){t.classList.add('con-fondo');t.style.backgroundImage='linear-gradient(rgba(5,10,28,.25),rgba(5,10,28,.78)),'+q(c.fondo);}
+  if(c.logo){var l=document.getElementById('tLogo');l.src=c.logo;l.hidden=false;document.getElementById('tTitulo').hidden=true;}
+  if(c.titulo){document.getElementById('tTitulo').textContent=c.titulo;}
+  if(!/[?&]r=/.test(location.search))return;          // solo al regresar de un Choque
+  var g=document.getElementById('carga');g.hidden=false;
+  g.style.backgroundImage=q(c.carga||c.fondo||'assets/nexotlan/titulo/carga.jpg');
+  if(c.logo){var gl=document.getElementById('cgLogo');gl.src=c.logo;gl.hidden=false;document.getElementById('cgT').hidden=true;}
+  else if(c.titulo)document.getElementById('cgT').textContent=c.titulo;
+  if(c.textos&&c.textos.length)document.getElementById('cgX').textContent=c.textos[Math.floor(Math.random()*c.textos.length)];
+  window.__cargaT=setTimeout(function(){g.classList.add('fuera');setTimeout(function(){g.hidden=true;},500);},15000);   // seguro
+})();
+</script>
 
 <!-- ══════ NUEVA PARTIDA / CAMBIAR BARAJA ══════ -->
 <section class="scr" id="sNueva">
@@ -546,6 +596,7 @@ body.nx-sismo2{animation:nxSismo2 .09s linear infinite}
 </div>
 
 <!-- Diario -->
+<div class="modal" id="mCaja"><div class="mbox" style="width:min(900px,100%)"><button class="f-x" onclick="cerrarModal('mCaja')" aria-label="Cerrar">✕</button><div class="mt" id="cjT"></div><div id="cjBody"></div></div></div>
 <div class="modal" id="mDiario"><div class="mbox"><button class="f-x" onclick="cerrarModal('mDiario')">✕</button><div class="mt">📖 DIARIO DE AVENTURA</div><div id="diBody"></div></div></div>
 <!-- Mensaje -->
 <div id="nxTrans"></div><div id="nxFinal"></div>
@@ -1080,6 +1131,7 @@ $('fX').onclick = cerrarFicha;
 let DLG = null;
 const paginas = t => String(t || '').split('|').map(x => x.trim()).filter(Boolean);
 async function dialogo(p, texto, ops) {
+  quitarCarga();
   const pags = paginas(texto); if (!pags.length) pags.push('…');
   const [ret, pai] = await Promise.all([retrato(p), paisajeUrl(p)]), [, tc] = TIPO_TXT[p.tipo] || TIPO_TXT.rival;
   const d = distDe(p);
@@ -1594,9 +1646,10 @@ function pintarTienda() {
   const B = $('tdBody'); let h = '';
   if (TD.tab === 'sobres') {
     const L = COM.sobres.filter(sobreDisponible), faltan = COM.sobres.length - L.length;
-    h = `<div class="td-nota">Las cartas van a tu <b style="color:var(--text)">🎁 cofre</b>. Las más caras salen menos en los sobres.${faltan ? ` · ${faltan} sobre(s) más al avanzar en Nexotlan.` : ''}</div>`;
+    h = `<div class="td-nota">Las cartas van a tu <b style="color:var(--text)">🎁 cofre</b>. Cada sobre sale de una <b style="color:var(--text)">📦 caja</b> con un número fijo de cartas: lo que ya salió no se repite hasta rellenarla, así que cada sobre te acerca a sus <b style="color:#ffd166">★ Joyas</b>.${faltan ? ` · ${faltan} sobre(s) más al avanzar en Nexotlan.` : ''}</div>`;
     h += L.length ? `<div class="td-sobres">${L.map(sb => { const pr = parseInt(sb.precio, 10) || 100, ok = S.monedas >= pr;
-      return `<div class="td-s"><div class="pk">${imgSobre(sb)}</div><b>${esc(sb.nombre || sb.id)}</b><small>${esc(sb.descripcion || '')}${parseInt(sb.amalgama, 10) ? `<br><span style="color:#ffd166">✨ ${parseInt(sb.amalgama, 10)} % de Amalgama</span>` : ''}</small>
+      return `<div class="td-s"><div class="pk">${imgSobre(sb)}</div><b>${esc(sb.nombre || sb.id)}</b><small>${esc(sb.descripcion || '')}</small>${pintarCajaSobre(sb)}
+        <button class="bt sec caja" data-caja="${esc(sb.id)}">📦 VER CAJA</button>
         <button class="bt ${ok ? 'gold' : 'sec'}" data-sobre="${esc(sb.id)}" ${ok ? '' : 'disabled'}><i class="mn"></i> ${pr} · ${ok ? 'COMPRAR' : 'FALTAN ' + (pr - S.monedas)}</button></div>`; }).join('')}</div>` : '<div class="mz-vacio">Todavía no hay sobres a la venta.</div>';
   } else if (TD.tab === 'cartas') {
     const T = stockHoy();
@@ -1610,6 +1663,7 @@ function pintarTienda() {
   }
   B.innerHTML = h;
   B.querySelectorAll('[data-sobre]').forEach(b => b.onclick = () => comprarSobre(COM.sobres.find(x => x.id === b.dataset.sobre)));
+  B.querySelectorAll('[data-caja]').forEach(b => b.onclick = () => verCaja(COM.sobres.find(x => x.id === b.dataset.caja)));
   B.querySelectorAll('[data-of]').forEach(b => b.onclick = () => fichaTienda(+b.dataset.of));
   B.querySelectorAll('[data-vd]').forEach(b => b.onclick = () => fichaVenta(b.dataset.vd));
 }
@@ -1644,16 +1698,10 @@ function sorteoPeso(L) {
 }
 async function comprarSobre(sb) {
   if (!sb) return; const pr = parseInt(sb.precio, 10) || 100; if (S.monedas < pr) return;
-  const n = parseInt(sb.cartas, 10) || 5, pool = poolDe(sb.pool, ['bp', 'ba']); if (!pool.length) return toast('Este sobre no tiene cartas (revisa su pool)');
-  const ids = []; let L = pool.slice();
-  const esAlma = x => CARD[x] && CARD[x].tipo === 'alma';   // máximo 1 ALMA por sobre
-  for (let i = 0; i < n; i++) {
-    if (!L.length) L = pool.filter(x => !(ids.some(esAlma) && esAlma(x)));
-    if (!L.length) L = pool.slice();
-    const id = sorteoPeso(L); ids.push(id); L = L.filter(x => x !== id && !(esAlma(id) && esAlma(x)));
-  }
-  const am = poolDe(sb.pool, ['bs']);
-  if (am.length && Math.random() * 100 < (parseInt(sb.amalgama, 10) || 0)) ids[ids.length - 1] = sorteoPeso(am);
+  // v195 · Sale de la caja del sobre (sin reemplazo); las Joyas al final para la revelación
+  const sac = sacarDeCaja(sb), ids = sac.ids; if (!ids.length) return toast('Este sobre no tiene cartas (revisa su pool)');
+  ids.sort((a, b) => RAREZA(a) - RAREZA(b));
+  if (sac.nueva) toast('📦 La caja se vació y se rellenó: Caja ' + S.cajas[sb.id].num);
   S.monedas -= pr; sonMonedas(); const res = entregar(ids); guardar(); pintarTienda();
   // Apertura
   $('sbPkg').className = 'pkg'; $('sbPkg').innerHTML = imgSobre(sb); $('sbHint').hidden = false; $('sbRes').innerHTML = ''; $('sbOk').hidden = true; $('sbPkg').style.display = '';
@@ -1663,13 +1711,86 @@ async function comprarSobre(sb) {
   $('sbPkg').classList.add('abre'); $('sbHint').hidden = true;
   await new Promise(r => setTimeout(r, 520));
   $('sbPkg').style.display = 'none';
-  $('sbRes').innerHTML = `<div class="premio">${res.map(x => `<figure><img src="${esc(cartaImg(x.id, true))}" alt=""><figcaption>${esc(nomC(x.id))}${x.repetida ? `<br><span style="color:#5cc8ff">Completa · +${x.repetida} <i class="mn"></i></span>` : (CARD[x.id] || {}).tipo === 'amalgama' ? '<br><span style="color:#ffd166">✨ AMALGAMA</span>' : (precioBase(x.id) >= 450 ? '<br><span style="color:#ffd166">★ JOYA</span>' : '')}</figcaption></figure>`).join('')}</div>`;
+  $('sbRes').innerHTML = `<div class="premio">${res.map(x => `<figure><img src="${esc(cartaImg(x.id, true))}" alt=""><figcaption>${esc(nomC(x.id))}${x.repetida ? `<br><span style="color:#5cc8ff">Completa · +${x.repetida} <i class="mn"></i></span>` : (CARD[x.id] || {}).tipo === 'amalgama' ? '<br><span style="color:#ffd166">✨ AMALGAMA</span>' : `<br><span class="rz" style="color:${RZ[RAREZA(x.id)][1]}">${RAREZA(x.id) === 3 ? '★ ' : ''}${RZ[RAREZA(x.id)][0]}</span>`}</figcaption></figure>`).join('')}</div>`;
   $('sbOk').hidden = false;
   try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('sbOk')), 300); } catch (e) {}
   await new Promise(r => { $('sbOk').onclick = r; });
   $('mSobre').classList.remove('on'); pintarTienda();
 }
 $('tdSalir').onclick = salirTienda;
+
+// ════════════════ CAJAS DE SOBRES (v195 · como las "box" de Duel Links) ════════════════
+// Cada sobre sale de una CAJA con un número fijo de copias de cada carta: Común, Rara y Joya (1 copia).
+// Al abrir sobres la caja se va vaciando (lo que ya salió no vuelve a salir); cuando se vacía se rellena sola.
+// Se puede REINICIAR en cualquier momento (p. ej. cuando ya sacaste la Joya que buscabas).
+// Rareza por precio (igual que la ruleta del carpetero): Común < 100 · Rara 100-449 · Joya 450+ y Amalgamas.
+const RAREZA = id => ((CARD[id] || {}).tipo === 'amalgama' || precioBase(id) >= 450) ? 3 : precioBase(id) >= 100 ? 2 : 1;
+const RZ = { 1: ['COMÚN', '#7ad7ff'], 2: ['RARA', '#cc55ff'], 3: ['JOYA', '#ffd166'] };
+function cajaDef(sb) {
+  const v = (k, d) => { const x = parseInt(sb['caja_' + k] ?? COM.cfg['caja_' + k], 10); return isFinite(x) && x >= 0 ? x : d; };
+  const cop = { 1: v('comun', 4), 2: v('rara', 2), 3: v('joya', 1) }, am = v('amalgama', 1);
+  const items = poolDe(sb.pool, ['bp', 'ba']).map(id => ({ id, r: RAREZA(id) })).map(x => ({ ...x, c: cop[x.r] })).filter(x => x.c > 0);
+  if ((parseInt(sb.amalgama, 10) || 0) > 0 && am > 0) poolDe(sb.pool, ['bs']).forEach(id => { if (!items.some(x => x.id === id)) items.push({ id, r: 3, c: am, am: 1 }); });
+  items.sort((a, b) => b.r - a.r || ordenCarta(a.id, b.id));
+  const total = items.reduce((t, x) => t + x.c, 0);
+  return { items, total, n: Math.max(1, parseInt(sb.cartas, 10) || 5), key: String(hashS(items.map(x => x.id + ':' + x.c).join('|'))) };
+}
+function cajaDe(sb, def) {
+  def = def || cajaDef(sb); S.cajas = S.cajas || {};
+  let st = S.cajas[sb.id];
+  if (!st || st.key !== def.key) { st = S.cajas[sb.id] = { key: def.key, num: (st && st.num) || 1, abiertos: 0, resto: {} }; def.items.forEach(x => st.resto[x.id] = x.c); }
+  return st;
+}
+function rellenarCaja(sb, def, st) { st.num = (st.num || 1) + 1; st.abiertos = 0; st.resto = {}; def.items.forEach(x => st.resto[x.id] = x.c); }
+function cajaInfo(sb) {
+  const def = cajaDef(sb), st = cajaDe(sb, def);
+  const quedan = def.items.reduce((t, x) => t + (st.resto[x.id] || 0), 0);
+  const jT = def.items.filter(x => x.r === 3).reduce((t, x) => t + x.c, 0), jQ = def.items.filter(x => x.r === 3).reduce((t, x) => t + (st.resto[x.id] || 0), 0);
+  const tipos = def.items.length, tengo = def.items.filter(x => tieneNombre(x.id) > 0).length;
+  return { def, st, quedan, sobresT: Math.ceil(def.total / def.n), sobresQ: Math.ceil(quedan / def.n), jT, jQ, tipos, tengo };
+}
+// Saca un sobre de la caja: sin reemplazo, cartas distintas y máximo 1 ALMA por sobre (si se puede)
+function sacarDeCaja(sb) {
+  const def = cajaDef(sb), st = cajaDe(sb, def), out = []; let nueva = false;
+  if (!def.total) return { ids: [], nueva };
+  const esAlma = x => CARD[x] && CARD[x].tipo === 'alma';
+  for (let i = 0; i < def.n; i++) {
+    let B = []; Object.keys(st.resto).forEach(id => { for (let k = 0; k < st.resto[id]; k++) B.push(id); });
+    if (!B.length) { rellenarCaja(sb, def, st); nueva = true; i--; continue; }
+    if (out.some(esAlma)) { const sin = B.filter(x => !esAlma(x)); if (sin.length) B = sin; }
+    { const dist = B.filter(x => !out.includes(x)); if (dist.length) B = dist; }   // cartas distintas en el mismo sobre (si se puede)
+    const id = B[Math.floor(Math.random() * B.length)]; st.resto[id]--; out.push(id);
+  }
+  st.abiertos++;
+  return { ids: out, nueva };
+}
+function pintarCajaSobre(sb) {
+  const k = cajaInfo(sb), pc = k.sobresT ? k.sobresQ / k.sobresT * 100 : 0, am = k.def.items.filter(x => x.am).length;
+  return `<div class="td-caja"><div class="cj-l"><b>📦 Caja ${k.st.num}</b><span>${k.sobresQ}/${k.sobresT} sobres</span></div><div class="cj-bar"><i style="width:${pc}%"></i></div>
+    <div class="cj-l"><span class="jq">★ Joyas ${k.jQ}/${k.jT}</span><span class="${k.tengo === k.tipos ? 'ok' : ''}">🃏 ${k.tengo}/${k.tipos}${k.tengo === k.tipos ? ' ✔' : ''}</span></div>${am ? `<div class="cj-l"><span style="color:#ffd166">✨ ${am} Amalgama${am > 1 ? 's' : ''} en la caja</span></div>` : ''}</div>`;
+}
+function verCaja(sb) {
+  const k = cajaInfo(sb);
+  $('cjT').textContent = '📦 ' + (sb.nombre || sb.id).toUpperCase() + ' · CAJA ' + k.st.num;
+  const sec = r => { const L = k.def.items.filter(x => x.r === r); if (!L.length) return '';
+    const q = L.reduce((t, x) => t + (k.st.resto[x.id] || 0), 0), tot = L.reduce((t, x) => t + x.c, 0);
+    return `<div class="cj-sec" style="color:${RZ[r][1]}"><span>${r === 3 ? '★ ' : ''}${RZ[r][0]}S · ${L[0].c === L[L.length - 1].c ? L[0].c + ' copia' + (L[0].c > 1 ? 's' : '') + ' c/u' : ''}</span><span>${q}/${tot}</span></div><div class="mz-grid">` +
+      L.map(x => { const q1 = k.st.resto[x.id] || 0; return `<div class="mz-c ${r === 3 ? 'joya' : ''} ${q1 ? '' : 'cero'}" title="${esc(nomC(x.id))}"><img src="${esc(cartaImg(x.id))}" alt="${esc(nomC(x.id))}" loading="lazy">${tieneNombre(x.id) > 0 ? '<span class="tg" title="Ya la tienes">✓</span>' : ''}<span class="qq">${q1}/${x.c}</span></div>`; }).join('') + '</div>'; };
+  $('cjBody').innerHTML = `<div class="td-nota">Esta caja trae un número fijo de cartas. Lo que ya salió no vuelve a salir hasta que la caja se rellene: cuanto más la abres, más cerca está cada Joya. Cuando se vacía se rellena sola, y puedes <b style="color:var(--text)">reiniciarla</b> cuando quieras (por ejemplo, si ya sacaste la Joya que buscabas).</div>
+    <div class="cj-res"><div>Sobres restantes<b>${k.sobresQ} / ${k.sobresT}</b><div class="cj-bar" style="margin-top:6px"><i style="width:${k.sobresT ? k.sobresQ / k.sobresT * 100 : 0}%"></i></div></div>
+    <div>★ Joyas en la caja<b style="color:#ffd166">${k.jQ} / ${k.jT}</b></div><div>Tu colección de este sobre<b style="color:${k.tengo === k.tipos ? 'var(--green)' : 'var(--text)'}">${k.tengo} / ${k.tipos}${k.tengo === k.tipos ? ' ✔' : ''}</b></div></div>
+    <div class="f-btns" style="margin:0 0 4px"><button class="bt sec" id="cjCerrar">CERRAR</button><button class="bt ${k.st.abiertos ? 'gold' : 'sec'}" id="cjReset" ${k.st.abiertos ? '' : 'disabled'}>🔄 REINICIAR CAJA</button></div>
+    ${sec(3)}${sec(2)}${sec(1)}`;
+  $('mCaja').classList.add('on');
+  $('cjCerrar').onclick = () => cerrarModal('mCaja');
+  $('cjReset').onclick = async () => {
+    const r = await mensaje('🔄 ¿REINICIAR LA CAJA?', `Se rellena con todas sus cartas (${k.sobresT} sobres)${k.jQ ? `.<br><b style="color:#ffd166">Aún quedan ${k.jQ} Joya${k.jQ > 1 ? 's' : ''} sin salir</b> en esta caja.` : '.'}<br>Reiniciarla no cuesta nada.`, [['🔄 REINICIAR', 'gold'], ['CANCELAR', 'sec']]);
+    if (r !== 0) { verCaja(sb); return; }
+    rellenarCaja(sb, k.def, k.st); guardar(); pintarTienda(); verCaja(sb); toast('📦 Caja ' + k.st.num + ' lista');
+  };
+  try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar(k.st.abiertos ? $('cjReset') : $('cjCerrar')), 60); } catch (e) {}
+}
+
 
 // ════════════════ CARPETERO · ruleta de cambio de cartas ════════════════
 // [carpetero] en comerciante.txt. Das N cartas de tu cofre (que no estén en tu baraja) y giras la ruleta:
@@ -1758,7 +1879,7 @@ function itemsContenido() {
   const aud = f => { f = String(f || '').trim(); if (f) add([f], 'aud'); };
   const fondos = o => { ['playmat', 'fondo_inicio'].forEach(k => o[k] && add(candidatos(o[k], 'simulador'), 'img')); if (o.fondo_mesa && !/^[a-z]+$/.test(o.fondo_mesa)) add(candidatos(o.fondo_mesa, 'simulador'), 'img'); };
   if (CFG.mapa) add([DIR + CFG.mapa], 'img');
-  img(CFG.fondo_titulo, 'titulo'); img(CFG.logo, 'titulo');
+  img(CFG.fondo_titulo, 'titulo'); img(CFG.logo, 'titulo'); img(CFG.fondo_carga, 'titulo');
   aud(CFG.musica); aud(CFG.musica_choque); aud(CFG.sonido_monedas); aud(CFG.audio_final); fondos(CFG);
   DIST.forEach(d => { img(d.paisaje, 'paisajes'); aud(d.musica); aud(d.musica_choque); fondos(d); });
   PTS.forEach(p => {
@@ -1858,9 +1979,11 @@ function limpiarVentanas() {
   document.querySelectorAll('.modal.on,.sob.on,.dlg.on').forEach(m => m.classList.remove('on'));
   if (DLG) clearInterval(DLG.tm); DLG = null;
 }
-function irA(id) { if (id === 'sTitulo') limpiarVentanas(); document.querySelectorAll('.scr').forEach(s => s.classList.toggle('on', s.id === id)); }
+function quitarCarga() { const g = $('carga'); if (!g || g.hidden || g.classList.contains('fuera')) return; clearTimeout(window.__cargaT); g.classList.add('fuera'); setTimeout(() => { g.hidden = true; }, 500); }
+function irA(id) { quitarCarga(); if (id === 'sTitulo') limpiarVentanas(); document.querySelectorAll('.scr').forEach(s => s.classList.toggle('on', s.id === id)); }
 function toast(t) { const el = $('toast'); el.innerHTML = esc(t).split(esc('<i class="mn"></i>')).join('<i class="mn"></i>'); el.classList.add('on'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('on'), 2600); }
 function mensaje(t, html, ops) {
+  quitarCarga();
   return new Promise(res => {
     $('msgT').textContent = t; $('msgB').innerHTML = html;
     ops = ops || [['ENTENDIDO', '']];
@@ -1897,6 +2020,11 @@ async function portadaPersonal() {
   const t = $('sTitulo');
   if (fondo) { t.classList.add('con-fondo'); t.style.backgroundImage = `linear-gradient(rgba(5,10,28,.25),rgba(5,10,28,.78)),url("${fondo}")`; }
   if (logo) { $('tLogo').src = logo; $('tLogo').alt = CFG.titulo || 'NEXOTLAN'; $('tLogo').hidden = false; $('tTitulo').hidden = true; }
+  // v195 · Pantalla de carga: [config] fondo_carga (si no, la portada) · textos_carga = frases al azar separadas por |
+  const carga = await primeraImg(candidatos(CFG.fondo_carga, 'titulo'));
+  const textos = String(CFG.textos_carga || '').split('|').map(x => x.trim()).filter(Boolean);
+  try { localStorage.setItem('chh_nx_portada', JSON.stringify({ fondo: fondo || '', logo: logo || '', carga: carga || '', titulo: CFG.titulo || '', textos })); } catch (e) {}
+  const g = $('carga'); if (g && !g.hidden) { if (carga || fondo) g.style.backgroundImage = `url("${carga || fondo}")`; if (logo) { $('cgLogo').src = logo; $('cgLogo').hidden = false; $('cgT').hidden = true; } }
 }
 function resumenSlot(x) {
   const lucha = PTS.filter(p => p.tipo !== 'heroe'), ven = lucha.filter(p => (x.vencidos || {})[p.id] > 0).length;
@@ -2012,7 +2140,7 @@ $('edEtq').onclick = () => $('mapa').classList.toggle('etq');
 // ════════════════ CONTROL (gamepad.js) ════════════════
 // El mapa está "libre" cuando se ve y no hay ventana, diálogo ni transición encima (la ficha sí deja moverlo)
 function mapaLibre() {
-  return $('sMapa').classList.contains('on') && !DLG && !['mMsg', 'mDiario', 'mCarta', 'mSobre'].some(id => $(id).classList.contains('on')) && !$('noche').classList.contains('on');
+  return $('sMapa').classList.contains('on') && !DLG && !['mMsg', 'mDiario', 'mCarta', 'mSobre', 'mCaja'].some(id => $(id).classList.contains('on')) && !$('noche').classList.contains('on');
 }
 // Teclado (PC): flechas / WASD mueven el mapa, + y − hacen zoom
 document.addEventListener('keydown', e => {
@@ -2030,6 +2158,7 @@ window.GP_CFG = {
     if ($('mMsg').classList.contains('on')) { const b = $('msgOps').querySelectorAll('button'); b[b.length - 1].click(); return true; }
     if ($('mSobre').classList.contains('on')) { const b = !$('sbOk').hidden ? $('sbOk') : $('sbPkg'); b.click(); return true; }
     if ($('mCarta').classList.contains('on')) { cerrarModal('mCarta'); return true; }
+    if ($('mCaja').classList.contains('on')) { cerrarModal('mCaja'); return true; }
     if ($('sTienda').classList.contains('on')) { salirTienda(); return true; }
     if ($('mDiario').classList.contains('on')) { cerrarModal('mDiario'); return true; }
     if ($('sMazo').classList.contains('on')) { salirMazo(); return true; }
@@ -2058,7 +2187,7 @@ window.GP_CFG = {
   stickDerecho: (rx, ry) => { if (!mapaLibre()) return false; $('mapa').scrollBy(rx * 22, ry * 22); return true; },
   gatillo: dir => { if (!mapaLibre()) return false; ajustarZoom(ZOOM * (dir > 0 ? 1.12 : 1 / 1.12)); return true; },
   sinDestino: (dx, dy, f) => { if (!mapaLibre() || !(f && f.closest && f.closest('#mapa'))) return false; $('mapa').scrollBy({ left: dx * 260, top: dy * 200, behavior: 'smooth' }); return true; },
-  zonas: ['#hud', '#mi', '#ficha', '#sMazo .hud', '#mzTabs', '#mzDeck', '#mzFil', '#mzGrid', '#mcBox', '#sTienda .hud', '#tdTabs', '#tdBody', '#mSobre']
+  zonas: ['#hud', '#mi', '#ficha', '#sMazo .hud', '#mzTabs', '#mzDeck', '#mzFil', '#mzGrid', '#mcBox', '#sTienda .hud', '#tdTabs', '#tdBody', '#mSobre', '#cjBody']
 };
 $('dCaja').addEventListener('click', e => { if (!e.target.closest('.d-ops')) { e.stopPropagation(); avanzarDialogo(); } });
 
@@ -2075,7 +2204,7 @@ $('dCaja').addEventListener('click', e => { if (!e.target.closest('.d-ops')) { e
     $('tSub').textContent = '🔒 En pruebas · Próximamente';
     $('tInfo').innerHTML = yo ? 'Tu ID <b>' + yo.id + '</b> no tiene acceso a la versión de prueba.' : 'Inicia sesión en <a href="perfil.html" style="color:inherit">Mi Perfil</a> con una ID de prueba para entrar.';
     window.GP_CFG = { principal: '.esq' };
-    return;
+    quitarCarga(); return;
   }
   const [txt, data, gal, lim, com] = await Promise.allSettled([leer(DIR + 'mapa.txt'), leer('data/cartas_simulacion.json', true), leer('cartas.json', true), leer('cartas-limitadas.json', true), leer(DIR + 'comerciante.txt')]);
   if (com.status === 'fulfilled') COM = parseCom(com.value);
@@ -2083,7 +2212,7 @@ $('dCaja').addEventListener('click', e => { if (!e.target.closest('.d-ops')) { e
   construirModelo(parseTxt(txt.status === 'fulfilled' ? txt.value : ''));
   if (data.status === 'fulfilled') { DATA = data.value || DATA; (DATA.cartas || []).forEach(c => { if (c && c.id) CARD[c.id] = c; }); }
   if (gal.status === 'fulfilled') (gal.value || []).forEach(x => { if (x && x.id != null) GALI[String(x.id)] = x; });
-  if (!DIST.length || !PTS.length) { $('tInfo').innerHTML = '⚠ No se pudo leer <b>assets/nexotlan/mapa.txt</b>.'; return; }
+  if (!DIST.length || !PTS.length) { quitarCarga(); $('tInfo').innerHTML = '⚠ No se pudo leer <b>assets/nexotlan/mapa.txt</b>.'; return; }
   // La partida se guarda sola en este dispositivo en cada cambio; la nube se sincroniza en segundo plano
   // (si la nube tarda o falla, el modo sigue funcionando con la copia local).
   S = normalizar(cargarLocal());

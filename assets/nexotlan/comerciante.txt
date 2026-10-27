@@ -22,6 +22,8 @@
 #   siempre        cartas que vende TODOS los días aparte de las del día (nombres separados por coma). Ej. Cataclismo
 #   joyas          cartas que se tratan como JOYA (muy caras, salen poco en sobres y premios de Choque).
 #                  Expansiones de la galería (sobre_anima, sobre_otakon…) y/o nombres de carta, separados por coma.
+#   caja_comun, caja_rara, caja_joya, caja_amalgama   copias de cada carta en la CAJA de un sobre (ver abajo).
+#                  Por defecto 4 / 2 / 1 / 1. Cada [sobre:…] puede cambiarlas con los mismos campos.
 #
 #  ── [sobre:ID] ──
 #   nombre, descripcion
@@ -31,10 +33,20 @@
 #   cartas      cartas por sobre
 #   pool        de dónde salen las cartas: IDs de distrito (puerta, mercado…) = las barajas de sus
 #               rivales y guardián · o IDs de baraja (nxr_vika) · o "todo" (todos los distritos)
-#   amalgama    % de que el sobre traiga 1 Amalgama (de los guardianes de su pool). 0 = nunca
+#   amalgama    0 = el sobre nunca trae Amalgamas · cualquier otro número = su caja incluye las Amalgamas
+#               de los guardianes de su pool (caja_amalgama copias de cada una, 1 por defecto)
 #   requiere    ID de punto que hay que vencer para que aparezca a la venta
 #   color       color del sobre dibujado (si no hay imagen)
-#   Las cartas caras salen menos: la probabilidad baja según su precio.
+#   caja_comun, caja_rara, caja_joya, caja_amalgama   (opcional) copias en la caja solo para este sobre
+#
+#  ── CAJAS (como las "box" de Duel Links) ──
+#   Cada sobre sale de una CAJA con un número fijo de copias de cada carta de su pool:
+#   Común (precio < 100) 4 copias · Rara (100-449) 2 · Joya (450+) 1 · Amalgama 1.
+#   Lo que ya salió no vuelve a salir hasta que la caja se rellena: cuantos más sobres abres,
+#   más cerca están las Joyas, y al vaciar la caja salieron TODAS. Cuando se vacía se rellena sola.
+#   El jugador puede REINICIARLA gratis en "📦 VER CAJA" (p. ej. cuando ya sacó la Joya que buscaba).
+#   En la tienda se ve cuántos sobres y Joyas quedan, y cuántas cartas del sobre tiene ya en su cofre.
+#   Si cambias el pool o las copias de un sobre, su caja empieza de nuevo para todos.
 #
 #  ── Precios automáticos de cartas sueltas ──
 #   Personaje 30 + 12 por coste · Apoyo/Sector/Arena 70 · Alma 40 · Amalgama 450+
@@ -49,6 +61,10 @@ punto = taiyo
 saludo = ¡Pasa, pasa! Lo mejor de Nexotlan, recién llegado de otras dimensiones. | Los precios cambian cada día… hoy tienes suerte. O no. | ¿Monedas? Yo tengo lo que necesitas. ¿Cartas repetidas? También te las compro.
 cartas_dia = 8
 joyas_dia = 1
+caja_comun = 4
+caja_rara = 2
+caja_joya = 1
+caja_amalgama = 1
 precio_cartas = 100
 variacion = 20
 compra = 20

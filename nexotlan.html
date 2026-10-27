@@ -117,6 +117,39 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 .mapa::-webkit-scrollbar{display:none}
 .mapa.drag{cursor:grabbing}
 .mi{position:relative;margin:0 auto;transform-origin:0 0}
+/* v200 · Mapa animado (capaFx) */
+.mfx{position:absolute;inset:0;overflow:hidden;pointer-events:none;contain:strict}
+.mfx>*{position:absolute;will-change:transform,opacity}
+.fx-nube{left:-48%;opacity:var(--o);border-radius:50%;background:radial-gradient(ellipse at 50% 50%,rgba(232,220,255,.85),rgba(200,190,255,.35) 45%,transparent 70%);animation:fxCruza linear infinite}
+.fx-nube.niebla{background:radial-gradient(ellipse at 50% 55%,rgba(220,225,255,.9),rgba(205,200,255,.4) 45%,transparent 70%)}
+@keyframes fxCruza{from{transform:translateX(0)}to{transform:translateX(calc(100vw * 0 + 360%))}}
+.fx-niebla-base{left:0;right:0;bottom:0;height:22%;background:linear-gradient(to top,rgba(200,195,255,.42),transparent);animation:fxRespira 9s ease-in-out infinite}
+@keyframes fxDeriva{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes fxRespira{0%,100%{opacity:.55}50%{opacity:1}}
+.fx-remo{aspect-ratio:1;translate:-50% -50%;opacity:.2;border-radius:50%;
+  background:conic-gradient(from 0deg,transparent 0 8%,var(--c) 14%,transparent 26% 40%,var(--c) 48%,transparent 60% 74%,var(--c) 82%,transparent 94%);
+  -webkit-mask:radial-gradient(circle,transparent 12%,#000 26%,#000 46%,transparent 70%);mask:radial-gradient(circle,transparent 12%,#000 26%,#000 46%,transparent 70%);
+  animation:fxGira 26s linear infinite}
+.fx-remo:nth-of-type(even){animation-direction:reverse;animation-duration:34s}
+@keyframes fxGira{to{transform:rotate(360deg)}}
+.fx-brillo{aspect-ratio:1;translate:-50% -50%;border-radius:50%;background:radial-gradient(circle,var(--c) 0%,color-mix(in srgb,var(--c) 45%,transparent) 28%,transparent 68%);
+  animation:fxLatido ease-in-out infinite}
+@keyframes fxLatido{0%,100%{opacity:.32;transform:scale(.88)}50%{opacity:.85;transform:scale(1.08)}}
+.fx-agua{overflow:hidden;translate:-50% 0;opacity:.6;border-radius:40%;
+  -webkit-mask:linear-gradient(to bottom,transparent,#000 12%,#000 80%,transparent);mask:linear-gradient(to bottom,transparent,#000 12%,#000 80%,transparent)}
+.fx-agua i{position:absolute;left:0;right:0;top:0;height:35%;background:linear-gradient(to bottom,transparent,rgba(255,255,255,.75),transparent);animation:fxCae linear infinite}
+@keyframes fxCae{from{transform:translateY(-110%)}to{transform:translateY(300%)}}
+.fx-chispa{width:10px;height:10px;border-radius:50%;background:radial-gradient(circle,#fff 0 18%,var(--c) 30%,transparent 70%);opacity:0;animation:fxSube ease-in-out infinite}
+@keyframes fxSube{0%{opacity:0;transform:translate(0,0)}20%{opacity:.9}80%{opacity:.6}100%{opacity:0;transform:translate(14px,-90px)}}
+.fx-rayos{inset:0;width:100%;height:100%;will-change:auto}
+.fx-rayo polyline{fill:none;stroke-linejoin:round;stroke-linecap:round}
+.fx-rayo .f{fill:var(--c);opacity:.22}
+.fx-rayo .h{stroke:var(--c);stroke-width:18;opacity:.32}
+.fx-rayo .r{stroke:var(--c);stroke-width:3}
+.fx-rayo .n{stroke:#fff;stroke-width:3.6}
+.fx-rayo{animation:fxDestello .9s ease-out forwards}
+@keyframes fxDestello{0%{opacity:0}6%{opacity:1}14%{opacity:.15}22%{opacity:1}55%{opacity:.7}100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.mfx{display:none}}
 .mi>svg,.mi>img.fondo{position:absolute;inset:0;width:100%;height:100%;display:block}
 .mi>img.fondo{object-fit:cover}
 .lock-layer{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
@@ -1028,10 +1061,98 @@ const PIN = {
   guardian: c => `<svg viewBox="0 0 46 46"><circle cx="23" cy="23" r="20" fill="url(#rg)" stroke="#fff" stroke-width="3"/><defs><radialGradient id="rg" cx="40%" cy="35%"><stop offset="0" stop-color="#ff8aa2"/><stop offset=".55" stop-color="#ff2f5a"/><stop offset="1" stop-color="#8a0020"/></radialGradient></defs><path d="M23 9l4.2 8.6 9.4 1.3-6.8 6.6 1.6 9.4L23 30.4l-8.4 4.5 1.6-9.4-6.8-6.6 9.4-1.3z" fill="#ffd166" stroke="#7a3a00" stroke-width="1.5"/></svg>`
 };
 
+// ════════════════ MAPA ANIMADO (v200) ════════════════
+// Capas ligeras sobre la ilustración del mapa: neblina baja, nubes, relámpagos de energía, brillos que palpitan,
+// remolinos que giran, cascadas con reflejos y chispas flotantes. Solo transform/opacity (las mueve la tarjeta gráfica).
+// [config] de mapa.txt (todo opcional; sin campos se usan las posiciones del mapa de Nexotlan):
+//   fx            si | no   (no = mapa fijo)
+//   fx_brillos    x,y,tamaño,color | …        brillos que palpitan (en %, tamaño en % del ancho)
+//   fx_remolinos  x,y,tamaño,color | …        remolinos que giran despacio
+//   fx_cascadas   x,y_arriba,y_abajo,ancho | … reflejos que bajan por las cascadas
+//   fx_relampagos x,y | …                     zonas donde caen los relámpagos de energía
+const FX_DEF = {
+  brillos: '47,16,7,#ffd36a | 47,39,2.2,#7ff0ff | 47,49.5,2.6,#7ff0ff | 16,14,9,#ff9a3c | 20,47,8,#ff5ad2 | 78,13,9,#5fe6ff | 72,48,8,#4fa8ff | 10.5,72,1.4,#ffb347',
+  remolinos: '16.5,14,17,#c86bff | 20,47,15,#ff5ad2 | 78,14,18,#46d8ff | 72,48,15,#3f8cff',
+  cascadas: '9.5,26,52,.9 | 19.5,72,97,1.2 | 35,69,92,1.1 | 53.6,72,95,1.1 | 66,61,80,.9 | 63.6,20,37,.9 | 83.3,46,75,1 | 70,77,92,.8 | 72.4,78,91,.8',
+  relampagos: '9,7 | 24,30 | 37,4 | 57,6 | 62,3 | 66,28 | 85,7 | 90,20 | 96,37 | 30,44'
+};
+const FX_T0 = Date.now();
+const fxLista = (v, n) => String(v || '').split('|').map(s => s.split(',').map(x => x.trim())).filter(a => a.length >= n && a.slice(0, n).every(x => x !== '' && isFinite(+x)));
+const fxDelay = d => '-' + (((Date.now() - FX_T0) / 1000) % d).toFixed(2) + 's';   // las animaciones siguen donde iban aunque el mapa se vuelva a dibujar
+function fxActivo() {
+  if (/^(no|off|0|false)$/i.test(String(CFG.fx || '').trim())) return false;
+  try { if (matchMedia('(prefers-reduced-motion: reduce)').matches) return false; } catch (e) {}
+  return true;
+}
+function capaFx() {
+  if (!CFG.mapa || !fxActivo()) return '';
+  const V = k => (CFG['fx_' + k] != null && String(CFG['fx_' + k]).trim() !== '') ? CFG['fx_' + k] : FX_DEF[k];
+  let h = '';
+  // Nubes (arriba y en medio) y neblina baja: bandas suaves que se desplazan en ciclo
+  // Nubes (cielo) y neblina (parte baja): manchas suaves que cruzan el mapa despacio, repartidas en el tiempo
+  const NUBES = [[4, 30, 16, 120, .22], [18, 26, 14, 150, .18], [34, 34, 18, 110, .16], [46, 28, 15, 135, .2], [55, 24, 12, 160, .15]];   // y, ancho, alto, segundos, opacidad
+  NUBES.forEach(([y, w, hh, d, o], i) => { h += `<div class="fx-nube" style="top:${y}%;width:${w}%;height:${hh}%;--o:${o};animation-duration:${d}s;animation-delay:-${((Date.now() - FX_T0) / 1000 + d * i / NUBES.length) % d}s"></div>`; });
+  const NIEBLA = [[68, 40, 22, 80, .42], [74, 46, 24, 64, .5], [80, 38, 22, 92, .45], [86, 44, 20, 58, .5], [70, 34, 18, 104, .35], [90, 40, 18, 72, .55]];
+  NIEBLA.forEach(([y, w, hh, d, o], i) => { h += `<div class="fx-nube niebla" style="top:${y}%;width:${w}%;height:${hh}%;--o:${o};animation-duration:${d}s;animation-delay:-${((Date.now() - FX_T0) / 1000 + d * i / NIEBLA.length) % d}s${i % 2 ? ';animation-direction:reverse' : ''}"></div>`; });
+  h += `<div class="fx-niebla-base" style="animation-delay:${fxDelay(9)}"></div>`;
+  // Remolinos
+  fxLista(V('remolinos'), 3).forEach(([x, y, t, c], i) => {
+    h += `<div class="fx-remo" style="left:${x}%;top:${y}%;width:${t}%;--c:${/^#[0-9a-f]{3,8}$/i.test(c || '') ? c : '#c86bff'};animation-delay:${fxDelay(i % 2 ? 34 : 26)}"></div>`;
+  });
+  // Brillos que palpitan
+  fxLista(V('brillos'), 3).forEach(([x, y, t, c], i) => {
+    const d = 2.6 + (i % 4) * .7;
+    h += `<div class="fx-brillo" style="left:${x}%;top:${y}%;width:${t}%;--c:${/^#[0-9a-f]{3,8}$/i.test(c || '') ? c : '#ffd36a'};animation-duration:${d}s;animation-delay:${fxDelay(d)}"></div>`;
+  });
+  // Cascadas
+  fxLista(V('cascadas'), 3).forEach(([x, y1, y2, w], i) => {
+    const d = 1.6 + (i % 3) * .35;
+    h += `<div class="fx-agua" style="left:${x}%;top:${y1}%;height:${Math.max(1, y2 - y1)}%;width:${+w || 1}%"><i style="animation-duration:${d}s;animation-delay:${fxDelay(d)}"></i></div>`;
+  });
+  // Chispas de energía que flotan
+  for (let i = 0; i < 22; i++) {
+    const x = (i * 37 + 11) % 97 + 1.5, y = 30 + (i * 53) % 65, d = 9 + (i % 5) * 2.2;
+    h += `<i class="fx-chispa" style="left:${x}%;top:${y}%;animation-duration:${d}s;animation-delay:${fxDelay(d)};--c:${i % 3 ? '#9fe8ff' : '#e6a8ff'}"></i>`;
+  }
+  return `<div class="mfx" aria-hidden="true">${h}<svg class="fx-rayos" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice"></svg></div>`;
+}
+// Relámpagos de energía: se dibujan al azar cada pocos segundos (solo si el mapa está a la vista)
+function fxRayo() {
+  const svg = document.querySelector('#mi .fx-rayos');
+  if (!svg || document.hidden || !$('sMapa').classList.contains('on')) return;
+  const V = (CFG.fx_relampagos != null && String(CFG.fx_relampagos).trim() !== '') ? CFG.fx_relampagos : FX_DEF.relampagos;
+  const Z = fxLista(V, 2); if (!Z.length) return;
+  const [zx, zy] = Z[Math.floor(Math.random() * Z.length)];
+  let x = +zx / 100 * MW, y = +zy / 100 * MH;
+  const ang = Math.random() * Math.PI * 2, largo = 130 + Math.random() * 190, pasos = 7 + Math.floor(Math.random() * 5);
+  const pts = [[x, y]]; let ramas = '';
+  for (let k = 1; k <= pasos; k++) {
+    const t = k / pasos, jit = (Math.random() - .5) * 46;
+    const px = x + Math.cos(ang) * largo * t + Math.cos(ang + Math.PI / 2) * jit, py = y + Math.sin(ang) * largo * t + Math.sin(ang + Math.PI / 2) * jit;
+    pts.push([px, py]);
+    if (k > 1 && k < pasos && Math.random() < .35) {   // ramita
+      const a2 = ang + (Math.random() < .5 ? -1 : 1) * (.5 + Math.random() * .6), l2 = 25 + Math.random() * 45;
+      ramas += `<polyline points="${px},${py} ${px + Math.cos(a2) * l2 * .5 + (Math.random() - .5) * 14},${py + Math.sin(a2) * l2 * .5 + (Math.random() - .5) * 14} ${px + Math.cos(a2) * l2},${py + Math.sin(a2) * l2}"/>`;
+    }
+  }
+  const col = Math.random() < .55 ? '#d29bff' : '#8af0ff';
+  const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  g.setAttribute('class', 'fx-rayo'); g.style.setProperty('--c', col);
+  g.innerHTML = `<circle class="f" cx="${x}" cy="${y}" r="50"/><polyline class="h" points="${pts.map(p => p.join(',')).join(' ')}"/>${ramas.replace(/<polyline /g, '<polyline class="r" ')}<polyline class="n" points="${pts.map(p => p.join(',')).join(' ')}"/>`;
+  svg.appendChild(g);
+  setTimeout(() => g.remove(), 900);
+}
+let _fxRayoT = null;
+function fxRayos() {
+  clearTimeout(_fxRayoT);
+  const sig = () => { _fxRayoT = setTimeout(() => { try { if (fxActivo()) { fxRayo(); if (Math.random() < .3) setTimeout(fxRayo, 140); } } catch (e) {} sig(); }, 1600 + Math.random() * 3800); };
+  sig();
+}
+
 // ════════════════ PINTAR MAPA ════════════════
 function pintarMapa() {
   const mi = $('mi');
-  const fondo = CFG.mapa ? `<img class="fondo" src="${esc(DIR + CFG.mapa)}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('div'),{innerHTML:svgMapa()}).firstElementChild)">${capaBloqueo()}` : svgMapa();
+  const fondo = CFG.mapa ? `<img class="fondo" src="${esc(DIR + CFG.mapa)}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('div'),{innerHTML:svgMapa()}).firstElementChild)">${capaFx()}${capaBloqueo()}` : svgMapa();
   const etq = DIST.map(d => { const ab = distritoAbierto(d), pr = progresoDistrito(d);
     const et = String(d.etiqueta || '').split(',').map(Number), lx = isFinite(et[0]) && et.length === 2 ? et[0] : d._x, ly = isFinite(et[1]) && et.length === 2 ? et[1] : d._y - d._r * .55;
     return `<div class="dlab ${ab ? '' : 'lock'}" style="left:${lx}%;top:${ly}%;--dc:${esc(d.color)}">${ab ? '' : '🔒 '}${esc(d.nombre || d.id)}${ab ? '<small>' + pr.ven + '/' + pr.tot + '</small>' : ''}</div>`; }).join('');
@@ -1997,7 +2118,7 @@ function mensaje(t, html, ops) {
 }
 // Muestra el mapa ya dimensionado (sin esto, al volver de un Choque el mapa quedaba de alto 0 y no se veían los puntos)
 function mostrarMapa() {
-  asegurarColeccion(); irA('sMapa'); cerrarFicha();
+  asegurarColeccion(); irA('sMapa'); cerrarFicha(); if (!_fxRayoT) fxRayos();
   pintarMapa(); ajustarZoom(ZOOM > 1 ? ZOOM : (ANCHO() < 700 ? 1.6 : 1));
   requestAnimationFrame(() => ajustarZoom(ZOOM));          // segunda medida, ya con el layout final
   musica(CFG.musica);

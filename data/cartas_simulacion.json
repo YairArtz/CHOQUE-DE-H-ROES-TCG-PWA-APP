@@ -21024,7 +21024,7 @@
   },
   {
    "id": "mictlan_primigenio",
-   "galeriaId": "1405",
+   "galeriaId": "ANIMA_042",
    "nombre": "Mictlantecuhtli Primigenio",
    "tipo": "pj",
    "coste": 10,
@@ -21032,7 +21032,7 @@
    "cor": 1,
    "fue": 0,
    "res": 0,
-   "texto": "No puede ser llamado de forma normal o especial; debe ser llamado de forma especial por el efecto de \"XOLO, EXPLORADOR DEL MICTLÁN\". Gana +1 de FUERZA y RESISTENCIA por cada carta CONFINADA. MODO BERSERKER: cuando es llamado, puedes confinar todas las cartas del Mictlán y de la mano de ambos jugadores y activar según las confinadas: 1 o más: roba 2 cartas. 5 o más: tu adversario pierde 2 corazones. 15 o más: confina todas las otras cartas en el campo y tu adversario pierde un corazón por cada carta confinada así.",
+   "texto": "No puede ser llamado de forma normal o especial; debe ser llamado de forma especial por el efecto de \"XOLO, EXPLORADOR DEL MICTLÁN\". Gana +1 de FUERZA y RESISTENCIA por cada carta CONFINADA. MODO BERSERKER: cuando es llamado, puedes confinar todas las cartas del Mictlán y del campo de ambos jugadores (excepto esta carta) y activar UN efecto según las cartas confinadas: 5 o más: roba 2 cartas de tu BP. 10 o más: tu adversario pierde 2 corazones. 25 o más: confina de la mano de tu adversario tantas cartas como las confinadas este turno; tu adversario pierde 1 corazón por cada carta confinada así.",
    "efectos": [
     {
      "cuando": "pasivo",
@@ -21045,7 +21045,7 @@
     {
      "cuando": "al_llamar",
      "opcional": true,
-     "texto": "MODO BERSERKER: confinar el Mictlán y las manos de ambos jugadores",
+     "texto": "MODO BERSERKER: confinar el Mictlán y el campo de ambos jugadores",
      "pasos": [
       {
        "accion": "berserker_mictlan"
@@ -26110,7 +26110,7 @@
   },
   {
    "id": "angie",
-   "galeriaId": "019_H9",
+   "galeriaId": "ANIMA_041",
    "nombre": "Angie, La Hechicera",
    "tipo": "pj",
    "coste": 4,
@@ -27175,21 +27175,21 @@
   },
   {
    "id": "buho",
-   "galeriaId": "SERIES_019",
+   "galeriaId": "ANIMA_029",
    "nombre": "Cuidador Búho",
    "tipo": "pj",
-   "coste": 4,
+   "coste": 3,
    "imp": 1,
    "cor": 1,
-   "fue": 3,
+   "fue": 2,
    "res": 4,
-   "texto": "Gana +1 de fuerza y resistencia por cada carta confinada de ambos jugadores. Cuando es llamado: puedes retornar una carta del Mictlán al fondo de su baraja; confina la carta del tope de la BP de tu adversario. Si \"MICTLÁN, EL LUGAR DE LOS MUERTOS\" está activa de tu lado: puedes confinar esta carta y la carta del tope de la BP de tu adversario; llama de forma especial a \"TECO, CUIDADOR DEL MICTLÁN\" desde tu BP.",
+   "texto": "Gana +1 de FUERZA y RESISTENCIA por cada carta confinada de tu lado. Cuando es llamado: puedes retornar una carta del MICTLÁN al fondo de su respectiva baraja; si lo haces, confina la carta del tope de la BP de tu adversario. Si \"MICTLÁN, EL LUGAR DE LOS MUERTOS\" está activa de tu lado: puedes confinar esta carta y la carta del tope de la BP de tu adversario; llama de forma especial un personaje con \"TECO, CUIDADOR DEL MICTLAN\" en su nombre desde tu BP.",
    "efectos": [
     {
      "cuando": "pasivo",
      "accion": "aura",
      "alcance": "esta",
-     "porCada": "confinadas",
+     "porCada": "confinadas_propias",
      "fue": 1,
      "res": 1
     },
@@ -27202,7 +27202,12 @@
         "mictlan"
        ],
        "max": 1,
-       "ambos": true
+       "ambos": true,
+       "guardar": "ret"
+      },
+      {
+       "accion": "si_var",
+       "var": "ret"
       },
       {
        "accion": "confinar_tope",
@@ -27218,7 +27223,8 @@
       "hay": {
        "origen": "bp",
        "filtro": {
-        "id": "teco"
+        "tipo": "pj",
+        "nombreIncluye": "TECO, CUIDADOR DEL MICTLAN"
        }
       }
      },
@@ -27234,7 +27240,8 @@
        "accion": "llamar_especial",
        "origen": "bp",
        "filtro": {
-        "id": "teco"
+        "tipo": "pj",
+        "nombreIncluye": "TECO, CUIDADOR DEL MICTLAN"
        }
       }
      ]
@@ -27244,21 +27251,21 @@
   },
   {
    "id": "murcielago",
-   "galeriaId": "SERIES_020",
+   "galeriaId": "ANIMA_030",
    "nombre": "Centinela Murciélago",
    "tipo": "pj",
-   "coste": 4,
+   "coste": 3,
    "imp": 1,
    "cor": 1,
    "fue": 4,
    "res": 5,
-   "texto": "Gana +1 de fuerza y resistencia por cada carta confinada de ambos jugadores. Cuando es llamado: puedes retornar una carta del Mictlán al fondo de su baraja; confina la carta del tope de la BA de tu adversario. Si \"MICTLÁN, EL LUGAR DE LOS MUERTOS\" está activa de tu lado: puedes confinar esta carta y la carta del tope de la BA de tu adversario; llama de forma especial a \"TZINA, CENTINELA DEL MICTLÁN\" desde tu BP.",
+   "texto": "Gana +1 de FUERZA y RESISTENCIA por cada carta confinada del adversario. Cuando es llamado: puedes retornar una carta del MICTLÁN al fondo de su respectiva baraja; si lo haces, confina la carta del tope de la BA de tu adversario. Si \"MICTLÁN, EL LUGAR DE LOS MUERTOS\" está activa de tu lado: puedes confinar esta carta y la carta del tope de la BA de tu adversario; llama de forma especial un personaje con \"TZINA, CENTINELA DEL MICTLAN\" en su nombre desde tu BP.",
    "efectos": [
     {
      "cuando": "pasivo",
      "accion": "aura",
      "alcance": "esta",
-     "porCada": "confinadas",
+     "porCada": "confinadas_rival",
      "fue": 1,
      "res": 1
     },
@@ -27271,7 +27278,12 @@
         "mictlan"
        ],
        "max": 1,
-       "ambos": true
+       "ambos": true,
+       "guardar": "ret"
+      },
+      {
+       "accion": "si_var",
+       "var": "ret"
       },
       {
        "accion": "confinar_tope",
@@ -27287,7 +27299,8 @@
       "hay": {
        "origen": "bp",
        "filtro": {
-        "id": "tzina"
+        "tipo": "pj",
+        "nombreIncluye": "TZINA, CENTINELA DEL MICTLAN"
        }
       }
      },
@@ -27303,7 +27316,8 @@
        "accion": "llamar_especial",
        "origen": "bp",
        "filtro": {
-        "id": "tzina"
+        "tipo": "pj",
+        "nombreIncluye": "TZINA, CENTINELA DEL MICTLAN"
        }
       }
      ]
@@ -27313,15 +27327,15 @@
   },
   {
    "id": "arana",
-   "galeriaId": "SERIES_021",
+   "galeriaId": "ANIMA_031",
    "nombre": "Agresor Araña",
    "tipo": "pj",
-   "coste": 4,
+   "coste": 3,
    "imp": 1,
    "cor": 1,
    "fue": 4,
-   "res": 3,
-   "texto": "Gana +1 de fuerza y resistencia por cada carta confinada de ambos jugadores. Cuando es llamado: puedes retornar una carta del Mictlán al fondo de su baraja; confina la carta del tope de la BS de tu adversario. Si \"MICTLÁN, EL LUGAR DE LOS MUERTOS\" está activa de tu lado: puedes confinar esta carta y la carta del tope de la BS de tu adversario; llama de forma especial a \"TOCA, AGRESOR DEL MICTLÁN\" desde tu BP.",
+   "res": 2,
+   "texto": "Gana +1 de FUERZA y RESISTENCIA por cada carta confinada de ambos jugadores. Cuando es llamado: puedes retornar una carta del MICTLÁN al fondo de su respectiva baraja; si lo haces, confina la carta del tope de la BS de tu adversario. Si \"MICTLÁN, EL LUGAR DE LOS MUERTOS\" está activa de tu lado: puedes confinar esta carta y la carta del tope de la BS de tu adversario; llama de forma especial un personaje con \"TOCA, AGRESOR DEL MICTLAN\" en su nombre desde tu BP.",
    "efectos": [
     {
      "cuando": "pasivo",
@@ -27340,7 +27354,12 @@
         "mictlan"
        ],
        "max": 1,
-       "ambos": true
+       "ambos": true,
+       "guardar": "ret"
+      },
+      {
+       "accion": "si_var",
+       "var": "ret"
       },
       {
        "accion": "confinar_tope",
@@ -27356,7 +27375,8 @@
       "hay": {
        "origen": "bp",
        "filtro": {
-        "id": "toca"
+        "tipo": "pj",
+        "nombreIncluye": "TOCA, AGRESOR DEL MICTLAN"
        }
       }
      },
@@ -27372,7 +27392,8 @@
        "accion": "llamar_especial",
        "origen": "bp",
        "filtro": {
-        "id": "toca"
+        "tipo": "pj",
+        "nombreIncluye": "TOCA, AGRESOR DEL MICTLAN"
        }
       }
      ]
@@ -28417,7 +28438,7 @@
   },
   {
    "id": "sonia",
-   "galeriaId": "1124",
+   "galeriaId": "ANIMA_040",
    "nombre": "Sonia Caleti",
    "tipo": "pj",
    "coste": 2,
@@ -28425,24 +28446,8 @@
    "cor": 2,
    "fue": 1,
    "res": 4,
-   "texto": "Descarta esta carta al Mictlán: niega la habilidad de un personaje de tu adversario hasta el final del turno. (También durante el turno de tu adversario.)",
+   "texto": "Solo durante el turno de tu adversario: descarta esta carta al Mictlán para negar la habilidad de un personaje de tu adversario hasta el final del turno.",
    "efectos": [
-    {
-     "cuando": "mano",
-     "texto": "Descartarla: negar la habilidad de un personaje rival",
-     "pasos": [
-      {
-       "accion": "descartar_esta"
-      },
-      {
-       "accion": "negar_pj_turno",
-       "soloRival": true
-      }
-     ],
-     "condicion": {
-      "rivalConPJ": true
-     }
-    },
     {
      "cuando": "respuesta",
      "accion": "sonia"
@@ -31938,7 +31943,7 @@
   },
   {
    "id": "apprentiz_gabbiel",
-   "galeriaId": "1188",
+   "galeriaId": "ANIMA_023",
    "nombre": "Encantadora Apprentiz, Gabbiel",
    "tipo": "pj",
    "coste": 3,
@@ -32002,7 +32007,7 @@
   },
   {
    "id": "apprentiz_brittael",
-   "galeriaId": "1190",
+   "galeriaId": "ANIMA_024",
    "nombre": "Encantadora Apprentiz, Brittael",
    "tipo": "pj",
    "coste": 3,
@@ -32034,8 +32039,8 @@
   },
   {
    "id": "apprentiz_abbigael",
-   "galeriaId": "1191",
-   "nombre": "Encantadora Apprentiz, Abbigael",
+   "galeriaId": "ANIMA_035",
+   "nombre": "Encantadora Apprentiz, Abiggael",
    "tipo": "pj",
    "coste": 3,
    "imp": 1,
@@ -32062,7 +32067,10 @@
      ]
     }
    ],
-   "rareza": "comun"
+   "rareza": "comun",
+   "alias": [
+    "Encantadora Apprentiz, Abbigael"
+   ]
   },
   {
    "id": "candelalma1",
@@ -32299,7 +32307,7 @@
   },
   {
    "id": "exr_lobo",
-   "galeriaId": "1205",
+   "galeriaId": "ANIMA_036",
    "nombre": "EX-Pada Reencarnada, Lobo",
    "tipo": "pj",
    "coste": 4,
@@ -32537,7 +32545,7 @@
   },
   {
    "id": "exr_serpiente",
-   "galeriaId": "1212",
+   "galeriaId": "ANIMA_037",
    "nombre": "EX-Pada Reencarnada, Serpiente",
    "tipo": "pj",
    "coste": 3,
@@ -32545,7 +32553,7 @@
    "cor": 1,
    "fue": 3,
    "res": 2,
-   "texto": "Descarta esta carta al Mictlán; envía una carta con \"EX-pada\" desde tu BP al Mictlán.",
+   "texto": "Descarta esta carta al Mictlán; envía un PERSONAJE con \"EX-PADA\" en su nombre desde tu BP al Mictlán (revuelve tu BP).",
    "efectos": [
     {
      "cuando": "mano",
@@ -32554,7 +32562,10 @@
       "hay": {
        "origen": "bp",
        "filtro": {
-        "nombreIncluye": "EX-PADA"
+        "nombreIncluye": "EX-PADA",
+        "tipos": [
+         "pj"
+        ]
        }
       }
      },
@@ -32567,7 +32578,10 @@
        "origen": "bp",
        "max": 1,
        "filtro": {
-        "nombreIncluye": "EX-PADA"
+        "nombreIncluye": "EX-PADA",
+        "tipos": [
+         "pj"
+        ]
        },
        "min": 1
       }
@@ -32619,7 +32633,7 @@
   },
   {
    "id": "exr_oso",
-   "galeriaId": "1214",
+   "galeriaId": "ANIMA_038",
    "nombre": "EX-Pada Reencarnada, Oso",
    "tipo": "pj",
    "coste": 4,
@@ -33019,7 +33033,7 @@
   },
   {
    "id": "fatima",
-   "galeriaId": "1229",
+   "galeriaId": "ANIMA_039",
    "nombre": "Fátima",
    "tipo": "pj",
    "coste": 5,
@@ -34572,9 +34586,10 @@
    "fue": 6,
    "res": 7,
    "habilidades": [
-    "INMATERIAL"
+    "INMATERIAL",
+    "BRUTALIDAD"
    ],
-   "texto": "(Manda del campo y/o mano al MICTLÁN 1 PERSONAJE con \"KOATL\" en su nombre + 1 PERSONAJE con \"MICTÉ\" en su nombre y llama de forma especial a este personaje a tu lado del campo desde tu BS). HABILIDAD: Puedes retornar una carta APOYO EQUIPO desde tu MICTLÁN a tu mano para llamar de forma especial a este personaje desde tu MICTLÁN. Cuando este PERSONAJE ataca y solo durante la fase de COMBATE, incrementa sus puntos de FUERZA y RESISTENCIA +1 por cada PERSONAJE en tu MICTLÁN. INMATERIAL: Este PERSONAJE solo puede ser atacado por otros PERSONAJES con la habilidad \"INMATERIAL\". Este PERSONAJE pierde 1 corazón al final de cada turno desde que es llamado al campo.",
+   "texto": "(Manda del campo y/o mano al MICTLÁN 1 PERSONAJE con \"KOATL\" en su nombre + 1 PERSONAJE con \"MICTÉ\" en su nombre y llama de forma especial a este personaje a tu lado del campo desde tu BS). HABILIDAD: Puedes retornar una carta APOYO EQUIPO desde tu MICTLÁN a tu mano para llamar de forma especial a este personaje desde tu MICTLÁN. Cuando este PERSONAJE ataca y solo durante la fase de COMBATE, incrementa sus puntos de FUERZA y RESISTENCIA +1 por cada PERSONAJE en tu MICTLÁN. INMATERIAL: Este PERSONAJE solo puede ser atacado por otros PERSONAJES con la habilidad \"INMATERIAL\". Este PERSONAJE pierde 1 corazón al final de cada uno de tus turnos desde que es llamado al campo. BRUTALIDAD: puede declarar ataque el mismo turno en que es llamado.",
    "llamadoEspecial": {
     "texto": "Manda al MICTLÁN 1 KOATL + 1 MICTÉ de tu campo y/o mano.",
     "materiales": [
@@ -34625,8 +34640,8 @@
      "accion": "inmaterial"
     }
    ],
-   "img": "./cartas_3/prototipos_020_full.jpg",
-   "imgMin": "./cartas_3/prototipos_020.jpg",
+   "img": "./cartas_3/anima_faltante_001_full.jpg",
+   "imgMin": "./cartas_3/anima_faltante_001.jpg",
    "prototipo": true,
    "expansion": "prototipos",
    "rareza": "comun"
@@ -37279,6 +37294,378 @@
       {
        "accion": "robar",
        "origen": "bp"
+      }
+     ]
+    }
+   ],
+   "rareza": "comun"
+  },
+  {
+   "id": "amenaza_mitica",
+   "galeriaId": "ANIMA_022",
+   "nombre": "Amenaza Mítica",
+   "tipo": "apoyo",
+   "subtipo": "rapido",
+   "soloRespuesta": true,
+   "texto": "Cuando tus PERSONAJES son objetivo de un ataque: elige uno de tus SECTORES; los PERSONAJES en ese SECTOR ganan +1 de FUERZA y RESISTENCIA por cada carta en tu MICTLÁN (máximo 20) hasta el final del turno. Uso rápido: se activa antes del cálculo de daño. (Una vez por turno.)",
+   "efectos": [
+    {
+     "cuando": "respuesta",
+     "accion": "amenaza_mitica"
+    }
+   ],
+   "rareza": "comun"
+  },
+  {
+   "id": "alice_vogel",
+   "galeriaId": "ANIMA_025",
+   "nombre": "Alice Vogel",
+   "tipo": "pj",
+   "coste": 3,
+   "imp": 1,
+   "cor": 2,
+   "fue": 3,
+   "res": 3,
+   "invitado": true,
+   "texto": "Cuando es llamada a tu lado del campo: puedes seleccionar una carta SECTOR activa en el campo; copia su efecto y se mueve a una zona SECTOR vacía (es tratada como carta SECTOR activa). Cuando deja el campo, destruye la carta SECTOR que copió; si la carta SECTOR copiada es destruida, destruye esta carta.",
+   "efectos": [
+    {
+     "cuando": "al_llamar",
+     "opcional": true,
+     "texto": "Copiar un SECTOR activo y moverse a una zona SECTOR vacía",
+     "condicion": {
+      "haySector": true,
+      "sectorLibre": true
+     },
+     "pasos": [
+      {
+       "accion": "alice_vogel"
+      }
+     ]
+    }
+   ],
+   "rareza": "comun"
+  },
+  {
+   "id": "pancho_rodriguez",
+   "galeriaId": "ANIMA_026",
+   "nombre": "Pancho Rodríguez",
+   "tipo": "pj",
+   "coste": 2,
+   "imp": 1,
+   "cor": 2,
+   "fue": 3,
+   "res": 2,
+   "invitado": true,
+   "texto": "Si es el único personaje en su SECTOR, gana +3 de RESISTENCIA. Al inicio de tu próxima Fase de Acción después de llamarlo: puedes retornarlo a tu BP (revuelve tu BP); si lo haces, llama de forma especial desde tu mano o BP un personaje con \"PANCHO, EL ALOCADO RODRÍGUEZ\" en su nombre. Si es usado para el llamado de una AMALGAMA, suma sus corazones a la AMALGAMA llamada.",
+   "efectos": [
+    {
+     "cuando": "pasivo",
+     "accion": "aura",
+     "alcance": "esta",
+     "cond": "soloEnSector",
+     "res": 3
+    },
+    {
+     "cuando": "pasivo",
+     "accion": "pancho_retorno"
+    },
+    {
+     "cuando": "material",
+     "pasos": [
+      {
+       "accion": "pancho_material"
+      }
+     ]
+    }
+   ],
+   "rareza": "comun"
+  },
+  {
+   "id": "pancho_alocado",
+   "galeriaId": "ANIMA_027",
+   "nombre": "Pancho, El Alocado Rodríguez",
+   "nombreTambien": "MAX-KARA",
+   "tipo": "pj",
+   "coste": 6,
+   "imp": 1,
+   "cor": 2,
+   "fue": 6,
+   "res": 3,
+   "invitado": true,
+   "texto": "También es tratado como \"MAX-KARA\" en su nombre (mano, campo, BP, Mictlán o Confinamiento). Si vence a otro personaje en Combate, gana +2 de FUERZA. Si defiende a otro personaje de su mismo SECTOR, gana +2 de RESISTENCIA. Si es usado como material para una AMALGAMA o es confinado: retórnalo al fondo de tu BP y roba 1 carta de tu BP.",
+   "efectos": [
+    {
+     "cuando": "vence",
+     "pasos": [
+      {
+       "accion": "pancho_perm",
+       "fue": 2
+      }
+     ]
+    },
+    {
+     "cuando": "al_defender",
+     "pasos": [
+      {
+       "accion": "pancho_perm",
+       "res": 2,
+       "defiendeOtro": true
+      }
+     ]
+    },
+    {
+     "cuando": "material",
+     "pasos": [
+      {
+       "accion": "pancho_fondo"
+      }
+     ]
+    },
+    {
+     "cuando": "al_confinar",
+     "pasos": [
+      {
+       "accion": "pancho_fondo"
+      }
+     ]
+    }
+   ],
+   "rareza": "comun"
+  },
+  {
+   "id": "retorno_invitados",
+   "galeriaId": "ANIMA_028",
+   "nombre": "Retorno de los Héroes Invitados",
+   "tipo": "apoyo",
+   "texto": "Paga 2 corazones y retorna todos tus PERSONAJES \"HÉROE INVITADO\" de tu MICTLÁN y Confinamiento al fondo de tu BP. Durante este turno, tus PERSONAJES en el campo ganan +1 de FUERZA y RESISTENCIA por cada PERSONAJE retornado. (Una vez por turno.)",
+   "efectos": [
+    {
+     "cuando": "activar",
+     "limite": "turno",
+     "costo": {
+      "corazones": 2
+     },
+     "condicion": {
+      "invitadosRetornables": true
+     },
+     "pasos": [
+      {
+       "accion": "retorno_invitados"
+      }
+     ]
+    }
+   ],
+   "rareza": "comun"
+  },
+  {
+   "id": "amuleto_mictlan",
+   "galeriaId": "ANIMA_032",
+   "nombre": "Amuleto del Mictlán",
+   "tipo": "apoyo",
+   "subtipo": "equipo",
+   "texto": "Selecciona un PERSONAJE en tu MICTLÁN, llámalo de forma especial a tu lado del campo y equípalo con esta carta. El personaje gana BRUTALIDAD y su habilidad queda negada. Si esta carta deja el campo, destruye y confina al personaje equipado.",
+   "efectos": [
+    {
+     "cuando": "pasivo",
+     "accion": "equipo",
+     "desdeMictlan": {},
+     "otorgar": "BRUTALIDAD",
+     "niegaHost": true
+    }
+   ],
+   "rareza": "comun"
+  },
+  {
+   "id": "michael_fatt_je",
+   "galeriaId": "ANIMA_033",
+   "nombre": "Michael Fatt, Jefe Empresario",
+   "tipo": "pj",
+   "coste": 3,
+   "imp": 1,
+   "cor": 1,
+   "fue": 4,
+   "res": 3,
+   "texto": "Cuando es llamado: añade a tu mano desde tu BP una carta con \"ENERGÍA NEGATIVA\" en su nombre; si lo haces, descarta una carta de tu mano al Mictlán. Si activaste una carta con \"ENERGÍA NEGATIVA\" este turno: puedes mandarlo desde tu campo o mano al Mictlán; llama de forma especial un personaje con \"XOLOT\" o \"DESATADO\" en su nombre desde tu BP. (Cada habilidad, una vez por turno.)",
+   "efectos": [
+    {
+     "cuando": "al_llamar",
+     "limite": "turno",
+     "condicion": {
+      "hay": {
+       "origen": "bp",
+       "filtro": {
+        "nombreIncluye": "ENERGIA NEGATIVA"
+       }
+      }
+     },
+     "pasos": [
+      {
+       "accion": "buscar",
+       "origen": "bp",
+       "filtro": {
+        "nombreIncluye": "ENERGIA NEGATIVA"
+       },
+       "guardar": "en"
+      },
+      {
+       "accion": "si_var",
+       "var": "en"
+      },
+      {
+       "accion": "descartar_mano"
+      }
+     ]
+    },
+    {
+     "cuando": "accion",
+     "limiteNombre": "mfje_xolot",
+     "texto": "Mandarlo al Mictlán y llamar un XOLOT/DESATADO de tu BP",
+     "condicion": {
+      "activoNombre": "ENERGIA NEGATIVA",
+      "hay": {
+       "origen": "bp",
+       "filtro": {
+        "tipo": "pj",
+        "nombreIncluye": [
+         "XOLOT",
+         "DESATADO"
+        ]
+       }
+      }
+     },
+     "pasos": [
+      {
+       "accion": "sacrificar_esta"
+      },
+      {
+       "accion": "llamar_especial",
+       "origen": "bp",
+       "filtro": {
+        "tipo": "pj",
+        "nombreIncluye": [
+         "XOLOT",
+         "DESATADO"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "cuando": "mano",
+     "limiteNombre": "mfje_xolot",
+     "texto": "Descartarlo y llamar un XOLOT/DESATADO de tu BP",
+     "condicion": {
+      "activoNombre": "ENERGIA NEGATIVA",
+      "zonaLibre": true,
+      "hay": {
+       "origen": "bp",
+       "filtro": {
+        "tipo": "pj",
+        "nombreIncluye": [
+         "XOLOT",
+         "DESATADO"
+        ]
+       }
+      }
+     },
+     "pasos": [
+      {
+       "accion": "descartar_esta"
+      },
+      {
+       "accion": "llamar_especial",
+       "origen": "bp",
+       "filtro": {
+        "tipo": "pj",
+        "nombreIncluye": [
+         "XOLOT",
+         "DESATADO"
+        ]
+       }
+      }
+     ]
+    }
+   ],
+   "rareza": "comun"
+  },
+  {
+   "id": "xolot_ente",
+   "galeriaId": "ANIMA_034",
+   "nombre": "Xolot, Ente Desatado",
+   "tipo": "pj",
+   "coste": 7,
+   "imp": 1,
+   "cor": 1,
+   "fue": 8,
+   "res": 7,
+   "noNormal": true,
+   "soloPorNombre": "MICHAEL FATT",
+   "soloOrigen": [
+    "bp"
+   ],
+   "texto": "No puede ser llamado de forma normal o especial, excepto de forma especial desde tu BP por la habilidad de un personaje con \"MICHAEL FATT\" en su nombre, o desde tu mano confinando un personaje con \"MICHAEL FATT\" en su nombre de tu Mictlán. Cuando es llamado: puedes activar una carta ALMA desde tu Mictlán; si lo haces, coloca en ella Contadores de Energía Negativa iguales a su valor original. Puedes retirar un Contador de Energía Negativa para confinar una carta ALMA del campo de tu adversario o del tope de su BA. (Cada habilidad, una vez por turno.)",
+   "efectos": [
+    {
+     "cuando": "mano",
+     "texto": "Llamarlo confinando un MICHAEL FATT de tu Mictlán",
+     "condicion": {
+      "zonaLibre": true,
+      "hay": {
+       "origen": "mictlan",
+       "filtro": {
+        "tipo": "pj",
+        "nombreIncluye": "MICHAEL FATT"
+       },
+       "texto": "No hay un MICHAEL FATT en tu Mictlán"
+      }
+     },
+     "pasos": [
+      {
+       "accion": "llamarse_especial",
+       "costo": "confinar_mictlan_filtro",
+       "filtro": {
+        "tipo": "pj",
+        "nombreIncluye": "MICHAEL FATT"
+       }
+      }
+     ]
+    },
+    {
+     "cuando": "al_llamar",
+     "opcional": true,
+     "limite": "turno",
+     "texto": "Activar un ALMA de tu Mictlán con Contadores de Energía Negativa",
+     "condicion": {
+      "apoyoLibre": true,
+      "hay": {
+       "origen": "mictlan",
+       "filtro": {
+        "tipo": "alma"
+       },
+       "texto": "No hay ALMAS en tu Mictlán"
+      }
+     },
+     "pasos": [
+      {
+       "accion": "xolot_alma_cen"
+      }
+     ]
+    },
+    {
+     "cuando": "accion",
+     "limite": "turno",
+     "texto": "Retirar un Contador de Energía Negativa y confinar un ALMA rival",
+     "condicion": {
+      "cenPropio": true,
+      "almaRivalOBA": true
+     },
+     "pasos": [
+      {
+       "accion": "retirar_cen"
+      },
+      {
+       "accion": "cen_confinar_alma_rival"
       }
      ]
     }

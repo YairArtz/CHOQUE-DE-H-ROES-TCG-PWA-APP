@@ -116,6 +116,9 @@ input[type=range]:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 html.gp-on .gpHint{display:block}
 .gpHint i{font-style:normal;display:inline-block;padding:0 5px;border-radius:4px;background:#9fb3cc;color:#04061a;font-weight:700;font-size:11px;margin:0 2px}
 @media (prefers-reduced-motion:reduce){.eq i{animation:none;height:10px}.cover .art{transition:none}}
+.tr b .nva{display:inline-block;margin-left:8px;padding:1px 7px;border-radius:6px;background:linear-gradient(90deg,#ffd166,#ff9a3c);color:#1a0d00;font:900 9px 'Orbitron',sans-serif;letter-spacing:1px;font-style:normal;vertical-align:2px;animation:nvaPul 1.6s ease-in-out infinite}
+@keyframes nvaPul{50%{box-shadow:0 0 10px rgba(255,209,102,.8)}}
+@media (prefers-reduced-motion:reduce){.tr b .nva{animation:none}}
 </style>
 <script src="nexo-ui.js"></script>
 </head>
@@ -182,25 +185,31 @@ const PLAY = '<path d="M8 5v14l11-7z"/>', PAUSA = '<path d="M6 19h4V5H6zm8-14v14
 const PLAY_SVG = '<svg viewBox="0 0 24 24">' + PLAY + '</svg>';
 const MUSIC_CACHE = 'chh-musica-v1', STREAM_WAIT = 15000, CFG_CACHE_KEY = 'chh_musica_config', K_EST = 'chh_ost_estado', K_FAV = 'chh_ost_favoritas';
 
-let CARPETA = 'musica_choque/', CATALOGO = [], TRACKS = [], cur = -1, isPlaying = false;
+let CARPETA = 'musica_choque/', CATALOGO = [], TRACKS = [], cur = -1, isPlaying = false, NUEVAS = [];
 let repetir = ls.get(K_EST, {}).rep || 'todo', aleatorio = !!ls.get(K_EST, {}).shuf, FILTRO = 'todas';
 let favs = ls.get(K_FAV, []), guardadas = new Set();
 const audio = new Audio(); audio.preload = 'metadata';
 
 function sesion() { const s = ls.get('nhSesion', null); return s && s.tipo !== 'tienda' && s.id ? s : null; }
 function desbloqueadas() { const s = sesion(); return s ? ls.get('nhMusica_' + s.id, []) : []; }
+// Modo Aventura (Nexotlan): lo que el jugador ya abrió o venció ('distrito:ID', 'punto:ID', 'campeon'). Solo con cuenta.
+function logrosNx() { const s = sesion(); return s ? ls.get('nhMusicaNx_' + s.id, []) : []; }
+// Pistas recién desbloqueadas en el Modo Aventura: llevan "NUEVA" hasta que se escuchan
+function nuevasNx() { const s = sesion(); return s ? ls.get('nhMusicaNueva_' + s.id, []) : []; }
+function quitarNueva(id) { const s = sesion(); if (!s) return; const L = nuevasNx(); if (L.includes(id)) { ls.set('nhMusicaNueva_' + s.id, L.filter(x => x !== id)); pintar(); } }
+const conAventura = cfg => cfg.pistas.concat((Array.isArray(cfg.aventura) ? cfg.aventura : []).map(p => Object.assign({}, p, { nx: true })));
 function toast(t) { const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('on'), 2200); }
 const fmt = s => (isNaN(s) || !isFinite(s)) ? '0:00' : Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
 
 // ── Catálogo ──
 async function cargarCatalogo() {
   const prev = ls.get(CFG_CACHE_KEY, null);
-  if (prev && Array.isArray(prev.pistas) && prev.pistas.length) { CARPETA = prev.carpeta || CARPETA; CATALOGO = prev.pistas; construir(); }
+  if (prev && Array.isArray(prev.pistas) && prev.pistas.length) { CARPETA = prev.carpeta || CARPETA; CATALOGO = conAventura(prev); construir(); }
   const ctrl = new AbortController(), t = setTimeout(() => ctrl.abort(), 12000);
   try {
     const r = await fetch('musica_config.json?v=' + Date.now(), { signal: ctrl.signal });
     const cfg = await r.json(); if (!Array.isArray(cfg.pistas)) throw new Error('config');
-    CARPETA = cfg.carpeta || CARPETA; CATALOGO = cfg.pistas; ls.set(CFG_CACHE_KEY, { carpeta: CARPETA, pistas: CATALOGO });
+    CARPETA = cfg.carpeta || CARPETA; CATALOGO = conAventura(cfg); ls.set(CFG_CACHE_KEY, { carpeta: CARPETA, pistas: cfg.pistas, aventura: cfg.aventura || [] });   // la Simulación lee 'pistas': las de Aventura van aparte
   } catch (e) { if (!CATALOGO.length) { $('lista').innerHTML = '<div class="vacia">No se pudo cargar la lista de pistas. Revisa tu conexión.</div>'; return; } }
   finally { clearTimeout(t); }
   const idAct = TRACKS[cur] && TRACKS[cur].id;
@@ -209,12 +218,14 @@ async function cargarCatalogo() {
   if (cur < 0) { const e = ls.get(K_EST, {}); const i = TRACKS.findIndex(x => x.id === e.id && x.libre); if (i >= 0) { cur = i; mostrarActual(); audio._desde = e.t || 0; } }
 }
 function construir() {
-  const des = desbloqueadas();
+  const des = desbloqueadas(), nx = logrosNx();
   TRACKS = CATALOGO.filter(p => p && p.id && p.titulo).map((p, i) => ({ id: p.id, file: p.archivo || p.id + '.mp3', title: p.titulo, artist: p.artista || 'Choque de Héroes OST',
-    duration: p.duracion || '', n: i + 1, pts: +p.pts || 0, portada: p.portada || '', libre: !(+p.pts > 0) || des.includes(p.id) }));
+    duration: p.duracion || '', n: i + 1, pts: +p.pts || 0, portada: p.portada || '', nx: !!p.nx, como: p.como || '',
+    libre: p.nx ? (Array.isArray(p.desbloqueo) ? p.desbloqueo : [p.desbloqueo]).some(r => r && nx.includes(r)) : (!(+p.pts > 0) || des.includes(p.id)) }));
   pintar();
 }
-const urlPista = t => new URL(CARPETA + t.file, location.href).href;
+const rutaPista = t => t.file.includes('/') ? t.file : CARPETA + t.file;   // las del Modo Aventura traen su ruta completa
+const urlPista = t => new URL(rutaPista(t), location.href).href;
 // Música de fondo de la app (la usa bgm.js en el menú y los módulos)
 const K_BGM = 'chh_bgm_pista', fondo = () => ls.get(K_BGM, null);
 function pintarFondo() {
@@ -232,20 +243,20 @@ async function revisarGuardadas() {
 
 // ── Lista ──
 function visibles() {
-  return TRACKS.map((t, i) => i).filter(i => FILTRO === 'todas' || (FILTRO === 'fav' && favs.includes(TRACKS[i].id)) || (FILTRO === 'guardadas' && guardadas.has(TRACKS[i].id)));
+  return TRACKS.map((t, i) => i).filter(i => FILTRO === 'todas' || (FILTRO === 'fav' && favs.includes(TRACKS[i].id)) || (FILTRO === 'guardadas' && TRACKS[i].libre && guardadas.has(TRACKS[i].id)));
 }
 function pintar() {
   const L = $('lista'); if (!TRACKS.length) return;
-  const v = visibles(), libres = TRACKS.filter(t => t.libre).length;
+  const v = visibles(), libres = TRACKS.filter(t => t.libre).length; NUEVAS = nuevasNx();
   $('sub').textContent = TRACKS.length + ' pistas' + (libres < TRACKS.length ? ' · ' + (TRACKS.length - libres) + ' por desbloquear' : '');
   $('info').textContent = guardadas.size ? guardadas.size + ' guardadas para escuchar sin conexión' : '';
   if (!v.length) { L.innerHTML = '<div class="vacia">' + (FILTRO === 'fav' ? 'Aún no tienes favoritas. Marca una pista con ♡.' : 'Aún no guardas pistas. Usa ⬇ Guardar para escucharlas sin conexión.') + '</div>'; return; }
   L.innerHTML = v.map(i => { const t = TRACKS[i], act = i === cur;
     return `<button type="button" class="tr${act ? ' act' : ''}${t.libre ? '' : ' lock'}" role="listitem" data-i="${i}">
       <span class="n">${act && isPlaying ? '<span class="eq"><i></i><i></i><i></i></span>' : String(t.n).padStart(2, '0')}</span>
-      <span><b>${esc(t.title)}</b><small>${t.libre ? esc(t.artist) : '🔒 Desbloquéala en la Tienda'}</small></span>
-      <span class="ico">${(fondo() || {}).id === t.id ? '<span title="Fondo de la app">♪</span>' : ''}${favs.includes(t.id) ? '<span class="fav">♥</span>' : ''}${guardadas.has(t.id) ? '<span title="Guardada">⬇</span>' : ''}</span>
-      <span class="d">${t.libre ? esc(t.duration || '') : t.pts + ' pts'}</span></button>`; }).join('');
+      <span><b>${esc(t.title)}${t.libre && t.nx && NUEVAS.includes(t.id) ? '<em class="nva">NUEVA</em>' : ''}</b><small>${t.libre ? esc(t.artist) : t.nx ? '🔒 ' + esc(t.como || 'Desbloquéala en el Modo Aventura') : '🔒 Desbloquéala en la Tienda'}</small></span>
+      <span class="ico">${(fondo() || {}).id === t.id ? '<span title="Fondo de la app">♪</span>' : ''}${favs.includes(t.id) ? '<span class="fav">♥</span>' : ''}${t.libre && guardadas.has(t.id) ? '<span title="Guardada">⬇</span>' : ''}</span>
+      <span class="d">${t.libre ? esc(t.duration || '') : t.nx ? 'AVENTURA' : t.pts + ' pts'}</span></button>`; }).join('');
   L.querySelectorAll('.tr').forEach(b => b.onclick = () => elegir(+b.dataset.i, true));
 }
 $('filtros').querySelectorAll('[data-f]').forEach(b => b.onclick = () => { FILTRO = b.dataset.f; $('filtros').querySelectorAll('[data-f]').forEach(x => x.classList.toggle('on', x === b)); pintar(); });
@@ -267,7 +278,7 @@ function mostrarActual() {
 }
 function elegir(i, tocar) {
   const t = TRACKS[i]; if (!t) return;
-  if (!t.libre) { toast('🔒 "' + t.title + '" se desbloquea en la Tienda con ' + t.pts + ' puntos de liga'); return; }
+  if (!t.libre) { toast(t.nx ? '🔒 "' + t.title + '": ' + (sesion() ? (t.como || 'se desbloquea en el Modo Aventura') + ' en el Modo Aventura' : 'inicia sesión en Mi Perfil y desbloquéala en el Modo Aventura') : '🔒 "' + t.title + '" se desbloquea en la Tienda con ' + t.pts + ' puntos de liga'); return; }
   cur = i; mostrarActual(); reproducirPista(t, 0);
 }
 function guardarEstado() { const t = TRACKS[cur]; ls.set(K_EST, { id: t ? t.id : null, t: Math.floor(audio.currentTime || 0), rep: repetir, shuf: aleatorio }); }
@@ -277,6 +288,7 @@ let _req = 0, _modo = 'stream', _blobURL = null, _watch = null, _desc = null;
 function estado(msg) { $('nEst').textContent = msg || ''; $('mEst').textContent = msg || (TRACKS[cur] ? TRACKS[cur].artist : ''); }
 function limpiar() { clearTimeout(_watch); if (_desc) { try { _desc.abort(); } catch (e) {} _desc = null; } }
 function reproducirPista(t, desde) {
+  try { quitarNueva(t.id); } catch (e) {}   // al escucharla deja de ser NUEVA
   const req = ++_req; limpiar(); const url = urlPista(t); estado('⏳ Cargando…');
   _modo = 'stream'; audio.src = url; audio.loop = repetir === 'una';
   if (desde) { try { audio.currentTime = desde; } catch (e) {} }
@@ -360,7 +372,7 @@ $('bRep').onclick = () => { repetir = repetir === 'todo' ? 'una' : repetir === '
 $('bFav').onclick = () => { const t = TRACKS[cur]; if (!t) return; favs = favs.includes(t.id) ? favs.filter(x => x !== t.id) : favs.concat(t.id); ls.set(K_FAV, favs); mostrarActual(); };
 $('bFondo').onclick = () => { const t = TRACKS[cur]; if (!t || !t.libre) return; const f = fondo();
   if (f && f.id === t.id) { localStorage.removeItem(K_BGM); toast('Se restauró la música original de la app'); }
-  else { ls.set(K_BGM, { id: t.id, titulo: t.title, url: CARPETA + t.file }); toast('♪ "' + t.title + '" sonará de fondo en la app'); }
+  else { ls.set(K_BGM, { id: t.id, titulo: t.title, url: rutaPista(t) }); toast('♪ "' + t.title + '" sonará de fondo en la app'); }
   pintarFondo(); pintar(); };
 $('bSave').onclick = async () => { const t = TRACKS[cur]; if (!t || guardadas.has(t.id)) return; const c = new AbortController(); $('bSave').textContent = '⬇ 0%';
   try { await bajar(t, (n, tot) => { if (tot) $('bSave').textContent = '⬇ ' + Math.round(n / tot * 100) + '%'; }, c); toast('✓ "' + t.title + '" se puede escuchar sin conexión'); } catch (e) { toast('No se pudo guardar. Revisa tu conexión.'); }

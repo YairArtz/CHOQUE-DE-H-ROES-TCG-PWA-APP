@@ -865,7 +865,42 @@ function guardar(sinNube) {
   if (!S || EDITOR) return; S.u = Date.now();
   const a = leerSlots(); a[SLOT] = S; escribirSlots(a);
   if (!sinNube) nubeSlot(SLOT, S);
+  try { soundtrackNx(); } catch (e) {}
 }
+// SOUNDTRACK (v205): anota para siempre (por cuenta, en cualquier ranura) los distritos abiertos, los personajes vencidos y si
+// ya eres campeón. musica.html desbloquea con eso las pistas del Modo Aventura (musica_config.json → "aventura"). Solo con cuenta.
+function soundtrackNx() {
+  const j = sesionJug(); if (!j || !S || EDITOR || !DIST.length) return;
+  const K = 'nhMusicaNx_' + j.id;
+  let L = []; try { L = JSON.parse(localStorage.getItem(K) || '[]'); } catch (e) {} if (!Array.isArray(L)) L = [];
+  const set = new Set(L), n0 = set.size;
+  DIST.forEach(d => { if (distritoAbierto(d)) set.add('distrito:' + d.id); });
+  Object.keys(S.vencidos || {}).forEach(id => { if (vencido(id)) set.add('punto:' + id); });
+  if (S.campeon) set.add('campeon');
+  if (set.size !== n0) try { localStorage.setItem(K, JSON.stringify([...set])); } catch (e) {}
+}
+// Aviso de pista nueva (v206): cuando el mapa está libre (sin ventanas, diálogos ni sobres) avisa las pistas recién desbloqueadas
+// y las marca como NUEVAS en el Soundtrack (nhMusicaNueva_<id>) hasta que se escuchen. Ya avisadas: nhMusicaNxAvisadas_<id>.
+let OST_NX = null;
+(async function cargarOstNx() {
+  try { const r = await fetch('musica_config.json?v=' + Date.now(), { cache: 'no-store' }); const c = await r.json(); if (Array.isArray(c.aventura)) OST_NX = c.aventura; } catch (e) {}
+  if (!OST_NX) try { const c = JSON.parse(localStorage.getItem('chh_musica_config') || 'null'); if (c && Array.isArray(c.aventura)) OST_NX = c.aventura; } catch (e) {}
+})();
+function avisoPistasNx() {
+  const j = sesionJug(); if (!j || !OST_NX || EDITOR || document.hidden) return;
+  if (!$('sMapa').classList.contains('on') || document.querySelector('.modal.on,.sob.on,.dlg.on,#nxTrans.on') || !$('carga').hidden) return;
+  const lee = k => { try { const v = JSON.parse(localStorage.getItem(k) || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } };
+  const logros = lee('nhMusicaNx_' + j.id), KA = 'nhMusicaNxAvisadas_' + j.id, av = lee(KA);
+  const nuevas = OST_NX.filter(p => p && p.id && !av.includes(p.id) && (Array.isArray(p.desbloqueo) ? p.desbloqueo : [p.desbloqueo]).some(r => r && logros.includes(r)));
+  if (!nuevas.length) return;
+  const KN = 'nhMusicaNueva_' + j.id, nv = lee(KN);
+  try {
+    localStorage.setItem(KA, JSON.stringify(av.concat(nuevas.map(p => p.id))));
+    localStorage.setItem(KN, JSON.stringify([...new Set(nv.concat(nuevas.map(p => p.id)))]));
+  } catch (e) {}
+  toast(nuevas.length === 1 ? '🎵 Nueva pista en el Soundtrack: ' + nuevas[0].titulo : '🎵 ' + nuevas.length + ' pistas nuevas en el Soundtrack');
+}
+setInterval(() => { try { avisoPistasNx(); } catch (e) {} }, 900);
 function nueva(nombre, baraja, barajaNombre) {
   return { v: 1, nombre, baraja, barajaNombre, dia: 0, monedas: 0, vencidos: {}, derrotas: {}, hablados: {}, abiertos: {}, victorias: 0, perdidas: 0, historial: [], inicio: Date.now(), u: Date.now(), pendiente: null };
 }
@@ -2143,6 +2178,7 @@ async function entrarMapa(primeraVez) {
     pantallaBaraja('cambiar'); return;
   }
   ZOOM = 1; mostrarMapa(); ajustarZoom(ANCHO() < 700 ? 1.6 : 1);
+  try { soundtrackNx(); } catch (e) {}   // partidas que ya iban avanzadas
   const d0 = DIST.find(distritoAbierto) || DIST[0]; if (d0) centrarEn(d0._x, d0._y);
   musica(CFG.musica);
   if (primeraVez) {

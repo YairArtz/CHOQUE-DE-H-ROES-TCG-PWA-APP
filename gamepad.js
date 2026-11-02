@@ -102,6 +102,11 @@
     return typeof el.onclick === 'function' || el.hasAttribute('onclick') || el.getAttribute('role') === 'button';
   }
   function vw() { return innerWidth; } function vh() { return innerHeight; }
+  // v202: si la página tiene zoom (escala para TV), los elementos del body se dibujan multiplicados por ese zoom,
+  // pero getBoundingClientRect y los clics ya vienen en píxeles de pantalla. Aquí se convierte para colocar el anillo y el puntero.
+  function zm() { const z = parseFloat(document.documentElement.style.zoom); return z > 0 ? z : 1; }
+  function ponerPuntero() { const z = zm(); ptr.style.left = (px / z) + 'px'; ptr.style.top = (py / z) + 'px'; }
+  addEventListener('resize', () => { px = Math.min(Math.max(px, 0), vw() - 1); py = Math.min(Math.max(py, 0), vh() - 1); if (modoPuntero && ptr.style.display !== 'none') ponerPuntero(); });
   function scrollPadre(el) {
     for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
       const s = getComputedStyle(p);
@@ -254,8 +259,9 @@
     const r = foco.getBoundingClientRect();
     if (r.width < 2) { ring.style.display = 'none'; return; }
     ring.style.display = 'block';
-    ring.style.left = (r.left - 3) + 'px'; ring.style.top = (r.top - 3) + 'px';
-    ring.style.width = (r.width + 6) + 'px'; ring.style.height = (r.height + 6) + 'px';
+    const z = zm();
+    ring.style.left = ((r.left - 3) / z) + 'px'; ring.style.top = ((r.top - 3) / z) + 'px';
+    ring.style.width = ((r.width + 6) / z) + 'px'; ring.style.height = ((r.height + 6) / z) + 'px';
     const br = getComputedStyle(foco).borderRadius; ring.style.borderRadius = br && br !== '0px' ? br : '8px';
   }
   function bucleVisual() {
@@ -539,7 +545,7 @@
           }
           const [sx, sy] = aPantalla(rx, ry), v = 11;
           px = Math.min(Math.max(px + sx * v, 0), vw() - 1); py = Math.min(Math.max(py + sy * v, 0), vh() - 1);
-          ptr.style.display = 'block'; ptr.style.left = px + 'px'; ptr.style.top = py + 'px';
+          ptr.style.display = 'block'; ponerPuntero();
         }
       }
       prev = est;

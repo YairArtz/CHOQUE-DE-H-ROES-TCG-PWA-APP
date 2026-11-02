@@ -66,6 +66,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
   overflow-y:auto}
 .scr.on{display:flex;animation:scrIn .45s cubic-bezier(.2,.8,.2,1)}
 @keyframes scrIn{from{opacity:0;transform:scale(.985)}to{opacity:1;transform:none}}
+#sSlots{justify-content:safe center}   /* v202 · partidas centradas en la pantalla, como en Nexotlan */
 .topbar{width:100%;max-width:1100px;display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
 .pill{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px;border-radius:8px;
   background:rgba(11,14,24,.78);border:1px solid #141c2a;color:#9fb3cc;text-decoration:none;
@@ -423,6 +424,29 @@ html.heroica .h1{background:linear-gradient(90deg,#fff2c4,#ffb300,#fff6d8,#ffb30
 #lgToast span{display:block;font-size:12px;color:#9fb3cc}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 </style>
+<script>
+// v202 · Escala de la interfaz en pantallas grandes (PC conectada a TV o monitor grande): la página se amplía para que
+// equivalga a una pantalla de ~1280×720 (1920×1080 → ×1.5, 4K → ×3). En celular/tablet o pantalla vertical no cambia.
+// Ajuste manual: localStorage 'cdh_ui_escala' = 'off' o un número (0.8–3).
+(function(){
+  const R=document.documentElement, MOV=matchMedia('(pointer:coarse)').matches;
+  function calc(){
+    if(MOV||innerHeight>innerWidth) return 1;
+    let o=null;try{o=localStorage.getItem('cdh_ui_escala');}catch(e){}
+    if(o==='off') return 1;
+    if(o&&isFinite(+o)&&+o>0) return Math.max(.8,Math.min(3,+o));
+    const k=Math.min(innerWidth/1280,innerHeight/720);
+    return k<1.1?1:Math.min(3,Math.round(k*20)/20);
+  }
+  function aplicar(){
+    const Z=calc(); window.UIZ=Z;
+    if(Z===1){R.style.zoom='';R.style.removeProperty('--vh');R.style.removeProperty('--W');return;}
+    R.style.zoom=String(Z);   // con zoom, vw/vh también se amplían: se dan las medidas reales en px
+    R.style.setProperty('--vh',innerHeight/Z+'px');R.style.setProperty('--W',innerWidth/Z+'px');
+  }
+  aplicar();addEventListener('resize',aplicar);
+})();
+</script>
 </head>
 <body>
 <div id="stage">
@@ -1917,7 +1941,7 @@ function renderRuta(){
 (function arrastreMapa(){
   const map=document.getElementById('map'); if(!map) return;
   let id=null,x0=0,y0=0,s0=0,mov=false,vel=0,lastT=0,lastP=0,raf=0;
-  const eje=e=>{const R=document.documentElement;if(!R.classList.contains('rot'))return e.clientX;return R.classList.contains('flip')?-e.clientY:e.clientY;};
+  const eje=e=>{const R=document.documentElement;if(!R.classList.contains('rot'))return e.clientX/(window.UIZ||1);return R.classList.contains('flip')?-e.clientY:e.clientY;};
   map.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&e.button!==0)return;cancelAnimationFrame(raf);id=e.pointerId;x0=eje(e);s0=map.scrollLeft;mov=false;vel=0;lastT=performance.now();lastP=x0;});
   map.addEventListener('pointermove',e=>{if(e.pointerId!==id)return;const p=eje(e),d=p-x0;
     if(!mov&&Math.abs(d)>6){mov=true;map.classList.add('drag');try{map.setPointerCapture(id);}catch(_){}}

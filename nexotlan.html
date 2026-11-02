@@ -446,7 +446,7 @@ body.editor .pt{cursor:move}
 #nxTrans{position:fixed;inset:0;z-index:9500;display:none;align-items:center;justify-content:center;flex-direction:column;overflow:hidden;
   background:radial-gradient(ellipse at center,rgba(60,0,20,.85),#000 75%);opacity:0;transition:opacity .35s}
 #nxTrans.on{opacity:1}
-#nxTrans img{position:absolute;max-height:min(70vh,calc(var(--uh)*70));max-width:80vw;object-fit:contain;filter:drop-shadow(0 0 30px rgba(255,40,90,.6))}
+#nxTrans img{position:absolute;max-height:calc(var(--uh)*70);max-width:calc(var(--uw)*80);object-fit:contain;filter:drop-shadow(0 0 30px rgba(255,40,90,.6))}
 #nxTrans img.carta{border-radius:12px}
 #nxTrans .tr-a{animation:trTiembla .12s linear infinite;transition:opacity .25s,filter 2.2s}
 #nxTrans.f1 .tr-a{filter:drop-shadow(0 0 40px #ff2f5a) brightness(1.4) saturate(1.6)}
@@ -468,8 +468,8 @@ body.editor .pt{cursor:move}
 #nxTrans .tr-txt{position:absolute;bottom:9%;left:0;right:0;text-align:center;opacity:0;font-family:'Orbitron',monospace}
 #nxTrans.f2 .tr-txt{animation:trTxt 1.2s .5s ease-out forwards}
 #nxTrans .tr-txt small{display:block;font-size:12px;letter-spacing:6px;color:#ffb3c4}
-#nxTrans .tr-txt b{display:block;font-size:clamp(26px,6vw,58px);font-weight:900;letter-spacing:6px;color:#fff;text-shadow:0 0 12px #cc55ff,0 0 30px #ff2f5a,0 3px 0 #000}
-#nxTrans .tr-txt span{display:block;font-size:clamp(13px,2.4vw,20px);letter-spacing:4px;color:#e8c8ff;margin-top:4px}
+#nxTrans .tr-txt b{display:block;font-size:clamp(26px,calc(6 * var(--uw)),58px);font-weight:900;letter-spacing:6px;color:#fff;text-shadow:0 0 12px #cc55ff,0 0 30px #ff2f5a,0 3px 0 #000}
+#nxTrans .tr-txt span{display:block;font-size:clamp(13px,calc(2.4 * var(--uw)),20px);letter-spacing:4px;color:#e8c8ff;margin-top:4px}
 @keyframes trTiembla{0%{transform:translate(0,0)}25%{transform:translate(-4px,3px) rotate(-.6deg)}50%{transform:translate(5px,-2px)}75%{transform:translate(-3px,-4px) rotate(.6deg)}100%{transform:translate(2px,4px)}}
 @keyframes trSurge{0%{opacity:0;transform:scale(.55)}40%{opacity:1;transform:scale(1.12)}100%{opacity:1;transform:scale(1)}}
 @keyframes trGira{to{transform:rotate(360deg)}}
@@ -491,9 +491,9 @@ body.nx-sismo2{animation:nxSismo2 .09s linear infinite}
 #nxFinal .fn-ret.carta{border-radius:10px;bottom:6%}
 #nxFinal .fn-box{position:relative;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;padding:16px;max-width:620px;width:100%}
 #nxFinal .fn-crown{font-size:64px;filter:drop-shadow(0 0 20px rgba(245,166,35,.8));animation:fnFlota 3s ease-in-out infinite}
-#nxFinal .fn-h1{font-family:'Orbitron',monospace;font-weight:900;font-size:clamp(20px,4.4vw,46px);letter-spacing:3px;color:#ffe9a8;
+#nxFinal .fn-h1{font-family:'Orbitron',monospace;font-weight:900;font-size:clamp(20px,calc(4.4 * var(--uw)),46px);letter-spacing:3px;color:#ffe9a8;
   text-shadow:0 0 14px #ffb300,0 0 34px #ff7a00,0 3px 0 #000;animation:fnLatido 2s ease-in-out infinite}
-#nxFinal .fn-sub{font-family:'Orbitron',monospace;font-size:clamp(10px,1.8vw,14px);letter-spacing:3px;color:var(--cyan)}
+#nxFinal .fn-sub{font-family:'Orbitron',monospace;font-size:clamp(10px,calc(1.8 * var(--uw)),14px);letter-spacing:3px;color:var(--cyan)}
 #nxFinal .fn-txt{font-size:16px;color:var(--text);opacity:.9;max-width:520px}
 #nxFinal .fn-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;width:min(560px,100%)}
 #nxFinal .fn-stats div{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px}
@@ -648,13 +648,27 @@ body.nx-sismo2{animation:nxSismo2 .09s linear infinite}
 <script>
 // ── Orientación horizontal (como Simulación y Arcade) ──
 const MOVIL = matchMedia('(pointer:coarse)').matches;
-const ANCHO = () => document.documentElement.classList.contains('rot') ? innerHeight : innerWidth;   // ancho LÓGICO
-const ALTO = () => document.documentElement.classList.contains('rot') ? innerWidth : innerHeight;
+// Escala de la interfaz en pantallas grandes (v202): en PC conectada a una TV o monitor grande todo se diseñó en px y se veía
+// diminuto. Se amplía la página entera para que equivalga a una pantalla de ~1280×720 (1920×1080 → ×1.5, 4K → ×3).
+// En celular/tablet no cambia nada. Ajuste manual: localStorage 'cdh_ui_escala' = 'off' o un número (0.8–3).
+let UIZ = 1;
+function escalaUI() {
+  if (MOVIL) return 1;
+  let o = null; try { o = localStorage.getItem('cdh_ui_escala'); } catch (e) {}
+  if (o === 'off') return 1;
+  if (o && isFinite(+o) && +o > 0) return Math.max(.8, Math.min(3, +o));
+  const z = Math.min(innerWidth / 1280, innerHeight / 720);
+  return z < 1.1 ? 1 : Math.min(3, Math.round(z * 20) / 20);
+}
+const ANCHO = () => (document.documentElement.classList.contains('rot') ? innerHeight : innerWidth) / UIZ;   // ancho LÓGICO (px de CSS)
+const ALTO = () => (document.documentElement.classList.contains('rot') ? innerWidth : innerHeight) / UIZ;
 function ajustaVista() {
   const Rt = document.documentElement, port = MOVIL && innerHeight > innerWidth;
   Rt.classList.toggle('rot', port); Rt.classList.toggle('movil', MOVIL);
+  UIZ = port ? 1 : escalaUI(); Rt.style.zoom = UIZ === 1 ? '' : String(UIZ);
   // Medidas reales de la pantalla visible (100dvh puede incluir la barra de navegación de Android y cortar el borde)
   if (port) { Rt.style.setProperty('--uw', innerHeight / 100 + 'px'); Rt.style.setProperty('--uh', innerWidth / 100 + 'px'); }
+  else if (UIZ !== 1) { Rt.style.setProperty('--uw', innerWidth / 100 / UIZ + 'px'); Rt.style.setProperty('--uh', innerHeight / 100 / UIZ + 'px'); }   // con zoom, vw/vh también se amplían
   else { Rt.style.removeProperty('--uw'); Rt.style.removeProperty('--uh'); }
   const W = ANCHO(), H = ALTO();
   Rt.classList.toggle('q760', W <= 760); Rt.classList.toggle('q620', W <= 620); Rt.classList.toggle('q900', W >= 900);
@@ -670,7 +684,7 @@ async function bloqueaHorizontal() {
 // Punto de pantalla → coordenadas dentro de un elemento (tomando en cuenta el giro)
 function puntoEn(el, cx, cy) {
   const r = el.getBoundingClientRect(), Rt = document.documentElement;
-  if (!Rt.classList.contains('rot')) return { x: cx - r.left, y: cy - r.top };
+  if (!Rt.classList.contains('rot')) return { x: (cx - r.left) / UIZ, y: (cy - r.top) / UIZ };
   return Rt.classList.contains('flip') ? { x: r.bottom - cy, y: cx - r.left } : { x: cy - r.top, y: r.right - cx };
 }
 try { if (localStorage.getItem('cdh_sim_flip') === '1') document.documentElement.classList.add('flip'); } catch (e) {}
@@ -1201,9 +1215,9 @@ function centrarEn(xp, yp, suave) { const m = $('mapa'), mi = $('mi'); m.scrollT
 (function () {
   const m = $('mapa'); let dn = null;
   m.addEventListener('pointerdown', e => { if (e.pointerType !== 'mouse' || e.button !== 0 || e.target.closest('.pt')) return; dn = { x: e.clientX, y: e.clientY, l: m.scrollLeft, t: m.scrollTop, mv: false }; });
-  addEventListener('pointermove', e => { if (!dn) return; const dx = e.clientX - dn.x, dy = e.clientY - dn.y; if (Math.abs(dx) + Math.abs(dy) > 4) { dn.mv = true; m.classList.add('drag'); } m.scrollLeft = dn.l - dx; m.scrollTop = dn.t - dy; });
+  addEventListener('pointermove', e => { if (!dn) return; const dx = (e.clientX - dn.x) / UIZ, dy = (e.clientY - dn.y) / UIZ; if (Math.abs(dx) + Math.abs(dy) > 4) { dn.mv = true; m.classList.add('drag'); } m.scrollLeft = dn.l - dx; m.scrollTop = dn.t - dy; });
   addEventListener('pointerup', e => { if (dn && !dn.mv && EDITOR && !e.target.closest('.pt')) coordsEditor(e); dn = null; m.classList.remove('drag'); });
-  m.addEventListener('wheel', e => { if (!e.ctrlKey && Math.abs(e.deltaY) < 1) return; e.preventDefault(); const r = m.getBoundingClientRect(); ajustarZoom(ZOOM * (e.deltaY < 0 ? 1.15 : 1 / 1.15), e.clientX - r.left, e.clientY - r.top); }, { passive: false });
+  m.addEventListener('wheel', e => { if (!e.ctrlKey && Math.abs(e.deltaY) < 1) return; e.preventDefault(); const r = m.getBoundingClientRect(); ajustarZoom(ZOOM * (e.deltaY < 0 ? 1.15 : 1 / 1.15), (e.clientX - r.left) / UIZ, (e.clientY - r.top) / UIZ); }, { passive: false });
   // pellizco
   let p0 = null; const ts = new Map();
   m.addEventListener('touchstart', e => { [...e.changedTouches].forEach(t => ts.set(t.identifier, t)); if (ts.size === 2) { const [a, b] = [...ts.values()]; p0 = { d: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY), z: ZOOM }; } }, { passive: true });

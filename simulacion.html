@@ -1128,6 +1128,29 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 #board .turn-banner-inner.cpu .bm{text-shadow:0 0 2px #000,0 2px 6px #000,0 0 18px rgba(255,60,60,.9)}
 #board .turn-banner-inner.end .bm{text-shadow:0 0 2px #000,0 2px 6px #000,0 0 18px rgba(255,209,102,.9)}
 </style>
+<script>
+// v202 · Escala de la interfaz en pantallas grandes (PC conectada a TV o monitor grande): la página se amplía para que
+// equivalga a una pantalla de ~1280×720 (1920×1080 → ×1.5, 4K → ×3). En celular/tablet o pantalla vertical no cambia.
+// Ajuste manual: localStorage 'cdh_ui_escala' = 'off' o un número (0.8–3).
+(function(){
+  const R=document.documentElement, MOV=matchMedia('(pointer:coarse)').matches;
+  function calc(){
+    if(MOV||innerHeight>innerWidth) return 1;
+    let o=null;try{o=localStorage.getItem('cdh_ui_escala');}catch(e){}
+    if(o==='off') return 1;
+    if(o&&isFinite(+o)&&+o>0) return Math.max(.8,Math.min(3,+o));
+    const k=Math.min(innerWidth/1280,innerHeight/720);
+    return k<1.1?1:Math.min(3,Math.round(k*20)/20);
+  }
+  function aplicar(){
+    const Z=calc(); window.UIZ=Z;
+    if(Z===1){R.style.zoom='';R.style.removeProperty('--vh');R.style.removeProperty('--W');return;}
+    R.style.zoom=String(Z);   // con zoom, vw/vh también se amplían: se dan las medidas reales en px
+    R.style.setProperty('--vh',innerHeight/Z+'px');R.style.setProperty('--W',innerWidth/Z+'px');
+  }
+  aplicar();addEventListener('resize',aplicar);
+})();
+</script>
 </head>
 <body>
 
@@ -9151,7 +9174,7 @@ vistaAplicar();
 function stageRect(el){
   const st=document.getElementById('stage'), r=el.getBoundingClientRect();
   let m=null;try{const t=getComputedStyle(st).transform;if(t&&t!=='none')m=new DOMMatrix(t);}catch(e){}
-  if(!m) return {x:r.left,y:r.top,w:r.width,h:r.height};
+  if(!m){const z=window.UIZ||1;return {x:r.left/z,y:r.top/z,w:r.width/z,h:r.height/z};}   // v202: con zoom, el rect viene en px de pantalla
   const inv=m.inverse();
   const P=[[r.left,r.top],[r.right,r.top],[r.left,r.bottom],[r.right,r.bottom]].map(([x,y])=>inv.transformPoint(new DOMPoint(x,y)));
   const xs=P.map(p=>p.x), ys=P.map(p=>p.y), x=Math.min(...xs), y=Math.min(...ys);
@@ -9665,7 +9688,7 @@ function salirPartida(ev,a){
       if(!t&&_hover&&_hover.isConnected&&_hover.classList.contains('tgt'))t=_hover;
       if(!a||!t){s.style.display='none';_raf=requestAnimationFrame(paso);return;}
       const ra=a.getBoundingClientRect(),rt=t.getBoundingClientRect();
-      const x1=ra.left+ra.width/2,y1=ra.top+ra.height/2,x2=rt.left+rt.width/2,y2=rt.top+rt.height/2;
+      const _z=window.UIZ||1,x1=(ra.left+ra.width/2)/_z,y1=(ra.top+ra.height/2)/_z,x2=(rt.left+rt.width/2)/_z,y2=(rt.top+rt.height/2)/_z;
       const mx=(x1+x2)/2,my=(y1+y2)/2,dx=x2-x1,dy=y2-y1,len=Math.hypot(dx,dy)||1,curv=Math.min(80,len*.25);
       const cx=mx-dy/len*curv,cy=my+dx/len*curv;
       // termina antes del centro del objetivo para que se vea la punta

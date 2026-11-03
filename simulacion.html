@@ -8571,7 +8571,15 @@ const MESAS=[
 MESAS.unshift({id:'auto',nom:'Según tu baraja',desc:'Cambia con el tema de la baraja que juegas',prev:"conic-gradient(#d4870a 0 25%,#00c48a 0 50%,#00cfff 0 75%,#ff5a1f 0)"});
 const MESA_BARAJA={metalurgicos:'metal',caballero_cristal:'cristal',mictlan:'mictlan',evolotl:'jade',legion_mar:'mar',
   ornamentum_khalet:'obsidiana',nexotlan:'nexo',herederos:'fuego',hell_riders:'fuego',dioses:'grecas'};
-function mesaDeBaraja(){const id=(typeof DK!=='undefined'&&DK&&DK.jugador&&DK.jugador.id)||(typeof DSEL!=='undefined'&&DSEL.jugador)||'';const m=MESA_BARAJA[id];return m&&MESAS.some(x=>x.id===m)?m:'grecas';}
+// v210 · Si la baraja no tiene mesa propia se usa una mesa ilustrada del catálogo (la marcada con * en mesas.txt,
+//        si no "coliseo", si no la primera). Las de patrón (grecas, neón…) siguen disponibles en ⚙ → Apariencia.
+let MESA_DEF='';
+function mesaPorDefecto(){
+  const cat=MESAS.filter(x=>x.foto);
+  const m=(MESA_DEF&&cat.find(x=>x.id===MESA_DEF))||cat.find(x=>x.id==='cat_coliseo')||cat[0];
+  return m?m.id:'grecas';
+}
+function mesaDeBaraja(){const id=(typeof DK!=='undefined'&&DK&&DK.jugador&&DK.jugador.id)||(typeof DSEL!=='undefined'&&DSEL.jugador)||'';const m=MESA_BARAJA[id];return m&&MESAS.some(x=>x.id===m)?m:mesaPorDefecto();}
 function apMesaGuardada(){try{return localStorage.getItem('cdh_sim_mesa')||'auto';}catch(e){return 'auto';}}
 function apAplicarMesa(id){
   if(id==='auto') id=mesaDeBaraja();
@@ -8779,7 +8787,7 @@ async function mesasCatalogo(){
     if(MESAS.some(x=>x.id===id)) return;
     const foto=/^(https?:|\/|\.\/)/.test(c[2])?c[2]:AP_DIR+'mesas/'+c[2];
     nuevas.push({id,nom:c[1]||c[0],desc:c[3]||'',foto,prev:'url("'+foto.replace(/"/g,'%22')+'") center/cover'});
-    (c[4]||'').split(',').map(x=>x.trim()).filter(Boolean).forEach(b=>MESA_BARAJA[b]=id);
+    (c[4]||'').split(',').map(x=>x.trim()).filter(Boolean).forEach(b=>{if(b==='*')MESA_DEF=id;else MESA_BARAJA[b]=id;});
   });
   if(!nuevas.length) return;
   const i=MESAS.findIndex(x=>x.id==='imagen'); MESAS.splice(i<0?MESAS.length:i,0,...nuevas);
@@ -9327,7 +9335,7 @@ let _fxpLlamado=null;
   try{if(r>0&&G)setTimeout(()=>fxpDano(o==='player'?'playerHB':'cpuHB',o==='player'?'#ff3355':'#ffb020'),why==='combate'||why==='ataque'?200:0);}catch(e){}return r;};}
 
 // ── Carta de la mano ampliada (cursor o control) ──
-const PEEK={el:null,h:null};
+const PEEK={el:null,h:null,hovI:-1};
 function peekEl(){
   if(!PEEK.el||!PEEK.el.isConnected){const st=document.getElementById('stage');if(!st)return null;PEEK.el=document.createElement('div');PEEK.el.id='handPeek';st.appendChild(PEEK.el);}
   return PEEK.el;
@@ -9354,7 +9362,7 @@ function peekHide(){if(PEEK.el)PEEK.el.classList.remove('on');if(PEEK.h)PEEK.h.c
 // v87 · la carta queda ampliada mientras está ELEGIDA (al hacer clic para usarla ya no se achica)
 function peekCandidata(){
   const L=document.querySelectorAll('#handrow .hcard');
-  const hov=!PEEK.tactil&&document.querySelector('#handrow .hcard:hover'); if(hov) return hov;
+  const hov=!PEEK.tactil&&(document.querySelector('#handrow .hcard:hover')||(PEEK.hovI>=0&&L[PEEK.hovI])); if(hov) return hov;   // v210: tras re-pintar la mano el :hover tarda en volver
   let gf=null;try{gf=window.GP&&GP.activo()&&GP.foco&&GP.foco();}catch(e){}
   const g=gf&&gf.isConnected&&gf.closest&&gf.closest('#handrow .hcard'); if(g) return g;
   if(!PEEK.tactil&&typeof SEL_IDX!=='undefined'&&SEL_IDX>=0&&L[SEL_IDX]) return L[SEL_IDX];
@@ -9364,13 +9372,19 @@ function peekRefrescar(){try{const h=peekCandidata();if(h)peekShow(h);else peekH
 (function(){
   const hr=document.getElementById('handrow'); if(!hr) return;
   const raton=e=>e.pointerType==='mouse'||e.pointerType==='pen';
-  hr.addEventListener('pointerover',e=>{if(!raton(e))return;PEEK.tactil=false;peekRefrescar();});
-  hr.addEventListener('pointerleave',e=>{if(raton(e))setTimeout(peekRefrescar,0);});
-  hr.addEventListener('pointerdown',e=>{if(!raton(e)){PEEK.tactil=true;peekHide();}});
+  hr.addEventListener('pointerover',e=>{if(!raton(e))return;PEEK.tactil=false;const h=e.target.closest&&e.target.closest('.hcard');PEEK.hovI=h?[...hr.querySelectorAll('.hcard')].indexOf(h):-1;peekRefrescar();});
+  hr.addEventListener('pointerleave',e=>{if(raton(e)){PEEK.hovI=-1;setTimeout(peekRefrescar,0);}});
+  // v210 · el "toque" que simula el control (A) no es un dedo: la carta sigue ampliada al elegirla
+  hr.addEventListener('pointerdown',e=>{if(e._gp)return;if(!raton(e)){PEEK.tactil=true;PEEK.hovI=-1;peekHide();}});
   hr.addEventListener('click',()=>setTimeout(peekRefrescar,30));
   hr.addEventListener('scroll',()=>{if(PEEK.h)peekShow(PEEK.h);},{passive:true});
 })();
-{const _rh=renderHand;renderHand=function(){peekHide();const r=_rh.apply(this,arguments);
+// v210 · Al re-pintar la mano (pasa muchas veces mientras juega el rival) ya no se oculta y vuelve a aparecer:
+//        si la carta ampliada sigue siendo la misma, se queda quieta; y el control conserva su lugar en la mano.
+{const _rh=renderHand;renderHand=function(){
+  let gpI=-1;try{const L0=[...document.querySelectorAll('#handrow .hcard')],f=window.GP&&GP.activo()&&GP.foco(),h=f&&f.closest&&f.closest('#handrow .hcard');if(h)gpI=L0.indexOf(h);}catch(e){}
+  const r=_rh.apply(this,arguments);
+  try{const L=[...document.querySelectorAll('#handrow .hcard')];if(gpI>=0&&L.length)GP.enfocar(L[Math.min(gpI,L.length-1)]);}catch(e){}
   peekRefrescar();setTimeout(peekRefrescar,90);return r;};}
 if(window.GP_CFG){const _ae=GP_CFG.alEnfocar;GP_CFG.alEnfocar=el=>{try{if(_ae)_ae(el);}catch(e){}setTimeout(peekRefrescar,0);};
   // En la vista 3D el marco del control se dibuja DENTRO del tablero (queda en perspectiva); en la mano lo marca la carta ampliada
@@ -9783,6 +9797,57 @@ function salirPartida(ev,a){
     const r=_eg.apply(this,arguments);
     try{if(!ya&&G&&G.over)escenaFin(!!won);}catch(e){}
     return r;};}
+})();
+</script>
+<script>
+// ════════════════════════════════════════════════════════════════════
+// v210 · CONTROL EN EL TABLERO
+//  · Todas las casillas se recorren con la cruceta (también las vacías): el cursor avanza casilla por casilla, como en la mesa real
+//  · Al pasar el cursor por un personaje (tuyo o del rival) se ve su carta en el panel de detalle, sin elegirlo
+//  · El cursor y su marco no se pierden cuando el tablero o la mano se vuelven a pintar (p. ej. mientras juega el rival)
+// ════════════════════════════════════════════════════════════════════
+(function(){
+  if(!window.GP_CFG) return;
+  const $=id=>document.getElementById(id);
+  const gpOn=()=>{try{return !!(window.GP&&GP.activo());}catch(e){return false;}};
+  GP_CFG.clicables=(GP_CFG.clicables?GP_CFG.clicables+',':'')+'#board .bc';
+  let ult=null, prev=null;
+  function recordar(el){
+    if(!el||!el.closest){ult=null;return;}
+    const h=el.closest('#handrow .hcard'); if(h){ult={t:'m',i:[...document.querySelectorAll('#handrow .hcard')].indexOf(h)};return;}
+    const c=el.closest('#board .bc'); ult=c&&c.id?{t:'c',id:c.id}:null;
+  }
+  const ocupado=()=>document.querySelector('#bsModal.show,#chooseModal.show,#sectorModal.show,#combatMod.show,#discardModal.show,#dsList.show,#endgameModal.show,#epConfirm.show,.choose-overlay.show');
+  function vistaPrevia(el){
+    try{
+      if(!G||G.over||!el||!el.closest||ocupado()) return;
+      if((typeof SEL_IDX!=='undefined'&&SEL_IDX>=0)||(typeof ATK_SLOT!=='undefined'&&ATK_SLOT!==null)) return;   // no tapa lo que elegiste
+      const z=el.closest('#board [id^="pP"],#board [id^="cP"]'); const m=z&&/^(p|c)P(\d+)$/.exec(z.id); if(!m) return;
+      const o=m[1]==='p'?'player':'cpu', card=G[o].pj[+m[2]]; if(!card||!C[card.id]) return;
+      if(prev===card) return; prev=card;
+      showDetail(card.id,{live:card,title:o==='cpu'?'RIVAL':''});
+    }catch(e){}
+  }
+  const _ae=GP_CFG.alEnfocar;
+  GP_CFG.alEnfocar=el=>{try{if(_ae)_ae(el);}catch(e){}recordar(el);if(!(el&&el.closest&&el.closest('#board')))prev=null;vistaPrevia(el);};
+  // Si al re-pintar se reemplazó lo que tenía el cursor, regresa a la misma casilla (o a la misma posición de la mano)
+  let pend=0;
+  function restaurar(){
+    pend=0; if(!gpOn()||!ult) return;
+    let f=null;try{f=GP.foco();}catch(e){}
+    if(ult.t==='m'){
+      if(f&&f.isConnected) return;
+      const H=[...document.querySelectorAll('#handrow .hcard')]; if(H.length) GP.enfocar(H[Math.min(ult.i,H.length-1)]);
+      return;
+    }
+    const c=$(ult.id); if(!c) return;
+    if(f&&f.isConnected&&(f===c||c.contains(f))){if(!f.classList.contains('gp-foco'))f.classList.add('gp-foco');return;}
+    if(f&&f.isConnected) return;                       // el cursor está en otro lado (ventana, panel): no se toca
+    const dentro=[...c.querySelectorAll('[id^="pP"],[id^="cP"]')].find(x=>x!==c);
+    GP.enfocar(dentro||c);
+  }
+  try{const mo=new MutationObserver(()=>{if(!pend)pend=requestAnimationFrame(restaurar);});
+    ['board','handrow'].forEach(id=>{const e=$(id);if(e)mo.observe(e,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});});}catch(e){}
 })();
 </script>
 <script>

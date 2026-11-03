@@ -376,8 +376,15 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
   background:linear-gradient(#f5a623,#f5a623) center bottom/100% 2px no-repeat}
 #carga .cg-x{font-size:clamp(16px,calc(2.3 * var(--uw)),23px);font-weight:700;line-height:1.45;color:#eef2ff;max-width:36em}
 #carga .cg-pie{position:absolute;right:clamp(14px,4vw,46px);bottom:clamp(12px,3.4vh,34px);display:flex;align-items:flex-end;gap:12px}
-#carga .cg-pie span{font-family:'Orbitron',monospace;font-weight:900;font-size:13px;letter-spacing:.14em;color:#fff;padding:0 4px 4px 0;
-  background:linear-gradient(#cfe0ff,#cfe0ff) left bottom/100% 1px no-repeat}
+#carga .cg-pie span{font-family:'Orbitron',monospace;font-weight:900;font-size:13px;letter-spacing:.14em;color:#fff;padding:0 4px 6px 0;position:relative;display:block;min-width:120px}
+#carga .cg-pie span::before{content:'';position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(207,224,255,.18)}
+#carga .cg-pie span i{position:absolute;left:0;bottom:0;height:3px;width:0;background:linear-gradient(90deg,#f5a623,#ffd166);box-shadow:0 0 8px rgba(255,190,60,.8);transition:width linear}
+#carga .cg-sig{position:absolute;left:50%;bottom:clamp(14px,3.6vh,34px);transform:translateX(-50%);font-family:'Orbitron',monospace;font-weight:700;font-size:12px;letter-spacing:.14em;
+  color:#ffd166;opacity:0;transition:opacity .4s;white-space:nowrap;pointer-events:none}
+#carga.listo{cursor:pointer}
+#carga.listo .cg-pie span{color:#ffd166}
+#carga.listo .cg-sig{opacity:.9;animation:cgSig 1.6s ease-in-out infinite}
+@keyframes cgSig{50%{opacity:.45}}
 #carga .cg-spr{width:58px;height:58px;display:flex;align-items:flex-end;justify-content:center;perspective:300px}
 #carga .cg-spr img{max-width:100%;max-height:100%;object-fit:contain;animation:cgBob 1s ease-in-out infinite;image-rendering:auto}
 #carga .cg-naipe{width:30px;height:42px;border-radius:4px;border:2px solid #f5a623;transform-style:preserve-3d;animation:cgGira 1.4s cubic-bezier(.5,0,.5,1) infinite;
@@ -386,11 +393,13 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 @keyframes cgBob{50%{transform:translateY(-6px)}}
 :root.h520 #carga .cg-caja{aspect-ratio:auto;min-height:calc(56 * var(--uh))}
 :root.q620 #carga .cg-caja{aspect-ratio:auto;padding:46px 22px 40px}
-@media (prefers-reduced-motion:reduce){#carga .cg-naipe,#carga .cg-spr img{animation:none}}
+@media (prefers-reduced-motion:reduce){#carga .cg-naipe,#carga .cg-spr img,#carga.listo .cg-sig{animation:none}}
 
 /* ═══ v207 · MENÚ DE LA AVENTURA (después de elegir partida) ═══ */
 #sMenu{background:#040a1e;overflow:hidden}
-.mn-fondo{position:absolute;inset:-6% -10%;display:flex;gap:12px;transform:skewX(-11deg);pointer-events:none}
+.mn-fondo{position:absolute;inset:-8% -12%;display:flex;gap:12px;transform:skewX(-11deg);pointer-events:none;filter:blur(3px);
+  translate:var(--mx,0) var(--my,0);transition:translate .6s ease-out;animation:mnDeriva 46s ease-in-out infinite alternate}
+@keyframes mnDeriva{from{transform:skewX(-11deg) translateX(1.5%)}to{transform:skewX(-11deg) translateX(-3.5%)}}
 .mn-fondo i{flex:1;background:#0b1640 center/cover no-repeat;border:3px solid #050b22;
   filter:grayscale(1) sepia(1) hue-rotate(178deg) saturate(2.4) brightness(.85) contrast(1.05)}
 .mn-fondo i.lock{filter:grayscale(1) sepia(1) hue-rotate(190deg) saturate(1.4) brightness(.3) contrast(1.2)}
@@ -420,12 +429,16 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 .mn-ic:hover,.mn-ic:focus-visible,.mn-ic.gp-foco{background:radial-gradient(circle at 35% 30%,#ffd166,#f5a623);color:#1a0f00}
 .mn-izq{position:absolute;left:clamp(10px,calc(3 * var(--uw)),44px);top:calc(86px + 1 * var(--uh));bottom:calc(3 * var(--uh));width:min(60%,640px);
   display:flex;flex-direction:column;justify-content:center;gap:clamp(5px,calc(1.3 * var(--uh)),12px);z-index:3}
-.mn-aventura{position:relative;flex-shrink:0;height:clamp(104px,calc(29 * var(--uh)),240px);width:100%;text-align:left;
-  clip-path:polygon(0 8%,72% 8%,75% 0,100% 0,94% 100%,4% 100%,0 86%);
-  background:radial-gradient(rgba(255,255,255,.28) 1.1px,transparent 1.7px) 0 0/7px 7px,linear-gradient(135deg,#ffe08a 0%,#ffbf3c 45%,#ff8a1f 100%);
-  filter:drop-shadow(0 0 0 #fff);transition:transform .18s ease}
-.mn-aventura::before{content:'';position:absolute;inset:4px;clip-path:inherit;border:0;
-  background:linear-gradient(135deg,rgba(255,255,255,.35),transparent 30%)}
+.mn-aventura{--pa:polygon(0 8%,72% 8%,75% 0,100% 0,94% 100%,4% 100%,0 86%);position:relative;isolation:isolate;flex-shrink:0;height:clamp(104px,calc(29 * var(--uh)),240px);width:100%;text-align:left;
+  background:none;border:0;filter:drop-shadow(0 6px 14px rgba(0,0,0,.45));transition:transform .25s cubic-bezier(.2,.9,.3,1.25),filter .3s ease}
+.mn-aventura::after{content:'';position:absolute;inset:0;z-index:-2;clip-path:var(--pa);
+  background:radial-gradient(rgba(255,255,255,.28) 1.1px,transparent 1.7px) 0 0/7px 7px,linear-gradient(135deg,#ffe08a 0%,#ffbf3c 45%,#ff8a1f 100%)}
+.mn-aventura::before{content:'';position:absolute;inset:4px;z-index:-1;clip-path:var(--pa);background:linear-gradient(135deg,rgba(255,255,255,.35),transparent 30%)}
+.mn-aventura .mn-br,.mn-op .mn-g{position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+.mn-aventura .mn-br{clip-path:var(--pa)}
+.mn-br::after,.mn-g::after{content:'';position:absolute;top:-10%;bottom:-10%;left:-45%;width:28%;transform:skewX(-22deg);opacity:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.75),transparent)}
+.mn-aventura .mn-br::after{animation:mnBrillo 1s ease-out 1.2s,mnBrillo 1s ease-out 7s infinite}
 .mn-aventura .mapa-mini{position:absolute;right:9%;top:16%;bottom:12%;width:48%;background:#7a4a00 center/cover no-repeat;
   clip-path:polygon(8% 0,100% 0,92% 100%,0 100%);filter:sepia(1) saturate(1.6) brightness(1.02) contrast(.95);opacity:.72;mix-blend-mode:multiply}
 .mn-aventura b{position:absolute;left:5.5%;top:18%;font-family:'Orbitron',monospace;font-weight:900;font-size:clamp(30px,calc(8.4 * var(--uh)),64px);
@@ -433,13 +446,22 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
   text-shadow:0 3px 0 #b85a00,2px 0 0 #b85a00,-2px 0 0 #b85a00,0 -2px 0 #b85a00,0 8px 18px rgba(120,50,0,.45)}
 .mn-aventura small{position:absolute;left:6%;bottom:13%;max-width:36%;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:clamp(13px,calc(3.2 * var(--uh)),18px);
   line-height:1.2;color:#3b1d00}
-.mn-aventura:hover,.mn-aventura:focus-visible,.mn-aventura.gp-foco{transform:translateX(8px)}
-.mn-aventura.gp-foco,.mn-aventura:focus-visible{outline:0;filter:drop-shadow(0 0 10px rgba(255,209,102,.9))}
+.mn-aventura small em{display:block;margin-top:3px;font-style:normal;font-weight:600;font-size:.84em;color:#5a2d00}
+#sMenu .mn-aventura:is(:hover,:focus-visible,.gp-foco){outline:0;transform:translateX(10px) scale(1.012);animation:mnVibA .34s ease-out,mnLatidoA 2s ease-in-out .35s infinite;
+  filter:drop-shadow(0 0 10px rgba(255,209,102,.95)) drop-shadow(0 0 26px rgba(255,140,30,.55))}
+#sMenu .mn-aventura:is(:hover,:focus-visible,.gp-foco) .mn-br::after{animation:mnBrillo .7s ease-out}
+#sMenu .mn-aventura:active{transform:translateX(10px) scale(.985);transition-duration:.08s}
+@keyframes mnVibA{0%{transform:translateX(0)}25%{transform:translateX(13px) rotate(-.5deg)}45%{transform:translateX(7px) rotate(.4deg)}65%{transform:translateX(11px) rotate(-.2deg)}100%{transform:translateX(10px) scale(1.012)}}
+@keyframes mnLatidoA{50%{filter:drop-shadow(0 0 16px rgba(255,220,120,1)) drop-shadow(0 0 40px rgba(255,140,30,.75))}}
+@keyframes mnBrillo{0%{left:-45%;opacity:1}100%{left:125%;opacity:1}}
 .mn-ops{display:flex;flex-direction:column;gap:clamp(4px,calc(1 * var(--uh)),9px)}
-.mn-op{position:relative;display:flex;align-items:center;gap:12px;width:min(470px,86%);height:clamp(32px,calc(8 * var(--uh)),54px);padding:0 30px 0 26px;text-align:left;
-  clip-path:polygon(16px 0,100% 0,calc(100% - 16px) 100%,0 100%);
-  background:linear-gradient(90deg,#0f2058,#0b1844 70%,#0a1538);color:#eef2ff;border:0;transition:transform .15s ease,background .15s ease}
-.mn-op::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--cyan);transform:skewX(-17deg);transform-origin:bottom}
+.mn-op{--po:polygon(16px 0,100% 0,calc(100% - 16px) 100%,0 100%);position:relative;isolation:isolate;display:flex;align-items:center;gap:12px;width:min(470px,86%);height:clamp(32px,calc(8 * var(--uh)),54px);padding:0 30px 0 26px;text-align:left;
+  background:none;color:#eef2ff;border:0;filter:drop-shadow(0 3px 6px rgba(0,0,0,.35));
+  transition:transform .24s cubic-bezier(.2,.9,.3,1.3),filter .3s ease,color .18s ease}
+.mn-op::after{content:'';position:absolute;inset:0;z-index:-2;clip-path:var(--po);background:linear-gradient(90deg,#0f2058,#0b1844 70%,#0a1538)}
+.mn-op .mn-g{clip-path:var(--po);opacity:0;transition:opacity .22s ease;
+  background:radial-gradient(rgba(255,255,255,.3) 1px,transparent 1.6px) 0 0/6px 6px,linear-gradient(90deg,#ffd166,#f5a623 60%,#ff8a1f)}
+.mn-op::before{content:'';position:absolute;left:3px;top:0;bottom:0;width:5px;background:var(--cyan);transform:skewX(-17deg);transform-origin:bottom;transition:background .2s,box-shadow .2s}
 .mn-op:nth-child(1){margin-left:calc(2.2 * var(--uw))}
 .mn-op:nth-child(2){margin-left:0}
 .mn-op:nth-child(3){margin-left:calc(3 * var(--uw))}
@@ -451,16 +473,32 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 .mn-op small{margin-left:auto;font-size:clamp(11px,calc(2.7 * var(--uh)),15px);font-weight:600;color:#9fb3dd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .mn-op .bdg{min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:var(--red);color:#fff;font-family:'Orbitron',monospace;font-size:11px;font-weight:900;
   display:inline-flex;align-items:center;justify-content:center;box-shadow:0 0 10px rgba(255,47,90,.6)}
-.mn-op:hover,.mn-op:focus-visible,.mn-op.gp-foco{transform:translateX(10px);color:#1a0f00;
-  background:radial-gradient(rgba(255,255,255,.3) 1px,transparent 1.6px) 0 0/6px 6px,linear-gradient(90deg,#ffd166,#f5a623 60%,#ff8a1f)}
-.mn-op:hover small,.mn-op:focus-visible small,.mn-op.gp-foco small{color:#4a2600}
-.mn-op:hover::before,.mn-op:focus-visible::before{background:#fff}
-.mn-op.lock{opacity:.62}
-.mn-op.lock:hover,.mn-op.lock:focus-visible,.mn-op.lock.gp-foco{background:linear-gradient(90deg,#26355e,#1a2650);color:#eef2ff}
-.mn-op.lock:hover small,.mn-op.lock:focus-visible small,.mn-op.lock.gp-foco small{color:#cfe0ff}
+#sMenu .mn-op:is(:hover,:focus-visible,.gp-foco){outline:0;transform:translateX(14px);color:#1a0f00;animation:mnVib .32s ease-out,mnLatido 2s ease-in-out .35s infinite;
+  filter:drop-shadow(0 0 7px rgba(255,200,80,.9)) drop-shadow(0 0 18px rgba(255,140,30,.45))}
+#sMenu .mn-op:is(:hover,:focus-visible,.gp-foco) .mn-g{opacity:1}
+#sMenu .mn-op:is(:hover,:focus-visible,.gp-foco) .mn-g::after{animation:mnBrillo .55s ease-out .04s}
+#sMenu .mn-op:is(:hover,:focus-visible,.gp-foco) small{color:#4a2600}
+#sMenu .mn-op:is(:hover,:focus-visible,.gp-foco)::before{background:#fff;box-shadow:0 0 10px #fff}
+#sMenu .mn-op:active{transform:translateX(14px) scale(.97);transition-duration:.08s}
+@keyframes mnVib{0%{transform:translateX(0)}22%{transform:translateX(18px) rotate(-.7deg)}42%{transform:translateX(10px) rotate(.6deg)}62%{transform:translateX(16px) rotate(-.3deg)}82%{transform:translateX(13px)}100%{transform:translateX(14px)}}
+@keyframes mnLatido{50%{filter:drop-shadow(0 0 11px rgba(255,215,110,1)) drop-shadow(0 0 28px rgba(255,140,30,.65))}}
+.mn-op.lock{opacity:.66}
+.mn-op.lock .mn-g{background:linear-gradient(90deg,#33477c,#22305e)}
+#sMenu .mn-op.lock:is(:hover,:focus-visible,.gp-foco){color:#eef2ff;opacity:.95;filter:drop-shadow(0 0 7px rgba(120,170,255,.7));animation:mnVib .32s ease-out}
+#sMenu .mn-op.lock:is(:hover,:focus-visible,.gp-foco) small{color:#cfe0ff}
 .mn-op.lock b::after{content:' 🔒';font-size:.8em}
-.mn-pj{position:absolute;right:clamp(0px,calc(3 * var(--uw)),60px);bottom:0;height:calc(92 * var(--uh));max-width:46%;object-fit:contain;object-position:bottom;z-index:2;
-  filter:drop-shadow(0 0 2px rgba(54,214,255,.9)) drop-shadow(0 10px 30px rgba(0,0,0,.65))}
+.mn-pjw{position:absolute;right:var(--pjr,0px);bottom:var(--pjb,0px);height:calc(var(--pjh,92) * var(--uh));z-index:2;pointer-events:none;
+  translate:var(--mx,0px) var(--my,0px);transition:translate .6s ease-out}
+.mn-pjw[hidden]{display:none}
+.mn-pjw::before{content:'';position:absolute;left:-18%;right:-18%;top:2%;bottom:-6%;z-index:-1;border-radius:50%;
+  background:radial-gradient(closest-side,rgba(120,200,255,.42),rgba(54,120,255,.18) 55%,transparent 100%)}
+.mn-pjw::after{content:'';position:absolute;left:50%;top:42%;width:150%;aspect-ratio:1;z-index:-1;transform:translate(-50%,-50%);
+  background:repeating-conic-gradient(rgba(150,205,255,.13) 0 4deg,transparent 4deg 13deg);
+  -webkit-mask-image:radial-gradient(closest-side,#000 25%,transparent 100%);mask-image:radial-gradient(closest-side,#000 25%,transparent 100%);animation:mnRayos 90s linear infinite}
+@keyframes mnRayos{to{transform:translate(-50%,-50%) rotate(360deg)}}
+.mn-pj{display:block;height:100%;width:auto;max-width:none;transform-origin:50% 100%;animation:mnRespira 5.5s ease-in-out infinite;
+  filter:drop-shadow(0 0 2px rgba(200,235,255,.95)) drop-shadow(0 0 16px rgba(54,214,255,.45)) drop-shadow(0 14px 30px rgba(0,0,0,.7))}
+@keyframes mnRespira{50%{transform:scale(1.012) translateY(-.6%)}}
 .mn-pj-nom{position:absolute;right:clamp(10px,calc(3 * var(--uw)),48px);bottom:calc(4 * var(--uh));z-index:3;padding:6px 26px 6px 18px;
   background:#0a1636;border-left:4px solid var(--cyan);clip-path:polygon(0 0,100% 0,calc(100% - 14px) 100%,0 100%);text-align:left}
 .mn-pj-nom b{display:block;font-family:'Orbitron',monospace;font-weight:900;font-size:13px;letter-spacing:.08em;color:#fff}
@@ -469,12 +507,12 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 #sMenu.entra .mn-op{animation:mnIzq .42s cubic-bezier(.2,.9,.2,1) both}
 #sMenu.entra .mn-op:nth-child(1){animation-delay:.08s}#sMenu.entra .mn-op:nth-child(2){animation-delay:.12s}#sMenu.entra .mn-op:nth-child(3){animation-delay:.16s}
 #sMenu.entra .mn-op:nth-child(4){animation-delay:.2s}#sMenu.entra .mn-op:nth-child(5){animation-delay:.24s}#sMenu.entra .mn-op:nth-child(6){animation-delay:.28s}
-#sMenu.entra .mn-pj{animation:mnDer .6s cubic-bezier(.2,.9,.2,1) .1s both}
+#sMenu.entra .mn-pjw{animation:mnDer .7s cubic-bezier(.2,.9,.2,1) .1s both}
 #sMenu.entra .mn-top{animation:mnArr .4s ease both}
 @keyframes mnIzq{from{opacity:0;transform:translateX(-60px)}}
 @keyframes mnDer{from{opacity:0;transform:translateX(60px)}}
 @keyframes mnArr{from{opacity:0;transform:translateY(-20px)}}
-@media (prefers-reduced-motion:reduce){#sMenu.entra *{animation:none!important}}
+@media (prefers-reduced-motion:reduce){#sMenu *,#sMenu *::before,#sMenu *::after{animation:none!important}}
 .tips-l{display:flex;flex-direction:column;gap:8px}
 .tips-l>div{padding:10px 12px;border-left:3px solid var(--gold);background:rgba(10,20,48,.7)}
 .tips-l b{display:block;font-family:'Orbitron',monospace;font-size:11.5px;letter-spacing:.08em;color:#ffd166;margin-bottom:3px}
@@ -500,12 +538,18 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 :root.h520 .mn-pj-nom small{font-size:11px}
 :root.q760 .mn-izq{width:64%}
 :root.q760 .mn-op small{display:none}
-:root.q760 .mn-pj{max-width:40%;opacity:.9}
+:root.q760 .mn-pjw{opacity:.92}
 :root.q620 .mn-pj-nom{display:none}
 :root.q620 .mn-jug{min-width:0;padding-right:36px}
 :root.q620 .mn-lin{gap:8px;font-size:10px}
 :root.q620p .mn-izq{width:92%}
-:root.q620p .mn-pj{opacity:.28;max-width:80%}
+:root.q620p .mn-aventura{height:clamp(150px,calc(24 * var(--uh)),220px)}
+:root.q620p .mn-aventura b{font-size:clamp(30px,calc(10 * var(--uw)),48px);top:12%}
+:root.q620p .mn-aventura .mapa-mini{width:40%;right:7%}
+:root.q620p .mn-aventura small{max-width:50%;font-size:13px;bottom:11%}
+:root.h520 .mn-aventura small em{display:none}
+:root.h520 .mn-aventura small{max-width:44%}
+:root.q620p .mn-pjw{opacity:.28}
 /* v195 · Cajas de sobres */
 .td-caja{display:flex;flex-direction:column;gap:5px;font-size:12.5px;color:var(--muted);text-align:left;padding:7px 8px;border-radius:9px;background:rgba(2,6,20,.55);border:1px solid var(--line)}
 .td-caja .cj-l{display:flex;justify-content:space-between;gap:6px;align-items:center}
@@ -676,7 +720,8 @@ body.nx-sismo2{animation:nxSismo2 .09s linear infinite}
     <div class="cg-tt" id="cgTT">Nexotlan</div>
     <div class="cg-x" id="cgX">Cargando…</div>
   </div>
-  <div class="cg-pie"><div class="cg-spr" id="cgSpr"><div class="cg-naipe"></div></div><span>CARGANDO</span></div>
+  <div class="cg-pie"><div class="cg-spr" id="cgSpr"><div class="cg-naipe"></div></div><span>CARGANDO<i id="cgBar"></i></span></div>
+  <div class="cg-sig">TOCA PARA CONTINUAR</div>
 </div>
 <script>
 // Consejos de la pantalla de carga. Se pueden cambiar o agregar en assets/nexotlan/tips.txt (una línea por consejo: Título | Texto).
@@ -698,7 +743,16 @@ window.nxTip = function () {
   try { var c = JSON.parse(localStorage.getItem('chh_nx_portada') || '{}') || {}; if (c.tips && c.tips.length) L = c.tips; } catch (e) {}
   if (!L.length) L = window.NX_TIPS_BASE;
   var t = L[Math.floor(Math.random() * L.length)] || ['', ''];
+  if (L.length > 1 && t[1] === window.__tipUlt) t = L[(L.indexOf(t) + 1) % L.length];      // no repetir el mismo dos veces seguidas
+  window.__tipUlt = t[1];
   document.getElementById('cgTT').textContent = t[0] || 'Consejo'; document.getElementById('cgX').textContent = t[1] || '';
+  // v208 · Tiempo para leerlo con calma (según lo largo del consejo): 3.2 a 7 s. Se puede saltar al terminar de cargar.
+  var ms = Math.min(7000, Math.max(3200, 1500 + ((t[0] || '') + (t[1] || '')).length * 36));
+  window.__cargaLee = ms;
+  var b = document.getElementById('cgBar'), g = document.getElementById('carga');
+  g.classList.remove('listo');
+  if (b) { b.style.transitionDuration = '0s'; b.style.width = '0'; void b.offsetWidth; b.style.transitionDuration = ms + 'ms'; b.style.width = '100%'; }
+  return ms;
 };
 (function(){
   // La portada y la pantalla de carga usan lo último que se cargó (se guarda al leer mapa.txt): aparecen al instante, sin "placeholder"
@@ -714,7 +768,7 @@ window.nxTip = function () {
   else if(c.titulo)document.getElementById('cgT').textContent=c.titulo;
   if(c.sprite)document.getElementById('cgSpr').innerHTML='<img src="'+String(c.sprite).replace(/"/g,'&quot;')+'" alt="" onerror="this.parentNode.innerHTML=\'<div class=cg-naipe></div>\'">';
   if(/[?&]editor=1/.test(location.search))return;
-  window.nxTip(); g.hidden=false; window.__cargaMin=Date.now()+900;      // al entrar y al regresar de un Choque
+  g.hidden=false; window.__cargaMin=Date.now()+window.nxTip();      // al entrar y al regresar de un Choque
   window.__cargaT=setTimeout(function(){g.classList.add('fuera');setTimeout(function(){g.hidden=true;},500);},15000);   // seguro
 })();
 </script>
@@ -741,10 +795,10 @@ window.nxTip = function () {
     <button class="mn-ic" id="mnTips" title="Consejos" aria-label="Consejos">?</button>
     <button class="mn-ic" id="mnMute" title="Música" aria-label="Música">🔊</button>
   </div>
-  <img class="mn-pj" id="mnPj" alt="" hidden>
+  <div class="mn-pjw" id="mnPjW" hidden><img class="mn-pj" id="mnPj" alt=""></div>
   <div class="mn-pj-nom" id="mnPjNom" hidden></div>
   <div class="mn-izq">
-    <button class="mn-aventura" id="mnAventura"><span class="mapa-mini" id="mnMapa"></span><b>AVENTURA</b><small id="mnSig"></small></button>
+    <button class="mn-aventura" id="mnAventura"><i class="mn-br"></i><span class="mapa-mini" id="mnMapa"></span><b>AVENTURA</b><small id="mnSig"></small></button>
     <div class="mn-ops" id="mnOps"></div>
   </div>
 </section>
@@ -1492,7 +1546,7 @@ $('fX').onclick = cerrarFicha;
 let DLG = null;
 const paginas = t => String(t || '').split('|').map(x => x.trim()).filter(Boolean);
 async function dialogo(p, texto, ops) {
-  quitarCarga();
+  quitarCarga(); await esperaCarga();
   const pags = paginas(texto); if (!pags.length) pags.push('…');
   const [ret, pai] = await Promise.all([retrato(p), paisajeUrl(p)]), [, tc] = TIPO_TXT[p.tipo] || TIPO_TXT.rival;
   const d = distDe(p);
@@ -1612,8 +1666,7 @@ async function iniciarChoque(p0, fase) {
   Object.assign(m, fch);
   if (p.arena_inicial) m.arenaInicial = String(p.arena_inicial).trim();   // el rival empieza con esta ARENA activa
   try { localStorage.setItem('chh_arcade_match', JSON.stringify(m)); } catch (e) {}
-  mostrarCarga(0);
-  location.href = 'simulacion.html?modo=arcade';
+  mostrarCarga(0, () => { location.href = 'simulacion.html?modo=arcade'; });
 }
 async function procesarResultado() {
   if (!S || !S.pendiente) return false;
@@ -2343,32 +2396,50 @@ function limpiarVentanas() {
   document.querySelectorAll('.modal.on,.sob.on,.dlg.on').forEach(m => m.classList.remove('on'));
   if (DLG) clearInterval(DLG.tm); DLG = null;
 }
+// v208 · La carga real termina rápido: la pantalla se queda el tiempo de leer el consejo (barra) y se puede saltar
+// tocando, con Enter/Espacio o con A/B del control en cuanto ya cargó ("TOCA PARA CONTINUAR").
 function quitarCarga(ya) {
   const g = $('carga'); if (!g || g.hidden || g.classList.contains('fuera')) return;
   const falta = (window.__cargaMin || 0) - Date.now();
-  if (!ya && falta > 0) { clearTimeout(quitarCarga._t); quitarCarga._t = setTimeout(() => quitarCarga(true), falta); return; }   // que el consejo alcance a leerse
-  clearTimeout(window.__cargaT); clearTimeout(quitarCarga._t); g.classList.add('fuera'); setTimeout(() => { if (g.classList.contains('fuera')) g.hidden = true; }, 450);
+  if (!ya && falta > 0) { g.classList.add('listo'); clearTimeout(quitarCarga._t); quitarCarga._t = setTimeout(() => quitarCarga(true), falta); return; }   // que el consejo alcance a leerse
+  clearTimeout(window.__cargaT); clearTimeout(quitarCarga._t);
+  const fin = window.__cargaFin; window.__cargaFin = null;
+  if (fin) { g.classList.remove('listo'); fin(); return; }          // se va a otra página: la pantalla se queda puesta
+  g.classList.remove('listo'); g.classList.add('fuera'); setTimeout(() => { if (g.classList.contains('fuera')) g.hidden = true; }, 450);
 }
-// Muestra la pantalla de carga con un consejo al azar (v207). min = ms mínimos en pantalla
-function mostrarCarga(min) {
-  const g = $('carga'); if (!g || EDITOR) return;
-  try { window.nxTip(); } catch (e) {}
+function cargaVisible() { const g = $('carga'); return !!g && !g.hidden && !g.classList.contains('fuera'); }
+// Espera a que se quite la pantalla de carga (los mensajes y diálogos salen después, no debajo)
+function esperaCarga() { return new Promise(r => { const t0 = Date.now(), v = () => (!cargaVisible() || Date.now() - t0 > 16000) ? r() : setTimeout(v, 60); v(); }); }
+function saltarCarga() { if (cargaVisible() && $('carga').classList.contains('listo')) quitarCarga(true); }
+// Muestra la pantalla de carga con un consejo al azar (v207). min = ms mínimos (si no, lo que tome leer el consejo)
+function mostrarCarga(min, alTerminar) {
+  const g = $('carga'); if (!g || EDITOR) { if (alTerminar) alTerminar(); return; }
   clearTimeout(quitarCarga._t); g.classList.remove('fuera'); g.hidden = false;
-  window.__cargaMin = Date.now() + (min || 0);
+  let lee = 0; try { lee = window.nxTip(); } catch (e) {}
+  window.__cargaMin = Date.now() + Math.max(min || 0, lee || 0);
+  window.__cargaFin = alTerminar || null;
   clearTimeout(window.__cargaT); window.__cargaT = setTimeout(() => quitarCarga(true), 15000);
+  if (alTerminar) quitarCarga();                                     // no hay nada que esperar: solo el tiempo de lectura
 }
+$('carga').onclick = saltarCarga;
+addEventListener('keydown', e => {
+  if (!cargaVisible()) return;
+  if (!['Enter', ' ', 'Escape', 'Tab', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Backspace'].includes(e.key)) return;
+  if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') saltarCarga();
+  e.preventDefault(); e.stopPropagation();                           // nada de lo de abajo reacciona mientras se lee
+}, true);
 function irA(id) { quitarCarga(); if (id === 'sTitulo') limpiarVentanas(); document.querySelectorAll('.scr').forEach(s => s.classList.toggle('on', s.id === id)); }
 function toast(t) { const el = $('toast'); el.innerHTML = esc(t).split(esc('<i class="mn"></i>')).join('<i class="mn"></i>'); el.classList.add('on'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('on'), 2600); }
 function mensaje(t, html, ops) {
-  quitarCarga(true);
-  return new Promise(res => {
+  quitarCarga();
+  return esperaCarga().then(() => new Promise(res => {
     $('msgT').textContent = t; $('msgB').innerHTML = html;
     ops = ops || [['ENTENDIDO', '']];
     $('msgOps').innerHTML = ops.map((o, i) => `<button class="bt ${o[1] || ''}" data-i="${i}">${o[0]}</button>`).join('');
     $('msgOps').querySelectorAll('button').forEach(b => b.onclick = () => { cerrarModal('mMsg'); res(+b.dataset.i); });
     $('mMsg').classList.add('on');
     try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('msgOps').querySelector('button')), 40); } catch (e) {}
-  });
+  }));
 }
 // Muestra el mapa ya dimensionado (sin esto, al volver de un Choque el mapa quedaba de alto 0 y no se veían los puntos)
 function mostrarMapa() {
@@ -2405,7 +2476,6 @@ function volver() {
   if (VOLVER === 'sMenu') { abrirMenu(); return; }
   irA('sMapa'); pintarHud(); ajustarZoom(ZOOM);
 }
-function nuevasPistasNx() { const j = sesionJug(); if (!j) return 0; try { const v = JSON.parse(localStorage.getItem('nhMusicaNueva_' + j.id) || '[]'); return Array.isArray(v) ? v.length : 0; } catch (e) { return 0; } }
 function lugarDe(p) {      // ¿se puede abrir hoy desde el menú? (hay que haberlo encontrado en el mapa)
   if (!p) return { ok: false, txt: 'No disponible' };
   const d = distDe(p);
@@ -2437,25 +2507,27 @@ function pintarMenu() {
     (S.campeon ? '<span style="color:#ffd166">👑 CAMPEÓN</span>' : (ult ? `<span>📍 ${esc(ult.nombre || ult.id)}</span>` : ''));
   $('mnXp').innerHTML = `<span>GUARDIANES</span><div class="bar"><i style="width:${r.gt ? r.gv / r.gt * 100 : 0}%"></i></div><span>${r.gv}/${r.gt}</span>`;
   $('mnMute').textContent = MUTE ? '🔇' : '🔊';
-  $('mnSig').textContent = S.campeon ? 'Eres Campeón de Nexotlan · sigue explorando' : r.sig ? 'Siguiente distrito: ' + (r.sig.nombre || r.sig.id) : (ab.length === DIST.length ? 'Todos los distritos abiertos · vence a los Guardianes' : 'Explora Nexotlan');
+  const sig = S.campeon ? 'Eres Campeón de Nexotlan · sigue explorando' : r.sig ? 'Siguiente distrito: ' + (r.sig.nombre || r.sig.id) : (ab.length === DIST.length ? 'Todos los distritos abiertos · vence a los Guardianes' : 'Explora Nexotlan');
+  // v208 · Qué hay hoy en el mapa: rivales sin vencer y guardianes que ya se pueden retar (en distritos abiertos)
+  const hoy = PTS.filter(p => (p.tipo === 'rival' || p.tipo === 'guardian') && !vencido(p.id) && visibleHoy(p) && (!distDe(p) || distritoAbierto(distDe(p))) && (p.tipo !== 'guardian' || !(p._req || []).length || cumple(p._req)));
+  const hr = hoy.filter(p => p.tipo === 'rival').length, hg = hoy.length - hr;
+  $('mnSig').innerHTML = esc(sig) + `<em>${hr || hg ? 'Hoy: ' + [hr ? hr + (hr > 1 ? ' rivales' : ' rival') + ' por vencer' : '', hg ? hg + (hg > 1 ? ' guardianes' : ' guardián') + ' a tu alcance' : ''].filter(Boolean).join(' · ') : 'Hoy no hay rivales nuevos · descansa o pide revancha'}</em>`;
   $('mnMapa').style.backgroundImage = CFG.mapa ? `url("${DIR + CFG.mapa}")` : '';
   // Fondo: viñetas con los paisajes de los distritos (los cerrados en silueta)
   $('mnFondo').innerHTML = DIST.slice(0, 9).map(d => { const u = candidatos(d.paisaje, 'paisajes').map(x => `url('${esc(x)}')`).join(','); return `<i class="${distritoAbierto(d) ? '' : 'lock'}" style="${u ? `background-image:${u}` : ''}"></i>`; }).join('');
   const com = PTS.find(esComerciante), car = PTS.find(esCarpetero), lc = lugarDe(com), lr = lugarDe(car);
-  const nN = Object.keys(S.nuevas || {}).length, nP = nuevasPistasNx();
-  const op = (id, ic, t, sub, extra, lock) => `<button class="mn-op${lock ? ' lock' : ''}" id="${id}"><span class="ic">${ic}</span><b>${t}</b>${extra || ''}<small>${esc(sub)}</small></button>`;
+  const nN = Object.keys(S.nuevas || {}).length;
+  const op = (id, ic, t, sub, extra, lock) => `<button class="mn-op${lock ? ' lock' : ''}" id="${id}"><i class="mn-g"></i><span class="ic">${ic}</span><b>${t}</b>${extra || ''}<small>${esc(sub)}</small></button>`;
   $('mnOps').innerHTML =
     op('mnBaraja', '🃏', 'BARAJA Y COFRE', (S.mazo && S.mazo.nombre) || S.barajaNombre || '', nN ? `<span class="bdg">${nN}</span>` : '') +
     (com ? op('mnTienda', '🛒', 'COMERCIANTE', lc.ok ? 'Sobres · cartas del día · vender' : lc.txt, '', !lc.ok) : '') +
     (car ? op('mnCarpeta', '🎰', 'CARPETERO', lr.ok ? 'Cambia tus cartas repetidas' : lr.txt, '', !lr.ok) : '') +
     op('mnDiario', '📖', 'DIARIO', `${r.ven}/${r.tot} vencidos · ${S.victorias || 0}-${S.perdidas || 0}`) +
-    op('mnOst', '🎵', 'SOUNDTRACK', sesionJug() ? 'Música desbloqueada' : 'Inicia sesión para desbloquear', nP ? `<span class="bdg">${nP}</span>` : '') +
     op('mnPartida', '⇄', 'CAMBIAR PARTIDA', 'Volver a la portada');
   $('mnBaraja').onclick = () => { VOLVER = 'sMenu'; abrirMazo(); };
   if ($('mnTienda')) $('mnTienda').onclick = () => { if (!lc.ok) { toast('🔒 Comerciante: ' + lc.txt); return; } VOLVER = 'sMenu'; abrirTienda(com); };
   if ($('mnCarpeta')) $('mnCarpeta').onclick = () => { if (!lr.ok) { toast('🔒 Carpetero: ' + lr.txt); return; } VOLVER = 'sMenu'; abrirCarpeta(car); };
   $('mnDiario').onclick = abrirDiario;
-  $('mnOst').onclick = () => { guardar(); mostrarCarga(0); location.href = 'musica.html'; };
   $('mnPartida').onclick = () => { guardar(); musica(null); irA('sTitulo'); pintarTitulo(); };
 }
 async function abrirMenu() {
@@ -2471,10 +2543,58 @@ async function abrirMenu() {
   const M = $('sMenu'); M.classList.remove('entra'); irA('sMenu'); void M.offsetWidth; M.classList.add('entra');
   musica(CFG.musica_menu || CFG.musica);
   try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('mnAventura')), 80); } catch (e) {}
+  setTimeout(() => M.classList.remove('entra'), 900);         // ya entró: las opciones animan libremente al enfocarlas
   const pj = await personajeMenu();
-  if (pj) { $('mnPj').src = pj.src; $('mnPj').hidden = false; $('mnPjNom').hidden = !pj.nom; $('mnPjNom').innerHTML = `<b>${esc(pj.nom.toUpperCase())}</b>${pj.tit ? `<small>${esc(pj.tit)}</small>` : ''}`; }
-  else { $('mnPj').hidden = true; $('mnPjNom').hidden = true; }
+  const pjr = pj ? await recortePj(pj.src) : null;
+  if (pj && pjr) { $('mnPj').src = pjr.src; $('mnPjW').dataset.r = pjr.r; $('mnPjW').hidden = false; ajustarPj(); $('mnPjNom').hidden = !pj.nom; $('mnPjNom').innerHTML = `<b>${esc(pj.nom.toUpperCase())}</b>${pj.tit ? `<small>${esc(pj.tit)}</small>` : ''}`; }
+  else { $('mnPjW').hidden = true; $('mnPjNom').hidden = true; }
 }
+// v208 · Personaje del menú: se recorta el borde transparente y se escala para llenar el lado derecho.
+// Los de imagen ancha (p. ej. con capa o arma) se agrandan y salen un poco por abajo y por la derecha, como en un póster.
+const _pjCache = {};
+function recortePj(src) {
+  if (_pjCache[src]) return Promise.resolve(_pjCache[src]);
+  return new Promise(res => {
+    const im = new Image();
+    im.onload = () => {
+      let out = { src, r: im.naturalWidth / im.naturalHeight };
+      try {
+        const k = Math.min(1, 240 / Math.max(im.naturalWidth, im.naturalHeight)), w = Math.max(1, Math.round(im.naturalWidth * k)), h = Math.max(1, Math.round(im.naturalHeight * k));
+        const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d'); x.drawImage(im, 0, 0, w, h);
+        const d = x.getImageData(0, 0, w, h).data; let x0 = w, y0 = h, x1 = -1, y1 = -1;
+        for (let y = 0; y < h; y++) for (let i = 0; i < w; i++) if (d[(y * w + i) * 4 + 3] > 24) { if (i < x0) x0 = i; if (i > x1) x1 = i; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+        if (x1 > x0 && y1 > y0 && ((x1 - x0 + 1) * (y1 - y0 + 1)) < w * h * .93) {    // hay borde de sobra: se recorta
+          const sx = Math.floor(x0 / k), sy = Math.floor(y0 / k), sw = Math.min(im.naturalWidth - sx, Math.ceil((x1 - x0 + 1) / k)), sh = Math.min(im.naturalHeight - sy, Math.ceil((y1 - y0 + 1) / k));
+          const c2 = document.createElement('canvas'); c2.width = sw; c2.height = sh; c2.getContext('2d').drawImage(im, sx, sy, sw, sh, 0, 0, sw, sh);
+          out = { src: c2.toDataURL('image/png'), r: sw / sh };
+        }
+      } catch (e) {}                                      // imagen de otro origen: se usa tal cual
+      res(_pjCache[src] = out);
+    };
+    im.onerror = () => res(null);
+    im.src = src;
+  });
+}
+function ajustarPj() {
+  const w = $('mnPjW'); if (!w || w.hidden) return;
+  const r = parseFloat(w.dataset.r) || .7, W = ANCHO(), H = ALTO();
+  const port = H > W * 1.1;
+  const anchoMax = W * (port ? 1 : H / W < .5 ? .56 : .64);          // cuánto del ancho puede ocupar
+  let h = Math.min(H * (r > 1 ? 1.08 : .97), anchoMax / r);             // alto en px
+  h = Math.max(h, H * (port ? .5 : .74));                              // nunca chiquito: si es ancho, se sale por la derecha
+  const ancho = h * r, sobra = Math.max(0, ancho - anchoMax);
+  w.style.setProperty('--pjh', (h / H * 100).toFixed(2));
+  w.style.setProperty('--pjr', (-Math.min(sobra, ancho * .22) - (r > 1 ? ancho * .04 : 0)).toFixed(0) + 'px');
+  w.style.setProperty('--pjb', (r > 1 ? -h * .07 : 0).toFixed(0) + 'px');
+}
+addEventListener('resize', () => { if ($('sMenu').classList.contains('on')) ajustarPj(); });
+// Parallax suave con el mouse (fondo y personaje se mueven al revés)
+$('sMenu').addEventListener('pointermove', e => {
+  if (e.pointerType !== 'mouse' || matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+  const W = ANCHO(), H = ALTO(), z = window.UIZ || 1, mx = ((e.clientX / z) / W - .5), my = ((e.clientY / z) / H - .5);
+  $('mnFondo').style.setProperty('--mx', (mx * -22).toFixed(1) + 'px'); $('mnFondo').style.setProperty('--my', (my * -12).toFixed(1) + 'px');
+  $('mnPjW').style.setProperty('--mx', (mx * 22).toFixed(1) + 'px'); $('mnPjW').style.setProperty('--my', (my * 12).toFixed(1) + 'px');
+});
 $('mnAventura').onclick = () => { mostrarCarga(1100); entrarMapa(); };
 $('mnMute').onclick = () => { MUTE = !MUTE; try { localStorage.setItem('chh_nexotlan_mute', MUTE ? '1' : '0'); } catch (e) {} $('mnMute').textContent = MUTE ? '🔇' : '🔊'; if (MUTE) $('aud').pause(); else if ($('aud').src) $('aud').play().catch(() => {}); };
 $('mnTips').onclick = () => {
@@ -2626,9 +2746,10 @@ document.addEventListener('keydown', e => {
 });
 window.GP_CFG = {
   principalTxt: 'Entrar / Avanzar',
-  sinAnillo: el => !!(el && el.closest && el.closest('#sMenu .mn-izq')),   // el menú resalta sus propias opciones
-  principal: () => $('sMenu').classList.contains('on') && !$('mCaja').classList.contains('on') && !$('mDiario').classList.contains('on') && !$('mMsg').classList.contains('on') ? $('mnAventura') : DLG ? ($('dOps').querySelector('button') || $('dCaja')) : ($('ficha').classList.contains('on') ? ($('fRetar') && !$('fRetar').disabled ? $('fRetar') : $('fHablar')) : null),
+  sinAnillo: el => !!(el && el.closest && el.closest('#sMenu .mn-izq, #carga')),   // el menú resalta sus propias opciones
+  principal: () => cargaVisible() ? $('carga') : $('sMenu').classList.contains('on') && !$('mCaja').classList.contains('on') && !$('mDiario').classList.contains('on') && !$('mMsg').classList.contains('on') ? $('mnAventura') : DLG ? ($('dOps').querySelector('button') || $('dCaja')) : ($('ficha').classList.contains('on') ? ($('fRetar') && !$('fRetar').disabled ? $('fRetar') : $('fHablar')) : null),
   atras: () => {
+    if (cargaVisible()) { saltarCarga(); return true; }
     if (DLG) { if (DLG.ops.length) cerrarDialogo(DLG.ops.length - 1); else avanzarDialogo(); return true; }
     if ($('mMsg').classList.contains('on')) { const b = $('msgOps').querySelectorAll('button'); b[b.length - 1].click(); return true; }
     if ($('mSobre').classList.contains('on')) { const b = !$('sbOk').hidden ? $('sbOk') : $('sbPkg'); b.click(); return true; }
@@ -2653,6 +2774,7 @@ window.GP_CFG = {
     return best;
   },
   alEnfocar: el => {
+    if (el.closest && el.closest('#sMenu .mn-izq')) try { GP.vibrar(22, .18); } catch (e) {}   // v208 · toque sutil al cambiar de opción
     document.querySelectorAll('.pt.gpf').forEach(b => b !== el && b.classList.remove('gpf'));
     if (!el.classList.contains('pt')) return;
     el.classList.add('gpf');

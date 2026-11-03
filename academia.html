@@ -3,627 +3,725 @@
 <head>
 <meta charset="UTF-8">
 <script src="config.js"></script><script src="nucleo.js"></script>
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#03050a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <link rel="manifest" href="manifest.json">
 <title>Academia Heroica · Choque de Héroes TCG</title>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@600;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
+/* ═══════════════════════════════════════════════════════════════
+   ACADEMIA HEROICA · v212
+   Listado con búsqueda, filtros y orden · ficha del autor (avatar + ranking)
+   Detalle en dos columnas en PC · estadísticas de la baraja · probar en la Simulación
+   ═══════════════════════════════════════════════════════════════ */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   --bg:rgb(var(--nx-k1)); --bg2:rgb(var(--nx-k3)); --bg3:rgb(var(--nx-k4));
   --card:rgb(var(--nx-k4)); --border:rgb(var(--nx-k6));
-  --text:#e0eeff; --muted:#6a7f9a;
-  --accent:#00ff9d; --accent-glow:rgba(0,255,157,.08);
-  --gold:#f5a623; --gold-glow:rgba(245,166,35,.1);
-  --purple:#cc55ff; --purple-glow:rgba(180,70,255,.1);
-  --blue:#00cfff; --blue-glow:rgba(0,207,255,.09);
-  --red:#ff2244;
+  --text:#e0eeff; --muted:#7d90ab;
+  --accent:#00ff9d; --gold:#f5a623; --gold2:#ffd166; --purple:#cc55ff; --blue:#00cfff; --red:#ff2244;
+  --safe-b:env(safe-area-inset-bottom,0px);
 }
-html,body{
-  min-height:100%;background:var(--bg);color:var(--text);
-  font-family:'Rajdhani',sans-serif;
-  -webkit-tap-highlight-color:transparent;
-  overflow-x:hidden;
+html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;-webkit-tap-highlight-color:transparent;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 60% 40% at 12% 0%,rgba(204,85,255,.10),transparent 60%),radial-gradient(ellipse 60% 40% at 90% 100%,rgba(245,166,35,.08),transparent 60%)}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.oculto{display:none!important}
+
+/* ── Barra superior ── */
+.top{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:12px;padding:10px 16px;padding-top:max(10px,env(safe-area-inset-top));
+  background:rgba(var(--nx-k1),.94);border-bottom:1px solid var(--border);backdrop-filter:blur(8px)}
+.top::after{content:'';position:absolute;left:10%;right:10%;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,var(--purple),var(--gold),transparent);opacity:.6}
+.ib{flex-shrink:0;width:40px;height:40px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;background:var(--card);border:1px solid var(--border);color:var(--muted);font-size:18px;text-decoration:none;transition:border-color .15s,color .15s}
+.ib:hover,.ib.gp-foco{border-color:var(--gold);color:var(--gold2)}
+.top-t{flex:1;min-width:0}
+.top-t b{display:block;font:900 clamp(14px,2vw,18px) 'Orbitron',sans-serif;letter-spacing:2px;color:var(--gold2);text-shadow:0 0 14px rgba(245,166,35,.35);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top-t small{font-size:13.5px;font-weight:600;color:var(--muted)}
+
+#wrap{position:relative;z-index:1;max-width:1320px;margin:0 auto;padding:16px 16px calc(40px + var(--safe-b))}
+
+/* ── Listado ── */
+.lst{display:grid;gap:18px}
+.filt{display:flex;flex-direction:column;gap:14px}
+.buscar{position:relative}
+.buscar input{width:100%;height:44px;padding:0 12px 0 38px;border-radius:10px;background:var(--card);border:1px solid var(--border);font-size:15px;font-weight:600;text-overflow:ellipsis}
+.buscar input:focus{outline:none;border-color:var(--purple);box-shadow:0 0 0 3px rgba(204,85,255,.15)}
+.buscar::before{content:'🔍';position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:15px;opacity:.7}
+.fg h4{font:700 10px 'Orbitron',sans-serif;letter-spacing:2px;color:var(--muted);margin-bottom:7px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{height:32px;padding:0 12px;border-radius:16px;background:rgba(255,255,255,.03);border:1px solid var(--border);color:var(--muted);font:700 10px 'Orbitron',sans-serif;letter-spacing:1px;transition:all .15s;white-space:nowrap}
+.chip:hover,.chip.gp-foco{border-color:var(--purple);color:var(--text)}
+.chip.on{background:rgba(204,85,255,.16);border-color:var(--purple);color:#f1d6ff}
+.chip.d-principiante.on{background:rgba(0,255,157,.12);border-color:var(--accent);color:var(--accent)}
+.chip.d-intermedio.on{background:rgba(0,207,255,.12);border-color:var(--blue);color:var(--blue)}
+.chip.d-avanzado.on{background:rgba(255,34,68,.12);border-color:var(--red);color:#ff8095}
+.chip.d-experto.on{background:rgba(204,85,255,.16);border-color:var(--purple);color:#e6b3ff}
+.res{font-size:14px;font-weight:600;color:var(--muted);margin-bottom:10px}
+.res b{color:var(--gold2);font-family:'Orbitron',sans-serif;font-size:12px}
+.grid{display:grid;grid-template-columns:1fr;gap:12px}
+
+.bk{position:relative;display:flex;gap:14px;width:100%;padding:12px;text-align:left;border-radius:12px;overflow:hidden;
+  background:linear-gradient(135deg,rgba(var(--nx-k4),.95),rgba(var(--nx-k3),.85));border:1px solid var(--border);
+  transition:transform .18s cubic-bezier(.2,.9,.3,1.25),border-color .18s,box-shadow .18s;animation:bkIn .35s ease both;animation-delay:calc(var(--i,0)*30ms)}
+.bk:hover,.bk:focus-visible,.bk.gp-foco{transform:translateY(-3px);border-color:rgba(204,85,255,.7);box-shadow:0 12px 26px rgba(0,0,0,.45),0 0 18px rgba(204,85,255,.18);outline:none}
+.bk.dest{border-color:rgba(245,166,35,.55);background:linear-gradient(135deg,rgba(245,166,35,.08),rgba(var(--nx-k3),.9))}
+.bk.dest::after{content:'⭐ DESTACADA';position:absolute;top:0;right:0;padding:4px 10px;border-bottom-left-radius:8px;background:rgba(245,166,35,.18);color:var(--gold2);font:700 8.5px 'Orbitron',sans-serif;letter-spacing:1.5px}
+@keyframes bkIn{from{opacity:0;transform:translateY(10px)}}
+.cov{flex-shrink:0;width:78px;aspect-ratio:63/88;border-radius:6px;overflow:hidden;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.08);box-shadow:0 6px 14px rgba(0,0,0,.45)}
+.cov img{width:100%;height:100%;object-fit:cover;display:block}
+.cov .em{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font:900 22px 'Orbitron',sans-serif;color:rgba(204,85,255,.6);background:radial-gradient(circle at 50% 40%,rgba(204,85,255,.22),transparent 70%)}
+.bk-c{min-width:0;flex:1;display:flex;flex-direction:column;gap:6px}
+.bk-t{font:900 14.5px/1.25 'Orbitron',sans-serif;letter-spacing:.5px;color:#fff;padding-right:84px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.bk:not(.dest) .bk-t{padding-right:0}
+.bk-d{font-size:14px;line-height:1.35;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.meta{display:flex;flex-wrap:wrap;gap:5px}
+.tag{font:700 9px 'Orbitron',sans-serif;letter-spacing:1px;padding:3px 8px;border-radius:4px;text-transform:uppercase;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--muted)}
+.tag.d-principiante{background:rgba(0,255,157,.08);border-color:rgba(0,255,157,.3);color:var(--accent)}
+.tag.d-intermedio{background:rgba(0,207,255,.08);border-color:rgba(0,207,255,.3);color:var(--blue)}
+.tag.d-avanzado{background:rgba(255,34,68,.08);border-color:rgba(255,34,68,.3);color:#ff8095}
+.tag.d-experto{background:rgba(204,85,255,.1);border-color:rgba(204,85,255,.35);color:#e6b3ff}
+.bk-f{margin-top:auto;display:flex;align-items:center;gap:10px;padding-top:6px;border-top:1px solid rgba(255,255,255,.06);font:700 10px 'Orbitron',sans-serif;letter-spacing:.5px;color:var(--muted)}
+.bk-f .sp{flex:1}
+.bk-f .lk.on{color:#ff6b86}
+
+/* ── Autor (avatar + ranking) ── */
+.au{display:flex;align-items:center;gap:8px;min-width:0}
+.av{position:relative;flex-shrink:0;width:26px;height:26px;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#3a1d55,#1a2b55);border:1.5px solid rgba(204,85,255,.6);
+  display:inline-flex;align-items:center;justify-content:center;font:900 10px 'Orbitron',sans-serif;color:#f1d6ff}
+.av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.au-n{font:700 11.5px 'Orbitron',sans-serif;letter-spacing:.5px;color:var(--accent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rk{flex-shrink:0;padding:2px 7px;border-radius:9px;background:rgba(245,166,35,.12);border:1px solid rgba(245,166,35,.4);color:var(--gold2);font:700 9px 'Orbitron',sans-serif;letter-spacing:.5px;white-space:nowrap}
+
+.vacio{padding:40px 16px;text-align:center;color:var(--muted);font-size:15px;font-weight:600}
+.vacio b{display:block;font:900 13px 'Orbitron',sans-serif;letter-spacing:1.5px;color:var(--text);margin-bottom:6px}
+.cargando{padding:40px;text-align:center;color:var(--muted);font-weight:600}
+.cargando::before{content:'';display:block;width:30px;height:30px;margin:0 auto 12px;border-radius:50%;border:3px solid rgba(204,85,255,.2);border-top-color:var(--purple);animation:gira .8s linear infinite}
+@keyframes gira{to{transform:rotate(360deg)}}
+.admin{padding:12px 14px;border-radius:10px;background:rgba(204,85,255,.06);border:1px dashed rgba(204,85,255,.4);font-size:14px;color:var(--muted)}
+.admin b{display:block;font:700 10px 'Orbitron',sans-serif;letter-spacing:1.5px;color:var(--purple);margin-bottom:6px}
+
+/* ── Botones ── */
+.btn{width:100%;min-height:46px;padding:0 14px;border-radius:9px;border:1px solid;font:900 11px 'Orbitron',sans-serif;letter-spacing:1.5px;display:flex;align-items:center;justify-content:center;gap:8px;transition:transform .12s,box-shadow .15s,background .15s}
+.btn:active{transform:scale(.98)}
+.btn.pri{background:linear-gradient(135deg,var(--accent),#00c875);border-color:var(--accent);color:#001a0e}
+.btn.pri:hover,.btn.pri.gp-foco{box-shadow:0 0 20px rgba(0,255,157,.4)}
+.btn.sec{background:var(--card);border-color:rgba(0,255,157,.5);color:var(--accent)}
+.btn.sec:hover,.btn.sec.gp-foco{background:rgba(0,255,157,.08)}
+.btn.mor{background:linear-gradient(135deg,#cc55ff,#8033cc);border-color:#cc55ff;color:#fff}
+.btn.mor:hover,.btn.mor.gp-foco{box-shadow:0 0 20px rgba(204,85,255,.45)}
+.btn.lk.on{border-color:#ff6b86;color:#ff8ea2;background:rgba(255,34,68,.08)}
+.btn.pel{background:transparent;border-color:var(--red);color:#ff8095}
+.fila2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+/* ── Detalle ── */
+.det{display:grid;gap:18px}
+.side{display:flex;flex-direction:column;gap:14px}
+.box{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px}
+.box h3{font:700 10px 'Orbitron',sans-serif;letter-spacing:2px;color:var(--muted);margin-bottom:10px}
+.hero{display:flex;gap:14px;align-items:flex-start}
+.hero .cov{width:110px;cursor:zoom-in}
+.d-t{font:900 clamp(18px,2.4vw,24px)/1.2 'Orbitron',sans-serif;color:var(--gold2);text-shadow:0 0 12px rgba(245,166,35,.3)}
+.d-f{margin-top:6px;font:600 12px 'Orbitron',sans-serif;letter-spacing:1px;color:var(--muted)}
+.d-desc{font-size:15.5px;line-height:1.55;color:var(--text);white-space:pre-wrap;border-left:2px solid var(--purple);padding:2px 0 2px 12px}
+.aut{display:flex;align-items:center;gap:12px}
+.aut .av{width:56px;height:56px;font-size:18px;border-width:2px;box-shadow:0 0 0 3px rgba(204,85,255,.12)}
+.aut-n{min-width:0}
+.aut-n b{display:block;font:900 15px 'Orbitron',sans-serif;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.aut-n small{font:700 11px 'Orbitron',sans-serif;letter-spacing:1px;color:var(--accent)}
+.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:12px}
+.kpi div{padding:8px 4px;border-radius:8px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.05);text-align:center}
+.kpi b{display:block;font:900 16px 'Orbitron',sans-serif;color:var(--gold2)}
+.kpi span{font-size:11.5px;font-weight:700;color:var(--muted)}
+.sinrk{margin-top:10px;font-size:13.5px;color:var(--muted)}
+.links{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.links .chip{height:30px}
+.comp{display:flex;height:12px;border-radius:6px;overflow:hidden;background:rgba(0,0,0,.3)}
+.comp i{display:block;height:100%}
+.ley{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:8px;font-size:13px;font-weight:700;color:var(--muted)}
+.ley span::before{content:'';display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;background:var(--c)}
+.curva{display:flex;align-items:flex-end;gap:5px;height:78px;margin-top:12px;padding-top:4px}
+.curva div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:3px}
+.curva i{display:block;width:100%;min-height:2px;border-radius:3px 3px 0 0;background:linear-gradient(180deg,var(--gold2),var(--gold))}
+.curva em{font-style:normal;font:700 9px 'Orbitron',sans-serif;color:var(--text)}
+.curva span{font:700 9px 'Orbitron',sans-serif;color:var(--muted)}
+.cur-t{font-size:13px;font-weight:700;color:var(--muted);margin-top:4px}
+.sec{margin-bottom:20px}
+.sec-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding-bottom:8px;margin-bottom:10px;border-bottom:1px solid var(--border)}
+.sec-h b{font:700 11px 'Orbitron',sans-serif;letter-spacing:2px;color:var(--text)}
+.sec-h span{font:700 11px 'Orbitron',sans-serif;color:var(--accent)}
+.cg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.cm{position:relative;aspect-ratio:63/88;border-radius:6px;overflow:hidden;background:var(--bg3);border:1px solid var(--border);padding:0;transition:transform .15s,border-color .15s,box-shadow .15s}
+.cm:hover,.cm:focus-visible,.cm.gp-foco{transform:translateY(-3px);border-color:var(--accent);box-shadow:0 10px 20px rgba(0,0,0,.5);outline:none}
+.cm img{width:100%;height:100%;object-fit:cover;display:block}
+.cm .fb{width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:6px;text-align:center;font:700 9px/1.25 'Orbitron',sans-serif;color:var(--muted)}
+.cm .q{position:absolute;top:4px;right:4px;min-width:24px;padding:2px 6px;border-radius:4px;background:rgba(0,0,0,.85);border:1px solid rgba(0,255,157,.45);color:var(--accent);font:900 10px 'Orbitron',sans-serif;text-align:center}
+
+/* ── Zoom ── */
+#zoom{position:fixed;inset:0;z-index:2000;display:none;align-items:center;justify-content:center;gap:12px;padding:20px;background:rgba(0,0,0,.92)}
+#zoom.on{display:flex}
+#zoom figure{display:flex;flex-direction:column;align-items:center;gap:10px;max-height:100%}
+#zoom img{max-width:min(92vw,460px);max-height:82vh;border-radius:12px;box-shadow:0 0 30px rgba(0,255,157,.25)}
+#zoom figcaption{font:700 13px 'Orbitron',sans-serif;letter-spacing:1px;color:var(--text);text-align:center}
+#zoom .zn{width:46px;height:46px;border-radius:50%;background:var(--card);border:1px solid var(--border);font-size:20px;flex-shrink:0}
+#zoom .zx{position:absolute;top:16px;right:16px;width:44px;height:44px;border-radius:50%;background:var(--card);border:1px solid var(--border);font-size:18px}
+#zoom button:hover,#zoom button.gp-foco{border-color:var(--accent);color:var(--accent)}
+
+/* ── Modal de edición ── */
+.mo{position:fixed;inset:0;z-index:1500;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.85);backdrop-filter:blur(4px)}
+.mo.on{display:flex}
+.mo-c{width:100%;max-width:520px;max-height:90vh;overflow-y:auto;padding:20px 18px 26px;border-radius:14px 14px 0 0;background:var(--card);border:1px solid var(--border)}
+.mo-t{font:900 13px 'Orbitron',sans-serif;letter-spacing:2px;color:var(--gold2);margin-bottom:6px}
+.lbl{display:block;margin:12px 0 5px;font:700 10px 'Orbitron',sans-serif;letter-spacing:1.5px;color:var(--muted)}
+.inp{width:100%;padding:10px 12px;border-radius:7px;background:rgba(255,255,255,.03);border:1px solid var(--border);font-size:16px}
+.inp:focus{outline:none;border-color:var(--accent)}
+textarea.inp{min-height:110px;resize:vertical}
+.mo-a{display:flex;gap:8px;margin-top:16px}
+
+.toast{position:fixed;left:50%;bottom:calc(20px + var(--safe-b));z-index:3000;transform:translate(-50%,120px);padding:12px 20px;border-radius:9px;background:var(--card);border:1px solid var(--accent);font:700 12px 'Orbitron',sans-serif;letter-spacing:.5px;transition:transform .25s;max-width:90vw;text-align:center}
+.toast.on{transform:translate(-50%,0)}
+.toast.err{border-color:var(--red)}
+
+/* En celular, orden y filtros se abren con un botón (la lista queda a la vista) */
+.f-tog{align-self:flex-start}
+.f-tog.act{border-color:var(--purple);color:#f1d6ff}
+@media (max-width:979px){ .filt:not(.abierto) .mas{display:none} }
+@media (min-width:980px){ .f-tog{display:none} }
+html.hz-off .f-tog{display:inline-flex}
+/* ── PC / tablet horizontal ── */
+@media (min-width:640px){ .grid{grid-template-columns:repeat(auto-fill,minmax(330px,1fr))} .cg{grid-template-columns:repeat(auto-fill,minmax(96px,1fr))} }
+@media (min-width:980px){
+  html:not(.hz-off) .lst{grid-template-columns:270px 1fr;align-items:start}
+  html:not(.hz-off) .filt{position:sticky;top:80px;padding:14px;border-radius:12px;background:var(--card);border:1px solid var(--border)}
+  html:not(.hz-off) .det{grid-template-columns:minmax(330px,390px) 1fr;align-items:start}
+  html:not(.hz-off) .side{position:sticky;top:80px;max-height:calc(100vh - 96px);overflow-y:auto;padding-right:4px}
+  html:not(.hz-off) .mo{align-items:center}
+  html:not(.hz-off) .mo-c{border-radius:14px}
+  .cov{width:86px}
+  .hero .cov{width:120px}
 }
-body::after{
-  content:'';position:fixed;inset:0;
-  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.06) 3px,rgba(0,0,0,.06) 4px);
-  pointer-events:none;z-index:1000;
-}
-body::before{
-  content:'';position:fixed;inset:0;
-  background:
-    radial-gradient(ellipse 70% 40% at 15% 10%,var(--accent-glow) 0%,transparent 60%),
-    radial-gradient(ellipse 70% 40% at 85% 90%,var(--blue-glow) 0%,transparent 60%),
-    radial-gradient(ellipse 50% 50% at 50% 40%,var(--purple-glow) 0%,transparent 60%);
-  pointer-events:none;
-}
-#wrap{max-width:480px;margin:0 auto;padding:16px 12px 40px;position:relative;}
-
-/* ── HEADER ── */
-header{position:relative;padding:14px 8px 20px;margin-bottom:14px;border-bottom:1px solid var(--border);}
-header::after{content:'';position:absolute;bottom:0;left:8%;right:8%;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:.4;}
-.back-btn{position:absolute;top:14px;left:6px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:1.2rem;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none;transition:all .2s;}
-.back-btn:active{color:var(--accent);border-color:var(--accent);transform:scale(.94);}
-.header-title{text-align:center;padding-top:6px;}
-.h-tag{font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:4px;color:var(--muted);text-transform:uppercase;}
-.h-title{font-family:'Cinzel Decorative',serif;font-size:1.5rem;font-weight:900;color:var(--gold);text-shadow:0 0 6px rgba(245,166,35,.35),0 0 16px rgba(245,166,35,.2);margin-top:4px;letter-spacing:2px;}
-.h-subtitle{font-family:'Orbitron',sans-serif;font-size:.55rem;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-top:6px;}
-
-/* ── CARD ── */
-.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 14px;margin-bottom:12px;position:relative;}
-.badge{display:inline-block;font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:3px;color:var(--accent);background:var(--accent-glow);border:1px solid rgba(0,255,157,0.2);padding:4px 12px;border-radius:2px;margin-bottom:12px;}
-.badge.gold{color:var(--gold);background:var(--gold-glow);border-color:rgba(245,166,35,.25);}
-.empty-msg{text-align:center;color:var(--muted);font-size:.9rem;padding:20px 10px;}
-
-/* ── LISTADO DE BARAJAS ── */
-.baraja-card{background:linear-gradient(135deg,rgba(var(--nx-k4),.9),rgba(var(--nx-k4),.6));border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px;cursor:pointer;position:relative;overflow:hidden;transition:all .2s;}
-.baraja-card:active{transform:scale(.98);}
-.baraja-card:hover{border-color:var(--accent);box-shadow:0 0 12px rgba(0,255,157,.12);}
-.baraja-card.destacada{border-color:var(--gold);box-shadow:0 0 12px rgba(245,166,35,.15);background:linear-gradient(135deg,rgba(245,166,35,.06),rgba(var(--nx-k4),.7));}
-.baraja-card.destacada::before{content:'⭐ DESTACADA';position:absolute;top:8px;right:10px;font-family:'Orbitron',sans-serif;font-size:.55rem;letter-spacing:1.5px;color:var(--gold);background:rgba(245,166,35,.1);padding:2px 8px;border-radius:3px;border:1px solid rgba(245,166,35,.3);}
-.bc-titulo{font-family:'Cinzel',serif;font-size:1.1rem;font-weight:900;color:var(--text);margin-bottom:4px;padding-right:80px;}
-.bc-autor{font-family:'Orbitron',sans-serif;font-size:.65rem;letter-spacing:1.5px;color:var(--accent);text-transform:uppercase;margin-bottom:8px;}
-.bc-descripcion{font-size:.85rem;color:var(--muted);line-height:1.4;margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
-.bc-meta{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
-.bc-chip{font-family:'Orbitron',sans-serif;font-size:.55rem;letter-spacing:1px;padding:3px 8px;border-radius:3px;text-transform:uppercase;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--muted);}
-.bc-chip.dificultad-principiante{background:rgba(0,255,157,.08);border-color:rgba(0,255,157,.3);color:var(--accent);}
-.bc-chip.dificultad-intermedio{background:rgba(0,207,255,.08);border-color:rgba(0,207,255,.3);color:var(--blue);}
-.bc-chip.dificultad-avanzado{background:rgba(255,34,68,.08);border-color:rgba(255,34,68,.3);color:var(--red);}
-.bc-chip.dificultad-experto{background:rgba(180,70,255,.08);border-color:rgba(180,70,255,.3);color:var(--purple);}
-.bc-footer{display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:1px solid var(--border);}
-.bc-fecha{font-family:'Orbitron',sans-serif;font-size:.6rem;color:var(--muted);letter-spacing:1px;}
-.bc-likes{display:flex;align-items:center;gap:4px;font-family:'Orbitron',sans-serif;font-size:.7rem;color:var(--muted);}
-.bc-likes.liked{color:var(--red);}
-
-/* ── FILTROS ── */
-.filtros{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
-.filtro-btn{font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px;padding:6px 12px;border-radius:4px;background:transparent;border:1px solid var(--border);color:var(--muted);cursor:pointer;transition:all .15s;text-transform:uppercase;}
-.filtro-btn.active{background:rgba(0,255,157,.1);border-color:var(--accent);color:var(--accent);}
-
-/* ── VISTA DETALLE ── */
-#vista-detalle{display:none;}
-.detalle-header{margin-bottom:16px;}
-.detalle-titulo{font-family:'Cinzel Decorative',serif;font-size:1.5rem;font-weight:900;color:var(--gold);text-shadow:0 0 6px rgba(245,166,35,.3);line-height:1.2;}
-.detalle-autor{font-family:'Orbitron',sans-serif;font-size:.7rem;letter-spacing:2px;color:var(--accent);margin-top:6px;text-transform:uppercase;}
-.detalle-fecha{font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px;color:var(--muted);margin-top:3px;}
-.detalle-descripcion{background:rgba(255,255,255,.02);border-left:2px solid var(--accent);padding:10px 14px;margin:12px 0;font-size:.9rem;color:var(--text);line-height:1.5;white-space:pre-wrap;}
-.detalle-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
-
-/* ── SECCIONES DE BARAJA ── */
-.deck-section{margin-bottom:16px;}
-.deck-section-title{font-family:'Orbitron',sans-serif;font-size:.7rem;letter-spacing:2.5px;color:var(--muted);text-transform:uppercase;padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
-.deck-section-title .dst-count{color:var(--accent);font-size:.65rem;}
-.cartas-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
-.carta-mini{position:relative;aspect-ratio:63/88;background:var(--bg3);border:1px solid var(--border);border-radius:5px;overflow:hidden;cursor:pointer;transition:transform .12s,border-color .15s;}
-.carta-mini:active{transform:scale(.96);}
-.carta-mini:hover{border-color:var(--accent);}
-.carta-mini img{width:100%;height:100%;object-fit:cover;display:block;}
-.carta-mini .carta-nombre-fallback{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:.55rem;color:var(--muted);text-align:center;padding:4px;line-height:1.2;letter-spacing:.5px;}
-.carta-qty{position:absolute;top:3px;right:3px;background:rgba(0,0,0,.85);color:var(--accent);font-family:'Orbitron',sans-serif;font-size:.6rem;font-weight:900;padding:2px 6px;border-radius:3px;border:1px solid rgba(0,255,157,.4);}
-
-/* ── ACCIONES ── */
-.btn-accion{width:100%;font-family:'Orbitron',sans-serif;font-size:.75rem;font-weight:900;letter-spacing:2px;padding:14px;border-radius:6px;cursor:pointer;text-transform:uppercase;transition:all .15s;margin-bottom:8px;border:1px solid;}
-.btn-primario{background:linear-gradient(135deg,var(--accent),#00c875);color:#000;border-color:var(--accent);}
-.btn-primario:active{transform:scale(.98);box-shadow:0 0 20px var(--accent);}
-.btn-secundario{background:var(--card);color:var(--accent);border-color:var(--accent);}
-.btn-secundario:active{background:var(--accent-glow);}
-.btn-peligro{background:transparent;color:var(--red);border-color:var(--red);}
-.btn-like{display:flex;align-items:center;justify-content:center;gap:8px;}
-
-/* ── MODAL ── */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(4px);z-index:1500;display:none;align-items:flex-end;justify-content:center;}
-.modal-overlay.active{display:flex;}
-.modal-content{background:var(--card);border:1px solid var(--border);border-radius:12px 12px 0 0;padding:20px 18px 30px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;}
-.modal-titulo{font-family:'Orbitron',sans-serif;font-size:.9rem;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:14px;}
-.form-label{display:block;font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px;color:var(--muted);margin-bottom:5px;text-transform:uppercase;margin-top:12px;}
-.form-input,.form-textarea,.form-select{width:100%;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:5px;padding:10px 12px;font-family:'Rajdhani',sans-serif;font-size:.95rem;color:var(--text);}
-.form-input:focus,.form-textarea:focus,.form-select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 6px rgba(0,255,157,.2);}
-.form-textarea{min-height:80px;resize:vertical;font-family:inherit;}
-.form-modal-actions{display:flex;gap:8px;margin-top:16px;}
-.form-modal-actions button{flex:1;}
-
-/* ── ZOOM DE CARTA ── */
-#zoom-overlay{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:2000;display:none;align-items:center;justify-content:center;padding:20px;}
-#zoom-overlay.active{display:flex;}
-#zoom-overlay img{max-width:95%;max-height:90vh;border-radius:12px;box-shadow:0 0 30px rgba(0,255,157,.3);}
-#zoom-overlay .zoom-close{position:absolute;top:20px;right:20px;background:var(--card);border:1px solid var(--border);color:var(--text);width:44px;height:44px;border-radius:50%;font-size:1.2rem;cursor:pointer;}
-
-/* ── ADMIN BADGE ── */
-.admin-badge{display:inline-block;background:rgba(180,70,255,.15);color:var(--purple);border:1px solid rgba(180,70,255,.3);padding:2px 8px;border-radius:3px;font-family:'Orbitron',sans-serif;font-size:.55rem;letter-spacing:1.5px;margin-left:8px;text-transform:uppercase;}
-.admin-actions{background:rgba(180,70,255,.05);border:1px dashed rgba(180,70,255,.3);border-radius:6px;padding:10px 12px;margin-top:14px;}
-.admin-actions-title{font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:1.5px;color:var(--purple);margin-bottom:8px;text-transform:uppercase;}
-.admin-actions button{margin-bottom:6px;}
-
-/* ── LOADING ── */
-.loading-msg{text-align:center;color:var(--muted);font-size:.85rem;font-style:italic;padding:20px;}
-
-/* ── TOAST ── */
-.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--card);border:1px solid var(--accent);color:var(--text);padding:12px 20px;border-radius:8px;font-family:'Orbitron',sans-serif;font-size:.75rem;letter-spacing:1px;box-shadow:0 0 15px rgba(0,255,157,.3);z-index:3000;transition:transform .3s;max-width:90%;text-align:center;}
-.toast.show{transform:translateX(-50%) translateY(0);}
-.toast.error{border-color:var(--red);box-shadow:0 0 15px rgba(255,34,68,.3);}
+@media (max-width:420px){ .kpi{grid-template-columns:repeat(2,1fr)} .cov{width:64px} }
+@media (prefers-reduced-motion:reduce){ .bk{animation:none;transition:none} .cm{transition:none} }
 </style>
 <script src="nexo-ui.js"></script>
 </head>
 <body>
+<header class="top">
+  <a href="index.html" class="ib" id="bInicio" aria-label="Menú principal">←</a>
+  <button class="ib oculto" id="bVolver" type="button" aria-label="Volver al listado">←</button>
+  <div class="top-t"><b>ACADEMIA HEROICA</b><small id="topSub">Barajas y estrategias de la comunidad</small></div>
+  <a href="constructor.html" class="ib oculto" id="bCons" title="Ir al Constructor" aria-label="Ir al Constructor">📚</a>
+</header>
+
 <div id="wrap">
-
-  <header>
-    <a href="index.html" class="back-btn">←</a>
-    <div class="header-title">
-      <div class="h-tag">Choque de Héroes TCG</div>
-      <div class="h-title">Academia Heroica</div>
-      <div class="h-subtitle">Barajas · Estrategias · Consejos</div>
+  <!-- LISTADO -->
+  <section id="vLista" class="lst">
+    <aside class="filt" aria-label="Filtros">
+      <label class="buscar"><input id="q" type="search" placeholder="Buscar baraja, autor o carta…" autocomplete="off" aria-label="Buscar"></label>
+      <div class="fg"><h4>VER</h4><div class="chips" id="fVer">
+        <button class="chip on" data-v="todas" type="button">TODAS</button>
+        <button class="chip" data-v="destacadas" type="button">⭐ DESTACADAS</button>
+        <button class="chip" data-v="favoritas" type="button">❤️ MIS FAVORITAS</button>
+      </div></div>
+      <button class="chip f-tog" id="fTog" type="button" aria-expanded="false">⚙ ORDEN Y FILTROS</button>
+      <div class="fg mas"><h4>ORDEN</h4><div class="chips" id="fOrden">
+        <button class="chip on" data-o="recientes" type="button">RECIENTES</button>
+        <button class="chip" data-o="likes" type="button">MÁS GUSTADAS</button>
+        <button class="chip" data-o="az" type="button">A–Z</button>
+      </div></div>
+      <div class="fg mas"><h4>DIFICULTAD</h4><div class="chips" id="fDif">
+        <button class="chip d-principiante" data-d="principiante" type="button">PRINCIPIANTE</button>
+        <button class="chip d-intermedio" data-d="intermedio" type="button">INTERMEDIO</button>
+        <button class="chip d-avanzado" data-d="avanzado" type="button">AVANZADO</button>
+        <button class="chip d-experto" data-d="experto" type="button">EXPERTO</button>
+      </div></div>
+      <div class="fg mas oculto" id="fgArq"><h4>ARQUETIPO</h4><div class="chips" id="fArq"></div></div>
+      <div class="admin mas oculto" id="adminBox"><b>🛡️ MODO ADMIN</b>Publica barajas desde el Constructor con el botón "Compartir en Academia". Para editar o eliminar una de tus barajas, ábrela.</div>
+    </aside>
+    <div>
+      <div class="res" id="res"></div>
+      <div class="grid" id="lista"><div class="cargando">Cargando barajas…</div></div>
     </div>
-  </header>
+  </section>
 
-  <!-- VISTA LISTADO -->
-  <div id="vista-listado">
-    <div id="admin-panel" style="display:none;" class="card">
-      <div class="badge" style="color:var(--purple);background:rgba(180,70,255,.08);border-color:rgba(180,70,255,.3);">🛡️ MODO ADMIN</div>
-      <p style="font-size:.85rem;color:var(--muted);margin-bottom:10px;">Puedes publicar barajas desde el constructor y editar/eliminar las tuyas desde aquí.</p>
-      <button class="btn-accion btn-primario" onclick="window.location.href='constructor.html'">📚 IR AL CONSTRUCTOR</button>
-    </div>
-
-    <div class="card">
-      <div class="badge gold">📚 BARAJAS COMPARTIDAS</div>
-      <div class="filtros">
-        <button class="filtro-btn active" data-filtro="todas" onclick="filtrar('todas')">TODAS</button>
-        <button class="filtro-btn" data-filtro="destacadas" onclick="filtrar('destacadas')">⭐ DESTACADAS</button>
-        <button class="filtro-btn" data-filtro="mis_likes" onclick="filtrar('mis_likes')">❤️ MIS FAVORITAS</button>
-      </div>
-      <div id="listado-container">
-        <div class="loading-msg">⏳ Cargando barajas...</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- VISTA DETALLE -->
-  <div id="vista-detalle">
-    <button class="btn-accion btn-secundario" onclick="volverAlListado()" style="margin-bottom:14px;">← VOLVER</button>
-
-    <div class="card" id="detalle-container">
-      <div class="loading-msg">⏳ Cargando baraja...</div>
-    </div>
-  </div>
-
+  <!-- DETALLE -->
+  <section id="vDet" class="det oculto"></section>
 </div>
 
-<!-- Modal edición -->
-<div class="modal-overlay" id="edit-modal" onclick="if(event.target===this)cerrarEditModal()">
-  <div class="modal-content">
-    <div class="modal-titulo">✏️ Editar Baraja</div>
-    <label class="form-label">Título</label>
-    <input type="text" class="form-input" id="edit-titulo" maxlength="60">
-    <label class="form-label">Descripción</label>
-    <textarea class="form-textarea" id="edit-descripcion" maxlength="500"></textarea>
-    <label class="form-label">Arquetipo (mixto separado por coma)</label>
-    <input type="text" class="form-input" id="edit-arquetipo" maxlength="80" placeholder="Ej: Hermandad, Túneles Perdidos">
-    <label class="form-label">Dificultad</label>
-    <select class="form-select" id="edit-dificultad">
-      <option value="principiante">Principiante</option>
-      <option value="intermedio">Intermedio</option>
-      <option value="avanzado">Avanzado</option>
-      <option value="experto">Experto</option>
-    </select>
-    <div class="form-modal-actions">
-      <button class="btn-accion btn-secundario" onclick="cerrarEditModal()">CANCELAR</button>
-      <button class="btn-accion btn-primario" onclick="confirmarEdicion()">GUARDAR</button>
-    </div>
+<!-- Edición (autor) -->
+<div class="mo" id="mEdit" role="dialog" aria-modal="true" aria-labelledby="mEditT">
+  <div class="mo-c">
+    <div class="mo-t" id="mEditT">✏️ EDITAR BARAJA</div>
+    <label class="lbl" for="eTit">TÍTULO</label><input class="inp" id="eTit" maxlength="60">
+    <label class="lbl" for="eDesc">DESCRIPCIÓN Y ESTRATEGIA</label><textarea class="inp" id="eDesc" maxlength="500"></textarea>
+    <label class="lbl" for="eArq">ARQUETIPO (varios separados por coma)</label><input class="inp" id="eArq" maxlength="80" placeholder="Ej: Hermandad, Túneles Perdidos">
+    <label class="lbl" for="eDif">DIFICULTAD</label>
+    <select class="inp" id="eDif"><option value="principiante">Principiante</option><option value="intermedio">Intermedio</option><option value="avanzado">Avanzado</option><option value="experto">Experto</option></select>
+    <div class="mo-a"><button class="btn sec" id="eNo" type="button">CANCELAR</button><button class="btn pri" id="eSi" type="button">GUARDAR</button></div>
   </div>
 </div>
 
-<!-- Zoom carta -->
-<div id="zoom-overlay" onclick="cerrarZoom()">
-  <button class="zoom-close" onclick="cerrarZoom();event.stopPropagation();">✕</button>
-  <img id="zoom-img" src="" alt="">
+<!-- Zoom de carta -->
+<div id="zoom" role="dialog" aria-modal="true" aria-label="Carta ampliada">
+  <button class="zx" id="zX" type="button" aria-label="Cerrar">✕</button>
+  <button class="zn" id="zAnt" type="button" aria-label="Carta anterior">‹</button>
+  <figure><img id="zImg" alt=""><figcaption id="zNom"></figcaption></figure>
+  <button class="zn" id="zSig" type="button" aria-label="Carta siguiente">›</button>
 </div>
 
-<!-- Toast -->
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status"></div>
 
 <script>
 // ══════════════════════════════════════════════════════════════
-//  CONFIGURACIÓN — EDITAR CON EL URL DE TU APPS SCRIPT DEPLOY
+//  CONFIGURACIÓN
 // ══════════════════════════════════════════════════════════════
 const ACADEMIA_URL = ((window.CHH_CONFIG||{}).academia||'https://script.google.com/macros/s/AKfycbxC8MztvNoOUGya3uVNIlOCFrGEWZeAfyu0Qho7KpBchuJKzpFkPyUPMqY3vimwA3Wi/exec');
+const RANKING_URL  = ((window.CHH_CONFIG||{}).ranking||'https://script.google.com/macros/s/AKfycbx1rOqnmqWhics45UF40n81V9s-W5VgmhQGtc-UNIERGjkZGN8n1mVHkk0B1VO8PYJWOQ/exec');
+const POINTS = [8, 5, 4, 3, 2, 2, 1, 1];          // mismos puntos que el Ranking Global
 
 // ══════════════════════════════════════════════════════════════
 //  ESTADO
 // ══════════════════════════════════════════════════════════════
-let jugador = null;
-let esAdmin = false;
-let allCards = [];
-let barajas = [];
-let misLikes = new Set();
-let filtroActual = 'todas';
-let barajaActual = null;
+const $ = id => document.getElementById(id);
+let jugador = null, esAdmin = false, barajas = [], misLikes = new Set(), barajaActual = null;
+let CARTAS = [], PORID = {}, SIMG = {}, RANK = {}, PERFIL = {};
+const F = { ver: 'todas', orden: 'recientes', dif: '', arq: '', q: '' };
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const K = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+const normId = s => String(s || '').trim().toUpperCase();
+const ls = { get: (k, d) => { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }, set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} } };
+const gpOn = () => { try { return !!(window.GP && GP.activo()); } catch (e) { return false; } };
+const enfocar = el => { if (el && gpOn()) setTimeout(() => { try { GP.enfocar(el); } catch (e) {} }, 60); };
+function toast(t, err) { const el = $('toast'); el.textContent = t; el.classList.toggle('err', !!err); el.classList.add('on'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('on'), 2800); }
+async function json(url, op) { const r = await fetch(url, op); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }
 
 // ══════════════════════════════════════════════════════════════
-//  INIT
+//  INICIO
 // ══════════════════════════════════════════════════════════════
-document.addEventListener('DOMContentLoaded', async () => {
-  // Cargar sesión
-  const saved = localStorage.getItem('nhSesion');
-  if (saved) {
-    try {
-      const s = JSON.parse(saved);
-      if (s.tipo !== 'tienda') jugador = s;
-    } catch(e) {}
-  }
-
-  // Cargar catálogo de cartas y admin en paralelo
-  await Promise.all([
-    cargarCatalogo(),
-    verificarAdmin(),
-    cargarMisLikes()
-  ]);
-
-  // Si viene con ?baraja=xxx, ir directo al detalle
-  const urlParams = new URLSearchParams(window.location.search);
-  const barajaId = urlParams.get('baraja');
-  if (barajaId) {
-    verBaraja(barajaId);
-  } else {
-    cargarListado();
-  }
-});
+(async function init() {
+  try { const s = JSON.parse(localStorage.getItem('nhSesion') || 'null'); if (s && s.tipo !== 'tienda' && s.id) jugador = s; } catch (e) {}
+  cargarRanking();                                     // en segundo plano (la vista se actualiza al llegar)
+  await Promise.all([cargarCatalogo(), verificarAdmin(), cargarMisLikes()]);
+  const id = new URLSearchParams(location.search).get('baraja');
+  await cargarListado(!id);
+  if (id) verBaraja(id, true);
+})();
 
 async function cargarCatalogo() {
-  try {
-    const res = await fetch('cartas.json');
-    allCards = await res.json();
-  } catch(e) {
-    console.error('Error cargando cartas.json:', e);
-    allCards = [];
-  }
+  const [cat, sim] = await Promise.allSettled([json('cartas.json'), json('data/cartas_simulacion.json')]);
+  CARTAS = cat.status === 'fulfilled' ? cat.value : [];
+  CARTAS.forEach(c => { PORID[String(c.id)] = c; });
+  if (sim.status === 'fulfilled') (sim.value.cartas || []).forEach(c => { if (c.galeriaId) SIMG[String(c.galeriaId)] = c; });
 }
-
 async function verificarAdmin() {
   if (!jugador) return;
-  document.getElementById('admin-panel').style.display = 'none';
-  try {
-    const res = await fetch(`${ACADEMIA_URL}?action=es_admin&player_id=${encodeURIComponent(jugador.id)}`);
-    const data = await res.json();
-    esAdmin = data.es_admin === true;
-    if (esAdmin) document.getElementById('admin-panel').style.display = 'block';
-  } catch(e) {
-    console.warn('No se pudo verificar admin:', e);
-  }
+  try { const d = await json(`${ACADEMIA_URL}?action=es_admin&player_id=${encodeURIComponent(jugador.id)}`); esAdmin = d.es_admin === true; } catch (e) {}
+  $('adminBox').classList.toggle('oculto', !esAdmin); $('bCons').classList.toggle('oculto', !esAdmin);
 }
-
 async function cargarMisLikes() {
   if (!jugador) return;
+  try { const d = await json(`${ACADEMIA_URL}?action=mis_likes&player_id=${encodeURIComponent(jugador.id)}`); if (d.status === 'ok') misLikes = new Set(d.likes || []); } catch (e) {}
+}
+
+// ── Ranking: mismos datos y puntos que ranking.html (comparten la copia guardada) ──
+function construirRanking(res) {
+  const map = {}, nameToId = {};
+  (res || []).forEach(r => { for (let i = 1; i <= 8; i++) { const n = K(r['p' + i + '_name']), id = normId(r['p' + i + '_id']); if (n && id && id !== '—' && !nameToId[n]) nameToId[n] = id; } });
+  (res || []).forEach(r => { for (let i = 1; i <= 8; i++) {
+    const raw = r['p' + i + '_name']; if (!raw) continue;
+    let id = normId(r['p' + i + '_id']); if (id === '—' || id === '-') id = ''; id = id || nameToId[K(raw)] || ''; if (!id) continue;
+    const p = map[id] || (map[id] = { id, pts: 0, torneos: 0, wins: 0, pod: 0 });
+    p.pts += POINTS[i - 1] || 0; p.torneos++; if (i === 1) p.wins++; if (i <= 3) p.pod++;
+  } });
+  const L = Object.values(map).sort((a, b) => b.pts - a.pts || b.wins - a.wins || b.torneos - a.torneos);
+  L.forEach((p, i) => { p.rank = i && p.pts === L[i - 1].pts && p.wins === L[i - 1].wins ? L[i - 1].rank : i + 1; });
+  const out = {}; L.forEach(p => { out[p.id] = p; }); out._n = L.length; return out;
+}
+async function cargarRanking() {
+  const c = ls.get('chh_ranking_cache', null);
+  if (c && c.res) RANK = construirRanking(c.res);
+  if (c && c.ts && Date.now() - c.ts < 6 * 3600e3) return;
   try {
-    const res = await fetch(`${ACADEMIA_URL}?action=mis_likes&player_id=${encodeURIComponent(jugador.id)}`);
-    const data = await res.json();
-    if (data.status === 'ok') misLikes = new Set(data.likes);
-  } catch(e) {}
+    const d = await json(RANKING_URL); if (d.status !== 'ok') return;
+    ls.set('chh_ranking_cache', { ts: Date.now(), res: d.resultados }); RANK = construirRanking(d.resultados);
+    refrescarAutores();
+  } catch (e) {}
+}
+
+// ── Avatar del autor: Firebase jugadores/<ID>/perfil (lo publica la app de cada jugador) ──
+function avatarSrc(av) {
+  if (!av) return '';
+  if (/^av_p\d+$/.test(av)) return 'avatares/' + av + '.jpg';
+  const m = /^av(\d+)$/.exec(av); return m ? 'avatares/avatar_' + m[1] + '.jpg' : '';
+}
+function avatarDe(id) {
+  id = normId(id);
+  if (jugador && normId(jugador.id) === id) { try { const a = localStorage.getItem('nhAv_' + jugador.id) || localStorage.getItem('nhAv_' + id); if (a) return avatarSrc(a); } catch (e) {} }
+  return avatarSrc((PERFIL[id] || {}).av);
+}
+async function cargarPerfiles(ids) {
+  const cache = ls.get('chh_perfiles_cache', {}), ahora = Date.now(), faltan = [];
+  ids.forEach(id => { id = normId(id); if (!id) return; const c = cache[id]; if (c) PERFIL[id] = c; if (!c || ahora - c.ts > 12 * 3600e3) faltan.push(id); });
+  if (!faltan.length || !window.CHH_NUBE || !CHH_NUBE.perfiles) return;
+  try {
+    const r = await CHH_NUBE.perfiles(faltan);
+    faltan.forEach(id => { const p = r[id] || {}; cache[id] = PERFIL[id] = { av: p.av || '', ts: ahora }; });
+    ls.set('chh_perfiles_cache', cache); refrescarAutores();
+  } catch (e) {}
+}
+const iniciales = n => { const p = String(n || '?').trim().split(/\s+/).filter(Boolean); return ((p[0] || '?')[0] + (p.length > 1 ? p[p.length - 1][0] : (p[0] || '')[1] || '')).toUpperCase(); };
+function avatarHTML(b, cls) {
+  const src = avatarDe(b.autor_id);
+  return `<span class="av ${cls || ''}" data-av="${esc(normId(b.autor_id))}">${esc(iniciales(b.autor_nombre || b.autor_id))}${src ? `<img src="${esc(src)}" alt="" loading="lazy" onerror="this.remove()">` : ''}</span>`;
+}
+function rankChip(id) { const p = RANK[normId(id)]; return p ? `<span class="rk" title="Ranking Global: ${p.rank}° lugar, ${p.pts} puntos">🏆 ${p.rank}° · ${p.pts} pts</span>` : ''; }
+// Cuando llegan avatares o ranking se repinta lo que se ve, sin perder el foco
+function refrescarAutores() {
+  if (!$('vLista').classList.contains('oculto')) pintarLista(true);
+  if (barajaActual && !$('vDet').classList.contains('oculto')) {
+    document.querySelectorAll('#vDet [data-av]').forEach(el => { const src = avatarDe(el.dataset.av); if (src && !el.querySelector('img')) el.insertAdjacentHTML('beforeend', `<img src="${esc(src)}" alt="" onerror="this.remove()">`); });
+    const a = $('autorBox'); if (a) a.outerHTML = autorBox(barajaActual);
+  }
 }
 
 // ══════════════════════════════════════════════════════════════
 //  LISTADO
 // ══════════════════════════════════════════════════════════════
-async function cargarListado() {
-  const cont = document.getElementById('listado-container');
-  cont.innerHTML = '<div class="loading-msg">⏳ Cargando barajas...</div>';
+async function cargarListado(mostrar) {
+  if (mostrar) $('lista').innerHTML = '<div class="cargando">Cargando barajas…</div>';
   try {
-    const res = await fetch(`${ACADEMIA_URL}?action=listar`);
-    const data = await res.json();
-    if (data.status !== 'ok') throw new Error(data.message);
-    barajas = data.barajas || [];
-    renderListado();
-  } catch(e) {
-    cont.innerHTML = `<div class="empty-msg">⚠️ Error: ${e.message}</div>`;
+    const d = await json(`${ACADEMIA_URL}?action=listar`);
+    if (d.status !== 'ok') throw new Error(d.message || 'Error del servidor');
+    barajas = d.barajas || [];
+    ls.set('chh_academia_cache', { ts: Date.now(), barajas });
+  } catch (e) {
+    const c = ls.get('chh_academia_cache', null);
+    if (c && c.barajas) { barajas = c.barajas; toast('Sin conexión: mostrando las barajas guardadas', true); }
+    else { $('lista').innerHTML = `<div class="vacio"><b>No se pudieron cargar las barajas</b>Revisa tu conexión y vuelve a abrir la Academia.</div>`; $('res').textContent = ''; return; }
   }
+  pintarArquetipos();
+  pintarLista();
+  cargarPerfiles([...new Set(barajas.map(b => b.autor_id))]);
 }
-
-function renderListado() {
-  const cont = document.getElementById('listado-container');
-  let filtradas = barajas;
-
-  if (filtroActual === 'destacadas') {
-    filtradas = barajas.filter(b => b.destacado);
-  } else if (filtroActual === 'mis_likes') {
-    filtradas = barajas.filter(b => misLikes.has(b.id));
-  }
-
-  if (!filtradas.length) {
-    cont.innerHTML = `<div class="empty-msg">📋 Sin barajas en esta vista.</div>`;
+const arqsDe = b => String(b.arquetipo || '').split(',').map(a => a.trim()).filter(Boolean);
+function pintarArquetipos() {
+  const n = {}; barajas.forEach(b => arqsDe(b).forEach(a => { const k = K(a); if (k) n[k] = n[k] || { a, c: 0 }; if (k) n[k].c++; }));
+  const L = Object.values(n).sort((x, y) => y.c - x.c || x.a.localeCompare(y.a, 'es')).slice(0, 14);
+  $('fgArq').classList.toggle('oculto', L.length < 2);
+  $('fArq').innerHTML = L.map(x => `<button class="chip${F.arq === K(x.a) ? ' on' : ''}" data-a="${esc(K(x.a))}" type="button">${esc(x.a.toUpperCase())}</button>`).join('');
+}
+// Portada: la que trae la baraja, o la primera carta de su BP (si la lista la incluye o ya se abrió antes)
+function portadaDe(b) {
+  const P = ls.get('chh_acad_portadas', {});
+  const id = b.portada || ((b.bp || [])[0] || {}).id || P[b.id];
+  const c = id != null && PORID[String(id)];
+  return c ? c.miniatura : '';
+}
+function totalCartas(b) { return ['bp', 'ba', 'bs'].reduce((s, k) => s + (b[k] || []).reduce((x, c) => x + (c.cant || 1), 0), 0); }
+function filtrar() {
+  const q = K(F.q);
+  let L = barajas.filter(b => {
+    if (F.ver === 'destacadas' && !b.destacado) return false;
+    if (F.ver === 'favoritas' && !misLikes.has(b.id)) return false;
+    if (F.dif && String(b.dificultad || 'intermedio').toLowerCase() !== F.dif) return false;
+    if (F.arq && !arqsDe(b).some(a => K(a) === F.arq)) return false;
+    if (q) {
+      const nombres = ['bp', 'ba', 'bs'].flatMap(k => (b[k] || []).map(c => (PORID[String(c.id)] || {}).nombre || '')).join(' ');
+      if (!K([b.titulo, b.autor_nombre, b.autor_id, b.arquetipo, b.descripcion, nombres].join(' ')).includes(q)) return false;
+    }
+    return true;
+  });
+  const f = b => Date.parse(b.fecha || '') || 0;
+  if (F.orden === 'likes') L.sort((a, b) => (b.likes || 0) - (a.likes || 0) || f(b) - f(a));
+  else if (F.orden === 'az') L.sort((a, b) => String(a.titulo || '').localeCompare(String(b.titulo || ''), 'es'));
+  else L.sort((a, b) => (!!b.destacado - !!a.destacado) || f(b) - f(a));
+  return L;
+}
+function pintarLista(quieto) {
+  marcarTog();
+  const L = filtrar(), cont = $('lista');
+  const foco = quieto && gpOn() && GP.foco && GP.foco(), focoId = foco && foco.dataset && foco.dataset.id;
+  $('res').innerHTML = barajas.length ? `<b>${L.length}</b> ${L.length === 1 ? 'baraja' : 'barajas'}${L.length !== barajas.length ? ' de ' + barajas.length : ''}` : '';
+  if (!L.length) {
+    cont.innerHTML = barajas.length ? `<div class="vacio"><b>Ninguna baraja coincide</b>Prueba con otra palabra o quita algún filtro.</div>`
+                                    : `<div class="vacio"><b>Aún no hay barajas compartidas</b>Las barajas que publiquen los admins desde el Constructor aparecerán aquí.</div>`;
     return;
   }
-
-  cont.innerHTML = filtradas.map(b => {
-    const dif = (b.dificultad || 'intermedio').toLowerCase();
-    const arqs = (b.arquetipo || '').split(',').map(a=>a.trim()).filter(Boolean);
-    const yaLike = misLikes.has(b.id);
-    const fecha = b.fecha ? new Date(b.fecha).toLocaleDateString('es-MX', {day:'2-digit',month:'short',year:'numeric'}) : '';
-    return `<div class="baraja-card ${b.destacado?'destacada':''}" onclick="verBaraja('${b.id}')">
-      <div class="bc-titulo">${escape(b.titulo)}</div>
-      <div class="bc-autor">👤 ${escape(b.autor_nombre || b.autor_id)}</div>
-      ${b.descripcion ? `<div class="bc-descripcion">${escape(b.descripcion)}</div>` : ''}
-      <div class="bc-meta">
-        <span class="bc-chip dificultad-${dif}">${dif}</span>
-        ${arqs.map(a => `<span class="bc-chip">${escape(a)}</span>`).join('')}
-      </div>
-      <div class="bc-footer">
-        <span class="bc-fecha">${fecha}</span>
-        <span class="bc-likes ${yaLike?'liked':''}">${yaLike?'❤️':'🤍'} ${b.likes}</span>
-      </div>
-    </div>`;
+  cont.innerHTML = L.map((b, i) => {
+    const dif = String(b.dificultad || 'intermedio').toLowerCase(), cov = portadaDe(b), n = totalCartas(b);
+    const fecha = b.fecha ? new Date(b.fecha).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+    return `<button class="bk${b.destacado ? ' dest' : ''}" type="button" data-id="${esc(b.id)}" style="--i:${quieto ? 0 : Math.min(i, 12)}${quieto ? ';animation:none' : ''}">
+      <span class="cov">${cov ? `<img src="${esc(cov)}" alt="" loading="lazy" onerror="this.outerHTML='<span class=em>✦</span>'">` : `<span class="em">${esc(iniciales(b.titulo))}</span>`}</span>
+      <span class="bk-c">
+        <span class="bk-t">${esc(b.titulo)}</span>
+        <span class="au">${avatarHTML(b)}<span class="au-n">${esc(b.autor_nombre || b.autor_id)}</span>${rankChip(b.autor_id)}</span>
+        ${b.descripcion ? `<span class="bk-d">${esc(b.descripcion)}</span>` : ''}
+        <span class="meta"><span class="tag d-${esc(dif)}">${esc(dif)}</span>${arqsDe(b).slice(0, 3).map(a => `<span class="tag">${esc(a)}</span>`).join('')}</span>
+        <span class="bk-f"><span>${esc(fecha)}</span>${n ? `<span>· ${n} cartas</span>` : ''}<span class="sp"></span><span class="lk${misLikes.has(b.id) ? ' on' : ''}">${misLikes.has(b.id) ? '❤️' : '🤍'} ${b.likes || 0}</span></span>
+      </span></button>`;
   }).join('');
+  if (focoId) { const el = cont.querySelector(`[data-id="${CSS.escape(focoId)}"]`); if (el) try { GP.enfocar(el); } catch (e) {} }
 }
-
-function filtrar(f) {
-  filtroActual = f;
-  document.querySelectorAll('.filtro-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.filtro === f);
+$('lista').addEventListener('click', e => { const b = e.target.closest('.bk'); if (b) verBaraja(b.dataset.id); });
+let _qT; $('q').addEventListener('input', e => { clearTimeout(_qT); _qT = setTimeout(() => { F.q = e.target.value; pintarLista(); }, 150); });
+function grupo(id, campo, attr, toggle) {
+  $(id).addEventListener('click', e => {
+    const b = e.target.closest('.chip'); if (!b) return;
+    const v = b.dataset[attr];
+    F[campo] = toggle && F[campo] === v ? '' : v;
+    $(id).querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x.dataset[attr] === F[campo]));
+    pintarLista();
   });
-  renderListado();
 }
+grupo('fVer', 'ver', 'v'); grupo('fOrden', 'orden', 'o'); grupo('fDif', 'dif', 'd', true); grupo('fArq', 'arq', 'a', true);
+$('fTog').onclick = () => { const f = document.querySelector('.filt'), on = f.classList.toggle('abierto'); $('fTog').setAttribute('aria-expanded', on); };
+function marcarTog() { const n = (F.dif ? 1 : 0) + (F.arq ? 1 : 0) + (F.orden !== 'recientes' ? 1 : 0); $('fTog').textContent = '⚙ ORDEN Y FILTROS' + (n ? ' (' + n + ')' : ''); $('fTog').classList.toggle('act', !!n); }
 
 // ══════════════════════════════════════════════════════════════
 //  DETALLE
 // ══════════════════════════════════════════════════════════════
-async function verBaraja(id) {
-  document.getElementById('vista-listado').style.display = 'none';
-  document.getElementById('vista-detalle').style.display = 'block';
-  window.scrollTo(0,0);
-  const cont = document.getElementById('detalle-container');
-  cont.innerHTML = '<div class="loading-msg">⏳ Cargando baraja...</div>';
-
+let _focoLista = null;
+async function verBaraja(id, desdeURL) {
+  _focoLista = (gpOn() && GP.foco && GP.foco()) || document.activeElement;
+  $('vLista').classList.add('oculto'); $('vDet').classList.remove('oculto');
+  $('bInicio').classList.add('oculto'); $('bVolver').classList.remove('oculto');
+  scrollTo(0, 0);
+  if (!desdeURL) history.pushState({ baraja: id }, '', '?baraja=' + encodeURIComponent(id));
+  const pre = barajas.find(b => String(b.id) === String(id));
+  $('topSub').textContent = pre ? pre.titulo : 'Cargando…';
+  $('vDet').innerHTML = '<div class="cargando" style="grid-column:1/-1">Cargando baraja…</div>';
   try {
-    const res = await fetch(`${ACADEMIA_URL}?action=obtener&id=${encodeURIComponent(id)}`);
-    const data = await res.json();
-    if (data.status !== 'ok') throw new Error(data.message);
-    barajaActual = data.baraja;
-    renderDetalle(barajaActual);
-
-    // Marcar como visto para notificaciones
+    const d = await json(`${ACADEMIA_URL}?action=obtener&id=${encodeURIComponent(id)}`);
+    if (d.status !== 'ok') throw new Error(d.message || 'No se encontró la baraja');
+    barajaActual = d.baraja;
+    if (pre && pre.likes != null && barajaActual.likes == null) barajaActual.likes = pre.likes;
+    const p1 = (barajaActual.bp || []).find(c => /PERSONAJE|HÉROE|HEROE|DIOS/i.test((PORID[String(c.id)] || {}).tipo || '')) || (barajaActual.bp || [])[0];
+    if (p1) { const P = ls.get('chh_acad_portadas', {}); P[barajaActual.id] = p1.id; ls.set('chh_acad_portadas', P); }
+    pintarDetalle(barajaActual);
+    cargarPerfiles([barajaActual.autor_id]);
     localStorage.setItem('chh_last_academia', id);
-  } catch(e) {
-    cont.innerHTML = `<div class="empty-msg">⚠️ Error: ${e.message}</div>`;
+    enfocar($('dCargar'));
+  } catch (e) {
+    $('vDet').innerHTML = `<div class="vacio" style="grid-column:1/-1"><b>No se pudo abrir la baraja</b>${esc(e.message)}</div>`;
+  }
+}
+function volverAlListado(desdeHist) {
+  if (!desdeHist && history.state && history.state.baraja) { history.back(); return; }
+  if (!desdeHist) history.replaceState(null, '', location.pathname);
+  $('vDet').classList.add('oculto'); $('vLista').classList.remove('oculto');
+  $('bVolver').classList.add('oculto'); $('bInicio').classList.remove('oculto');
+  $('topSub').textContent = 'Barajas y estrategias de la comunidad';
+  barajaActual = null; pintarLista(true);
+  const el = _focoLista && _focoLista.dataset && _focoLista.dataset.id ? $('lista').querySelector(`[data-id="${CSS.escape(_focoLista.dataset.id)}"]`) : null;
+  if (el) { el.scrollIntoView({ block: 'center' }); enfocar(el); }
+}
+addEventListener('popstate', () => {
+  const id = new URLSearchParams(location.search).get('baraja');
+  if (id) verBaraja(id, true); else if (!$('vDet').classList.contains('oculto')) volverAlListado(true);
+});
+$('bVolver').onclick = () => volverAlListado();
+
+function autorBox(b) {
+  const p = RANK[normId(b.autor_id)], n = barajas.filter(x => normId(x.autor_id) === normId(b.autor_id)).length;
+  return `<div class="box" id="autorBox"><h3>AUTOR</h3>
+    <div class="aut">${avatarHTML(b)}<div class="aut-n"><b>${esc(b.autor_nombre || b.autor_id)}</b><small>${esc(normId(b.autor_id))}</small></div></div>
+    ${p ? `<div class="kpi"><div><b>${p.rank}°</b><span>Ranking</span></div><div><b>${p.pts}</b><span>Puntos</span></div><div><b>${p.torneos}</b><span>Torneos</span></div><div><b>${p.wins}</b><span>Victorias</span></div></div>`
+        : `<div class="sinrk">${Object.keys(RANK).length ? 'Aún no tiene puntos en el Ranking Global.' : 'Cargando su lugar en el Ranking…'}</div>`}
+    <div class="links">${p ? `<a class="chip" href="ranking.html?id=${encodeURIComponent(normId(b.autor_id))}" style="display:inline-flex;align-items:center;text-decoration:none">🏆 VER EN EL RANKING</a>` : ''}
+      ${n > 1 ? `<button class="chip" type="button" id="dMas">📚 SUS BARAJAS (${n})</button>` : ''}</div></div>`;
+}
+const GRUPOS = [['Personajes', /PERSONAJE|H[ÉE]ROE|DIOS/i, '#ff7a3d'], ['Apoyos', /APOYO/i, '#ff3b5c'], ['Sectores', /SECTOR/i, '#cc55ff'], ['Arenas', /ARENA/i, '#00e29b'], ['Otras', /./, '#7d90ab']];
+function estadisticas(b) {
+  const g = GRUPOS.map(x => ({ n: x[0], c: x[2], v: 0 })), curva = {};
+  let tot = 0;
+  (b.bp || []).forEach(c => {
+    const info = PORID[String(c.id)] || {}, q = c.cant || 1, i = GRUPOS.findIndex(x => x[1].test(info.tipo || ''));
+    g[i < 0 ? 4 : i].v += q; tot += q;
+    const s = SIMG[String(c.id)];
+    if (s && s.tipo === 'pj' && s.coste != null) { const k = Math.min(8, +s.coste || 0); curva[k] = (curva[k] || 0) + q; }
+  });
+  if (!tot) return '';
+  const max = Math.max(1, ...Object.values(curva)), ks = Object.keys(curva).map(Number);
+  const lo = ks.length ? Math.min(...ks, 1) : 1, hi = ks.length ? Math.max(...ks) : 0;
+  const pjs = Object.entries(curva).reduce((s, [k, v]) => s + v, 0), prom = pjs ? (Object.entries(curva).reduce((s, [k, v]) => s + k * v, 0) / pjs).toFixed(1) : null;
+  let barras = ''; for (let k = lo; k <= hi; k++) { const v = curva[k] || 0; barras += `<div><em>${v || ''}</em><i style="height:${v / max * 100}%"></i><span>${k === 8 ? '8+' : k}</span></div>`; }
+  return `<div class="box"><h3>BARAJA PRINCIPAL</h3>
+    <div class="comp">${g.filter(x => x.v).map(x => `<i style="width:${x.v / tot * 100}%;background:${x.c}" title="${x.n}: ${x.v}"></i>`).join('')}</div>
+    <div class="ley">${g.filter(x => x.v).map(x => `<span style="--c:${x.c}">${x.n} ${x.v}</span>`).join('')}</div>
+    ${barras ? `<div class="curva" role="img" aria-label="Personajes por costo">${barras}</div><div class="cur-t">Personajes por costo${prom ? ' · promedio ' + prom : ''}</div>` : ''}</div>`;
+}
+function seccion(titulo, cartas, max, z) {
+  if (!cartas || !cartas.length) return '';
+  const total = cartas.reduce((s, c) => s + (c.cant || 1), 0);
+  return `<div class="sec"><div class="sec-h"><b>${titulo}</b><span>${total}${max ? '/' + max : ''}</span></div><div class="cg">${cartas.map((c, i) => {
+    const info = PORID[String(c.id)];
+    return `<button class="cm" type="button" data-z="${z}" data-i="${i}" title="${esc(info ? info.nombre : c.id)}" aria-label="${esc(info ? info.nombre : c.id)} ×${c.cant || 1}">
+      ${info && info.miniatura ? `<img src="${esc(info.miniatura)}" srcset="${esc(info.miniatura)} 300w${info.ampliada ? ', ' + esc(info.ampliada) + ' 600w' : ''}" sizes="(min-width:980px) 110px, 30vw" alt="${esc(info.nombre)}" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'fb',textContent:this.alt}))">` : `<span class="fb">${esc(info ? info.nombre : c.id)}</span>`}
+      <span class="q">×${c.cant || 1}</span></button>`;
+  }).join('')}</div></div>`;
+}
+function pintarDetalle(b) {
+  const dif = String(b.dificultad || 'intermedio').toLowerCase(), yaLike = misLikes.has(b.id);
+  const fecha = b.fecha ? new Date(b.fecha).toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' }) : '';
+  const esAutor = jugador && normId(jugador.id) === normId(b.autor_id), cov = portadaDe(b), covInfo = PORID[String(ls.get('chh_acad_portadas', {})[b.id])];
+  $('topSub').textContent = b.titulo || 'Baraja';
+  $('vDet').innerHTML = `<aside class="side">
+      <div class="box"><div class="hero">
+        <span class="cov" id="dCov" title="Ver carta">${cov ? `<img src="${esc(covInfo && covInfo.ampliada || cov)}" data-min="${esc(cov)}" alt="" onerror="if(this.src.indexOf(this.dataset.min)<0)this.src=this.dataset.min;else this.remove()">` : `<span class="em">${esc(iniciales(b.titulo))}</span>`}</span>
+        <div style="min-width:0"><div class="d-t">${esc(b.titulo)}${b.destacado ? ' ⭐' : ''}</div><div class="d-f">${esc(fecha)}</div>
+          <div class="meta" style="margin-top:10px"><span class="tag d-${esc(dif)}">${esc(dif)}</span>${arqsDe(b).map(a => `<span class="tag">${esc(a)}</span>`).join('')}</div></div>
+      </div></div>
+      ${autorBox(b)}
+      ${b.descripcion ? `<div class="box"><h3>ESTRATEGIA</h3><div class="d-desc">${esc(b.descripcion)}</div></div>` : ''}
+      ${estadisticas(b)}
+      <div class="box" style="display:flex;flex-direction:column;gap:8px">
+        <button class="btn pri" id="dCargar" type="button">📥 CARGAR EN MI CONSTRUCTOR</button>
+        <button class="btn mor" id="dProbar" type="button">🤖 PROBAR EN LA SIMULACIÓN</button>
+        <div class="fila2"><button class="btn sec lk${yaLike ? ' on' : ''}" id="dLike" type="button">${yaLike ? '❤️' : '🤍'} ${b.likes || 0}</button><button class="btn sec" id="dComp" type="button">🔗 COMPARTIR</button></div>
+        ${esAdmin && esAutor ? `<div class="fila2" style="margin-top:4px"><button class="btn sec" id="dEdit" type="button">✏️ EDITAR</button><button class="btn pel" id="dDel" type="button">🗑️ ELIMINAR</button></div>` : ''}
+      </div>
+    </aside>
+    <div>
+      ${seccion('BARAJA PRINCIPAL (BP)', b.bp, 40, 'bp')}
+      ${seccion('BARAJA DE ALMAS (BA)', b.ba, 15, 'ba')}
+      ${seccion('BARAJA DE SOPORTE (AMALGAMAS)', b.bs, 15, 'bs')}
+    </div>`;
+  $('dCargar').onclick = copiarAlConstructor;
+  $('dProbar').onclick = probarEnSimulacion;
+  $('dLike').onclick = darLike;
+  $('dComp').onclick = compartir;
+  if ($('dEdit')) $('dEdit').onclick = abrirEdit;
+  if ($('dDel')) $('dDel').onclick = eliminarBaraja;
+}
+$('vDet').addEventListener('click', vDetClick);
+function vDetClick(e) {
+  const m = e.target.closest('.cm'); if (m) { abrirZoom(m.dataset.z, +m.dataset.i); return; }
+  if (e.target.closest('#dCov') && barajaActual) { const p = ls.get('chh_acad_portadas', {})[barajaActual.id], i = (barajaActual.bp || []).findIndex(c => String(c.id) === String(p)); abrirZoom('bp', Math.max(0, i)); return; }
+  if (e.target.closest('#dMas') && barajaActual) {
+    const nom = barajaActual.autor_nombre || barajaActual.autor_id; volverAlListado();
+    setTimeout(() => { $('q').value = nom; F.q = nom; pintarLista(); }, 50);
   }
 }
 
-function renderDetalle(b) {
-  const cont = document.getElementById('detalle-container');
-  const dif = (b.dificultad || 'intermedio').toLowerCase();
-  const arqs = (b.arquetipo || '').split(',').map(a=>a.trim()).filter(Boolean);
-  const yaLike = misLikes.has(b.id);
-  const fecha = b.fecha ? new Date(b.fecha).toLocaleDateString('es-MX', {day:'2-digit',month:'long',year:'numeric'}) : '';
-  const esAutor = jugador && jugador.id && jugador.id.toUpperCase() === (b.autor_id||'').toUpperCase();
-
-  cont.innerHTML = `
-    <div class="detalle-header">
-      <div class="detalle-titulo">${escape(b.titulo)} ${b.destacado?'<span style="color:var(--gold);font-size:1rem;">⭐</span>':''}</div>
-      <div class="detalle-autor">👤 ${escape(b.autor_nombre || b.autor_id)}</div>
-      <div class="detalle-fecha">${fecha}</div>
-      <div class="detalle-meta">
-        <span class="bc-chip dificultad-${dif}">${dif}</span>
-        ${arqs.map(a => `<span class="bc-chip">${escape(a)}</span>`).join('')}
-      </div>
-    </div>
-    ${b.descripcion ? `<div class="detalle-descripcion">${escape(b.descripcion)}</div>` : ''}
-
-    ${renderDeckSection('Baraja Principal (BP)', b.bp, 40)}
-    ${renderDeckSection('Baraja de Almas (BA)', b.ba, 15)}
-    ${renderDeckSection('Baraja de Amalgamas (BS)', b.bs, 15)}
-
-    <div style="margin-top:20px;">
-      <button class="btn-accion btn-primario" onclick="copiarAlConstructor()">📥 CARGAR EN MI CONSTRUCTOR</button>
-      <button class="btn-accion btn-secundario btn-like ${yaLike?'liked':''}" onclick="darLike()">
-        ${yaLike ? '❤️ TE GUSTA' : '🤍 ME GUSTA'} · ${b.likes}
-      </button>
-    </div>
-
-    ${esAdmin && esAutor ? renderAdminActions(b) : ''}
-  `;
+// ══════════════════════════════════════════════════════════════
+//  ZOOM (‹ › o flechas para recorrer la sección)
+// ══════════════════════════════════════════════════════════════
+let ZM = null;
+function abrirZoom(z, i) {
+  const L = (barajaActual && barajaActual[z]) || []; if (!L.length) return;
+  ZM = { L, i: Math.max(0, Math.min(L.length - 1, i)), volver: (gpOn() && GP.foco && GP.foco()) || document.activeElement };
+  pintarZoom(); $('zoom').classList.add('on'); enfocar($('zSig'));
 }
-
-function renderDeckSection(titulo, cartas, max) {
-  if (!cartas || !cartas.length) return '';
-  const total = cartas.reduce((s,c) => s + (c.cant||1), 0);
-
-  const cartasHTML = cartas.map(c => {
-    const info = allCards.find(x => String(x.id) === String(c.id));
-    if (!info) {
-      return `<div class="carta-mini" title="Carta no encontrada: ${c.id}">
-        <div class="carta-nombre-fallback">${escape(c.id)}</div>
-        <span class="carta-qty">x${c.cant}</span>
-      </div>`;
-    }
-    return `<div class="carta-mini" onclick="abrirZoom('${escapeAttr(info.imagen || info.miniatura)}', '${escapeAttr(info.nombre)}')" title="${escape(info.nombre)}">
-      ${info.miniatura ? `<img src="${escapeAttr(info.miniatura)}" alt="${escape(info.nombre)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="carta-nombre-fallback" style="display:none">${escape(info.nombre)}</div>` : `<div class="carta-nombre-fallback">${escape(info.nombre)}</div>`}
-      <span class="carta-qty">x${c.cant}</span>
-    </div>`;
-  }).join('');
-
-  return `<div class="deck-section">
-    <div class="deck-section-title">
-      <span>${titulo}</span>
-      <span class="dst-count">${total}${max?'/'+max:''}</span>
-    </div>
-    <div class="cartas-grid">${cartasHTML}</div>
-  </div>`;
+function pintarZoom() {
+  const c = ZM.L[ZM.i], info = PORID[String(c.id)] || {};
+  $('zImg').src = info.ampliada || info.miniatura || ''; $('zImg').alt = info.nombre || '';
+  $('zNom').textContent = (info.nombre || c.id) + ' · ×' + (c.cant || 1) + '   (' + (ZM.i + 1) + '/' + ZM.L.length + ')';
 }
-
-function renderAdminActions(b) {
-  return `<div class="admin-actions">
-    <div class="admin-actions-title">🛡️ Acciones de autor</div>
-    <button class="btn-accion btn-secundario" onclick="abrirEditModal()">✏️ EDITAR</button>
-    <button class="btn-accion btn-peligro" onclick="eliminarBaraja()">🗑️ ELIMINAR</button>
-  </div>`;
-}
-
-function volverAlListado() {
-  document.getElementById('vista-detalle').style.display = 'none';
-  document.getElementById('vista-listado').style.display = 'block';
-  barajaActual = null;
-  window.scrollTo(0,0);
-}
+function moverZoom(d) { if (!ZM) return; ZM.i = (ZM.i + d + ZM.L.length) % ZM.L.length; pintarZoom(); }
+function cerrarZoom() { if (!ZM) return false; $('zoom').classList.remove('on'); const v = ZM.volver; ZM = null; if (v && document.contains(v)) enfocar(v); return true; }
+$('zX').onclick = cerrarZoom; $('zAnt').onclick = () => moverZoom(-1); $('zSig').onclick = () => moverZoom(1);
+$('zoom').addEventListener('click', e => { if (e.target === $('zoom')) cerrarZoom(); });
+addEventListener('keydown', e => {
+  if (ZM) { if (e.key === 'Escape') cerrarZoom(); else if (e.key === 'ArrowLeft') moverZoom(-1); else if (e.key === 'ArrowRight') moverZoom(1); else return; e.preventDefault(); return; }
+  if (e.key === 'Escape' && $('mEdit').classList.contains('on')) { cerrarEdit(); return; }
+  if (e.key === 'Escape' && !$('vDet').classList.contains('oculto')) volverAlListado();
+});
 
 // ══════════════════════════════════════════════════════════════
-//  ZOOM DE CARTA
+//  ACCIONES
 // ══════════════════════════════════════════════════════════════
-function abrirZoom(src, nombre) {
-  if (!src) return;
-  const overlay = document.getElementById('zoom-overlay');
-  const img = document.getElementById('zoom-img');
-  img.src = src;
-  img.alt = nombre;
-  overlay.classList.add('active');
+function expandir(arr) {
+  const out = [];
+  (arr || []).forEach(c => { const info = PORID[String(c.id)]; if (info) for (let i = 0; i < (c.cant || 1); i++) out.push(info); });
+  return out;
 }
-function cerrarZoom() {
-  document.getElementById('zoom-overlay').classList.remove('active');
-}
-
-// ══════════════════════════════════════════════════════════════
-//  COPIAR AL CONSTRUCTOR
-// ══════════════════════════════════════════════════════════════
 function copiarAlConstructor() {
   if (!barajaActual) return;
-  if (!jugador) {
-    toast('Debes iniciar sesión primero', true);
-    return;
-  }
-
-  // Expandir formato compacto {id, cant} a array plano tipo constructor
-  const expandir = (arr) => {
-    const out = [];
-    arr.forEach(c => {
-      const info = allCards.find(x => String(x.id) === String(c.id));
-      if (info) for (let i = 0; i < (c.cant||1); i++) out.push(info);
-    });
-    return out;
-  };
-
-  const nuevaBaraja = {
-    name: `${barajaActual.titulo} (de ${barajaActual.autor_nombre})`,
-    date: new Date().toISOString(),
-    decks: {
-      BP: expandir(barajaActual.bp),
-      BA: expandir(barajaActual.ba),
-      BS: expandir(barajaActual.bs)
-    }
-  };
-
-  const saved = JSON.parse(localStorage.getItem('chh_decks') || '[]');
-  saved.push(nuevaBaraja);
-  localStorage.setItem('chh_decks', JSON.stringify(saved));
-
-  toast('✅ Baraja copiada a tu constructor');
-  setTimeout(() => { window.location.href = 'constructor.html'; }, 1200);
+  const nueva = { name: `${barajaActual.titulo} (de ${barajaActual.autor_nombre || barajaActual.autor_id})`, date: new Date().toISOString(),
+    decks: { BP: expandir(barajaActual.bp), BA: expandir(barajaActual.ba), BS: expandir(barajaActual.bs) } };
+  const saved = ls.get('chh_decks', []); saved.push(nueva); ls.set('chh_decks', saved);
+  toast('✅ Baraja copiada a tu Constructor');
+  setTimeout(() => { location.href = 'constructor.html'; }, 1100);
 }
-
-// ══════════════════════════════════════════════════════════════
-//  LIKE
-// ══════════════════════════════════════════════════════════════
+// Igual que "Probar en la Simulación" del Constructor: la Simulación la carga como baraja del jugador
+function probarEnSimulacion() {
+  if (!barajaActual) return;
+  const dec = { BP: expandir(barajaActual.bp), BA: expandir(barajaActual.ba), BS: expandir(barajaActual.bs) };
+  if (dec.BA.length !== 15) { toast('Esta baraja no tiene 15 Almas: no se puede jugar en la Simulación', true); return; }
+  try { localStorage.setItem('chh_sim_probar', JSON.stringify({ name: barajaActual.titulo, date: new Date().toISOString(), decks: dec })); }
+  catch (e) { toast('No se pudo preparar la baraja', true); return; }
+  location.href = 'simulacion.html?baraja=probar';
+}
+async function compartir() {
+  if (!barajaActual) return;
+  const url = location.origin + location.pathname + '?baraja=' + encodeURIComponent(barajaActual.id);
+  const txt = `"${barajaActual.titulo}" de ${barajaActual.autor_nombre || barajaActual.autor_id} · Academia Heroica de Choque de Héroes TCG`;
+  try { if (navigator.share) { await navigator.share({ title: barajaActual.titulo, text: txt, url }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
+  try { await navigator.clipboard.writeText(url); toast('🔗 Enlace copiado'); } catch (e) { toast(url); }
+}
 async function darLike() {
-  if (!jugador) {
-    toast('Debes iniciar sesión primero', true);
-    return;
-  }
+  if (!jugador) { toast('Inicia sesión en Mi Perfil para dar me gusta', true); return; }
   if (!barajaActual) return;
+  const b = $('dLike'); b.disabled = true;
   try {
-    const url = `${ACADEMIA_URL}?action=like&baraja_id=${encodeURIComponent(barajaActual.id)}&player_id=${encodeURIComponent(jugador.id)}`;
-    const res = await fetch(url, { method: 'POST' });
-    const data = await res.json();
-    if (data.status !== 'ok') throw new Error(data.message);
-    if (data.liked) {
-      misLikes.add(barajaActual.id);
-      barajaActual.likes += 1;
-    } else {
-      misLikes.delete(barajaActual.id);
-      barajaActual.likes = Math.max(0, barajaActual.likes - 1);
-    }
-    renderDetalle(barajaActual);
-  } catch(e) {
-    toast('Error al dar like: ' + e.message, true);
-  }
+    const d = await json(`${ACADEMIA_URL}?action=like&baraja_id=${encodeURIComponent(barajaActual.id)}&player_id=${encodeURIComponent(jugador.id)}`, { method: 'POST' });
+    if (d.status !== 'ok') throw new Error(d.message);
+    if (d.liked) { misLikes.add(barajaActual.id); barajaActual.likes = (barajaActual.likes || 0) + 1; }
+    else { misLikes.delete(barajaActual.id); barajaActual.likes = Math.max(0, (barajaActual.likes || 0) - 1); }
+    const l = barajas.find(x => x.id === barajaActual.id); if (l) l.likes = barajaActual.likes;
+    b.classList.toggle('on', misLikes.has(barajaActual.id)); b.textContent = (misLikes.has(barajaActual.id) ? '❤️ ' : '🤍 ') + barajaActual.likes;
+  } catch (e) { toast('No se pudo registrar: ' + e.message, true); }
+  finally { b.disabled = false; }
 }
-
-// ══════════════════════════════════════════════════════════════
-//  EDITAR / ELIMINAR
-// ══════════════════════════════════════════════════════════════
-function abrirEditModal() {
-  if (!barajaActual) return;
-  document.getElementById('edit-titulo').value = barajaActual.titulo || '';
-  document.getElementById('edit-descripcion').value = barajaActual.descripcion || '';
-  document.getElementById('edit-arquetipo').value = barajaActual.arquetipo || '';
-  document.getElementById('edit-dificultad').value = barajaActual.dificultad || 'intermedio';
-  document.getElementById('edit-modal').classList.add('active');
+function abrirEdit() {
+  const b = barajaActual; if (!b) return;
+  $('eTit').value = b.titulo || ''; $('eDesc').value = b.descripcion || ''; $('eArq').value = b.arquetipo || ''; $('eDif').value = b.dificultad || 'intermedio';
+  $('mEdit').classList.add('on'); enfocar($('eTit')); if (!gpOn()) $('eTit').focus();
 }
-function cerrarEditModal() {
-  document.getElementById('edit-modal').classList.remove('active');
-}
-
-async function confirmarEdicion() {
+function cerrarEdit() { $('mEdit').classList.remove('on'); enfocar($('dEdit')); }
+$('eNo').onclick = cerrarEdit;
+$('mEdit').addEventListener('click', e => { if (e.target === $('mEdit')) cerrarEdit(); });
+$('eSi').onclick = async () => {
   if (!barajaActual || !jugador) return;
-  const titulo = document.getElementById('edit-titulo').value.trim();
-  if (!titulo) { toast('El título es obligatorio', true); return; }
-  const body = new URLSearchParams({
-    action: 'editar',
-    id: barajaActual.id,
-    autor_id: jugador.id,
-    titulo,
-    descripcion: document.getElementById('edit-descripcion').value.trim(),
-    arquetipo:   document.getElementById('edit-arquetipo').value.trim(),
-    dificultad:  document.getElementById('edit-dificultad').value
-  });
+  const titulo = $('eTit').value.trim(); if (!titulo) { toast('El título es obligatorio', true); return; }
+  const body = new URLSearchParams({ action: 'editar', id: barajaActual.id, autor_id: jugador.id, titulo, descripcion: $('eDesc').value.trim(), arquetipo: $('eArq').value.trim(), dificultad: $('eDif').value });
+  $('eSi').disabled = true;
   try {
-    const res = await fetch(ACADEMIA_URL, { method:'POST', body });
-    const data = await res.json();
-    if (data.status !== 'ok') throw new Error(data.message);
-    toast('✅ Baraja actualizada');
-    cerrarEditModal();
-    verBaraja(barajaActual.id);
-  } catch(e) {
-    toast('Error: ' + e.message, true);
-  }
-}
-
+    const d = await json(ACADEMIA_URL, { method: 'POST', body }); if (d.status !== 'ok') throw new Error(d.message);
+    toast('✅ Baraja actualizada'); $('mEdit').classList.remove('on');
+    await cargarListado(false); verBaraja(barajaActual.id, true);
+  } catch (e) { toast('Error: ' + e.message, true); }
+  finally { $('eSi').disabled = false; }
+};
 async function eliminarBaraja() {
   if (!barajaActual || !jugador) return;
   if (!(await NX_UI.confirmar('¿Eliminar esta baraja de la Academia? No se puede deshacer.', { titulo: 'Eliminar baraja', si: 'Eliminar', peligro: true }))) return;
-  const body = new URLSearchParams({
-    action: 'eliminar',
-    id: barajaActual.id,
-    autor_id: jugador.id
-  });
   try {
-    const res = await fetch(ACADEMIA_URL, { method:'POST', body });
-    const data = await res.json();
-    if (data.status !== 'ok') throw new Error(data.message);
-    toast('✅ Baraja eliminada');
-    setTimeout(() => volverAlListado(), 1000);
-    cargarListado();
-  } catch(e) {
-    toast('Error: ' + e.message, true);
+    const d = await json(ACADEMIA_URL, { method: 'POST', body: new URLSearchParams({ action: 'eliminar', id: barajaActual.id, autor_id: jugador.id }) });
+    if (d.status !== 'ok') throw new Error(d.message);
+    toast('✅ Baraja eliminada'); barajas = barajas.filter(x => x.id !== barajaActual.id);
+    volverAlListado(); cargarListado(false);
+  } catch (e) { toast('Error: ' + e.message, true); }
+}
+
+// ── Control (gamepad.js) ──
+window.GP_CFG = {
+  zonas: ['.filt', '#lista', '#vDet .side', '#vDet > div:last-child'],
+  inicial: () => ZM ? $('zSig') : !$('vDet').classList.contains('oculto') ? ($('dCargar') || $('bVolver')) : ($('lista').querySelector('.bk') || $('q')),
+  ambito: () => ZM ? $('zoom') : $('mEdit').classList.contains('on') ? $('mEdit') : null,
+  lbrb: d => { if (ZM) { moverZoom(d); return true; } return false; },
+  atras: () => {
+    if (cerrarZoom()) return true;
+    if ($('mEdit').classList.contains('on')) { cerrarEdit(); return true; }
+    if (!$('vDet').classList.contains('oculto')) { volverAlListado(); return true; }
+    location.href = 'index.html'; return true;
   }
-}
-
-// ══════════════════════════════════════════════════════════════
-//  UTILIDADES
-// ══════════════════════════════════════════════════════════════
-function escape(s) {
-  return String(s||'').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-}
-function escapeAttr(s) {
-  return String(s||'').replace(/["'&<>]/g, ch => ({'"':'&quot;',"'":'&#39;','&':'&amp;','<':'&lt;','>':'&gt;'}[ch]));
-}
-function toast(msg, isError) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.toggle('error', !!isError);
-  el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 2800);
-}
+};
 </script>
-
+<script src="nube.js"></script>
 <script src="settings.js"></script>
 <script src="bgm.js"></script>
 </body>

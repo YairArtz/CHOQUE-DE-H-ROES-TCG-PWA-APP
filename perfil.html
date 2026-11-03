@@ -2205,6 +2205,7 @@ function elegirAvatar(avId) {
   const av = AVATARS.find(a=>a.id===avId) || AVATARS_PREMIUM.find(a=>a.id===avId);
   if (av) document.getElementById('avatar-display').innerHTML = `<img src="${av.src}" alt="${av.label}" onerror="this.style.display='none'"/>`;
   if (jugador) localStorage.setItem(`nhAv_${jugador.id}`, avId);
+  try { if (window.CHH_NUBE && CHH_NUBE.publicarPerfil) CHH_NUBE.publicarPerfil(); } catch (e) {}   // v212 · para que otros vean tu avatar (Academia)
   setTimeout(cerrarAvatarModal, 300);
   mostrarToast('¡Avatar actualizado!');
 }

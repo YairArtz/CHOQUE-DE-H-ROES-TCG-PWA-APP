@@ -134,6 +134,14 @@
     .cards-grid.cols-2 { grid-template-columns: repeat(2, 1fr) !important; }
     .cards-grid.cols-3 { grid-template-columns: repeat(3, 1fr) !important; }
     .cards-grid.cols-4 { grid-template-columns: repeat(4, 1fr) !important; }
+    /* v212 · PC / monitor: la opción de columnas de Ajustes pasa a ser el TAMAÑO de las cartas (ya no 3 cartas gigantes y borrosas).
+       2 = grandes · 3 = normales · 4 = chicas; el número de columnas se ajusta solo al ancho del monitor */
+    @media (min-width: 760px) {
+      .cards-grid { gap: 14px; padding: 0 24px 90px; max-width: 1680px; }
+      .cards-grid.cols-2 { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)) !important; }
+      .cards-grid.cols-3, .cards-grid:not(.cols-2):not(.cols-4) { grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)) !important; }
+      .cards-grid.cols-4 { grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)) !important; gap: 10px; }
+    }
     .card-item {
       position: relative; aspect-ratio: 5/7; border-radius: 8px; overflow: hidden; cursor: pointer;
       border: 1px solid rgba(255,209,102,.16); background: rgba(var(--nx-k2),.7); padding: 0; display: block; width: 100%;
@@ -619,10 +627,14 @@
         const lim = limDe(card);
         const tags = (lim ? `<span class="tile-tag ${lim === 'limitada' ? 'lim' : lim === 'semi' || lim === 'semilimitada' ? 'semi' : 'cond'}">${lim === 'limitada' ? '1' : lim === 'condenada' ? '✖' : '2'}</span>` : '<span></span>') +
                      (FAV.has(card.id) ? '<span class="tile-fav">♥</span>' : '');
-        el.innerHTML = (card.miniatura ? `<img src="${esc(card.miniatura)}" alt="" loading="lazy" decoding="async">` : `<div class="card-placeholder">${esc(card.nombre)}</div>`) +
+        // v212 · srcset: en pantallas grandes o de alta densidad se usa la imagen ampliada (nítida); en celular, la miniatura
+        el.innerHTML = (card.miniatura ? `<img src="${esc(card.miniatura)}"${card.ampliada ? ` srcset="${esc(card.miniatura)} 300w, ${esc(card.ampliada)} 600w" sizes="(min-width: 760px) 190px, 33vw"` : ''} alt="" loading="lazy" decoding="async">` : `<div class="card-placeholder">${esc(card.nombre)}</div>`) +
                        `<div class="tile-tags">${tags}</div>`;
         const im = el.querySelector('img');
-        if (im) im.onerror = () => { im.replaceWith(Object.assign(document.createElement('div'), { className: 'card-placeholder', textContent: card.nombre })); };
+        if (im) im.onerror = () => {
+          if (im.hasAttribute('srcset')) { im.removeAttribute('srcset'); im.removeAttribute('sizes'); im.src = card.miniatura; return; }   // falta la ampliada: la miniatura
+          im.replaceWith(Object.assign(document.createElement('div'), { className: 'card-placeholder', textContent: card.nombre }));
+        };
         frag.appendChild(el);
       });
       cardsGrid.appendChild(frag);

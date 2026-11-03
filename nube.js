@@ -242,7 +242,34 @@
   function diferir(nombre, fn, ms) { clearTimeout(_dif[nombre]); _dif[nombre] = setTimeout(fn, ms || 1500); }
   addEventListener('online', () => { if (sesionId()) { sincronizarBarajas(); } });
 
+  // ════════════════════ PERFIL PÚBLICO (v212) ════════════════════
+  // Avatar elegido en Mi Perfil, para que otros lo vean (p. ej. el autor de una baraja en la Academia Heroica).
+  // Firebase: jugadores/<ID>/perfil = { j: '{"av":"av3","nick":"…"}', u: <ms> }
+  function avatarLocal(id) { try { return localStorage.getItem('nhAv_' + id) || localStorage.getItem('nhAv_' + id.toLowerCase()) || ''; } catch (e) { return ''; } }
+  async function publicarPerfil(forzar) {
+    const id = sesionId(); if (!id) return { ok: false, motivo: 'sinid' };
+    const s = ls.get('nhSesion', {}) || {}, av = avatarLocal(id) || avatarLocal(String(s.id || '').trim());
+    const dato = { av, nick: String(s.nick || '').slice(0, 40) }, firma = JSON.stringify(dato);
+    if (!forzar && ls.get('chh_perfil_pub_' + id, '') === firma) return { ok: true, igual: true };
+    try {
+      const D = await db(); await conTiempo(D.escribir('jugadores/' + id + '/perfil', { j: firma, u: Date.now() }));
+      ls.set('chh_perfil_pub_' + id, firma); return { ok: true };
+    } catch (e) { return { ok: false, motivo: e && e.message }; }
+  }
+  async function perfiles(ids) {
+    const out = {}, L = [...new Set((ids || []).map(x => String(x || '').trim().toUpperCase()).filter(x => /^CHH-[0-9A-Z]+$/.test(x)))];
+    if (!L.length) return out;
+    const D = await db();
+    await Promise.all(L.map(async id => {
+      try { const r = await conTiempo(D.leer('jugadores/' + id + '/perfil'), 8000); if (r && r.j) out[id] = JSON.parse(r.j); } catch (e) {}
+    }));
+    return out;
+  }
+  // Se publica solo (una vez por cambio) unos segundos después de abrir cualquier módulo que use la nube
+  setTimeout(() => { if (sesionId() && navigator.onLine) publicarPerfil().catch(() => {}); }, 4000);
+
   window.CHH_NUBE = {
+    publicarPerfil, perfiles,
     sesionId, estado: () => estado, alCambiar: f => subs.push(f),
     sincronizarBarajas, marcarBorrada, nuevoUid, barajasLocales,
     sincronizarFisicas, marcarFisicasCambio, diferir, sincronizarDoc

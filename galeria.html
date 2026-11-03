@@ -306,22 +306,41 @@
     }
     .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
-    /* ═══ SUBMENÚS ═══ */
-    .submenu-view { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 200; overflow-y: auto; padding: 70px 16px 110px; }
-    .submenu-view.active { display: block; }
-    .submenu-header { text-align: center; margin-bottom: 24px; }
-    .submenu-title { font: 900 18px 'Orbitron', sans-serif; letter-spacing: 2px; color: var(--gold); text-shadow: 0 0 15px rgba(245,166,35,.5); margin-bottom: 8px; }
-    .submenu-subtitle { font-size: 15px; color: var(--muted); font-weight: 600; }
-    .submenu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 12px; max-width: 760px; margin: 0 auto; }
-    .submenu-card { background: rgba(245,166,35,.06); border: 1px solid rgba(255,209,102,.3); border-radius: 12px; cursor: pointer; overflow: hidden; transition: transform .15s, box-shadow .15s; }
-    .submenu-card:active { transform: scale(.96); box-shadow: 0 0 22px rgba(245,166,35,.4); }
-    .submenu-card-img { width: 100%; aspect-ratio: 2/3; object-fit: cover; display: block; background: rgba(0,0,0,.3); }
-    .submenu-card-name { font: 900 10px/1.25 'Orbitron', sans-serif; color: var(--gold); padding: 8px 6px; text-align: center; background: rgba(0,0,0,.5); }
-    .back-to-gallery-btn {
-      position: fixed; bottom: calc(18px + var(--safe-b)); left: 50%; transform: translateX(-50%); z-index: 250;
-      background: linear-gradient(135deg, var(--gold), var(--gold2)); border: none; color: rgb(var(--nx-k3)); cursor: pointer;
-      font: 900 11px 'Orbitron', sans-serif; letter-spacing: 1.5px; padding: 14px 26px; border-radius: 10px; box-shadow: 0 0 22px rgba(245,166,35,.4);
-    }
+    /* ═══ SUBMENÚS · v211 ═══ */
+    .submenu-view { display: none; position: fixed; inset: 0; z-index: 200; overflow-y: auto; overscroll-behavior: contain;
+      background: radial-gradient(ellipse at 50% -10%, rgba(245,166,35,.14), transparent 60%), var(--bg); padding: 0 16px calc(40px + var(--safe-b)); }
+    .submenu-view.active { display: block; animation: fadeIn .2s ease; }
+    .sm-head { position: sticky; top: 0; z-index: 3; display: flex; align-items: center; gap: 14px; margin: 0 -16px 22px; padding: 12px 16px; padding-top: max(12px, env(safe-area-inset-top));
+      background: rgba(var(--nx-k1),.94); border-bottom: 1px solid rgba(255,209,102,.18); }
+    .sm-back { flex-shrink: 0; display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 10px; cursor: pointer;
+      background: rgba(255,209,102,.08); border: 1px solid rgba(255,209,102,.4); color: var(--gold); font: 900 10.5px 'Orbitron', sans-serif; letter-spacing: 1.4px; transition: background .15s, box-shadow .15s; }
+    .sm-back:hover, .sm-back:focus-visible, .sm-back.gp-foco { background: linear-gradient(135deg, var(--gold), var(--gold2)); color: rgb(var(--nx-k3)); box-shadow: 0 0 18px rgba(245,166,35,.45); outline: none; }
+    .sm-tit { min-width: 0; }
+    .submenu-title { font: 900 clamp(14px, 2.2vw, 19px) 'Orbitron', sans-serif; letter-spacing: 2px; color: var(--gold); text-shadow: 0 0 15px rgba(245,166,35,.45); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .submenu-subtitle { font-size: 14.5px; color: var(--muted); font-weight: 600; margin-top: 2px; }
+    .submenu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 176px)); justify-content: center; gap: 16px; max-width: 1100px; margin: 0 auto; }
+    .submenu-card { position: relative; display: block; width: 100%; padding: 0; text-align: left; cursor: pointer; overflow: hidden; border-radius: 12px;
+      background: rgba(var(--nx-k2),.9); border: 1px solid rgba(255,209,102,.28); box-shadow: 0 8px 20px rgba(0,0,0,.45);
+      transition: transform .2s cubic-bezier(.2,.9,.3,1.3), box-shadow .2s, border-color .2s; animation: smIn .4s cubic-bezier(.2,.9,.3,1) both; animation-delay: calc(var(--i, 0) * 40ms); }
+    .submenu-card-img, .sm-ph { width: 100%; aspect-ratio: 2/3; object-fit: cover; display: block; background: rgba(0,0,0,.35); }
+    .sm-ph { display: flex; align-items: center; justify-content: center; font: 900 30px 'Orbitron', sans-serif; color: rgba(255,209,102,.55);
+      background: radial-gradient(circle at 50% 40%, rgba(245,166,35,.22), transparent 65%), repeating-linear-gradient(45deg, rgba(255,209,102,.05) 0 2px, transparent 2px 12px), rgb(var(--nx-k2)); }
+    .submenu-card::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, transparent 48%, rgba(3,4,10,.92) 100%); }
+    .sm-info { position: absolute; left: 0; right: 0; bottom: 0; z-index: 1; padding: 10px 10px 11px; }
+    .submenu-card-name { font: 900 11.5px/1.25 'Orbitron', sans-serif; letter-spacing: .5px; color: #fff; text-shadow: 0 2px 6px #000; }
+    .sm-n { display: inline-block; margin-top: 6px; padding: 2px 8px; border-radius: 10px; background: rgba(255,209,102,.16); border: 1px solid rgba(255,209,102,.4);
+      font: 700 9.5px 'Orbitron', sans-serif; letter-spacing: 1px; color: var(--gold); }
+    .sm-brillo { position: absolute; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; }
+    .sm-brillo::after { content: ''; position: absolute; top: -20%; bottom: -20%; left: -60%; width: 40%; transform: skewX(-20deg); opacity: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.45), transparent); }
+    .submenu-card:hover, .submenu-card:focus-visible, .submenu-card.gp-foco { transform: translateY(-6px) scale(1.03); border-color: var(--gold); outline: none;
+      box-shadow: 0 14px 28px rgba(0,0,0,.55), 0 0 0 2px rgba(255,209,102,.6), 0 0 26px rgba(245,166,35,.45); }
+    .submenu-card:hover .sm-brillo::after, .submenu-card:focus-visible .sm-brillo::after, .submenu-card.gp-foco .sm-brillo::after { animation: smBrillo .6s ease-out; }
+    .submenu-card:active { transform: scale(.97); }
+    @keyframes smIn { from { opacity: 0; transform: translateY(16px) scale(.96); } }
+    @keyframes smBrillo { 0% { left: -60%; opacity: 1; } 100% { left: 130%; opacity: 1; } }
+    @media (max-width: 520px) { .submenu-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; } .sm-back span { display: none; } .submenu-subtitle { font-size: 13px; } }
+    @media (prefers-reduced-motion: reduce) { .submenu-card { animation: none; transition: none; } .submenu-card .sm-brillo::after { animation: none !important; } }
 
     @media (prefers-reduced-motion: reduce) {
       .holo, .panel, .modal.active { animation: none; }
@@ -373,56 +392,10 @@
     </div>
   </div>
 
-  <!-- SUBMENÚ: BARAJAS DE INICIO -->
-  <div class="submenu-view" id="barajasSubmenu">
-    <div class="submenu-header">
-      <div class="submenu-title">🎴 Barajas de Inicio</div>
-      <div class="submenu-subtitle">Elige una baraja preconstruida</div>
-    </div>
-    <div class="submenu-grid">
-      <div class="submenu-card" data-expansion="baraja_ninjiachi"><img src="https://yairartz.github.io/banner_baraja_1.jpg" alt="Baraja Ninjiachi" class="submenu-card-img" onerror="this.style.display='none'"><div class="submenu-card-name">Baraja Ninjiachi</div></div>
-      <div class="submenu-card" data-expansion="baraja_max_kara"><img src="https://yairartz.github.io/banner_baraja_2.jpg" alt="Baraja Max-Kara" class="submenu-card-img" onerror="this.style.display='none'"><div class="submenu-card-name">Baraja Max-Kara</div></div>
-      <div class="submenu-card" data-expansion="baraja_legion_del_mar"><img src="https://yairartz.github.io/banner_baraja_3.jpg" alt="Baraja Legión del Mar" class="submenu-card-img" onerror="this.style.display='none'"><div class="submenu-card-name">Baraja Legión del Mar</div></div>
-      <div class="submenu-card" data-expansion="baraja_evolotl"><img src="https://yairartz.github.io/banner_baraja_4.jpg" alt="Baraja Evolotl" class="submenu-card-img" onerror="this.style.display='none'"><div class="submenu-card-name">Baraja Evolotl</div></div>
-    </div>
-    <button class="back-to-gallery-btn" id="backFromBarajas">← Volver a la galería</button>
-  </div>
-
-  <!-- SUBMENÚ: SOBRES ESPECIALES -->
-  <div class="submenu-view" id="especialesSubmenu">
-    <div class="submenu-header">
-      <div class="submenu-title">✨ Sobres Especiales</div>
-      <div class="submenu-subtitle">Ediciones de evento y promos de liga</div>
-    </div>
-    <div class="submenu-grid">
-      <div class="submenu-card" data-expansion="sobre_anima"><img src="cartas_3/sobre_anima_000.jpg" alt="Sobre Anima" class="submenu-card-img" onerror="this.style.display='none'"><div class="submenu-card-name">Sobre Anima</div></div>
-      <div class="submenu-card" data-expansion="sobre_patrio"><img src="cartas_3/sobre_patrio_000.jpg" alt="Sobre Patrio" class="submenu-card-img" onerror="this.style.display='none'"><div class="submenu-card-name">Sobre Patrio</div></div>
-      <div class="submenu-card" data-expansion="sobre_otakon"><img src="cartas_3/sobre_otakon_000.jpg" alt="Sobre Otakon" class="submenu-card-img" onerror="this.style.display='none'"><div class="submenu-card-name">Sobre Otakon</div></div>
-      <div class="submenu-card" data-expansion="sobre_torneo_1"><img src="cartas/carta_052.jpg" alt="Cartas de Liga" class="submenu-card-img" onerror="this.style.display='none'"><div class="submenu-card-name">Cartas de Liga</div></div>
-    </div>
-    <button class="back-to-gallery-btn" id="backFromEspeciales">← Volver a la galería</button>
-  </div>
-
-  <!-- SUBMENÚ: EXPANSIONES AGOTADAS -->
-  <div class="submenu-view" id="agotadasSubmenu">
-    <div class="submenu-header">
-      <div class="submenu-title">⚠️ Expansiones Agotadas</div>
-      <div class="submenu-subtitle">Colecciones fuera de circulación (2016-2020)</div>
-    </div>
-    <div class="submenu-grid">
-      <div class="submenu-card" data-expansion="series"><img src="cartas_2/series_banner.jpg" alt="SERIES" class="submenu-card-img" onerror="this.style.display='none'"><div class="submenu-card-name">SERIES</div></div>
-      <div class="submenu-card" data-expansion="heroes_del_exilio"><img src="https://yairartz.github.io/expansion_agotada_9.jpg" alt="Héroes del Exilio" class="submenu-card-img" onerror="this.style.display='none'"><div class="submenu-card-name">Héroes del Exilio</div></div>
-      <div class="submenu-card" data-expansion="control_absoluto"><img src="https://yairartz.github.io/expansion_agotada_8.jpg" alt="Control Absoluto" class="submenu-card-img" onerror="this.style.display='none'"><div class="submenu-card-name">Control Absoluto</div></div>
-      <div class="submenu-card" data-expansion="renacer_heroico"><img src="https://yairartz.github.io/expansion_agotada_7.jpg" alt="Renacer Heroico" class="submenu-card-img" onerror="this.style.display='none'"><div class="submenu-card-name">Renacer Heroico</div></div>
-      <div class="submenu-card" data-expansion="crisis_dimensional"><img src="https://yairartz.github.io/expansion_agotada_6.jpg" alt="Crisis Dimensional" class="submenu-card-img" onerror="this.style.display='none'"><div class="submenu-card-name">Crisis Dimensional</div></div>
-      <div class="submenu-card" data-expansion="despertar_ancestral"><img src="https://yairartz.github.io/expansion_agotada_5.jpg" alt="El Despertar Ancestral" class="submenu-card-img" onerror="this.style.display='none'"><div class="submenu-card-name">El Despertar Ancestral</div></div>
-      <div class="submenu-card" data-expansion="heroes_de_leyenda"><img src="https://yairartz.github.io/expansion_agotada_4.jpg" alt="Héroes de Leyenda" class="submenu-card-img" onerror="this.style.display='none'"><div class="submenu-card-name">Héroes de Leyenda</div></div>
-      <div class="submenu-card" data-expansion="secretos_de_phorus"><img src="https://yairartz.github.io/expansion_agotada_3.jpg" alt="Secretos de Phorus" class="submenu-card-img" onerror="this.style.display='none'"><div class="submenu-card-name">Secretos de Phorus</div></div>
-      <div class="submenu-card" data-expansion="azote_del_mictlan"><img src="https://yairartz.github.io/expansion_agotada_2.jpg" alt="Azote del Mictlán" class="submenu-card-img" onerror="this.style.display='none'"><div class="submenu-card-name">Azote del Mictlán</div></div>
-      <div class="submenu-card" data-expansion="ancestros"><img src="https://yairartz.github.io/expansion_agotada_1.jpg" alt="Ancestros" class="submenu-card-img" onerror="this.style.display='none'"><div class="submenu-card-name">Ancestros</div></div>
-    </div>
-    <button class="back-to-gallery-btn" id="backFromAgotadas">← Volver a la galería</button>
-  </div>
+  <!-- SUBMENÚS (Barajas de Inicio · Sobres Especiales · Expansiones Agotadas): se arman en JS (SUBMENU_DEF) -->
+  <div class="submenu-view" id="barajasSubmenu" role="dialog" aria-modal="true" aria-label="Barajas de Inicio"></div>
+  <div class="submenu-view" id="especialesSubmenu" role="dialog" aria-modal="true" aria-label="Sobres Especiales"></div>
+  <div class="submenu-view" id="agotadasSubmenu" role="dialog" aria-modal="true" aria-label="Expansiones Agotadas"></div>
 
   <!-- FICHA DE CARTA -->
   <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalCardName">
@@ -545,13 +518,39 @@
         });
       }
       if (lim.status === 'fulfilled') (lim.value || []).forEach(x => { if (x && x.nombre) LIM[K(x.nombre)] = x.estado; });
-      allCards.forEach(c => { c._tipo = tipoDe(c); const s = simDe(c); c._txt = K((s && s.texto) || ''); });
+      allCards.forEach(c => { c._tipo = tipoDe(c); const s = simDe(c); c._txt = K((s && s.texto) || ''); c._sinInfo = !s; });
+      // v211 · Cartas sin información (fuera del Simulador) cuya imagen aún no está en el sitio: no se muestran.
+      //        Se recuerda 12 h en este dispositivo; en cuanto suban la imagen (o su información) vuelven a aparecer.
+      const SINIMG = (() => { try { return JSON.parse(localStorage.getItem('chh_gal_sinimg') || '{}') || {}; } catch (e) { return {}; } })();
+      const ahora = Date.now();
+      allCards.forEach(c => { if (c._sinInfo && SINIMG[c.miniatura] && ahora - SINIMG[c.miniatura] < 12 * 3600e3) c._oculta = true; });
 
       generateTypeChips();
       generateExpansionFilters();
+      pintarSubmenus();
       guardarFav();
       filterCards();
       abrirDesdeURL();
+      revisarSinImagen(SINIMG);
+    }
+    async function revisarSinImagen(SINIMG) {
+      if (!navigator.onLine) return;
+      const L = allCards.filter(c => c._sinInfo && c.miniatura && !/^https?:/i.test(c.miniatura));
+      let cambio = false, i = 0;
+      const uno = async c => {
+        let st = 0;
+        try { const r = await fetch(c.miniatura, { method: 'HEAD', cache: 'no-cache' }); st = r.status; } catch (e) { return; }   // sin red: no se decide nada
+        const falta = st === 404;
+        if (falta) SINIMG[c.miniatura] = Date.now(); else if (st >= 200 && st < 400) delete SINIMG[c.miniatura]; else return;
+        if (!!c._oculta !== falta) { c._oculta = falta; cambio = true; }
+      };
+      await Promise.all(Array.from({ length: 6 }, async () => { while (i < L.length) await uno(L[i++]); }));
+      try { localStorage.setItem('chh_gal_sinimg', JSON.stringify(SINIMG)); } catch (e) {}
+      if (!cambio) return;
+      const act = (expansionFilters.querySelector('.filter-btn.active') || {}).dataset || {};
+      generateExpansionFilters(); pintarSubmenus();
+      expansionFilters.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', act.submenu ? b.dataset.submenu === act.submenu : b.dataset.expansion === (act.expansion || currentExpansion)));
+      filterCards();
     }
 
     function generateTypeChips() {
@@ -566,7 +565,7 @@
     }
 
     function generateExpansionFilters() {
-      const expansions = [...new Set(allCards.map(card => card.expansion))];
+      const expansions = [...new Set(allCards.filter(c => !c._oculta && c.tipo !== 'BANNER').map(card => card.expansion))];
       expansionFilters.innerHTML = '';
       const add = (txt, data, cls) => {
         const btn = document.createElement('button');
@@ -639,6 +638,7 @@
         if (currentExpansion !== 'todas' && card.expansion !== currentExpansion) return false;
         if (currentType !== 'todos' && card._tipo !== currentType) return false;
         if (soloFav && !FAV.has(card.id)) return false;
+        if (card._oculta) return false;              // v211 · sin imagen ni información todavía
         return true;
       }));
       renderCards();
@@ -868,27 +868,74 @@
 
     const mainGalleryView = $('mainGalleryView');
     const SUBMENUS = { barajas: $('barajasSubmenu'), especiales: $('especialesSubmenu'), agotadas: $('agotadasSubmenu') };
+    // v211 · Submenús: botones de verdad (se pueden recorrer con el control), con portada, nombre y número de cartas.
+    //        Si la portada no existe se usa la primera carta de esa expansión; las expansiones sin cartas visibles no aparecen.
+    const GH = 'https://yairartz.github.io/';
+    const SUBMENU_DEF = {
+      barajas: { t: '🎴 Barajas de Inicio', s: 'Elige una baraja preconstruida', L: [
+        ['baraja_ninjiachi', 'Baraja Ninjiachi', GH + 'banner_baraja_1.jpg'], ['baraja_max_kara', 'Baraja Max-Kara', GH + 'banner_baraja_2.jpg'],
+        ['baraja_legion_del_mar', 'Baraja Legión del Mar', GH + 'banner_baraja_3.jpg'], ['baraja_evolotl', 'Baraja Evolotl', GH + 'banner_baraja_4.jpg']] },
+      especiales: { t: '✨ Sobres Especiales', s: 'Ediciones de evento y promos de liga', L: [
+        ['sobre_anima', 'Sobre Anima', 'cartas_3/sobre_anima_000.jpg'], ['sobre_patrio', 'Sobre Patrio', 'cartas_3/sobre_patrio_000.jpg'],
+        ['sobre_otakon', 'Sobre Otakon', 'cartas_3/sobre_otakon_000.jpg'], ['sobre_torneo_1', 'Cartas de Liga', 'cartas/carta_052.jpg']] },
+      agotadas: { t: '⚠️ Expansiones Agotadas', s: 'Colecciones fuera de circulación (2016-2020)', L: [
+        ['series', 'SERIES', 'cartas_2/series_banner.jpg'], ['heroes_del_exilio', 'Héroes del Exilio', GH + 'expansion_agotada_9.jpg'],
+        ['control_absoluto', 'Control Absoluto', GH + 'expansion_agotada_8.jpg'], ['renacer_heroico', 'Renacer Heroico', GH + 'expansion_agotada_7.jpg'],
+        ['crisis_dimensional', 'Crisis Dimensional', GH + 'expansion_agotada_6.jpg'], ['despertar_ancestral', 'El Despertar Ancestral', GH + 'expansion_agotada_5.jpg'],
+        ['heroes_de_leyenda', 'Héroes de Leyenda', GH + 'expansion_agotada_4.jpg'], ['secretos_de_phorus', 'Secretos de Phorus', GH + 'expansion_agotada_3.jpg'],
+        ['azote_del_mictlan', 'Azote del Mictlán', GH + 'expansion_agotada_2.jpg'], ['ancestros', 'Ancestros', GH + 'expansion_agotada_1.jpg']] }
+    };
+    function visibles() { return allCards.filter(c => !c._oculta); }
+    function pintarSubmenus() {
+      const V = visibles();
+      Object.entries(SUBMENU_DEF).forEach(([k, d]) => {
+        const items = d.L.map(([exp, nom, img]) => {
+          const cs = V.filter(c => c.expansion === exp), n = cs.filter(c => c.tipo !== 'BANNER').length;
+          const alt = (cs.find(c => c.tipo !== 'BANNER') || cs[0] || {}).miniatura || '';
+          return { exp, nom, img, alt, n };
+        }).filter(x => x.n > 0);
+        SUBMENUS[k].innerHTML = `<div class="sm-head"><button class="sm-back" type="button" data-volver>← <span>GALERÍA</span></button>
+          <div class="sm-tit"><div class="submenu-title">${d.t}</div><div class="submenu-subtitle">${esc(d.s)}</div></div></div>
+          <div class="submenu-grid">${items.map((x, i) => `<button class="submenu-card" type="button" data-expansion="${esc(x.exp)}" style="--i:${i}" aria-label="${esc(x.nom)} · ${x.n} cartas">
+            <img class="submenu-card-img" src="${esc(x.img)}" data-alt="${esc(x.alt)}" alt="" loading="lazy">
+            <span class="sm-info"><span class="submenu-card-name">${esc(x.nom)}</span><br><span class="sm-n">${x.n} ${x.n === 1 ? 'CARTA' : 'CARTAS'}</span></span><span class="sm-brillo"></span></button>`).join('')}</div>`;
+        SUBMENUS[k].querySelectorAll('.submenu-card-img').forEach(im => im.onerror = () => {
+          const a = im.dataset.alt; if (a && im.getAttribute('src') !== a) { im.src = a; return; }
+          im.onerror = null; im.replaceWith(Object.assign(document.createElement('span'), { className: 'sm-ph', textContent: '✦' }));
+        });
+      });
+    }
+    let SUB_ABIERTO = null;
+    function abrirSubmenu(k) {
+      SUB_ABIERTO = k; mainGalleryView.style.display = 'none'; SUBMENUS[k].classList.add('active'); SUBMENUS[k].scrollTop = 0;
+      try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar(SUBMENUS[k].querySelector('.submenu-card') || SUBMENUS[k].querySelector('[data-volver]')), 60); } catch (e) {}
+    }
+    function cerrarSubmenu(volverA) {
+      const k = SUB_ABIERTO; if (!k) return; SUB_ABIERTO = null;
+      SUBMENUS[k].classList.remove('active'); mainGalleryView.style.display = 'block';
+      try { if (window.GP && GP.activo()) { const b = volverA || expansionFilters.querySelector(`[data-submenu="${k}"]`); if (b) setTimeout(() => GP.enfocar(b), 60); } } catch (e) {}
+    }
+    addEventListener('keydown', e => { if (e.key === 'Escape' && SUB_ABIERTO && !document.querySelector('.modal.active')) { e.preventDefault(); cerrarSubmenu(); } });
     expansionFilters.addEventListener('click', e => {
       const b = e.target.closest('.filter-btn'); if (!b) return;
-      if (b.dataset.submenu) { mainGalleryView.style.display = 'none'; SUBMENUS[b.dataset.submenu].classList.add('active'); scrollTo(0, 0); return; }
+      if (b.dataset.submenu) { abrirSubmenu(b.dataset.submenu); return; }
       document.querySelectorAll('.filter-btn').forEach(x => x.classList.remove('active'));
       b.classList.add('active');
       currentExpansion = b.dataset.expansion;
       filterCards();
     });
     Object.values(SUBMENUS).forEach(sm => sm.addEventListener('click', e => {
+      if (e.target.closest('[data-volver]')) { cerrarSubmenu(); return; }
       const card = e.target.closest('.submenu-card');
       if (!card) return;
       currentExpansion = card.dataset.expansion;
       filterCards();
-      sm.classList.remove('active');
-      mainGalleryView.style.display = 'block';
-      document.querySelectorAll('.filter-btn').forEach(x => x.classList.remove('active'));
+      const k = SUB_ABIERTO;
+      document.querySelectorAll('.filter-btn').forEach(x => x.classList.toggle('active', x.dataset.submenu === k));   // se ve en qué grupo estás
+      cerrarSubmenu(document.querySelector('#cardsGrid .card-item'));
+      scrollTo(0, 0);
       cardCount.innerHTML = `<b>${filteredCards.length}</b> cartas · ${esc(nombreExp(currentExpansion))}`;
     }));
-    [['backFromBarajas', 'barajas'], ['backFromEspeciales', 'especiales'], ['backFromAgotadas', 'agotadas']].forEach(([id, k]) => {
-      $(id).addEventListener('click', () => { SUBMENUS[k].classList.remove('active'); mainGalleryView.style.display = 'block'; });
-    });
 
     loadCards();
   </script>

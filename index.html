@@ -472,7 +472,10 @@ window.addEventListener('appinstalled', () => { deferredPrompt = null; installBt
 <script>
 // ── AVISOS IN-APP (noticias, torneos, Academia) ──
 const _notifQueue = []; let _notifShowing = false;
-function chhNotif(tipo, titulo, texto, url) { _notifQueue.push({ tipo, titulo, texto, url }); if (!_notifShowing) _nextNotif(); }
+// v212 · Ajustes → Avisos: cada tipo de aviso se puede apagar
+function chhNotifOn(tipo) { let st = {}; try { st = JSON.parse(localStorage.getItem('chh_settings') || '{}') || {}; } catch (e) {}
+  const k = { torneo: 'tournamentsNotif', noticia: 'newsNotif', resultado: 'newsNotif', academia: 'academiaNotif' }[tipo]; return !k || st[k] !== false; }
+function chhNotif(tipo, titulo, texto, url) { if (!chhNotifOn(tipo)) return; _notifQueue.push({ tipo, titulo, texto, url }); if (!_notifShowing) _nextNotif(); }
 function _nextNotif() {
   if (!_notifQueue.length) { _notifShowing = false; return; }
   _notifShowing = true;

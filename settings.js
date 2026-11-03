@@ -7,6 +7,8 @@ const DEFAULT_SETTINGS = {
   theme: 'dark',
   accentColor: 'green',
   tournamentsNotif: true,
+  newsNotif: true,       // avisos de noticias y resultados en el inicio
+  academiaNotif: true,   // avisos de barajas nuevas en la Academia
   galleryView: '3col',
   animations: true,
   // Tier 1 nuevos
@@ -364,7 +366,8 @@ function redirectToLandingIfNeeded() {
   const isEntry = !path || path === 'index.html' || path === 'boot.html';
   if (!isEntry) return;
   sessionStorage.setItem('nhLandingRedirected', '1');
-  const map = { calc:'calculadora.html', perfil:'perfil.html', tienda:'tienda.html', noticias:'noticias.html', calendario:'calendario.html' };
+  const map = { calc:'calculadora.html', perfil:'perfil.html', tienda:'tienda.html', noticias:'noticias.html', calendario:'calendario.html',
+    galeria:'galeria.html', constructor:'constructor.html', simulacion:'simulacion.html', arcade:'arcade.html', nexotlan:'nexotlan.html', coleccion:'coleccion.html', ranking:'ranking.html' };
   if (landing === 'last') {
     const last = localStorage.getItem('nhLastPage');
     if (last && last !== path) location.replace(last);
@@ -425,11 +428,12 @@ async function getStorageEstimate() {
   } catch(e) { return null; }
 }
 
-async function limpiarCacheSW() {
-  // Borra todos los caches del SW
+async function limpiarCacheSW(todo) {
+  // Borra la caché de la app. La música y los medios descargados (chh-musica-v1 / chh-medios-v1) se conservan,
+  // salvo con limpiarCacheSW(true)
   if ('caches' in window) {
     const keys = await caches.keys();
-    await Promise.all(keys.map(k => caches.delete(k)));
+    await Promise.all(keys.filter(k => todo || !/^chh-(musica|medios)-/.test(k)).map(k => caches.delete(k)));
   }
   // Desregistra el SW para forzar nueva instalación en el próximo load
   if ('serviceWorker' in navigator) {

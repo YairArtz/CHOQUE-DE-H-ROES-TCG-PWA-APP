@@ -32,6 +32,8 @@
   var KEY_M = 'bgm_muted';                // localStorage: mute global
 
   var muted = localStorage.getItem(KEY_M) === '1';
+  // v212 · Volumen elegido en Ajustes (0–1). Antes era fijo en 0.4
+  function volGuardado() { var v = parseFloat(localStorage.getItem('chh_bgm_vol')); return isNaN(v) ? 0.4 : Math.max(0, Math.min(1, v)); }
   var audio = null;
   var retries = 0;
   var MAX_RETRIES = 4;
@@ -52,7 +54,7 @@
     if (audio) return;
     audio = new Audio();
     audio.loop = true;
-    audio.volume = 0.4;
+    audio.volume = volGuardado();
     audio.preload = 'auto';
     audio.muted = muted;
 
@@ -138,7 +140,19 @@
       return playOriginal.apply(this, arguments);
     };
   } catch (e) {}
-  window.BGM = { pausar: pausar, reanudar: reanudar, pista: function () { return TRACK; }, sonando: function () { return !!(audio && !audio.paused); } };
+  function volumen(v) {
+    if (v == null) return volGuardado();
+    v = Math.max(0, Math.min(1, +v || 0)); try { localStorage.setItem('chh_bgm_vol', String(v)); } catch (e) {}
+    if (audio) audio.volume = v; return v;
+  }
+  function silencio(m) {
+    if (m == null) return muted;
+    muted = !!m; try { localStorage.setItem(KEY_M, muted ? '1' : '0'); } catch (e) {}
+    if (typeof btn !== 'undefined' && btn) btn.innerHTML = muted ? '🔇' : '🎵';
+    if (!audio) { if (!muted) crearAudio(); return muted; }
+    audio.muted = muted; if (!muted && audio.paused) intentar(); return muted;
+  }
+  window.BGM = { pausar: pausar, reanudar: reanudar, pista: function () { return TRACK; }, sonando: function () { return !!(audio && !audio.paused); }, volumen: volumen, silencio: silencio };
 
   // ── Guardar posición ──
   setInterval(function () { if (audio && !audio.paused) savePos(); }, 1000);

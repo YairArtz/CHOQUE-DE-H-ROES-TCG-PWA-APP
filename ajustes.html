@@ -3,481 +3,460 @@
 <head>
 <meta charset="UTF-8">
 <script src="config.js"></script><script src="nucleo.js"></script>
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#03050a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json">
 <title>Ajustes · Choque de Héroes TCG</title>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
+/* ═══════════════════════════════════════════════════════════════
+   AJUSTES · v212 — secciones con índice lateral en PC, opciones de toda la app
+   (sonido, Simulación, pantalla grande, control, avisos, datos sin conexión)
+   ═══════════════════════════════════════════════════════════════ */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:rgb(var(--nx-k1)); --bg2:rgb(var(--nx-k3)); --bg3:rgb(var(--nx-k4));
-  --neon:#00ff9d; --neon-d:#007a4a; --neon-dim:rgba(0,255,157,.09);
-  --nglow:0 0 6px #00ff9d,0 0 18px rgba(0,255,157,.4);
-  --gold:#f5a623; --gold-d:#7a5210; --gold-dim:rgba(245,166,35,.1);
-  --gglow:0 0 8px #f5a623,0 0 22px rgba(245,166,35,.45);
-  --purple:#cc55ff; --purple-d:#6a1a80; --purple-dim:rgba(180,70,255,.1);
-  --pglow:0 0 8px #cc55ff,0 0 22px rgba(180,70,255,.5);
-  --blue:#00cfff; --blue-d:#005f80; --blue-dim:rgba(0,207,255,.09);
-  --bglow:0 0 6px #00cfff,0 0 18px rgba(0,207,255,.4);
-  --red:#ff2244; --red-d:#6a0011; --red-dim:rgba(255,34,68,.09);
-  --rglow:0 0 8px #ff2244,0 0 20px rgba(255,34,68,.4);
-  --muted:#6a7f9a; --border:rgb(var(--nx-k6));
+  --bg:rgb(var(--nx-k1)); --bg2:rgb(var(--nx-k3)); --bg3:rgb(var(--nx-k4)); --border:rgb(var(--nx-k6));
+  --neon:#00ff9d; --neon-d:#007a4a; --neon-dim:rgba(0,255,157,.09); --nglow:0 0 6px #00ff9d,0 0 18px rgba(0,255,157,.4);
+  --gold:#f5a623; --red:#ff2244; --red-d:#6a0011; --blue:#00cfff; --muted:#7d90ab; --text:#e0eeff;
+  --safe-b:env(safe-area-inset-bottom,0px);
 }
-html,body{min-height:100%;background:var(--bg);color:#e0eeff;font-family:'Orbitron',monospace;-webkit-tap-highlight-color:transparent;overflow-x:hidden;}
-body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.06) 3px,rgba(0,0,0,.06) 4px);pointer-events:none;z-index:1000;}
-body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 40% at 15% 10%,rgba(0,255,157,.05) 0%,transparent 60%),radial-gradient(ellipse 70% 40% at 85% 90%,rgba(0,207,255,.05) 0%,transparent 60%);pointer-events:none;}
-#wrap{max-width:480px;margin:0 auto;display:flex;flex-direction:column;min-height:100dvh;padding-bottom:28px;}
+html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;-webkit-tap-highlight-color:transparent;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 70% 40% at 15% 0%,var(--neon-dim),transparent 60%),radial-gradient(ellipse 60% 40% at 90% 100%,rgba(0,207,255,.05),transparent 60%)}
+button,input,select{font:inherit;color:inherit}
+.oculto{display:none!important}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 
-/* ── HEADER ── */
-header{display:flex;align-items:center;justify-content:space-between;padding:20px;position:relative;border-bottom:1px solid var(--border);}
-header::after{content:'';position:absolute;bottom:0;left:8%;right:8%;height:1px;background:linear-gradient(90deg,transparent,var(--neon-d),transparent);}
-.back-btn{background:linear-gradient(135deg,var(--bg3),var(--bg2));border:1px solid var(--border);color:var(--neon);font-size:20px;width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none;transition:all .3s;box-shadow:0 2px 8px rgba(0,0,0,.4);}
-.back-btn:active{transform:scale(.92);box-shadow:var(--nglow),0 2px 8px rgba(0,0,0,.4);}
-.header-title{font-family:'Orbitron',monospace;font-size:16px;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:var(--neon);text-shadow:var(--nglow);}
+/* ── Barra superior ── */
+.top{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:12px;padding:10px 16px;padding-top:max(10px,env(safe-area-inset-top));
+  background:rgba(var(--nx-k1),.94);border-bottom:1px solid var(--border);backdrop-filter:blur(8px)}
+.top::after{content:'';position:absolute;left:8%;right:8%;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,var(--neon),transparent);opacity:.5}
+.ib{flex-shrink:0;width:42px;height:42px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;background:var(--bg3);border:1px solid var(--border);color:var(--neon);font-size:19px;text-decoration:none}
+.ib:hover,.ib.gp-foco{border-color:var(--neon);box-shadow:var(--nglow)}
+.top b{flex:1;font:900 16px 'Orbitron',sans-serif;letter-spacing:3px;color:var(--neon);text-shadow:var(--nglow)}
 
-/* ── SECCIONES ── */
-.settings-section{padding:0 16px;margin-top:24px;}
-.section-title{font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;padding-left:4px;display:flex;align-items:center;gap:6px;}
-.section-title::before{content:'';width:3px;height:12px;background:linear-gradient(180deg,var(--neon),transparent);}
+/* ── Índice de secciones ── */
+.lay{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:0 16px calc(40px + var(--safe-b))}
+.nav{position:sticky;top:62px;z-index:50;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:10px 16px;background:rgba(var(--nx-k1),.9);backdrop-filter:blur(6px)}
+.nav::-webkit-scrollbar{display:none}
+.nav a{flex-shrink:0;display:flex;align-items:center;gap:6px;height:34px;padding:0 12px;border-radius:17px;border:1px solid var(--border);background:var(--bg3);color:var(--muted);
+  font:700 10px 'Orbitron',sans-serif;letter-spacing:1px;text-decoration:none;white-space:nowrap;transition:all .15s}
+.nav a:hover,.nav a.gp-foco{color:var(--text);border-color:var(--neon-d)}
+.nav a.on{color:var(--neon);border-color:var(--neon);background:var(--neon-dim)}
 
-/* ── SETTING ITEM ── */
-.setting-item{background:linear-gradient(135deg,var(--bg2),var(--bg3));border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;position:relative;overflow:hidden;transition:all .3s;}
-.setting-item::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--neon-dim),transparent);}
-.setting-label{font-size:13px;font-weight:700;color:#e0eeff;margin-bottom:4px;display:flex;align-items:center;gap:8px;}
-.setting-desc{font-size:10px;color:var(--muted);margin-bottom:12px;line-height:1.4;}
+/* ── Secciones y filas ── */
+.sec{margin-top:18px;scroll-margin-top:120px;border-radius:14px;background:linear-gradient(135deg,var(--bg2),var(--bg3));border:1px solid var(--border);overflow:hidden}
+.sec>h2{display:flex;align-items:center;gap:10px;padding:14px 16px;font:900 11.5px 'Orbitron',sans-serif;letter-spacing:2.5px;color:var(--neon);border-bottom:1px solid var(--border);background:rgba(0,0,0,.15)}
+.sec>h2 small{margin-left:auto;font:600 13px 'Rajdhani',sans-serif;letter-spacing:0;color:var(--muted)}
+.row{display:flex;align-items:center;gap:14px;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.05)}
+.row:last-child{border-bottom:0}
+.row.col{flex-direction:column;align-items:stretch;gap:10px}
+.lbl{flex:1;min-width:0}
+.lbl b{display:block;font:700 12.5px 'Orbitron',sans-serif;letter-spacing:.5px;color:var(--text)}
+.lbl span{display:block;margin-top:3px;font-size:14.5px;font-weight:600;line-height:1.35;color:var(--muted)}
+.nota{padding:10px 16px 14px;font-size:14px;font-weight:600;color:var(--muted);line-height:1.4}
+.nota a{color:var(--neon)}
 
-/* ── TOGGLE SWITCH ── */
-.toggle-container{display:flex;align-items:center;justify-content:space-between;gap:12px;}
-.toggle-container>div:first-child{flex:1;min-width:0;}
-.toggle-container .setting-desc{margin-bottom:0;}
-.toggle-switch{position:relative;width:52px;height:28px;background:var(--bg);border:1px solid var(--border);border-radius:14px;cursor:pointer;transition:all .3s;flex-shrink:0;}
-.toggle-switch::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--muted);transition:all .3s;box-shadow:0 2px 6px rgba(0,0,0,.4);}
-.toggle-switch.active{background:var(--neon-d);border-color:var(--neon);}
-.toggle-switch.active::after{left:27px;background:var(--neon);box-shadow:0 0 12px rgba(0,255,157,.6);}
+/* Interruptor */
+.sw{position:relative;flex-shrink:0;width:52px;height:28px;border-radius:14px;background:var(--bg);border:1px solid var(--border);transition:all .2s}
+.sw::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--muted);transition:all .2s;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+.sw.on{background:var(--neon-d);border-color:var(--neon)}
+.sw.on::after{left:27px;background:var(--neon);box-shadow:0 0 12px rgba(0,255,157,.6)}
+.sw.gp-foco{box-shadow:0 0 0 3px rgba(0,207,255,.5)}
+/* Opciones */
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{flex:1;min-width:84px;min-height:40px;padding:6px 10px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--muted);font:700 10px 'Orbitron',sans-serif;letter-spacing:1px;transition:all .15s}
+.seg button:hover,.seg button.gp-foco{border-color:var(--neon-d);color:var(--text)}
+.seg button.on{background:linear-gradient(135deg,var(--neon-d),var(--neon));border-color:var(--neon);color:#001a0e;box-shadow:var(--nglow)}
+.sel{min-width:220px;height:42px;padding:0 12px;border-radius:8px;background:var(--bg);border:1px solid var(--border);font:700 11px 'Orbitron',sans-serif;letter-spacing:.5px}
+.sel:focus{outline:none;border-color:var(--neon)}
+/* Deslizador */
+.rng{display:flex;align-items:center;gap:12px;flex-shrink:0;width:min(300px,100%)}
+.rng input{flex:1;accent-color:var(--neon);height:28px}
+.rng em{min-width:44px;text-align:right;font:700 11px 'Orbitron',sans-serif;font-style:normal;color:var(--neon)}
+/* Botones */
+.bt{min-height:42px;padding:0 16px;border-radius:9px;background:var(--bg);border:1px solid var(--border);color:var(--text);font:700 10.5px 'Orbitron',sans-serif;letter-spacing:1px;white-space:nowrap;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;gap:6px;text-decoration:none}
+.bt:hover,.bt.gp-foco{border-color:var(--neon);color:var(--neon)}
+.bt.acc{border-color:var(--neon-d);color:var(--neon)}
+.bt.pel{border-color:var(--red-d);color:#ff7088}
+.bt.pel:hover,.bt.pel.gp-foco{border-color:var(--red);background:rgba(255,34,68,.08)}
+.bts{display:flex;flex-wrap:wrap;gap:8px}
 
-/* ── SELECTOR DE OPCIONES ── */
-.option-selector{display:flex;gap:8px;flex-wrap:wrap;}
-.option-btn{flex:1;min-width:70px;background:var(--bg);border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:10px 8px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all .3s;font-family:'Orbitron',monospace;}
-.option-btn:active{transform:scale(.95);}
-.option-btn.active{background:linear-gradient(135deg,var(--neon-d),var(--neon));color:var(--bg);border-color:var(--neon);box-shadow:var(--nglow);}
+/* Cuenta */
+.cta{display:flex;align-items:center;gap:14px;padding:16px}
+.cta .av{width:60px;height:60px;border-radius:50%;flex-shrink:0;object-fit:cover;background:var(--bg);border:2px solid var(--neon);box-shadow:var(--nglow)}
+.cta .lbl b{font-size:15px}
+.lbl .chip,.chip{display:inline-flex;width:auto;align-items:center;gap:6px;margin-top:6px;padding:3px 10px;border-radius:10px;font:700 9.5px 'Orbitron',sans-serif;letter-spacing:1px;background:var(--bg);border:1px solid var(--border);color:var(--muted)}
+.chip.ok{border-color:var(--neon-d);color:var(--neon)}
+.chip.err{border-color:var(--red-d);color:#ff7088}
 
-/* ── SELECT ── */
-.chh-select{width:100%;background:var(--bg);border:1px solid var(--border);color:#e0eeff;border-radius:8px;padding:12px;font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:1px;cursor:pointer;}
-.chh-select:focus{outline:none;border-color:var(--neon);box-shadow:var(--nglow);}
-
-/* ── BOTONES DE ACCIÓN ── */
-.action-btn{width:100%;background:linear-gradient(135deg,var(--bg2),var(--bg3));border:1px solid var(--border);color:#e0eeff;border-radius:10px;padding:14px;font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .3s;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px;}
-.action-btn:active{transform:scale(.97);}
-.action-btn.danger{border-color:var(--red-d);color:var(--red);}
-.action-btn.danger:active{background:var(--red-dim);box-shadow:0 0 16px rgba(255,34,68,.3);}
-.action-btn.accent{border-color:var(--neon-d);color:var(--neon);}
-.action-btn.accent:active{background:var(--neon-dim);box-shadow:var(--nglow);}
-
-/* ── TEMA PICKER GRID ── */
-#tema-picker-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px;margin-top:8px;}
-.tema-picker-item.active{box-shadow:var(--nglow);}
-/* Preview animations (espejo de tienda.html) */
-@keyframes prevRainbowDot{0%{background:#ff2244;box-shadow:0 0 12px #ff2244}17%{background:#ff7700;box-shadow:0 0 12px #ff7700}33%{background:#f5a623;box-shadow:0 0 12px #f5a623}50%{background:#00ff9d;box-shadow:0 0 12px #00ff9d}67%{background:#00cfff;box-shadow:0 0 12px #00cfff}83%{background:#cc55ff;box-shadow:0 0 12px #cc55ff}100%{background:#ff2244;box-shadow:0 0 12px #ff2244}}
-@keyframes prevRainbowTxt{0%{color:#ff2244;text-shadow:0 0 6px #ff2244}17%{color:#ff7700;text-shadow:0 0 6px #ff7700}33%{color:#f5a623;text-shadow:0 0 6px #f5a623}50%{color:#00ff9d;text-shadow:0 0 6px #00ff9d}67%{color:#00cfff;text-shadow:0 0 6px #00cfff}83%{color:#cc55ff;text-shadow:0 0 6px #cc55ff}100%{color:#ff2244;text-shadow:0 0 6px #ff2244}}
+/* Temas */
+#tema-picker-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
+.tema-picker-item.active{box-shadow:var(--nglow)}
+@keyframes prevRainbowDot{0%{background:#ff2244}17%{background:#ff7700}33%{background:#f5a623}50%{background:#00ff9d}67%{background:#00cfff}83%{background:#cc55ff}100%{background:#ff2244}}
 .tema-prev-rainbow .tema-dot{animation:prevRainbowDot 6s linear infinite}
-.tema-prev-rainbow .tema-txt{animation:prevRainbowTxt 6s linear infinite}
-@keyframes prevPulseDot{0%,100%{background:#ff2ecc;box-shadow:0 0 6px #ff2ecc}50%{background:#ff9fe5;box-shadow:0 0 20px #ff2ecc,0 0 30px rgba(255,46,204,.6)}}
-@keyframes prevPulseTxt{0%,100%{color:#ff2ecc;text-shadow:0 0 4px #ff2ecc}50%{color:#ff9fe5;text-shadow:0 0 12px #ff2ecc,0 0 20px rgba(255,46,204,.7)}}
+@keyframes prevPulseDot{0%,100%{background:#ff2ecc;box-shadow:0 0 6px #ff2ecc}50%{background:#ff9fe5;box-shadow:0 0 20px #ff2ecc}}
 .tema-prev-neon_pulse .tema-dot{animation:prevPulseDot 1.8s ease-in-out infinite}
-.tema-prev-neon_pulse .tema-txt{animation:prevPulseTxt 1.8s ease-in-out infinite}
-@keyframes prevAuroraDot{0%{background:#4facfe;box-shadow:0 0 10px #4facfe}33%{background:#43e97b;box-shadow:0 0 10px #43e97b}66%{background:#b455ff;box-shadow:0 0 10px #b455ff}100%{background:#4facfe;box-shadow:0 0 10px #4facfe}}
-@keyframes prevAuroraTxt{0%{color:#4facfe;text-shadow:0 0 6px #4facfe}33%{color:#43e97b;text-shadow:0 0 6px #43e97b}66%{color:#b455ff;text-shadow:0 0 6px #b455ff}100%{color:#4facfe;text-shadow:0 0 6px #4facfe}}
+@keyframes prevAuroraDot{0%{background:#4facfe}33%{background:#43e97b}66%{background:#b455ff}100%{background:#4facfe}}
 .tema-prev-aurora .tema-dot{animation:prevAuroraDot 8s ease-in-out infinite}
-.tema-prev-aurora .tema-txt{animation:prevAuroraTxt 8s ease-in-out infinite}
-@keyframes prevGlitchDot{0%,100%{background:#00fff0;box-shadow:0 0 10px #00fff0}50%{background:#ff00cc;box-shadow:0 0 10px #ff00cc}}
-@keyframes prevGlitchTxt{0%,100%{color:#00fff0;text-shadow:2px 0 #ff00cc,-2px 0 #00cfff;transform:translate(0)}20%{color:#ff00cc;transform:translate(-1px,1px)}40%{color:#00fff0;transform:translate(1px,-1px)}60%{color:#ff00cc;transform:translate(-1px,0)}80%{color:#00fff0;transform:translate(0,1px)}}
+@keyframes prevGlitchDot{0%,100%{background:#00fff0}50%{background:#ff00cc}}
 .tema-prev-cyber_glitch .tema-dot{animation:prevGlitchDot .8s steps(2,end) infinite}
-.tema-prev-cyber_glitch .tema-txt{animation:prevGlitchTxt .5s steps(5,end) infinite;display:inline-block}
-@keyframes prevFireDot{0%,100%{background:#ff4400;box-shadow:0 0 10px #ff4400}25%{background:#ff8800;box-shadow:0 0 12px #ff8800}50%{background:#ffcc00;box-shadow:0 0 14px #ffcc00}75%{background:#ff8800;box-shadow:0 0 10px #ff8800}}
-@keyframes prevFireTxt{0%,100%{color:#ff4400;text-shadow:0 0 6px #ff4400}25%{color:#ff8800}50%{color:#ffcc00;text-shadow:0 0 10px #ffcc00}75%{color:#ff8800}}
+@keyframes prevFireDot{0%,100%{background:#ff4400}25%{background:#ff8800}50%{background:#ffcc00}75%{background:#ff8800}}
 .tema-prev-fire .tema-dot{animation:prevFireDot 1.2s ease-in-out infinite}
-.tema-prev-fire .tema-txt{animation:prevFireTxt 1.2s ease-in-out infinite}
 
-/* ── STORAGE BAR ── */
-.storage-bar{width:100%;height:6px;background:var(--bg);border:1px solid var(--border);border-radius:3px;overflow:hidden;margin-top:6px;}
-.storage-bar-fill{height:100%;background:linear-gradient(90deg,var(--neon),var(--gold));transition:width .5s;}
-.storage-info{font-size:10px;color:var(--muted);margin-top:6px;display:flex;justify-content:space-between;}
+/* Control */
+.pads{display:flex;flex-direction:column;gap:6px}
+.pad{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;background:var(--bg);border:1px solid var(--neon-d);font-weight:700;color:var(--text)}
+.pad i{font-style:normal;font-size:20px}
+.mapa{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:6px;margin-top:8px}
+.mapa div{display:flex;align-items:center;gap:8px;font-size:14.5px;font-weight:600;color:var(--muted)}
+.mapa kbd{min-width:30px;height:24px;padding:0 6px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;font:900 10px 'Orbitron',sans-serif;color:#000;background:#9fb3cc}
+.mapa .a{background:#5dd55d}.mapa .b{background:#ff5d5d}.mapa .x{background:#4fa3ff}.mapa .y{background:#f5c842}
 
-/* ── INFO CARD ── */
-.info-card{background:linear-gradient(135deg,var(--bg2),var(--bg3));border:1px solid var(--border);border-radius:12px;padding:20px;margin-top:12px;text-align:center;}
-.info-card .app-logo{width:70%;max-width:240px;margin:0 auto 16px;filter:drop-shadow(0 0 18px rgba(0,207,255,.55)) drop-shadow(0 0 40px rgba(0,180,255,.30));}
-.info-card .app-name{font-size:14px;font-weight:900;color:#e0eeff;margin-bottom:4px;letter-spacing:2px;}
-.info-card .app-version{font-size:11px;color:var(--neon);font-weight:700;margin-bottom:8px;}
-.info-card .app-desc{font-size:9px;color:var(--muted);line-height:1.5;}
+/* Almacenamiento */
+.bar{height:8px;border-radius:4px;background:var(--bg);border:1px solid var(--border);overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--neon),var(--gold));transition:width .5s}
 
-/* ── SOCIAL ── */
-.social-links{display:flex;gap:10px;margin-top:12px;}
-.social-btn{flex:1;background:linear-gradient(135deg,var(--bg2),var(--bg3));border:1px solid var(--border);color:var(--neon);border-radius:10px;padding:14px;font-size:20px;cursor:pointer;text-decoration:none;display:flex;align-items:center;justify-content:center;transition:all .3s;}
-.social-btn:active{transform:scale(.95);box-shadow:0 0 16px rgba(0,255,157,.3);}
+/* Acerca de */
+.about{display:flex;align-items:center;gap:16px;padding:16px}
+.about img{width:72px;height:72px;filter:drop-shadow(0 0 14px rgba(0,207,255,.45))}
+.about b{display:block;font:900 14px 'Orbitron',sans-serif;letter-spacing:2px}
+.about em{display:block;margin-top:4px;font:700 11px 'Orbitron',sans-serif;font-style:normal;color:var(--neon)}
+.about span{display:block;margin-top:4px;font-size:14px;font-weight:600;color:var(--muted)}
+.redes{display:flex;gap:8px;padding:0 16px 16px}
+.redes a{flex:1}
 
-/* ── TOAST ── */
-#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg3);border:1px solid var(--neon);color:var(--neon);padding:12px 20px;border-radius:10px;font-size:12px;font-weight:700;letter-spacing:1px;box-shadow:var(--nglow);transition:transform .3s;z-index:2000;pointer-events:none;max-width:90%;text-align:center;}
-#toast.show{transform:translateX(-50%) translateY(0);}
-#toast.error{border-color:var(--red);color:var(--red);box-shadow:var(--rglow);}
+#toast{position:fixed;left:50%;bottom:calc(24px + var(--safe-b));z-index:3000;transform:translate(-50%,120px);padding:12px 20px;border-radius:10px;background:var(--bg3);border:1px solid var(--neon);color:var(--neon);font:700 11.5px 'Orbitron',sans-serif;letter-spacing:.5px;transition:transform .25s;max-width:90vw;text-align:center}
+#toast.show{transform:translate(-50%,0)}
+#toast.error{border-color:var(--red);color:#ff7088}
+footer{padding:26px 16px 6px;text-align:center;font-size:13px;font-weight:600;color:var(--muted)}
 
-/* ── FOOTER ── */
-footer{margin-top:auto;padding:24px 16px 16px;text-align:center;color:var(--muted);font-size:9px;letter-spacing:1px;}
-.footer-brand{font-weight:700;margin-bottom:4px;}
+@media (max-width:640px){
+  .row:not(.col){flex-wrap:wrap}
+  .row .seg,.row .rng,.row .sel{width:100%;min-width:0}
+  .row .sw{margin-left:auto}
+}
+@media (min-width:980px){
+  html:not(.hz-off) .lay{display:grid;grid-template-columns:230px 1fr;gap:28px;align-items:start}
+  html:not(.hz-off) .nav{top:78px;flex-direction:column;margin:18px 0 0;padding:10px;border-radius:14px;background:linear-gradient(135deg,var(--bg2),var(--bg3));border:1px solid var(--border);max-height:calc(100vh - 100px);overflow-y:auto}
+  html:not(.hz-off) .nav a{height:38px;border-radius:9px;font-size:10.5px}
+  html:not(.hz-off) .secs{max-width:860px}
+  html:not(.hz-off) .sec{scroll-margin-top:84px}
+}
+@media (prefers-reduced-motion:reduce){ .sw,.sw::after,.seg button{transition:none} }
 </style>
 <script src="nexo-ui.js"></script>
 </head>
 <body>
-<div id="wrap">
+<header class="top">
+  <a href="index.html" class="ib" aria-label="Menú principal">←</a>
+  <b>⚙️ AJUSTES</b>
+</header>
 
-  <header>
-    <a href="index.html" class="back-btn">←</a>
-    <div class="header-title">⚙️ AJUSTES</div>
-    <div style="width:44px"></div>
-  </header>
+<div class="lay">
+  <nav class="nav" id="nav" aria-label="Secciones">
+    <a href="#s-cuenta">👤 Cuenta</a>
+    <a href="#s-apariencia">🎨 Apariencia</a>
+    <a href="#s-pantalla">🖥️ Pantalla</a>
+    <a href="#s-sonido">🔊 Sonido</a>
+    <a href="#s-choques">⚔️ Choques</a>
+    <a href="#s-control">🎮 Control</a>
+    <a href="#s-avisos">🔔 Avisos</a>
+    <a href="#s-datos">💾 Datos</a>
+    <a href="#s-app">ℹ️ App</a>
+  </nav>
 
-  <!-- APARIENCIA -->
-  <div class="settings-section">
-    <div class="section-title">🎨 Apariencia</div>
-
-    <div class="setting-item">
-      <div class="setting-label">💡 Tema visual</div>
-      <div class="setting-desc">Cambia entre modo oscuro o claro</div>
-      <div class="option-selector" id="theme-selector">
-        <button class="option-btn" data-val="dark"  onclick="setTheme('dark')">Oscuro</button>
-        <button class="option-btn" data-val="light" onclick="setTheme('light')">Claro</button>
+  <main class="secs">
+    <!-- CUENTA -->
+    <section class="sec" id="s-cuenta"><h2>👤 CUENTA</h2>
+      <div class="cta">
+        <img class="av" id="cAv" src="avatares/avatar_1.jpg" alt="" onerror="this.src='icon-192.png'">
+        <div class="lbl"><b id="cNom">Sin sesión</b><span id="cId">Inicia sesión con tu ID para guardar tu progreso en la nube.</span><span class="chip" id="cNube">—</span></div>
       </div>
-    </div>
+      <div class="row"><div class="lbl"><b>Mi Perfil</b><span>Cambia tu avatar, revisa tus logros, Hero Pesos y torneos.</span></div><a class="bt acc" href="perfil.html" id="cPerfil">Abrir</a></div>
+      <div class="row" id="cSyncRow"><div class="lbl"><b>Sincronizar ahora</b><span>Sube y baja tus barajas del Constructor y tu avatar en este momento.</span></div><button class="bt" id="cSync" type="button">☁ Sincronizar</button></div>
+    </section>
 
-    <div class="setting-item">
-      <div class="setting-label">🌈 Tema de color</div>
-      <div class="setting-desc">Solo puedes usar los temas que has desbloqueado en la tienda. Los bloqueados aparecen atenuados.</div>
-      <div id="tema-picker-grid"></div>
-      <button class="action-btn accent" onclick="location.href='tienda.html'" style="margin-top:12px;">
-        🛒 Ir a la tienda
-      </button>
-    </div>
+    <!-- APARIENCIA -->
+    <section class="sec" id="s-apariencia"><h2>🎨 APARIENCIA</h2>
+      <div class="row"><div class="lbl"><b>Modo</b><span>Oscuro o claro en los módulos que lo permiten.</span></div>
+        <div class="seg" data-k="theme"><button data-v="dark" type="button">Oscuro</button><button data-v="light" type="button">Claro</button></div></div>
+      <div class="row col"><div class="lbl"><b>Tema de color</b><span>Puedes usar los temas que desbloqueaste en la Tienda; los bloqueados aparecen con candado.</span></div>
+        <div id="tema-picker-grid"></div>
+        <div class="bts"><a class="bt acc" href="tienda.html">🛒 Ir a la Tienda</a></div></div>
+      <div class="row"><div class="lbl"><b>Animaciones</b><span>Transiciones y efectos de la interfaz. Apágalas si el equipo va lento.</span></div><button class="sw" data-k="animations" type="button" aria-label="Animaciones"></button></div>
+    </section>
 
-    <div class="setting-item">
-      <div class="setting-label">🔤 Tamaño de texto</div>
-      <div class="setting-desc">Ajusta el tamaño global de la interfaz</div>
-      <div class="option-selector" id="textscale-selector">
-        <button class="option-btn" data-val="small"  onclick="setTextScale('small')">Pequeño</button>
-        <button class="option-btn" data-val="normal" onclick="setTextScale('normal')">Normal</button>
-        <button class="option-btn" data-val="large"  onclick="setTextScale('large')">Grande</button>
+    <!-- PANTALLA -->
+    <section class="sec" id="s-pantalla"><h2>🖥️ PANTALLA</h2>
+      <div class="row"><div class="lbl"><b>Tamaño de la interfaz</b><span>Texto y botones de los menús, Perfil, Tienda, Galería y demás módulos.</span></div>
+        <div class="seg" data-k="textScale"><button data-v="small" type="button">Pequeño</button><button data-v="normal" type="button">Normal</button><button data-v="large" type="button">Grande</button></div></div>
+      <div class="row"><div class="lbl"><b>Vista amplia en PC y tablet</b><span>Los módulos aprovechan todo el ancho en pantallas horizontales grandes.</span></div><button class="sw" data-k="vistaAmplia" type="button" aria-label="Vista amplia"></button></div>
+      <div class="row col"><div class="lbl"><b>Escala en TV o monitor grande</b><span>Simulación, Arcade y Modo Aventura se agrandan solos en pantallas grandes (por ejemplo, PC conectada por HDMI). Elige un tamaño fijo si se ve muy chico o muy grande.</span></div>
+        <div class="seg" id="uiEscala"><button data-v="" type="button">Automática</button><button data-v="off" type="button">Sin escala</button><button data-v="1.25" type="button">×1.25</button><button data-v="1.5" type="button">×1.5</button><button data-v="2" type="button">×2</button></div></div>
+      <div class="row col"><div class="lbl"><b>Tamaño de las cartas en la Galería</b><span>En celular son las columnas; en PC, el tamaño de cada carta (las columnas se ajustan al monitor).</span></div>
+        <div class="seg" data-k="galleryView"><button data-v="2col" type="button">Grandes · 2</button><button data-v="3col" type="button">Normales · 3</button><button data-v="4col" type="button">Chicas · 4</button></div></div>
+      <div class="row"><div class="lbl"><b>Pantalla de inicio</b><span>Qué módulo se abre al iniciar la app.</span></div>
+        <select class="sel" id="landing" aria-label="Pantalla de inicio">
+          <option value="index">Inicio (Nexo de Héroes)</option><option value="last">Último módulo usado</option>
+          <option value="perfil">Mi Perfil</option><option value="galeria">Galería de cartas</option><option value="constructor">Constructor</option>
+          <option value="simulacion">Simulación</option><option value="arcade">Arcade</option><option value="nexotlan">Modo Aventura</option>
+          <option value="calc">Calculadora de vida</option><option value="calendario">Calendario de torneos</option><option value="ranking">Ranking</option>
+          <option value="tienda">Tienda</option><option value="noticias">Noticias</option><option value="coleccion">Mi Colección</option>
+        </select></div>
+    </section>
+
+    <!-- SONIDO -->
+    <section class="sec" id="s-sonido"><h2>🔊 SONIDO</h2>
+      <div class="row"><div class="lbl"><b>Música de fondo</b><span>La música que suena en los menús de la app.</span></div><button class="sw" id="bgmOn" type="button" aria-label="Música de fondo"></button></div>
+      <div class="row"><div class="lbl"><b>Volumen de la música de fondo</b></div><div class="rng"><input type="range" id="bgmVol" min="0" max="1" step="0.05" aria-label="Volumen de la música de fondo"><em id="bgmVolV"></em></div></div>
+      <div class="row"><div class="lbl"><b>Pista de fondo</b><span id="bgmPista">La de siempre</span></div><div class="bts"><a class="bt acc" href="musica.html">🎵 Soundtrack</a><button class="bt oculto" id="bgmReset" type="button">↺ La de siempre</button></div></div>
+      <div class="row"><div class="lbl"><b>Música en los Choques</b><span>Simulación, Arcade, Online y Modo Aventura.</span></div><div class="rng"><input type="range" id="simMus" min="0" max="1" step="0.05" aria-label="Música en los Choques"><em id="simMusV"></em></div></div>
+      <div class="row"><div class="lbl"><b>Efectos de sonido en los Choques</b></div><div class="rng"><input type="range" id="simSfx" min="0" max="1" step="0.05" aria-label="Efectos de sonido"><em id="simSfxV"></em></div></div>
+      <div class="row"><div class="lbl"><b>Música del Modo Aventura</b><span>Mapa y menús de Nexotlan.</span></div><button class="sw" id="nxMus" type="button" aria-label="Música del Modo Aventura"></button></div>
+    </section>
+
+    <!-- CHOQUES -->
+    <section class="sec" id="s-choques"><h2>⚔️ CHOQUES <small>Simulación · Arcade · Aventura</small></h2>
+      <div class="row"><div class="lbl"><b>Velocidad del rival (CPU)</b><span>Qué tan rápido juega la CPU sus turnos.</span></div>
+        <div class="seg" id="simVel"><button data-v="lenta" type="button">🐢 Lenta</button><button data-v="normal" type="button">▶ Normal</button><button data-v="rapida" type="button">⏩ Rápida</button></div></div>
+      <div class="row"><div class="lbl"><b>Vista del tablero</b></div>
+        <div class="seg" id="simVista"><button data-v="3d" type="button">⬒ Inclinada 3D</button><button data-v="plana" type="button">▭ Plana</button></div></div>
+      <div class="row"><div class="lbl"><b>Avisos de fase</b><span>El letrero que anuncia cada fase del turno.</span></div>
+        <div class="seg" id="simFases"><button data-v="todos" type="button">Todos</button><button data-v="propios" type="button">Solo mis fases</button><button data-v="off" type="button">Apagados</button></div></div>
+      <div class="row"><div class="lbl"><b>Efectos visuales</b><span>Chispas al llamar, atacar y destruir. Reducidos ahorra batería.</span></div>
+        <div class="seg" id="simFx"><button data-v="on" type="button">✨ Completos</button><button data-v="off" type="button">🔋 Reducidos</button></div></div>
+      <div class="nota">La mesa, el playmat y las micas se eligen dentro de la Simulación, en ⚙ → Apariencia de la mesa.</div>
+    </section>
+
+    <!-- CONTROL -->
+    <section class="sec" id="s-control"><h2>🎮 CONTROL Y VIBRACIÓN</h2>
+      <div class="row"><div class="lbl"><b>Vibración del celular</b><span>Al tocar botones y escanear códigos.</span></div><button class="sw" data-k="vibrate" type="button" aria-label="Vibración del celular"></button></div>
+      <div class="row"><div class="lbl"><b>Vibración del control en los Choques</b><span>Al atacar, recibir daño, llamados especiales y al final del Choque.</span></div><button class="sw" id="simVib" type="button" aria-label="Vibración del control"></button></div>
+      <div class="row col"><div class="lbl"><b>Control conectado</b><span>Conecta un control (USB o Bluetooth) y presiona cualquier botón.</span></div>
+        <div class="pads" id="pads"></div>
+        <div class="mapa"><div><kbd class="a">A</kbd>Aceptar / tocar</div><div><kbd class="b">B</kbd>Atrás / cancelar</div><div><kbd class="x">X</kbd>Acciones de la carta</div><div><kbd class="y">Y</kbd>Botón principal</div>
+          <div><kbd>LB RB</kbd>Cambiar de zona</div><div><kbd>✚</kbd>Mover el cursor</div><div><kbd>START</kbd>Ajustes del módulo</div><div><kbd>STICK R</kbd>Cursor libre</div></div>
+        <div class="bts"><button class="bt" id="padProbar" type="button">📳 Probar vibración</button></div></div>
+    </section>
+
+    <!-- AVISOS -->
+    <section class="sec" id="s-avisos"><h2>🔔 AVISOS EN EL INICIO</h2>
+      <div class="row"><div class="lbl"><b>Torneos nuevos</b></div><button class="sw" data-k="tournamentsNotif" type="button" aria-label="Avisos de torneos"></button></div>
+      <div class="row"><div class="lbl"><b>Noticias y resultados</b></div><button class="sw" data-k="newsNotif" type="button" aria-label="Avisos de noticias"></button></div>
+      <div class="row"><div class="lbl"><b>Barajas nuevas en la Academia Heroica</b></div><button class="sw" data-k="academiaNotif" type="button" aria-label="Avisos de la Academia"></button></div>
+    </section>
+
+    <!-- DATOS -->
+    <section class="sec" id="s-datos"><h2>💾 DATOS Y ALMACENAMIENTO</h2>
+      <div class="row col"><div class="lbl"><b>Espacio usado</b><span id="stDesc">Calculando…</span></div><div class="bar"><i id="stBar"></i></div></div>
+      <div class="row"><div class="lbl"><b>Descargar música y medios automáticamente</b><span>Guarda música, efectos, micas y playmats para jugar sin internet. La música pesada solo se baja con Wi-Fi.</span></div><button class="sw" id="medAuto" type="button" aria-label="Descarga automática"></button></div>
+      <div class="row"><div class="lbl"><b>Medios descargados</b><span id="medDesc">Calculando…</span></div><button class="bt pel" id="medBorrar" type="button">🗑 Borrar</button></div>
+      <div class="row"><div class="lbl"><b>Respaldo de mi progreso</b><span>Descarga un archivo con todo lo guardado en este dispositivo (desbloqueos, logros, tema, avatar, partidas) o restaura uno anterior.</span></div>
+        <div class="bts"><button class="bt acc" id="exp" type="button">📤 Descargar</button><button class="bt" id="imp" type="button">📥 Restaurar</button></div>
+        <input type="file" id="impFile" accept="application/json,.json" hidden></div>
+      <div class="row"><div class="lbl"><b>Buscar actualización</b><span>Descarga de nuevo la app. Tus datos, desbloqueos y medios descargados se conservan.</span></div><button class="bt" id="cache" type="button">🔄 Actualizar</button></div>
+    </section>
+
+    <!-- APP -->
+    <section class="sec" id="s-app"><h2>ℹ️ ACERCA DE LA APP</h2>
+      <div class="about"><img src="icon-192.png" alt=""><div><b>CHOQUE DE HÉROES TCG</b><em id="ver">Versión —</em><span>Nexo de Héroes · Desarrollado por Yair Artz · Codex Cómics</span></div></div>
+      <div class="redes">
+        <a class="bt acc" href="https://www.facebook.com/choquedheroes" target="_blank" rel="noopener">Facebook</a>
+        <a class="bt acc" href="https://www.instagram.com/choquedeheroestcg/" target="_blank" rel="noopener">Instagram</a>
+        <a class="bt acc" href="https://www.youtube.com/@choquedeheroestcg9035" target="_blank" rel="noopener">YouTube</a>
       </div>
-    </div>
-  </div>
-
-  <!-- PREFERENCIAS -->
-  <div class="settings-section">
-    <div class="section-title">🚀 Preferencias</div>
-
-    <div class="setting-item">
-      <div class="setting-label">🏠 Página de inicio</div>
-      <div class="setting-desc">Cuál pantalla abrir al iniciar la app</div>
-      <select class="chh-select" id="landing-select" onchange="setLanding(this.value)">
-        <option value="index">Inicio (Nexo de Héroes)</option>
-        <option value="calc">Calculadora de vida</option>
-        <option value="perfil">Mi perfil</option>
-        <option value="tienda">Tienda</option>
-        <option value="calendario">Calendario de torneos</option>
-        <option value="noticias">Noticias</option>
-        <option value="last">Última página visitada</option>
-      </select>
-    </div>
-
-    <div class="setting-item">
-      <div class="toggle-container">
-        <div>
-          <div class="setting-label">📳 Vibración táctil</div>
-          <div class="setting-desc">Feedback vibratorio en botones y escaneos</div>
-        </div>
-        <div class="toggle-switch" id="toggle-vibrate" onclick="toggleVibrate(this)"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- NOTIFICACIONES -->
-  <div class="settings-section">
-    <div class="section-title">🔔 Notificaciones</div>
-    <div class="setting-item">
-      <div class="toggle-container">
-        <div>
-          <div class="setting-label">📢 Avisos de torneos</div>
-          <div class="setting-desc">Recibe notificaciones de nuevos torneos</div>
-        </div>
-        <div class="toggle-switch" id="toggle-tournaments" onclick="toggleTournaments(this)"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- GALERÍA -->
-  <div class="settings-section">
-    <div class="section-title">🃏 Galería de cartas</div>
-    <div class="setting-item">
-      <div class="setting-label">📱 Vista del grid</div>
-      <div class="setting-desc">Columnas mostradas en la galería</div>
-      <div class="option-selector" id="gallery-selector">
-        <button class="option-btn" data-val="2col" onclick="setGallery('2col')">2 Col</button>
-        <button class="option-btn" data-val="3col" onclick="setGallery('3col')">3 Col</button>
-        <button class="option-btn" data-val="4col" onclick="setGallery('4col')">4 Col</button>
-      </div>
-    </div>
-    <div class="setting-item">
-      <div class="toggle-container">
-        <div>
-          <div class="setting-label">✨ Animaciones</div>
-          <div class="setting-desc">Transiciones suaves en la interfaz</div>
-        </div>
-        <div class="toggle-switch" id="toggle-anims" onclick="toggleAnims(this)"></div>
-      </div>
-    </div>
-    <div class="setting-item">
-      <div class="toggle-container">
-        <div>
-          <div class="setting-label">🖥️ Vista amplia (PC / tablet)</div>
-          <div class="setting-desc">En pantallas horizontales grandes, Perfil, Tienda y Constructor aprovechan todo el ancho</div>
-        </div>
-        <div class="toggle-switch" id="toggle-amplia" onclick="toggleAmplia(this)"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- DATOS -->
-  <div class="settings-section">
-    <div class="section-title">💾 Datos y almacenamiento</div>
-
-    <div class="setting-item">
-      <div class="setting-label">📤 Exportar mi progreso</div>
-      <div class="setting-desc">Descarga un respaldo (.json) con todos tus datos: desbloqueos, badges, Hero Pesos, tema, avatar. Útil antes de cambiar de dispositivo.</div>
-      <button class="action-btn accent" onclick="hacerExport()">
-        📤 Descargar respaldo
-      </button>
-    </div>
-
-    <div class="setting-item">
-      <div class="setting-label">📥 Importar respaldo</div>
-      <div class="setting-desc">Restaura un respaldo previo. Reemplaza todos tus datos actuales.</div>
-      <input type="file" id="import-file" accept="application/json,.json" style="display:none;" onchange="hacerImport(this)">
-      <button class="action-btn" onclick="document.getElementById('import-file').click()">
-        📥 Seleccionar archivo
-      </button>
-    </div>
-
-    <div class="setting-item">
-      <div class="setting-label">📊 Uso de almacenamiento</div>
-      <div class="setting-desc" id="storage-desc">Calculando…</div>
-      <div class="storage-bar"><div class="storage-bar-fill" id="storage-fill" style="width:0%;"></div></div>
-      <div class="storage-info">
-        <span id="storage-used">— MB</span>
-        <span id="storage-total">— MB</span>
-      </div>
-    </div>
-
-    <div class="setting-item">
-      <div class="setting-label">🗑️ Limpiar caché</div>
-      <div class="setting-desc">Fuerza la descarga de la última versión de la app. Tus datos y desbloqueos se conservan.</div>
-      <button class="action-btn danger" onclick="hacerLimpiarCache()">
-        🗑️ Limpiar y recargar
-      </button>
-    </div>
-  </div>
-
-  <!-- INFO -->
-  <div class="settings-section">
-    <div class="section-title">ℹ️ Información de la app</div>
-    <div class="info-card">
-      <img src="icon-192.png" alt="Choque de Héroes" class="app-logo">
-      <div class="app-name">CHOQUE DE HÉROES TCG</div>
-      <div class="app-version">Versión 1.3.0</div>
-      <div class="app-desc">Ecosistema completo para jugadores<br>Desarrollado por Yair Artz · Codex Cómics</div>
-    </div>
-    <div class="social-links">
-      <a href="https://www.facebook.com/choquedheroes" target="_blank" class="social-btn">📘</a>
-      <a href="https://www.instagram.com/choquedeheroestcg/" target="_blank" class="social-btn">📷</a>
-      <a href="https://www.youtube.com/@choquedeheroestcg9035" target="_blank" class="social-btn">📺</a>
-    </div>
-    <button class="action-btn" onclick="resetSettings()" style="margin-top:16px">
-      🔄 Restaurar valores por defecto
-    </button>
-  </div>
-
-  <!-- INTRO -->
-  <div class="settings-section">
-    <div class="section-title">🎬 Introducción</div>
-    <div class="setting-item">
-      <div class="setting-label">🎬 Intro del Nexo</div>
-      <div class="setting-desc">Vuelve a ver la secuencia de introducción desde el principio</div>
-      <button class="action-btn" onclick="verIntroDeNuevo()">
-        🎬 Ver intro de nuevo
-      </button>
-    </div>
-  </div>
-
-  <footer>
-    <div class="footer-brand">Codex Cómics · Choque de Héroes TCG</div>
-    <div>© 2016–2026 · Todos los derechos reservados</div>
-  </footer>
-
+      <div class="row"><div class="lbl"><b>Intro del Nexo</b><span>Vuelve a ver la secuencia de introducción.</span></div><button class="bt" id="intro" type="button">🎬 Ver intro</button></div>
+      <div class="row"><div class="lbl"><b>Restaurar ajustes</b><span>Regresa todas las preferencias de esta pantalla a como venían. No borra desbloqueos, Hero Pesos ni partidas.</span></div><button class="bt pel" id="reset" type="button">↺ Restaurar</button></div>
+    </section>
+    <footer>Codex Cómics · Choque de Héroes TCG · © 2016–2026</footer>
+  </main>
 </div>
-
-<div id="toast"></div>
+<div id="toast" role="status"></div>
 
 <script src="settings.js"></script>
 <script>
 // ═══════════════════════════════════════════
-// AJUSTES · V3
-// Delega toda la lógica en settings.js (CHH_TEMAS + CHH_SETTINGS).
+// AJUSTES · v212 — la lógica de tema/tamaño vive en settings.js (CHH_SETTINGS / CHH_TEMAS)
+// Las opciones de los Choques se guardan donde las lee la Simulación (cdh_sim_ajustes, cdh_sim_fases, cdh_sim_fx)
 // ═══════════════════════════════════════════
+const $ = id => document.getElementById(id);
+const LS = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} } };
+function toast(msg, err) { const t = $('toast'); t.textContent = msg; t.className = 'show' + (err ? ' error' : ''); clearTimeout(t._t); t._t = setTimeout(() => t.className = '', 2400); }
+const pct = v => Math.round(v * 100) + '%';
+const mb = b => b >= 1073741824 ? (b / 1073741824).toFixed(1) + ' GB' : (b / 1048576).toFixed(1) + ' MB';
 
-function toast(msg, isErr = false) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'show' + (isErr ? ' error' : '');
-  setTimeout(() => t.className = '', 2400);
-  CHH_SETTINGS.vibrateIf(isErr ? [80,40,80] : [50]);
+// ── Ajustes generales (chh_settings) ──
+function setAjuste(k, v) { const s = CHH_SETTINGS.load(); s[k] = v; CHH_SETTINGS.save(s); aplicarAjuste(k, v); }
+function aplicarAjuste(k, v) {
+  if (k === 'theme') applyTheme(v);
+  else if (k === 'animations') applyAnimations(v);
+  else if (k === 'textScale') CHH_SETTINGS.applyTextScale(v);
+  else if (k === 'vistaAmplia') CHH_SETTINGS.applyVistaAmplia(v);
+  else if (k === 'vibrate' && v && navigator.vibrate) navigator.vibrate(50);
 }
-
-// ── UI ──
-function refrescarUI() {
+function marcarSeg(el, v) { el.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === String(v))); }
+function pintarGenerales() {
   const s = CHH_SETTINGS.load();
-  document.querySelectorAll('#theme-selector .option-btn').forEach(b => b.classList.toggle('active', b.dataset.val === s.theme));
-  document.querySelectorAll('#textscale-selector .option-btn').forEach(b => b.classList.toggle('active', b.dataset.val === (s.textScale || 'normal')));
-  document.querySelectorAll('#gallery-selector .option-btn').forEach(b => b.classList.toggle('active', b.dataset.val === s.galleryView));
-  document.getElementById('landing-select').value = s.landingPage || 'index';
-  document.getElementById('toggle-vibrate').classList.toggle('active', s.vibrate !== false);
-  document.getElementById('toggle-tournaments').classList.toggle('active', !!s.tournamentsNotif);
-  document.getElementById('toggle-anims').classList.toggle('active', !!s.animations);
-  document.getElementById('toggle-amplia').classList.toggle('active', s.vistaAmplia !== false);
-  refrescarPicker();
-}
-
-function refrescarPicker() {
-  const s = CHH_SETTINGS.load();
+  document.querySelectorAll('.seg[data-k]').forEach(g => marcarSeg(g, s[g.dataset.k] || (g.dataset.k === 'textScale' ? 'normal' : '')));
+  document.querySelectorAll('.sw[data-k]').forEach(b => b.classList.toggle('on', s[b.dataset.k] !== false));
+  $('landing').value = s.landingPage || 'index';
   const jId = CHH_TEMAS.getSesionId();
-  const cur = s.temaId || s.accentColor || 'green';
-  document.getElementById('tema-picker-grid').innerHTML = CHH_TEMAS.renderPickerHTML(jId, cur);
+  $('tema-picker-grid').innerHTML = CHH_TEMAS.renderPickerHTML(jId, (jId && LS.get('nhEquip_temas_' + jId)) || s.temaId || s.accentColor || 'green');
 }
-CHH_TEMAS.refreshPickerUI = refrescarPicker;
+CHH_TEMAS.refreshPickerUI = pintarGenerales;
+document.querySelectorAll('.seg[data-k]').forEach(g => g.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; setAjuste(g.dataset.k, b.dataset.v); marcarSeg(g, b.dataset.v); toast('Guardado'); }));
+document.querySelectorAll('.sw[data-k]').forEach(b => b.addEventListener('click', () => { const on = !b.classList.contains('on'); b.classList.toggle('on', on); setAjuste(b.dataset.k, on); }));
+$('landing').onchange = e => { setAjuste('landingPage', e.target.value); toast('Pantalla de inicio actualizada'); };
 
-// ── SETTERS ──
-function setTheme(theme) {
-  const s = CHH_SETTINGS.load(); s.theme = theme; CHH_SETTINGS.save(s);
-  applyTheme(theme);
-  refrescarUI();
-  toast('Tema aplicado');
-}
-function setTextScale(size) {
-  const s = CHH_SETTINGS.load(); s.textScale = size; CHH_SETTINGS.save(s);
-  CHH_SETTINGS.applyTextScale(size);
-  refrescarUI();
-  toast('Tamaño aplicado');
-}
-function setLanding(val) {
-  const s = CHH_SETTINGS.load(); s.landingPage = val; CHH_SETTINGS.save(s);
-  toast('Página de inicio actualizada');
-}
-function setGallery(view) {
-  const s = CHH_SETTINGS.load(); s.galleryView = view; CHH_SETTINGS.save(s);
-  refrescarUI();
-}
-function toggleVibrate(el) {
-  const active = el.classList.toggle('active');
-  const s = CHH_SETTINGS.load(); s.vibrate = active; CHH_SETTINGS.save(s);
-  if (active && navigator.vibrate) navigator.vibrate([60]);
-}
-function toggleTournaments(el) {
-  const active = el.classList.toggle('active');
-  const s = CHH_SETTINGS.load(); s.tournamentsNotif = active; CHH_SETTINGS.save(s);
-}
-function toggleAmplia(el) {
-  const active = el.classList.toggle('active');
-  const s = CHH_SETTINGS.load(); s.vistaAmplia = active; CHH_SETTINGS.save(s);
-  CHH_SETTINGS.applyVistaAmplia(active);
-}
-function toggleAnims(el) {
-  const active = el.classList.toggle('active');
-  const s = CHH_SETTINGS.load(); s.animations = active; CHH_SETTINGS.save(s);
-  applyAnimations(active);
-}
+// ── Escala en TV (cdh_ui_escala, la leen Simulación, Arcade y Aventura) ──
+marcarSeg($('uiEscala'), LS.get('cdh_ui_escala') || '');
+$('uiEscala').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; LS.set('cdh_ui_escala', b.dataset.v || null); marcarSeg($('uiEscala'), b.dataset.v); toast(b.dataset.v ? 'Escala fija: ' + b.textContent : 'Escala automática'); });
 
-// ── DATOS ──
-function hacerExport() {
-  try { CHH_SETTINGS.exportar(); toast('Respaldo descargado'); }
-  catch(e) { console.error(e); toast('Error al exportar', true); }
+// ── Sonido ──
+function rango(id, val, fn) { const r = $(id), v = $(id + 'V'); r.value = val; v.textContent = pct(val); r.oninput = () => { v.textContent = pct(+r.value); fn(+r.value); }; }
+const bgmMuted = () => LS.get('bgm_muted') === '1';
+$('bgmOn').classList.toggle('on', !bgmMuted());
+$('bgmOn').onclick = () => { const on = bgmMuted(); if (window.BGM && BGM.silencio) BGM.silencio(!on); else LS.set('bgm_muted', on ? '0' : '1'); $('bgmOn').classList.toggle('on', on); const fb = document.getElementById('bgm-btn'); if (fb) fb.innerHTML = on ? '🎵' : '🔇'; };
+rango('bgmVol', (() => { const v = parseFloat(LS.get('chh_bgm_vol')); return isNaN(v) ? .4 : v; })(), v => { if (window.BGM && BGM.volumen) BGM.volumen(v); else LS.set('chh_bgm_vol', String(v)); });
+function pintarPista() {
+  let p = null; try { p = JSON.parse(LS.get('chh_bgm_pista') || 'null'); } catch (e) {}
+  $('bgmPista').textContent = p && p.titulo ? '«' + p.titulo + '» (elegida en Soundtrack)' : 'La de siempre. Elige otra en Soundtrack con "Usar de fondo".';
+  $('bgmReset').classList.toggle('oculto', !(p && p.url)); $('bgmReset').hidden = !(p && p.url);
 }
+pintarPista();
+$('bgmReset').onclick = () => { LS.set('chh_bgm_pista', null); pintarPista(); toast('Se usará la música de siempre al abrir otro módulo'); };
+// Choques (cdh_sim_ajustes: mismos valores por defecto que la Simulación)
+const AJ_DEF = { mus: .8, sfx: .8, vel: 'normal', vib: true, vista: '3d', incl: 'normal', vistaV: 85 };
+const AJ = (() => { let a = {}; try { a = JSON.parse(LS.get('cdh_sim_ajustes') || '{}') || {}; } catch (e) {} return Object.assign({}, AJ_DEF, a); })();
+const ajGuardar = () => LS.set('cdh_sim_ajustes', JSON.stringify(AJ));
+rango('simMus', AJ.mus, v => { AJ.mus = v; ajGuardar(); });
+rango('simSfx', AJ.sfx, v => { AJ.sfx = v; ajGuardar(); if (v > 0) LS.set('cdh_sim_mute', '0'); });
+$('nxMus').classList.toggle('on', LS.get('chh_nexotlan_mute') !== '1');
+$('nxMus').onclick = () => { const on = !$('nxMus').classList.contains('on'); $('nxMus').classList.toggle('on', on); LS.set('chh_nexotlan_mute', on ? '0' : '1'); };
+function segLS(id, val, fn) { const g = $(id); marcarSeg(g, val); g.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; fn(b.dataset.v); marcarSeg(g, b.dataset.v); toast('Guardado'); }); }
+segLS('simVel', AJ.vel, v => { AJ.vel = v; ajGuardar(); });
+segLS('simVista', AJ.vista === 'plana' ? 'plana' : '3d', v => { AJ.vista = v; AJ.vistaV = 85; ajGuardar(); });
+segLS('simFases', LS.get('cdh_sim_fases') || 'todos', v => LS.set('cdh_sim_fases', v));
+segLS('simFx', LS.get('cdh_sim_fx') || 'on', v => LS.set('cdh_sim_fx', v));
+$('simVib').classList.toggle('on', AJ.vib !== false);
+$('simVib').onclick = () => { AJ.vib = !$('simVib').classList.contains('on'); $('simVib').classList.toggle('on', AJ.vib); ajGuardar(); if (AJ.vib) vibrarPrueba(); };
 
-async function hacerImport(input) {
-  const file = input.files?.[0];
-  input.value = '';
-  if (!file) return;
-  if (!(await NX_UI.confirmar('Se REEMPLAZARÁN todos tus datos actuales (desbloqueos, badges, HP, tema).\n\nSe recargará la app al finalizar.', { titulo: '¿Restaurar este respaldo?', si: 'Restaurar', peligro: true }))) return;
+// ── Control ──
+function pads() { try { return [...(navigator.getGamepads ? navigator.getGamepads() : [])].filter(Boolean); } catch (e) { return []; } }
+function pintarPads() {
+  const L = pads();
+  $('pads').innerHTML = L.length ? L.map(g => `<div class="pad"><i>🎮</i><span>${String(g.id).replace(/\s*\(.*?\)\s*/g, ' ').trim().replace(/[<>&]/g, '') || 'Control'}${g.vibrationActuator ? ' · con vibración' : ''}</span></div>`).join('')
+    : '<div class="pad" style="border-color:var(--border);color:var(--muted)"><i>🎮</i><span>Ningún control detectado todavía</span></div>';
+}
+function vibrarPrueba() {
+  let ok = false;
+  pads().forEach(g => { const v = g.vibrationActuator; if (v && v.playEffect) { v.playEffect('dual-rumble', { duration: 300, strongMagnitude: .7, weakMagnitude: .8 }).catch(() => {}); ok = true; } });
+  if (navigator.vibrate) { navigator.vibrate(120); ok = true; }
+  if (!ok) toast('Este dispositivo o navegador no permite vibrar', true);
+}
+$('padProbar').onclick = vibrarPrueba;
+addEventListener('gamepadconnected', pintarPads); addEventListener('gamepaddisconnected', pintarPads);
+pintarPads(); setInterval(pintarPads, 3000);
+
+// ── Cuenta ──
+function avatarSrc(av) { if (!av) return 'avatares/avatar_1.jpg'; if (/^av_p\d+$/.test(av)) return 'avatares/' + av + '.jpg'; const m = /^av(\d+)$/.exec(av); return m ? 'avatares/avatar_' + m[1] + '.jpg' : 'avatares/avatar_1.jpg'; }
+function pintarCuenta() {
+  let s = null; try { s = JSON.parse(LS.get('nhSesion') || 'null'); } catch (e) {}
+  const nube = $('cNube');
+  if (!s || !s.id) { $('cNom').textContent = 'Sin sesión'; $('cId').textContent = 'Inicia sesión con tu ID para guardar tu progreso en la nube.'; $('cPerfil').textContent = 'Iniciar sesión'; nube.style.display = 'none'; $('cSyncRow').style.display = 'none'; return; }
+  if (s.tipo === 'tienda') { $('cNom').textContent = s.nombre || s.id; $('cId').textContent = 'Cuenta de tienda · ' + s.id; nube.style.display = 'none'; $('cSyncRow').style.display = 'none'; return; }
+  $('cNom').textContent = s.nick || s.nombre || s.id; $('cId').textContent = String(s.id).toUpperCase() + (s.nombre && s.nick ? ' · ' + s.nombre : '');
+  $('cAv').src = avatarSrc(LS.get('nhAv_' + s.id) || LS.get('nhAv_' + String(s.id).toUpperCase()));
+  nube.textContent = navigator.onLine ? '☁ Nube lista' : '⚠ Sin conexión'; nube.className = 'chip ' + (navigator.onLine ? 'ok' : 'err');
+}
+$('cSync').onclick = async () => {
+  if (!window.CHH_NUBE) { toast('La nube no está disponible', true); return; }
+  const b = $('cSync'); b.disabled = true; b.textContent = '⏳ Sincronizando…';
   try {
-    const n = await CHH_SETTINGS.importar(file);
-    toast(`${n} entradas importadas — recargando`);
-    setTimeout(() => location.reload(), 900);
-  } catch(e) {
-    console.error(e);
-    toast('Error: ' + e.message, true);
-  }
-}
+    const r = await CHH_NUBE.sincronizarBarajas(); try { await CHH_NUBE.publicarPerfil(true); } catch (e) {}
+    if (r && r.ok === false) throw new Error(r.motivo || 'sin conexión');
+    $('cNube').textContent = '✓ Sincronizado'; $('cNube').className = 'chip ok'; toast('✓ Barajas y avatar sincronizados');
+  } catch (e) { $('cNube').textContent = '⚠ ' + (e.message || 'Error'); $('cNube').className = 'chip err'; toast('No se pudo sincronizar: ' + (e.message || 'error'), true); }
+  finally { b.disabled = false; b.textContent = '☁ Sincronizar'; }
+};
 
-async function refrescarStorage() {
+// ── Datos ──
+async function pintarEspacio() {
   const est = await CHH_SETTINGS.storageEstimate();
-  const desc = document.getElementById('storage-desc');
-  const fill = document.getElementById('storage-fill');
-  const used = document.getElementById('storage-used');
-  const total = document.getElementById('storage-total');
-  if (!est) { desc.textContent = 'No disponible en este navegador'; return; }
-  const mb = b => (b / 1024 / 1024).toFixed(1);
-  used.textContent = `${mb(est.usage)} MB usados`;
-  total.textContent = `${mb(est.quota)} MB disponibles`;
-  fill.style.width = est.pct.toFixed(1) + '%';
-  desc.textContent = `${est.pct.toFixed(1)}% del espacio disponible`;
+  if (!est) { $('stDesc').textContent = 'Este navegador no informa el espacio usado.'; return; }
+  $('stDesc').textContent = `${mb(est.usage)} usados de ${mb(est.quota)} disponibles (${est.pct.toFixed(1)}%)`;
+  $('stBar').style.width = Math.max(1, est.pct).toFixed(1) + '%';
 }
-
-async function hacerLimpiarCache() {
-  if (!(await NX_UI.confirmar('Tus datos y desbloqueos se conservan.', { titulo: '¿Limpiar caché y recargar?', si: 'Limpiar' }))) return;
+async function pintarMedios() {
+  if (!('caches' in window)) { $('medDesc').textContent = 'No disponible en este navegador.'; $('medBorrar').disabled = true; return; }
+  let n = 0, bytes = 0;
   try {
-    await CHH_SETTINGS.limpiarCache();
-    toast('Caché limpiado — recargando');
-    setTimeout(() => location.reload(true), 700);
-  } catch(e) {
-    console.error(e);
-    toast('Error al limpiar', true);
-  }
+    for (const nom of ['chh-musica-v1', 'chh-medios-v1']) {
+      if (!(await caches.has(nom))) continue;
+      const c = await caches.open(nom), K = await c.keys(); n += K.length;
+      for (const k of K) { const r = await c.match(k); const l = r && +r.headers.get('content-length'); if (l) bytes += l; }
+    }
+  } catch (e) {}
+  $('medDesc').textContent = n ? `${n} archivos${bytes ? ' · ' + mb(bytes) : ''} (música, efectos, micas, playmats y arte del Arcade).` : 'No hay medios descargados.';
+  $('medBorrar').disabled = !n;
 }
+$('medAuto').classList.toggle('on', LS.get('chh_medios_auto') !== '0');
+$('medAuto').onclick = () => { const on = !$('medAuto').classList.contains('on'); $('medAuto').classList.toggle('on', on); LS.set('chh_medios_auto', on ? '1' : '0'); };
+$('medBorrar').onclick = async () => {
+  if (!(await NX_UI.confirmar('La música y los medios se volverán a descargar cuando los uses (necesitas internet).', { titulo: '¿Borrar medios descargados?', si: 'Borrar', peligro: true }))) return;
+  try { await caches.delete('chh-musica-v1'); await caches.delete('chh-medios-v1'); toast('Medios borrados'); } catch (e) { toast('No se pudieron borrar', true); }
+  pintarMedios(); pintarEspacio();
+};
+$('exp').onclick = () => { try { CHH_SETTINGS.exportar(); toast('Respaldo descargado'); } catch (e) { toast('No se pudo crear el respaldo', true); } };
+$('imp').onclick = () => $('impFile').click();
+$('impFile').onchange = async e => {
+  const f = e.target.files && e.target.files[0]; e.target.value = ''; if (!f) return;
+  if (!(await NX_UI.confirmar('Se reemplazarán los datos de este dispositivo por los del respaldo y la app se recargará.', { titulo: '¿Restaurar este respaldo?', si: 'Restaurar', peligro: true }))) return;
+  try { const n = await CHH_SETTINGS.importar(f); toast(`${n} datos restaurados · recargando`); setTimeout(() => location.reload(), 900); }
+  catch (err) { toast('Error: ' + err.message, true); }
+};
+$('cache').onclick = async () => {
+  if (!(await NX_UI.confirmar('Se descarga de nuevo la app. Tus datos, desbloqueos y medios descargados se conservan.', { titulo: '¿Buscar actualización?', si: 'Actualizar' }))) return;
+  try { await CHH_SETTINGS.limpiarCache(); toast('Actualizando…'); setTimeout(() => location.reload(), 700); } catch (e) { toast('No se pudo actualizar', true); }
+};
 
-async function resetSettings() {
-  if (!(await NX_UI.confirmar('Esto no borra tus desbloqueos ni Hero Pesos, solo las preferencias.', { titulo: '¿Restaurar TODOS los ajustes?', si: 'Restaurar', peligro: true }))) return;
-  // Preserva desbloqueos y datos del jugador — solo resetea preferencias de UI
-  const preserve = {};
-  const s = CHH_SETTINGS.load();
-  if (s.temaId) preserve.temaId = s.temaId; // conserva tema equipado
-  CHH_SETTINGS.save({
-    theme:'dark', accentColor:'green', tournamentsNotif:true, galleryView:'3col',
-    animations:true, textScale:'normal', vibrate:true, landingPage:'index', vistaAmplia:true,
-    ...preserve
-  });
-  toast('Ajustes restaurados');
-  setTimeout(() => location.reload(), 700);
+// ── App ──
+(async function version() {
+  let v = '';
+  try { const k = (await caches.keys()).find(x => /^chh-tcg-v\d+/.test(x)); if (k) v = k.replace('chh-tcg-', ''); } catch (e) {}
+  if (!v) try { const t = await (await fetch('sw.js', { cache: 'no-cache' })).text(); const m = /chh-tcg-(v\d+)/.exec(t); if (m) v = m[1]; } catch (e) {}
+  $('ver').textContent = 'Versión 1.3 · compilación ' + (v || '—');
+})();
+$('intro').onclick = () => { LS.set('nexo_intro_vista', null); location.href = 'intro.html'; };
+$('reset').onclick = async () => {
+  if (!(await NX_UI.confirmar('Las preferencias de esta pantalla regresan a como venían. No se borran desbloqueos, Hero Pesos ni partidas.', { titulo: '¿Restaurar ajustes?', si: 'Restaurar', peligro: true }))) return;
+  const s = CHH_SETTINGS.load(), t = s.temaId;
+  CHH_SETTINGS.save(Object.assign({ theme: 'dark', accentColor: 'green', tournamentsNotif: true, newsNotif: true, academiaNotif: true, galleryView: '3col', animations: true, textScale: 'normal', vibrate: true, landingPage: 'index', vistaAmplia: true }, t ? { temaId: t } : {}));
+  ['cdh_ui_escala', 'chh_bgm_vol', 'cdh_sim_fases', 'cdh_sim_fx', 'chh_medios_auto'].forEach(k => LS.set(k, null));
+  LS.set('cdh_sim_ajustes', JSON.stringify(Object.assign({}, AJ_DEF))); LS.set('bgm_muted', '0'); LS.set('chh_nexotlan_mute', '0');
+  toast('Ajustes restaurados'); setTimeout(() => location.reload(), 700);
+};
+
+// ── Índice: marca la sección visible ──
+const NAV = [...document.querySelectorAll('#nav a')], SECS = [...document.querySelectorAll('.sec')];
+function marcarNav() {
+  let act = SECS[0];
+  SECS.forEach(x => { if (x.getBoundingClientRect().top < 160) act = x; });
+  if (innerHeight + scrollY >= document.documentElement.scrollHeight - 4) act = SECS[SECS.length - 1];
+  NAV.forEach(a => { const on = a.getAttribute('href') === '#' + act.id; a.classList.toggle('on', on); if (on && a.scrollIntoView && getComputedStyle(document.getElementById('nav')).flexDirection === 'row') a.parentNode.scrollTo({ left: a.offsetLeft - 16, behavior: 'smooth' }); });
 }
+let _nT; addEventListener('scroll', () => { clearTimeout(_nT); _nT = setTimeout(marcarNav, 60); }, { passive: true }); marcarNav();
+NAV.forEach(a => a.addEventListener('click', e => { e.preventDefault(); const s = document.querySelector(a.getAttribute('href')); if (s) s.scrollIntoView({ behavior: 'smooth', block: 'start' }); history.replaceState(null, '', a.getAttribute('href')); }));
 
-function verIntroDeNuevo() {
-  localStorage.removeItem('nexo_intro_vista');
-  location.href = 'intro.html';
-}
+// ── Control (gamepad.js) ──
+window.GP_CFG = { zonas: ['#nav', '.secs'], atras: () => { location.href = 'index.html'; return true; } };
 
-// ── INIT ──
-document.addEventListener('DOMContentLoaded', () => {
-  refrescarUI();
-  refrescarStorage();
-});
+pintarGenerales(); pintarCuenta(); pintarEspacio(); pintarMedios();
+addEventListener('online', pintarCuenta); addEventListener('offline', pintarCuenta);
 </script>
-
-<!-- Música de fondo persistente -->
+<script src="nube.js"></script>
 <script src="bgm.js"></script>
 </body>
 </html>

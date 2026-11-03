@@ -769,6 +769,9 @@ window.nxTip = function () {
   if(c.sprite)document.getElementById('cgSpr').innerHTML='<img src="'+String(c.sprite).replace(/"/g,'&quot;')+'" alt="" onerror="this.parentNode.innerHTML=\'<div class=cg-naipe></div>\'">';
   if(/[?&]editor=1/.test(location.search))return;
   g.hidden=false; window.__cargaMin=Date.now()+window.nxTip();      // al entrar y al regresar de un Choque
+  try{var pa=JSON.parse(sessionStorage.getItem('chh_carga_paso')||'null');sessionStorage.removeItem('chh_carga_paso');   // v208 · viene de la Simulación: sigue el mismo consejo
+    if(pa&&pa.x&&Date.now()-pa.ts<20000){document.getElementById('cgTT').textContent=pa.tt||'Consejo';document.getElementById('cgX').textContent=pa.x;window.__tipUlt=pa.x;
+      window.__cargaMin=Math.max(pa.fin||0,Date.now()+1500);var bb=document.getElementById('cgBar');bb.style.transitionDuration='0s';bb.style.width='0';void bb.offsetWidth;bb.style.transitionDuration=(window.__cargaMin-Date.now())+'ms';bb.style.width='100%';}}catch(e){}
   window.__cargaT=setTimeout(function(){g.classList.add('fuera');setTimeout(function(){g.hidden=true;},500);},15000);   // seguro
 })();
 </script>
@@ -1666,7 +1669,9 @@ async function iniciarChoque(p0, fase) {
   Object.assign(m, fch);
   if (p.arena_inicial) m.arenaInicial = String(p.arena_inicial).trim();   // el rival empieza con esta ARENA activa
   try { localStorage.setItem('chh_arcade_match', JSON.stringify(m)); } catch (e) {}
-  mostrarCarga(0, () => { location.href = 'simulacion.html?modo=arcade'; });
+  mostrarCarga(0); $('carga').classList.remove('listo'); clearTimeout(quitarCarga._t); clearTimeout(window.__cargaT);
+  try { sessionStorage.setItem('chh_carga_paso', JSON.stringify({ tt: $('cgTT').textContent, x: $('cgX').textContent, fin: window.__cargaMin, tipo: 'nexotlan', ts: Date.now() })); } catch (e) {}
+  setTimeout(() => { location.href = 'simulacion.html?modo=arcade'; }, 380);   // la Simulación sigue con el mismo consejo
 }
 async function procesarResultado() {
   if (!S || !S.pendiente) return false;
@@ -1812,8 +1817,10 @@ function abrirDiario() {
   h += `<div class="f-btns"><button class="bt red" id="diBorrar">🗑 BORRAR PARTIDA</button></div>`;
   $('diBody').innerHTML = h; $('mDiario').classList.add('on');
   $('diMazo').onclick = () => { cerrarModal('mDiario'); abrirMazo(); };
-  $('diBorrar').onclick = async () => { if (await mensaje('¿BORRAR LA PARTIDA?', 'Se pierde todo tu progreso en Nexotlan (también en la nube).', [['🗑 BORRAR', 'red'], ['CANCELAR', 'sec']]) !== 0) return;
-    S = nueva(S.nombre, S.baraja, S.barajaNombre); S.u = Date.now(); guardar(); cerrarModal('mDiario'); irA('sTitulo'); pintarTitulo(); };
+  $('diBorrar').onclick = async () => { if (await mensaje('🗑 ¿BORRAR LA PARTIDA?', '<b>' + esc(S.nombre || '') + '</b> · Día ' + ((S.dia || 0) + 1) + '<br>Se pierde todo su progreso (también en la nube).', [['🗑 BORRAR', 'red'], ['CANCELAR', 'sec']]) !== 0) return;
+    // v208 · 2ª confirmación, igual que en las partidas de la portada (botones invertidos contra el doble toque)
+    if (await mensaje('⚠ ÚLTIMA ADVERTENCIA', 'Vas a borrar <b>' + esc(S.nombre || '') + '</b> (' + (S.victorias || 0) + ' victorias · ' + (S.monedas || 0) + ' <i class="mn"></i>).<br><b style="color:#ff5a7a">Esto no se puede deshacer.</b>', [['NO, CONSERVARLA', 'gold'], ['SÍ, BORRAR PARA SIEMPRE', 'red']]) !== 1) return;
+    S = nueva(S.nombre, S.baraja, S.barajaNombre); S.u = Date.now(); guardar(); cerrarModal('mDiario'); musica(null); irA('sTitulo'); pintarTitulo(); toast('🗑 Partida borrada'); };
 }
 function cerrarModal(id) { $(id).classList.remove('on'); }
 let NSEL = null, NMODO = 'nueva';

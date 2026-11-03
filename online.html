@@ -1153,6 +1153,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 </script>
 </head>
 <body>
+<script src="carga.js" data-auto="partida"></script>
 
 <div class="aztec-bg"></div>
 
@@ -9060,7 +9061,7 @@ function arcadeYaJugado(){
   const box=document.getElementById('endgameBox');
   box.querySelectorAll('.endgame-btn').forEach(b=>b.style.display='none');
   const go=document.createElement('button');go.className='endgame-btn';go.textContent=ARC_VOLVER==='arcade.html'?'🕹 CONTINUAR':'🗺 CONTINUAR';
-  go.onclick=()=>{location.href=ARC_VOLVER+'?r='+encodeURIComponent(ARCADE.id);};
+  go.onclick=()=>{const u=ARC_VOLVER+'?r='+encodeURIComponent(ARCADE.id);if(window.CHHCarga)CHHCarga.ir(u,ARC_VOLVER==='nexotlan.html'?'nexotlan':'arcade',ARC_VOLVER==='arcade.html'?'assets/arcade/portada.jpg':'');else location.href=u;};
   box.appendChild(go);
 };}
 
@@ -9068,6 +9069,7 @@ function arcadeYaJugado(){
   document.getElementById('simVer').textContent=SIM_VERSION;
   // v66 · Combate del Arcade ya empezado (se recargó la página o se cerró la app): cuenta como derrota
   if(typeof ARCADE!=='undefined'&&ARCADE&&arcadeYaJugado()){
+    if(window.CHHCarga) CHHCarga.quitar(true);
     document.getElementById('bootStatus').innerHTML='🚪 Este combate ya había empezado y se abandonó: <b>cuenta como derrota</b>. Regresando…';
     setTimeout(()=>{location.replace(ARC_VOLVER+'?r='+encodeURIComponent(ARCADE.id));},1800);
     return;
@@ -9085,7 +9087,9 @@ function arcadeYaJugado(){
     st.textContent=Object.keys(C).length+' cartas listas · elige tus barajas'+(_ok?' · 📲 sin red OK':'');
     initDeckSelect();
     btn.disabled=false;
+    if(window.CHHCarga) CHHCarga.listo();      // v208 · ya cargó: la pantalla de consejos se quita al terminar de leer
   }catch(e){
+    if(window.CHHCarga) CHHCarga.quitar(true);
     console.error(e);
     st.classList.add('err');
     st.innerHTML='No se pudieron cargar las cartas.<br><small>'+e.message+'</small>'+

@@ -449,6 +449,10 @@ html.heroica .h1{background:linear-gradient(90deg,#fff2c4,#ffb300,#fff6d8,#ffb30
 </script>
 </head>
 <body>
+<script src="carga.js"></script>
+<script>// v208 · Pantalla de consejos al regresar de un Choque (sigue el consejo que traía la Simulación)
+(function(){if(!window.CHHCarga)return;const r=CHHCarga.recibido(),f='assets/arcade/portada.jpg';
+  if(r||/[?&]r=/.test(location.search))CHHCarga.mostrar(r?{tipo:'arcade',fondo:f,tip:[r.tt,r.x],hasta:r.fin}:{tipo:'arcade',fondo:f});})();</script>
 <div id="stage">
 <div id="bg"></div><div id="niebla"></div><div id="grieta"></div><div id="grecas"></div><div id="scan"></div>
 
@@ -2044,7 +2048,7 @@ function iniciarCombate(i,replay){
   const m={id,slot:CUR,ronda:i+1,total:N,jefe:i===N-1,jugador:bjId(g)||g.baraja,cpu:r.baraja,nivel:nivelDe(r,i,N),borrador:parseInt(r.borrador,10)||0,revivir:parseInt(r.revivir,10)||0,
     corazonesExtra:parseInt(r.corazones,10)||0,avatar:avatarPerfil()?new URL(avatarPerfil(),location.href).href:'',manoExtra:parseInt(r.mano,10)||0,almasExtra:parseInt(r.almas,10)||0,roboExtra:parseInt(r.robo,10)||0,nombre:r.nombre,retrato:retratoUrl(r)||'',musica:r._musica?new URL(r._musica,location.href).href:''};
   try{localStorage.setItem('chh_arcade_match',JSON.stringify(m));}catch(e){}
-  location.href='simulacion.html?modo=arcade';
+  if(window.CHHCarga) CHHCarga.ir('simulacion.html?modo=arcade','arcade','assets/arcade/portada.jpg'); else location.href='simulacion.html?modo=arcade';
 }
 // Regreso de la simulación con el resultado
 function procesarResultado(){
@@ -2429,6 +2433,7 @@ let PLAYER_IMG=null;
   // 2) Logo y portada: se esperan un momento como máximo (si tardan, aparecen cuando lleguen)
   const arte=cargarArte();
   await Promise.race([arte.portada,new Promise(r=>setTimeout(r,1500))]);
+  if(window.CHHCarga&&CHHCarga.visible()){CHHCarga.listo();await CHHCarga.esperar();}   // los diálogos salen después de leer el consejo
   if(!procesarResultado()&&new URLSearchParams(location.search).get('slots')) go('sSlots');
   if(window.CHH_MEDIOS){
     CHH_MEDIOS.bajar('assets/audio/sfx/logro.mp3',20000).then(()=>CHH_MEDIOS.blobUrl('assets/audio/sfx/logro.mp3')).then(u=>{LOGRO_SND=u;}).catch(()=>{});

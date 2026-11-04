@@ -1528,7 +1528,7 @@ async function abrirFicha(id) {
   if (esComerciante(p)) btns = `<button class="bt gold" id="fTienda">🛒 TIENDA</button><button class="bt sec" id="fHablar">💬 HABLAR</button>`;
   else if (esCarpetero(p)) btns = `<button class="bt gold" id="fRuleta">🎰 RULETA</button><button class="bt sec" id="fHablar">💬 HABLAR</button>`;
   else if (p.tipo === 'heroe') btns = `<button class="bt" id="fHablar">💬 HABLAR</button>`;
-  else btns = `<button class="bt ${p.tipo === 'guardian' ? 'red' : 'gold'}" id="fRetar" ${bloq ? 'disabled' : ''}>⚔ ${v ? 'REVANCHA' : 'RETAR'}</button><button class="bt sec" id="fHablar">💬 HABLAR</button>`;
+  else btns = `<button class="bt ${p.tipo === 'guardian' ? 'red' : 'gold'}" id="fRetar" ${bloq ? 'disabled' : ''}>${tieneFase2(p) && enFase2(p) && !reiniciaFase2(p) ? '☠ ' + esc((p.fase2_etiqueta || '2ª forma').toUpperCase()) : '⚔ ' + (v ? 'REVANCHA' : 'RETAR')}</button><button class="bt sec" id="fHablar">💬 HABLAR</button>`;
   $('fBody').innerHTML = `<div class="f-top" style="--fc:${tc}">
       <div class="f-ret" id="fRet"></div>
       <div style="min-width:0"><span class="f-tipo" style="--fc:${tc}">${tt}</span><div class="f-n">${esc(p.nombre)}</div><div class="f-t">${esc(p.titulo || '')}</div></div></div>
@@ -1604,9 +1604,12 @@ function forma2(p) {      // el mismo punto con los datos de su transformación
 }
 async function retoFase2(p) {
   const q = forma2(p);
-  const r = await dialogo(q, p.fase2_revancha && S.fase2[p.id] > 1 ? p.fase2_revancha : (p.fase2_entrada || '…'), [['⚔ ¡CHOQUE!', 'red'], ['AHORA NO', 'sec']]);
+  let r = await dialogo(q, p.fase2_revancha && S.fase2[p.id] > 1 ? p.fase2_revancha : (p.fase2_entrada || '…'), [['⚔ ¡CHOQUE!', 'red'], ['AHORA NO', 'sec']]);
+  // v215 · Si retirarse lo regresa a su forma regular, se confirma antes (perderías la victoria sobre la 1ª forma)
+  if (r !== 0 && reiniciaFase2(p)) r = await mensaje('☠ ¿TE RETIRAS?', `Si no enfrentas ahora a <b>${esc(q.nombre)}</b>, ${esc(p.nombre)} recupera su forma regular y tendrás que vencerlo de nuevo desde la 1ª forma.`, [['⚔ ¡CHOQUE!', 'red'], ['🚪 RETIRARME', 'sec']]);
   if (r === 0) { iniciarChoque(p, 2); return; }
   if (reiniciaFase2(p)) { delete S.fase2[p.id]; guardar(); pintarMapa(); toast('↺ ' + p.nombre + ' recupera su forma regular: tendrás que vencerlo de nuevo.'); }
+  else { pintarMapa(); toast('☠ ' + q.nombre + ' te espera: tócalo en el mapa para el Choque de su 2ª forma.'); }
 }
 // fase2_reintento = inicio → cada intento (revancha, derrota o retirada) empieza otra vez desde la forma regular
 const reiniciaFase2 = p => String(p.fase2_reintento || 'si').toLowerCase() === 'inicio';
@@ -1628,6 +1631,7 @@ async function hablar(p) {
   if (r === 0) retar(p, true);
 }
 function retar(p, yaHablo) {
+  if (!yaHablo && tieneFase2(p) && enFase2(p)) { hablar(p); return; }   // v215 · 2ª forma pendiente: se retoma ahí
   if (!yaHablo && !vencido(p.id)) { hablar(p); return; }
   iniciarChoque(p);
 }
@@ -2757,7 +2761,11 @@ window.GP_CFG = {
   principal: () => cargaVisible() ? $('carga') : $('sMenu').classList.contains('on') && !$('mCaja').classList.contains('on') && !$('mDiario').classList.contains('on') && !$('mMsg').classList.contains('on') ? $('mnAventura') : DLG ? ($('dOps').querySelector('button') || $('dCaja')) : ($('ficha').classList.contains('on') ? ($('fRetar') && !$('fRetar').disabled ? $('fRetar') : $('fHablar')) : null),
   atras: () => {
     if (cargaVisible()) { saltarCarga(); return true; }
-    if (DLG) { if (DLG.ops.length) cerrarDialogo(DLG.ops.length - 1); else avanzarDialogo(); return true; }
+    if (DLG) {   // v215 · B avanza el texto; con opciones ya no elige por ti (machacar B saltaba el Choque de la 2ª forma)
+      const bs = $('dOps').querySelectorAll('button');
+      if (DLG.ops.length && !DLG.esc && bs.length) { try { if (window.GP) GP.enfocar(bs[bs.length - 1]); } catch (e) {} }   // B no elige: solo señala "AHORA NO"
+      else avanzarDialogo();
+      return true; }
     if ($('mMsg').classList.contains('on')) { const b = $('msgOps').querySelectorAll('button'); b[b.length - 1].click(); return true; }
     if ($('mSobre').classList.contains('on')) { const b = !$('sbOk').hidden ? $('sbOk') : $('sbPkg'); b.click(); return true; }
     if ($('mCarta').classList.contains('on')) { cerrarModal('mCarta'); return true; }

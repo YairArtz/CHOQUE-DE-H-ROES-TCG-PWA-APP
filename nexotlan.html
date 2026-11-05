@@ -213,12 +213,13 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 .d-escena::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 70%,color-mix(in srgb,var(--fc,#36d6ff) 35%,transparent),transparent 65%)}
 .d-escena::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.12) 3px,rgba(0,0,0,.12) 4px);pointer-events:none}
 .d-ret{position:absolute;left:50%;bottom:min(calc(20 * var(--uh)),150px);transform:translateX(-50%);height:min(calc(80 * var(--uh)),860px);z-index:1;max-width:calc(92 * var(--uw));animation:retIn .35s ease both;image-rendering:auto;filter:drop-shadow(0 10px 30px rgba(0,0,0,.6))}
+.d-ret.jefe:not(.carta){height:calc(116 * var(--uh));bottom:calc(-17 * var(--uh));max-width:calc(98 * var(--uw));object-fit:contain}   /* v216 · guardianes y 2ª forma: arte imponente */
 .d-ret.carta{height:min(calc(58 * var(--uh)),520px);bottom:min(calc(28 * var(--uh)),220px);border-radius:14px;border:3px solid var(--fc,#36d6ff);box-shadow:0 0 40px color-mix(in srgb,var(--fc,#36d6ff) 50%,transparent)}
 @keyframes retIn{from{opacity:0;transform:translateX(-50%) translateY(30px)}to{opacity:1;transform:translateX(-50%)}}
 .d-caja{position:relative;z-index:2;margin:0 auto calc(14px + env(safe-area-inset-bottom));width:min(980px,calc(100% - 20px));min-height:min(calc(30 * var(--uh)),210px);
   border-radius:18px;padding:16px 20px 18px;background:#f7f9ff;color:#0a0f1e;
   box-shadow:0 0 0 4px #0a1430,0 0 0 7px var(--fc,#36d6ff),0 0 0 9px #0a1430,0 20px 50px rgba(0,0,0,.6)}
-.d-nom{position:absolute;top:-18px;left:22px;padding:5px 14px;border-radius:9px;background:#0a1430;color:#fff;font-family:'Orbitron',monospace;font-size:12px;font-weight:900;letter-spacing:2px;border:2px solid var(--fc,#36d6ff)}
+.d-nom{position:absolute;z-index:3;top:-18px;left:22px;padding:5px 14px;line-height:1.25;white-space:nowrap;border-radius:9px;background:#0a1430;color:#fff;font-family:'Orbitron',monospace;font-size:12px;font-weight:900;letter-spacing:2px;border:2px solid var(--fc,#36d6ff)}
 .d-txt{font-family:'VT323',monospace;font-size:clamp(24px,calc(3.4 * var(--uw)),34px);line-height:1.12;min-height:3.4em;white-space:pre-wrap}
 .d-sig{position:absolute;right:18px;bottom:10px;font-size:18px;color:var(--red);animation:bob2 .8s ease-in-out infinite}
 @keyframes bob2{50%{transform:translateY(4px)}}
@@ -625,6 +626,8 @@ body.editor .pt{cursor:move}
 /* Celulares: retrato más grande (la caja de texto queda encima de las piernas) */
 :root.movil .d-ret:not(.carta){height:calc(86 * var(--uh));bottom:calc(14 * var(--uh))}
 :root.movil .d-ret.carta{height:calc(66 * var(--uh));bottom:calc(26 * var(--uh))}
+:root.movil .d-ret.jefe:not(.carta),:root.h520 .d-ret.jefe:not(.carta){height:calc(112 * var(--uh));bottom:calc(-14 * var(--uh))}
+:root.q620p .d-ret.jefe:not(.carta){height:calc(84 * var(--uh));bottom:calc(14 * var(--uh))}
 :root.h520 .d-txt{min-height:2.3em;font-size:24px}
 :root.h520 .f-ret{width:70px;height:88px}
 
@@ -632,7 +635,7 @@ body.editor .pt{cursor:move}
 #nxTrans{position:fixed;inset:0;z-index:9500;display:none;align-items:center;justify-content:center;flex-direction:column;overflow:hidden;
   background:radial-gradient(ellipse at center,rgba(60,0,20,.85),#000 75%);opacity:0;transition:opacity .35s}
 #nxTrans.on{opacity:1}
-#nxTrans img{position:absolute;max-height:calc(var(--uh)*70);max-width:calc(var(--uw)*80);object-fit:contain;filter:drop-shadow(0 0 30px rgba(255,40,90,.6))}
+#nxTrans img{position:absolute;max-height:calc(var(--uh)*92);max-width:calc(var(--uw)*80);object-fit:contain;filter:drop-shadow(0 0 30px rgba(255,40,90,.6))}
 #nxTrans img.carta{border-radius:12px}
 #nxTrans .tr-a{animation:trTiembla .12s linear infinite;transition:opacity .25s,filter 2.2s}
 #nxTrans.f1 .tr-a{filter:drop-shadow(0 0 40px #ff2f5a) brightness(1.4) saturate(1.6)}
@@ -1556,7 +1559,7 @@ async function dialogo(p, texto, ops) {
   $('dlg').style.setProperty('--fc', (d && d.color) || tc);
   const hayPai = !!pai;
   $('dEsc').innerHTML = (hayPai ? `<div class="d-banda" style="background-image:url('${esc(pai)}')"></div>` : `<div class="d-banda">${skyline(d)}</div>`) +
-    (ret ? `<img class="d-ret ${ret.carta ? 'carta' : ''}" src="${esc(ret.src)}" alt="">` : '');
+    (ret ? `<img class="d-ret ${ret.carta ? 'carta' : ''}${p.tipo === 'guardian' || p._fase === 2 ? ' jefe' : ''}" src="${esc(ret.src)}" alt="">` : '');
   $('dNom').textContent = (p.nombre || '').toUpperCase();
   $('dlg').classList.add('on');
   // Música propia al hablar con este personaje (musica_dialogo); al cerrar regresa la que sonaba
@@ -1600,7 +1603,9 @@ function forma2(p) {      // el mismo punto con los datos de su transformación
     nombre: p.fase2_nombre || p.nombre, titulo: p.fase2_titulo || p.titulo, imagen: p.fase2_imagen || p.imagen, carta: p.fase2_carta || p.carta,
     baraja: p.fase2_baraja, musica: p.fase2_musica || p.musica, corazones: p.fase2_corazones || p.corazones, dificultad: p.fase2_dificultad || p.dificultad,
     musica_dialogo: p.fase2_musica_dialogo || p.musica_dialogo, paisaje: p.fase2_paisaje || p.paisaje,
-    victoria: p.fase2_victoria || p.victoria, derrota: p.fase2_derrota || p.derrota, arena_inicial: p.fase2_arena_inicial || p.arena_inicial, _fase: 2 });
+    victoria: p.fase2_victoria || p.victoria, derrota: p.fase2_derrota || p.derrota, arena_inicial: p.fase2_arena_inicial || p.arena_inicial,
+    borrador: p.fase2_borrador || p.borrador, revivir: p.fase2_revivir || p.revivir, mano_extra: p.fase2_mano_extra || p.mano_extra,
+    almas_extra: p.fase2_almas_extra || p.almas_extra, robo_extra: p.fase2_robo_extra || p.robo_extra, _fase: 2 });
 }
 async function retoFase2(p) {
   const q = forma2(p);
@@ -1672,6 +1677,9 @@ async function iniciarChoque(p0, fase) {
   const mc = p.musica || (d && d.musica_choque) || CFG.musica_choque; m.musica = mc ? new URL(mc, location.href).href : '';
   Object.assign(m, fch);
   if (p.arena_inicial) m.arenaInicial = String(p.arena_inicial).trim();   // el rival empieza con esta ARENA activa
+  // v216 · Poderes de jefe (mismos que el Arcade): borrador, revivir, mano_extra, almas_extra, robo_extra
+  const pn = k => Math.max(0, parseInt(p[k], 10) || 0);
+  Object.assign(m, { borrador: pn('borrador'), revivir: pn('revivir'), manoExtra: pn('mano_extra'), almasExtra: pn('almas_extra'), roboExtra: pn('robo_extra') });
   try { localStorage.setItem('chh_arcade_match', JSON.stringify(m)); } catch (e) {}
   mostrarCarga(0); $('carga').classList.remove('listo'); clearTimeout(quitarCarga._t); clearTimeout(window.__cargaT);
   try { sessionStorage.setItem('chh_carga_paso', JSON.stringify({ tt: $('cgTT').textContent, x: $('cgX').textContent, fin: window.__cargaMin, tipo: 'nexotlan', ts: Date.now() })); } catch (e) {}

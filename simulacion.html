@@ -5524,6 +5524,11 @@ async function offerResponses(ev){
     pick=opts[i];
   } else {
     pick=opts.find(x=>x.cpu)||null;
+    if(nivelAlto()){   // v216 · primero las que llaman un personaje (Mo-Kozo, Rito…), luego las del campo; las que se descartan, al final
+      const pri=x=>/llamarlo|RITO/.test(x.label)?0:/^🛡 /.test(x.label)&&!/descartarla/.test(x.label)?1:/descartarla/.test(x.label)?3:2;
+      const L=opts.filter(x=>x.cpu).sort((a,b)=>pri(a)-pri(b));
+      pick=L[0]||null;
+    }
     if(pick&&cpuFalla()) pick=null;
     if(pick) await new Promise(res=>setTimeout(res,350));
   }
@@ -8033,6 +8038,47 @@ function cpuDescartaExceso(){
   lg('🗑 <b>Mano excedente</b> (CPU): descarta '+fuera.length+' carta(s) al Mictlán · '+fuera.map(x=>'<b>'+C[x].name+'</b>').join(', ')+'.','var(--muted)');
   playSound('card'); renderAll();
 }
+// v216 · IA de alto nivel (Épico, Caótico, Creador): evalúa cada ataque posible antes de declararlo
+//        y elige el que más gana (destruir lo más valioso sin perder lo propio, o ir a los corazones).
+function cpuPrevChoque(as,ds){
+  const r='player', atk=G.cpu.pj[as], def=G.player.pj[ds];
+  if(!atk||!def) return null;
+  const sd=sideOfSlot(r,ds), mur=G[r].sect[sd];
+  if(mur&&hasPassive(mur,'destruir_atacante')&&sectOwner(r,sd)===r&&!G.used[r]['muralla:'+sd]&&!inmune('cpu',as,r,'destruir')&&!bastion('cpu')) return {d:'none',a:'dead'};
+  if(def.penachos&&def.penachos.length) return {d:'azar',a:'none'};
+  const el=hasKw(atk,'ELITE')?2:1, mic=hasPassive(atk.id,'boost_ataque_mictlan')&&!supp('cpu',as)?G.cpu.mictlan.filter(c=>isChar(c)).length:0;
+  const aF=eF(atk)*el+mic, aR=eR(atk)*el+mic+(hasPassive(atk.id,'res_en_combate')&&!supp('cpu',as)?3:0);
+  const dF=eF(def), dR=eR(def)+(hasPassive(def.id,'res_en_combate')&&!supp(r,ds)?3:0);
+  const fa=hasKw(atk,'PRIMER DANO'), fd=hasKw(def,'PRIMER DANO');
+  const hit=(p,res,f)=>res-f>0?'res':(p.cor<=1?(hasKw(p,'HEROISMO')?'heroismo':'dead'):'heart');
+  return {d:fd&&!fa?'none':hit(def,dR,aF), a:fa&&!fd?'none':hit(atk,aR,dF)};
+}
+function cpuValorAtaque(as,ds){
+  const atk=G.cpu.pj[as];
+  if(ds==null){                                     // directo a los corazones
+    if(protegeCorazones('player')) return -1;
+    const n=eI(atk); if(!n) return -1;
+    return n>=G.player.hp?9999:n*(G.player.hp<=6?30:G.player.hp<=10?22:16);
+  }
+  const def=G.player.pj[ds], pr=cpuPrevChoque(as,ds); if(!pr) return -999;
+  const sD=SCORE(def.id), sA=SCORE(atk.id);
+  // ¿otro atacante listo podría rematarlo si solo le baja RESISTENCIA?
+  const remate=G.cpu.pj.some((q,j)=>q&&j!==as&&canAtk('cpu',j)&&atacable('cpu',j,ds)&&eF(q)>=eR(def)-eF(atk));
+  const vD={dead:sD+22+(def.cor||1)*2,heart:sD*.35+8,res:remate?sD*.22:1,heroismo:1,none:0,azar:sD*.3}[pr.d];
+  const vA={dead:-(sA+14),heart:-(sA*.3+6),res:0,heroismo:-2,none:0}[pr.a];
+  return vD+vA;
+}
+function cpuMejorAtaque(){
+  let mejor=null;
+  G.cpu.pj.forEach((p,as)=>{
+    if(!p||!canAtk('cpu',as)) return;
+    const objs=G.player.pj.map((q,ds)=>q&&atacable('cpu',as,ds)?ds:-1).filter(ds=>ds>=0);
+    const op=objs.map(ds=>({as,ds,v:cpuValorAtaque(as,ds)}));
+    if(!objs.length||puedeDirecto('cpu',as)) op.push({as,ds:null,v:cpuValorAtaque(as,null)});
+    op.forEach(x=>{if(!mejor||x.v>mejor.v)mejor=x;});
+  });
+  return mejor;
+}
 async function cpuTurn(){
   const g=GEN, alive=()=>g===GEN&&G&&!G.over, W=ms=>new Promise(r=>setTimeout(r,ms*velCPU()));
   const step=async ms=>{await W(ms);return alive();};
@@ -8299,6 +8345,19 @@ async function cpuTurn(){
   }
   if(primerTurno('cpu')) lg('⏸ <b>CPU</b> inició el choque: no puede declarar batalla en su primer turno.','var(--muted)');
   else lg(atkers0.length?'⚔️ <b>CPU — Fase de Combate.</b> Atacando con '+atkers0.length+' personaje(s)…':'⏸ CPU no tiene atacantes disponibles este turno.',atkers0.length?'var(--red)':'var(--muted)');
+  if(nivelAlto()) for(let n=0;n<12;n++){              // v216 · elige el mejor ataque disponible cada vez
+    if(!alive()) return;
+    const m=cpuMejorAtaque(); if(!m) break;
+    if(m.v<=0){P.pj.forEach((p,i)=>{if(p&&canAtk('cpu',i))p.attacked=true;});lg('⏸ <b>CPU</b> calcula que ningún ataque le conviene y conserva a sus personajes.','var(--muted)');break;}
+    if(!await step(900)) return;
+    const atk=P.pj[m.as]; if(!atk) continue;
+    if(m.ds==null){await attackHearts('cpu',m.as);if(!alive()||checkEnd())return;continue;}
+    animAttack('cP'+m.as);setTimeout(()=>animAttack('pP'+m.ds),250);
+    const res=await battle('cpu',m.as,m.ds);
+    if(!alive()) return;
+    if(res){lg(res.html.replace(/<br>$/,''),'var(--text)');renderAll();await afterBattle('cpu',m.as,res);}
+    if(!alive()||checkEnd()) return;
+  }
   for(let n=0;n<10;n++){
     const as=P.pj.findIndex((p,i)=>canAtk('cpu',i));
     if(as<0) break;

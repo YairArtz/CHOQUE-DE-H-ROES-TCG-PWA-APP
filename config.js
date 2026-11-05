@@ -35,3 +35,5 @@
     appId: '1:701628192523:web:98cc293ffb01b7dd33740e'
   }
 };
+// Pantalla completa en PC (pantalla.js): se carga en todas las páginas que usan este archivo
+if (typeof document !== 'undefined' && !window.__chhPantalla) { try { const s = document.createElement('script'); s.src = 'pantalla.js'; s.defer = true; (document.head || document.documentElement).appendChild(s); } catch (e) {} }

@@ -192,6 +192,7 @@ footer{padding:26px 16px 6px;text-align:center;font-size:13px;font-weight:600;co
     <section class="sec" id="s-pantalla"><h2>🖥️ PANTALLA</h2>
       <div class="row"><div class="lbl"><b>Tamaño de la interfaz</b><span>Texto y botones de los menús, Perfil, Tienda, Galería y demás módulos.</span></div>
         <div class="seg" data-k="textScale"><button data-v="small" type="button">Pequeño</button><button data-v="normal" type="button">Normal</button><button data-v="large" type="button">Grande</button></div></div>
+      <div class="row"><div class="lbl"><b>Pantalla completa en PC</b><span>La app ocupa todo el monitor con tu primer clic o tecla en cada sección. Si sales con Esc, se respeta hasta que vuelvas a abrir la app. También puedes usar F11.</span></div><button class="sw" id="pantallaPC" data-no-fs type="button" aria-label="Pantalla completa en PC"></button></div>
       <div class="row"><div class="lbl"><b>Vista amplia en PC y tablet</b><span>Los módulos aprovechan todo el ancho en pantallas horizontales grandes.</span></div><button class="sw" data-k="vistaAmplia" type="button" aria-label="Vista amplia"></button></div>
       <div class="row col"><div class="lbl"><b>Escala en TV o monitor grande</b><span>Simulación, Arcade y Modo Aventura se agrandan solos en pantallas grandes (por ejemplo, PC conectada por HDMI). Elige un tamaño fijo si se ve muy chico o muy grande.</span></div>
         <div class="seg" id="uiEscala"><button data-v="" type="button">Automática</button><button data-v="off" type="button">Sin escala</button><button data-v="1.25" type="button">×1.25</button><button data-v="1.5" type="button">×1.5</button><button data-v="2" type="button">×2</button></div></div>
@@ -317,6 +318,11 @@ $('uiEscala').addEventListener('click', e => { const b = e.target.closest('butto
 // ── Sonido ──
 function rango(id, val, fn) { const r = $(id), v = $(id + 'V'); r.value = val; v.textContent = pct(val); r.oninput = () => { v.textContent = pct(+r.value); fn(+r.value); }; }
 const bgmMuted = () => LS.get('bgm_muted') === '1';
+// ── Pantalla completa en PC (pantalla.js) ──
+$('pantallaPC').classList.toggle('on', LS.get('chh_pantalla_completa') !== '0');
+$('pantallaPC').onclick = () => { const on = !$('pantallaPC').classList.contains('on'); LS.set('chh_pantalla_completa', on ? null : '0'); $('pantallaPC').classList.toggle('on', on);
+  if (on) { if (window.CHH_PANTALLA) { CHH_PANTALLA.reactivar(); CHH_PANTALLA.entrar(); } toast('Pantalla completa activada'); }
+  else { try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) {} toast('Pantalla completa desactivada'); } };
 $('bgmOn').classList.toggle('on', !bgmMuted());
 $('bgmOn').onclick = () => { const on = bgmMuted(); if (window.BGM && BGM.silencio) BGM.silencio(!on); else LS.set('bgm_muted', on ? '0' : '1'); $('bgmOn').classList.toggle('on', on); const fb = document.getElementById('bgm-btn'); if (fb) fb.innerHTML = on ? '🎵' : '🔇'; };
 rango('bgmVol', (() => { const v = parseFloat(LS.get('chh_bgm_vol')); return isNaN(v) ? .4 : v; })(), v => { if (window.BGM && BGM.volumen) BGM.volumen(v); else LS.set('chh_bgm_vol', String(v)); });

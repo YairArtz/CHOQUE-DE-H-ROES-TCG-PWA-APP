@@ -15,7 +15,7 @@
 // ════════════════════════════════════════════════════════════════════════════
 (function () {
 'use strict';
-const ONLINE_VER = 'Online v1.3';
+const ONLINE_VER = 'Online v1.4';
 const FB_CFG = (window.CHH_CONFIG || {}).firebase || {
   apiKey: 'AIzaSyDif80xeOdjhJ2_-jcRwQK80bPqiVgzCPY',
   authDomain: 'choque-heroes-online.firebaseapp.com',
@@ -510,6 +510,8 @@ function hostRecibe(m) {
   if (m.t === 'cmd') { esperaUI(PEND.size > 0); _cola.push(m); if (!_colaOn) procesarCola(); return; }
 }
 // Funciones que el invitado puede pedir durante SU turno
+// v1.4 · Jugadas que dependen de la posición en la mano: viajan con la carta, y el anfitrión comprueba que siga ahí
+const IDX_POS = { doAlma: 0, doApoyo: 0, doSector: 0, doArena: 1 };
 const CMDS = ['drawBA', 'drawBP', 'mainAction', 'doAlma', 'doApoyo', 'doArena', 'doSector', 'callFromHand', 'doSpecialCall', 'useAbility',
   'playerAttack', 'directAttack', 'oblivionAtaque', 'confirmDiscard', 'startOfrenda', 'goToCombat', 'endTurn'];
 async function procesarCola() {
@@ -521,6 +523,10 @@ async function procesarCola() {
       let args = m.args || [];
       if (m.fn === 'useAbility') { const [o, cid, i, src] = args; const e = (C[cid].efectos || [])[i]; if (!e) continue; args = [o, cid, e, i, src]; }
       if (m.fn === 'confirmDiscard') { _discardSel = (m.sel || []).slice(); }
+      if (m.cid != null && IDX_POS[m.fn] != null) {          // la mano cambió (doble toque, jugada repetida): se busca esa carta o se descarta la orden
+        const k = IDX_POS[m.fn];
+        if (G.player.hand[args[k]] !== m.cid) { const j = G.player.hand.indexOf(m.cid); if (j < 0) continue; args = args.slice(); args[k] = j; }
+      }
       ON.remoto++; ON._ultCmd = m.fn + ' ' + JSON.stringify(m.args || []).slice(0, 80);
       try { await REAL[m.fn](...args); } finally { ON.remoto--; ON._ultCmd += ' ✓'; }
       renderAll();
@@ -918,7 +924,15 @@ function parchesGuest() {
   GL = window.lg; GB = window.showBanner; GS = window.playSound; GA = window.askChoice; GP_ = window.pickCards; GOD = window.openDiscardModal;
   _egGuest = window.endGame;
   const miTurno = () => G && !G.over && G.active === 'player';
-  const mandar = (fn, args, extra) => { netSend('g2h', Object.assign({ t: 'cmd', fn, args: JSON.parse(JSON.stringify(args || [])) }, extra || {})); };
+  let _ult = { k: '', t: 0 };
+  const mandar = (fn, args, extra) => {
+    args = JSON.parse(JSON.stringify(args || []));
+    const k = fn + JSON.stringify(args), t = Date.now();
+    if (k === _ult.k && t - _ult.t < 800 && fn !== 'endTurn') return;      // mismo toque repetido: se manda una sola vez
+    _ult = { k, t };
+    if (IDX_POS[fn] != null) extra = Object.assign({ cid: G.player.hand[args[IDX_POS[fn]]] }, extra || {});
+    netSend('g2h', Object.assign({ t: 'cmd', fn, args }, extra || {}));
+  };
   // Jugadas: se mandan al anfitrión (el estado regresa en el siguiente dibujo)
   ['drawBA', 'drawBP', 'mainAction', 'doAlma', 'doApoyo', 'doSector', 'callFromHand', 'doSpecialCall', 'directAttack', 'oblivionAtaque', 'startOfrenda', 'goToCombat', 'endTurn'].forEach(n => {
     window[n] = function () { if (!miTurno()) return; mandar(n, [...arguments]); };

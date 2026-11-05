@@ -24970,7 +24970,7 @@
    "cor": 1,
    "fue": 1,
    "res": 2,
-   "texto": "No es afectado por habilidades o efectos de tu adversario. Cuando es llamado: añade a tu mano un \"KHALET\" (excepto Bonw) desde tu BP. Una vez por turno: puedes sacrificar un personaje de tu lado y robar una carta de tu BP.",
+   "texto": "Mientras esta carta permanezca en tu lado del campo, este personaje no es afectado por habilidades o efectos de cartas de tu adversario. Cuando este personaje es llamado a tu lado del campo: puedes añadir a tu mano una carta con \"KHALET\" en su nombre excepto \"BONW KHALET\" desde tu BP, revuelve tu BP (una vez por turno). Una vez por turno durante el final de tu turno, puedes sacrificar un personaje en tu lado del campo y roba una carta de tu BP.",
    "efectos": [
     {
      "cuando": "pasivo",
@@ -24981,8 +24981,7 @@
     {
      "cuando": "al_llamar",
      "limite": "turno",
-     "opcional": true,
-     "texto": "Añadir un KHALET desde tu BP",
+     "texto": "¿Añadir a tu mano un KHALET desde tu BP?",
      "condicion": {
       "hay": {
        "origen": "bp",
@@ -25001,12 +25000,15 @@
         "excluirId": "bonw_khalet"
        }
       }
-     ]
+     ],
+     "opcional": true
     },
     {
-     "cuando": "accion",
+     "cuando": "fin_turno",
+     "opcional": true,
+     "cpuNo": true,
      "limite": "turno",
-     "texto": "Sacrificar un personaje tuyo y robar 1",
+     "texto": "¿Sacrificar un personaje de tu lado del campo y robar una carta de tu BP?",
      "pasos": [
       {
        "accion": "sacrificar_propio",
@@ -25031,7 +25033,7 @@
    "cor": 1,
    "fue": 1,
    "res": 2,
-   "texto": "No es afectado por habilidades o efectos de tu adversario. Cuando es llamado: añade a tu mano un \"KHALET\" (excepto Zethyr) desde tu BP y puedes tomar el control de un personaje del adversario hasta el final del turno.",
+   "texto": "Mientras esta carta permanezca en tu lado del campo, este personaje no es afectado por habilidades o efectos de cartas de tu adversario. Cuando este personaje es llamado a tu lado del campo: puedes añadir a tu mano una carta con \"KHALET\" en su nombre excepto \"ZETHYR KHALET\" desde tu BP, revuelve tu BP y puedes tomar control de un personaje que se encuentre en el campo de tu adversario hasta el final del turno. (Una vez por turno.)",
    "efectos": [
     {
      "cuando": "pasivo",
@@ -25042,8 +25044,7 @@
     {
      "cuando": "al_llamar",
      "limite": "turno",
-     "opcional": true,
-     "texto": "Añadir un KHALET desde tu BP y tomar el control de un personaje rival hasta el final del turno",
+     "texto": "¿Añadir a tu mano un KHALET desde tu BP?",
      "condicion": {
       "hay": {
        "origen": "bp",
@@ -25061,7 +25062,20 @@
         "nombreIncluye": "KHALET",
         "excluirId": "zethyr_khalet"
        }
-      },
+      }
+     ],
+     "opcional": true
+    },
+    {
+     "cuando": "al_llamar",
+     "limite": "turno",
+     "opcional": true,
+     "texto": "¿Tomar el control de un personaje rival hasta el final del turno?",
+     "condicion": {
+      "rivalConPJ": true,
+      "zonaLibre": true
+     },
+     "pasos": [
       {
        "accion": "robar_control",
        "temporal": true
@@ -25081,7 +25095,7 @@
    "cor": 1,
    "fue": 1,
    "res": 2,
-   "texto": "No es afectado por habilidades o efectos de tu adversario. Cuando es llamado: añade a tu mano un \"KHALET\" (excepto Opepw) desde tu BP y puedes llamar de forma especial a tu lado un personaje del Mictlán de tu adversario.",
+   "texto": "Mientras esta carta permanezca en tu lado del campo, este personaje no es afectado por habilidades o efectos de cartas de tu adversario. Cuando este personaje es llamado a tu lado del campo: puedes añadir a tu mano una carta con \"KHALET\" en su nombre excepto \"OPEPW KHALET\" desde tu BP, revuelve tu BP y puedes seleccionar un personaje que se encuentre en el Mictlán de tu adversario y llamarlo de forma especial a tu lado del campo. (Una vez por turno.)",
    "efectos": [
     {
      "cuando": "pasivo",
@@ -25092,8 +25106,7 @@
     {
      "cuando": "al_llamar",
      "limite": "turno",
-     "opcional": true,
-     "texto": "Añadir un KHALET desde tu BP y llamar un personaje del Mictlán rival",
+     "texto": "¿Añadir a tu mano un KHALET desde tu BP?",
      "condicion": {
       "hay": {
        "origen": "bp",
@@ -25111,7 +25124,22 @@
         "nombreIncluye": "KHALET",
         "excluirId": "opepw_khalet"
        }
-      },
+      }
+     ],
+     "opcional": true
+    },
+    {
+     "cuando": "al_llamar",
+     "limite": "turno",
+     "opcional": true,
+     "texto": "¿Llamar de forma especial a tu lado un personaje del Mictlán rival?",
+     "condicion": {
+      "zonaLibre": true,
+      "mictlanRival": {
+       "tipo": "pj"
+      }
+     },
+     "pasos": [
       {
        "accion": "llamar_mictlan_rival",
        "filtro": {
@@ -25133,7 +25161,7 @@
    "cor": 1,
    "fue": 1,
    "res": 2,
-   "texto": "No es afectado por habilidades o efectos de tu adversario. Cuando es llamado: añade a tu mano un \"KHALET\" (excepto Dekre) desde tu BP y puedes llamar de forma especial a tu lado un personaje que se encuentre confinado.",
+   "texto": "Mientras esta carta permanezca en tu lado del campo, este personaje no es afectado por habilidades o efectos de cartas de tu adversario. Cuando este personaje es llamado a tu lado del campo: puedes añadir a tu mano una carta con \"KHALET\" en su nombre excepto \"DEKRE KHALET\" desde tu BP, revuelve tu BP y puedes seleccionar un personaje que se encuentre confinado y llamarlo de forma especial a tu lado del campo. (Una vez por turno.)",
    "efectos": [
     {
      "cuando": "pasivo",
@@ -25144,8 +25172,7 @@
     {
      "cuando": "al_llamar",
      "limite": "turno",
-     "opcional": true,
-     "texto": "Añadir un KHALET desde tu BP y llamar un personaje confinado",
+     "texto": "¿Añadir a tu mano un KHALET desde tu BP?",
      "condicion": {
       "hay": {
        "origen": "bp",
@@ -25163,7 +25190,19 @@
         "nombreIncluye": "KHALET",
         "excluirId": "dekre_khalet"
        }
-      },
+      }
+     ],
+     "opcional": true
+    },
+    {
+     "cuando": "al_llamar",
+     "limite": "turno",
+     "opcional": true,
+     "texto": "¿Llamar de forma especial a tu lado un personaje confinado?",
+     "condicion": {
+      "zonaLibre": true
+     },
+     "pasos": [
       {
        "accion": "llamar_conf_cualquiera"
       }
@@ -25690,7 +25729,9 @@
        "cantidad": 1,
        "excluirEsta": true
       }
-     ]
+     ],
+     "rapido": true,
+     "cpuRapido": "amenaza"
     }
    ],
    "rareza": "comun"
@@ -26899,11 +26940,8 @@
      ],
      "condicion": {
       "sectorPropioLibre": true,
-      "hay": {
-       "origen": "bp",
-       "filtro": {
-        "tipo": "sector"
-       }
+      "sectorBpPropio": {
+       "origen": "bp"
       }
      }
     },
@@ -27004,7 +27042,9 @@
        "cantidad": 1,
        "excluirEsta": true
       }
-     ]
+     ],
+     "rapido": true,
+     "cpuRapido": "amenaza"
     }
    ],
    "rareza": "comun"
@@ -28466,7 +28506,7 @@
   },
   {
    "id": "sonia",
-   "galeriaId": "ANIMA_040",
+   "galeriaId": "1124",
    "nombre": "Sonia Caleti",
    "tipo": "pj",
    "coste": 2,
@@ -28474,11 +28514,26 @@
    "cor": 2,
    "fue": 1,
    "res": 4,
-   "texto": "Solo durante el turno de tu adversario: descarta esta carta al Mictlán para negar la habilidad de un personaje de tu adversario hasta el final del turno.",
+   "texto": "Descarta esta carta al Mictlán; selecciona un personaje en el campo de tu adversario, niega la habilidad de ese personaje hasta el final del turno. (Puedes activar la habilidad de \"Sonia Caleti\" durante el turno de tu adversario.)",
    "efectos": [
     {
      "cuando": "respuesta",
      "accion": "sonia"
+    },
+    {
+     "cuando": "mano",
+     "texto": "Descartarla: negar la habilidad de un personaje rival hasta el final del turno",
+     "condicion": {
+      "rivalConPJ": true
+     },
+     "pasos": [
+      {
+       "accion": "descartar_esta"
+      },
+      {
+       "accion": "sonia_negar"
+      }
+     ]
     }
    ],
    "invitado": true,
@@ -36839,15 +36894,12 @@
      "texto": "¿Activar un SECTOR desde tu BP, Mictlán o Confinamiento?",
      "condicion": {
       "sectorPropioLibre": true,
-      "hay": {
+      "sectorBpPropio": {
        "origen": [
         "bp",
         "mictlan",
         "conf"
-       ],
-       "filtro": {
-        "tipo": "sector"
-       }
+       ]
       }
      },
      "pasos": [

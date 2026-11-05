@@ -1954,7 +1954,7 @@ async function offerMuro(o,cidD){
     const idx=(C[w].efectos||[]).findIndex(e=>e.cuando==='hdf_destruido');
     if(idx<0||freePJ(o)===-1||espBloqueado()||G.used[o]['muro:'+w]) continue;
     let yes=o==='cpu';
-    if(o==='player') yes=(await askChoice('🔥 '+C[w].name.toUpperCase()+'<br><b>'+C[cidD].name+'</b> fue destruido. ¿Llamas a '+C[w].name+' desde tu mano y destruyes una carta del campo?',['✅ Sí','✖ No']))===0;
+    if(esPersona(o)) yes=(await preguntaDe(o,'🔥 '+C[w].name.toUpperCase()+'<br><b>'+C[cidD].name+'</b> fue destruido. ¿Llamas a '+C[w].name+' desde tu mano y destruyes una carta del campo?',['✅ Sí','✖ No']))===0;
     if(!yes) continue;
     G.used[o]['muro:'+w]=true;
     if(!await announce(o,w,'llamado',{z:'mano'},{especial:true})) continue;
@@ -2363,7 +2363,7 @@ const PASOS={
     if(altoActivo()){const o0=org;org=org.filter(z=>z!=='bp'&&z!=='mictlan');if(org.length<o0.length)lg('✋ Alto a los Sacrificios: no se pueden añadir cartas desde la BP o el Mictlán.','var(--muted)');if(!org.length)return true;}
     st=Object.assign({},st,{origen:org});
     const list=cands(ctx.o,st.origen,st.filtro);
-    if(st.opcional&&list.length&&ctx.interactive&&(await askChoice('✨ '+C[ctx.cid].name.toUpperCase()+'<br>¿Añadir una carta a tu mano?',['✅ Sí','✖ No']))!==0) return true;
+    if(st.opcional&&list.length&&(ctx.interactive||onlineOn())&&(await preguntaDe(ctx.o,'✨ '+C[ctx.cid].name.toUpperCase()+'<br>¿Añadir una carta a tu mano?',['✅ Sí','✖ No']))!==0) return true;
     if(!list.length){lg('✨ '+C[ctx.cid].name+': no hay cartas válidas en '+[].concat(st.origen||'bp').map(z=>SRC_NOM[z]).join('/')+'.','var(--muted)');return true;}
     const pick=await choose(ctx,list,st.cantidad||1,{sub:'Elige qué añadir a tu mano'});
     pick.forEach(x=>{const c=takeFrom(ctx.o,x);if(c){G[ctx.o].hand.push(c);if(st.bloqueaHab)bloquearHab(ctx.o,c,2);}});
@@ -2730,7 +2730,7 @@ const PASOS={
     if(arenaBloq(ctx.o)){lg('🗺 Continente Phorus: no se pueden activar ARENAS.','var(--purple)');return true;}
     const list=cands(ctx.o,st.origen||'bp',st.filtro||{tipo:'arena'});
     if(!list.length) return true;
-    if(st.opcional&&ctx.interactive&&(await askChoice('🟢 '+C[ctx.cid].name.toUpperCase()+'<br>¿Activar la ARENA '+C[list[0].cid].name+'?',['✅ Sí','✖ No']))!==0) return true;
+    if(st.opcional&&(ctx.interactive||onlineOn())&&(await preguntaDe(ctx.o,'🟢 '+C[ctx.cid].name.toUpperCase()+'<br>¿Activar la ARENA '+C[list[0].cid].name+'?',['✅ Sí','✖ No']))!==0) return true;
     const [x]=await choose(ctx,list,1,{sub:'Elige la ARENA a activar'});
     if(!x) return true;
     const c=takeFrom(ctx.o,x);if(x.z==='bp')sh(G[ctx.o].bp);
@@ -3971,7 +3971,7 @@ async function clioReemplazo(o,i){
   const k=G[o].pj.findIndex((q,j)=>q&&j!==i&&hasPassive(q.id,'clio_reemplazo')&&!supp(o,j));
   if(k<0) return false;
   const cl=G[o].pj[k];
-  let yes=o==='cpu'?SCORE(p.id)>=SCORE(cl.id)-10:(await askChoice('🏛 '+C[cl.id].name.toUpperCase()+'<br><b>'+C[p.id].name+'</b> va a ser confinado. ¿Confinas a '+C[cl.id].name.split(',')[0]+' en su lugar? (regresa al final del turno con un corazón menos)',['✅ Sí','✖ No']))===0;
+  let yes=(o==='cpu'&&!onlineOn())?SCORE(p.id)>=SCORE(cl.id)-10:(await preguntaDe(o,'🏛 '+C[cl.id].name.toUpperCase()+'<br><b>'+C[p.id].name+'</b> va a ser confinado. ¿Confinas a '+C[cl.id].name.split(',')[0]+' en su lugar? (regresa al final del turno con un corazón menos)',['✅ Sí','✖ No']))===0;
   if(!yes||G[o].pj[k]!==cl||G[o].pj[i]!==p) return false;
   G.used[o]['clioR']=turnKey();
   leaveField(o,k,'conf'); (G.clioRet=G.clioRet||[]).push({o,cid:cl.id});
@@ -3983,7 +3983,7 @@ async function salvarDeSalida(o,i){
   const p=G[o].pj[i]; if(!p) return false;
   const k=medallonDe(o,p);
   if(k>=0&&G[o].hp>2){
-    let yes=o==='cpu'?(SCORE(p.id)>=40||G[o].hp>4):(await askChoice('🔗 '+C[G[o].apoyo[k].card].name.toUpperCase()+'<br><b>'+C[p.id].name+'</b> va a dejar el campo. ¿Pagas 2 corazones y envías el Medallón al Mictlán en su lugar?',['✅ Sí','✖ No']))===0;
+    let yes=(o==='cpu'&&!onlineOn())?(SCORE(p.id)>=40||G[o].hp>4):(await preguntaDe(o,'🔗 '+C[G[o].apoyo[k].card].name.toUpperCase()+'<br><b>'+C[p.id].name+'</b> va a dejar el campo. ¿Pagas 2 corazones y envías el Medallón al Mictlán en su lugar?',['✅ Sí','✖ No']))===0;
     if(yes&&G[o].apoyo[k]&&G[o].pj[i]===p){
       const a=G[o].apoyo[k]; G[o].apoyo[k]=null; G[o].mictlan.push(a.card); hurt(o,2,'costo');
       lg('🔗 <b>'+C[a.card].name+'</b>'+who(o)+' va al Mictlán en lugar de <b>'+C[p.id].name+'</b> ('+(o==='player'?'pagas':'la CPU paga')+' 2 corazones).','var(--green)');
@@ -3995,7 +3995,7 @@ async function salvarDeSalida(o,i){
       .concat(G[o].apoyo.map((a,j)=>a&&a.type!=='alma'&&a.tgt!==p&&a.tgt2!==p?{z:'apoyo',i:j,cid:a.card,o}:null).filter(Boolean));
     if(list.length){
       let yes=o==='cpu';
-      if(o==='player') yes=(await askChoice('⛪ '+C[p.id].name.toUpperCase()+'<br>Va a dejar el campo. ¿Envías una carta APOYO de tu mano o campo al Mictlán en su lugar?',['✅ Sí','✖ No']))===0;
+      if(esPersona(o)) yes=(await preguntaDe(o,'⛪ '+C[p.id].name.toUpperCase()+'<br>Va a dejar el campo. ¿Envías una carta APOYO de tu mano o campo al Mictlán en su lugar?',['✅ Sí','✖ No']))===0;
       if(yes){
         G.used[o]['salvar:'+p.id]=true;
         const [x]=await choose({o,cid:p.id,interactive:o==='player'},list,1,{sub:'Elige el APOYO que envías al Mictlán',score:y=>(y.z==='mano'?10:0)-SCORE(y.cid)});
@@ -4031,7 +4031,7 @@ async function temakEnteReaccion(o,cid){
     if(sl<0) return;
     if(inmune(o,sl,r,'destruir')||bastion(o)) continue;
     let yes=r==='cpu';
-    if(r==='player') yes=(await askChoice('🌀 '+C[p.id].name.toUpperCase()+'<br>La CPU llamó a <b>'+C[cid].name+'</b> (valor '+v+'). ¿Retiras un Contador de Energía Negativa para destruirlo?',['✅ Sí','✖ No']))===0;
+    if(esPersona(r)) yes=(await preguntaDe(r,'🌀 '+C[p.id].name.toUpperCase()+'<br>La CPU llamó a <b>'+C[cid].name+'</b> (valor '+v+'). ¿Retiras un Contador de Energía Negativa para destruirlo?',['✅ Sí','✖ No']))===0;
     if(!yes) continue;
     G.used[r][key]=true;
     if(!await announce(r,p.id,'habilidad',{z:'campo',slot:i})) continue;
@@ -4202,7 +4202,7 @@ async function finTurnoPrototipos(o){
     const list=mictlanCerrado()?[]:cands(o,'mictlan',{tipos:['pj']}).filter(x=>C[x.cid].cost<=a.cs&&especialPermitido(x.cid,a.card,'mictlan'));
     if(!list.length||freePJ(o)===-1||espBloqueado()||choqueDiosesOn()) continue;
     let yes=o==='cpu'?list.some(x=>SCORE(x.cid)>=40):false;
-    if(o==='player') yes=(await askChoice('🦴 '+C[a.card].name.toUpperCase()+'<br>Tiene '+a.cs+' Contador(es) Sagrado(s). ¿La sacrificas para llamar de forma especial un personaje de valor '+a.cs+' o menor desde tu Mictlán?',['✅ Sí','✖ No']))===0;
+    if(esPersona(o)) yes=(await preguntaDe(o,'🦴 '+C[a.card].name.toUpperCase()+'<br>Tiene '+a.cs+' Contador(es) Sagrado(s). ¿La sacrificas para llamar de forma especial un personaje de valor '+a.cs+' o menor desde tu Mictlán?',['✅ Sí','✖ No']))===0;
     if(!yes) continue;
     G[o].apoyo[k]=null; G[o].mictlan.push(a.card);
     lg('🦴 <b>'+C[a.card].name+'</b>'+who(o)+' se sacrifica ('+a.cs+' Contadores Sagrados).','var(--orange)');
@@ -4701,7 +4701,7 @@ async function lazosFinTurno(o){
   if(k<0||G[o].hp<=2) return;
   const hayAlma=G[o].ba.some(c=>C[c].type==='alma');
   let yes=o==='cpu'?(G.cpu.hp>=8&&hayAlma&&!G.cpu.hand.some(c=>C[c].type==='alma')&&almasActivas('cpu')<2):false;
-  if(o==='player') yes=(await askChoice('⛓ LAZOS DE ÁNIMA<br>¿Pagas 2 corazones para destruirla y añadir una carta ALMA de tu BA a tu mano?',['💔 Sí, pagar 2','✖ No']))===0;
+  if(esPersona(o)) yes=(await preguntaDe(o,'⛓ LAZOS DE ÁNIMA<br>¿Pagas 2 corazones para destruirla y añadir una carta ALMA de tu BA a tu mano?',['💔 Sí, pagar 2','✖ No']))===0;
   if(!yes) return;
   G[o].hp-=2;lg('💔 '+(o==='player'?'Pagas':'La CPU paga')+' 2 corazones por <b>Lazos de Ánima</b>.','var(--red)');
   const a=G[o].apoyo[k];G[o].apoyo[k]=null;G[o].mictlan.push(a.card);marcaDestruida(o,a.card);
@@ -4723,7 +4723,7 @@ function legadoParOk(o){
 async function salvarArenaConPJ(t,by,verbo){
   if(!hasPassive(t.cid,'reemplazo_por_pj')||by===t.o||!G[t.o].pj.some(Boolean)||G[t.o].arena!==t.cid) return false;
   let yes=t.o==='cpu';
-  if(t.o==='player') yes=(await askChoice('🏛 '+C[t.cid].name.toUpperCase()+'<br>Tu ARENA va a ser '+verbo+'. ¿Envías al Mictlán uno de tus personajes para negarlo?',['✅ Sí','✖ No']))===0;
+  if(esPersona(t.o)) yes=(await preguntaDe(t.o,'🏛 '+C[t.cid].name.toUpperCase()+'<br>Tu ARENA va a ser '+verbo+'. ¿Envías al Mictlán uno de tus personajes para negarlo?',['✅ Sí','✖ No']))===0;
   if(!yes) return false;
   const list=G[t.o].pj.map((p,i)=>p?{z:'campo',i,cid:p.id,o:t.o}:null).filter(Boolean);
   const [x]=await choose({o:t.o,cid:t.cid,vars:{},interactive:t.o==='player'},list,1,{sub:'¿Qué personaje envías al Mictlán?',score:y=>-SCORE(y.cid)});
@@ -4756,7 +4756,7 @@ async function ofrecerNecro(calledO,calledCid){
   if(errBloqSector(p,calledO)) return;
   if(G[calledO].sect[side]&&bastion(sectOwner(calledO,side))&&sectOwner(calledO,side)!==p) return;
   let yes=p==='cpu'?SCORE(calledCid)>=35||slotsOf(calledO,side).filter(j=>G[calledO].pj[j]).length>=2:false;
-  if(p==='player') yes=(await askChoice('⛓ '+C[cid].name.toUpperCase()+'<br>La CPU llamó de forma especial a <b>'+C[calledCid].name+'</b>. ¿Confinas el tope de tu BP y activas esta carta en ese SECTOR de la CPU?',['✅ Sí','✖ No']))===0;
+  if(esPersona(p)) yes=(await preguntaDe(p,'⛓ '+C[cid].name.toUpperCase()+'<br>La CPU llamó de forma especial a <b>'+C[calledCid].name+'</b>. ¿Confinas el tope de tu BP y activas esta carta en ese SECTOR de la CPU?',['✅ Sí','✖ No']))===0;
   if(!yes) return;
   G.used[p]['necro:'+turnKey()]=true;
   if(!await announce(p,cid,'activacion',{z:'mano'},{rapido:true})) return;
@@ -4768,6 +4768,16 @@ async function ofrecerNecro(calledO,calledCid){
   renderAll();
 }
 Object.assign(PASOS,{
+  // v221 · Sonia Caleti en tu turno: niega la habilidad de un personaje rival hasta el final del turno
+  async sonia_negar(ctx){
+    const rv=opp(ctx.o), list=G[rv].pj.map((p,k)=>p&&!inmune(rv,k,ctx.o,'afectar')?{z:'campo',i:k,cid:p.id,o:rv}:null).filter(Boolean);
+    if(!list.length) return false;
+    const [x]=await choose(ctx,list,1,{sub:'¿A qué personaje rival le niegas la habilidad hasta el final del turno?',score:y=>SCORE(y.cid)});
+    if(!x||!G[rv].pj[x.i]) return false;
+    G[rv].pj[x.i].neg=true;
+    lg('🏷 <b>'+C[x.cid].name+'</b>'+who(rv)+': su habilidad queda negada hasta el final del turno (Sonia Caleti).','var(--purple)');
+    return true;
+  },
   async no_ataca_filtro(ctx,st){
     const o=ctx.o, list=G[o].pj.map((p,i)=>p&&!p.ixRival&&matchF(p.id,st.filtro||{})?{z:'campo',i,cid:p.id,o}:null).filter(Boolean);
     if(!list.length) return false;
@@ -4982,6 +4992,7 @@ function condWhy(o,cid,cond,src){
   if(cond.llamadoPorHabilidad&&!src.por) return 'No fue llamado por la habilidad de otra carta';
   if(cond.otroEnSector&&!(src.slot!=null&&mismoSector(o,src.slot,cond.otroEnSector).length)) return 'Necesitas otro '+(cond.otroEnSector.nombreIncluye||'personaje')+' en este SECTOR';
   if(cond.rivalConPJ&&!G[opp(o)].pj.some(Boolean)) return 'El rival no tiene personajes';
+  if(cond.sectorBpPropio&&!cands(o,[].concat(cond.sectorBpPropio.origen||'bp'),{tipo:'sector'}).some(x=>C[x.cid].colocar!=='rival')) return 'No hay SECTOR que puedas activar en tu lado';
   if(cond.almaPropia&&!almasActivas(o)) return 'No tienes cartas ALMA activas';
   if(cond.almaCampo&&!almasActivas(o)&&!almasActivas(opp(o))) return 'No hay cartas ALMA activas en el campo';
   if(cond.manoMin&&G[o].hand.length-(src.zone==='mano'&&G[o].hand.includes(cid)?1:0)<cond.manoMin) return 'No tienes cartas suficientes en la mano';
@@ -5051,6 +5062,7 @@ function effWhy(o,cid,e,idx,src){
   if(e.limite==='partida'&&G.usedGame[o][effKey(cid,idx)]) return 'Solo se puede usar una vez por partida';
   if(e.limiteNombre&&G.used[o]['ln:'+e.limiteNombre]) return 'Ya usaste esta habilidad este turno';
   if(src&&src.zone==='mictlan'&&isChar(cid)&&graceActiva()) return 'Negada por Grace Omay (personajes en el Mictlán)';
+  if(src&&src.zone==='conf'&&isChar(cid)&&graceActiva()) return 'Negada por Grace Omay (personajes confinados)';
   if(e.costo&&e.costo.corazones&&G[o].hp<=e.costo.corazones) return 'Necesitas más de '+e.costo.corazones+' corazón(es)';
   if(e.leyenda&&controlaPasiva(o,'modo_leyenda_libre')&&!(e.condicion&&e.condicion.campoNombre)) return '';
   return condWhy(o,cid,e.condicion,src);
@@ -5101,8 +5113,9 @@ async function runTrigger(o,cid,cuando,src){
       if(!silencio) lg('✨ '+C[cid].name+': '+why+'.','var(--muted)');
       continue;
     }
-    if(e.opcional&&(src.duenio||o)==='player'){
-      const r=await askChoice('✨ '+C[cid].name.toUpperCase()+'<br>'+(e.texto||'¿Activar su habilidad?'),['✅ Sí, activar','✖ No']);
+    if(e.opcional&&e.cpuNo&&!esPersona(src.duenio||o)) continue;   // v221 · opcional que la IA no usa (Bonw: sacrificar al final del turno)
+    if(e.opcional&&esPersona(src.duenio||o)){
+      const r=await preguntaDe(src.duenio||o,'✨ '+C[cid].name.toUpperCase()+'<br>'+(e.texto||'¿Activar su habilidad?'),['✅ Sí, activar','✖ No']);
       if(r!==0) continue;
     }
     if(cuando!=='alma'){
@@ -5243,8 +5256,8 @@ function responsesFor(r,ev){
         out.push({label:'🪶 '+c.name+' — esconder a '+C[G[r].pj[ev.ds].id].name+' entre ALMAS boca abajo',cpu:true,run:()=>respPenachos(r,ev,cid)});
       if(e.cuando==='respuesta'&&e.accion==='benji'&&ev.kind==='ataque'&&ev.o!==r)
         out.push({label:'🐷 '+c.name+' — descartarla: destruir al atacante '+C[ev.cid].name,cpu:true,run:()=>respMano(r,ev,cid,'benji')});
-      if(e.cuando==='respuesta'&&e.accion==='sonia'&&G.active!==r&&ev.o!==r&&ev.kind==='habilidad'&&isChar(ev.cid))
-        out.push({label:'🏷 '+c.name+' — descartarla: negar la habilidad de '+C[ev.cid].name,cpu:cpuThreat(ev),run:()=>respMano(r,ev,cid,'sonia')});
+      if(e.cuando==='respuesta'&&e.accion==='sonia'&&ev.o!==r&&['habilidad','ataque','llamado'].includes(ev.kind)&&G[ev.o].pj.some((p,k)=>p&&!inmune(ev.o,k,r,'afectar')))
+        out.push({label:'🏷 '+c.name+' — descartarla: negar la habilidad de un personaje rival hasta el final del turno',cpu:ev.kind==='habilidad'&&isChar(ev.cid)&&(ev.where||{}).z==='campo'&&cpuThreat(ev),run:()=>respMano(r,ev,cid,'sonia')});
       if(e.cuando==='respuesta'&&e.accion==='negar_alma'&&ev.kind==='activacion'&&C[ev.cid].type==='alma'&&freeApo(r)!==-1)
         out.push({label:'✋ '+c.name+' — negar y destruir '+C[ev.cid].name,cpu:(C[ev.cid].val||0)>=2||(C[ev.cid].efectos||[]).length>0,run:()=>respNegarCon(r,ev,cid,'mictlan')});
       if(e.cuando==='respuesta'&&e.accion==='ixchell'&&ev.kind==='llamado'&&ev.o!==r&&isChar(ev.cid)&&!G.used[r]['ixchell']&&freePJ(ev.o)!==-1)
@@ -5410,7 +5423,12 @@ async function respMano(r,ev,cid,tipo){
     ev.negated=true; ev.fate='mictlan'; ev.by=r; marcaDestruida(ev.o,ev.cid);
     lg('🐷 <b>'+C[cid].name+'</b>'+who(r)+' destruye a <b>'+C[ev.cid].name+'</b> antes de que ataque.','var(--red)');
   } else if(tipo==='sonia'){
-    ev.negated=true; ev.fate='queda'; ev.by=r;
+    const rv=opp(r), del=ev.kind==='habilidad'&&isChar(ev.cid)&&(ev.where||{}).z==='campo'?ev.where.slot:null;
+    const list=G[rv].pj.map((p,k)=>p&&!inmune(rv,k,r,'afectar')?{z:'campo',i:k,cid:p.id,o:rv}:null).filter(Boolean);
+    const [x]=await choose(ctx,list,1,{sub:'¿A qué personaje rival le niegas la habilidad hasta el final del turno?',score:y=>(y.i===del?1000:0)+SCORE(y.cid)});
+    if(x&&G[rv].pj[x.i]){G[rv].pj[x.i].neg=true;
+      lg('🏷 <b>'+C[x.cid].name+'</b>'+who(rv)+': su habilidad queda negada hasta el final del turno (Sonia Caleti).','var(--purple)');
+      if(x.i===del&&!ev.negated){ev.negated=true;ev.fate='queda';ev.by=r;}}
   } else if(tipo==='lazaruz'){
     ev.negated=true; ev.fate='nada'; ev.by=r;
     lg('🌑 <b>'+C[cid].name+'</b>'+who(r)+' anula el ataque de <b>'+C[ev.cid].name+'</b>.','var(--purple)');
@@ -5609,7 +5627,7 @@ async function offerTrasNegar(o){
     const e=(C[cid].efectos||[]).find(x=>x.cuando==='tras_negacion_o_destruccion'&&!x.pendiente);
     if(!e||espBloqueado()||freePJ(o)===-1||!cands(o,'conf',{tipos:['pj','amalgama']}).length) continue;
     let yes=o==='cpu';
-    if(o==='player') yes=(await askChoice('👶 '+C[cid].name.toUpperCase()+'<br>Te negaron o destruyeron una carta. ¿Lo descartas para llamar de forma especial a un personaje confinado?',['✅ Sí','✖ No']))===0;
+    if(esPersona(o)) yes=(await preguntaDe(o,'👶 '+C[cid].name.toUpperCase()+'<br>Te negaron o destruyeron una carta. ¿Lo descartas para llamar de forma especial a un personaje confinado?',['✅ Sí','✖ No']))===0;
     if(!yes) continue;
     if(!await announce(o,cid,'habilidad',{z:'mano'})) continue;
     const i=G[o].hand.indexOf(cid); if(i<0) continue;
@@ -5629,7 +5647,7 @@ async function offerTrasEspecial(calledO,calledCid){
       if(!e||espBloqueado()||freePJ(p)===-1||G.used[p]['resp:'+cid]) continue;
       const bloquea=e.accion!=='llamar_y';
       let yes=p==='cpu'?(bloquea?calledO!=='cpu':true):false;
-      if(p==='player') yes=(await askChoice('🎭 '+C[cid].name.toUpperCase()+'<br>'+(calledO==='player'?'Llamaste':'La CPU llamó')+' de forma especial a <b>'+C[calledCid].name+'</b>. ¿Llamas a '+C[cid].name+' desde tu mano?'+(bloquea?' Nadie podrá hacer llamados especiales el resto del turno.':' Después podrás '+(e.texto||'activar su efecto')+'.'),['✅ Sí','✖ No']))===0;
+      if(esPersona(p)) yes=(await preguntaDe(p,'🎭 '+C[cid].name.toUpperCase()+'<br>'+(calledO==='player'?'Llamaste':'La CPU llamó')+' de forma especial a <b>'+C[calledCid].name+'</b>. ¿Llamas a '+C[cid].name+' desde tu mano?'+(bloquea?' Nadie podrá hacer llamados especiales el resto del turno.':' Después podrás '+(e.texto||'activar su efecto')+'.'),['✅ Sí','✖ No']))===0;
       if(!yes) continue;
       G.used[p]['resp:'+cid]=true;
       if(!await announce(p,cid,'llamado',{z:'mano'},{especial:true})) continue;
@@ -5665,7 +5683,7 @@ async function destroyFieldCard(t,by){
   // Nexotlan: puede pagar 1 corazón de uno de sus personajes en lugar de ser destruida
   if(t.z==='arena'&&hasPassive(t.cid,'reemplazo_destruccion')&&G[t.o].pj.some(Boolean)){
     let yes=t.o==='cpu';
-    if(t.o==='player') yes=(await askChoice('🌀 '+C[t.cid].name.toUpperCase()+'<br>Van a destruir tu ARENA. ¿Pagas 1 corazón de uno de tus personajes en su lugar?',['✅ Sí, pagar','✖ No']))===0;
+    if(esPersona(t.o)) yes=(await preguntaDe(t.o,'🌀 '+C[t.cid].name.toUpperCase()+'<br>Van a destruir tu ARENA. ¿Pagas 1 corazón de uno de tus personajes en su lugar?',['✅ Sí, pagar','✖ No']))===0;
     if(yes){
       const list=G[t.o].pj.map((p,i)=>p?{z:'campo',i,cid:p.id,o:t.o}:null).filter(Boolean);
       const [x]=await choose({o:t.o,cid:t.cid,interactive:t.o==='player'},list,1,{sub:'¿Qué personaje paga 1 corazón?',score:y=>G[t.o].pj[y.i].cor*10-SCORE(y.cid)});
@@ -6046,7 +6064,7 @@ async function offerAliadoSale(o,cidSale){
       const e=C[w].efectos[idx];
       if(G.used[o][effKey(w,idx)]||freePJ(o)===-1||espBloqueado()) continue;
       let yes=o==='cpu';
-      if(o==='player') yes=(await askChoice('✨ '+C[w].name.toUpperCase()+'<br><b>'+C[cidSale].name+'</b> dejó tu campo. ¿Llamas de forma especial a '+C[w].name+' desde '+(z==='hand'?'tu mano':SRC_NOM[z])+'?',['✅ Sí','✖ No']))===0;
+      if(esPersona(o)) yes=(await preguntaDe(o,'✨ '+C[w].name.toUpperCase()+'<br><b>'+C[cidSale].name+'</b> dejó tu campo. ¿Llamas de forma especial a '+C[w].name+' desde '+(z==='hand'?'tu mano':SRC_NOM[z])+'?',['✅ Sí','✖ No']))===0;
       if(!yes) continue;
       G.used[o][effKey(w,idx)]=true;
       if(!await announce(o,w,'llamado',{z:z==='hand'?'mano':z},{especial:true})) continue;
@@ -6884,7 +6902,7 @@ async function panchoInicio(o){
     const F={tipo:'pj',nombreIncluye:'PANCHO, EL ALOCADO'};
     if(!cands(o,['mano','bp'],F).filter(x=>especialPermitido(x.cid,p.id,x.z)).length) continue;
     let yes=o==='cpu';
-    if(o==='player') yes=(await askChoice('🤠 '+C[p.id].name.toUpperCase()+'<br>¿Lo retornas a tu BP para llamar de forma especial a "PANCHO, EL ALOCADO RODRÍGUEZ" desde tu mano o BP?',['✅ Sí','✖ No']))===0;
+    if(esPersona(o)) yes=(await preguntaDe(o,'🤠 '+C[p.id].name.toUpperCase()+'<br>¿Lo retornas a tu BP para llamar de forma especial a "PANCHO, EL ALOCADO RODRÍGUEZ" desde tu mano o BP?',['✅ Sí','✖ No']))===0;
     if(!yes||G[o].pj[i]!==p) continue;
     leaveField(o,i,'bp_fondo'); sh(G[o].bp);
     lg('↩ <b>'+C[p.id].name+'</b>'+who(o)+' regresa a la BP (se revuelve).','var(--ac)');
@@ -7241,6 +7259,12 @@ function renderHand(){
   });
 }
 function buildMenuActions(cid,idx,at,card){
+  const acts=_buildMenuActions(cid,idx,at,card);
+  let usado=false;   // v221 · un toque = una jugada; si la mano cambió, el botón ya no hace nada
+  acts.forEach(a=>{const f=a.fn;a.fn=(...x)=>{if(usado)return;if(G.player.hand[idx]!==cid){lg('⚠ Esa carta ya no está en esa posición de tu mano. Vuelve a tocarla.','var(--muted)');return;}usado=true;return f(...x);};});
+  return acts;
+}
+function _buildMenuActions(cid,idx,at,card){
   const acts=[];
   const phaseWhy=()=>G.phase==='draw'?'Primero roba BA y BP':G.phase==='ofrenda'?'Primero ejecuta la Ofrenda':G.phase==='combat'?'Solo en Fase de Acción':'';
   if(card.type==='pj'){
@@ -7464,6 +7488,7 @@ function doCall(handIdx){
 }
 async function doAlma(handIdx){
   const cid=G.player.hand[handIdx];
+  if(!cid||C[cid].type!=='alma') return;
   if(G.almaUsed){lg('⚠ Ya activaste un alma.','var(--red)');return;}
   const slot=freeApo('player');
   if(slot===-1){lg('⚠ Sin zonas de apoyo libres.','var(--red)');return;}
@@ -7490,6 +7515,7 @@ async function activateAlma(o,handIdx,slot){
 }
 async function doApoyo(handIdx){
   const cid=G.player.hand[handIdx];
+  if(!cid||C[cid].type!=='apoyo') return;
   if(freeApoAp('player')===-1){lg('⚠ Necesitas una zona de apoyo libre para activar un APOYO.','var(--red)');return;}
   await activateApoyo('player',handIdx);
 }
@@ -7582,6 +7608,7 @@ async function activateEquipo(o,cid0){
 function costoActivar(cid){const e=(C[cid].efectos||[]).find(x=>x.cuando==='pasivo'&&x.accion==='costo_activar');return e?(e.corazones||0):0;}
 async function doArena(o,handIdx){
   const cid0=G[o].hand[handIdx];
+  if(!cid0||C[cid0].type!=='arena') return;   // v221 · la mano cambió (doble toque o jugada repetida): no se activa otra carta como ARENA
   if(arenaBloq(o)){lg('🗺 <b>'+C[G[opp(o)].arena].name+'</b>: '+(o==='player'?'no puedes':'la CPU no puede')+' activar cartas ARENA.','var(--purple)');return;}
   if(hasPassive(cid0,'unica_en_campo')&&(G.player.arena===cid0||G.cpu.arena===cid0)){lg('⚠ Solo puede existir una ARENA "'+C[cid0].name+'" en el campo.','var(--red)');return;}
   if(G[o].arenaPJ){lg('⚠ Tu zona ARENA está ocupada por <b>'+C[G[o].arenaPJ].name+'</b>.','var(--red)');return;}
@@ -7959,7 +7986,7 @@ function finishTurn(){
 async function cosmo(o,cid){
   if(!G||G.over||freePJ(o)===-1||espBloqueado()||G[o].hand.indexOf(cid)<0) return;
   let yes=o==='cpu';
-  if(o==='player') yes=(await askChoice('🌌 COSMO<br>Robaste <b>'+C[cid].name+'</b>. ¿Lo llamas de forma especial ahora?',['✅ Sí','✖ No']))===0;
+  if(esPersona(o)) yes=(await preguntaDe(o,'🌌 COSMO<br>Robaste <b>'+C[cid].name+'</b>. ¿Lo llamas de forma especial ahora?',['✅ Sí','✖ No']))===0;
   if(!yes) return;
   lg('🌌 <b>COSMO</b>'+who(o)+': '+C[cid].name+' responde al llamado.','#ffe066');
   await callFromHand(o,cid,{via:'especial',from:'la mano (COSMO)'});
@@ -7983,6 +8010,10 @@ function cpuNecesitaAlma(cid){
   return n<3&&at<6;                                    // con 3 almas o valor 6 ya no hace falta más
 }
 // Dificultad de la CPU (Arcade): fácil y medio cometen errores; muy difícil empieza con más corazones
+// v221 · En Online el lado "cpu" lo juega una persona: sus decisiones se le preguntan (no las toma la IA)
+function onlineOn(){return !!(window.ONLINE&&window.ONLINE.jugando);}
+function esPersona(o){return o==='player'||onlineOn();}
+function preguntaDe(o,t,opts){return (onlineOn()&&window.ONLINE.askDe)?window.ONLINE.askDe(o,t,opts):askChoice(t,opts);}
 function nivelAlto(){return !!G&&(G.cpuNivel==='epico'||G.cpuNivel==='caotico'||G.cpuNivel==='creador');}
 function nivelCreador(){return !!G&&G.cpuNivel==='creador';}
 function cpuFalla(f){const lv={facil:.45,medio:.2}[G&&G.cpuNivel]||0;return Math.random()<lv*(f||1);}

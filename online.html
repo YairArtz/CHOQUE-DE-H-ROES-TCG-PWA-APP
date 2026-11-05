@@ -1720,7 +1720,7 @@ async function loadData(onProgress){
       cost:c.coste??0, fue:c.fue??0, res:c.res??0, cor:c.cor??1, imp:c.imp??1, val:c.valor??0,
       img, imgMin:c.imgMin?resolveImg(minBase||base,c.imgMin):(minBase&&c.img&&!/^(https?:|data:|\/|\.\/)/.test(c.img)?minBase+c.img:img),
       gama:c.gama??0, esp:c.llamadoEspecial||null, subtipo:c.subtipo||'normal', colocar:c.colocar||null, sustituto:c.sustitutoAmalgama||null, noNormal:!!c.noNormal, noEspecial:!!c.noEspecial, soloPor:c.soloPor||null, colocarApoyoRival:c.colocarApoyoRival||0, faseCombate:!!c.faseCombate, sectorTurnos:c.sectorTurnos||0, soloPorValor:c.soloPorValor??null, costoColocar:c.costoColocar||null,
-      invitado:!!c.invitado, dios:!!c.dios, proto:!!c.prototipo, soloResp:!!c.soloRespuesta, noNeg:!!c.noNegable, costoNegar:c.costoNegar||0, soloPorNombre:c.soloPorNombre||null, soloOrigen:c.soloOrigen||null, soloPorSi:!!c.soloPorSi, hab:(c.habilidades||[]).map(h=>String(h).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase()),
+      invitado:!!c.invitado, dios:!!c.dios, proto:!!c.prototipo, soloResp:!!c.soloRespuesta, noNeg:!!c.noNegable, noNegLlamado:!!c.noNegableLlamado, boss:!!c.boss, costoNegar:c.costoNegar||0, soloPorNombre:c.soloPorNombre||null, soloOrigen:c.soloOrigen||null, soloPorSi:!!c.soloPorSi, hab:(c.habilidades||[]).map(h=>String(h).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase()),
       eff:c.texto||'', efectos:Array.isArray(c.efectos)?c.efectos:[], tester:!!c.tester, nx:c.nombreTambien||''
     };
   });
@@ -4792,6 +4792,40 @@ async function ofrecerNecro(calledO,calledCid){
   renderAll();
 }
 Object.assign(PASOS,{
+  // v226 · Nikkon Trolas, Dragón Multiversal: ENLAZA 2 personajes; ganan FUE/RES = cartas en el campo de su dueño
+  async enlazar_campo(ctx){
+    const n=o=>G[o].pj.filter(Boolean).length+G[o].apoyo.filter(Boolean).length+['left','right'].filter(k=>G[o].sect[k]).length+(G[o].arena?1:0);
+    const list=[];[ctx.o,opp(ctx.o)].forEach(o=>G[o].pj.forEach((p,i)=>{if(p&&!inmune(o,i,ctx.o,'afectar'))list.push({z:'campo',i,cid:p.id,o});}));
+    if(list.length<2) return false;
+    const pick=await choose(ctx,list,2,{sub:'ENLAZA 2 personajes: ganan FUERZA y RESISTENCIA igual a las cartas en el campo de su propietario',score:y=>(y.o===ctx.o?100:-100)+SCORE(y.cid)});
+    if(pick.length<2) return false;
+    pick.forEach(x=>{const p=G[x.o].pj[x.i];if(!p)return;const k=n(x.o);p.fue+=k;p.res+=k;p.resB+=k;p.dup={f:(p.dup?p.dup.f:0)+k,r:(p.dup?p.dup.r:0)+k};
+      lg('🔗 <b>'+C[p.id].name+'</b>'+who(x.o)+' gana +'+k+' FUERZA y RESISTENCIA hasta el final del turno.','#ffe066');});
+    return true;
+  },
+  // v226 · Vellond Omega: al llegar, el rival pierde 1 corazón por cada carta NEXOTLAN en tu campo
+  async omega_impacto(ctx){
+    const o=ctx.o, nx=c=>!!c&&K(C[c].name).includes('NEXOTLAN');
+    const n=G[o].pj.filter(p=>p&&nx(p.id)).length+G[o].apoyo.filter(a=>a&&nx(a.card)).length+['left','right'].filter(k=>G[o].sect[k]&&nx(G[o].sect[k].card||G[o].sect[k])).length+(G[o].arena&&nx(G[o].arena.card||G[o].arena)?1:0);
+    if(!n) return true;
+    const r=opp(o);
+    if(hurt(r,n,'efecto')){lg('👑 <b>'+C[ctx.cid].name+'</b>: '+(r==='player'?'pierdes':'la CPU pierde')+' <b>'+n+'</b> corazón(es) por las cartas NEXOTLAN en su campo.','var(--red)');playSound('damage');}
+    return true;
+  },
+  // v226 · Vellond Omega vencido: destruye cartas del rival = cartas NEXOTLAN en tu Mictlán
+  async omega_vencido(ctx){
+    const o=ctx.o, r=opp(o), n=G[o].mictlan.filter(c=>K(C[c].name).includes('NEXOTLAN')).length;
+    if(!n) return true;
+    const list=[];
+    G[r].pj.forEach((p,i)=>{if(p&&!inmune(r,i,o,'destruir'))list.push({z:'campo',i,cid:p.id,o:r});});
+    G[r].apoyo.forEach((a,i)=>{if(a)list.push({z:'apoyo',i,cid:a.card,o:r});});
+    if(!list.length||bastion(r)) return true;
+    const pick=await choose(ctx,list,Math.min(n,list.length),{sub:'Vellond Omega: elige '+Math.min(n,list.length)+' carta(s) del rival que se destruyen',score:y=>SCORE(y.cid)+(y.z==='campo'?20:0)});
+    lg('👑 <b>'+C[ctx.cid].name+'</b> cae y arrastra '+pick.length+' carta(s) del rival.','var(--red)');
+    for(const x of pick.sort((a,b)=>b.i-a.i)){const cid=x.z==='campo'?(G[r].pj[x.i]||{}).id:(G[r].apoyo[x.i]||{}).card;if(!cid)continue;await quitarDelCampo(o,{o:r,z:x.z,i:x.i,cid},'destruir');}
+    await procDestrQ();
+    return true;
+  },
   // v225 · Chahneko: destruye al personaje que lo venció en combate
   async destruir_vencedor(ctx){
     const v=ctx.vencedor; if(!v) return true;
@@ -5578,6 +5612,7 @@ async function respCampoNegar(r,ev,slot,e,key){
 async function offerResponses(ev){
   const r=opp(ev.o);
   if(G._noNeg) return;
+  if(C[ev.cid]&&C[ev.cid].noNegLlamado&&ev.kind==='llamado'){lg('👑 <b>'+C[ev.cid].name+'</b>: su llamado no puede ser negado.','var(--muted)');return;}
   if(C[ev.cid]&&C[ev.cid].noNeg&&ev.kind==='activacion'){lg('💎 <b>'+C[ev.cid].name+'</b>: su efecto no puede ser negado.','var(--muted)');return;}
   let opts=responsesFor(r,ev);
   if(r==='cpu'&&G.borrador>0&&ev.o==='player'&&['llamado','activacion','habilidad'].includes(ev.kind)&&!ev.negated){
@@ -6108,23 +6143,29 @@ function leaveField(o,slot,dest){
 }
 async function fireLeave(o,cid){
   if(G&&G._mudoS&&G._mudoS[cid]>0){G._mudoS[cid]--;renderAll();return true;}
-  await runTrigger(o,cid,'al_salir',{zone:'fuera'});renderAll();await offerAliadoSale(o,cid);return false;}
-async function offerAliadoSale(o,cidSale){
+  await offerAliadoSale(o,cid,true);   // v226 · los que responden ANTES de su efecto de salida (Vellond Omega antes de la Fase Ofrenda de Vellond)
+  if(!G||G.over) return false;
+  await runTrigger(o,cid,'al_salir',{zone:'fuera'});renderAll();await offerAliadoSale(o,cid,false);return false;}
+async function offerAliadoSale(o,cidSale,antes){
   if(!G||G.over) return;
   const vistos=new Set();
   for(const z of ['hand','mictlan','bp']){
     if(z==='mictlan'&&(graceActiva()||mictlanCerrado())) continue;
     for(const w of [...new Set(G[o][z])]){
       if(vistos.has(w)) continue;
-      const idx=(C[w].efectos||[]).findIndex(x=>x.cuando==='aliado_sale'&&!x.pendiente&&matchF(cidSale,x.filtro||{}));
+      const idx=(C[w].efectos||[]).findIndex(x=>x.cuando==='aliado_sale'&&!x.pendiente&&!!x.antesDeSalir===!!antes&&matchF(cidSale,x.filtro||{}));
       if(idx<0) continue;
       vistos.add(w);
       const e=C[w].efectos[idx];
       if(G.used[o][effKey(w,idx)]||freePJ(o)===-1||espBloqueado()) continue;
+      if(e.desde&&!e.desde.includes(z)) continue;                                   // v226 · Vellond Omega: solo desde la mano o el Mictlán
+      if(e.costoCorazones&&G[o].hp<=e.costoCorazones) continue;                     // no puede pagar sin perder
       let yes=o==='cpu';
       if(esPersona(o)) yes=(await preguntaDe(o,'✨ '+C[w].name.toUpperCase()+'<br><b>'+C[cidSale].name+'</b> dejó tu campo. ¿Llamas de forma especial a '+C[w].name+' desde '+(z==='hand'?'tu mano':SRC_NOM[z])+'?',['✅ Sí','✖ No']))===0;
       if(!yes) continue;
       G.used[o][effKey(w,idx)]=true;
+      if(e.confAbajoSale){const k=G[o].mictlan.lastIndexOf(cidSale);if(k>=0){G[o].mictlan.splice(k,1);G[o].conf.push(cidSale);confAbajoDesdeConf(cidSale);lg('⛓ <b>'+C[cidSale].name+'</b>'+who(o)+' es confinado boca abajo.','var(--purple)');}}
+      if(e.costoCorazones){G[o].hp-=e.costoCorazones;lg('💔 '+(o==='player'?'Pagas':'La CPU paga')+' <b>'+e.costoCorazones+'</b> corazones de jugador para llamar a <b>'+C[w].name+'</b>.','var(--red)');renderAll();}
       if(!await announce(o,w,'llamado',{z:z==='hand'?'mano':z},{especial:true})) continue;
       const arr=G[o][z], i=arr.lastIndexOf(w);
       if(i<0||freePJ(o)===-1) continue;

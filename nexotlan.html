@@ -584,6 +584,33 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 :root.h520 .mn-aventura small em{display:none}
 :root.h520 .mn-aventura small{max-width:44%}
 :root.q620p .mn-pjw{opacity:.28}
+
+/* ═══ v227 · CARTAS BOSS: recompensas físicas del Modo Aventura ═══ */
+#sFisicas{background:radial-gradient(ellipse at 50% -10%,rgba(255,209,102,.18),transparent 55%),radial-gradient(ellipse at 50% 120%,rgba(204,85,255,.16),transparent 60%),var(--bg)}
+.fx-body{flex:1;min-height:0;overflow-y:auto;padding:18px 16px 40px;max-width:1100px;width:100%;margin:0 auto}
+.fx-intro{display:flex;gap:14px;align-items:flex-start;padding:14px 16px;border:1px solid rgba(255,209,102,.35);border-radius:14px;background:linear-gradient(135deg,rgba(255,209,102,.1),rgba(204,85,255,.08));margin-bottom:18px}
+.fx-intro .ic{font-size:34px;line-height:1}
+.fx-intro b{display:block;font-family:'Orbitron',monospace;font-size:12px;letter-spacing:1.5px;color:var(--gold);margin-bottom:4px}
+.fx-intro p{font-size:15px;color:#d8def0;line-height:1.4}
+.fx-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px}
+.fx-c{position:relative;display:flex;flex-direction:column;gap:10px;padding:12px;border-radius:16px;border:1px solid var(--line);background:rgba(10,20,48,.78);text-align:left;transition:transform .2s,border-color .2s,box-shadow .2s}
+.fx-c .im{position:relative;aspect-ratio:600/840;border-radius:10px;overflow:hidden;background:#060c22}
+.fx-c .im img{width:100%;height:100%;object-fit:cover;display:block}
+.fx-c.ok{border-color:rgba(255,209,102,.6);box-shadow:0 0 0 1px rgba(255,209,102,.25),0 10px 30px rgba(0,0,0,.45)}
+.fx-c.ok .im::after{content:'';position:absolute;inset:0;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.35) 45%,rgba(255,209,102,.25) 50%,transparent 62%);background-size:250% 100%;animation:fxBrillo 4.5s ease-in-out infinite;mix-blend-mode:screen;pointer-events:none}
+@keyframes fxBrillo{0%,40%{background-position:120% 0}100%{background-position:-60% 0}}
+.fx-c.lock .im img{filter:brightness(0) saturate(0);opacity:.55}
+.fx-c.lock .im::before{content:'🔒';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:44px;z-index:1}
+.fx-c:hover,.fx-c.gp-foco{transform:translateY(-4px);border-color:var(--gold)}
+.fx-c b{font-family:'Orbitron',monospace;font-size:11.5px;letter-spacing:.5px;line-height:1.3;color:var(--text)}
+.fx-c small{font-size:13.5px;color:var(--muted);line-height:1.3}
+.fx-c .tag{align-self:flex-start;padding:3px 8px;border-radius:6px;font-family:'Orbitron',monospace;font-size:9px;font-weight:900;letter-spacing:1px;background:var(--gold);color:#2a1a00}
+.fx-c.lock .tag{background:rgba(255,255,255,.12);color:var(--muted)}
+.fx-cod{font-family:'Orbitron',monospace;font-size:12px;letter-spacing:1.5px;color:var(--gold);background:rgba(0,0,0,.35);border:1px dashed rgba(255,209,102,.55);border-radius:8px;padding:6px 8px;text-align:center;user-select:all}
+.fx-premio{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+.fx-premio img{width:auto;height:min(46vh,420px);max-width:70vw;border-radius:14px;box-shadow:0 0 0 2px var(--gold),0 0 50px rgba(255,209,102,.55),0 0 110px rgba(204,85,255,.35);animation:fxEntra 1.1s cubic-bezier(.2,.8,.2,1) both}
+@keyframes fxEntra{from{opacity:0;transform:scale(.6) rotateY(80deg)}to{opacity:1;transform:none}}
+.fx-premio p{font-size:15.5px;line-height:1.45;color:#e8ecfa;max-width:34em}
 /* v195 · Cajas de sobres */
 .td-caja{display:flex;flex-direction:column;gap:5px;font-size:12.5px;color:var(--muted);text-align:left;padding:7px 8px;border-radius:9px;background:rgba(2,6,20,.55);border:1px solid var(--line)}
 .td-caja .cj-l{display:flex;justify-content:space-between;gap:6px;align-items:center}
@@ -889,6 +916,15 @@ window.nxTip = function () {
   <div class="td-body" id="tdBody"></div>
 </section>
 <!-- ══════ CARPETERO (ruleta de cambio de cartas) ══════ -->
+<!-- ══════ v227 · CARTAS BOSS (recompensas físicas) ══════ -->
+<section class="scr" id="sFisicas">
+  <div class="hud">
+    <button class="hb" id="fxSalir" aria-label="Volver al menú">←<span class="t">MENÚ</span></button>
+    <div class="h-title">CARTAS BOSS</div>
+    <div class="h-sp"></div>
+  </div>
+  <div class="fx-body" id="fxBody"></div>
+</section>
 <section class="scr" id="sCarpeta">
   <div class="hud">
     <button class="hb" id="cpSalir" aria-label="Volver al mapa">←<span class="t">MAPA</span></button>
@@ -1262,6 +1298,7 @@ function excluida(id) {
 function premiable(id) {
   const c = CARD[id]; if (!c || maxCopias(id) === 0 || excluida(id)) return false;
   if (c.tester) return false;   // cartas TESTER (Ateotl): solo las juega la CPU, nunca se dan ni se venden
+  if (c.boss) return false;     // v227 · cartas BOSS: solo como recompensa física (carta_fisica / fase2_carta_fisica)
   const g = GALI[String(c.galeriaId)]; if (g && (DATA.expansionesProhibidas || []).includes(g.expansion)) return false;
   return true;
 }
@@ -1758,6 +1795,7 @@ async function procesarResultado() {
   if (res.abandono) await mensaje('🚪 CHOQUE ABANDONADO', 'Saliste del Choque antes de terminarlo: cuenta como <b>derrota</b>.');
   if (premio) { sonMonedas(); toast('<i class="mn"></i> +' + premio + ' monedas'); }
   if (res.won && !res.abandono) { const cartas = darPremio(p, !antes); guardar(); pintarHud(); await mostrarPremio(cartas); }
+  if (res.won && !res.abandono) await entregarFisica(resolverCarta(fase === 2 ? p0.fase2_carta_fisica : p0.carta_fisica), p0);   // v227 · carta BOSS (1 vez por partida)
   await revisarAperturas(true);
   const esFinal = res.won && !res.abandono && /^(si|sí|1|true)$/i.test(String(p0.final || '').trim());
   const campeon = res.won && p.tipo === 'guardian' && DIST.every(d => distritoAbierto(d)) && PTS.filter(x => x.tipo === 'guardian').every(x => vencido(x.id)) && !S.campeon;
@@ -2333,6 +2371,7 @@ async function girarRuleta() {
   $('mRuleta').classList.remove('on'); pintarCarpeta();
 }
 $('cpSalir').onclick = () => { guardar(); volver(); };
+$('fxSalir').onclick = () => { abrirMenu(); };
 $('tdTabs').querySelectorAll('button').forEach(b => b.onclick = () => { TD.tab = b.dataset.t; pintarTienda(); });
 
 // ════════════════ CONTENIDO DEL MODO (música, imágenes y fondos) ════════════════
@@ -2441,6 +2480,64 @@ function contenidoAuto() {
 }
 $('tDescargar').onclick = () => contenido({ auto: false, revisar: true, musica: true });
 
+
+// ════════════════ v227 · CARTAS BOSS: recompensas físicas ════════════════
+// En mapa.txt, en el punto del jefe:  carta_fisica = ID   (o fase2_carta_fisica = ID para su 2ª forma)
+// Al vencerlo por primera vez (o en una revancha, si todavía no la tenías) se entrega UNA vez por partida:
+// entra a tu cofre para usarla en tu baraja de la aventura y genera un código para recibirla físicamente.
+const FISICA_MSG = 'Enviaremos esta carta directo a tu Universo, recíbela físicamente en tu tienda oficial más cercana o con un representante de Codex Studio.';
+function fisicasDef() {
+  const out = [];
+  PTS.forEach(p => {
+    [[p.carta_fisica, p.nombre, 1], [p.fase2_carta_fisica, p.fase2_nombre || p.nombre, 2]].forEach(([c, quien, f]) => {
+      const id = resolverCarta(c); if (id && CARD[id] && !out.some(x => x.id === id)) out.push({ id, p, quien, fase: f });
+    });
+  });
+  return out;
+}
+function codigoFisica(id) {
+  const j = sesionJug(), pid = j ? String(j.id).toUpperCase() : 'SIN-ID';
+  let h = 2166136261; for (const ch of id + '|' + pid + '|' + (S.creada || S.nombre || '') + '|' + Date.now()) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619) >>> 0; }
+  const ab = NK(nomC(id)).replace(/[^A-Z]/g, '').slice(0, 3) || 'BOS';
+  return pid + '-' + ab + '-' + h.toString(36).toUpperCase().slice(0, 6).padStart(6, '0');
+}
+async function entregarFisica(id, p) {
+  if (!id || !CARD[id]) return;
+  S.fisicas = S.fisicas || {};
+  if (S.fisicas[id]) return;                                   // una sola vez por partida
+  asegurarColeccion();
+  S.fisicas[id] = { dia: S.dia, ts: Date.now(), codigo: codigoFisica(id), de: p ? p.id : '' };
+  if (tieneNombre(id) < 1) { S.col[id] = (S.col[id] || 0) + 1; S.nuevas[id] = 1; }
+  guardar(); pintarHud();
+  try { if (!MUTE) sonMonedas(); } catch (e) {}
+  const f = S.fisicas[id];
+  await mensaje('🏆 ¡CARTA BOSS OBTENIDA!', `<div class="fx-premio"><img src="${esc(cartaImg(id, true))}" alt="${esc(nomC(id))}">
+    <b style="font-family:Orbitron,monospace;letter-spacing:1px;color:var(--gold)">${esc(nomC(id).toUpperCase())}</b>
+    <p>${esc(FISICA_MSG)}</p>
+    <div class="fx-cod">${esc(f.codigo)}</div>
+    <p style="font-size:13.5px;color:var(--muted)">Presenta este código junto con tu ID de jugador. También queda en tu cofre para usarla en tu baraja de la aventura y la encuentras en <b style="color:var(--text)">🏆 CARTAS BOSS</b> del menú.</p></div>`);
+}
+function abrirFisicas() {
+  const defs = fisicasDef(), F = S.fisicas || {};
+  const j = sesionJug();
+  let h = `<div class="fx-intro"><span class="ic">🏆</span><div><b>RECOMPENSAS FÍSICAS</b><p>Cartas muy especiales que solo se consiguen jugando el Modo Aventura. ${esc(FISICA_MSG)} Presenta el código de cada carta${j ? ' y tu ID <b style="color:var(--text)">' + esc(String(j.id).toUpperCase()) + '</b>' : ''}.</p></div></div><div class="fx-grid">`;
+  h += defs.map(d => {
+    const ok = !!F[d.id], f = F[d.id];
+    return `<button class="fx-c ${ok ? 'ok' : 'lock'}" data-fx="${esc(d.id)}"><span class="im"><img src="${esc(cartaImg(d.id, true))}" alt="" loading="lazy"></span>
+      <span class="tag">${ok ? '✔ OBTENIDA' : 'BLOQUEADA'}</span><b>${ok ? esc(nomC(d.id)) : '???'}</b>
+      <small>${ok ? 'Día ' + ((f.dia || 0) + 1) + ' · vencida a ' + esc(d.quien) : 'Vence a ' + esc(d.quien) + (d.fase === 2 ? ' en su forma verdadera' : '')}</small>${ok ? `<span class="fx-cod">${esc(f.codigo)}</span>` : ''}</button>`;
+  }).join('') + '</div>';
+  if (!defs.length) h += '<div class="md-vacio">Todavía no hay cartas BOSS en esta versión de Nexotlan.</div>';
+  $('fxBody').innerHTML = h;
+  $('fxBody').querySelectorAll('[data-fx]').forEach(b => b.onclick = async () => {
+    const id = b.dataset.fx, f = (S.fisicas || {})[id], d = defs.find(x => x.id === id);
+    if (!f) { toast('🔒 Vence a ' + d.quien + (d.fase === 2 ? ' en su forma verdadera' : '') + ' para obtenerla'); return; }
+    await mensaje('🏆 ' + nomC(id).toUpperCase(), `<div class="fx-premio"><img src="${esc(cartaImg(id, true))}" alt=""><p>${esc(FISICA_MSG)}</p><div class="fx-cod">${esc(f.codigo)}</div>
+      <p style="font-size:13.5px;color:var(--muted)">Obtenida el día ${(f.dia || 0) + 1}. Úsala en tu baraja desde <b style="color:var(--text)">🃏 BARAJA Y COFRE</b>.</p></div>`);
+  });
+  irA('sFisicas');
+  try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('fxBody').querySelector('.fx-c')), 80); } catch (e) {}
+}
 // ════════════════ PANTALLAS / AVISOS ════════════════
 // Al volver al título se cierra todo lo que quedó abierto (ficha de un punto, diálogos, ventanas): así no se puede retar fuera de la partida
 function limpiarVentanas() {
@@ -2575,11 +2672,13 @@ function pintarMenu() {
     (com ? op('mnTienda', '🛒', 'COMERCIANTE', lc.ok ? 'Sobres · cartas del día · vender' : lc.txt, '', !lc.ok) : '') +
     (car ? op('mnCarpeta', '🎰', 'CARPETERO', lr.ok ? 'Cambia tus cartas repetidas' : lr.txt, '', !lr.ok) : '') +
     op('mnDiario', '📖', 'DIARIO', `${r.ven}/${r.tot} vencidos · ${S.victorias || 0}-${S.perdidas || 0}`) +
+    (Object.keys(S.fisicas || {}).length ? op('mnFisicas', '🏆', 'CARTAS BOSS', Object.keys(S.fisicas).length + ' de ' + fisicasDef().length + ' · recompensas físicas') : '') +
     op('mnPartida', '⇄', 'CAMBIAR PARTIDA', 'Volver a la portada');
   $('mnBaraja').onclick = () => { VOLVER = 'sMenu'; abrirMazo(); };
   if ($('mnTienda')) $('mnTienda').onclick = () => { if (!lc.ok) { toast('🔒 Comerciante: ' + lc.txt); return; } VOLVER = 'sMenu'; abrirTienda(com); };
   if ($('mnCarpeta')) $('mnCarpeta').onclick = () => { if (!lr.ok) { toast('🔒 Carpetero: ' + lr.txt); return; } VOLVER = 'sMenu'; abrirCarpeta(car); };
   $('mnDiario').onclick = abrirDiario;
+  if ($('mnFisicas')) $('mnFisicas').onclick = abrirFisicas;
   $('mnPartida').onclick = () => { guardar(); musica(null); irA('sTitulo'); pintarTitulo(); };
 }
 async function abrirMenu() {
@@ -2865,6 +2964,7 @@ window.GP_CFG = {
     if ($('sMazo').classList.contains('on')) { salirMazo(); return true; }
     if ($('ficha').classList.contains('on')) { const id = SEL && SEL.id; cerrarFicha(); const b = id && document.querySelector('.pt[data-id="' + id + '"]'); if (b && window.GP) GP.enfocar(b); return true; }
     if ($('sCarpeta').classList.contains('on') && !$('mRuleta').classList.contains('on')) { $('cpSalir').click(); return true; }
+    if ($('sFisicas').classList.contains('on')) { $('fxSalir').click(); return true; }
     if (mapaLibre()) { $('hSalir').click(); return true; }                       // B en el mapa: al menú
     if ($('sMenu').classList.contains('on')) { $('mnPartida').click(); return true; }   // B en el menú: a la portada
     return false;

@@ -13829,6 +13829,10 @@
     {
      "id": "cipacdragon",
      "copias": 1
+    },
+    {
+     "id": "boss_nikkon",
+     "copias": 1
     }
    ],
    "soloArcade": true,
@@ -13897,7 +13901,7 @@
     },
     {
      "id": "auxilio",
-     "copias": 2
+     "copias": 1
     },
     {
      "id": "p3_inundacion",
@@ -13945,6 +13949,10 @@
     },
     {
      "id": "destruccion_idolos",
+     "copias": 1
+    },
+    {
+     "id": "boss_vellond_omega",
      "copias": 1
     }
    ],
@@ -13997,6 +14005,10 @@
     },
     {
      "id": "khaleydoh",
+     "copias": 1
+    },
+    {
+     "id": "boss_nikkon",
      "copias": 1
     }
    ],
@@ -15321,6 +15333,10 @@
     },
     {
      "id": "negativ",
+     "copias": 1
+    },
+    {
+     "id": "boss_nikkon",
      "copias": 1
     }
    ],
@@ -38086,6 +38102,154 @@
     }
    ],
    "rareza": "comun"
+  },
+  {
+   "id": "boss_nikkon",
+   "nombre": "Nikkon Trolas, Dragón Multiversal",
+   "tipo": "amalgama",
+   "gama": 9,
+   "imp": 3,
+   "cor": 2,
+   "fue": 9,
+   "res": 9,
+   "habilidades": [
+    "BRUTALIDAD"
+   ],
+   "texto": "(Manda de tu campo y/o mano al MICTLÁN, 1 PERSONAJE con \"NIKKON TROLAS\" en su nombre + 2 PERSONAJES con \"NEXOTLAN\" de diferente nombre y llama de forma especial a este personaje a tu campo desde tu BS.) HABILIDAD: Cuando este PERSONAJE es llamado a tu lado del campo; incrementa tus corazones de jugador +2; si este PERSONAJE es vencido, destruido o Confinado, tu adversario pierde -2 corazones de jugador. Una vez por turno durante tu fase de ACCIÓN, puedes ENLAZAR 2 PERSONAJES en el campo, incrementa su FUERZA y RESISTENCIA igual a las cartas en el campo de su propietario. Si este PERSONAJE vence a otro en Combate, llama de forma especial a tu lado del campo 1 PERSONAJE con \"NEXOTLAN\" en su nombre desde tu MICTLÁN o BP. BRUTALIDAD: Este PERSONAJE puede declarar ataque el turno en que es llamado al campo.",
+   "llamadoEspecial": {
+    "materiales": [
+     {
+      "cantidad": 1,
+      "nombreIncluye": "NIKKON TROLAS"
+     },
+     {
+      "cantidad": 2,
+      "nombreIncluye": "NEXOTLAN",
+      "distintos": true
+     }
+    ],
+    "origen": [
+     "campo",
+     "mano"
+    ],
+    "destino": "mictlan"
+   },
+   "efectos": [
+    {
+     "cuando": "al_llamar",
+     "texto": "Ganas 2 corazones de jugador",
+     "pasos": [
+      {
+       "accion": "ganar_corazones",
+       "cantidad": 2
+      }
+     ]
+    },
+    {
+     "cuando": "al_salir",
+     "texto": "Tu adversario pierde 2 corazones",
+     "pasos": [
+      {
+       "accion": "rival_pierde",
+       "n": 2
+      }
+     ]
+    },
+    {
+     "cuando": "accion",
+     "limite": "turno",
+     "texto": "ENLAZAR 2 personajes: ganan FUE y RES igual a las cartas en el campo de su propietario",
+     "pasos": [
+      {
+       "accion": "enlazar_campo"
+      }
+     ]
+    },
+    {
+     "cuando": "vence",
+     "texto": "Llamar un personaje NEXOTLAN desde tu Mictlán o BP",
+     "condicion": {
+      "zonaLibre": true
+     },
+     "pasos": [
+      {
+       "accion": "llamar_especial",
+       "origen": [
+        "mictlan",
+        "bp"
+       ],
+       "filtro": {
+        "tipo": "pj",
+        "nombreIncluye": "NEXOTLAN"
+       }
+      }
+     ]
+    }
+   ],
+   "img": "./cartas_3/TEST_BOSS_001_full.jpg",
+   "imgMin": "./cartas_3/TEST_BOSS_001.jpg",
+   "boss": true,
+   "expansion": "boss",
+   "rareza": "secreta"
+  },
+  {
+   "id": "boss_vellond_omega",
+   "nombre": "Vellond Omega, Regente de Nexotlan",
+   "tipo": "pj",
+   "coste": 9,
+   "imp": 3,
+   "cor": 2,
+   "fue": 13,
+   "res": 10,
+   "habilidades": [
+    "BRUTALIDAD"
+   ],
+   "noNormal": true,
+   "soloPor": [
+    "boss_vellond_omega"
+   ],
+   "noNegableLlamado": true,
+   "texto": "HABILIDAD: (Este PERSONAJE solo puede ser llamado de forma normal o especial por su habilidad y su llamado no puede ser negado.) Cuando un PERSONAJE con \"VELLOND\" en su nombre deja tu lado del campo, Confínalo boca abajo y paga 2 corazones de jugador para llamar a este PERSONAJE de forma especial a tu lado del campo desde tu mano o MICTLÁN. Cuando este PERSONAJE es llamado, impacta -1 corazón de jugador a tu ADVERSARIO por cada carta con \"NEXOTLAN\" en su nombre en tu lado del campo. Cuando este PERSONAJE es vencido en batalla, destruye cartas en el campo de tu adversario iguales al número de cartas con \"NEXOTLAN\" en su nombre en tu MICTLÁN. BRUTALIDAD: Este PERSONAJE puede declarar batalla el mismo turno en que fue llamado al campo.",
+   "efectos": [
+    {
+     "cuando": "aliado_sale",
+     "filtro": {
+      "nombreIncluye": "VELLOND"
+     },
+     "desde": [
+      "hand",
+      "mictlan"
+     ],
+     "confAbajoSale": true,
+     "costoCorazones": 2,
+     "texto": "Confinar boca abajo al VELLOND que salió, pagar 2 corazones y llamarlo",
+     "pasos": [],
+     "antesDeSalir": true
+    },
+    {
+     "cuando": "al_llamar",
+     "texto": "Impactar 1 corazón al rival por cada carta NEXOTLAN en tu campo",
+     "pasos": [
+      {
+       "accion": "omega_impacto"
+      }
+     ]
+    },
+    {
+     "cuando": "vencido",
+     "texto": "Destruir cartas del rival según tus NEXOTLAN en el Mictlán",
+     "pasos": [
+      {
+       "accion": "omega_vencido"
+      }
+     ]
+    }
+   ],
+   "img": "./cartas_3/TEST_BOSS_002_full.jpg",
+   "imgMin": "./cartas_3/TEST_BOSS_002.jpg",
+   "boss": true,
+   "expansion": "boss",
+   "rareza": "secreta"
   }
  ],
  "expansionesProhibidas": [

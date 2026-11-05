@@ -293,7 +293,7 @@
     let el = h; while (el && !clicable(el)) el = el.parentElement;
     if (el) { tocar(el); foco = el; }
   }
-  const RX_ATRAS = /^\s*(✕|×|x|←|◀|cancelar|cerrar|atr[aá]s|volver|no\b|salir de|regresar)/i;
+  const RX_ATRAS = /^\s*(✕|×|x(?=\s|$)|←|◀|cancelar|cerrar|atr[aá]s|volver|no\b|salir de|regresar)/i;   // 'x' sola (no nombres que empiezan con X, como Xolo)
   function atras() {
     if (OSK.abierto()) { OSK.borrar(); return; }
     const c = CFG();

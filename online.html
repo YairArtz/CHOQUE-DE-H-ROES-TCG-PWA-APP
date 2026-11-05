@@ -5284,6 +5284,16 @@ function responsesFor(r,ev){
         out.push({label:'☄ '+c.name+' — destruir un SECTOR o ARENA',cpu:true,run:()=>respRapido(r,cid)});
     }
   }
+  // v224 · APOYOS RÁPIDOS: se pueden activar en respuesta a lo que haga el rival (en su turno o en una cadena)
+  if(ev.o!==r&&!errBloqApoyo(r)) for(const cid of new Set(G[r].hand)){
+    const c=C[cid]; if(c.type!=='apoyo'||c.subtipo!=='rapido'||out.some(x=>x.rapCid===cid)) continue;
+    const effs=activarEff(cid).filter(x=>!x.e.pendiente); if(!effs.length) continue;
+    if(effs.some(x=>(x.e.pasos||[]).some(p=>p.accion==='destruir_sector_arena'))&&tocaSectorArena) continue;   // ya está arriba (Cataclismo)
+    if(c.faseCombate&&G.phase!=='combat') continue;
+    if((c.colocarApoyoRival?freeApo(opp(r)):freeApoAp(r))===-1) continue;
+    if(effs.some(x=>effWhy(r,cid,x.e,x.i,{zone:'mano'}))) continue;
+    out.push({label:'⚡ '+c.name+' — activar (uso rápido)',rapCid:cid,cpu:r==='cpu'&&cid==='p3_mollete'&&apoyoTieneSentido(cid),run:()=>respRapido(r,cid)});
+  }
   if(ev.kind==='llamado'&&ev.especial&&C[ev.cid].type==='amalgama'&&ev.o!==r&&!G.used[r]['clio']&&!graceActiva()&&!mictlanCerrado()&&G[r].mictlan.includes('musa_clio'))
     out.push({label:'🏛 La Musa Clío (Mictlán) — confinarla: negar y destruir a '+C[ev.cid].name,cpu:true,run:()=>respClio(r,ev,'musa_clio','mictlan')});
   // v47 · El Contenedor Legendario (zona de apoyo)
@@ -7319,14 +7329,14 @@ function _buildMenuActions(cid,idx,at,card){
     }
     const pend=effs.length&&effs.every(x=>x.e.pendiente);
     const firstWhy=effs.map(x=>effWhy('player',cid,x.e,x.i,{zone:'mano'})).find(w=>w)||'';
-    const fase=card.faseCombate?G.phase==='combat':G.phase==='action';
+    const fase=card.faseCombate?G.phase==='combat':card.subtipo==='rapido'?['action','combat'].includes(G.phase):G.phase==='action';   // v224 · uso rápido: Acción o Combate
     const zonaOk=card.colocarApoyoRival?freeApo('cpu')!==-1:freeApoAp('player')!==-1;
     const ok=fase&&!pend&&zonaOk&&!firstWhy;
     const cost=effs.reduce((t,x)=>t+((x.e.costo&&x.e.costo.corazones)||0),0);
     let why='';
     if(!ok){
       if(pend) why=card.subtipo==='rapido'?'Uso Rápido: pendiente de programar':'Aún no programado en la simulación';
-      else if(!fase) why=card.faseCombate?'Solo durante tu Fase de Combate':phaseWhy();
+      else if(!fase) why=card.faseCombate?'Solo durante tu Fase de Combate':card.subtipo==='rapido'?'Uso Rápido: en tu Fase de Acción o de Combate, o como respuesta en el turno rival':phaseWhy();
       else if(!zonaOk) why=card.colocarApoyoRival?'El rival no tiene zonas de apoyo vacías':'Necesitas una zona de apoyo libre';
       else why=firstWhy;
     }

@@ -49,6 +49,46 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 #sTitulo.con-fondo .t-kicker,#sTitulo.con-fondo .t-sub,#sTitulo.con-fondo .t-info,#sTitulo.con-fondo .t-cont{text-shadow:0 2px 6px #000,0 0 2px #000}
 .t-btns{display:flex;flex-direction:column;gap:10px;width:min(340px,100%);margin-top:10px;position:relative;z-index:1}
 #sTitulo{overflow-y:auto;justify-content:safe center}
+/* ═══ v217 · Portada: el portal a NEXOTLAN (vórtice que gira, estrellas que salen disparadas, ondas y llegada) ═══ */
+.t-portal{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:#05081a}
+.t-portal i{position:absolute;display:block}
+.tp-z{inset:0;transform:translate(var(--px,0),var(--py,0));transition:transform .9s cubic-bezier(.2,.7,.2,1)}
+.tp-a{inset:-4%;background:center/cover no-repeat;animation:tpAcerca 16s ease-in-out infinite alternate}
+.tp-b,.tp-c{left:50%;top:50%;width:var(--vmax,100vmax);height:var(--vmax,100vmax);margin:calc(var(--vmax,100vmax) * -.5) 0 0 calc(var(--vmax,100vmax) * -.5);
+  background-position:center;background-repeat:no-repeat;will-change:transform}
+.tp-b{animation:tpGira 90s linear infinite;
+  -webkit-mask-image:radial-gradient(circle closest-side,#000 0,#000 34%,rgba(0,0,0,.6) 52%,transparent 72%);mask-image:radial-gradient(circle closest-side,#000 0,#000 34%,rgba(0,0,0,.6) 52%,transparent 72%)}
+.tp-c{opacity:.5;mix-blend-mode:screen;animation:tpGiraB 38s linear infinite;
+  -webkit-mask-image:radial-gradient(circle closest-side,#000 0,rgba(0,0,0,.7) 18%,transparent 42%);mask-image:radial-gradient(circle closest-side,#000 0,rgba(0,0,0,.7) 18%,transparent 42%)}
+@keyframes tpAcerca{from{transform:scale(1.02)}to{transform:scale(1.1)}}
+@keyframes tpGira{from{transform:rotate(0)}to{transform:rotate(-360deg)}}
+@keyframes tpGiraB{from{transform:rotate(0) scale(1.12)}to{transform:rotate(360deg) scale(1.12)}}
+.tp-warp{position:absolute;inset:0;width:100%;height:100%;mix-blend-mode:screen}
+.tp-luz{left:50%;top:50%;width:calc(var(--vmin,100vmin) * .9);height:calc(var(--vmin,100vmin) * .9);margin:calc(var(--vmin,100vmin) * -.45) 0 0 calc(var(--vmin,100vmin) * -.45);border-radius:50%;
+  background:radial-gradient(circle,rgba(255,255,255,.8) 0,rgba(255,226,190,.35) 10%,rgba(150,110,255,.14) 30%,transparent 55%);mix-blend-mode:screen;animation:tpLatido 4.2s ease-in-out infinite}
+@keyframes tpLatido{0%,100%{opacity:.35;transform:scale(.85)}50%{opacity:.7;transform:scale(1.05)}}
+.tp-onda{left:50%;top:50%;width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;border:2px solid rgba(160,240,255,.55);box-shadow:0 0 22px rgba(120,200,255,.5),inset 0 0 18px rgba(204,85,255,.45);
+  opacity:0;animation:tpOnda 5.4s cubic-bezier(.25,.6,.3,1) infinite}
+.tp-onda.o2{animation-delay:1.8s}.tp-onda.o3{animation-delay:3.6s}
+@keyframes tpOnda{0%{opacity:0;transform:scale(.4)}12%{opacity:.85}100%{opacity:0;transform:scale(calc(var(--vmax-n,1600) / 26))}}
+.tp-vel{inset:0;background:radial-gradient(ellipse at center,transparent 35%,rgba(5,10,28,.6) 100%),linear-gradient(rgba(5,10,28,.28),rgba(5,10,28,.74))}
+.tp-flash{inset:0;background:radial-gradient(circle,#fff 0,rgba(200,240,255,.9) 28%,rgba(204,85,255,.45) 62%,rgba(5,10,28,0) 90%);mix-blend-mode:screen;opacity:0}
+/* Llegada: sales del túnel y el portal se abre */
+.t-portal.llega .tp-z{animation:tpLlega 2.4s cubic-bezier(.12,.75,.2,1) both}
+.t-portal.llega .tp-flash{animation:tpFlash 1.6s ease-out .15s both}
+@keyframes tpLlega{0%{transform:scale(3.2) rotate(40deg);filter:blur(10px) brightness(2.2)}55%{filter:blur(2px) brightness(1.3)}100%{transform:translate(var(--px,0),var(--py,0));filter:none}}
+@keyframes tpFlash{0%{opacity:0}18%{opacity:.95}100%{opacity:0}}
+#sTitulo.con-portal{background:transparent}
+#sTitulo.con-portal::before{z-index:1;opacity:.08}
+#sTitulo.con-portal>:not(.t-portal):not(.esq){position:relative;z-index:2}
+#sTitulo.llega .t-logo,#sTitulo.llega .t-title{animation:tpLogo 1.6s cubic-bezier(.2,.8,.2,1) .7s both}
+#sTitulo.llega .t-kicker,#sTitulo.llega .t-sub{animation:tpSube .9s ease 1.3s both}
+#sTitulo.llega .t-btns,#sTitulo.llega .t-save,#sTitulo.llega .t-info,#sTitulo.llega .t-cont{animation:tpSube .9s ease 1.6s both}
+@keyframes tpLogo{0%{opacity:0;transform:scale(.35);filter:blur(12px) brightness(3) drop-shadow(0 0 40px #fff)}60%{opacity:1;filter:blur(0) brightness(1.4) drop-shadow(0 0 30px rgba(160,220,255,.9))}100%{opacity:1;transform:none}}
+@keyframes tpSube{from{opacity:0;transform:translateY(16px)}}
+#sTitulo.con-portal .t-logo{filter:drop-shadow(0 6px 24px rgba(0,0,0,.6)) drop-shadow(0 0 22px rgba(120,200,255,.35))}
+@media (prefers-reduced-motion:reduce){.t-portal *,.t-portal.llega *,#sTitulo.llega *{animation:none!important}.tp-warp{display:none}}
+
 #sTitulo .t-btns{width:min(920px,100%);align-items:center}
 #tDescargar{width:min(340px,100%)}
 #tCont,#tNueva{display:none!important}
@@ -213,7 +253,7 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 .d-escena::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 70%,color-mix(in srgb,var(--fc,#36d6ff) 35%,transparent),transparent 65%)}
 .d-escena::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.12) 3px,rgba(0,0,0,.12) 4px);pointer-events:none}
 .d-ret{position:absolute;left:50%;bottom:min(calc(20 * var(--uh)),150px);transform:translateX(-50%);height:min(calc(80 * var(--uh)),860px);z-index:1;max-width:calc(92 * var(--uw));animation:retIn .35s ease both;image-rendering:auto;filter:drop-shadow(0 10px 30px rgba(0,0,0,.6))}
-.d-ret.jefe:not(.carta){height:calc(116 * var(--uh));bottom:calc(-17 * var(--uh));max-width:calc(98 * var(--uw));object-fit:contain}   /* v216 · guardianes y 2ª forma: arte imponente */
+.d-ret.jefe:not(.carta){height:calc(116 * var(--uh));bottom:calc(-17 * var(--uh));max-width:calc(98 * var(--uw));object-fit:contain}   /* v216 · retrato = grande en mapa.txt: arte imponente */
 .d-ret.carta{height:min(calc(58 * var(--uh)),520px);bottom:min(calc(28 * var(--uh)),220px);border-radius:14px;border:3px solid var(--fc,#36d6ff);box-shadow:0 0 40px color-mix(in srgb,var(--fc,#36d6ff) 50%,transparent)}
 @keyframes retIn{from{opacity:0;transform:translateX(-50%) translateY(30px)}to{opacity:1;transform:translateX(-50%)}}
 .d-caja{position:relative;z-index:2;margin:0 auto calc(14px + env(safe-area-inset-bottom));width:min(980px,calc(100% - 20px));min-height:min(calc(30 * var(--uh)),210px);
@@ -1559,7 +1599,7 @@ async function dialogo(p, texto, ops) {
   $('dlg').style.setProperty('--fc', (d && d.color) || tc);
   const hayPai = !!pai;
   $('dEsc').innerHTML = (hayPai ? `<div class="d-banda" style="background-image:url('${esc(pai)}')"></div>` : `<div class="d-banda">${skyline(d)}</div>`) +
-    (ret ? `<img class="d-ret ${ret.carta ? 'carta' : ''}${p.tipo === 'guardian' || p._fase === 2 ? ' jefe' : ''}" src="${esc(ret.src)}" alt="">` : '');
+    (ret ? `<img class="d-ret ${ret.carta ? 'carta' : ''}${/^(grande|si|sí)$/i.test(String(p.retrato || '').trim()) ? ' jefe' : ''}" src="${esc(ret.src)}" alt="">` : '');
   $('dNom').textContent = (p.nombre || '').toUpperCase();
   $('dlg').classList.add('on');
   // Música propia al hablar con este personaje (musica_dialogo); al cerrar regresa la que sonaba
@@ -2624,11 +2664,64 @@ $('mnTips').onclick = () => {
   $('mCaja').classList.add('on');
   try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('mCaja').querySelector('.f-x')), 60); } catch (e) {}
 };
+
+// v217 · Portada animada: el fondo se vuelve un portal que gira, con estrellas que salen del centro hacia ti,
+//        ondas de energía, un ligero efecto de profundidad al mover el ratón o el teléfono, y la llegada al abrir.
+function portalPortada(fondo) {
+  const t = $('sTitulo'); if (!t || $('tPortal')) return;
+  const P = document.createElement('div'); P.className = 't-portal'; P.id = 'tPortal';
+  P.innerHTML = '<i class="tp-z"><i class="tp-a"></i><i class="tp-b"></i><i class="tp-c"></i><i class="tp-luz"></i><i class="tp-onda"></i><i class="tp-onda o2"></i><i class="tp-onda o3"></i></i><canvas class="tp-warp"></canvas><i class="tp-vel"></i><i class="tp-flash"></i>';
+  t.insertBefore(P, t.firstChild); t.classList.add('con-portal');
+  const capas = P.querySelectorAll('.tp-a,.tp-b,.tp-c');
+  if (fondo) capas.forEach(e => e.style.backgroundImage = `url("${fondo}")`);
+  else capas.forEach(e => e.style.backgroundImage = 'conic-gradient(from 0deg,#2a1060,#36d6ff,#cc55ff,#f5a623,#2a1060,#36d6ff,#cc55ff,#2a1060)');
+  // Las capas que giran usan la misma escala que el fondo, así el remolino central coincide con la imagen
+  let iw = 16, ih = 9; if (fondo) { const im = new Image(); im.onload = () => { iw = im.naturalWidth || 16; ih = im.naturalHeight || 9; medir(); }; im.src = fondo; }
+  const medir = () => { const w = P.clientWidth || innerWidth, h = P.clientHeight || innerHeight, k = Math.max(w / iw, h / ih) * 1.06;
+    P.style.setProperty('--vmax', Math.max(w, h) + 'px'); P.style.setProperty('--vmin', Math.min(w, h) + 'px'); P.style.setProperty('--vmax-n', Math.max(w, h));
+    P.querySelectorAll('.tp-b,.tp-c').forEach(e => e.style.backgroundSize = fondo ? `${Math.round(iw * k)}px ${Math.round(ih * k)}px` : 'cover'); };
+  medir(); addEventListener('resize', medir);
+  const quieto = matchMedia('(prefers-reduced-motion: reduce)').matches, WARP = portalPortada.W = { cx: .5, cy: .5 };
+  // Llegada (al abrir el modo y cada vez que regresas a la portada)
+  const llegar = () => { if (quieto) return; if (typeof cargaVisible === 'function' && cargaVisible()) { clearTimeout(llegar._w); llegar._w = setTimeout(llegar, 150); return; } [P, t].forEach(e => { e.classList.remove('llega'); void e.offsetWidth; e.classList.add('llega'); });
+    clearTimeout(llegar._t); llegar._t = setTimeout(() => [P, t].forEach(e => e.classList.remove('llega')), 3400); };
+  llegar(); new MutationObserver(() => { if (t.classList.contains('on') && !llegar._on) llegar(); llegar._on = t.classList.contains('on'); }).observe(t, { attributes: true, attributeFilter: ['class'] });
+  llegar._on = t.classList.contains('on');
+  // Profundidad: el portal se desplaza un poco al lado contrario del puntero o de la inclinación del teléfono
+  const mover = (x, y) => { P.style.setProperty('--px', (-x * 2.2).toFixed(2) + '%'); P.style.setProperty('--py', (-y * 2.2).toFixed(2) + '%'); WARP.cx = .5 + x * .04; WARP.cy = .5 + y * .04; };
+  t.addEventListener('pointermove', e => { const r = t.getBoundingClientRect(); mover((e.clientX - r.left) / r.width - .5, (e.clientY - r.top) / r.height - .5); }, { passive: true });
+  addEventListener('deviceorientation', e => { if (!t.classList.contains('on') || e.gamma == null) return; mover(Math.max(-1, Math.min(1, e.gamma / 35)) / 2, Math.max(-1, Math.min(1, (e.beta - 45) / 35)) / 2); }, { passive: true });
+  if (quieto) return;
+  // Estrellas de velocidad: nacen cerca del centro del portal y se alargan al acercarse
+  const cv = P.querySelector('canvas'), cx = cv.getContext('2d');
+  const N = (navigator.hardwareConcurrency || 4) <= 4 ? 90 : 150, est = [];
+  const nueva = s => { s.a = Math.random() * Math.PI * 2; s.z = .02 + Math.random() * .08; s.v = .0035 + Math.random() * .006; s.c = Math.random() < .5 ? '255,255,255' : (Math.random() < .5 ? '150,225,255' : '220,170,255'); return s; };
+  for (let k = 0; k < N; k++) { const s = nueva({}); s.z = Math.random(); est.push(s); }
+  let W = 0, H = 0, dpr = 1, ult = 0;
+  const tam = () => { dpr = Math.min(1.5, devicePixelRatio || 1); W = cv.clientWidth; H = cv.clientHeight; cv.width = W * dpr; cv.height = H * dpr; };
+  tam(); addEventListener('resize', tam);
+  const paso = ts => {
+    requestAnimationFrame(paso);
+    if (!t.classList.contains('on') || document.hidden) return;
+    const dt = Math.min(50, ts - (ult || ts)); ult = ts; if (!W) tam();
+    cx.setTransform(dpr, 0, 0, dpr, 0, 0); cx.clearRect(0, 0, W, H);
+    const ox = W * WARP.cx, oy = H * WARP.cy, R = Math.hypot(W, H) * .62, gira = ts / 9000;
+    for (const s of est) {
+      const z0 = s.z; s.z += s.v * (1 + s.z * 3.5) * dt / 16; if (s.z > 1.05) { nueva(s); continue; }
+      const a = s.a + gira * (1 - s.z), r0 = Math.pow(Math.max(0, s.z - .05 - s.z * .12), 2.2) * R, r1 = Math.pow(s.z, 2.2) * R;
+      const x0 = ox + Math.cos(a) * r0, y0 = oy + Math.sin(a) * r0 * .82, x1 = ox + Math.cos(a) * r1, y1 = oy + Math.sin(a) * r1 * .82;
+      cx.strokeStyle = `rgba(${s.c},${Math.min(1, s.z * 1.4).toFixed(3)})`; cx.lineWidth = .5 + s.z * 2.6; cx.lineCap = 'round';
+      cx.beginPath(); cx.moveTo(x0, y0); cx.lineTo(x1, y1); cx.stroke();
+    }
+  };
+  requestAnimationFrame(paso);
+}
 // Portada personalizable ([config] fondo_titulo / logo): si la imagen no existe se quedan los de siempre
 async function portadaPersonal() {
   const fondo = await primeraImg(candidatos(CFG.fondo_titulo, 'titulo')), logo = await primeraImg(candidatos(CFG.logo, 'titulo'));
   const t = $('sTitulo');
   if (fondo) { t.classList.add('con-fondo'); t.style.backgroundImage = `linear-gradient(rgba(5,10,28,.25),rgba(5,10,28,.78)),url("${fondo}")`; }
+  try { portalPortada(fondo); } catch (e) {}
   if (logo) { $('tLogo').src = logo; $('tLogo').alt = CFG.titulo || 'NEXOTLAN'; $('tLogo').hidden = false; $('tTitulo').hidden = true; }
   // v195 · Pantalla de carga: [config] fondo_carga (si no, la portada) · textos_carga = frases al azar separadas por |
   const carga = await primeraImg(candidatos(CFG.fondo_carga, 'titulo'));

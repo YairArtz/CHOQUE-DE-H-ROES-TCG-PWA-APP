@@ -38,3 +38,19 @@
   ['pointerdown', 'keydown'].forEach(t => document.addEventListener(t, gesto, { capture: true, passive: true }));
   window.CHH_PANTALLA = { entrar, activo, esPC, reactivar: () => { try { sessionStorage.removeItem('chh_fs_no'); } catch (e) {} } };
 })();
+
+// ════════════════════════════════════════════════════════════════════
+//  v229 · Sin menú "Copiar / Descargar / Compartir imagen" al dejar presionada una carta
+//  (celular) ni "Guardar imagen como…" con clic derecho (PC). Solo en imágenes: el texto y los
+//  campos de escritura siguen funcionando normal. Para permitirlo en una imagen: data-menu-img
+// ════════════════════════════════════════════════════════════════════
+(function () {
+  if (typeof document === 'undefined' || window.__chhSinMenuImg) return;
+  window.__chhSinMenuImg = true;
+  const css = 'img:not([data-menu-img]){-webkit-touch-callout:none;-webkit-user-drag:none;user-drag:none}';
+  const st = document.createElement('style'); st.textContent = css;
+  (document.head || document.documentElement).appendChild(st);
+  const esImg = t => t && t.closest && (t.closest('img:not([data-menu-img])') || (t.tagName === 'CANVAS'));
+  document.addEventListener('contextmenu', e => { if (esImg(e.target)) e.preventDefault(); }, { capture: true });
+  document.addEventListener('dragstart', e => { if (esImg(e.target)) e.preventDefault(); }, { capture: true });
+})();

@@ -58,6 +58,10 @@
 #chhCarga{position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;
   background:#03050f center/cover no-repeat;transition:opacity .4s ease;font-family:'Rajdhani',system-ui,sans-serif;-webkit-user-select:none;user-select:none}
 #chhCarga[hidden]{display:none}
+/* v229 · En las páginas que se juegan en horizontal (Simulación, Online, Arcade) la carga ya sale girada */
+:root.rot #chhCarga{inset:auto;top:0;left:0;width:100vh;height:100vw;transform-origin:top left;transform:rotate(90deg) translateY(-100%)}
+@supports (height:100dvh){:root.rot #chhCarga{width:100dvh}}
+:root.rot.flip #chhCarga{transform:rotate(-90deg) translateX(-100%)}
 #chhCarga.fuera{opacity:0;pointer-events:none}
 #chhCarga::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,rgba(3,5,15,.72),rgba(3,5,15,.94) 70%)}
 #chhCarga>*{position:relative}
@@ -192,6 +196,8 @@
 
   // Automática al abrir la página: <script src="carga.js" data-auto="choque|arcade|nexotlan">
   const me = document.currentScript, auto = me && me.getAttribute('data-auto');
+  // v229 · Páginas horizontales: si el teléfono está vertical, girar desde el principio (la página hace lo mismo al cargar)
+  if (me && innerHeight > innerWidth && (auto === 'partida' || (me.hasAttribute('data-girar') && matchMedia('(pointer:coarse)').matches))) document.documentElement.classList.add('rot');
   if (auto && !/[?&]editor=1/.test(location.search)) {
     let tipo = auto, fondo = me.getAttribute('data-fondo') || '';
     if (auto === 'partida') {        // Simulación: si el Choque viene del Modo Aventura se ven sus consejos; si viene del Arcade, los del Arcade

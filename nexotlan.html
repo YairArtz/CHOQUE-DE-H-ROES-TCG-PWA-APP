@@ -608,14 +608,16 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 .fx-c.lock .tag{background:rgba(255,255,255,.12);color:var(--muted)}
 .fx-cod{font-family:'Orbitron',monospace;font-size:12px;letter-spacing:1.5px;color:var(--gold);background:rgba(0,0,0,.35);border:1px dashed rgba(255,209,102,.55);border-radius:8px;padding:6px 8px;text-align:center;user-select:all}
 .fx-premio{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto;column-gap:22px;row-gap:12px;align-items:center;text-align:left}
-.fx-premio img{grid-row:1 / span 5;height:min(68vh,460px);width:auto;max-width:42vw;border-radius:14px;box-shadow:0 0 0 2px var(--gold),0 0 50px rgba(255,209,102,.55),0 0 110px rgba(204,85,255,.35);animation:fxEntra 1.1s cubic-bezier(.2,.8,.2,1) both}
+.fx-premio img{grid-row:1 / span 5;height:min(calc(68 * var(--uh)),460px);width:auto;max-width:calc(42 * var(--uw));border-radius:14px;box-shadow:0 0 0 2px var(--gold),0 0 50px rgba(255,209,102,.55),0 0 110px rgba(204,85,255,.35);animation:fxEntra 1.1s cubic-bezier(.2,.8,.2,1) both}
 @keyframes fxEntra{from{opacity:0;transform:scale(.6) rotateY(80deg)}to{opacity:1;transform:none}}
 .fx-premio p{font-size:15.5px;line-height:1.45;color:#e8ecfa;margin:0}
 .fx-premio b{font-size:15px;line-height:1.3}
 .fx-premio .fx-cod{justify-self:start}
-#mMsg .mbox:has(.fx-premio){max-width:min(780px,94vw)!important;max-height:94vh;overflow:hidden}
+#mMsg .mbox:has(.fx-premio){max-width:min(780px,calc(94 * var(--uw)))!important;max-height:calc(94 * var(--uh));overflow:hidden}
 /* En pantallas verticales: la carta arriba, más pequeña */
-@media (max-aspect-ratio:1/1){.fx-premio{grid-template-columns:1fr;text-align:center;justify-items:center}.fx-premio img{grid-row:auto;height:min(42vh,380px);max-width:80vw}.fx-premio .fx-cod{justify-self:center}#mMsg .mbox:has(.fx-premio){overflow-y:auto}}
+/* v230 · Pantalla vertical (la real, no la girada): la carta arriba, más pequeña. En celular girado sigue lado a lado */
+:root.q620p .fx-premio{grid-template-columns:1fr;text-align:center;justify-items:center}:root.q620p .fx-premio img{grid-row:auto;height:min(calc(42 * var(--uh)),380px);max-width:calc(80 * var(--uw))}:root.q620p .fx-premio .fx-cod{justify-self:center}:root.q620p #mMsg .mbox:has(.fx-premio){overflow-y:auto}
+:root.h520 .fx-premio p{font-size:13.5px;line-height:1.35}:root.h520 .fx-premio{row-gap:8px}:root.h520 .fx-premio img{height:calc(58 * var(--uh))}:root.h520 #mMsg .mbox:has(.fx-premio){padding:12px 14px}
 /* v195 · Cajas de sobres */
 .td-caja{display:flex;flex-direction:column;gap:5px;font-size:12.5px;color:var(--muted);text-align:left;padding:7px 8px;border-radius:9px;background:rgba(2,6,20,.55);border:1px solid var(--line)}
 .td-caja .cj-l{display:flex;justify-content:space-between;gap:6px;align-items:center}

@@ -548,6 +548,8 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 .sf{color:var(--orange)}.sr{color:var(--ac)}.sc{color:var(--red)}
 .bc .cen-badge{position:absolute;right:-3%;top:34%;z-index:6;min-width:calc(var(--cw) * .36);height:calc(var(--cw) * .36);padding:0 2px;box-sizing:border-box;border-radius:999px;display:flex;align-items:center;justify-content:center;gap:1px;background:radial-gradient(circle at 35% 30%,#b44dff,#6a12b8 55%,#2e0552);border:2px solid #ffd6ff;opacity:1;color:#fff;font-family:'Orbitron',sans-serif;font-weight:900;font-size:max(9px,calc(var(--cw) * .2));line-height:1;text-shadow:0 1px 2px #000;box-shadow:0 0 8px 2px rgba(190,90,255,.85);animation:cenPulse 1.6s ease-in-out infinite;pointer-events:none}
 .bc .cen-badge small{font-size:.6em;opacity:.9}
+.bc .ctr-badge{position:absolute;left:-3%;top:34%;z-index:6;min-width:calc(var(--cw) * .36);height:calc(var(--cw) * .36);padding:0 2px;box-sizing:border-box;border-radius:999px;display:flex;align-items:center;justify-content:center;gap:1px;background:radial-gradient(circle at 35% 30%,#7fe3ff,#1488b8 55%,#063a55);border:2px solid #d8f7ff;color:#fff;font-family:'Orbitron',sans-serif;font-weight:900;font-size:max(9px,calc(var(--cw) * .2));line-height:1;text-shadow:0 1px 2px #000;box-shadow:0 0 8px 2px rgba(80,200,255,.75);pointer-events:none}
+.bc .ctr-badge small{font-size:.6em;opacity:.9}
 @keyframes cenPulse{0%,100%{box-shadow:0 0 6px 1px rgba(190,90,255,.7)}50%{box-shadow:0 0 12px 4px rgba(210,120,255,1)}}
 .bc .rest-tag{position:absolute;top:0;left:0;right:0;text-align:center;font-family:'Orbitron',sans-serif;font-size:max(5px,calc(var(--cw) * .11));background:rgba(255,77,109,.8);color:#fff;padding:1px}
 .bc .zlbl{font-family:'Orbitron',sans-serif;font-size:max(5px,calc(var(--cw) * .1));letter-spacing:.3px;color:rgba(255,255,255,.2);text-align:center;line-height:1.4}
@@ -1721,7 +1723,7 @@ async function loadData(onProgress){
       img, imgMin:c.imgMin?resolveImg(minBase||base,c.imgMin):(minBase&&c.img&&!/^(https?:|data:|\/|\.\/)/.test(c.img)?minBase+c.img:img),
       gama:c.gama??0, esp:c.llamadoEspecial||null, subtipo:c.subtipo||'normal', colocar:c.colocar||null, sustituto:c.sustitutoAmalgama||null, noNormal:!!c.noNormal, noEspecial:!!c.noEspecial, soloPor:c.soloPor||null, colocarApoyoRival:c.colocarApoyoRival||0, faseCombate:!!c.faseCombate, sectorTurnos:c.sectorTurnos||0, soloPorValor:c.soloPorValor??null, costoColocar:c.costoColocar||null,
       invitado:!!c.invitado, dios:!!c.dios, proto:!!c.prototipo, soloResp:!!c.soloRespuesta, noNeg:!!c.noNegable, noNegLlamado:!!c.noNegableLlamado, boss:!!c.boss, costoNegar:c.costoNegar||0, soloPorNombre:c.soloPorNombre||null, soloOrigen:c.soloOrigen||null, soloPorSi:!!c.soloPorSi, hab:(c.habilidades||[]).map(h=>String(h).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase()),
-      eff:c.texto||'', efectos:Array.isArray(c.efectos)?c.efectos:[], tester:!!c.tester, nx:c.nombreTambien||''
+      eff:c.texto||'', efectos:Array.isArray(c.efectos)?c.efectos:[], tester:!!c.tester, nx:c.nombreTambien||'', ctrOk:!!c.contadores
     };
   });
   REV=resolveImg(base,(DATA.assets||{}).reverso);
@@ -1937,6 +1939,7 @@ function confAbajo(o,cid){if(!G||!cid)return;(G[o].abajo=G[o].abajo||[]).push(ci
 function confAbajoDesdeConf(cid){for(const o of ['player','cpu']){const i=G[o].conf.lastIndexOf(cid);if(i>=0){G[o].conf.splice(i,1);confAbajo(o,cid);return o;}}return null;}
 function marcaDestruida(o,cid,how){if(G&&cid)(G._destrQ=G._destrQ||[]).push([o,cid,how||'efecto']);}
 async function procDestrQ(){
+  await drenarExtraSale();
   while(G&&!G.over&&G._destrQ&&G._destrQ.length){
     const [o,cid,how]=G._destrQ.shift();
     // Aurora: cada carta destruida fortalece a los Herederos del Fuego de su controlador
@@ -2110,7 +2113,7 @@ function pjExtraOn(o,k){const sd=k===4?'left':k===5?'right':null;return !!sd&&!!
 function limpiaPjExtra(){
   ['player','cpu'].forEach(o=>[4,5].forEach(k=>{
     const p=G[o].pj[k];
-    if(p&&!p.zona&&!zonasPJ(o)[k]&&!pjExtraOn(o,k)){leaveField(o,k,'mictlan');marcaDestruida(o,p.id);
+    if(p&&!p.zona&&!zonasPJ(o)[k]&&!pjExtraOn(o,k)){leaveField(o,k,'mictlan');marcaDestruida(o,p.id);(G._extraSale=G._extraSale||[]).push([o,p.id]);
       lg('💥 Sin <b>Sector de Personaje</b>, <b>'+C[p.id].name+'</b>'+who(o)+' es destruido.','var(--red)');}
     if(!G[o].pj[k]&&k in G[o].pj&&!pjExtraOn(o,k)&&!(zonasPJ(o)[k])) G[o].pj[k]=undefined;
   }));
@@ -3177,7 +3180,7 @@ const PASOS={
   },
   async llamado_descuento(ctx,st){
     const o=ctx.o, side=st.otroSector&&ctx.slot!=null?(sideOfSlot(o,ctx.slot)==='left'?'right':'left'):null;
-    const at=almaT(o), list=G[o].hand.map((c,i)=>({z:'mano',i,cid:c})).filter(x=>C[x.cid].type==='pj'&&matchF(x.cid,st.filtro||{})&&C[x.cid].cost-(st.descuento||0)<=at);
+    const at=almaT(o), list=G[o].hand.map((c,i)=>({z:'mano',i,cid:c})).filter(x=>C[x.cid].type==='pj'&&!puedeNormal(o,x.cid)&&matchF(x.cid,st.filtro||{})&&C[x.cid].cost-(st.descuento||0)<=at);
     if(!list.length){lg('✨ No tienes un personaje que puedas pagar.','var(--muted)');return true;}
     const slot=side?freeIn(o,side):freePJ(o);
     if(slot===undefined||slot===-1){lg('✨ Sin zona libre en ese sector.','var(--muted)');return true;}
@@ -4015,7 +4018,7 @@ async function salvarDeSalida(o,i){
 async function sobreviveBatalla(o,i){
   const p=G[o].pj[i]; if(!p) return false;
   const prot=G[o].pj.some((q,j)=>q&&j!==i&&!supp(o,j)&&(C[q.id].efectos||[]).some(e=>e.cuando==='pasivo'&&e.accion==='protege_batalla'&&matchF(p.id,e.filtro||{})));
-  const ok=prot||await salvarDeSalida(o,i);
+  const ok=prot||await jikaSalva(o,i)||await salvarDeSalida(o,i);
   if(ok&&G[o].pj[i]===p){p.cor=Math.max(1,p.cor);p.res=p.resB;}
   return ok;
 }
@@ -4718,7 +4721,9 @@ async function reglasCastigo(by){
   for(const {p} of L){const i=G[by].pj.indexOf(p);if(i<0)continue;leaveField(by,i,'conf');confAbajoDesdeConf(p.id);renderAll();await fireLeave(by,p.id);if(!G||G.over)return;}
 }
 // v225 · Tepostlatakatl: mientras esté en el campo nadie activa APOYOS RÁPIDOS
-function rapidosBloq(){return !!G&&['player','cpu'].some(o=>G[o].pj.some((p,i)=>p&&!supp(o,i)&&hasPassive(p.id,'bloquea_apoyo_rapido')));}
+function tepostBloq(){return !!G&&['player','cpu'].some(o=>G[o].pj.some((p,i)=>p&&!supp(o,i)&&hasPassive(p.id,'bloquea_apoyo_rapido')));}
+function rapidosBloq(cid){return tepostBloq()||(!!cid&&chileyBloq(cid));}   // v231 · Planeta Chiley en la Fase de Combate
+function rapidosWhy(cid){return tepostBloq()?'Tepostlatakatl: nadie puede activar APOYOS RÁPIDOS':'Planeta Chiley: no se activan APOYOS RÁPIDOS en la Fase de Combate (salvo TONALKIN, ONDA, KEN, TONAL o SUPER)';}
 function lazosDe(o){return !!G&&G[o].apoyo.some(a=>a&&a.type==='continuo'&&!a.duenio&&hasPassive(a.card,'lazos_anima'));}
 async function lazosFinTurno(o){
   const k=G[o].apoyo.findIndex(a=>a&&a.type==='continuo'&&!a.duenio&&hasPassive(a.card,'lazos_anima'));
@@ -4809,7 +4814,7 @@ Object.assign(PASOS,{
     const n=G[o].pj.filter(p=>p&&nx(p.id)).length+G[o].apoyo.filter(a=>a&&nx(a.card)).length+['left','right'].filter(k=>G[o].sect[k]&&nx(G[o].sect[k].card||G[o].sect[k])).length+(G[o].arena&&nx(G[o].arena.card||G[o].arena)?1:0);
     if(!n) return true;
     const r=opp(o);
-    if(hurt(r,n,'efecto')){lg('👑 <b>'+C[ctx.cid].name+'</b>: '+(r==='player'?'pierdes':'la CPU pierde')+' <b>'+n+'</b> corazón(es) por las cartas NEXOTLAN en su campo.','var(--red)');playSound('damage');}
+    if(hurt(r,n,'efecto')){lg('👑 <b>'+C[ctx.cid].name+'</b>: '+(r==='player'?'pierdes':'la CPU pierde')+' <b>'+n+'</b> corazón(es) por las cartas NEXOTLAN en '+(o==='player'?'tu':'su')+' campo.','var(--red)');playSound('damage');}
     return true;
   },
   // v226 · Vellond Omega vencido: destruye cartas del rival = cartas NEXOTLAN en tu Mictlán
@@ -5090,6 +5095,11 @@ function condWhy(o,cid,cond,src){
   if(cond.nexoMin){const P=G[o];const n=P.pj.filter(p=>p&&matchF(p.id,{nombreIncluye:'NEXOTLAN'})).length+(P.arena&&matchF(P.arena,{nombreIncluye:'NEXOTLAN'})?1:0)+P.apoyo.filter(a=>a&&matchF(a.card,{nombreIncluye:'NEXOTLAN'})).length+P.mictlan.filter(c=>matchF(c,{nombreIncluye:'NEXOTLAN'})).length;if(n<cond.nexoMin)return 'Necesitas '+cond.nexoMin+' cartas NEXOTLAN en tu campo o Mictlán (tienes '+n+')';}
   if(cond.almasCampoMin&&almasActivas('player')+almasActivas('cpu')<cond.almasCampoMin) return 'Se necesitan '+cond.almasCampoMin+' ALMAS activas en el campo';
   if(cond.pjCampoMin&&G.player.pj.filter(Boolean).length+G.cpu.pj.filter(Boolean).length<cond.pjCampoMin) return 'Se necesitan '+cond.pjCampoMin+' personajes en el campo';
+  if(cond.tkVencidoTurno&&!(G.tkVencido&&G.tkVencido[o]===turnKey())) return 'Ningún PERSONAJE TONALKIN fue vencido y enviado a tu Mictlán este turno';
+  if(cond.chilayaSuper&&!tkPrincesas(o).length) return 'Necesitas a "Chilaya, Princesa Tonalkin" en tu campo con 2 o más CONTADORES DE ALMA';
+  if(cond.ondaVitalCosto&&G[o].hand.filter(c=>matchF(c,{tipo:'pj',nombreIncluye:'TONALKIN'})).length<2&&ctrCampo(o)<4) return 'Necesitas 2 PERSONAJES TONALKIN en tu mano o 4 CONTADORES DE ALMA en tu campo';
+  if(cond.baMin&&G[o].ba.length<cond.baMin) return 'Tu BA está vacía';
+  if(cond.tonalKenRetorno&&!tkKenCostos(o).length) return 'Necesitas un PERSONAJE TONALKIN en tu campo, mano o Mictlán para confinar';
   if(cond.almasPropiasMin&&almasActivas(o)<cond.almasPropiasMin) return 'Necesitas '+cond.almasPropiasMin+' ALMAS activas';
   if(cond.arenaPropia&&G[o].arena!==cond.arenaPropia) return 'Necesitas '+(C[cond.arenaPropia]?C[cond.arenaPropia].name:'esa ARENA')+' activa en tu lado';
   if(cond.rivalMasCor&&!(G[opp(o)].hp>G[o].hp)) return 'Tu adversario no tiene más corazones que tú';
@@ -5138,6 +5148,7 @@ function effWhy(o,cid,e,idx,src){
   if(src&&src.zone==='mictlan'&&mictlanCerrado()) return 'El Mictlán está cerrado (ARENA Mictlán)';
   if(src&&src.zone==='campo'&&src.slot!=null&&supp(o,src.slot)) return 'Habilidades negadas'+(G[o].pj[src.slot]&&G[o].pj[src.slot].neg?' este turno':' por '+suppPor(o,src.slot));
   if(e.limite==='turno'&&G.used[o][effKey(cid,idx)]) return 'Ya lo usaste este turno';
+  if(src&&src.zone==='mano'&&esDescarte(e)&&chileyBloq(cid)) return 'Planeta Chiley: no se activan habilidades por descarte en la Fase de Combate';
   if(e.limite==='partida'&&G.usedGame[o][effKey(cid,idx)]) return 'Solo se puede usar una vez por partida';
   if(e.limiteNombre&&G.used[o]['ln:'+e.limiteNombre]) return 'Ya usaste esta habilidad este turno';
   if(src&&src.zone==='mictlan'&&isChar(cid)&&graceActiva()) return 'Negada por Grace Omay (personajes en el Mictlán)';
@@ -5307,7 +5318,7 @@ function responsesFor(r,ev){
     if(seen.has(cid)) continue; seen.add(cid);
     const c=C[cid];
     if(c.type==='apoyo'&&errBloqApoyo(r)) continue;
-    if(c.type==='apoyo'&&c.subtipo==='rapido'&&rapidosBloq()) continue;   // v225 · Tepostlatakatl
+    if(c.type==='apoyo'&&c.subtipo==='rapido'&&rapidosBloq(cid)) continue;   // v225 · Tepostlatakatl / v231 · Chiley
     for(const e of c.efectos||[]){
       if(e.pendiente) continue;
       if(e.cuando==='respuesta'&&e.accion==='negar_confinar'&&canNeg&&freeApo(r)!==-1)
@@ -5364,8 +5375,8 @@ function responsesFor(r,ev){
     }
   }
   // v224 · APOYOS RÁPIDOS: se pueden activar en respuesta a lo que haga el rival (en su turno o en una cadena)
-  if(ev.o!==r&&!errBloqApoyo(r)&&!rapidosBloq()) for(const cid of new Set(G[r].hand)){
-    const c=C[cid]; if(c.type!=='apoyo'||c.subtipo!=='rapido'||out.some(x=>x.rapCid===cid)) continue;
+  if(ev.o!==r&&!errBloqApoyo(r)&&!tepostBloq()) for(const cid of new Set(G[r].hand)){
+    const c=C[cid]; if(c.type!=='apoyo'||c.subtipo!=='rapido'||out.some(x=>x.rapCid===cid)||rapidosBloq(cid)) continue;
     const effs=activarEff(cid).filter(x=>!x.e.pendiente); if(!effs.length) continue;
     if(effs.some(x=>(x.e.pasos||[]).some(p=>p.accion==='destruir_sector_arena'))&&tocaSectorArena) continue;   // ya está arriba (Cataclismo)
     if(c.faseCombate&&G.phase!=='combat') continue;
@@ -5929,6 +5940,7 @@ function auraBonus(o){
       if(e.cond==='comoArena'&&!(s.slot==null&&!s.side)) continue;
       if(e.cond==='arenaPropia'&&!(P.arena&&matchF(P.arena,e.condFiltro||{}))) continue;
       if(s.slot!=null&&e.cond==='otroPropio'&&!P.pj.some((q,j)=>q&&j!==s.slot&&matchF(q.id,e.condFiltro))) continue;
+      if(s.slot!=null&&e.cond==='otroTonalPeleo'&&!otroTonalPeleo(o,P.pj[s.slot])) continue;
       if(s.slot!=null&&e.cond==='otroEnSector'&&!mismoSector(o,s.slot,e.condFiltro).length) continue;
       const tgt=[];
       P.pj.forEach((p,i)=>{
@@ -6003,7 +6015,7 @@ function equipStats(o,a){
 function equiposDe(o,p){return G[o].apoyo.filter(a=>a&&a.type==='equipo'&&a.tgt===p);}
 function applyMods(){
   if(!G) return;
-  limpiaApoExtra(); syncZonasPJ(); limpiaPjExtra(); despiertaClanes(); necroSinPJ();
+  limpiaApoExtra(); syncZonasPJ(); limpiaPjExtra(); despiertaClanes(); necroSinPJ(); tkKenVigilar();
   ['player','cpu'].forEach(o=>{
     const B=auraBonus(o);
     G[o].pj.forEach((p,i)=>{
@@ -6034,10 +6046,12 @@ async function useAbility(o,cid,e,i,src){
   if(e.sinAnuncio||await announce(o,cid,'habilidad',whereOf(src),{anade:anadeORoba(accs),accs})) await runEffect(o,cid,e,i,src);
   else await pagarCostosEf(o,cid,e);   // v82 · negada: su costo se paga igual
   renderAll();
+  if(G&&!G.over&&G._tkKenSale&&G._tkKenSale.length){await tkKenSalidas();renderAll();}
 }
 // Llamar desde la mano (normal o VALENTÍA), anunciándolo primero
 async function callFromHand(o,cid,opt){
   opt=opt||{};
+  if(opt.via==='normal'&&puedeNormal(o,cid)){lg('🚫 <b>'+C[cid].name+'</b>: '+puedeNormal(o,cid)+'.','var(--purple)');renderAll();return false;}   // v231
   if(opt.via==='normal'&&!opt.sinCosto&&reglasOn()&&!await reglasPagar(o,cid)){renderAll();return false;}   // v225 · el sacrificio se paga antes del llamado
   if(!await announce(o,cid,'llamado',{z:'mano'},{especial:opt.via!=='normal'})){
     if(opt.via==='normal'&&!opt.sinCosto){G.callsLeft--;lg('⛓ El llamado fue negado: cuenta como uno de tus llamados del turno.','var(--muted)');}   // v82 · el llamado ya se usó
@@ -6110,9 +6124,9 @@ function leaveField(o,slot,dest){
   if(!p) return null;
   G[o].pj[slot]=null;
   // Vellond: si uno de los personajes ENLAZADOS deja el campo, se destruyen ambos
-  if(p.enl){const q=p.enl;p.enl=null;q.enl=null;const L=locate(q);if(L){G[L.o].pj[L.i]=null;G[q.duenio||L.o].mictlan.push(q.id);marcaDestruida(L.o,q.id);lg('🔗 <b>'+C[q.id].name+'</b>'+who(L.o)+' estaba ENLAZADO y también es destruido.','var(--red)');}}
+  if(p.enl){const q=p.enl;p.enl=null;q.enl=null;const L=locate(q);if(L){G[L.o].pj[L.i]=null;G[q.duenio||L.o].mictlan.push(q.id);marcaDestruida(L.o,q.id);lg('🔗 <b>'+C[q.id].name+'</b>'+who(L.o)+' estaba ENLAZADO y también es destruido.','var(--red)');(G._extraSale=G._extraSale||[]).push([L.o,q.id]);}}
   // La Hechicera de los Muertos: su personaje zombificado se destruye
-  G[o].pj.forEach((q,j)=>{if(q&&q.ligado===p){G[o].pj[j]=null;G[q.duenio||o].mictlan.push(q.id);lg('💀 <b>'+C[q.id].name+'</b>'+who(o)+' (zombificado) se destruye: la Hechicera dejó el campo.','var(--red)');}});
+  G[o].pj.forEach((q,j)=>{if(q&&q.ligado===p){G[o].pj[j]=null;G[q.duenio||o].mictlan.push(q.id);lg('💀 <b>'+C[q.id].name+'</b>'+who(o)+' (zombificado) se destruye: la Hechicera dejó el campo.','var(--red)');(G._extraSale=G._extraSale||[]).push([o,q.id]);}});
   // Equipos ligados a este personaje
   G[o].apoyo.forEach((a,k)=>{
     if(a&&a.type==='equipo'&&a.tgt2===p){a.tgt2=null;return;}
@@ -6145,7 +6159,13 @@ async function fireLeave(o,cid){
   if(G&&G._mudoS&&G._mudoS[cid]>0){G._mudoS[cid]--;renderAll();return true;}
   await offerAliadoSale(o,cid,true);   // v226 · los que responden ANTES de su efecto de salida (Vellond Omega antes de la Fase Ofrenda de Vellond)
   if(!G||G.over) return false;
-  await runTrigger(o,cid,'al_salir',{zone:'fuera'});renderAll();await offerAliadoSale(o,cid,false);return false;}
+  await runTrigger(o,cid,'al_salir',{zone:'fuera'});renderAll();await offerAliadoSale(o,cid,false);
+  await drenarExtraSale();return false;}
+// v231 · cartas que salieron del campo como consecuencia de otra (ENLAZADOS, zombificados): también disparan sus salidas
+async function drenarExtraSale(){
+  await tkKenSalidas();
+  while(G&&!G.over&&G._extraSale&&G._extraSale.length){const [eo,ec]=G._extraSale.shift();await fireLeave(eo,ec);}
+}
 async function offerAliadoSale(o,cidSale,antes){
   if(!G||G.over) return;
   const vistos=new Set();
@@ -6774,7 +6794,7 @@ function checkDrawDone(){
 // ════════════════════════════════════
 // PANEL DE DETALLE (izquierda)
 // ════════════════════════════════════
-const KW_NOM={'DOBLE BATALLA':'DOBLE BATALLA',DESATADO:'DESATADO',COSMO:'COSMO',EMBOSCADA:'EMBOSCADA',HEROISMO:'HEROÍSMO',BRUTALIDAD:'BRUTALIDAD',VALENTIA:'VALENTÍA',BASTION:'BASTIÓN',ELITE:'ÉLITE','PRIMER DANO':'PRIMER DAÑO',GUARDA:'GUARDA',BARBARIE:'BARBARIE',INMATERIAL:'INMATERIAL'};
+const KW_NOM={'DOBLE BATALLA':'DOBLE BATALLA',DESATADO:'DESATADO',COSMO:'COSMO',EMBOSCADA:'EMBOSCADA',HEROISMO:'HEROÍSMO',BRUTALIDAD:'BRUTALIDAD',VALENTIA:'VALENTÍA',BASTION:'BASTIÓN',ELITE:'ÉLITE','PRIMER DANO':'PRIMER DAÑO',GUARDA:'GUARDA',BARBARIE:'BARBARIE',INMATERIAL:'INMATERIAL',RESURGIR:'RESURGIR'};
 function showDetail(cid,opt){
   opt=opt||{};
   const el=document.getElementById('detail');
@@ -6792,6 +6812,8 @@ function showDetail(cid,opt){
     const sg=n=>(n>0?'+':'')+n;
     if(live&&(live.bF||live.bR||live.bC||live.bI)) h+='<div class="dt-text" style="color:'+((live.bF||0)+(live.bR||0)<0?'var(--red)':'var(--green)')+'">✨ Bonos activos: '+(live.bF?sg(live.bF)+'⚔ ':'')+(live.bR?sg(live.bR)+'🛡 ':'')+(live.bC?sg(live.bC)+'❤ ':'')+(live.bI?sg(live.bI)+' IMP':'')+'</div>';
     const L=live&&locate(live);
+    if(live&&live.ctr>0) h+='<div class="dt-text" style="color:#7fe3ff;font-weight:bold">◆ Contadores de Alma: '+live.ctr+'</div>';
+    if(live&&live.tk3) h+='<div class="dt-text" style="color:#ffe066">🔥 Tonal-Ken: FUERZA y RESISTENCIA triplicadas (pierde 1 VIDA al final de su próximo turno)</div>';
     if(live&&live.cen>0) h+='<div class="dt-text" style="color:#d68cff;font-weight:bold">☯ Contadores de Energía Negativa: '+live.cen+' <span style="color:var(--muted);font-weight:normal">(si se retira el último, el personaje es destruido)</span></div>';
     if(L){
       const eq=G[L.o].apoyo.filter(a=>a&&a.type==='equipo'&&(a.tgt===live||a.host===live));
@@ -6985,7 +7007,7 @@ function vinculosSync(){
     if(G[o].apoyo.some(a=>a&&a.amuletoUid===p.amuletoUid)) return;
     delete p.amuletoUid;
     const id=leaveField(o,i,'conf'); if(!id) return;
-    marcaDestruida(o,id);
+    marcaDestruida(o,id);(G._extraSale=G._extraSale||[]).push([o,id]);
     lg('💀 <b>Amuleto del Mictlán</b> dejó el campo: <b>'+C[id].name+'</b>'+who(o)+' es destruido y confinado.','var(--purple)');
   }));
 }
@@ -7030,6 +7052,201 @@ async function respAmenaza(r,ev,cid){
   playSound('call'); renderAll();
 }
 {const _buscar=PASOS.buscar;PASOS.buscar=async function(ctx,st){const h=G[ctx.o].hand.length;const r=await _buscar.call(this,ctx,st);if(st&&st.guardar)ctx.vars[st.guardar]=Math.max(0,G[ctx.o].hand.length-h);return r;};}
+// ════════════════════════════════════
+// v231 · TONALKIN (expansión TEST): Contadores de Alma en personajes, RESURGIR, Jika, Tonal-Ken, Planeta Chiley
+// ════════════════════════════════════
+const TK_F={tipo:'pj',nombreIncluye:'TONALKIN'};
+function esTk(cid){return !!cid&&matchF(cid,{nombreIncluye:'TONALKIN'});}
+function ctrCampo(o){return G[o].pj.reduce((t,p)=>t+(p&&p.ctr||0),0)+contAlma(o);}
+function ponerCtr(o,p,n){if(!p||!n)return;p.ctr=(p.ctr||0)+n;lg('🔷 <b>'+C[p.id].name+'</b>'+who(o)+' recibe '+n+' CONTADOR(ES) DE ALMA (total '+p.ctr+').','#7fe3ff');}
+function tkPrincesas(o){return G[o].pj.map((p,i)=>p&&p.id==='tk_chilaya'&&(p.ctr||0)>=2&&!p.ixRival?{z:'campo',i,cid:p.id,o}:null).filter(Boolean);}
+function tkKenCostos(o){const L=[];G[o].pj.forEach((p,i)=>{if(p&&!p.ixRival&&matchF(p.id,TK_F))L.push({z:'campo',i,cid:p.id,o});});
+  G[o].hand.forEach((c,i)=>{if(matchF(c,TK_F))L.push({z:'mano',i,cid:c,o});});G[o].mictlan.forEach((c,i)=>{if(matchF(c,TK_F))L.push({z:'mictlan',i,cid:c,o});});return L;}
+function enCombate(){return !!G&&(G.phase==='combat'||(G.active==='cpu'&&!!G.cpuCombate));}
+function chileyActiva(){return !!G&&['player','cpu'].some(o=>G[o].arena&&hasPassive(G[o].arena,'chiley_bloqueo'));}
+function chileyExento(cid){return matchF(cid,{nombreIncluye:['TONALKIN','ONDA','KEN','TONAL','SUPER']});}
+function chileyBloq(cid){return enCombate()&&chileyActiva()&&!chileyExento(cid);}
+function esDescarte(e){const j=JSON.stringify(e||{});return /descartar_esta|"costo":"descartar"|"descartarEsta":true/.test(j);}
+function otroTonalPeleo(o,p){const L=G._peleo&&G._peleo.k===turnKey()?G._peleo.L:[];return !!p&&L.some(x=>x.o===o&&x.p!==p&&esTk(x.id));}
+function marcarPeleo(o,p){if(!p)return;if(!G._peleo||G._peleo.k!==turnKey())G._peleo={k:turnKey(),L:[]};G._peleo.L.push({o,p,id:p.id});}
+// Jika, Justiciera Tonalkin: en el turno rival, un TONALKIN que iba a ser vencido retira 1 contador y sobrevive
+async function jikaSalva(o,i){
+  const p=G[o].pj[i];
+  if(!p||G.active===o||!esTk(p.id)||!((p.ctr||0)>0)) return false;
+  const j=G[o].pj.findIndex((q,k)=>q&&!supp(o,k)&&hasPassive(q.id,'jika_justicia'));
+  if(j<0) return false;
+  let yes=o==='cpu';
+  if(esPersona(o)) yes=(await preguntaDe(o,'⚖ '+C[G[o].pj[j].id].name.toUpperCase()+'<br><b>'+C[p.id].name+'</b> va a ser vencido. ¿Retiras 1 CONTADOR DE ALMA ('+p.ctr+') para que no sea vencido ni destruido?',['✅ Sí','✖ No']))===0;
+  if(!yes||G[o].pj[i]!==p) return false;
+  p.ctr--;
+  lg('⚖ <b>'+C[G[o].pj[j].id].name+'</b>'+who(o)+': <b>'+C[p.id].name+'</b> retira 1 CONTADOR DE ALMA y no es vencido.','#7fe3ff');
+  return true;
+}
+// RESURGIR: la 1ª vez que es vencido en batalla y va al Mictlán, regresa al final del turno
+function tkTrasVencido(s,cid){
+  if(!G[s].mictlan.includes(cid)) return;
+  if(esTk(cid)&&isChar(cid)){G.tkVencido=G.tkVencido||{};G.tkVencido[s]=turnKey();}
+  if(!hasKw(cid,'RESURGIR')) return;
+  G.resurgio=G.resurgio||{};const k=s+':'+cid;
+  if(G.resurgio[k]) return;
+  G.resurgio[k]=true;(G.resurgirQ=G.resurgirQ||[]).push({o:s,cid});
+  lg('🌅 <b>RESURGIR</b>: <b>'+C[cid].name+'</b>'+who(s)+' regresará al final del turno.','#7fe3ff');
+}
+async function tkFinTurno(o){
+  G.eotN=G.eotN||{player:0,cpu:0};G.eotN[o]++;
+  G.cpuCombate=false;
+  // RESURGIR
+  if(G.resurgirQ&&G.resurgirQ.length){const L=G.resurgirQ;G.resurgirQ=[];
+    for(const x of L){if(!G||G.over)return;const i=G[x.o].mictlan.lastIndexOf(x.cid);
+      if(i<0){continue;}
+      if(freePJ(x.o)===-1||espBloqueado()||clioActiva()||mictlanCerrado()){lg('🌅 RESURGIR: <b>'+C[x.cid].name+'</b>'+who(x.o)+' no puede regresar (sin zona libre o llamados especiales bloqueados).','var(--muted)');continue;}
+      if(!await announce(x.o,x.cid,'llamado',{z:'mictlan'},{especial:true})) continue;
+      const k=G[x.o].mictlan.lastIndexOf(x.cid);if(k<0||freePJ(x.o)===-1)continue;
+      G[x.o].mictlan.splice(k,1);
+      await placeChar(x.o,x.cid,{via:'especial',from:'el Mictlán (RESURGIR)',por:x.cid,desde:'mictlan'});
+      const q=G[x.o].pj.find(p=>p&&p.id===x.cid&&p.turnoLlamado===turnKey()&&!p.resurgio);
+      if(q){q.resurgio=true;ponerCtr(x.o,q,1);q.fue+=2;q.res+=2;q.resB+=2;lg('🌅 <b>'+C[q.id].name+'</b>'+who(x.o)+' RESURGE con +2 FUERZA y RESISTENCIA.','#ffe066');}
+      renderAll();}}
+  // Tonal-Ken (salida): termina el triple y pierde 1 VIDA al final de su próximo turno
+  for(let i=0;i<PJ_N;i++){const p=G[o].pj[i];if(!p||!p.tk3||p.tk3.fin!==G.eotN[o])continue;
+    const t=p.tk3;delete p.tk3;p.fue-=t.f;p.res=Math.max(1,p.res-t.r);p.resB=Math.max(1,p.resB-t.r);p.cor-=1;
+    lg('🔥 <b>Tonal-Ken</b>: termina el TRIPLE de <b>'+C[p.id].name+'</b>'+who(o)+' y pierde 1 VIDA.','var(--orange)');
+    if(p.cor<=0){leaveField(o,i,'mictlan');marcaDestruida(o,p.id);lg('💥 <b>'+C[p.id].name+'</b>'+who(o)+' se queda sin vidas y es destruido.','var(--red)');renderAll();await fireLeave(o,p.id);await procDestrQ();if(!G||G.over)return;}}
+}
+// Tonal-Ken deja el campo: se detecta comparando las copias activas en cada recálculo
+function tkKenVigilar(){
+  if(!G) return;
+  const ahora=[];['player','cpu'].forEach(o=>G[o].apoyo.forEach(a=>{if(a&&a.type==='continuo'&&a.card==='tk_tonal_ken')ahora.push({o:a.duenio||o,a});}));
+  (G._tkKen||[]).forEach(x=>{if(!ahora.some(y=>y.a===x.a))(G._tkKenSale=G._tkKenSale||[]).push(x.o);});
+  G._tkKen=ahora;
+}
+async function tkKenSalidas(){
+  tkKenVigilar();
+  while(G&&!G.over&&G._tkKenSale&&G._tkKenSale.length){
+    const o=G._tkKenSale.shift();
+    const list=G[o].pj.map((p,i)=>p&&matchF(p.id,TK_F)&&!p.tk3?{z:'campo',i,cid:p.id,o}:null).filter(Boolean);
+    if(!list.length){lg('🔥 <b>Tonal-Ken</b>'+who(o)+' dejó el campo, pero no hay PERSONAJES TONALKIN para triplicar.','var(--muted)');continue;}
+    const [x]=await choose({o,cid:'tk_tonal_ken',vars:{},interactive:o==='player'},list,1,{sub:'Tonal-Ken dejó el campo: elige el TONALKIN que TRIPLICA su FUERZA y RESISTENCIA',min:1,score:y=>SCORE(y.cid)+eF(G[o].pj[y.i])});
+    const p=x&&G[o].pj[x.i]; if(!p) continue;
+    const f=2*eF(p), r=2*eR(p);p.fue+=f;p.res+=r;p.resB+=r;
+    p.tk3={f,r,fin:(G.eotN?G.eotN[o]:0)+(G.active===o?2:1)};
+    lg('🔥 <b>Tonal-Ken</b>'+who(o)+' dejó el campo: <b>'+C[p.id].name+'</b> TRIPLICA su FUERZA y RESISTENCIA (⚔'+eF(p)+' 🛡'+eR(p)+') hasta el final de tu próximo turno; entonces perderá 1 VIDA.','#ffe066');
+    renderAll();
+  }
+}
+Object.assign(PASOS,{
+  // Frijoles del Don Aislado: +1 VIDA a tus TONALKIN de un SECTOR y +2 contadores a uno de ellos
+  async frijoles_tonalkin(ctx){
+    const o=ctx.o, lados=['left','right'].filter(sd=>slotsOf(o,sd).some(i=>G[o].pj[i]&&matchF(G[o].pj[i].id,TK_F)));
+    if(!lados.length){lg('🫘 No tienes PERSONAJES TONALKIN en el campo.','var(--muted)');return true;}
+    let sd=lados[0];
+    const pts=x=>slotsOf(o,x).filter(i=>G[o].pj[i]&&matchF(G[o].pj[i].id,TK_F)).length;
+    if(lados.length>1){
+      if(esPersona(o)){const r=await preguntaDe(o,'🫘 '+C[ctx.cid].name.toUpperCase()+'<br>¿En qué SECTOR están los TONALKIN que reciben +1 VIDA?',lados.map(x=>(x==='left'?'⬅ Sector IZQUIERDO':'➡ Sector DERECHO')+' ('+pts(x)+')'));sd=lados[r]||lados[0];}
+      else sd=pts('left')>=pts('right')?'left':'right';
+    }
+    const idx=slotsOf(o,sd).filter(i=>G[o].pj[i]&&matchF(G[o].pj[i].id,TK_F));
+    idx.forEach(i=>{G[o].pj[i].cor+=1;});
+    lg('🫘 <b>'+C[ctx.cid].name+'</b>'+who(o)+': '+idx.length+' TONALKIN del sector '+(sd==='left'?'IZQ':'DER')+' ganan +1 VIDA.','#ffe066');
+    const list=idx.map(i=>({z:'campo',i,cid:G[o].pj[i].id,o}));
+    const [x]=await choose(ctx,list,1,{sub:'Elige el TONALKIN que recibe +2 CONTADORES DE ALMA',min:1,score:y=>(y.cid==='tk_chilaya'?50:0)+SCORE(y.cid)});
+    if(x&&G[o].pj[x.i]) ponerCtr(o,G[o].pj[x.i],2);
+    return true;
+  },
+  // Chilaya, Super Tonalkin: retira 2 contadores de la Princesa, la envía al Mictlán y toma su lugar
+  async chilaya_super(ctx){
+    const o=ctx.o, hi=G[o].hand.indexOf(ctx.cid); if(hi<0) return false;
+    const list=tkPrincesas(o); if(!list.length) return false;
+    const [x]=await choose(ctx,list,1,{sub:'Elige a "Chilaya, Princesa Tonalkin" (se retiran 2 CONTADORES DE ALMA)',min:1,score:y=>G[o].pj[y.i].ctr||0});
+    const pr=x&&G[o].pj[x.i]; if(!pr) return false;
+    const resto=Math.max(0,(pr.ctr||0)-2), sd=sideOfSlot(o,x.i);
+    pr.ctr=resto;
+    lg('🔷 <b>'+C[pr.id].name+'</b>'+who(o)+': retira 2 CONTADORES DE ALMA y va al Mictlán.','#7fe3ff');
+    leaveField(o,x.i,'mictlan');renderAll();await fireLeave(o,pr.id);
+    if(!G||G.over) return false;
+    const neg=!await announce(o,ctx.cid,'llamado',{z:'mano'},{especial:true});
+    if(neg) return false;
+    const k=G[o].hand.indexOf(ctx.cid); if(k<0) return false;
+    const slot=freeIn(o,sd);
+    if(slot===undefined){lg('⚠ Sin zona libre en ese SECTOR.','var(--red)');return false;}
+    G[o].hand.splice(k,1);
+    await placeChar(o,ctx.cid,{via:'especial',slot,from:'la mano (transformación)',por:ctx.cid});
+    const q=G[o].pj[slot];
+    if(q&&q.id===ctx.cid&&resto) ponerCtr(o,q,resto);
+    showBanner(o==='player'?'player':'end','SUPER TONALKIN',C[ctx.cid].name.split(',')[0].toUpperCase(),1500);
+    return true;
+  },
+  // Gran Onda Vital: confina 2 TONALKIN de tu mano o paga 4 contadores; el rival sacrifica todos sus personajes
+  async onda_vital(ctx){
+    const o=ctx.o, r=opp(o);
+    const mano=G[o].hand.map((c,i)=>matchF(c,TK_F)?{z:'mano',i,cid:c}:null).filter(Boolean), hayM=mano.length>=2, hayC=ctrCampo(o)>=4;
+    if(!hayM&&!hayC) return false;
+    let usarC=hayC&&!hayM;
+    if(hayM&&hayC){
+      if(esPersona(o)){const i=await preguntaDe(o,'🌊 '+C[ctx.cid].name.toUpperCase()+'<br>¿Cómo pagas?',['⛓ Confinar 2 TONALKIN de tu mano','🔷 Pagar 4 CONTADORES DE ALMA']);usarC=i===1;}
+      else usarC=ctrCampo(o)>=6||mano.length<3;
+    }
+    if(usarC){
+      let k=4;
+      const L=G[o].pj.map((p,i)=>p&&p.ctr>0?{z:'campo',i,cid:p.id,o}:null).filter(Boolean);
+      while(k>0&&L.length){
+        const vivos=L.filter(y=>G[o].pj[y.i]&&G[o].pj[y.i].ctr>0); if(!vivos.length) break;
+        const [y]=vivos.length===1?[vivos[0]]:await choose(ctx,vivos,1,{sub:'Retira CONTADORES DE ALMA (faltan '+k+'): elige de qué personaje',min:1,score:z=>-(G[o].pj[z.i].ctr||0)});
+        const p=y&&G[o].pj[y.i]; if(!p) break;
+        const q=Math.min(p.ctr,k);p.ctr-=q;k-=q;
+      }
+      G[o].apoyo.forEach(a=>{if(a&&a.type==='alma'&&a.cont&&k>0){const q=Math.min(a.cont,k);a.cont-=q;k-=q;}});
+      lg('🔷 <b>'+C[ctx.cid].name+'</b>'+who(o)+': paga 4 CONTADORES DE ALMA.','#7fe3ff');
+    } else {
+      const pick=await choose(ctx,mano,2,{sub:'Confina 2 PERSONAJES TONALKIN de tu mano',min:2,score:y=>-SCORE(y.cid)-(['tk_chilaya_super','tk_chilaya'].includes(y.cid)?100:0)});
+      if(!pick||pick.length<2) return false;
+      pick.sort((a,b)=>b.i-a.i).forEach(y=>{const c=G[o].hand.splice(y.i,1)[0];G[o].conf.push(c);});
+      lg('⛓ <b>'+C[ctx.cid].name+'</b>'+who(o)+': confina '+pick.map(y=>'<b>'+C[y.cid].name+'</b>').join(' + ')+' de la mano.','var(--purple)');
+    }
+    const leaves=[];
+    G[r].pj.forEach((p,i)=>{if(p){leaveField(r,i,'mictlan');leaves.push(p.id);}});
+    lg('🌊 <b>GRAN ONDA VITAL</b>: '+(r==='player'?'sacrificas todos tus':'la CPU sacrifica todos sus')+' personajes ('+leaves.length+').','var(--red)');
+    showBanner(o==='player'?'player':'end','GRAN ONDA VITAL',leaves.length+' SACRIFICADO(S)',1500);
+    renderAll();
+    for(const c of leaves){await fireLeave(r,c);if(!G||G.over)return true;}
+    return true;
+  },
+  // Tonal-Ken: el tope de tu BA va al Mictlán; tus TONALKIN ganan FUERZA y RESISTENCIA = su VALOR
+  async tonal_ken(ctx){
+    const o=ctx.o; if(!G[o].ba.length) return false;
+    const c=G[o].ba.shift();G[o].mictlan.push(c);
+    const v=C[c].type==='alma'?(C[c].val||0):0;
+    const tk=G[o].pj.filter(p=>p&&matchF(p.id,TK_F));
+    tk.forEach(p=>tempBuff(p,v,v));
+    lg('🔥 <b>Tonal-Ken</b>'+who(o)+': <b>'+C[c].name+'</b> (valor '+v+') va al Mictlán; '+tk.length+' TONALKIN ganan +'+v+' FUERZA y RESISTENCIA hasta el final del turno.','#ffe066');
+    return true;
+  },
+  // Tonal-Ken en el Mictlán: confina un TONALKIN (campo, mano o Mictlán) y regresa a tu mano
+  async tonal_ken_retorno(ctx){
+    const o=ctx.o, list=tkKenCostos(o); if(!list.length) return false;
+    const [x]=await choose(ctx,list,1,{sub:'Confina un PERSONAJE TONALKIN para regresar Tonal-Ken a tu mano',min:1,score:y=>(y.z==='mictlan'?100:y.z==='mano'?0:-100)-SCORE(y.cid)});
+    if(!x) return false;
+    if(x.z==='campo'){const p=G[o].pj[x.i];if(!p||p.id!==x.cid)return false;leaveField(o,x.i,'conf');lg('⛓ <b>'+C[x.cid].name+'</b>'+who(o)+' es confinado.','var(--purple)');renderAll();await fireLeave(o,x.cid);}
+    else{const arr=x.z==='mano'?G[o].hand:G[o].mictlan;const i=arr[x.i]===x.cid?x.i:arr.lastIndexOf(x.cid);if(i<0)return false;arr.splice(i,1);G[o].conf.push(x.cid);lg('⛓ <b>'+C[x.cid].name+'</b>'+who(o)+' es confinado desde '+(x.z==='mano'?'la mano':'el Mictlán')+'.','var(--purple)');}
+    const k=G[o].mictlan.lastIndexOf(ctx.cid); if(k<0) return true;
+    G[o].mictlan.splice(k,1);G[o].hand.push(ctx.cid);
+    lg('↩ <b>Tonal-Ken</b>'+who(o)+' regresa del Mictlán a la mano.','var(--ac)');
+    return true;
+  },
+  // Planeta Chiley destruida: hasta 2 TONALKIN del Mictlán o Confinamiento regresan a su baraja
+  async chiley_retorno(ctx){
+    const o=ctx.o, list=[];
+    ['mictlan','conf'].forEach(z=>G[o][z].forEach((c,i)=>{if(isChar(c)&&esTk(c))list.push({z,i,cid:c});}));
+    if(!list.length) return true;
+    if(esPersona(o)&&(await preguntaDe(o,'🪐 '+C[ctx.cid].name.toUpperCase()+'<br>¿Retornas hasta 2 PERSONAJES TONALKIN de tu Mictlán o Confinamiento a su baraja?',['✅ Sí','✖ No']))!==0) return true;
+    const pick=await choose(ctx,list,Math.min(2,list.length),{sub:'Elige hasta 2 TONALKIN que regresan a su baraja',min:1,score:y=>SCORE(y.cid)});
+    const nom=[];
+    (pick||[]).sort((a,b)=>b.i-a.i).forEach(y=>{const arr=G[o][y.z];const i=arr[y.i]===y.cid?y.i:arr.lastIndexOf(y.cid);if(i<0)return;arr.splice(i,1);(C[y.cid].type==='amalgama'?G[o].bs:G[o].bp).push(y.cid);nom.push(C[y.cid].name);});
+    sh(G[o].bp);
+    if(nom.length) lg('🪐 <b>'+C[ctx.cid].name+'</b>'+who(o)+': '+nom.map(n=>'<b>'+n+'</b>').join(', ')+' regresan a su baraja.','var(--ac)');
+    return true;
+  }
+});
 Object.assign(PASOS,{
   // Continúa solo si la variable guardada por un paso anterior es > 0 ("si lo haces…")
   async si_var(ctx,st){return (ctx.vars[st.var]||0)>0;},
@@ -7219,7 +7436,7 @@ function pintaPJ(el,o,i){
     el.innerHTML=imgTag(card.id,'ci')
       +'<div class="pj-ov"></div>'
       +(card.agot>0?'<div class="rest-tag" style="background:rgba(255,120,40,.85)">AGOTADO</div>':card.resting?'<div class="rest-tag">'+(card.lock>0?'DESCANSO ×'+(card.lock+1):'DESCANSO')+'</div>':(card.bloq>0?'<div class="rest-tag" style="background:rgba(192,64,255,.85)">🔒 BLOQUEADO</div>':''))
-      +(card.cen?'<div class="cen-badge" title="Contadores de Energía Negativa"><small>☯</small>'+card.cen+'</div>':'')+(supp(o,i)?'<div class="rest-tag" style="top:0;bottom:auto;background:rgba(120,40,160,.9)">⛓ NEGADO</div>':oblivionCtl(o,i)?'<div class="rest-tag" style="top:0;bottom:auto;background:rgba(90,20,170,.92)">🌀 OBLIVION</div>':card.ixRival?'<div class="rest-tag" style="top:0;bottom:auto;background:rgba(160,30,60,.9)">🗡 INFILTRADA</div>':'')
+      +(card.cen?'<div class="cen-badge" title="Contadores de Energía Negativa"><small>☯</small>'+card.cen+'</div>':'')+(card.ctr>0?'<div class="ctr-badge" title="Contadores de Alma"><small>◆</small>'+card.ctr+'</div>':'')+(supp(o,i)?'<div class="rest-tag" style="top:0;bottom:auto;background:rgba(120,40,160,.9)">⛓ NEGADO</div>':oblivionCtl(o,i)?'<div class="rest-tag" style="top:0;bottom:auto;background:rgba(90,20,170,.92)">🌀 OBLIVION</div>':card.ixRival?'<div class="rest-tag" style="top:0;bottom:auto;background:rgba(160,30,60,.9)">🗡 INFILTRADA</div>':'')
       +'<div class="pj-st"><span class="sf">⚔'+eF(card)+'</span><span class="sr">🛡'+eR(card)+'</span><span class="sc">'+'❤'.repeat(Math.max(0,card.cor))+'</span></div>';
     const si=i;
     el.onclick=()=>onBoardPJ(o,si);
@@ -7418,7 +7635,7 @@ function _buildMenuActions(cid,idx,at,card){
     }
     const pend=effs.length&&effs.every(x=>x.e.pendiente);
     const firstWhy=effs.map(x=>effWhy('player',cid,x.e,x.i,{zone:'mano'})).find(w=>w)||'';
-    if(card.subtipo==='rapido'&&rapidosBloq()){acts.push({label:'🔴 Activar',ok:false,why:'Tepostlatakatl: nadie puede activar APOYOS RÁPIDOS',fn:()=>{}});return acts;}
+    if(card.subtipo==='rapido'&&rapidosBloq(cid)){acts.push({label:'🔴 Activar',ok:false,why:rapidosWhy(cid),fn:()=>{}});return acts;}
     const fase=card.faseCombate?G.phase==='combat':card.subtipo==='rapido'?['action','combat'].includes(G.phase):G.phase==='action';   // v224 · uso rápido: Acción o Combate
     const zonaOk=card.colocarApoyoRival?freeApo('cpu')!==-1:freeApoAp('player')!==-1;
     const ok=fase&&!pend&&zonaOk&&!firstWhy;
@@ -7582,6 +7799,7 @@ function doCall(handIdx){
   const cid=G.player.hand[handIdx];
   const card=C[cid];
   const at=almaT('player',cid);
+  {const pn=puedeNormal('player',cid);if(pn){lg('🚫 <b>'+card.name+'</b>: '+pn+'.','var(--purple)');return;}}   // v231
   if(G.callsLeft<=0){lg('⚠ Sin llamados normales.','var(--red)');return;}
   if(reglasOn()){   // v225 · Las Reglas Ancestrales: sin ALMAS, con sacrificios
     if(!reglasPuede('player',cid)){lg('⚖ Las Reglas Ancestrales: necesitas sacrificar '+reglasSac(cid)+' personaje(s) para llamar a '+card.name+'.','var(--red)');return;}
@@ -7626,7 +7844,7 @@ async function doApoyo(handIdx){
 }
 async function activateApoyo(o,handIdx){
   const cid0=G[o].hand[handIdx];
-  if(C[cid0]&&C[cid0].subtipo==='rapido'&&rapidosBloq()){lg('🗿 <b>Tepostlatakatl</b>: nadie puede activar cartas APOYO RÁPIDO.','var(--purple)');return;}
+  if(C[cid0]&&C[cid0].subtipo==='rapido'&&rapidosBloq(cid0)){lg('🚫 '+rapidosWhy(cid0)+'.','var(--purple)');return;}
   if((C[cid0].efectos||[]).some(e=>e.cuando==='pasivo'&&e.accion==='custodio_mano')&&!activarEff(cid0).length) return;
   if(C[cid0].subtipo==='equipo') return activateEquipo(o,cid0);
   if(errBloqApoyo(o)){lg('🦅 <b>Errantes de Phorus</b>: '+(o==='player'?'no puedes':'la CPU no puede')+' activar APOYOS durante este turno.','var(--purple)');return;}
@@ -7880,6 +8098,7 @@ async function battle(o,as,ds){
   const tmpR=[];const bumpR=(p,n)=>{if(n>0){p.res+=n;p.resB+=n;tmpR.push([p,n]);}};
   if(hasPassive(atk.id,'res_en_combate')&&!supp(o,as)){bumpR(atk,3);res.html+='🦅 <b>'+C[atk.id].name+'</b>: +3 RESISTENCIA al atacar.<br>';}
   let dM=0;if(hasPassive(atk.id,'boost_ataque_mictlan')&&!supp(o,as)){dM=G[o].mictlan.filter(c=>isChar(c)).length;if(dM){atk.fue+=dM;bumpR(atk,dM);res.html+='👻 <b>'+C[atk.id].name+'</b>: +'+dM+'⚔ +'+dM+'🛡 por los personajes de su Mictlán.<br>';}}
+  marcarPeleo(o,atk);marcarPeleo(r,G[r].pj[ds]);
   const objetivos=[ds];
   if(hasKw(atk,'DOBLE BATALLA')&&!hasKw(atk,'BARBARIE')){const j=mismoSector(r,ds).find(k=>k!==ds);if(j!=null){objetivos.push(j);res.html+='⚔ <b>DOBLE BATALLA</b>: choca con dos personajes del mismo sector.<br>';}}
   if(hasKw(atk,'BARBARIE')){G[r].pj.forEach((p,i)=>{if(p&&i!==ds)objetivos.push(i);});if(objetivos.length>1)res.html+='🪓 <b>BARBARIE</b>: ataca a todos los personajes del rival.<br>';}
@@ -7908,6 +8127,7 @@ async function afterBattle(o,as,res){
   for(const [s,cid,comb] of res.leaves){
     if(!G||G.over) return;
     const mudo=await fireLeave(s,cid);
+    if(comb) tkTrasVencido(s,cid);
     if(comb&&!mudo){const ven=s===o?(res.first&&res.first.d?{o:opp(o),id:res.first.d.id}:null):{o,id:res.atkId};await runTrigger(s,cid,'vencido',{zone:'fuera',vencedor:ven});}
     renderAll();
     if(checkEnd()) return;
@@ -8011,6 +8231,7 @@ async function retirosFinTurno(){
   }
 }
 async function runEOT(o){
+  await tkFinTurno(o); if(!G||G.over) return;
   await lazosFinTurno(o); if(!G||G.over) return;
   if(G.bloqHab){G.bloqHab.forEach(b=>b.n--);G.bloqHab=G.bloqHab.filter(b=>b.n>0);}
   // v75 · Clío, Gran Musa Historiadora: regresa del Confinamiento con un corazón menos
@@ -8458,7 +8679,7 @@ async function cpuTurn(){
 
   // 8) Combate
   if(!await step(700)) return;
-  await faseBanner('cpu','combat'); if(!alive()) return;
+  G.cpuCombate=true; await faseBanner('cpu','combat'); if(!alive()) return;
   const combatAbilities=async()=>{
     for(let i=0;i<PJ_N;i++){
       const p=P.pj[i];if(!p) continue;

@@ -38250,6 +38250,343 @@
    "boss": true,
    "expansion": "boss",
    "rareza": "secreta"
+  },
+  {
+   "id": "tk_frijoles",
+   "nombre": "Frijoles del Don Aislado",
+   "tipo": "apoyo",
+   "texto": "Envía 1 carta ALMA desde tu lado del campo al MICTLÁN: Incrementa +1 las VIDAS de tus PERSONAJES con \"TONALKIN\" en su nombre de un mismo SECTOR y selecciona 1 de ellos, agrega +2 \"CONTADORES DE ALMA\" sobre ese PERSONAJE. (El efecto de \"FRIJOLES DEL DON AISLADO\" solo puede ser activado una vez por turno)",
+   "efectos": [
+    {
+     "cuando": "activar",
+     "limite": "turno",
+     "condicion": {
+      "almasPropiasMin": 1,
+      "controlas": {
+       "filtro": {
+        "tipo": "pj",
+        "nombreIncluye": "TONALKIN"
+       },
+       "texto": "Necesitas un PERSONAJE TONALKIN en tu campo"
+      }
+     },
+     "pasos": [
+      {
+       "accion": "alma_propia_a_mictlan"
+      },
+      {
+       "accion": "frijoles_tonalkin"
+      }
+     ]
+    }
+   ],
+   "img": "./cartas_3/TONALKIN_001_full.jpg",
+   "imgMin": "./cartas_3/TONALKIN_001.jpg",
+   "tester": true,
+   "expansion": "test",
+   "rareza": "comun"
+  },
+  {
+   "id": "tk_chilaya_super",
+   "nombre": "Chilaya, Super Tonalkin",
+   "tipo": "pj",
+   "coste": 7,
+   "imp": 2,
+   "cor": 2,
+   "fue": 8,
+   "res": 5,
+   "habilidades": [
+    "DOBLE BATALLA",
+    "BRUTALIDAD"
+   ],
+   "contadores": true,
+   "noNormal": true,
+   "soloPor": [
+    "tk_chilaya_super"
+   ],
+   "texto": "HABILIDAD: (Esta carta puede contener \"CONTADORES DE ALMA\") Este PERSONAJE no puede ser llamado de forma normal o especial, solo puede ser llamado de forma especial por su habilidad: Retira 2 \"CONTADORES DE ALMA\" de \"CHILAYA, PRINCESA TONALKIN\" y envía ese PERSONAJE al MICTLÁN: Llama este PERSONAJE de forma especial desde tu mano al mismo SECTOR; coloca sobre esta carta los contadores restantes. DOBLE BATALLA: Este PERSONAJE puede combatir al mismo tiempo con 2 PERSONAJES del campo de tu adversario del mismo SECTOR. BRUTALIDAD: Este PERSONAJE puede declarar batalla el mismo turno en que es llamado al campo.",
+   "efectos": [
+    {
+     "cuando": "mano",
+     "texto": "Retirar 2 contadores de Chilaya, Princesa Tonalkin y transformarla en Super Tonalkin",
+     "condicion": {
+      "chilayaSuper": true
+     },
+     "pasos": [
+      {
+       "accion": "chilaya_super"
+      }
+     ],
+     "sinAnuncio": true
+    }
+   ],
+   "img": "./cartas_3/TONALKIN_002_full.jpg",
+   "imgMin": "./cartas_3/TONALKIN_002.jpg",
+   "tester": true,
+   "expansion": "test",
+   "rareza": "comun"
+  },
+  {
+   "id": "tk_chilaya",
+   "nombre": "Chilaya, Princesa Tonalkin",
+   "tipo": "pj",
+   "coste": 5,
+   "imp": 2,
+   "cor": 1,
+   "fue": 6,
+   "res": 3,
+   "habilidades": [
+    "RESURGIR",
+    "BRUTALIDAD"
+   ],
+   "contadores": true,
+   "texto": "HABILIDAD: (Esta carta puede contener \"CONTADORES DE ALMA\") Si un PERSONAJE con \"TONALKIN\" fue vencido y enviado a tu MICTLÁN durante este turno, puedes llamar de forma especial a este PERSONAJE desde tu mano. RESURGIR: La primera vez que este PERSONAJE es vencido en batalla y enviado al MICTLÁN: al final del turno, llama de forma especial a este PERSONAJE a tu lado del campo desde tu MICTLÁN; coloca 1 \"CONTADOR DE ALMA\" sobre esta carta e incrementa +2 puntos la FUERZA y RESISTENCIA de este PERSONAJE. BRUTALIDAD: Este PERSONAJE puede declarar batalla el mismo turno en que es llamado al campo.",
+   "efectos": [
+    {
+     "cuando": "mano",
+     "sinAnuncio": true,
+     "texto": "Llamarla de forma especial (un TONALKIN fue vencido este turno)",
+     "condicion": {
+      "zonaLibre": true,
+      "tkVencidoTurno": true
+     },
+     "pasos": [
+      {
+       "accion": "llamarse_especial",
+       "costo": "ninguno"
+      }
+     ]
+    }
+   ],
+   "img": "./cartas_3/TONALKIN_003_full.jpg",
+   "imgMin": "./cartas_3/TONALKIN_003.jpg",
+   "tester": true,
+   "expansion": "test",
+   "rareza": "comun"
+  },
+  {
+   "id": "tk_jika",
+   "nombre": "Jika, Justiciera Tonalkin",
+   "tipo": "pj",
+   "coste": 2,
+   "imp": 2,
+   "cor": 2,
+   "fue": 4,
+   "res": 1,
+   "habilidades": [
+    "RESURGIR",
+    "BRUTALIDAD"
+   ],
+   "contadores": true,
+   "texto": "HABILIDAD: (Esta carta puede contener \"CONTADORES DE ALMA\") Durante el turno de tu adversario, cuando un PERSONAJE con \"TONALKIN\" en su nombre en tu lado del campo vaya a ser vencido en Combate: retira 1 \"CONTADOR DE ALMA\" de ese PERSONAJE; ese PERSONAJE no será vencido ni destruido. RESURGIR: La primera vez que este PERSONAJE es vencido en batalla y enviado al MICTLÁN: al final del turno, llama de forma especial a este PERSONAJE a tu lado del campo desde tu MICTLÁN; coloca 1 \"CONTADOR DE ALMA\" sobre esta carta e incrementa +2 puntos la FUERZA y RESISTENCIA de este PERSONAJE. BRUTALIDAD: Este PERSONAJE puede declarar batalla el mismo turno en que es llamado al campo.",
+   "efectos": [
+    {
+     "cuando": "pasivo",
+     "accion": "jika_justicia"
+    }
+   ],
+   "img": "./cartas_3/TONALKIN_004_full.jpg",
+   "imgMin": "./cartas_3/TONALKIN_004.jpg",
+   "tester": true,
+   "expansion": "test",
+   "rareza": "comun"
+  },
+  {
+   "id": "tk_onda_vital",
+   "nombre": "Gran Onda Vital",
+   "tipo": "apoyo",
+   "subtipo": "rapido",
+   "texto": "Mientras cuentes con al menos un PERSONAJE con \"TONALKIN\" en su nombre sobre tu lado del campo: Puedes confinar 2 PERSONAJES \"TONALKIN\" desde tu mano o Paga 4 \"CONTADORES DE ALMA\" en tu lado del campo; tu adversario debe sacrificar todos sus PERSONAJES en su lado del campo. (El efecto de \"GRAN ONDA VITAL\" solo puede ser activado una vez por turno)",
+   "efectos": [
+    {
+     "cuando": "activar",
+     "limite": "turno",
+     "condicion": {
+      "controlas": {
+       "filtro": {
+        "tipo": "pj",
+        "nombreIncluye": "TONALKIN"
+       },
+       "texto": "Necesitas un PERSONAJE TONALKIN en tu campo"
+      },
+      "ondaVitalCosto": true
+     },
+     "pasos": [
+      {
+       "accion": "onda_vital"
+      }
+     ]
+    }
+   ],
+   "img": "./cartas_3/TONALKIN_005_full.jpg",
+   "imgMin": "./cartas_3/TONALKIN_005.jpg",
+   "tester": true,
+   "expansion": "test",
+   "rareza": "comun"
+  },
+  {
+   "id": "tk_tonal_ken",
+   "nombre": "Tonal-Ken",
+   "tipo": "apoyo",
+   "subtipo": "continuo",
+   "texto": "Mientras esta carta se encuentre activa en tu lado del campo: durante tu fase de ACCIÓN puedes enviar la carta del tope de tu BA al MICTLÁN, tus PERSONAJES con \"TONALKIN\" en su nombre incrementan puntos de FUERZA y RESISTENCIA iguales al VALOR de la carta ALMA enviada. Si esta carta deja el campo, TRIPLICA la FUERZA y RESISTENCIA de uno de tus PERSONAJES con \"TONALKIN\" en el campo hasta el fin de tu próximo turno, ese PERSONAJE perderá -1 VIDA al final de tu próximo turno. Si esta carta se encuentra en tu MICTLÁN, puedes Confinar desde tu campo, mano o MICTLÁN un PERSONAJE con \"TONALKIN\" en su nombre para retornarla a tu mano.",
+   "efectos": [
+    {
+     "cuando": "accion",
+     "limite": "turno",
+     "texto": "Enviar el tope de tu BA al Mictlán: tus TONALKIN ganan FUERZA y RESISTENCIA igual a su VALOR",
+     "condicion": {
+      "baMin": 1
+     },
+     "pasos": [
+      {
+       "accion": "tonal_ken"
+      }
+     ]
+    },
+    {
+     "cuando": "pasivo",
+     "accion": "tonal_ken_sale"
+    },
+    {
+     "cuando": "mictlan",
+     "texto": "Confinar un TONALKIN (campo, mano o Mictlán) para retornar Tonal-Ken a tu mano",
+     "condicion": {
+      "tonalKenRetorno": true
+     },
+     "pasos": [
+      {
+       "accion": "tonal_ken_retorno"
+      }
+     ]
+    }
+   ],
+   "img": "./cartas_3/TONALKIN_006_full.jpg",
+   "imgMin": "./cartas_3/TONALKIN_006.jpg",
+   "tester": true,
+   "expansion": "test",
+   "rareza": "comun"
+  },
+  {
+   "id": "tk_huitlak",
+   "nombre": "Huitlak, Rival Tonalkin",
+   "tipo": "pj",
+   "coste": 4,
+   "imp": 2,
+   "cor": 1,
+   "fue": 4,
+   "res": 3,
+   "habilidades": [
+    "RESURGIR",
+    "BRUTALIDAD"
+   ],
+   "contadores": true,
+   "texto": "HABILIDAD: (Esta carta puede contener \"CONTADORES DE ALMA\") Si otro PERSONAJE con \"TONALKIN\" combatió este turno, Incrementa en +3 la FUERZA y RESISTENCIA de este PERSONAJE hasta el final de la fase de Combate. RESURGIR: La primera vez que este PERSONAJE es vencido en batalla y enviado al MICTLÁN: al final del turno, llama de forma especial a este PERSONAJE a tu lado del campo desde tu MICTLÁN; coloca 1 \"CONTADOR DE ALMA\" sobre esta carta e incrementa +2 puntos la FUERZA y RESISTENCIA de este PERSONAJE. BRUTALIDAD: Este PERSONAJE puede declarar batalla el mismo turno en que es llamado al campo.",
+   "efectos": [
+    {
+     "cuando": "pasivo",
+     "accion": "aura",
+     "alcance": "esta",
+     "cond": "otroTonalPeleo",
+     "fue": 3,
+     "res": 3
+    }
+   ],
+   "img": "./cartas_3/TONALKIN_007_full.jpg",
+   "imgMin": "./cartas_3/TONALKIN_007.jpg",
+   "tester": true,
+   "expansion": "test",
+   "rareza": "comun"
+  },
+  {
+   "id": "tk_chayek",
+   "nombre": "Chayek, Estratega Tonalkin",
+   "tipo": "pj",
+   "coste": 3,
+   "imp": 1,
+   "cor": 1,
+   "fue": 3,
+   "res": 2,
+   "habilidades": [
+    "RESURGIR",
+    "BRUTALIDAD"
+   ],
+   "contadores": true,
+   "texto": "HABILIDAD: (Esta carta puede contener \"CONTADORES DE ALMA\") Cuando este PERSONAJE es llamado de forma normal a tu lado del campo: Añade un PERSONAJE de VALOR 4 o menor con \"TONALKIN\" en su nombre desde tu BP a tu mano, revuelve tu BP. (solo una vez por turno) RESURGIR: La primera vez que este PERSONAJE es vencido en batalla y enviado al MICTLÁN: al final del turno, llama de forma especial a este PERSONAJE a tu lado del campo desde tu MICTLÁN; coloca 1 \"CONTADOR DE ALMA\" sobre esta carta e incrementa +2 puntos la FUERZA y RESISTENCIA de este PERSONAJE. BRUTALIDAD: Este PERSONAJE puede declarar batalla el mismo turno en que es llamado al campo.",
+   "efectos": [
+    {
+     "cuando": "al_llamar",
+     "limite": "turno",
+     "condicion": {
+      "via": "normal"
+     },
+     "pasos": [
+      {
+       "accion": "buscar",
+       "origen": "bp",
+       "filtro": {
+        "tipo": "pj",
+        "nombreIncluye": "TONALKIN",
+        "valorMax": 4
+       }
+      }
+     ]
+    }
+   ],
+   "img": "./cartas_3/TONALKIN_008_full.jpg",
+   "imgMin": "./cartas_3/TONALKIN_008.jpg",
+   "tester": true,
+   "expansion": "test",
+   "rareza": "comun"
+  },
+  {
+   "id": "tk_chiley",
+   "nombre": "Planeta Chiley",
+   "tipo": "arena",
+   "texto": "Cuando esta ARENA es activada, puedes añadir un PERSONAJE con \"TONALKIN\" en su nombre desde tu BP a tu mano. Mientras esta carta permanezca activa en el campo: Tus PERSONAJES \"TONALKIN\" ganan +1 VIDA y +2 puntos de FUERZA / RESISTENCIA. Ningún jugador puede activar habilidades por descarte o APOYOS RÁPIDOS durante la fase de Combate, excepto cartas con \"TONALKIN\", \"ONDA\", \"KEN\", \"TONAL\" o \"SUPER\" en su nombre. Si esta carta ARENA es destruida puedes retornar desde tu MICTLÁN o Confinamiento, hasta 2 PERSONAJES con \"TONALKIN\" en su nombre a su respectiva Baraja.",
+   "efectos": [
+    {
+     "cuando": "al_activar",
+     "pasos": [
+      {
+       "accion": "buscar",
+       "origen": "bp",
+       "opcional": true,
+       "filtro": {
+        "tipo": "pj",
+        "nombreIncluye": "TONALKIN"
+       }
+      }
+     ]
+    },
+    {
+     "cuando": "pasivo",
+     "accion": "aura",
+     "filtro": {
+      "nombreIncluye": "TONALKIN"
+     },
+     "cor": 1,
+     "fue": 2,
+     "res": 2
+    },
+    {
+     "cuando": "pasivo",
+     "accion": "chiley_bloqueo"
+    },
+    {
+     "cuando": "al_destruir",
+     "pasos": [
+      {
+       "accion": "chiley_retorno"
+      }
+     ]
+    }
+   ],
+   "img": "./cartas_3/TONALKIN_009_full.jpg",
+   "imgMin": "./cartas_3/TONALKIN_009.jpg",
+   "tester": true,
+   "expansion": "test",
+   "rareza": "comun"
   }
  ],
  "expansionesProhibidas": [

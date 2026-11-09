@@ -462,7 +462,8 @@
       return Object.assign(c, {
         id: String(c.id), _i: i, tipoJuego: t, _sim: s, _coste: s && s.coste != null ? s.coste : (s && s.gama != null ? s.gama : null),
         _txt: K(s && s.texto || ''), _n: K(c.nombre),
-        maxCopias: est === 'limitada' ? 1 : est === 'semi-limitada' ? 2 : est === 'condenada' ? 0 : 3, condenada: est === 'condenada', _est: est
+        maxCopias: EXP_BLOQ.includes(c.expansion) ? 0 : est === 'limitada' ? 1 : est === 'semi-limitada' ? 2 : est === 'condenada' ? 0 : 3, condenada: est === 'condenada', _est: est,
+        bloq: EXP_BLOQ.includes(c.expansion)
       });
     });
     cartas.forEach(c => { porId[c.id] = c; });
@@ -473,6 +474,8 @@
     pintarTodo();
     sincronizar(false);
   }
+  // v232 · Expansiones aún sin mecánica en el Simulador/Modo Aventura: se ven, pero no se pueden agregar a barajas
+  const EXP_BLOQ = ['azote_del_mictlan', 'ancestros'];
   const fmtExp = e => e === 'tester_ateotl' ? '🧪 TESTER · Ateotl' : e === 'test' ? '🧪 TEST' : String(e || '').replace(/_/g, ' ').replace(/\b\w/g, m => m.toUpperCase());
 
   // Cartas que el jugador tiene (Mi Colección: físicas + digitales guardadas)
@@ -522,6 +525,7 @@
     const destino = LIMITES.BA.tipos.includes(c.tipoJuego) ? 'BA' : LIMITES.BS.tipos.includes(c.tipoJuego) ? 'BS' : 'BP';
     const L = LIMITES[destino], lista = deck[destino];
     if (c.condenada) { alerta('Esta carta está CONDENADA y no puede usarse en torneos oficiales.', '🚫'); return false; }
+    if (c.bloq) { alerta('Las cartas de ' + fmtExp(c.expansion) + ' todavía no se pueden usar en el Simulador ni en el Modo Aventura, por eso no se pueden agregar a barajas.', '🔒'); return false; }
     if (lista.length >= L.max) { toast(L.nombre + ' ya tiene ' + L.max + ' cartas', true); return false; }
     const n = cuenta(lista, c);
     if (n >= c.maxCopias) { toast(c.maxCopias === 1 ? `"${c.nombre}" está LIMITADA a 1 copia` : c.maxCopias === 2 ? `"${c.nombre}" está SEMI-LIMITADA a 2 copias` : `Máximo ${c.maxCopias} copias de "${c.nombre}"`, true); return false; }
@@ -563,13 +567,13 @@
   function tarjeta(c, opts) {
     opts = opts || {};
     const n = opts.sinCuenta ? 0 : cuenta(deck[actual], c);
-    const full = !opts.sinCuenta && n >= c.maxCopias && !c.condenada;
-    const limTxt = c.condenada ? ['CONDENADA', 'var(--red)'] : c.maxCopias === 1 ? ['LIMITADA', 'var(--gold)'] : c.maxCopias === 2 ? ['SEMI-LIMITADA', 'var(--purple)'] : null;
+    const full = !opts.sinCuenta && n >= c.maxCopias && !c.condenada && !c.bloq;
+    const limTxt = c.bloq ? ['🔒 NO DISPONIBLE', '#4a4f63'] : c.condenada ? ['CONDENADA', 'var(--red)'] : c.maxCopias === 1 ? ['LIMITADA', 'var(--gold)'] : c.maxCopias === 2 ? ['SEMI-LIMITADA', 'var(--purple)'] : null;
     const img = c.miniatura ? `<img src="${esc(c.miniatura)}" alt="${esc(c.nombre)}" loading="lazy" onerror="this.remove()">` : '';
-    return `<div class="ci ${full ? 'full' : ''} ${c.condenada ? 'cond' : ''}" data-id="${esc(c.id)}" role="button" tabindex="0" title="${esc(c.nombre)}"
+    return `<div class="ci ${full ? 'full' : ''} ${c.condenada || c.bloq ? 'cond' : ''}" data-id="${esc(c.id)}" role="button" tabindex="0" title="${esc(c.nombre)}"
         onclick="${opts.click || `tocarCarta('${esc(c.id)}')`}">
       <div class="ph">${esc(c.nombre)}</div>${img}
-      ${opts.sinCuenta ? '' : `<span class="n ${n ? '' : 'z'} ${full ? 'max' : ''}">${n}/${c.maxCopias}</span>`}
+      ${opts.sinCuenta || c.bloq ? '' : `<span class="n ${n ? '' : 'z'} ${full ? 'max' : ''}">${n}/${c.maxCopias}</span>`}
       ${!opts.sinCuenta && propias[c.id] ? `<span class="own" title="En tu colección">📦${propias[c.id]}</span>` : ''}
       ${opts.sinInfo ? '' : `<button class="info" onclick="event.stopPropagation();detalle('${esc(c.id)}')" aria-label="Detalle">i</button>`}
       ${limTxt ? `<div class="lim" style="background:${limTxt[1]}">${limTxt[0]}</div>` : ''}
@@ -654,7 +658,7 @@
       if (s.fue != null) st.push(['Fuerza', s.fue]); if (s.res != null) st.push(['Resistencia', s.res]);
       if (s.val != null) st.push(['Valor', s.val]);
     }
-    const lim = c.condenada ? '<div class="det-lim" style="color:var(--red)">🚫 CONDENADA — no se puede usar</div>' : c.maxCopias === 1 ? '<div class="det-lim" style="color:var(--gold)">⚠️ LIMITADA a 1 copia</div>' : c.maxCopias === 2 ? '<div class="det-lim" style="color:var(--purple)">⚠️ SEMI-LIMITADA a 2 copias</div>' : '';
+    const lim = c.bloq ? '<div class="det-lim" style="color:#9aa3c0">🔒 NO DISPONIBLE — su expansión aún no se puede usar en el Simulador ni en el Modo Aventura</div>' : c.condenada ? '<div class="det-lim" style="color:var(--red)">🚫 CONDENADA — no se puede usar</div>' : c.maxCopias === 1 ? '<div class="det-lim" style="color:var(--gold)">⚠️ LIMITADA a 1 copia</div>' : c.maxCopias === 2 ? '<div class="det-lim" style="color:var(--purple)">⚠️ SEMI-LIMITADA a 2 copias</div>' : '';
     $('detBox').innerHTML = `<div class="mtitle"><span>${TIPO_INFO[c.tipoJuego].ico} ${esc(c.tipoJuego)}</span><button class="mclose" onclick="cerrar('mDetalle')">✕</button></div>
       <div class="det">
         <div class="det-img">${c.ampliada || c.miniatura ? `<img src="${esc(c.ampliada || c.miniatura)}" alt="${esc(c.nombre)}">` : ''}</div>

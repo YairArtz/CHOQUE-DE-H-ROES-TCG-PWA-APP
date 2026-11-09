@@ -1752,6 +1752,12 @@ async function loadData(onProgress){
    const porImg={};DATA.cartas.forEach(c=>{if(c.prototipo&&C[c.id])porImg[imgK(c.imgMin||c.img)]=c.id;});
    Object.values(GAL).forEach(g=>{const id=porImg[imgK(g.miniatura)]||porImg[imgK(g.ampliada)];if(id)IDX.gal[String(g.id)]=id;});}
   Object.values(GAL).forEach(g=>{const id=IDX.nom[NK(g.nombre)];if(id&&!IDX.gal[String(g.id)])IDX.gal[String(g.id)]=id;});
+  // v232 · Cartas TESTER del Constructor (cartas_tester.json, ids TEST_…/TESTER_…): se reconocen por su id e imagen,
+  //        así funcionan también las barajas guardadas que regresan de la nube solo con el id
+  try{const tr=await fetch('cartas_tester.json',{cache:'no-cache'});if(tr.ok){const TJ=await tr.json();
+    const imgK=f=>String(f||'').replace(/\s+/g,'').replace(/^\.\//,'').replace(/_full(?=\.\w+$)/,'').toLowerCase();
+    const porImg={};DATA.cartas.forEach(c=>{if(C[c.id]&&(c.img||c.imgMin)){[c.img,c.imgMin].forEach(f=>{if(f)porImg[imgK(f)]=porImg[imgK(f)]||c.id;});}});
+    (Array.isArray(TJ)?TJ:[]).forEach(t=>{if(!t||t.id==null)return;const id=porImg[imgK(t.miniatura)]||porImg[imgK(t.ampliada)]||IDX.nom[NK(t.nombre||'')];if(id)IDX.gal[String(t.id)]=id;});}}catch(e){}
   DATA._idx=IDX; DATA._NK=NK;
   // Validar que cada baraja solo use cartas existentes (una baraja con errores queda deshabilitada)
   if(galErrs.length) throw new Error('Revisa el JSON → '+galErrs.join(' · '));

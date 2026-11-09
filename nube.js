@@ -93,7 +93,9 @@
   // Catálogo (para reconstruir las cartas de una baraja que viene de la nube)
   let _cat = null;
   function catalogo() {
-    if (!_cat) _cat = fetch(BASE + 'cartas.json').then(r => r.json()).then(a => { const m = {}; (a || []).forEach(c => { if (c && c.id != null) m[String(c.id)] = c; }); return m; }).catch(() => { _cat = null; return {}; });
+    // v232 · también las cartas TESTER (cartas_tester.json): sin esto, al bajar de la nube quedaban solo con su id
+    if (!_cat) _cat = Promise.all([fetch(BASE + 'cartas.json').then(r => r.json()), fetch(BASE + 'cartas_tester.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : []).catch(() => [])])
+      .then(([a, t]) => { const m = {}; (a || []).concat(Array.isArray(t) ? t : []).forEach(c => { if (c && c.id != null) m[String(c.id)] = c; }); return m; }).catch(() => { _cat = null; return {}; });
     return _cat;
   }
   function tipoJuego(c) {

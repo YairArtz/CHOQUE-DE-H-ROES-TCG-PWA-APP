@@ -699,6 +699,10 @@ body.editor .pt{cursor:move}
 :root.h520 .f-ret{width:70px;height:88px}
 
 /* ═══ Transformación del jefe (2ª forma) ═══ */
+#nxBloq{position:fixed;inset:0;z-index:140;display:none;align-items:center;justify-content:center;background:transparent;transition:background .3s}
+#nxBloq.ver{background:rgba(0,0,0,.45)}
+#nxBloq .nb-pill{opacity:0;transition:opacity .3s;font-family:'Orbitron',sans-serif;font-weight:700;font-size:14px;letter-spacing:.06em;color:#fff;background:rgba(10,16,40,.92);border:1px solid rgba(54,214,255,.5);border-radius:999px;padding:10px 18px;box-shadow:0 0 18px rgba(54,214,255,.35)}
+#nxBloq.ver .nb-pill{opacity:1}
 #nxTrans{position:fixed;inset:0;z-index:9500;display:none;align-items:center;justify-content:center;flex-direction:column;overflow:hidden;
   background:radial-gradient(ellipse at center,rgba(60,0,20,.85),#000 75%);opacity:0;transition:opacity .35s}
 #nxTrans.on{opacity:1}
@@ -950,6 +954,7 @@ window.nxTip = function () {
 <div class="ficha" id="ficha"><button class="f-x" id="fX" aria-label="Cerrar">✕</button><div id="fBody"></div></div>
 
 <!-- Diálogo -->
+<div id="nxBloq" aria-hidden="true"><div class="nb-pill">⏳ Preparando…</div></div>
 <div class="dlg" id="dlg">
   <div class="d-escena" id="dEsc"></div>
   <div class="d-caja" id="dCaja"><div class="d-nom" id="dNom"></div><div class="d-txt" id="dTxt"></div><div class="d-ops" id="dOps"></div><div class="d-sig" id="dSig">▼</div></div>
@@ -1684,6 +1689,19 @@ function forma2(p) {      // el mismo punto con los datos de su transformación
     borrador: p.fase2_borrador || p.borrador, revivir: p.fase2_revivir || p.revivir, mano_extra: p.fase2_mano_extra || p.mano_extra,
     almas_extra: p.fase2_almas_extra || p.almas_extra, robo_extra: p.fase2_robo_extra || p.robo_extra, _fase: 2 });
 }
+// v232 · Mientras se procesa un resultado o se prepara un Choque, el mapa no responde a toques (evita abrir otra cosa sin querer)
+function ocupado(on, txt) {
+  const b = $('nxBloq'); if (!b) return; clearTimeout(ocupado._t);
+  if (on) { b.querySelector('.nb-pill').textContent = txt || '⏳ Preparando…'; b.style.display = 'flex'; b.classList.remove('ver'); ocupado._t = setTimeout(() => b.classList.add('ver'), 600); }
+  else { b.style.display = 'none'; b.classList.remove('ver'); }
+}
+// v232 · Descarga por adelantado el arte y el audio de la 2ª forma (con datos móviles tardaba en aparecer la transformación)
+function precargarFase2(p0) {
+  if (!tieneFase2(p0)) return; precargarFase2.h = precargarFase2.h || {}; if (precargarFase2.h[p0.id]) return; precargarFase2.h[p0.id] = 1;
+  const q = forma2(p0); retrato(q).catch(() => {});
+  [p0.fase2_sonido, q.musica].filter(u => u && String(u).trim()).forEach(u => { try { fetch(new URL(String(u).trim(), location.href).href).then(r => r && r.arrayBuffer && r.arrayBuffer()).catch(() => {}); } catch (e) {} });
+}
+const conTope = (pr, ms) => Promise.race([pr, new Promise(r => setTimeout(() => r(null), ms))]);
 async function retoFase2(p) {
   const q = forma2(p);
   let r = await dialogo(q, p.fase2_revancha && S.fase2[p.id] > 1 ? p.fase2_revancha : (p.fase2_entrada || '…'), [['⚔ ¡CHOQUE!', 'red'], ['AHORA NO', 'sec']]);
@@ -1696,6 +1714,7 @@ async function retoFase2(p) {
 // fase2_reintento = inicio → cada intento (revancha, derrota o retirada) empieza otra vez desde la forma regular
 const reiniciaFase2 = p => String(p.fase2_reintento || 'si').toLowerCase() === 'inicio';
 async function hablar(p) {
+  precargarFase2(p);
   if (tieneFase2(p) && enFase2(p) && reiniciaFase2(p)) { delete S.fase2[p.id]; guardar(); }
   if (tieneFase2(p) && enFase2(p) && !(p._req.length && !cumple(p._req))) { retoFase2(p); return; }
   if (p.tipo === 'heroe') {
@@ -1739,6 +1758,7 @@ async function fondosChoque(p, d) {
 async function iniciarChoque(p0, fase) {
   fase = fase === 2 && tieneFase2(p0) ? 2 : 1;
   const p = fase === 2 ? forma2(p0) : p0;
+  ocupado(true); mostrarCarga(0); $('carga').classList.remove('listo'); clearTimeout(quitarCarga._t); clearTimeout(window.__cargaT);   // v232 · la carga aparece al instante
   const id = 'nx' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   const d = distDe(p), [ret, fch] = await Promise.all([retrato(p), fondosChoque(p, distDe(p))]);
   S.pendiente = { id, punto: p.id, dia: S.dia, fase }; guardar(true);
@@ -1775,12 +1795,14 @@ async function procesarResultado() {
   const p = fase === 2 ? forma2(p0) : p0;
   // 1ª forma vencida de un jefe de 2 fases: se transforma (aún no cuenta como vencido)
   if (res.won && !res.abandono && fase === 1 && tieneFase2(p0)) {
+    precargarFase2(p0); ocupado(true, '⏳ ' + (p0.fase2_etiqueta || 'Transformación') + '…');
     S.historial.push({ p: p0.id, won: true, dia: S.dia, turnos: res.turnos || 0, ts: Date.now(), fase: 1 });
     S.fase2 = S.fase2 || {}; S.fase2[p0.id] = 1; S.victorias++; S.dia++; guardar();
     mostrarMapa(); centrarEn(p0._x, p0._y);
     if (p0.victoria) await dialogo(p0, p0.victoria);          // su reacción al caer la 1ª forma
     await transformacion(p0);                                   // cinemática: temblor, destello y aparece su forma verdadera
     await retoFase2(p0);
+    if (!S.pendiente) ocupado(false);                          // si empezó el Choque, la pantalla de carga sigue
     return true;
   }
   if (fase === 2) {
@@ -1814,8 +1836,11 @@ async function procesarResultado() {
 // ── Transformación del jefe entre su 1ª y 2ª forma: temblor, energía, destello y aparece su forma verdadera ──
 //    Campos opcionales del punto: fase2_sonido (audio de la transformación), fase2_etiqueta (texto grande)
 async function transformacion(p0) {
-  const q = forma2(p0), [r1, r2] = await Promise.all([retrato(p0), retrato(q)]);
-  const ov = $('nxTrans'), tag = (p0.fase2_etiqueta || 'TRANSFORMACIÓN').toUpperCase();
+  const ov = $('nxTrans'); ov.innerHTML = ''; ov.style.display = 'flex'; ov.style.background = '#000';   // v232 · cubre el mapa desde ya
+  const q = forma2(p0), [r1, r2] = await conTope(Promise.all([retrato(p0), retrato(q)]), 9000) || [null, null];
+  if (r2) await conTope(probar(r2.src), 4000);
+  ov.style.background = '';
+  const tag = (p0.fase2_etiqueta || 'TRANSFORMACIÓN').toUpperCase();
   ov.innerHTML = `<div class="tr-ray"></div><div class="tr-cracks"></div>${r1 ? `<img class="tr-a ${r1.carta ? 'carta' : ''}" src="${esc(r1.src)}" alt="">` : ''}` +
     `${r2 ? `<img class="tr-b ${r2.carta ? 'carta' : ''}" src="${esc(r2.src)}" alt="">` : ''}<div class="tr-flash"></div>` +
     `<div class="tr-txt"><small>${esc(p0.nombre || '')}</small><b>${esc(tag)}</b><span>${esc(q.nombre || '')}</span></div>`;

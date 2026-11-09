@@ -2072,7 +2072,9 @@ let _almaLibre=false;
 function almaVal(s){return s?(s.cen>0&&!_almaLibre?0:(C[s.card].val||0)+(s.bonus||0)+(s.cont||0)):0;}
 // Contadores ALMA: se colocan sobre cartas ALMA activas y suman +1 a su valor mientras estén ahí
 function contAlma(o){return G[o].apoyo.reduce((t,x)=>t+(x&&x.type==='alma'?(x.cont||0):0),0);}
-function almaT(o,cid){_almaLibre=!!cid&&!!C[cid]&&matchF(cid,{nombreIncluye:['DESATADO','GARDUNA']});try{return G[o].apoyo.reduce((t,x)=>t+(x&&x.type==='alma'?almaEf(o,x):0),0);}finally{_almaLibre=false;}}
+// v232 · Cada CONTADOR DE ALMA sobre tus PERSONAJES (u otras cartas no ALMA) suma +1 a tu total de ALMAS en juego
+function ctrPj(o){return !G||!G[o]?0:G[o].pj.reduce((t,p)=>t+(p&&p.ctr>0?p.ctr:0),0)+G[o].apoyo.reduce((t,x)=>t+(x&&x.type!=='alma'&&x.cont>0?x.cont:0),0);}
+function almaT(o,cid){_almaLibre=!!cid&&!!C[cid]&&matchF(cid,{nombreIncluye:['DESATADO','GARDUNA']});try{return G[o].apoyo.reduce((t,x)=>t+(x&&x.type==='alma'?almaEf(o,x):0),0)+ctrPj(o);}finally{_almaLibre=false;}}
 // COPAL ENVOKATETL (APOYO CONTINUO): en tu Fase de Acción cada ALMA activa vale 9
 function copalDe(o){const a=G[o].apoyo.find(x=>x&&x.type==='continuo'&&hasPassive(x.card,'almas_valor'));return a?a.card:null;}
 function copalOn(o){return !!copalDe(o)&&G.active===o&&(o==='cpu'?G.phase==='cpu':G.phase==='action');}
@@ -4062,9 +4064,9 @@ async function respIxchell(r,ev,cid){
   const i=G[r].hand.indexOf(cid); if(i<0||freePJ(ev.o)===-1) return;
   G[r].hand.splice(i,1);
   ev.negated=true; ev.fate='mictlan'; ev.by=r;
-  lg('🗡 <b>'+C[cid].name+'</b>'+who(r)+' niega el llamado de <b>'+C[ev.cid].name+'</b> (va al Mictlán) y se infiltra en el campo '+(ev.o==='player'?'tuyo':'de la CPU')+'.','var(--purple)');
+  lg('🗡 <b>'+C[cid].name+'</b>'+(r==='player'?' (tuya)':' (de la CPU)')+' niega el llamado de <b>'+C[ev.cid].name+'</b>'+(ev.o==='player'?' (tuyo)':' (de la CPU)')+': '+C[ev.cid].name+' va al Mictlán y '+C[cid].name.split(',')[0]+' entra INFILTRADA en el campo '+(ev.o==='player'?'tuyo':'de la CPU')+'.','var(--purple)');
   playSound('destroy');
-  await placeChar(ev.o,cid,{via:'normal',duenio:r,from:'la mano rival'});
+  await placeChar(ev.o,cid,{via:'normal',duenio:r,from:r==='player'?'tu mano (INFILTRADA en el campo rival)':'la mano de la CPU (INFILTRADA en tu campo)'});
   const q=G[ev.o].pj.find(p=>p&&p.id===cid&&p.turnoLlamado===turnKey());
   if(q){q.ixRival=true;q.resting=true;}
   renderAll();
@@ -6811,7 +6813,7 @@ function showDetail(cid,opt){
     const sg=n=>(n>0?'+':'')+n;
     if(live&&(live.bF||live.bR||live.bC||live.bI)) h+='<div class="dt-text" style="color:'+((live.bF||0)+(live.bR||0)<0?'var(--red)':'var(--green)')+'">✨ Bonos activos: '+(live.bF?sg(live.bF)+'⚔ ':'')+(live.bR?sg(live.bR)+'🛡 ':'')+(live.bC?sg(live.bC)+'❤ ':'')+(live.bI?sg(live.bI)+' IMP':'')+'</div>';
     const L=live&&locate(live);
-    if(live&&live.ctr>0) h+='<div class="dt-text" style="color:#7fe3ff;font-weight:bold">◆ Contadores de Alma: '+live.ctr+'</div>';
+    if(live&&live.ctr>0) h+='<div class="dt-text" style="color:#7fe3ff;font-weight:bold">◆ Contadores de Alma: '+live.ctr+' (suman +'+live.ctr+' a tus ALMAS en juego)</div>';
     if(live&&live.tk3) h+='<div class="dt-text" style="color:#ffe066">🔥 Tonal-Ken: FUERZA y RESISTENCIA triplicadas (pierde 1 VIDA al final de su próximo turno)</div>';
     if(live&&live.cen>0) h+='<div class="dt-text" style="color:#d68cff;font-weight:bold">☯ Contadores de Energía Negativa: '+live.cen+' <span style="color:var(--muted);font-weight:normal">(si se retira el último, el personaje es destruido)</span></div>';
     if(L){
@@ -7068,27 +7070,34 @@ function chileyBloq(cid){return enCombate()&&chileyActiva()&&!chileyExento(cid);
 function esDescarte(e){const j=JSON.stringify(e||{});return /descartar_esta|"costo":"descartar"|"descartarEsta":true/.test(j);}
 function otroTonalPeleo(o,p){const L=G._peleo&&G._peleo.k===turnKey()?G._peleo.L:[];return !!p&&L.some(x=>x.o===o&&x.p!==p&&esTk(x.id));}
 function marcarPeleo(o,p){if(!p)return;if(!G._peleo||G._peleo.k!==turnKey())G._peleo={k:turnKey(),L:[]};G._peleo.L.push({o,p,id:p.id});}
-// Jika, Justiciera Tonalkin: en el turno rival, un TONALKIN que iba a ser vencido retira 1 contador y sobrevive
+// Jika, Justiciera Tonalkin (v232): en el turno rival, cuando un TONALKIN tuyo va a ser vencido en Combate,
+// puedes retirar 1 CONTADOR DE ALMA de cualquier PERSONAJE de tu campo; si lo haces, no es destruido
 async function jikaSalva(o,i){
   const p=G[o].pj[i];
-  if(!p||G.active===o||!esTk(p.id)||!((p.ctr||0)>0)) return false;
+  if(!p||G.active===o||!esTk(p.id)) return false;
   const j=G[o].pj.findIndex((q,k)=>q&&!supp(o,k)&&hasPassive(q.id,'jika_justicia'));
   if(j<0) return false;
+  const list=G[o].pj.map((q,k)=>q&&q.ctr>0?{z:'campo',i:k,cid:q.id,o}:null).filter(Boolean);
+  if(!list.length) return false;
+  const jk=C[G[o].pj[j].id].name;
   let yes=o==='cpu';
-  if(esPersona(o)) yes=(await preguntaDe(o,'⚖ '+C[G[o].pj[j].id].name.toUpperCase()+'<br><b>'+C[p.id].name+'</b> va a ser vencido. ¿Retiras 1 CONTADOR DE ALMA ('+p.ctr+') para que no sea vencido ni destruido?',['✅ Sí','✖ No']))===0;
+  if(esPersona(o)) yes=(await preguntaDe(o,'⚖ '+jk.toUpperCase()+'<br><b>'+C[p.id].name+'</b> va a ser vencido. ¿Retiras 1 CONTADOR DE ALMA de un PERSONAJE de tu campo para que no sea destruido?',['✅ Sí','✖ No']))===0;
   if(!yes||G[o].pj[i]!==p) return false;
-  p.ctr--;
-  lg('⚖ <b>'+C[G[o].pj[j].id].name+'</b>'+who(o)+': <b>'+C[p.id].name+'</b> retira 1 CONTADOR DE ALMA y no es vencido.','#7fe3ff');
+  let x=list[0];
+  if(list.length>1){const r=await choose({o,cid:G[o].pj[j].id,vars:{},interactive:o==='player'},list,1,{sub:'Jika: elige de qué PERSONAJE retiras 1 CONTADOR DE ALMA',min:1,score:y=>(G[o].pj[y.i].ctr||0)*10-SCORE(y.cid)});if(r&&r[0])x=r[0];}
+  const q=G[o].pj[x.i]; if(!q||!(q.ctr>0)) return false;
+  q.ctr--;
+  lg('⚖ <b>'+jk+'</b>'+who(o)+': retira 1 CONTADOR DE ALMA de <b>'+C[q.id].name+'</b>; <b>'+C[p.id].name+'</b> no es destruido.','#7fe3ff');
   return true;
 }
 // RESURGIR: la 1ª vez que es vencido en batalla y va al Mictlán, regresa al final del turno
-function tkTrasVencido(s,cid){
+// v232 · RESURGIR es por copia en el campo: la copia que ya resurgió no vuelve; otra copia (o una llamada de nuevo) sí puede
+function tkTrasVencido(s,cid,obj){
   if(!G[s].mictlan.includes(cid)) return;
   if(esTk(cid)&&isChar(cid)){G.tkVencido=G.tkVencido||{};G.tkVencido[s]=turnKey();}
   if(!hasKw(cid,'RESURGIR')) return;
-  G.resurgio=G.resurgio||{};const k=s+':'+cid;
-  if(G.resurgio[k]) return;
-  G.resurgio[k]=true;(G.resurgirQ=G.resurgirQ||[]).push({o:s,cid});
+  if(obj&&obj.resurgio){lg('🌅 <b>'+C[cid].name+'</b>'+who(s)+' ya usó RESURGIR: esta vez se queda en el Mictlán.','var(--muted)');return;}
+  (G.resurgirQ=G.resurgirQ||[]).push({o:s,cid});
   lg('🌅 <b>RESURGIR</b>: <b>'+C[cid].name+'</b>'+who(s)+' regresará al final del turno.','#7fe3ff');
 }
 async function tkFinTurno(o){
@@ -7098,7 +7107,11 @@ async function tkFinTurno(o){
   if(G.resurgirQ&&G.resurgirQ.length){const L=G.resurgirQ;G.resurgirQ=[];
     for(const x of L){if(!G||G.over)return;const i=G[x.o].mictlan.lastIndexOf(x.cid);
       if(i<0){continue;}
-      if(freePJ(x.o)===-1||espBloqueado()||clioActiva()||mictlanCerrado()){lg('🌅 RESURGIR: <b>'+C[x.cid].name+'</b>'+who(x.o)+' no puede regresar (sin zona libre o llamados especiales bloqueados).','var(--muted)');continue;}
+      const lleno=freePJ(x.o)===-1, bloq=espBloqueado()||clioActiva()||mictlanCerrado();
+      if(lleno||bloq){const mot=lleno?'tu campo de PERSONAJES está lleno':'los llamados especiales desde el Mictlán están bloqueados';
+        lg('⚠ RESURGIR: <b>'+C[x.cid].name+'</b>'+who(x.o)+' no puede regresar: '+(x.o==='player'?mot:mot.replace('tu campo','su campo'))+'. Se queda en el Mictlán.','var(--orange)');
+        if(x.o==='player')showBanner('player','RESURGIR FALLIDO',lleno?'CAMPO LLENO':'LLAMADO BLOQUEADO',1600);
+        continue;}
       if(!await announce(x.o,x.cid,'llamado',{z:'mictlan'},{especial:true})) continue;
       const k=G[x.o].mictlan.lastIndexOf(x.cid);if(k<0||freePJ(x.o)===-1)continue;
       G[x.o].mictlan.splice(k,1);
@@ -7435,7 +7448,7 @@ function pintaPJ(el,o,i){
     el.innerHTML=imgTag(card.id,'ci')
       +'<div class="pj-ov"></div>'
       +(card.agot>0?'<div class="rest-tag" style="background:rgba(255,120,40,.85)">AGOTADO</div>':card.resting?'<div class="rest-tag">'+(card.lock>0?'DESCANSO ×'+(card.lock+1):'DESCANSO')+'</div>':(card.bloq>0?'<div class="rest-tag" style="background:rgba(192,64,255,.85)">🔒 BLOQUEADO</div>':''))
-      +(card.cen?'<div class="cen-badge" title="Contadores de Energía Negativa"><small>☯</small>'+card.cen+'</div>':'')+(card.ctr>0?'<div class="ctr-badge" title="Contadores de Alma"><small>◆</small>'+card.ctr+'</div>':'')+(supp(o,i)?'<div class="rest-tag" style="top:0;bottom:auto;background:rgba(120,40,160,.9)">⛓ NEGADO</div>':oblivionCtl(o,i)?'<div class="rest-tag" style="top:0;bottom:auto;background:rgba(90,20,170,.92)">🌀 OBLIVION</div>':card.ixRival?'<div class="rest-tag" style="top:0;bottom:auto;background:rgba(160,30,60,.9)">🗡 INFILTRADA</div>':'')
+      +(card.cen?'<div class="cen-badge" title="Contadores de Energía Negativa"><small>☯</small>'+card.cen+'</div>':'')+(card.ctr>0?'<div class="ctr-badge" title="Contadores de Alma (cada uno suma +1 a tus ALMAS)"><small>◆</small>'+card.ctr+'</div>':'')+(supp(o,i)?'<div class="rest-tag" style="top:0;bottom:auto;background:rgba(120,40,160,.9)">⛓ NEGADO</div>':oblivionCtl(o,i)?'<div class="rest-tag" style="top:0;bottom:auto;background:rgba(90,20,170,.92)">🌀 OBLIVION</div>':card.ixRival?'<div class="rest-tag" style="top:0;bottom:auto;background:rgba(160,30,60,.9)">🗡 INFILTRADA</div>':'')
       +'<div class="pj-st"><span class="sf">⚔'+eF(card)+'</span><span class="sr">🛡'+eR(card)+'</span><span class="sc">'+'❤'.repeat(Math.max(0,card.cor))+'</span></div>';
     const si=i;
     el.onclick=()=>onBoardPJ(o,si);
@@ -8112,8 +8125,8 @@ async function battle(o,as,ds){
     res.html+=clashText(atk,rr.a,o==='player')+clashText(def,rr.d,r==='player')+'<br>';
     if(rr.d==='dead'&&await sobreviveBatalla(r,t)){rr.d='salvado';res.html+='🛡 <b>'+C[def.id].name+'</b> no es destruido en batalla.<br>';}
     if(rr.a==='dead'&&await sobreviveBatalla(o,as)){rr.a='salvado';res.html+='🛡 <b>'+C[atk.id].name+'</b> no es destruido en batalla.<br>';}
-    if(rr.d==='dead'){animDefeated((r==='player'?'pP':'cP')+t);leaveField(r,t,'mictlan');res.leaves.push([r,def.id,true]);res.killed=true;marcaDestruida(r,def.id,'combate');}
-    if(rr.a==='dead'){animDefeated((o==='player'?'pP':'cP')+as);leaveField(o,as,'mictlan');res.leaves.push([o,atk.id,true]);marcaDestruida(o,atk.id,'combate');break;}
+    if(rr.d==='dead'){animDefeated((r==='player'?'pP':'cP')+t);leaveField(r,t,'mictlan');res.leaves.push([r,def.id,true,def]);res.killed=true;marcaDestruida(r,def.id,'combate');}
+    if(rr.a==='dead'){animDefeated((o==='player'?'pP':'cP')+as);leaveField(o,as,'mictlan');res.leaves.push([o,atk.id,true,atk]);marcaDestruida(o,atk.id,'combate');break;}
   }
   if(G[o].pj[as]===atk&&(dF||dR)){atk.fue-=dF;atk.res=Math.max(1,atk.res-dR);}
   if(G[o].pj[as]===atk&&dM) atk.fue-=dM;
@@ -8123,10 +8136,10 @@ async function battle(o,as,ds){
 }
 // Efectos tras el combate: salidas del campo, "es vencido" y "vence a otro en batalla"
 async function afterBattle(o,as,res){
-  for(const [s,cid,comb] of res.leaves){
+  for(const [s,cid,comb,obj] of res.leaves){
     if(!G||G.over) return;
     const mudo=await fireLeave(s,cid);
-    if(comb) tkTrasVencido(s,cid);
+    if(comb) tkTrasVencido(s,cid,obj);
     if(comb&&!mudo){const ven=s===o?(res.first&&res.first.d?{o:opp(o),id:res.first.d.id}:null):{o,id:res.atkId};await runTrigger(s,cid,'vencido',{zone:'fuera',vencedor:ven});}
     renderAll();
     if(checkEnd()) return;

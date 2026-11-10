@@ -15,6 +15,25 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <script>
+// v248 · Alto real de la ventana. Al volver de un módulo que estaba en pantalla completa y en horizontal (Nexotlan, Simulador,
+// Arcade), Chrome para Android a veces deja 100dvh con el alto viejo: la página quedaba más alta que la pantalla y el personaje
+// y los banners bajaban detrás de la barra de navegación. Se mide innerHeight y se vuelve a medir cada vez que algo cambia.
+(function () {
+  const R = document.documentElement;
+  const medir = () => { const h = window.innerHeight; if (h > 0) R.style.setProperty('--appH', h + 'px'); };
+  const varias = () => { medir(); [60, 250, 600, 1200].forEach(t => setTimeout(medir, t)); };
+  medir();
+  addEventListener('resize', medir);
+  addEventListener('orientationchange', varias);
+  addEventListener('pageshow', varias);
+  addEventListener('focus', varias);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) varias(); });
+  document.addEventListener('fullscreenchange', varias);
+  if (window.visualViewport) visualViewport.addEventListener('resize', medir);
+  addEventListener('DOMContentLoaded', varias);
+})();
+</script>
+<script>
   // ── INTRO: redirigir si no ha sido vista ──
   if (!localStorage.getItem('nexo_intro_vista')) {
     window.location.replace('intro.html');
@@ -46,7 +65,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 
 /* El fondo (haces, partículas y gama elegida en la Tienda) lo pone nexo-ui.js */
 /* ═══ ESTRUCTURA ═══ */
-#app{position:relative;z-index:1;height:100dvh;display:grid;grid-template-rows:auto 1fr;padding:var(--safeT) var(--safeR) var(--safeB) var(--safeL)}
+#app{position:relative;z-index:1;height:100dvh;height:var(--appH,100dvh);display:grid;grid-template-rows:auto 1fr;padding:var(--safeT) var(--safeR) var(--safeB) var(--safeL)}
 #hub{position:relative;display:grid;grid-template-columns:minmax(340px,40%) minmax(0,1fr);min-height:0}
 #left,#feat,.topics,.pass{min-width:0}
 

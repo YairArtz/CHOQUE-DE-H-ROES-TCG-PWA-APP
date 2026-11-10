@@ -34,6 +34,13 @@
     .deck-name{display:flex;align-items:center;gap:6px;margin-top:2px;font-size:14px;font-weight:600;color:#cfe3ff;background:none;border:none;padding:0;max-width:100%;text-align:left}
     .deck-name span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .deck-name i{font-style:normal;font-size:11px;opacity:.6}
+    /* v247 · En celular vertical el título y el nombre de la baraja bajan a su propia fila (antes se cortaban) */
+    @media (max-width:620px){
+      .top-bar{flex-wrap:wrap;row-gap:6px}
+      .top-bar .tb-mid{order:20;flex:1 0 100%;display:flex;align-items:center;gap:12px;min-width:0;padding:0 2px}
+      .top-bar .tb-mid .top-title{flex:0 0 auto!important;width:auto!important}
+      .top-bar .tb-mid .deck-name{margin-top:0;flex:1 1 auto;min-width:0;max-width:none;justify-content:flex-start}
+    }
     .nube{flex-shrink:0;font-size:11px;font-family:'Orbitron',monospace;letter-spacing:1px;padding:6px 9px;border-radius:8px;border:1px solid var(--border2);background:var(--bg2);color:var(--muted);display:flex;gap:5px;align-items:center}
     .nube[data-e="ok"]{color:var(--green);border-color:rgba(0,255,157,.35)}
     .nube[data-e="sync"]{color:var(--accent)}

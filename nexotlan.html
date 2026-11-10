@@ -155,13 +155,13 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 .nx-back:focus-visible{outline:3px solid #fff;outline-offset:2px}
 .nx-tit{position:relative;font-family:'Orbitron',sans-serif;font-weight:900;font-size:16px;letter-spacing:1.5px;color:#fff;padding:7px 30px 7px 14px;margin-left:-2px;
   background:linear-gradient(90deg,rgba(0,0,0,.62),rgba(0,0,0,.4) 70%,rgba(0,0,0,0));clip-path:polygon(0 0,100% 0,calc(100% - 18px) 100%,0 100%);
-  text-shadow:0 2px 0 #000,0 0 10px rgba(0,0,0,.85);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46vw}
+  text-shadow:0 2px 0 #000,0 0 10px rgba(0,0,0,.85);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:calc(46 * var(--uw))}
 .nx-tit small{display:block;font-family:inherit;font-size:9.5px;letter-spacing:2px;color:#ffc04d;font-weight:700;margin-top:1px}
 #nVolver.nx-back{margin-bottom:14px}
 .mn-volver{position:absolute;left:14px;top:12px;z-index:6}
 .mn-top{padding-left:74px!important}
 /* ── v239 · HOY: rivales y guardianes de hoy (panel del mapa) ── */
-.hoy{position:absolute;left:10px;top:calc(var(--hud) + 10px);width:min(320px,72vw);max-height:calc(100% - var(--hud) - 20px);overflow:auto;z-index:15;
+.hoy{position:absolute;left:10px;top:calc(var(--hud) + 10px);width:min(320px,calc(72 * var(--uw)));max-height:calc(100% - var(--hud) - 20px);overflow:auto;z-index:15;
   background:linear-gradient(180deg,rgba(8,14,36,.96),rgba(6,10,26,.94));border:1px solid var(--line);border-radius:14px;padding:10px;box-shadow:0 12px 34px rgba(0,0,0,.6);
   transform:translateX(-110%);transition:transform .25s cubic-bezier(.3,.8,.3,1)}
 .hoy.on{transform:none}
@@ -213,7 +213,8 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 .du-pj img.alto{height:94%}
 .du-pj img.fijo{max-width:200%}
 .du-pj img.ancho{max-width:185%}
-@media (max-height:520px){.du-pj img.ancho{transform:scale(1.2)}.du-pj img.grande.ancho{animation-name:duPjA}}   /* v246 · en celular las alas abiertas se veían chicas */
+:root.h520 .du-pj img.ancho{transform:scale(1.2)}
+:root.h520 .du-pj img.grande.ancho{animation-name:duPjA}   /* v246 · en celular las alas abiertas se veían chicas */
 @keyframes duPjA{from{opacity:0;transform:translateY(18px) scale(1.14)}to{opacity:1;transform:scale(1.2)}}
 .du-pj img.sil{filter:brightness(0) drop-shadow(0 0 14px rgba(54,214,255,.55));opacity:.85}
 @keyframes duPj{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1}}
@@ -226,7 +227,7 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 .du-cab{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding-right:96px}
 .du-tipo{font:900 9.5px 'Orbitron',sans-serif;letter-spacing:2px;padding:4px 9px;border-radius:6px;color:#0b0f1d;background:var(--fc,#f5a623)}
 .du-dist{font-size:12px;color:var(--dc,#fff);font-weight:700}
-.du-nom{font:900 clamp(18px,2.6vw,30px) 'Orbitron',sans-serif;letter-spacing:.5px;color:#fff;line-height:1.1;padding-right:96px;text-shadow:0 2px 0 rgba(0,0,0,.6)}
+.du-nom{font:900 clamp(18px,calc(2.6 * var(--uw)),30px) 'Orbitron',sans-serif;letter-spacing:.5px;color:#fff;line-height:1.1;padding-right:96px;text-shadow:0 2px 0 rgba(0,0,0,.6)}
 .du-nom::after{content:'';display:block;width:64px;height:4px;margin-top:8px;border-radius:2px;background:linear-gradient(90deg,var(--dc,#ffc04d),transparent)}
 .du-ttl{color:#cfe6ff;font-size:13.5px;font-style:italic;margin-top:-4px;padding-right:96px}
 .du-af{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
@@ -245,7 +246,7 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 .du-esp{height:2px}
 .du-acc{display:flex;gap:10px;flex-wrap:wrap}
 .du-acc .du-btn{flex:1}
-.du-carta{position:absolute;right:16px;top:12px;width:clamp(64px,7.4vw,96px);z-index:5;transform:rotate(6deg);display:none}
+.du-carta{position:absolute;right:16px;top:12px;width:clamp(64px,calc(7.4 * var(--uw)),96px);z-index:5;transform:rotate(6deg);display:none}
 .du-carta.on{display:block}
 .du-carta img{width:100%;border-radius:6px;box-shadow:0 8px 18px rgba(0,0,0,.6);border:2px solid rgba(255,255,255,.9)}
 .du-carta span{position:absolute;left:-8px;top:-8px;background:linear-gradient(180deg,#ff5a3c,#c8161e);color:#fff;font:900 9.5px 'Orbitron',sans-serif;letter-spacing:1px;padding:3px 8px;border-radius:5px;border:1.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.5)}
@@ -254,12 +255,29 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 .du-btn:disabled{filter:grayscale(.9);opacity:.55;cursor:not-allowed}
 .du-btn:not(:disabled):hover{transform:translateY(-1px)}
 .du-btn:focus-visible{outline:3px solid #fff;outline-offset:3px}
-@media (max-height:520px){.du-col{top:58px;width:132px}.du-lista{grid-template-columns:repeat(2,54px);gap:8px 6px}.du-av{width:54px;height:54px}
-  .du-info{top:56px;padding:10px 12px;gap:6px}.du-cita{font-size:12px;padding:7px 10px 7px 24px}.du-st{padding:5px 8px}.du-st b{font-size:12px}.du-btn{padding:8px 10px;font-size:11px}
-  .du-carta{width:56px;top:-18px}.du-nom{font-size:17px}.du-ttl{font-size:12px}.du-pj{left:146px}
-  .du-nom::after{margin-top:4px;height:3px}.du-cita{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
-  .du-stats{gap:5px}.du-st small{font-size:7.5px;margin-bottom:1px}.du-af i{width:11px;height:11px}.du-cab{gap:4px}.du-tipo{padding:2px 7px;font-size:8.5px}.du-dist{font-size:11px}}
-@media (max-width:760px){.du-info{width:46%}.du-pj{right:45%}}
+:root.h520 .du-col{top:58px;width:132px}
+:root.h520 .du-lista{grid-template-columns:repeat(2,54px);gap:8px 6px}
+:root.h520 .du-av{width:54px;height:54px}
+:root.h520 .du-info{top:56px;padding:10px 12px;gap:6px}
+:root.h520 .du-cita{font-size:12px;padding:7px 10px 7px 24px}
+:root.h520 .du-st{padding:5px 8px}
+:root.h520 .du-st b{font-size:12px}
+:root.h520 .du-btn{padding:8px 10px;font-size:11px}
+:root.h520 .du-carta{width:56px;top:8px}
+:root.h520 .du-nom{font-size:17px}
+:root.h520 .du-ttl{font-size:12px}
+:root.h520 .du-pj{left:146px}
+:root.h520 .du-nom::after{margin-top:4px;height:3px}
+:root.h520 .du-cita{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+:root.h520 .du-stats{gap:5px}
+:root.h520 .du-st small{font-size:7.5px;margin-bottom:1px}
+:root.h520 .du-af i{width:11px;height:11px}
+:root.h520 .du-af.mucha{gap:5px}:root.h520 .du-af.mucha i{width:9px;height:9px}
+:root.h520 .du-cab{gap:4px}
+:root.h520 .du-tipo{padding:2px 7px;font-size:8.5px}
+:root.h520 .du-dist{font-size:11px}
+:root.q760 .du-info{width:46%}
+:root.q760 .du-pj{right:45%}
 @media (prefers-reduced-motion:reduce){.du-mapa img,.du-pj img,.hoy{transition:none;animation:none}.du-mapa .du-mk{animation:none}}
 .h-title{font-family:'Orbitron',monospace;font-weight:900;font-size:13px;letter-spacing:3px;color:var(--cyan);text-shadow:0 0 10px rgba(54,214,255,.5);white-space:nowrap}
 .h-sp{flex:1}
@@ -479,6 +497,9 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 .td-banda svg{position:absolute;inset:0;width:100%;height:100%}
 .td-banda img.ret{position:absolute;left:12px;bottom:0;height:140px;max-width:40%;object-fit:contain;object-position:bottom;filter:drop-shadow(0 6px 14px rgba(0,0,0,.7))}
 .td-banda img.ret.carta{height:120px;bottom:12px;border-radius:8px;border:2px solid var(--gold)}
+.td-banda .ret-busto{position:absolute;left:10px;bottom:0;height:calc(100% - 8px);aspect-ratio:1;overflow:hidden;
+  -webkit-mask-image:linear-gradient(180deg,#000 72%,transparent);mask-image:linear-gradient(180deg,#000 72%,transparent)}
+.td-banda .ret-busto img{position:absolute;left:50%;top:3%;height:285%;width:auto;max-width:none;transform:translateX(-50%);filter:drop-shadow(0 6px 14px rgba(0,0,0,.7))}
 .td-bur{position:absolute;left:min(170px,38%);right:12px;top:50%;transform:translateY(-50%);background:#f7f9ff;color:#0a0f1e;border-radius:14px;padding:10px 14px;font-family:'VT323',monospace;font-size:clamp(19px,calc(2.6 * var(--uw)),24px);line-height:1.1;box-shadow:0 0 0 3px #0a1430,0 0 0 5px var(--gold)}
 .td-bur b{display:block;font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:#a3123a;margin-bottom:2px}
 .td-tabs{display:flex;border-bottom:1px solid var(--line);flex-shrink:0}
@@ -530,11 +551,11 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
   padding:0 18px 10px;margin-bottom:clamp(14px,calc(4 * var(--uh)),34px);
   background:linear-gradient(#f5a623,#f5a623) center bottom/100% 2px no-repeat}
 #carga .cg-x{font-size:clamp(16px,calc(2.3 * var(--uw)),23px);font-weight:700;line-height:1.45;color:#eef2ff;max-width:36em}
-#carga .cg-pie{position:absolute;right:clamp(14px,4vw,46px);bottom:clamp(12px,3.4vh,34px);display:flex;align-items:flex-end;gap:12px}
+#carga .cg-pie{position:absolute;right:clamp(14px,calc(4 * var(--uw)),46px);bottom:clamp(12px,calc(3.4 * var(--uh)),34px);display:flex;align-items:flex-end;gap:12px}
 #carga .cg-pie span{font-family:'Orbitron',monospace;font-weight:900;font-size:13px;letter-spacing:.14em;color:#fff;padding:0 4px 6px 0;position:relative;display:block;min-width:120px}
 #carga .cg-pie span::before{content:'';position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(207,224,255,.18)}
 #carga .cg-pie span i{position:absolute;left:0;bottom:0;height:3px;width:0;background:linear-gradient(90deg,#f5a623,#ffd166);box-shadow:0 0 8px rgba(255,190,60,.8);transition:width linear}
-#carga .cg-sig{position:absolute;left:50%;bottom:clamp(14px,3.6vh,34px);transform:translateX(-50%);font-family:'Orbitron',monospace;font-weight:700;font-size:12px;letter-spacing:.14em;
+#carga .cg-sig{position:absolute;left:50%;bottom:clamp(14px,calc(3.6 * var(--uh)),34px);transform:translateX(-50%);font-family:'Orbitron',monospace;font-weight:700;font-size:12px;letter-spacing:.14em;
   color:#ffd166;opacity:0;transition:opacity .4s;white-space:nowrap;pointer-events:none}
 #carga.listo{cursor:pointer}
 #carga.listo .cg-pie span{color:#ffd166}
@@ -2300,10 +2321,18 @@ async function abrirTienda(p) {
   const ret = await retrato(p), pai = await paisajeUrl(p), hayPai = !!pai, d = distDe(p);
   const sal = String(COM.cfg.saludo || '').split('|').map(x => x.trim()).filter(Boolean); if (!sal.length) sal.push('¡Bienvenido!');
   $('tdBanda').style.backgroundImage = hayPai ? `url('${pai}')` : '';
-  $('tdBanda').innerHTML = (hayPai ? '' : skyline(d)) + (ret ? `<img class="ret ${ret.carta ? 'carta' : ''}" src="${esc(ret.src)}" alt="">` : '') +
+  const bus = await bustoBanda(ret);
+  $('tdBanda').innerHTML = (hayPai ? '' : skyline(d)) + bus +
     `<div class="td-bur"><b>${esc((p.nombre || '').toUpperCase())}</b>${esc(sal[Math.floor(Math.random() * sal.length)])}</div>`;
   irA('sTienda'); pintarTienda();
   try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('tdBody').querySelector('button:not([disabled])') || $('tdSalir')), 60); } catch (e) {}
+}
+// v247 · En la banda del Comerciante / Carpetero se ve solo el busto (cabeza a hombros), no el cuerpo completo
+async function bustoBanda(ret) {
+  if (!ret) return '';
+  if (ret.carta) return `<img class="ret carta" src="${esc(ret.src)}" alt="">`;
+  let src = ret.src; try { const r = await recortePj(ret.src); if (r && r.src) src = r.src; } catch (e) {}
+  return `<div class="ret-busto"><img src="${esc(src)}" alt=""></div>`;
 }
 function salirTienda() { S.nuevas = S.nuevas || {}; guardar(); volver(); }
 const sobreDisponible = sb => !lista(sb.requiere).length || lista(sb.requiere).every(r => vencido(r) || (DIST.find(d => d.id === r) && distritoAbierto(DIST.find(d => d.id === r))));
@@ -2485,7 +2514,8 @@ async function abrirCarpeta(p) {
   const [ret, pai] = await Promise.all([retrato(p), paisajeUrl(p)]), d = distDe(p);
   const sal = String((COM.carp || {}).saludo || '').split('|').map(x => x.trim()).filter(Boolean); if (!sal.length) sal.push('¿Cambiamos cartas? Dame algunas y gira la ruleta.');
   $('cpBanda').style.backgroundImage = pai ? `url('${pai}')` : '';
-  $('cpBanda').innerHTML = (pai ? '' : skyline(d)) + (ret ? `<img class="ret ${ret.carta ? 'carta' : ''}" src="${esc(ret.src)}" alt="">` : '') +
+  const bus = await bustoBanda(ret);
+  $('cpBanda').innerHTML = (pai ? '' : skyline(d)) + bus +
     `<div class="td-bur"><b>${esc((p.nombre || '').toUpperCase())}</b>${esc(sal[Math.floor(Math.random() * sal.length)])}</div>`;
   irA('sCarpeta'); pintarCarpeta();
   try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('cpBody').querySelector('button') || $('cpSalir')), 60); } catch (e) {}

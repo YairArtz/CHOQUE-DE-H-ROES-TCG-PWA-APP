@@ -10673,6 +10673,9 @@ if(TUTO){(function(){
   const sectorBtns=()=>[$('sectorBtnIzq'),$('sectorBtnDer')].filter(b=>b&&!b.disabled);
   const combateBox=()=>document.querySelector('#combatMod.show .cbox');
   const combateAbierto=()=>!!document.querySelector('#combatMod.show');
+  // v247 · El paso del resultado espera a que la ventana del combate se haya abierto y cerrado. Antes, si el combate
+  //        se resolvía antes de que la ventana apareciera, el guía saltaba a «Termina tu turno» con la ventana encima y nada se podía tocar
+  const trasCombate=cond=>{const h={};return ()=>{const t=Date.now();if(!h.t0)h.t0=t;if(combateAbierto())h.v=1;return !combateAbierto()&&cond()&&(h.v||t-h.t0>4000);};};
   const enMesa=(o,id)=>slotDe(o,id)>=0;
 
   // Pasos de una llamada completa (carta → Llamar → sector)
@@ -10715,7 +10718,7 @@ if(TUTO){(function(){
     {t:'¡A combate!',x:'Tus nuevos personajes descansan, pero <b>Los Primos del Sur</b> ya pueden atacar. Toca el botón.',el:()=>$('btnMain'),hecho:()=>G.phase==='combat'},
     {t:'Elige al atacante',x:'Toca a <b>Los Primos del Sur</b> (⚔3).',el:()=>pjEl('player','primos_sur'),hecho:()=>ATK_SLOT===slotDe('player','primos_sur')||combateAbierto()||!enMesa('cpu','nj_addela')},
     {t:'Elige el objetivo',x:'Ahora toca a <b>Ninjiachi Addela</b> del adversario.',el:()=>pjEl('cpu','nj_addela'),hecho:()=>combateAbierto()||!enMesa('cpu','nj_addela'),atras:()=>ATK_SLOT===null&&!combateAbierto()},
-    {t:'Así se resuelve',x:'Cada uno golpea con su <b>⚔ Fuerza</b> contra la <b>🛡 Resistencia</b> del otro. Si la resistencia llega a 0, pierde 1 ❤.<br>Tu ⚔3 dejó a Addela sin resistencia y perdió su único corazón: ¡eliminado! Tus Primos aguantan con 🛡1.',el:combateBox,ok:()=>[document.querySelector('#combatMod .cb-close')],hecho:()=>!combateAbierto()&&!enMesa('cpu','nj_addela')},
+    {t:'Así se resuelve',x:'Cada uno golpea con su <b>⚔ Fuerza</b> contra la <b>🛡 Resistencia</b> del otro. Si la resistencia llega a 0, pierde 1 ❤.<br>Tu ⚔3 dejó a Addela sin resistencia y perdió su único corazón: ¡eliminado! Tus Primos aguantan con 🛡1.',el:combateBox,ok:()=>[document.querySelector('#combatMod .cb-close')],hecho:trasCombate(()=>!enMesa('cpu','nj_addela'))},
     {t:'Termina tu turno',x:'Toca <b>FIN DE TURNO</b>. La resistencia de tus personajes se recupera al terminar el turno.',el:()=>$('btnMain'),hecho:()=>G.active==='cpu'},
     esperaRival('Turno del adversario','El adversario prepara a su siguiente defensor…',3),
     // ── TU 3er TURNO ──
@@ -10724,7 +10727,7 @@ if(TUTO){(function(){
     {t:'¡A combate!',x:'Hoy todos tus personajes pueden atacar. Toca el botón.',el:()=>$('btnMain'),hecho:()=>G.phase==='combat'},
     {t:'Elige bien',x:'Panncho tiene 🛡4: tu <b>Vigilante Águila</b> (⚔4) puede romperla y aguantar su golpe con 🛡6. Tócalo.',el:()=>pjEl('player','vigilante_aguila'),hecho:()=>ATK_SLOT===slotDe('player','vigilante_aguila')||combateAbierto()||!enMesa('cpu','nj_panncho')},
     {t:'Ataca a Panncho',x:'Toca a <b>Ninjiachi Panncho</b>.',el:()=>pjEl('cpu','nj_panncho'),hecho:()=>combateAbierto()||!enMesa('cpu','nj_panncho'),atras:()=>ATK_SLOT===null&&!combateAbierto()},
-    {t:'¡Fuera Panncho!',x:'Tu ⚔4 acabó con su 🛡4. Su ⚔3 solo bajó tu resistencia de 6 a 3.',el:combateBox,ok:()=>[document.querySelector('#combatMod .cb-close')],hecho:()=>!combateAbierto()&&!enMesa('cpu','nj_panncho')},
+    {t:'¡Fuera Panncho!',x:'Tu ⚔4 acabó con su 🛡4. Su ⚔3 solo bajó tu resistencia de 6 a 3.',el:combateBox,ok:()=>[document.querySelector('#combatMod .cb-close')],hecho:trasCombate(()=>!enMesa('cpu','nj_panncho'))},
     {t:'¡Ataque directo!',x:'El adversario se quedó <b>sin personajes</b>: ahora puedes atacar directo a sus corazones. Toca a <b>Los Primos del Sur</b>.',el:()=>pjEl('player','primos_sur'),hecho:()=>G.cpu.hp<2||G.over},
     {t:'¡El golpe final!',x:'Le queda <b>1 ❤</b>. Toca a tu <b>Ninjiachi Addela</b>.',el:()=>pjEl('player','nj_addela'),hecho:()=>G.over},
   ];
@@ -10847,7 +10850,7 @@ if(TUTO){(function(){
   addEventListener('resize',()=>{if(coach.on){ultimo='';colocar(PASOS[coach.i]||{});}});
 
   // Solo se puede tocar lo que el guía señala
-  const SIEMPRE='.tu-bub,.hdr-back,#btnMute,#btnMusic,#btnFlip,.choose-overlay.show,#endgameModal,#epConfirm,.ds-list,#bootScreen';
+  const SIEMPRE='.tu-bub,.hdr-back,#btnMute,#btnMusic,#btnFlip,.choose-overlay.show,#endgameModal,#epConfirm,.ds-list,#bootScreen,#combatMod.show .cb-close';   // v247 · cerrar la ventana del combate siempre se puede
   function permitido(t){
     if(!coach.on) return true;
     if(t.closest&&t.closest(SIEMPRE)) return true;

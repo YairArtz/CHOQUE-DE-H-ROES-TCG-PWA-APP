@@ -40,7 +40,7 @@
   function pantalla(de, a) {
     if (UI) return UI;
     var st = document.createElement('style');
-    st.textContent = '#chhAct{position:fixed;inset:0;z-index:2147483600;display:flex;align-items:center;justify-content:center;padding:18px;background:radial-gradient(ellipse at 50% 35%,rgba(20,40,90,.96),rgba(3,6,16,.98));font-family:"Orbitron",system-ui,sans-serif;color:#fff}' +
+    st.textContent = '#chhAct{position:fixed;inset:0;z-index:2147483600;display:flex;align-items:center;justify-content:center;padding:18px;background:radial-gradient(ellipse at 50% 35%,#14285a,#030610);font-family:"Orbitron",system-ui,sans-serif;color:#fff}' +
       '#chhAct .ca-box{width:min(440px,100%);text-align:center;padding:26px 22px 22px;border-radius:18px;border:1px solid rgba(255,193,77,.45);background:linear-gradient(180deg,rgba(14,22,48,.95),rgba(6,10,24,.95));box-shadow:0 20px 60px rgba(0,0,0,.6),0 0 40px rgba(255,154,31,.12)}' +
       '#chhAct .ca-ic{font-size:44px;line-height:1;margin-bottom:10px;animation:caGira 3s linear infinite;display:inline-block}' +
       '@keyframes caGira{to{transform:rotate(360deg)}}' +
@@ -116,6 +116,7 @@
     }
     progreso(1, 1, '¡Listo! Entrando a la versión ' + num(rem) + '…');
     await sleep(500);
+    try { sessionStorage.removeItem('chh_boot_visto'); } catch (e) {}   // tras actualizar, el boot se ve completo
     location.replace(destino || location.href.split('#')[0]);
   }
   function salida(destino) {

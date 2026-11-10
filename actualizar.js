@@ -7,7 +7,17 @@
    Tus partidas, desbloqueos, música y medios descargados no se tocan.
    ════════════════════════════════════════════════════════════════ */
 (function () {
-  if (!('serviceWorker' in navigator) || !('caches' in window)) { window.CHH_ACT = { revisar: function () { return Promise.resolve(false); } }; return; }
+
+  // v249 · Versión que se muestra en el título y en Ajustes, calculada igual en ambos: la compilación vNNN que está
+  //        corriendo (la del service worker activo) y la versión NNN / 100 → v248 = 2.48. Sin SW, se lee de sw.js
+  function versionMostrar(act) {
+    var deSw = function () { return fetch('sw.js', { cache: 'no-cache' }).then(function (r) { return r.text(); }).then(function (t) { var m = /chh-tcg-v(\d+)/.exec(t); return m ? 'chh-tcg-v' + m[1] : null; }).catch(function () { return null; }); };
+    return Promise.resolve(act ? act() : null).then(function (v) { return v || deSw(); }).then(function (v) {
+      var m = /v(\d+)/.exec(v || ''); if (!m) return null; var n = +m[1];
+      return { n: n, version: (n / 100).toFixed(2), build: 'v' + n, texto: 'Versión ' + (n / 100).toFixed(2) + ' · compilación v' + n };
+    });
+  }
+  if (!('serviceWorker' in navigator) || !('caches' in window)) { window.CHH_ACT = { revisar: function () { return Promise.resolve(false); }, version: function () { return versionMostrar(null); } }; return; }
   var sleep = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
   var num = function (v) { var m = String(v || '').match(/v(\d+)/); return m ? 'v' + m[1] : (v || '?'); };
 
@@ -130,6 +140,7 @@
   }
 
   window.CHH_ACT = {
+    version: function () { return versionMostrar(versionActiva); },
     // Devuelve true si mostró la pantalla de actualización (la app queda detenida hasta actualizar)
     revisar: async function (opt) {
       opt = opt || {};

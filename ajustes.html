@@ -277,6 +277,7 @@ footer{padding:26px 16px 6px;text-align:center;font-size:13px;font-weight:600;co
 </div>
 <div id="toast" role="status"></div>
 
+<script src="actualizar.js"></script>
 <script src="settings.js"></script>
 <script>
 // ═══════════════════════════════════════════
@@ -433,10 +434,9 @@ $('cache').onclick = async () => {
 
 // ── App ──
 (async function version() {
-  let v = '';
-  try { const k = (await caches.keys()).find(x => /^chh-tcg-v\d+/.test(x)); if (k) v = k.replace('chh-tcg-', ''); } catch (e) {}
-  if (!v) try { const t = await (await fetch('sw.js', { cache: 'no-cache' })).text(); const m = /chh-tcg-(v\d+)/.exec(t); if (m) v = m[1]; } catch (e) {}
-  $('ver').textContent = 'Versión 1.3 · compilación ' + (v || '—');
+  // v249 · Calculada igual que en la pantalla de título (actualizar.js → CHH_ACT.version())
+  let v = null; try { v = window.CHH_ACT && await CHH_ACT.version(); } catch (e) {}
+  $('ver').textContent = v ? v.texto : 'Versión —';
 })();
 $('intro').onclick = () => { LS.set('nexo_intro_vista', null); location.href = 'intro.html'; };
 $('reset').onclick = async () => {

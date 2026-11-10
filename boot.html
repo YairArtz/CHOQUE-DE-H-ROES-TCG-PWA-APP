@@ -143,7 +143,8 @@ body.out .scene{transition:opacity .45s;opacity:0}
   });
 
   // Datos de la esquina: versión (de sw.js) e ID del jugador
-  fetch('sw.js',{cache:'no-cache'}).then(function(r){return r.text();}).then(function(t){var m=t.match(/CACHE_NAME\s*=\s*['"][^'"]*?v(\d+)['"]/);if(m)$('ver').textContent='Ver. '+(m[1]/100).toFixed(2);}).catch(function(){});
+  // v249 · Misma versión que Ajustes (la que está corriendo): ver actualizar.js → CHH_ACT.version()
+  try{CHH_ACT.version().then(function(v){if(v)$('ver').textContent='Ver. '+v.version+' · '+v.build;});}catch(e){}
   try{var s=JSON.parse(localStorage.getItem('nhSesion')||'null');if(s&&s.id)$('pid').textContent=(s.tipo==='tienda'?'Tienda: ':'Jugador: ')+s.id;}catch(e){}
 
   // Partículas del título

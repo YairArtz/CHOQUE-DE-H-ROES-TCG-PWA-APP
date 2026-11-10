@@ -61,7 +61,7 @@
 //  v8:   shell cache-first + revalidación, JSON red-primero, fallbacks por tipo.
 // ================================================================
 try { importScripts('./config.js'); } catch (e) {}   // direcciones de los servidores (config.js)
-const CACHE_NAME    = 'chh-tcg-v243';
+const CACHE_NAME    = 'chh-tcg-v244';
 const CACHE_DYNAMIC = 'chh-paginas-v1';    // estable: páginas/JSON/JS visitados (NO subir; lo precargado se renueva solo)
 const CACHE_IMG     = 'chh-img-v1';      // estable: imágenes, fuentes y PDFs. Subir SOLO si reemplazas imágenes con el mismo nombre
 const CACHE_AUDIO   = 'chh-audio-v1';    // estable: pistas de bgm.js. Subir SOLO si reemplazas un .mp3 con el mismo nombre
@@ -155,7 +155,7 @@ self.addEventListener('activate', event => {
     try { if (self.registration.navigationPreload) await self.registration.navigationPreload.enable(); } catch (e) {}
     const keys = await caches.keys();
     // Migración: las páginas ya visitadas (cachés dinámicas viejas) pasan a la estable
-    try {
+    try { await Promise.race([new Promise(r => setTimeout(r, 8000)), (async () => {
       const dyn = await caches.open(CACHE_DYNAMIC);
       const pre = new Set([...CACHE_CORE, ...CACHE_SIM].map(u => new URL(u, self.location).href));
       for (const k of keys.filter(k => /^chh-dynamic-/.test(k))) {
@@ -166,7 +166,7 @@ self.addEventListener('activate', event => {
           const r = await old.match(rq); if (r) await dyn.put(rq, r);
         }
       }
-    } catch (e) {}
+    })()]); } catch (e) {}
     await Promise.all(keys.filter(k => !KEEP_CACHES.includes(k)).map(k => caches.delete(k)));
     // v242 · Las páginas, scripts y datos guardados fuera de la precarga (p. ej. visitados antes) se renuevan ahora,
     // para que ninguna pantalla se quede con la versión anterior. Si una falla (sin red), se conserva la copia que había.
@@ -177,7 +177,9 @@ self.addEventListener('activate', event => {
       const uno = async () => { while (i < rqs.length) { const rq = rqs[i++];
         try { const r = await fetchTimeout(new Request(rq.url, { cache: 'no-cache' }), 12000); if (r && r.ok) await dyn.put(rq, r); } catch (e) {}
         hechos++; if (hechos % 3 === 0 || hechos === rqs.length) avisar({ fase: 'renovar', n: hechos, t: rqs.length }); } };
-      await Promise.all([uno(), uno(), uno(), uno(), uno(), uno()]);
+      // v244 · Con tope de 20 s: la activación nunca se queda colgada (lo que falte se renueva solo al visitarlo)
+      await Promise.race([Promise.all([uno(), uno(), uno(), uno(), uno(), uno()]), new Promise(r => setTimeout(r, 20000))]);
+      i = rqs.length;
     } catch (e) {}
     await self.clients.claim();
   })());
@@ -186,7 +188,7 @@ self.addEventListener('activate', event => {
 self.addEventListener('message', event => {
   if (!event.data) return;
   if (event.data.type === 'SKIP_WAITING') self.skipWaiting();
-  if (event.data.type === 'GET_VERSION' && event.ports && event.ports[0]) event.ports[0].postMessage({ v: CACHE_NAME });
+  if (event.data.type === 'GET_VERSION' && event.ports && event.ports[0]) event.ports[0].postMessage({ v: CACHE_NAME, estado: self.registration.active === self ? 'activo' : 'nuevo' });
   if (event.data.type === 'CHECK_UPDATES') checkUpdates();
 });
 
@@ -465,9 +467,13 @@ async function pagina(event) {
 // ── Precarga en segundo plano de los módulos (uno por uno) ──
 let _warmStarted = false;
 async function warmPages() {
-  await timeout(15000);   // deja pasar primero lo que la página actual necesita (red móvil)
+  // v244 · Si llega una versión nueva se suelta de inmediato: mientras esta tarea sigue viva el navegador no deja
+  // activar la versión nueva (era lo que dejaba "Buscando la versión nueva…" trabado en la pantalla de actualización)
+  const hayNueva = () => !!(self.registration.installing || self.registration.waiting);
+  for (let k = 0; k < 15 && !hayNueva(); k++) await timeout(1000);   // deja pasar primero lo que la página actual necesita (red móvil)
   const cache = await caches.open(CACHE_DYNAMIC);   // estable: no se re-descarga en cada versión
   for (const url of CACHE_WARM) {
+    if (hayNueva()) return;
     try {
       if (await matchAny(url, { ignoreSearch: true })) continue;
       const r = await fetchTimeout(new Request(url, { cache: 'no-cache' }), 30000);

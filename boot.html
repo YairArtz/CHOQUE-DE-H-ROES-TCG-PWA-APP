@@ -117,6 +117,7 @@ body.out .scene{transition:opacity .45s;opacity:0}
 <div class="fx" id="fx"></div>
 <button id="skip" type="button" hidden>OMITIR</button>
 
+<script src="actualizar.js"></script>
 <script>
 (function(){
   var $=function(id){return document.getElementById(id);};
@@ -186,7 +187,7 @@ body.out .scene{transition:opacity .45s;opacity:0}
     }catch(e){}
   }
   function comenzar(){
-    if(saliendo)return;saliendo=true;
+    if(saliendo||bloqueo)return;saliendo=true;
     sonInicio();try{navigator.vibrate&&navigator.vibrate(30);}catch(e){}
     try{if(window.GP&&GP.vibrar)GP.vibrar(120,.6);}catch(e){}
     $('fx').classList.add('go');
@@ -199,7 +200,7 @@ body.out .scene{transition:opacity .45s;opacity:0}
   $('sTitle').addEventListener('click',function(){if(enTitulo)comenzar();});
   $('press').addEventListener('click',function(e){e.stopPropagation();if(enTitulo)comenzar();});
   // Tocar durante la cortina la salta
-  function saltar(){if(!enTitulo)titulo();}
+  function saltar(){if(!enTitulo&&!bloqueo)titulo();}
   ['sStudio','sLogo1','sLogo2'].forEach(function(id){$(id).addEventListener('click',saltar);});
   $('skip').addEventListener('click',saltar);
   document.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '||e.key==='Escape'){e.preventDefault();enTitulo?comenzar():saltar();}});
@@ -208,20 +209,20 @@ body.out .scene{transition:opacity .45s;opacity:0}
   window.addEventListener('gamepadconnected',function(){setTimeout(gpTxt,200);});
 
   var visto=false;try{visto=sessionStorage.getItem('chh_boot_visto')==='1';}catch(e){}
-  listos.then(function(){if(visto)titulo();else{$('skip').hidden=false;secuencia();}});
-  setTimeout(function(){if(actual===-1&&!enTitulo&&!timers.length)titulo();},4000);   // por si una imagen tarda demasiado
+  // v244 · Primero se revisa si hay versión nueva: si la hay, la pantalla de actualización sale ANTES de la animación y esta no arranca
+  var bloqueo=false,chk=(window.CHH_ACT?CHH_ACT.revisar({destino:'index.html'}):Promise.resolve(false)).catch(function(){return false;});
+  chk.then(function(m){if(m){bloqueo=true;limpiar();$('skip').hidden=true;}});
+  Promise.all([listos,chk]).then(function(r){if(r[1])return;if(visto)titulo();else{$('skip').hidden=false;secuencia();}});
+  chk.then(function(m){if(!m)setTimeout(function(){if(!bloqueo&&actual===-1&&!enTitulo&&!timers.length)titulo();},4000);});   // por si una imagen tarda demasiado
 })();
 </script>
 <script src="gamepad.js"></script>
-<script src="actualizar.js"></script>
 <script>
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js', {scope:'./'})
       .then(function(reg){ if(reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'}); })
       .catch(function(err){ console.log('[Boot] SW error:',err); });
   }
-  // v242 · Actualización obligatoria: si hay una versión nueva en el sitio, se instala antes de entrar a la app
-  try { window.CHH_ACT && CHH_ACT.revisar({ destino: 'index.html' }); } catch (e) {}
 </script>
 </body>
 </html>

@@ -5247,7 +5247,7 @@ async function runTrigger(o,cid,cuando,src){
 function activables(o,cid,cuando,src){
   return (C[cid].efectos||[]).map((e,i)=>({e,i})).filter(x=>x.e.cuando===cuando).map(({e,i})=>{
     const why=effWhy(o,cid,e,i,src);
-    return {label:'✨ '+(e.texto||'Activar habilidad')+(e.costo&&e.costo.corazones?' (−'+e.costo.corazones+' ❤)':''),ok:!why,why,
+    return {e,label:'✨ '+(e.texto||'Activar habilidad')+(e.costo&&e.costo.corazones?' (−'+e.costo.corazones+' ❤)':''),ok:!why,why,
       fn:async()=>{await useAbility(o,cid,e,i,src);}};
   });
 }
@@ -5662,6 +5662,10 @@ async function offerResponses(ev){
       lg('✒️ <b>BORRADOR DEL CREADOR</b>: '+arcadeEsc(ARCADE&&ARCADE.nombre||'CPU')+' borra <b>'+C[ev.cid].name+'</b> de la historia. (Le quedan '+G.borrador+')','#ffd166');playSound('destroy');}}]);
   }
   if(C[ev.cid]&&C[ev.cid].costoNegar&&r==='cpu'&&G.cpu.hp<=C[ev.cid].costoNegar+1) opts=[];
+  // v237 · si tienes Choque Heróico Definitivo y no aparece al ser atacado, dice por qué (una vez por turno)
+  try{if(r==='player'&&ev.kind==='ataque'&&G.player.hand.includes('p3_choque_heroico')&&!opts.some(x=>/Choque Heróico/.test(x.label))&&G._chdAviso!==turnKey()){
+    G._chdAviso=turnKey();const w=buildMenuActions('p3_choque_heroico',G.player.hand.indexOf('p3_choque_heroico'),0,C.p3_choque_heroico)[0];
+    const m=w&&w.why&&w.why.split('Ahora no podrías: ')[1]; if(m) lg('⚔ <b>Choque Heróico Definitivo</b> no puede responder a este ataque: '+m,'var(--orange)');}}catch(e){}
   if(!opts.length) return;
   let pick=null;
   if(r==='player'){
@@ -7685,6 +7689,19 @@ function _buildMenuActions(cid,idx,at,card){
       acts.push({label:'⚡ Uso Rápido: se activa en respuesta',ok:false,why:'Se activa sola desde tu mano cuando una habilidad o efecto del adversario va a impactar tus corazones',fn:()=>{}});
       return acts;
     }
+    if(!effs.length&&(card.efectos||[]).some(e=>e.accion==='choque_heroico')){   // v237 · explica cuándo aparece y qué lo impide ahora
+      const r='player', fal=[];
+      if(rapidosBloq(cid)) fal.push(rapidosWhy(cid)||'los APOYOS RÁPIDOS están bloqueados');
+      if(G.used[r]['chd']) fal.push('ya lo usaste este turno');
+      if(freeApoAp(r)===-1) fal.push('no tienes zona de APOYO libre');
+      if(freePJ(r)===-1) fal.push('no tienes zona de PERSONAJE libre');
+      if(!cands(r,'mictlan',{tipos:['pj']}).length) fal.push('no hay PERSONAJES en tu Mictlán');
+      if(espBloqueado()) fal.push('los llamados especiales están bloqueados');
+      if(mictlanCerrado()) fal.push('el Mictlán está cerrado');
+      if(choqueDiosesOn()) fal.push('el Choque de Dioses lo impide');
+      acts.push({label:'⚡ Uso Rápido: se activa como respuesta',ok:false,why:'Aparecerá cuando el rival declare un ataque en SU Fase de Combate'+(fal.length?'. Ahora no podrías: '+fal.join(', ')+'.':' (te preguntará si respondes).'),fn:()=>{}});
+      return acts;
+    }
     if(!effs.length&&(card.efectos||[]).some(e=>e.cuando==='respuesta')){
       acts.push({label:'⚡ Uso Rápido: se activa como respuesta',ok:false,why:(card.efectos||[]).some(e=>e.accion==='amenaza_mitica')?'Aparecerá cuando el rival ataque a uno de tus personajes':'Aparecerá cuando el rival llame o active algo que puedas negar',fn:()=>{}});
       return acts;
@@ -7737,7 +7754,7 @@ function _buildMenuActions(cid,idx,at,card){
         why:ok?'':(G.phase!=='action'?phaseWhy():ya?'Solo una vez por turno':'Sector ocupado'),fn:()=>doSector(idx,side,px?'propio':undefined)});
     });
   }
-  if(G.phase==='action') acts.push(...activables('player',cid,'mano',{zone:'mano',handIdx:idx}).map(a=>{const f=a.fn;return Object.assign(a,{fn:async()=>{clearSel();await f();}});}));
+  if(G.phase==='action'||(G.phase==='combat'&&G.active==='player')) acts.push(...activables('player',cid,'mano',{zone:'mano',handIdx:idx}).filter(a=>G.phase==='action'||(a.e&&a.e.enCombate)).map(a=>{const f=a.fn;return Object.assign(a,{fn:async()=>{clearSel();await f();}});}));   // v237 · enCombate: también en tu Fase de Combate
   return acts;
 }
 function canAnyAction(cid,at,idx){
@@ -8186,11 +8203,33 @@ async function battle(o,as,ds){
   return res;
 }
 // Efectos tras el combate: salidas del campo, "es vencido" y "vence a otro en batalla"
+// v237 · Chilaya (y similares): en cuanto un TONALKIN es vencido y enviado al Mictlán, se ofrece llamarla desde la mano (en cualquier turno)
+async function tkOfrecerMano(){
+  if(!G||G.over||!G.tkVencido) return;
+  G._tkOfr=G._tkOfr||{};
+  for(const s of ['player','cpu']){
+    if(G.tkVencido[s]!==turnKey()) continue;
+    for(const cid of [...new Set(G[s].hand)]){
+      if(!G||G.over) return;
+      const k=(C[cid].efectos||[]).findIndex(e=>e.cuando==='mano'&&e.condicion&&e.condicion.tkVencidoTurno&&!e.pendiente);
+      if(k<0||!G[s].hand.includes(cid)) continue;
+      const clave=s+':'+cid; if(G._tkOfr[clave]===turnKey()+':'+(G.tkVencidoN||0)) continue;
+      G._tkOfr[clave]=turnKey()+':'+(G.tkVencidoN||0);
+      const e=C[cid].efectos[k];
+      if(effWhy(s,cid,e,k,{zone:'mano'})) continue;
+      let si=s==='cpu';
+      if(esPersona(s)) si=(await preguntaDe(s,'🌅 Un TONALKIN tuyo fue vencido y enviado al Mictlán.<br>¿Llamas de forma especial a <b>'+C[cid].name+'</b> desde tu mano?',['✅ Sí, llamarla','✖ No']))===0;
+      if(!si) continue;
+      await useAbility(s,cid,e,k,{zone:'mano'});
+      renderAll();
+    }
+  }
+}
 async function afterBattle(o,as,res){
   for(const [s,cid,comb,obj] of res.leaves){
     if(!G||G.over) return;
     const mudo=await fireLeave(s,cid);
-    if(comb) tkTrasVencido(s,cid,obj);
+    if(comb){tkTrasVencido(s,cid,obj);if(G.tkVencido&&G.tkVencido[s]===turnKey())G.tkVencidoN=(G.tkVencidoN||0)+1;}
     if(comb&&!mudo){const ven=s===o?(res.first&&res.first.d?{o:opp(o),id:res.first.d.id}:null):{o,id:res.atkId};await runTrigger(s,cid,'vencido',{zone:'fuera',vencedor:ven});}
     renderAll();
     if(checkEnd()) return;
@@ -8202,7 +8241,8 @@ async function afterBattle(o,as,res){
     G[o].apoyo.forEach(a=>{if(a&&a.type==='equipo'&&a.tgt===atk){const ee=equipEff(a.card);if(ee&&ee.robarAlVencer){const c=drawFrom(o,'bp');if(c)lg('🎯 <b>'+C[a.card].name+'</b>'+who(o)+': su equipado vence, roba una carta.','var(--ac)');}}});
     await runTrigger(o,atk.id,'vence',{zone:'campo',slot:as,vencido:res.first&&res.first.d&&res.first.d.id});
   }
-  renderAll(); checkEnd();
+  renderAll(); if(checkEnd()) return;
+  try{await tkOfrecerMano();}catch(e){}
 }
 let _combatClose=null;
 async function playerAttack(as,ds){

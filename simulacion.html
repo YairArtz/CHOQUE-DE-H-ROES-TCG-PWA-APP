@@ -24,8 +24,8 @@
      5 alturas de carta = 4 filas de tablero + 1 fila de mano. */
   --vh:100vh;
   --W:100vw; --H:var(--vh);      /* ancho/alto lógicos del juego (se invierten en modo girado) */
-  --sl:clamp(128px,calc(var(--W) * .19),250px);   /* panel izquierdo: detalle de carta */
-  --sr:clamp(150px,calc(var(--W) * .21),270px);   /* panel derecho: estado, botón, log */
+  --sl:clamp(150px,calc(var(--W) * .245),330px);  /* panel izquierdo: detalle de carta (v241: más ancho) */
+  --sr:clamp(138px,calc(var(--W) * .165),226px);  /* panel derecho: estado y botón (v241: el registro es flotante) */
   --ch:min(calc((var(--H) - 62px) / 5), calc((var(--W) - var(--sl) - var(--sr) - 44px) / 8 * 1.5), 190px);
   --cw:calc(var(--ch) * 2 / 3);
 }
@@ -557,7 +557,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 @keyframes tgtP{0%,100%{box-shadow:0 0 4px var(--red)}50%{box-shadow:0 0 12px var(--red)}}
 
 .bc img.ci{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;border-radius:3px;pointer-events:none}
-/* v74 · Cartas del rival de cabeza (él las ve al derecho desde su lado de la mesa). Se usa la propiedad
+/* v74 · Cartas del adversario de cabeza (él las ve al derecho desde su lado de la mesa). Se usa la propiedad
    'rotate' (no 'transform') para no chocar con las animaciones de llamar/destruir; los números quedan legibles. */
 #cpuBP img.ci,#cAR img.ci,#cA0 img.ci,#cA1 img.ci,#cA2 img.ci,#cA3 img.ci,#cCF img.ci,#cpuMC img.ci,#cpuBA img.ci,#cSR img.ci,#cP0 img.ci,#cP1 img.ci,#cP2 img.ci,#cP3 img.ci,#cSL img.ci,#cpuSOP img.ci{rotate:180deg}
 .bc .pj-ov{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.88) 0%,transparent 55%);pointer-events:none}
@@ -625,6 +625,25 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 .gbtn.sec{background:transparent;border:1px solid var(--border);color:var(--muted)}
 .gbtn:disabled{opacity:.35;cursor:default;box-shadow:none}
 .logwrap{flex:1;min-height:0;overflow-y:auto;padding:4px 7px;scrollbar-width:thin;scrollbar-color:rgba(212,135,10,.3) transparent}
+/* v241 · Registro flotante: se abre con 📜 (botón del panel derecho); muestra el último suceso sin ocupar espacio */
+.log-btn{margin:6px;padding:7px 8px;border-radius:8px;border:1px solid rgba(212,135,10,.35);background:rgba(212,135,10,.08);color:var(--text);cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:4px;min-height:0;flex:none}
+.log-btn:hover,.log-btn:focus-visible{border-color:var(--gold2);background:rgba(212,135,10,.16);outline:none}
+.log-btn .lb-t{font-family:'Orbitron',sans-serif;font-size:9.5px;letter-spacing:1px;color:var(--gold2);display:flex;align-items:center;gap:6px}
+.log-btn .lb-n{font-style:normal;min-width:18px;height:16px;padding:0 5px;border-radius:8px;background:var(--red);color:#fff;font-size:9.5px;display:inline-flex;align-items:center;justify-content:center}
+.log-btn .lb-ult{font-size:11.5px;line-height:1.35;color:var(--text);opacity:.9;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.log-btn .lb-ult.nuevo{animation:lbNuevo .6s ease-out}
+@keyframes lbNuevo{from{background:rgba(255,209,102,.25)}to{background:transparent}}
+.sr-esp{flex:1;min-height:0}
+.log-drawer{position:absolute;inset:0;z-index:60;display:none;background:rgba(0,0,0,.45)}
+.log-drawer.on{display:block}
+.log-drawer .ld-box{position:absolute;right:calc(var(--sr) + 14px);top:8px;bottom:8px;width:min(440px,calc(100% - var(--sr) - 40px));display:flex;flex-direction:column;
+  background:linear-gradient(180deg,rgba(14,9,5,.97),rgba(8,5,3,.97));border:1px solid var(--gold);border-radius:12px;box-shadow:0 14px 40px rgba(0,0,0,.7);animation:ldIn .22s cubic-bezier(.3,.8,.3,1)}
+@keyframes ldIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:none}}
+.log-drawer .ld-hd{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-bottom:1px solid var(--border);font-family:'Orbitron',sans-serif;font-size:10.5px;letter-spacing:1.5px;color:var(--gold2)}
+.log-drawer .ld-x{border:1px solid var(--border);background:rgba(255,255,255,.05);color:var(--text);border-radius:6px;width:30px;height:28px;cursor:pointer;font-size:14px}
+.log-drawer .ld-x:hover,.log-drawer .ld-x:focus-visible{border-color:var(--gold2);outline:none}
+.log-drawer .logwrap{padding:6px 12px 10px}
+@media (prefers-reduced-motion:reduce){.log-drawer .ld-box,.log-btn .lb-ult.nuevo{animation:none}}
 .loge{font-size:10.5px;line-height:1.55;border-bottom:1px solid rgba(255,255,255,.04);padding:1px 0}
 .loge:last-child{border:none}
 
@@ -911,8 +930,8 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
    Solo presentación: no cambia ninguna regla ni función del juego.
 ═══════════════════════════════════════════════════════════════════ */
 :root{
-  --sl:clamp(140px,calc(var(--W) * .2),270px);
-  --sr:clamp(162px,calc(var(--W) * .22),290px);
+  --sl:clamp(160px,calc(var(--W) * .255),350px);
+  --sr:clamp(146px,calc(var(--W) * .17),236px);
   --ep-gold:#ffd166;--ep-gold2:#f5a623;--ep-cyan:#00cfff;--ep-red:#ff2244;
   --ep-box:linear-gradient(180deg,rgba(26,20,10,.97) 0%,rgba(10,10,16,.98) 55%,rgba(6,8,14,.99) 100%);
 }
@@ -1201,7 +1220,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
     <div class="ds-lbl">MIS BARAJAS · CONSTRUCTOR</div>
     <div class="ds-row" id="dsMine"></div>
     <div class="ds-info" id="dsInfo"></div>
-    <div class="ds-lbl">RIVAL (CPU)</div>
+    <div class="ds-lbl">ADVERSARIO (CPU)</div>
     <div class="ds-chips" id="dsCpu"></div>
   </div>
   <div class="boot-vs" id="bootVs" hidden></div>
@@ -1275,7 +1294,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
     </div>
     <div class="sr-block">
       <div class="hp-row"><span class="hp-lbl">MANO</span><div class="cpu-hand-row" id="cpuhand"></div></div>
-      <div class="hp-row"><span class="hp-lbl">CPU</span><div class="hp-gems" id="cpuHB"></div><span class="hp-num" id="cpuHPn" style="color:var(--red)">10</span></div>
+      <div class="hp-row"><span class="hp-lbl">ADV.</span><div class="hp-gems" id="cpuHB"></div><span class="hp-num" id="cpuHPn" style="color:var(--red)">10</span></div>
       <div class="hp-row"><span class="hp-lbl">TÚ</span><div class="hp-gems" id="playerHB"></div><span class="hp-num" id="playerHPn" style="color:var(--green)">10</span></div>
       <div class="res-line">🃏 <span id="handCt">0</span> · <span id="almaLbl" style="color:var(--ac)">Almas: 0</span> · Llamados: <span id="callsLbl" style="color:var(--gold)">2</span></div>
     </div>
@@ -1284,8 +1303,10 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
       <div class="ph-desc" id="phdesc">Toca tu B.ALMAS y BARAJA</div>
       <button class="gbtn gold" id="btnMain" onclick="mainAction()">▶ ROBAR CARTAS</button>
     </div>
-    <div class="logwrap" id="logwrap"></div>
+    <button class="log-btn" id="btnLog" onclick="logAbrir()" title="Registro de la partida (lo que ha pasado)"><span class="lb-t">📜 REGISTRO <i class="lb-n" id="logN" hidden>0</i></span><span class="lb-ult" id="logUlt">Aquí verás lo último que pasó en la partida.</span></button>
+    <div class="sr-esp"></div>
   </aside>
+  <div class="log-drawer" id="logDrawer" onclick="if(event.target===this)logCerrar()"><div class="ld-box" role="dialog" aria-label="Registro de la partida"><div class="ld-hd"><b>📜 REGISTRO DE LA PARTIDA</b><button class="ld-x" onclick="logCerrar()" aria-label="Cerrar">✕</button></div><div class="logwrap" id="logwrap"></div></div></div>
 </div>
 
 <!-- MODAL DESCARTE EXCEDENTE -->
@@ -1609,7 +1630,7 @@ const FASE_NOM={ofrenda:'🌿 FASE DE OFRENDA',draw:'🃏 FASE DE ROBO',action:'
 function faseBanner(o,fase){
   const m=avisosFase();
   if(!G||G.over||m==='off'||(m==='propios'&&o!=='player')||!FASE_NOM[fase]) return Promise.resolve();
-  return showBanner(o==='player'?'player':'cpu',o==='player'?'TU TURNO':'TURNO DEL RIVAL',FASE_NOM[fase],900,true);
+  return showBanner(o==='player'?'player':'cpu',o==='player'?'TU TURNO':'TURNO DEL ADVERSARIO',FASE_NOM[fase],900,true);
 }
 
 function toggleMute(){
@@ -1695,7 +1716,7 @@ async function loadData(onProgress){
   if(!Array.isArray(DATA.barajas)||!DATA.barajas.length){
     if(DATA.mazos&&DATA.mazos.jugador){
       DATA.barajas=[Object.assign({id:'jugador',nombre:(DATA.baraja&&DATA.baraja.nombre)||'Baraja principal'},DATA.mazos.jugador)];
-      if(DATA.mazos.cpu) DATA.barajas.push(Object.assign({id:'cpu',nombre:'Baraja del rival'},DATA.mazos.cpu));
+      if(DATA.mazos.cpu) DATA.barajas.push(Object.assign({id:'cpu',nombre:'Baraja del adversario'},DATA.mazos.cpu));
     } else throw new Error('El JSON no tiene "barajas".');
   }
   DATA.barajas.forEach((b,i)=>{if(!b.id)b.id='baraja'+(i+1);b.nombre=b.nombre||b.id;});
@@ -2055,13 +2076,13 @@ function fatimaOn(){return !!G&&['player','cpu'].some(o=>G[o].pj.some(p=>p&&p.id
 function arenaBloq(o){const a=G&&G[opp(o)].arena;return !!a&&hasPassive(a,'bloquea_arena_rival');}
 function clioActiva(){return !!G&&['player','cpu'].some(o=>controlaPasiva(o,'clio_bloqueo'));}
 function altoActivo(){return !!G&&['player','cpu'].some(o=>G[o].apoyo.some(a=>a&&a.type==='continuo'&&hasPassive(a.card,'alto_sacrificios')));}
-// Jakkyel como APOYO en el campo de o (colocada por su rival)
+// Jakkyel como APOYO en el campo de o (colocada por su adversario)
 function jakkyelEn(o){return !!G&&G[o].apoyo.some(a=>a&&a.duenio&&a.duenio!==o&&a.card==='jakkyel');}
 function ofrendaNegada(o){return altoActivo()||jakkyelEn(o)||controlaPasiva(o,'anula_ofrenda');}
 {const _ua=useAbility;useAbility=async function(o){const r=await _ua.apply(this,arguments);try{await superOfrecer(o);}catch(e){}return r;};}
 async function inicioAccion(o){ const r=await _inicioAccion(o); try{await superOfrecer(o);}catch(e){} return r; }
 async function _inicioAccion(o){
-  // v82 · AGOTADO: quien defendió en el turno rival pasa este turno descansando (no ataca ni vuelve a defender)
+  // v82 · AGOTADO: quien defendió en el turno del adversario pasa este turno descansando (no ataca ni vuelve a defender)
   if(G&&!G.over) G[o].pj.forEach(p=>{if(p&&p.agot>0)p.resting=true;});
   if(G&&!G.over) await errantesInicio(); 
   if(G&&!G.over) oblivionInicio(o);
@@ -2089,7 +2110,7 @@ function sectorPermite(o,side,cid,via){
 }
 function almasActivas(o){return G[o].apoyo.filter(x=>x&&x.type==='alma').length;}
 function mismoSector(o,slot,f,excl){return slotsOf(o,sideOfSlot(o,slot)).filter(j=>j!==slot&&G[o].pj[j]&&(!f||matchF(G[o].pj[j].id,f))&&!(excl&&excl===G[o].pj[j]));}
-// Inmunidad: kind 'destruir' (no puede ser destruido) | 'afectar' (no le afecta nada del rival)
+// Inmunidad: kind 'destruir' (no puede ser destruido) | 'afectar' (no le afecta nada del adversario)
 function inmune(o,slot,by,kind){
   const p=G[o].pj[slot];
   if(!p||!by||by===o) return false;
@@ -2261,7 +2282,14 @@ function lg(msg,col){
   d.className='loge';d.style.color=col||'var(--text)';d.innerHTML=msg;
   const w=document.getElementById('logwrap');
   w.appendChild(d);w.scrollTop=w.scrollHeight;
+  try{const u=document.getElementById('logUlt');if(u){u.innerHTML=msg;u.style.color=col||'';u.classList.remove('nuevo');void u.offsetWidth;u.classList.add('nuevo');}
+    if(!document.getElementById('logDrawer').classList.contains('on')){_logN++;const n=document.getElementById('logN');n.hidden=false;n.textContent=_logN>99?'99+':_logN;}}catch(e){}
 }
+// v241 · Registro flotante
+let _logN=0;
+function logAbrir(){const d=document.getElementById('logDrawer');d.classList.add('on');_logN=0;const n=document.getElementById('logN');if(n)n.hidden=true;
+  const w=document.getElementById('logwrap');w.scrollTop=w.scrollHeight;try{if(window.GP&&GP.activo())setTimeout(()=>GP.enfocar(d.querySelector('.ld-x')),40);}catch(e){}}
+function logCerrar(){document.getElementById('logDrawer').classList.remove('on');try{if(window.GP&&GP.activo())GP.enfocar(document.getElementById('btnLog'));}catch(e){}}
 function drawFrom(o,src){
   const d=G[o][src];
   if(!d||!d.length) return null;
@@ -2366,7 +2394,7 @@ async function choose(ctx,list,n,{title,sub,score,min}={}){
     return [...list].sort((a,b)=>sc(b)-sc(a)).slice(0,n);
   }
   const r=await pickCards({title:title||C[ctx.cid].name.toUpperCase(),sub,max:n,min:min??n,
-    items:list.map(x=>({cid:x.cid,tag:(x.o&&x.o!==ctx.o?'RIVAL · ':'')+(SRC_NOM[x.z]||x.z).toUpperCase(),note:(isChar(x.cid)?(C[x.cid].type==='amalgama'?'✦ Gama '+C[x.cid].gama:'◆ Valor '+C[x.cid].cost):'')+(()=>{const h=x.o&&G&&G[x.o]?(x.z==='campo'?G[x.o].pj[x.i]:x.z==='apoyo'?G[x.o].apoyo[x.i]:null):null;return h&&h.cen>0?' · ☯ '+h.cen+' contador(es)':'';})()}))});
+    items:list.map(x=>({cid:x.cid,tag:(x.o&&x.o!==ctx.o?'ADVERSARIO · ':'')+(SRC_NOM[x.z]||x.z).toUpperCase(),note:(isChar(x.cid)?(C[x.cid].type==='amalgama'?'✦ Gama '+C[x.cid].gama:'◆ Valor '+C[x.cid].cost):'')+(()=>{const h=x.o&&G&&G[x.o]?(x.z==='campo'?G[x.o].pj[x.i]:x.z==='apoyo'?G[x.o].apoyo[x.i]:null):null;return h&&h.cen>0?' · ☯ '+h.cen+' contador(es)':'';})()}))});
   return (r||[]).map(k=>list[k]);
 }
 
@@ -2435,7 +2463,7 @@ const PASOS={
       if(!cid) continue;
       if([].concat(st.origen||'bp').includes('bp')) sh(G[ctx.o].bp);
       nombres.add(K(C[cid].name));hechos++;
-      await placeChar(dst,cid,{via:'especial',from:SRC_NOM[x.z]+(dst!==ctx.o?' al campo rival':''),por:ctx.cid,otorgar:st.otorgar,side,desde:x.z,duenio:dst!==ctx.o?ctx.o:undefined,slot:st.mismoSlot&&ctx.slot!=null&&!G[dst].pj[ctx.slot]?ctx.slot:undefined});
+      await placeChar(dst,cid,{via:'especial',from:SRC_NOM[x.z]+(dst!==ctx.o?' al campo del adversario':''),por:ctx.cid,otorgar:st.otorgar,side,desde:x.z,duenio:dst!==ctx.o?ctx.o:undefined,slot:st.mismoSlot&&ctx.slot!=null&&!G[dst].pj[ctx.slot]?ctx.slot:undefined});
       if(st.negarHab){const q=G[dst].pj.find(p=>p&&p.id===cid&&p.turnoLlamado===turnKey());if(q){q.negP=true;lg('⛓ <b>'+C[cid].name+'</b> entra con sus habilidades negadas.','var(--muted)');}}
       if(st.negar){const q=G[dst].pj.find(p=>p&&p.id===cid&&p.turnoLlamado===turnKey());if(q){q.neg=true;lg('⛓ <b>'+C[cid].name+'</b> no puede activar sus habilidades este turno.','var(--muted)');}}
       if(st.noAtaca){const q=G[dst].pj.find(p=>p&&p.id===cid&&p.turnoLlamado===turnKey());if(q){q.noAtk=turnKey();lg('⛔ <b>'+C[cid].name+'</b> no puede atacar este turno.','var(--muted)');}}
@@ -2504,14 +2532,14 @@ const PASOS={
   },
   async destruir_campo_rival(ctx){
     const r=opp(ctx.o);
-    if(bastion(r)){lg('🛡 BASTIÓN: las cartas del rival no pueden ser destruidas por efectos.','var(--gold2)');return true;}
+    if(bastion(r)){lg('🛡 BASTIÓN: las cartas del adversario no pueden ser destruidas por efectos.','var(--gold2)');return true;}
     const leaves=[];
     G[r].pj.forEach((p,i)=>{
       if(!p) return;
-      if(inmune(r,i,ctx.o,'destruir')){lg('🛡 <b>'+C[p.id].name+'</b> no puede ser destruido por efectos del rival.','var(--gold2)');return;}
+      if(inmune(r,i,ctx.o,'destruir')){lg('🛡 <b>'+C[p.id].name+'</b> no puede ser destruido por efectos del adversario.','var(--gold2)');return;}
       animDestroy((r==='player'?'pP':'cP')+i);leaveField(r,i,'mictlan');leaves.push(p.id);marcaDestruida(r,p.id);
     });
-    lg('💥 <b>'+C[ctx.cid].name+'</b>: '+leaves.length+' personaje(s) del rival destruidos.','var(--red)');
+    lg('💥 <b>'+C[ctx.cid].name+'</b>: '+leaves.length+' personaje(s) del adversario destruidos.','var(--red)');
     renderAll();
     for(const cid of leaves) await fireLeave(r,cid);
     if(leaves.length) await offerTrasNegar(r);
@@ -2576,9 +2604,9 @@ const PASOS={
   },
   async descartar_azar_rival(ctx){
     const r=opp(ctx.o), n=G[ctx.o].hp;
-    if(G[r].hand.length<n){lg('✨ La mano rival tiene menos cartas que tus corazones.','var(--muted)');return true;}
+    if(G[r].hand.length<n){lg('✨ La mano del adversario tiene menos cartas que tus corazones.','var(--muted)');return true;}
     for(let i=0;i<n;i++){const k=Math.floor(Math.random()*G[r].hand.length);G[r].mictlan.push(G[r].hand.splice(k,1)[0]);}
-    lg('🃏 <b>'+C[ctx.cid].name+'</b>'+who(ctx.o)+': descarta '+n+' carta(s) al azar de la mano rival.','var(--red)');
+    lg('🃏 <b>'+C[ctx.cid].name+'</b>'+who(ctx.o)+': descarta '+n+' carta(s) al azar de la mano del adversario.','var(--red)');
     return true;
   },
   async elegir_una(ctx,st){
@@ -2717,11 +2745,11 @@ const PASOS={
   async retornar_alma_rival_ba(ctx){
     const r=opp(ctx.o);
     const list=G[r].apoyo.map((a,i)=>a&&a.type==='alma'?{z:'apoyo',i,cid:a.card,o:r}:null).filter(Boolean);
-    if(!list.length){lg('✨ '+C[ctx.cid].name+': el rival no tiene ALMAS activas.','var(--muted)');return true;}
-    const [x]=await choose(ctx,list,1,{sub:'Elige el ALMA del rival que regresa a su BA',score:y=>almaVal(G[r].apoyo[y.i])});
+    if(!list.length){lg('✨ '+C[ctx.cid].name+': el adversario no tiene ALMAS activas.','var(--muted)');return true;}
+    const [x]=await choose(ctx,list,1,{sub:'Elige el ALMA del adversario que regresa a su BA',score:y=>almaVal(G[r].apoyo[y.i])});
     if(!x) return true;
     G[r].apoyo[x.i]=null;G[r].ba.push(x.cid);
-    lg('↩ <b>'+C[ctx.cid].name+'</b>'+who(ctx.o)+': <b>'+C[x.cid].name+'</b> del rival regresa a su BA.','var(--ar)');
+    lg('↩ <b>'+C[ctx.cid].name+'</b>'+who(ctx.o)+': <b>'+C[x.cid].name+'</b> del adversario regresa a su BA.','var(--ar)');
     return true;
   },
   async potenciar(ctx,st){
@@ -2736,7 +2764,7 @@ const PASOS={
     const sides=['left','right'].filter(sd=>slotsOf(r,sd).some(j=>G[r].pj[j]));
     if(!sides.length) return true;
     let sd;
-    if(ctx.interactive){const i=await askChoice('🔒 '+C[ctx.cid].name.toUpperCase()+'<br>¿Qué SECTOR del rival bloqueas?',sides.map(x=>SIDE_NOM(r,x)));if(i==null)return false;sd=sides[i];}
+    if(ctx.interactive){const i=await askChoice('🔒 '+C[ctx.cid].name.toUpperCase()+'<br>¿Qué SECTOR del adversario bloqueas?',sides.map(x=>SIDE_NOM(r,x)));if(i==null)return false;sd=sides[i];}
     else sd=sides.sort((a,b)=>slotsOf(r,b).reduce((t,j)=>t+(G[r].pj[j]?eF(G[r].pj[j]):0),0)-slotsOf(r,a).reduce((t,j)=>t+(G[r].pj[j]?eF(G[r].pj[j]):0),0))[0];
     slotsOf(r,sd).forEach(j=>{const p=G[r].pj[j];if(p&&!inmune(r,j,ctx.o,'afectar')){p.bloq=2;}});
     lg('🔒 <b>'+C[ctx.cid].name+'</b>'+who(ctx.o)+': los personajes del '+SIDE_NOM(r,sd)+' no podrán atacar ni defender los corazones hasta el final del siguiente turno.','var(--purple)');
@@ -2924,11 +2952,11 @@ const PASOS={
   },
   async descartar_mano_rival(ctx,st){
     const r=opp(ctx.o), n=G[ctx.o].pj.filter(p=>p&&matchF(p.id,st.porFiltro)).length;
-    if(!n||!G[r].hand.length){lg('👁 <b>'+C[ctx.cid].name+'</b>'+who(ctx.o)+' mira la mano rival ('+G[r].hand.length+' cartas).','var(--muted)');return true;}
+    if(!n||!G[r].hand.length){lg('👁 <b>'+C[ctx.cid].name+'</b>'+who(ctx.o)+' mira la mano del adversario ('+G[r].hand.length+' cartas).','var(--muted)');return true;}
     const list=G[r].hand.map((c,i)=>({z:'mano',i,cid:c,o:r}));
-    const pick=await choose(ctx,list,Math.min(n,list.length),{sub:'Mano rival: elige '+n+' carta(s) que descarta al Mictlán'});
+    const pick=await choose(ctx,list,Math.min(n,list.length),{sub:'Mano del adversario: elige '+n+' carta(s) que descarta al Mictlán'});
     pick.sort((a,b)=>b.i-a.i).forEach(x=>{const c=G[r].hand.splice(x.i,1)[0];G[r].mictlan.push(c);});
-    lg('👁 <b>'+C[ctx.cid].name+'</b>'+who(ctx.o)+' mira la mano rival y la hace descartar '+(ctx.o==='player'?pick.map(x=>'<b>'+C[x.cid].name+'</b>').join(', '):pick.length+' carta(s)')+'.','var(--red)');
+    lg('👁 <b>'+C[ctx.cid].name+'</b>'+who(ctx.o)+' mira la mano del adversario y la hace descartar '+(ctx.o==='player'?pick.map(x=>'<b>'+C[x.cid].name+'</b>').join(', '):pick.length+' carta(s)')+'.','var(--red)');
     return true;
   },
   async perder_corazones_propio(ctx,st){
@@ -2981,7 +3009,7 @@ const PASOS={
   },
   async marcar_fin_turno(ctx,st){
     const o=ctx.o;(G.finTurno=G.finTurno||[]).push({o,cid:ctx.cid,efecto:st.efecto});
-    lg('⏳ <b>'+C[ctx.cid].name+'</b>'+who(o)+': al final de '+(o==='player'?'tu':'su')+' turno se destruirán todos los personajes del rival.','var(--red)');
+    lg('⏳ <b>'+C[ctx.cid].name+'</b>'+who(o)+': al final de '+(o==='player'?'tu':'su')+' turno se destruirán todos los personajes del adversario.','var(--red)');
     return true;
   },
   async calak(ctx){
@@ -3018,7 +3046,7 @@ const PASOS={
     const list=G[r].pj.map((p,i)=>p&&!inmune(r,i,ctx.o,'destruir')?{o:r,z:'campo',i,cid:p.id}:null).filter(Boolean);
     if(!list.length) return true;
     const v=x=>C[x.cid].type==='amalgama'?C[x.cid].gama:C[x.cid].cost, min=Math.min(...list.map(v));
-    const [x]=await choose(ctx,list.filter(y=>v(y)===min),1,{sub:'Personaje rival de menor valor a destruir'});
+    const [x]=await choose(ctx,list.filter(y=>v(y)===min),1,{sub:'Personaje del adversario de menor valor a destruir'});
     if(x) await quitarDelCampo(ctx.o,x,'destruir');
     return true;
   },
@@ -3134,7 +3162,7 @@ const PASOS={
     const o=ctx.o, r=opp(o), f={nombreIncluye:'APPRENTIZ'};
     const n=G[r].pj.filter(p=>p&&matchF(p.id,f)).length+G[r].apoyo.filter(a=>a&&matchF(a.card,f)).length+
       ['left','right'].filter(sd=>G[r].sect[sd]&&matchF(G[r].sect[sd],f)).length+(G[r].arena&&matchF(G[r].arena,f)?1:0);
-    lg('🎩 <b>'+C[ctx.cid].name+'</b>: el rival controla '+n+' carta(s) "Apprentiz".','var(--ac)');
+    lg('🎩 <b>'+C[ctx.cid].name+'</b>: el adversario controla '+n+' carta(s) "Apprentiz".','var(--ac)');
     if(n>=4) return PASOS.robar(ctx,{origen:'bp',cantidad:2});
     if(n===3) return PASOS.cartas_campo(ctx,{modo:'destruir',cantidad:1,excluirEsta:true});
     if(n===2&&ctx.via==='normal') return PASOS.buscar(ctx,{origen:'mictlan',filtro:{tipo:'alma'}});
@@ -3143,7 +3171,7 @@ const PASOS={
   async sacrificar_rival(ctx){
     const r=opp(ctx.o), list=G[r].pj.map((p,i)=>p&&!inmune(r,i,ctx.o,'afectar')?{z:'campo',i,cid:p.id,o:r}:null).filter(Boolean);
     if(!list.length) return false;
-    const [x]=await choose(ctx,list,1,{sub:'Elige el personaje del rival que sacrificas',score:y=>SCORE(y.cid)});
+    const [x]=await choose(ctx,list,1,{sub:'Elige el personaje del adversario que sacrificas',score:y=>SCORE(y.cid)});
     if(!x) return false;
     leaveField(r,x.i,'mictlan');
     lg('🩸 <b>'+C[ctx.cid].name+'</b>'+who(ctx.o)+' sacrifica a <b>'+C[x.cid].name+'</b>.','var(--orange)');
@@ -3154,7 +3182,7 @@ const PASOS={
     const r=opp(ctx.o), me=G[ctx.o].pj[ctx.slot];
     const list=G[r].pj.map((p,i)=>p&&!inmune(r,i,ctx.o,'destruir')&&!bastion(r)?{z:'campo',i,cid:p.id,o:r}:null).filter(Boolean);
     if(!list.length||!me) return true;
-    const [x]=await choose(ctx,list,1,{sub:'Elige el personaje del rival que destruyes',score:y=>SCORE(y.cid)});
+    const [x]=await choose(ctx,list,1,{sub:'Elige el personaje del adversario que destruyes',score:y=>SCORE(y.cid)});
     if(!x) return true;
     const q=G[r].pj[x.i], f=q.fue, rr=q.res, c=q.cor;
     await quitarDelCampo(ctx.o,x,'destruir');
@@ -3165,7 +3193,7 @@ const PASOS={
   async destruir_apoyos_sectores_rival(ctx){
     const r=opp(ctx.o), list=campoTargets(ctx,'destruir').filter(t=>t.own===r&&(t.z==='sector'||(t.z==='apoyo'&&G[t.o].apoyo[t.i]&&G[t.o].apoyo[t.i].type!=='alma')));
     for(const t of list){await quitarDelCampo(ctx.o,t,'destruir');if(!G||G.over)return false;}
-    lg('💥 <b>'+C[ctx.cid].name+'</b>: '+list.length+' carta(s) APOYO/SECTOR del rival destruidas.','var(--red)');
+    lg('💥 <b>'+C[ctx.cid].name+'</b>: '+list.length+' carta(s) APOYO/SECTOR del adversario destruidas.','var(--red)');
     return true;
   },
   async sin_robo_bp(ctx){G.noBP=opp(ctx.o);lg('🐱 <b>'+C[ctx.cid].name+'</b>: '+(ctx.o==='player'?'la CPU no podrá':'no podrás')+' robar de la BP en su próxima Fase de Robo.','var(--purple)');return true;},
@@ -3184,7 +3212,7 @@ const PASOS={
     if(!await announce(o,x.cid,'llamado',{z:'campo',slot:x.i},{especial:true})) return true;
     if(!G[o].pj[x.i]||G[o].pj[x.i].id!==x.cid||freePJ(r)===-1) return true;
     G[o].pj[x.i]=null;
-    await placeChar(r,x.cid,{via:'especial',from:'el campo rival',por:ctx.cid});
+    await placeChar(r,x.cid,{via:'especial',from:'el campo del adversario',por:ctx.cid});
     return true;
   },
   async alma_a_impacto(ctx){
@@ -3288,7 +3316,7 @@ const PASOS={
   async sin_ataque_permanente(ctx){
     const r=opp(ctx.o), list=G[r].pj.map((p,i)=>p&&!inmune(r,i,ctx.o,'afectar')?{z:'campo',i,cid:p.id,o:r}:null).filter(Boolean);
     if(!list.length) return true;
-    const [x]=await choose(ctx,list,1,{sub:'Elige el personaje rival que ya no podrá atacar ni defender',score:y=>eF(G[r].pj[y.i])});
+    const [x]=await choose(ctx,list,1,{sub:'Elige el personaje del adversario que ya no podrá atacar ni defender',score:y=>eF(G[r].pj[y.i])});
     if(!x) return true;
     G[r].pj[x.i].sinAtk=true;
     lg('🗡 <b>'+C[x.cid].name+'</b>'+who(r)+' ya no podrá atacar ni defender a otro personaje.','var(--purple)');
@@ -3298,7 +3326,7 @@ const PASOS={
     const o=ctx.o,r=opp(o), me=G[o].pj[ctx.slot];
     const list=G[r].apoyo.map((a,i)=>a&&a.type!=='alma'?{z:'apoyo',i,cid:a.card,o:r}:null).filter(Boolean);
     if(!list.length||!me) return true;
-    const [x]=await choose(ctx,list,1,{sub:'Elige el APOYO activo del rival cuyo efecto gana Alice',score:y=>SCORE(y.cid)});
+    const [x]=await choose(ctx,list,1,{sub:'Elige el APOYO activo del adversario cuyo efecto gana Alice',score:y=>SCORE(y.cid)});
     if(!x) return true;
     const a=G[r].apoyo[x.i];
     if(a.type==='equipo'){const s2=equipStats(r,a);me.fue+=s2.f;me.res+=s2.r;me.resB+=s2.r;me.cor+=s2.c;lg('🃏 <b>'+C[me.id].name+'</b> gana el efecto de <b>'+C[a.card].name+'</b>: +'+s2.f+'⚔ +'+s2.r+'🛡'+(s2.c?' +'+s2.c+'❤':'')+'.','#ffe066');return true;}
@@ -3375,7 +3403,7 @@ const PASOS={
     for(const c of leaves) await fireLeave(r,c);
     await procConfQ();
     if(!G||G.over) return true;
-    await placeChar(r,ctx.cid,{via:'normal',sinCosto:true,duenio:o,from:'la mano rival'});
+    await placeChar(r,ctx.cid,{via:'normal',sinCosto:true,duenio:o,from:'la mano del adversario'});
     lg('🗿 <b>'+C[ctx.cid].name+'</b> es llamado de forma normal al campo '+(r==='player'?'tuyo':'de la CPU')+'.','var(--muted)');
     return true;
   },
@@ -3404,7 +3432,7 @@ const PASOS={
     if(!await announce(ctx.o,x.cid,'llamado',{z:'conf',i:x.i},{especial:true})) return true;
     const i=G[x.o].conf.lastIndexOf(x.cid); if(i<0||freePJ(ctx.o)===-1) return true;
     G[x.o].conf.splice(i,1);
-    await placeChar(ctx.o,x.cid,{via:'especial',from:'las confinadas'+(x.o!==ctx.o?' del rival':''),por:ctx.cid});
+    await placeChar(ctx.o,x.cid,{via:'especial',from:'las confinadas'+(x.o!==ctx.o?' del adversario':''),por:ctx.cid});
     return true;
   },
   async a_fondo_desde(ctx,st){
@@ -3421,7 +3449,7 @@ const PASOS={
   async confinar_todos_rival(ctx){
     const r=opp(ctx.o), leaves=[];
     G[r].pj.forEach((p,i)=>{if(p&&!inmune(r,i,ctx.o,'afectar')){leaveField(r,i,'conf');leaves.push(p.id);}});
-    lg('⛓ <b>'+C[ctx.cid].name+'</b>'+who(ctx.o)+' confina '+leaves.length+' personaje(s) del rival.','var(--purple)');
+    lg('⛓ <b>'+C[ctx.cid].name+'</b>'+who(ctx.o)+' confina '+leaves.length+' personaje(s) del adversario.','var(--purple)');
     renderAll();for(const c of leaves) await fireLeave(r,c);
     return true;
   },
@@ -3431,14 +3459,14 @@ const PASOS={
     const list=[];
     G[r].pj.forEach((p,i)=>{if(p&&!inmune(r,i,ctx.o,'afectar'))list.push({z:'campo',i,cid:p.id,o:r});});
     if(!mictlanCerrado()) G[r].mictlan.forEach((c,i)=>{if(C[c].type==='pj')list.push({z:'mictlan',i,cid:c,o:r});});
-    if(!list.length){lg('✨ No hay personajes del rival para equipar.','var(--muted)');return false;}
-    const [x]=await choose(ctx,list,1,{sub:'Elige el personaje del rival que se equipa a '+C[ctx.cid].name,score:y=>C[y.cid].fue+C[y.cid].res+C[y.cid].cor*3+(y.z==='campo'?20:0)});
+    if(!list.length){lg('✨ No hay personajes del adversario para equipar.','var(--muted)');return false;}
+    const [x]=await choose(ctx,list,1,{sub:'Elige el personaje del adversario que se equipa a '+C[ctx.cid].name,score:y=>C[y.cid].fue+C[y.cid].res+C[y.cid].cor*3+(y.z==='campo'?20:0)});
     if(!x) return false;
     if(x.z==='campo'){const p=G[r].pj[x.i];G[r].pj[x.i]=null;renderAll();}
     else{const i=G[r].mictlan.lastIndexOf(x.cid);if(i<0)return false;G[r].mictlan.splice(i,1);}
     const c=C[x.cid];
     G[ctx.o].apoyo[k]={card:x.cid,type:'equipo',host,duenio:r,stats:{f:c.fue,r:c.res,c:c.cor,i:0}};
-    lg('⚙ <b>'+c.name+'</b> (del rival) se equipa a <b>'+C[ctx.cid].name+'</b>: +'+c.cor+'❤ +'+c.fue+'⚔ +'+c.res+'🛡.','var(--ac)');
+    lg('⚙ <b>'+c.name+'</b> (del adversario) se equipa a <b>'+C[ctx.cid].name+'</b>: +'+c.cor+'❤ +'+c.fue+'⚔ +'+c.res+'🛡.','var(--ac)');
     playSound('call');
     return true;
   },
@@ -3504,9 +3532,9 @@ const PASOS={
   // ── MICTLÁN / ÉVOLOTL / CRISIS DIMENSIONAL / RENACER HEROICO ──
   async confinar_tope(ctx,st){
     const r=opp(ctx.o), z=st.mazo||'bp', c=st.fondo?G[r][z].pop():G[r][z].shift();
-    if(!c){lg('✨ '+C[ctx.cid].name+': la '+SRC_NOM[z]+' rival está vacía.','var(--muted)');return true;}
+    if(!c){lg('✨ '+C[ctx.cid].name+': la '+SRC_NOM[z]+' del adversario está vacía.','var(--muted)');return true;}
     if(st.abajo) confAbajo(r,c); else G[r].conf.push(c);
-    lg('⛓ <b>'+C[ctx.cid].name+'</b>'+who(ctx.o)+' confina'+(st.abajo?' BOCA ABAJO':'')+' <b>'+C[c].name+'</b> del '+(st.fondo?'fondo':'tope')+' de la '+(z==='bs'?'B.SOP':SRC_NOM[z])+' rival.','var(--purple)');
+    lg('⛓ <b>'+C[ctx.cid].name+'</b>'+who(ctx.o)+' confina'+(st.abajo?' BOCA ABAJO':'')+' <b>'+C[c].name+'</b> del '+(st.fondo?'fondo':'tope')+' de la '+(z==='bs'?'B.SOP':SRC_NOM[z])+' del adversario.','var(--purple)');
     return true;
   },
   async confinar_mictlan(ctx,st){
@@ -3548,7 +3576,7 @@ const PASOS={
   async negar_campo_rival(ctx){
     const r=opp(ctx.o);let n=0;
     G[r].pj.forEach((p,i)=>{if(p&&!inmune(r,i,ctx.o,'afectar')){p.neg=true;n++;}});
-    lg('⛓ <b>'+C[ctx.cid].name+'</b>'+who(ctx.o)+': las habilidades de '+n+' personaje(s) rival(es) quedan negadas hasta el final del turno.','var(--purple)');
+    lg('⛓ <b>'+C[ctx.cid].name+'</b>'+who(ctx.o)+': las habilidades de '+n+' personaje(s) del adversario quedan negadas hasta el final del turno.','var(--purple)');
     return true;
   },
   async campo_a_barajas(ctx){
@@ -3583,7 +3611,7 @@ const PASOS={
     if(!await announce(o,x.cid,'llamado',{z:'mictlan',i:x.i},{especial:true})) return true;
     const arr=G[x.o].mictlan, i=arr.lastIndexOf(x.cid); if(i<0||freeIn(o,side)===undefined) return true;
     arr.splice(i,1);
-    await placeChar(o,x.cid,{via:'especial',side,from:'el Mictlán'+(x.o!==o?' rival':''),por:ctx.cid});
+    await placeChar(o,x.cid,{via:'especial',side,from:'el Mictlán'+(x.o!==o?' del adversario':''),por:ctx.cid});
     const q=G[o].pj.find(p=>p&&p.id===x.cid&&p.turnoLlamado===turnKey()&&!p.ligado);
     if(q){q.zomb=true;q.ligado=hech;lg('🧟 <b>'+C[x.cid].name+'</b> queda ZOMBIFICADO.','var(--purple)');}
     return true;
@@ -3603,12 +3631,12 @@ const PASOS={
     if(mictlanCerrado()||freePJ(ctx.o)===-1) return true;
     const list=G[r].mictlan.map((c,i)=>matchF(c,st.filtro)&&especialPermitido(c,ctx.cid,'mictlan')?{z:'mictlan',i,cid:c,o:r}:null).filter(Boolean);
     if(!list.length) return true;
-    const [x]=await choose(ctx,list,1,{sub:'Elige el personaje del Mictlán rival que llamarás'});
+    const [x]=await choose(ctx,list,1,{sub:'Elige el personaje del Mictlán del adversario que llamarás'});
     if(!x) return true;
     if(!await announce(ctx.o,x.cid,'llamado',{z:'mictlan',i:x.i},{especial:true})) return true;
     const i=G[r].mictlan.lastIndexOf(x.cid); if(i<0) return true;
     G[r].mictlan.splice(i,1);
-    await placeChar(ctx.o,x.cid,{via:'especial',from:'el Mictlán rival',por:ctx.cid});
+    await placeChar(ctx.o,x.cid,{via:'especial',from:'el Mictlán del adversario',por:ctx.cid});
     return true;
   },
   async activar_alma_mictlan(ctx,st){
@@ -3647,7 +3675,7 @@ const PASOS={
     const fijo=['evo_kostli','evo_xoxo','evo_xochi','evo_yuhll'];
     const list=G[r].pj.map((p,i)=>p&&!fijo.includes(p.id)&&!p.fijo&&!p.zona&&!inmune(r,i,ctx.o,'afectar')?{z:'campo',i,cid:p.id,o:r}:null).filter(Boolean);
     if(!list.length||k===-1) return true;
-    const [x]=await choose(ctx,list,1,{sub:'Elige el personaje del rival que pasará a tu control'});
+    const [x]=await choose(ctx,list,1,{sub:'Elige el personaje del adversario que pasará a tu control'});
     if(!x) return true;
     const p=G[r].pj[x.i]; G[r].pj[x.i]=null; G[ctx.o].pj[k]=p; p.resting=true;
     if(st&&st.temporal) p.devolver=r;
@@ -3659,7 +3687,7 @@ const PASOS={
     const r=opp(ctx.o), n=G[ctx.o].mictlan.filter(c=>matchF(c,st.porFiltroMictlan)).length;
     let m=0;for(let k=0;k<n&&G[r].ba.length;k++){const j=Math.floor(Math.random()*G[r].ba.length);G[r].conf.push(G[r].ba.splice(j,1)[0]);m++;}
     sh(G[r].ba);
-    lg('⛓ <b>'+C[ctx.cid].name+'</b>'+who(ctx.o)+': confina al azar '+m+' carta(s) de la BA rival.','var(--purple)');
+    lg('⛓ <b>'+C[ctx.cid].name+'</b>'+who(ctx.o)+': confina al azar '+m+' carta(s) de la BA del adversario.','var(--purple)');
     return true;
   },
   async sacrificar_propio(ctx,st){
@@ -3780,7 +3808,7 @@ const PASOS={
       p.cor-=n;
       if(p.cor<=0){animDestroy((r==='player'?'pP':'cP')+i);leaveField(r,i,'mictlan');leaves.push(p.id);marcaDestruida(r,p.id);}
     });
-    lg('💀 <b>'+C[ctx.cid].name+'</b>: los personajes del rival pierden '+n+' corazones'+(leaves.length?' · '+leaves.length+' destruido(s)':'')+'.','var(--red)');
+    lg('💀 <b>'+C[ctx.cid].name+'</b>: los personajes del adversario pierden '+n+' corazones'+(leaves.length?' · '+leaves.length+' destruido(s)':'')+'.','var(--red)');
     renderAll();
     for(const c of leaves) await fireLeave(r,c);
     return true;
@@ -3794,9 +3822,9 @@ const PASOS={
   },
   async destruir_todo_rival(ctx){
     const r=opp(ctx.o);
-    if(bastion(r)){lg('🛡 BASTIÓN: las cartas del rival no pueden ser destruidas.','var(--gold2)');return true;}
+    if(bastion(r)){lg('🛡 BASTIÓN: las cartas del adversario no pueden ser destruidas.','var(--gold2)');return true;}
     const list=campoTargets(ctx,'destruir').filter(x=>x.own===r);
-    lg('🐉 <b>'+C[ctx.cid].name+'</b>'+who(ctx.o)+' destruye '+list.length+' carta(s) del rival.','var(--red)');
+    lg('🐉 <b>'+C[ctx.cid].name+'</b>'+who(ctx.o)+' destruye '+list.length+' carta(s) del adversario.','var(--red)');
     for(const x of list){await quitarDelCampo(ctx.o,x,'destruir');if(!G||G.over)return false;}
     return true;
   },
@@ -4056,7 +4084,7 @@ async function sobreviveBatalla(o,i){
   if(ok&&G[o].pj[i]===p){p.cor=Math.max(1,p.cor);p.res=p.resB;}
   return ok;
 }
-// Temak, Ente Desatado: cuando el rival llama un personaje de menor VALOR
+// Temak, Ente Desatado: cuando el adversario llama un personaje de menor VALOR
 async function temakEnteReaccion(o,cid){
   if(!G||G.over||!isChar(cid)) return;
   const r=opp(o), v=C[cid].type==='amalgama'?C[cid].gama:C[cid].cost;
@@ -4089,7 +4117,7 @@ function torturaInicio(o){
   G[o].pj.forEach((p,i)=>{if(p&&!supp(o,i)){const e=(C[p.id].efectos||[]).find(x=>x.cuando==='pasivo'&&x.accion==='tortura');if(e)n+=e.n||1;}});
   if(n&&hurt(o,n,'efecto')){lg('🗡 TORTURA: '+(o==='player'?'pierdes':'la CPU pierde')+' '+n+' corazón(es) al inicio de su turno.','var(--red)');playSound('damage');renderAll();}
 }
-// Ixchell: niega el llamado rival y se infiltra en su campo
+// Ixchell: niega el llamado del adversario y se infiltra en su campo
 async function respIxchell(r,ev,cid){
   G.used[r]['ixchell']=true;
   if(!await announce(r,cid,'habilidad',{z:'mano'})) return;
@@ -4099,7 +4127,7 @@ async function respIxchell(r,ev,cid){
   ev.negated=true; ev.fate='mictlan'; ev.by=r;
   lg('🗡 <b>'+C[cid].name+'</b>'+(r==='player'?' (tuya)':' (de la CPU)')+' niega el llamado de <b>'+C[ev.cid].name+'</b>'+(ev.o==='player'?' (tuyo)':' (de la CPU)')+': '+C[ev.cid].name+' va al Mictlán y '+C[cid].name.split(',')[0]+' entra INFILTRADA en el campo '+(ev.o==='player'?'tuyo':'de la CPU')+'.','var(--purple)');
   playSound('destroy');
-  await placeChar(ev.o,cid,{via:'normal',duenio:r,from:r==='player'?'tu mano (INFILTRADA en el campo rival)':'la mano de la CPU (INFILTRADA en tu campo)'});
+  await placeChar(ev.o,cid,{via:'normal',duenio:r,from:r==='player'?'tu mano (INFILTRADA en el campo del adversario)':'la mano de la CPU (INFILTRADA en tu campo)'});
   const q=G[ev.o].pj.find(p=>p&&p.id===cid&&p.turnoLlamado===turnKey());
   if(q){q.ixRival=true;q.resting=true;}
   renderAll();
@@ -4118,7 +4146,7 @@ async function respRefuerzo(r,ev,cid){
   lg('💀 <b>'+C[cid].name+'</b>'+who(r)+': <b>'+C[df.id].name+'</b> suma la fuerza y resistencia de <b>'+C[x.cid].name+'</b> (+'+f+'⚔ +'+rr+'🛡) hasta el final del turno.','#ffe066');
   renderAll();
 }
-// Choque Heróico Definitivo: llama un personaje del Mictlán y combate en la fase de combate rival
+// Choque Heróico Definitivo: llama un personaje del Mictlán y combate en la fase de combate del adversario
 async function respChoqueHeroico(r,ev,cid){
   G.used[r]['chd']=true;
   if(!await announce(r,cid,'activacion',{z:'mano'},{rapido:true})) return;
@@ -4449,12 +4477,12 @@ Object.assign(PASOS,{
     lg('⛓ <b>'+C[ctx.cid].name+'</b>'+who(ctx.o)+' confina boca abajo a <b>'+C[v].name+'</b>.','var(--purple)');
     return true;
   },
-  // v75 · Alebrije Iztac de Ixtelotin: sacrifica un personaje rival y suma sus IMPACTOS
+  // v75 · Alebrije Iztac de Ixtelotin: sacrifica un personaje del adversario y suma sus IMPACTOS
   async sacrificar_rival_imp(ctx){
     const r=opp(ctx.o), me=ctx.slot!=null?G[ctx.o].pj[ctx.slot]:null;
     const list=G[r].pj.map((p,i)=>p&&!inmune(r,i,ctx.o,'afectar')?{z:'campo',i,cid:p.id,o:r}:null).filter(Boolean);
     if(!list.length) return true;
-    const [x]=await choose(ctx,list,1,{sub:'Elige el personaje del rival que sacrificas',score:y=>SCORE(y.cid)});
+    const [x]=await choose(ctx,list,1,{sub:'Elige el personaje del adversario que sacrificas',score:y=>SCORE(y.cid)});
     if(!x||!G[r].pj[x.i]) return true;
     const q=G[r].pj[x.i], imp=q.imp||C[q.id].imp||0;
     leaveField(r,x.i,'mictlan');
@@ -4506,7 +4534,7 @@ Object.assign(PASOS,{
   },
   async robar_tope_rival(ctx){
     const r=opp(ctx.o), c=G[r].bp.shift();
-    if(!c){lg('✨ '+C[ctx.cid].name+': la BP rival está vacía.','var(--muted)');return true;}
+    if(!c){lg('✨ '+C[ctx.cid].name+': la BP del adversario está vacía.','var(--muted)');return true;}
     G[ctx.o].hand.push(c);
     G.prest=G.prest||{player:{},cpu:{}}; G.prest[ctx.o][c]=(G.prest[ctx.o][c]||0)+1;
     lg('🍣 <b>'+C[ctx.cid].name+'</b>'+who(ctx.o)+' toma '+(ctx.o==='player'?'<b>'+C[c].name+'</b>':'una carta')+' del tope de la BP '+(r==='player'?'tuya':'de la CPU')+'.','var(--purple)');
@@ -4567,13 +4595,13 @@ Object.assign(PASOS,{
     const o=ctx.o, r=opp(o);
     if(mictlanCerrado()){lg('🌀 El Mictlán está cerrado.','var(--muted)');return true;}
     const n=Math.max(0,G[r].mictlan.length-G[o].mictlan.length);
-    if(!n){lg('💀 <b>'+C[ctx.cid].name+'</b>: el Mictlán rival no tiene más cartas que el tuyo.','var(--muted)');return true;}
+    if(!n){lg('💀 <b>'+C[ctx.cid].name+'</b>: el Mictlán del adversario no tiene más cartas que el tuyo.','var(--muted)');return true;}
     const list=G[r].mictlan.map((c,i)=>({z:'mictlan',i,cid:c,o:r}));
-    const pick=await choose(ctx,list,n,{sub:'Elige '+n+' carta(s) del Mictlán rival a confinar',score:y=>SCORE(y.cid)});
+    const pick=await choose(ctx,list,n,{sub:'Elige '+n+' carta(s) del Mictlán del adversario a confinar',score:y=>SCORE(y.cid)});
     pick.sort((a,b)=>b.i-a.i).forEach(x=>{const c=G[r].mictlan.splice(x.i,1)[0];G[r].conf.push(c);});
     const me=ctx.slot!=null?G[o].pj[ctx.slot]:null;
     if(me&&me.id===ctx.cid){me.fue+=pick.length;me.res+=pick.length;me.resB+=pick.length;}
-    lg('💀 <b>'+C[ctx.cid].name+'</b>'+who(o)+' confina '+pick.length+' carta(s) del Mictlán rival'+(me?' y gana +'+pick.length+'⚔ +'+pick.length+'🛡':'')+'.','var(--purple)');
+    lg('💀 <b>'+C[ctx.cid].name+'</b>'+who(o)+' confina '+pick.length+' carta(s) del Mictlán del adversario'+(me?' y gana +'+pick.length+'⚔ +'+pick.length+'🛡':'')+'.','var(--purple)');
     return true;
   },
   async mictlanes_vacios(ctx,st){
@@ -4585,7 +4613,7 @@ Object.assign(PASOS,{
   async ritual_sanacion(ctx){
     const r=opp(ctx.o), list=G[r].pj.map((p,i)=>p&&!inmune(r,i,ctx.o,'afectar')?{z:'campo',i,cid:p.id,o:r}:null).filter(Boolean);
     if(!list.length) return true;
-    const [x]=await choose(ctx,list,1,{sub:'Elige el personaje del rival que regresa a su mano',score:y=>G[r].pj[y.i].cor*20+SCORE(y.cid)});
+    const [x]=await choose(ctx,list,1,{sub:'Elige el personaje del adversario que regresa a su mano',score:y=>G[r].pj[y.i].cor*20+SCORE(y.cid)});
     if(!x) return true;
     const n=G[r].pj[x.i].cor;
     await quitarDelCampo(ctx.o,x,'mano');
@@ -4699,7 +4727,7 @@ Object.assign(PASOS,{
     const [x]=await choose(ctx,objs,1,{sub:'Elige el personaje del adversario que intercambias',score:y=>SCORE(y.cid)});
     if(!x) return true;
     const mic=G[r].mictlan.map((c,i)=>isChar(c)&&val(c)<=val(x.cid)?{z:'mictlan',i,cid:c,o:r}:null).filter(Boolean);
-    const [y]=await choose(ctx,mic,1,{sub:'Elige el personaje del Mictlán rival que toma su lugar',score:z=>-SCORE(z.cid)});
+    const [y]=await choose(ctx,mic,1,{sub:'Elige el personaje del Mictlán del adversario que toma su lugar',score:z=>-SCORE(z.cid)});
     if(!y) return true;
     const old=G[r].pj[x.i]; if(!old) return true;
     G[r].mictlan.splice(y.i,1);
@@ -4842,7 +4870,7 @@ Object.assign(PASOS,{
       lg('🔗 <b>'+C[p.id].name+'</b>'+who(x.o)+' gana +'+k+' FUERZA y RESISTENCIA hasta el final del turno.','#ffe066');});
     return true;
   },
-  // v226 · Vellond Omega: al llegar, el rival pierde 1 corazón por cada carta NEXOTLAN en tu campo
+  // v226 · Vellond Omega: al llegar, el adversario pierde 1 corazón por cada carta NEXOTLAN en tu campo
   async omega_impacto(ctx){
     const o=ctx.o, nx=c=>!!c&&K(C[c].name).includes('NEXOTLAN');
     const n=G[o].pj.filter(p=>p&&nx(p.id)).length+G[o].apoyo.filter(a=>a&&nx(a.card)).length+['left','right'].filter(k=>G[o].sect[k]&&nx(G[o].sect[k].card||G[o].sect[k])).length+(G[o].arena&&nx(G[o].arena.card||G[o].arena)?1:0);
@@ -4851,7 +4879,7 @@ Object.assign(PASOS,{
     if(hurt(r,n,'efecto')){lg('👑 <b>'+C[ctx.cid].name+'</b>: '+(r==='player'?'pierdes':'la CPU pierde')+' <b>'+n+'</b> corazón(es) por las cartas NEXOTLAN en '+(o==='player'?'tu':'su')+' campo.','var(--red)');playSound('damage');}
     return true;
   },
-  // v226 · Vellond Omega vencido: destruye cartas del rival = cartas NEXOTLAN en tu Mictlán
+  // v226 · Vellond Omega vencido: destruye cartas del adversario = cartas NEXOTLAN en tu Mictlán
   async omega_vencido(ctx){
     const o=ctx.o, r=opp(o), n=G[o].mictlan.filter(c=>K(C[c].name).includes('NEXOTLAN')).length;
     if(!n) return true;
@@ -4859,8 +4887,8 @@ Object.assign(PASOS,{
     G[r].pj.forEach((p,i)=>{if(p&&!inmune(r,i,o,'destruir'))list.push({z:'campo',i,cid:p.id,o:r});});
     G[r].apoyo.forEach((a,i)=>{if(a)list.push({z:'apoyo',i,cid:a.card,o:r});});
     if(!list.length||bastion(r)) return true;
-    const pick=await choose(ctx,list,Math.min(n,list.length),{sub:'Vellond Omega: elige '+Math.min(n,list.length)+' carta(s) del rival que se destruyen',score:y=>SCORE(y.cid)+(y.z==='campo'?20:0)});
-    lg('👑 <b>'+C[ctx.cid].name+'</b> cae y arrastra '+pick.length+' carta(s) del rival.','var(--red)');
+    const pick=await choose(ctx,list,Math.min(n,list.length),{sub:'Vellond Omega: elige '+Math.min(n,list.length)+' carta(s) del adversario que se destruyen',score:y=>SCORE(y.cid)+(y.z==='campo'?20:0)});
+    lg('👑 <b>'+C[ctx.cid].name+'</b> cae y arrastra '+pick.length+' carta(s) del adversario.','var(--red)');
     for(const x of pick.sort((a,b)=>b.i-a.i)){const cid=x.z==='campo'?(G[r].pj[x.i]||{}).id:(G[r].apoyo[x.i]||{}).card;if(!cid)continue;await quitarDelCampo(o,{o:r,z:x.z,i:x.i,cid},'destruir');}
     await procDestrQ();
     return true;
@@ -4885,11 +4913,11 @@ Object.assign(PASOS,{
     lg('↩ <b>'+C[ctx.cid].name+'</b>'+who(o)+': regresa una carta al fondo de su BP'+(r?' y roba una.':'.'),'var(--ac)');
     return true;
   },
-  // v221 · Sonia Caleti en tu turno: niega la habilidad de un personaje rival hasta el final del turno
+  // v221 · Sonia Caleti en tu turno: niega la habilidad de un personaje del adversario hasta el final del turno
   async sonia_negar(ctx){
     const rv=opp(ctx.o), list=G[rv].pj.map((p,k)=>p&&!inmune(rv,k,ctx.o,'afectar')?{z:'campo',i:k,cid:p.id,o:rv}:null).filter(Boolean);
     if(!list.length) return false;
-    const [x]=await choose(ctx,list,1,{sub:'¿A qué personaje rival le niegas la habilidad hasta el final del turno?',score:y=>SCORE(y.cid)});
+    const [x]=await choose(ctx,list,1,{sub:'¿A qué personaje del adversario le niegas la habilidad hasta el final del turno?',score:y=>SCORE(y.cid)});
     if(!x||!G[rv].pj[x.i]) return false;
     G[rv].pj[x.i].neg=true;
     lg('🏷 <b>'+C[x.cid].name+'</b>'+who(rv)+': su habilidad queda negada hasta el final del turno (Sonia Caleti).','var(--purple)');
@@ -5097,9 +5125,9 @@ function condWhy(o,cid,cond,src){
     if(!ok) return cond.controlas.texto||'No controlas el personaje requerido';
   }
   if(cond.zonaLibre&&freePJ(o)===-1&&!cond.liberaZona) return 'Sin zonas de personaje libres';
-  if(cond.manoRivalMinCorazones&&G[opp(o)].hand.length<G[o].hp) return 'La mano rival tiene menos cartas que tus corazones';
+  if(cond.manoRivalMinCorazones&&G[opp(o)].hand.length<G[o].hp) return 'La mano del adversario tiene menos cartas que tus corazones';
   if(cond.sectorConPJ&&!slotsOf(o,src.side).some(i=>G[o].pj[i])) return 'No hay personajes en este sector';
-  if(cond.haySectorArena&&!sectorArenaTargets().some(t=>t.own!==o)) return 'El rival no tiene SECTOR ni ARENA';
+  if(cond.haySectorArena&&!sectorArenaTargets().some(t=>t.own!==o)) return 'El adversario no tiene SECTOR ni ARENA';
   if(cond.conPJPropio&&!G[o].pj.some(p=>p&&!p.ixRival)) return 'No tienes personajes propios en el campo (una infiltrada no cuenta)';
   if(cond.pjNoAmalgama&&!G[o].pj.some(p=>p&&!p.ixRival&&C[p.id].type==='pj')) return 'No tienes PERSONAJES en el campo (las Amalgamas no regresan a la BP)';
   if(cond.hay2&&!cands(o,cond.hay2.origen,cond.hay2.filtro).length) return cond.hay2.texto||'No hay cartas válidas';
@@ -5108,7 +5136,7 @@ function condWhy(o,cid,cond,src){
   if(cond.llamadoPor&&!(src.por&&src.por!==cid&&matchF(src.por,cond.llamadoPor))) return 'No fue llamado por la habilidad de otro '+(cond.llamadoPor.nombreIncluye||'personaje');
   if(cond.llamadoPorHabilidad&&!src.por) return 'No fue llamado por la habilidad de otra carta';
   if(cond.otroEnSector&&!(src.slot!=null&&mismoSector(o,src.slot,cond.otroEnSector).length)) return 'Necesitas otro '+(cond.otroEnSector.nombreIncluye||'personaje')+' en este SECTOR';
-  if(cond.rivalConPJ&&!G[opp(o)].pj.some(Boolean)) return 'El rival no tiene personajes';
+  if(cond.rivalConPJ&&!G[opp(o)].pj.some(Boolean)) return 'El adversario no tiene personajes';
   if(cond.llamadoEsteTurno){const q=src&&src.slot!=null?G[o].pj[src.slot]:null;if(!q||q.turnoLlamado!==turnKey())return 'Solo en el turno en que lo llamaste';}
   if(cond.sectorBpPropio&&!cands(o,[].concat(cond.sectorBpPropio.origen||'bp'),{tipo:'sector'}).some(x=>C[x.cid].colocar!=='rival')) return 'No hay SECTOR que puedas activar en tu lado';
   if(cond.almaPropia&&!almasActivas(o)) return 'No tienes cartas ALMA activas';
@@ -5121,7 +5149,7 @@ function condWhy(o,cid,cond,src){
   if(cond.hayArena&&!sectorArenaTargets().some(t=>t.z==='arena')) return 'No hay ARENAS activas en el campo';
   if(cond.zonaLibreSector&&!(src.slot!=null&&freeIn(o,sideOfSlot(o,src.slot))!==undefined)) return 'No hay zona libre en este SECTOR';
   if(cond.mictlanMin&&(mictlanCerrado()||G.player.mictlan.length+G.cpu.mictlan.length<cond.mictlanMin)) return 'Se necesitan al menos '+cond.mictlanMin+' cartas en los Mictlán';
-  if(cond.mictlanRival&&(mictlanCerrado()||!G[opp(o)].mictlan.some(c=>matchF(c,cond.mictlanRival)))) return 'No hay personajes válidos en el Mictlán rival';
+  if(cond.mictlanRival&&(mictlanCerrado()||!G[opp(o)].mictlan.some(c=>matchF(c,cond.mictlanRival)))) return 'No hay personajes válidos en el Mictlán del adversario';
   if(cond.confMin&&G[o].conf.filter(c=>matchF(c,cond.confMin.filtro||{})).length<cond.confMin.n) return 'Necesitas '+cond.confMin.n+' cartas'+(cond.confMin.filtro&&cond.confMin.filtro.nombreIncluye?' '+[].concat(cond.confMin.filtro.nombreIncluye)[0]:'')+' confinadas';
   if(cond.hayApoyoCampo&&!['player','cpu'].some(x=>G[x].apoyo.some(a=>a&&a.type!=='alma'))) return 'No hay cartas APOYO activas en el campo';
   if(cond.hayEquipo&&!['player','cpu'].some(x=>G[x].apoyo.some(a=>a&&a.type==='equipo'))) return 'No hay APOYO EQUIPO en el campo';
@@ -5145,18 +5173,18 @@ function condWhy(o,cid,cond,src){
   if(cond.hayHdf&&!G[o].hand.concat(G[o].pj.filter(Boolean).map(p=>p.id)).some(c=>isChar(c)&&matchF(c,{nombreIncluye:'HEREDERO DEL FUEGO'}))) return 'No tienes Herederos del Fuego en tu mano ni en tu campo';
   if(cond.manoMax!=null&&G[o].hand.length-(src.zone==='mano'&&G[o].hand.includes(cid)?1:0)>cond.manoMax) return cond.manoMax===0?'Debe ser la única carta en tu mano':'Debes tener '+cond.manoMax+' o menos cartas en la mano';
   if(cond.rivalEquipable){const r=opp(o);const n=G[r].pj.filter((p,i)=>p&&!inmune(r,i,o,'afectar')).length+(mictlanCerrado()?0:G[r].mictlan.filter(c=>C[c].type==='pj').length);
-    if(!n) return G[r].pj.some(Boolean)?'Los personajes del rival no pueden ser afectados (inmunes) y su Mictlán no tiene personajes':'El rival no tiene personajes en su campo ni en su Mictlán';}
+    if(!n) return G[r].pj.some(Boolean)?'Los personajes del adversario no pueden ser afectados (inmunes) y su Mictlán no tiene personajes':'El adversario no tiene personajes en su campo ni en su Mictlán';}
   if(cond.equipoHost&&!G[o].apoyo.some(a=>a&&a.type==='equipo'&&a.host===G[o].pj[src.slot])) return 'No tiene personajes equipados';
   if(cond.equipoPropio&&!G[o].apoyo.some(a=>a&&a.type==='equipo')) return 'No tienes un APOYO/EQUIPO activo';
   if(cond.mimicEsteTurno&&!(src.slot!=null&&G[o].pj[src.slot]&&G[o].pj[src.slot].mimicT===turnKey())) return 'Primero gana una habilidad este turno';
-  if(cond.apoyoRival&&!G[opp(o)].apoyo.some(a=>a&&a.type!=='alma')) return 'El rival no tiene cartas APOYO activas';
+  if(cond.apoyoRival&&!G[opp(o)].apoyo.some(a=>a&&a.type!=='alma')) return 'El adversario no tiene cartas APOYO activas';
   if(cond.todosPropios&&!(G[o].pj.some(Boolean)&&G[o].pj.every(p=>!p||matchF(p.id,cond.todosPropios)))) return 'Todos tus personajes deben cumplir la condición';
   if(cond.equipoNombre&&!['player','cpu'].some(x=>G[x].apoyo.some(a=>a&&a.type==='equipo'&&a.card===cond.equipoNombre))) return 'No hay '+(C[cond.equipoNombre]?C[cond.equipoNombre].name:'ese equipo')+' activa en el campo';
-  if(cond.apoyoRivalLibre&&freeApo(opp(o))===-1) return 'El rival no tiene zonas de apoyo vacías';
+  if(cond.apoyoRivalLibre&&freeApo(opp(o))===-1) return 'El adversario no tiene zonas de apoyo vacías';
   if(cond.dosEnSector&&!['left','right'].some(sd=>slotsOf(o,sd).filter(j=>G[o].pj[j]).length>=2)) return 'Necesitas dos personajes en el mismo sector';
   if(cond.almasManoCampoMin&&almasActivas(o)+G[o].hand.filter(c=>C[c].type==='alma').length<cond.almasManoCampoMin) return 'Necesitas '+cond.almasManoCampoMin+' ALMAS (activas o en tu mano)';
   if(cond.manoFiltro&&!G[o].hand.some(c=>c!==cid&&matchF(c,cond.manoFiltro))) return 'No tienes la carta necesaria en tu mano';
-  if(cond.apoyoActivoRival&&!G[opp(o)].apoyo.some(a=>a&&a.type!=='alma')) return 'El rival no tiene APOYOS activos';
+  if(cond.apoyoActivoRival&&!G[opp(o)].apoyo.some(a=>a&&a.type!=='alma')) return 'El adversario no tiene APOYOS activos';
   if(cond.pjFiltroMin&&G[o].pj.filter((p,i)=>p&&!(cond.pjFiltroMin.otro&&src.slot===i)&&matchF(p.id,cond.pjFiltroMin.filtro)).length<cond.pjFiltroMin.n) return 'Necesitas '+cond.pjFiltroMin.n+' personajes con '+[].concat(cond.pjFiltroMin.filtro.nombreIncluye)[0];
   if(cond.campoNombre&&!sectorArenaTargets().some(t=>matchF(t.cid,{nombreIncluye:cond.campoNombre}))) return 'No hay '+cond.campoNombre.join(' / ')+' en el campo';
   if(cond.mollete&&G[o].ba.length<2&&G[o].bp.length<2) return 'Necesitas 2 cartas en tu BA o BP';
@@ -5166,7 +5194,7 @@ function condWhy(o,cid,cond,src){
   if(cond.activoNombre&&!((G.actTurno||{})[o+':'+turnKey()]||[]).some(c=>matchF(c,{nombreIncluye:cond.activoNombre}))) return 'Debes haber activado una carta con "'+cond.activoNombre+'" este turno';
   if(cond.cenPropio&&!cenTotal(o)) return 'No tienes Contadores de Energía Negativa en tu campo';
   if(cond.invitadosRetornables&&![...G[o].mictlan,...G[o].conf].some(c=>C[c]&&C[c].type==='pj'&&C[c].invitado)) return 'No tienes HÉROES INVITADOS en tu Mictlán o Confinamiento';
-  if(cond.almaRivalOBA&&!G[opp(o)].apoyo.some(a=>a&&a.type==='alma')&&!G[opp(o)].ba.length) return 'El rival no tiene ALMAS en el campo ni en su BA';
+  if(cond.almaRivalOBA&&!G[opp(o)].apoyo.some(a=>a&&a.type==='alma')&&!G[opp(o)].ba.length) return 'El adversario no tiene ALMAS en el campo ni en su BA';
   if(cond.llamadoPorSi&&src.por!==cid) return 'Solo si fue llamado por su propia habilidad';
   if(cond.enCampoRival&&!(src.duenio&&src.duenio!==o)) return 'Solo si fue llamada al campo de su adversario';
   if(cond.amalgamacion){if(G[o].hp<=3)return 'Necesitas más de 3 corazones';if(!amalgamacionOpciones(o).length)return 'No hay AMALGAMAS en tu BS con sus materiales en tu BP';if(freePJ(o)===-1)return 'Sin zonas de personaje libres';}
@@ -5270,7 +5298,7 @@ function entersActive(o,side){return G.turn>1&&hasPassive(G[o].sect[side],'sin_d
 // ════════════════════════════════════
 // CADENA DE RESPUESTAS
 // Toda acción se ANUNCIA antes de resolverse: llamados (normales y especiales),
-// activaciones de cartas y habilidades. El rival puede responder; las respuestas
+// activaciones de cartas y habilidades. El adversario puede responder; las respuestas
 // también se anuncian, así que la cadena se resuelve de atrás hacia adelante.
 // Si algo se niega, no se paga nada: ni costos, ni llamados, ni almas, ni materiales.
 // ════════════════════════════════════
@@ -5368,29 +5396,29 @@ function responsesFor(r,ev){
       if(e.cuando==='respuesta'&&e.accion==='proteger'&&G.active!==r&&ev.o!==r&&['activacion','habilidad'].includes(ev.kind)&&G[r].pj.some(Boolean))
         out.push({label:'🛡 '+c.name+' — descartarla: un personaje tuyo no es afectado este turno',cpu:cpuThreat(ev),run:()=>respMano(r,ev,cid,'proteger')});
       if(e.cuando==='respuesta'&&e.accion==='mariana'&&G.active!==r&&ev.o!==r&&G[ev.o].pj.some((p,i)=>p&&!inmune(ev.o,i,r,'destruir'))&&!bastion(ev.o))
-        out.push({label:'💥 '+c.name+' — descartarla: destruir un personaje rival',cpu:ev.kind==='ataque'||cpuThreat(ev),run:()=>respMano(r,ev,cid,'mariana')});
+        out.push({label:'💥 '+c.name+' — descartarla: destruir un personaje del adversario',cpu:ev.kind==='ataque'||cpuThreat(ev),run:()=>respMano(r,ev,cid,'mariana')});
       if(e.cuando==='respuesta'&&e.accion==='clio'&&ev.kind==='llamado'&&ev.especial&&C[ev.cid].type==='amalgama'&&ev.o!==r&&!G.used[r]['clio'])
         out.push({label:'🏛 '+c.name+' — confinarla: negar y destruir a '+C[ev.cid].name,cpu:true,run:()=>respClio(r,ev,cid,'hand')});
       if(e.cuando==='respuesta'&&e.accion==='lazaruz'&&ev.kind==='ataque'&&ev.o!==r)
         out.push({label:'🌑 '+c.name+' — descartarla: anular el ataque de '+C[ev.cid].name,cpu:G[r].hp<=4||(ev.ds!=null&&G[r].pj[ev.ds]&&SCORE(G[r].pj[ev.ds].id)>=60),run:()=>respMano(r,ev,cid,'lazaruz')});
       if(e.cuando==='respuesta'&&e.accion==='anik'&&ev.kind==='ataque'&&ev.o!==r&&G.active!==r)
-        out.push({label:'🔱 '+c.name+' — descartarla: anular la Fase de Combate rival',cpu:G[ev.o].pj.filter(p=>p&&canAtkLive(p)).length>=2||G[r].hp<=3,run:()=>respMano(r,ev,cid,'anik')});
+        out.push({label:'🔱 '+c.name+' — descartarla: anular la Fase de Combate del adversario',cpu:G[ev.o].pj.filter(p=>p&&canAtkLive(p)).length>=2||G[r].hp<=3,run:()=>respMano(r,ev,cid,'anik')});
       if(e.cuando==='respuesta'&&e.accion==='torneo'&&G.active!==r&&ev.o!==r&&ev.kind==='activacion'&&C[ev.cid].type==='apoyo'&&G[r].hp>1)
         out.push({label:'🏆 '+c.name+' — pierdes 1 ❤: negar y destruir '+C[ev.cid].name,cpu:cpuThreat(ev)&&G[r].hp>4,run:()=>respTorneo(r,ev,cid)});
       if(e.cuando==='respuesta'&&e.accion==='mokozo_sagrado'&&ev.o!==r&&!G.used[r]['mks']&&freePJ(r)!==-1&&!espBloqueado()&&((ev.kind==='habilidad'&&isChar(ev.cid)&&(ev.where||{}).z==='campo')||(ev.kind==='activacion'&&C[ev.cid].type==='apoyo')))
         out.push({label:'✝ '+c.name+' — llamarlo y destruir '+C[ev.cid].name,cpu:true,run:()=>respMokozoSagrado(r,ev,cid)});
       if(e.cuando==='respuesta'&&e.accion==='reflejo_obsidiana'&&ev.kind==='ataque'&&ev.o!==r&&G.active!==r&&!G.used[r]['reflejo']&&G[ev.o].pj.filter(Boolean).length>=2)
-        out.push({label:'🪞 '+c.name+' — destruir todos los personajes del rival',cpu:G[ev.o].pj.filter(Boolean).reduce((t,q)=>t+SCORE(q.id),0)>=G[r].pj.filter(Boolean).reduce((t,q)=>t+SCORE(q.id),0)||G[r].hp<=4,run:()=>respReflejo(r,ev,cid)});
+        out.push({label:'🪞 '+c.name+' — destruir todos los personajes del adversario',cpu:G[ev.o].pj.filter(Boolean).reduce((t,q)=>t+SCORE(q.id),0)>=G[r].pj.filter(Boolean).reduce((t,q)=>t+SCORE(q.id),0)||G[r].hp<=4,run:()=>respReflejo(r,ev,cid)});
       if(e.cuando==='respuesta'&&e.accion==='penachos'&&ev.kind==='ataque'&&ev.o!==r&&ev.ds!=null&&G[r].pj[ev.ds]&&!(G[r].pj[ev.ds].penachos||[]).length&&matchF(G[r].pj[ev.ds].id,{nombreIncluye:['SACERDOTE','SACERDOTISA','CHAMAN']})&&G[r].ba.length&&!G.used[r]['penachos'])
         out.push({label:'🪶 '+c.name+' — esconder a '+C[G[r].pj[ev.ds].id].name+' entre ALMAS boca abajo',cpu:true,run:()=>respPenachos(r,ev,cid)});
       if(e.cuando==='respuesta'&&e.accion==='benji'&&ev.kind==='ataque'&&ev.o!==r)
         out.push({label:'🐷 '+c.name+' — descartarla: destruir al atacante '+C[ev.cid].name,cpu:true,run:()=>respMano(r,ev,cid,'benji')});
       if(e.cuando==='respuesta'&&e.accion==='sonia'&&ev.o!==r&&['habilidad','ataque','llamado'].includes(ev.kind)&&G[ev.o].pj.some((p,k)=>p&&!inmune(ev.o,k,r,'afectar')))
-        out.push({label:'🏷 '+c.name+' — descartarla: negar la habilidad de un personaje rival hasta el final del turno',cpu:ev.kind==='habilidad'&&isChar(ev.cid)&&(ev.where||{}).z==='campo'&&cpuThreat(ev),run:()=>respMano(r,ev,cid,'sonia')});
+        out.push({label:'🏷 '+c.name+' — descartarla: negar la habilidad de un personaje del adversario hasta el final del turno',cpu:ev.kind==='habilidad'&&isChar(ev.cid)&&(ev.where||{}).z==='campo'&&cpuThreat(ev),run:()=>respMano(r,ev,cid,'sonia')});
       if(e.cuando==='respuesta'&&e.accion==='negar_alma'&&ev.kind==='activacion'&&C[ev.cid].type==='alma'&&freeApo(r)!==-1)
         out.push({label:'✋ '+c.name+' — negar y destruir '+C[ev.cid].name,cpu:(C[ev.cid].val||0)>=2||(C[ev.cid].efectos||[]).length>0,run:()=>respNegarCon(r,ev,cid,'mictlan')});
       if(e.cuando==='respuesta'&&e.accion==='ixchell'&&ev.kind==='llamado'&&ev.o!==r&&isChar(ev.cid)&&!G.used[r]['ixchell']&&freePJ(ev.o)!==-1)
-        out.push({label:'🗡 '+c.name+' — negar el llamado de '+C[ev.cid].name+' e infiltrarla en el campo rival',cpu:C[ev.cid].type==='amalgama'||(C[ev.cid].cost||0)>=5,run:()=>respIxchell(r,ev,cid)});
+        out.push({label:'🗡 '+c.name+' — negar el llamado de '+C[ev.cid].name+' e infiltrarla en el campo del adversario',cpu:C[ev.cid].type==='amalgama'||(C[ev.cid].cost||0)>=5,run:()=>respIxchell(r,ev,cid)});
       if(e.cuando==='respuesta'&&e.accion==='contenedor'&&ev.kind==='habilidad'&&ev.o!==r&&isChar(ev.cid)&&(ev.where||{}).z==='campo'&&!G.used[r]['contenedor']&&freeApoAp(r)!==-1){
         const q=G[ev.o].pj[ev.where.slot];
         if(q&&q.id===ev.cid&&!inmune(ev.o,ev.where.slot,r,'afectar'))
@@ -5398,7 +5426,7 @@ function responsesFor(r,ev){
       }
       if(e.cuando==='respuesta'&&e.accion==='medallon'&&ev.o!==r&&['activacion','habilidad','ataque'].includes(ev.kind)&&freeApoAp(r)!==-1&&G[r].pj.filter(p=>p&&!p.ixRival).length>=2){
         const dsP=ev.kind==='ataque'&&ev.ds!=null?G[r].pj[ev.ds]:null, at=ev.kind==='ataque'?G[ev.o].pj[(ev.where||{}).slot]:null;
-        out.push({label:'🔗 '+c.name+' — enlazar 2 personajes (no podrán ser seleccionados por el rival)',cpu:ev.kind==='ataque'?!!(dsP&&at&&eR(dsP)<=eF(at)&&SCORE(dsP.id)>=50&&G[r].hp>2):cpuThreat(ev),run:()=>respMedallon(r,ev,cid)});}
+        out.push({label:'🔗 '+c.name+' — enlazar 2 personajes (no podrán ser seleccionados por el adversario)',cpu:ev.kind==='ataque'?!!(dsP&&at&&eR(dsP)<=eF(at)&&SCORE(dsP.id)>=50&&G[r].hp>2):cpuThreat(ev),run:()=>respMedallon(r,ev,cid)});}
       if(e.cuando==='respuesta'&&e.accion==='refuerzo_mictlan'&&ev.kind==='ataque'&&ev.o!==r&&ev.ds!=null&&G[r].pj[ev.ds]&&freeApoAp(r)!==-1&&!mictlanCerrado()&&cands(r,'mictlan',{tipos:['pj','amalgama']}).length){
         const at=G[ev.o].pj[(ev.where||{}).slot], df=G[r].pj[ev.ds];
         out.push({label:'💀 '+c.name+' — sumar a '+C[df.id].name+' la FUERZA y RESISTENCIA de un personaje de tu Mictlán',cpu:!!at&&eR(df)<=eF(at),run:()=>respRefuerzo(r,ev,cid)});}
@@ -5412,7 +5440,7 @@ function responsesFor(r,ev){
         out.push({label:'☄ '+c.name+' — destruir un SECTOR o ARENA',cpu:true,run:()=>respRapido(r,cid)});
     }
   }
-  // v224 · APOYOS RÁPIDOS: se pueden activar en respuesta a lo que haga el rival (en su turno o en una cadena)
+  // v224 · APOYOS RÁPIDOS: se pueden activar en respuesta a lo que haga el adversario (en su turno o en una cadena)
   if(ev.o!==r&&!errBloqApoyo(r)&&!tepostBloq()) for(const cid of new Set(G[r].hand)){
     const c=C[cid]; if(c.type!=='apoyo'||c.subtipo!=='rapido'||out.some(x=>x.rapCid===cid)||rapidosBloq(cid)) continue;
     const effs=activarEff(cid).filter(x=>!x.e.pendiente); if(!effs.length) continue;
@@ -5464,7 +5492,7 @@ function responsesFor(r,ev){
         out.push({label:'🛡 '+C[p.id].name+' — negar '+C[ev.cid].name+(e.destino==='mictlan'?' y destruirla':''),cpu:cpuThreat(ev)||(ev.kind==='activacion'&&t==='apoyo'),run:()=>respCampoNegar(r,ev,slot,e,key)});
       }
       if(e.cuando==='respuesta_campo'&&e.accion==='anik_campo'&&ev.kind==='ataque'&&ev.o!==r&&G.active!==r)
-        out.push({label:'🦅 '+C[p.id].name+' — enviarlo al Mictlán: terminar la Fase de Combate rival',cpu:G[ev.o].pj.filter(q=>q&&canAtkLive(q)).length>=2||G[r].hp<=3,run:async()=>{
+        out.push({label:'🦅 '+C[p.id].name+' — enviarlo al Mictlán: terminar la Fase de Combate del adversario',cpu:G[ev.o].pj.filter(q=>q&&canAtkLive(q)).length>=2||G[r].hp<=3,run:async()=>{
           if(!await announce(r,p.id,'habilidad',{z:'campo',slot})) return;
           if(G[r].pj[slot]!==p||ev.negated) return;
           leaveField(r,slot,'mictlan');renderAll();await fireLeave(r,p.id);
@@ -5526,7 +5554,7 @@ async function respPenachos(r,ev,cid){
   G[r].hand.splice(i,1); G[r].mictlan.push(cid);
   const se=[]; for(let k=0;k<2&&G[r].ba.length;k++) se.push(G[r].ba.shift());
   p.penachos=se;
-  lg('🪶 <b>'+C[cid].name+'</b>'+who(r)+': <b>'+C[p.id].name+'</b> se esconde boca abajo entre '+se.length+' ALMA(S). El rival ataca a ciegas.','var(--purple)');
+  lg('🪶 <b>'+C[cid].name+'</b>'+who(r)+': <b>'+C[p.id].name+'</b> se esconde boca abajo entre '+se.length+' ALMA(S). El adversario ataca a ciegas.','var(--purple)');
   renderAll();
 }
 // El atacante elige una de las cartas boca abajo al azar
@@ -5556,7 +5584,7 @@ async function respMano(r,ev,cid,tipo){
     if(x){G[r].pj[x.i].inmTmp=turnKey();lg('🛡 <b>'+C[x.cid].name+'</b>'+who(r)+' no es afectado por APOYOS ni habilidades este turno.','var(--green)');}
   } else if(tipo==='mariana'){
     const rv=opp(r), list=G[rv].pj.map((p,k)=>p&&!inmune(rv,k,r,'destruir')?{z:'campo',i:k,cid:p.id,o:rv}:null).filter(Boolean);
-    const [x]=await choose(ctx,list,1,{sub:'Elige el personaje rival que destruyes',score:y=>(y.cid===ev.cid?100:0)+SCORE(y.cid)});
+    const [x]=await choose(ctx,list,1,{sub:'Elige el personaje del adversario que destruyes',score:y=>(y.cid===ev.cid?100:0)+SCORE(y.cid)});
     if(x){const cor=G[rv].pj[x.i].cor;await quitarDelCampo(r,x,'destruir');G[rv].hp+=cor;lg('💚 '+(rv==='player'?'Ganas':'La CPU gana')+' '+cor+' corazón(es) (Mariana).','var(--muted)');}
   } else if(tipo==='benji'){
     ev.negated=true; ev.fate='mictlan'; ev.by=r; marcaDestruida(ev.o,ev.cid);
@@ -5564,7 +5592,7 @@ async function respMano(r,ev,cid,tipo){
   } else if(tipo==='sonia'){
     const rv=opp(r), del=ev.kind==='habilidad'&&isChar(ev.cid)&&(ev.where||{}).z==='campo'?ev.where.slot:null;
     const list=G[rv].pj.map((p,k)=>p&&!inmune(rv,k,r,'afectar')?{z:'campo',i:k,cid:p.id,o:rv}:null).filter(Boolean);
-    const [x]=await choose(ctx,list,1,{sub:'¿A qué personaje rival le niegas la habilidad hasta el final del turno?',score:y=>(y.i===del?1000:0)+SCORE(y.cid)});
+    const [x]=await choose(ctx,list,1,{sub:'¿A qué personaje del adversario le niegas la habilidad hasta el final del turno?',score:y=>(y.i===del?1000:0)+SCORE(y.cid)});
     if(x&&G[rv].pj[x.i]){G[rv].pj[x.i].neg=true;
       lg('🏷 <b>'+C[x.cid].name+'</b>'+who(rv)+': su habilidad queda negada hasta el final del turno (Sonia Caleti).','var(--purple)');
       if(x.i===del&&!ev.negated){ev.negated=true;ev.fate='queda';ev.by=r;}}
@@ -5668,7 +5696,7 @@ async function offerResponses(ev){
     const vale=cpuThreat(ev)&&(ev.kind!=='llamado'||C[ev.cid].type==='amalgama'||SCORE(ev.cid)>=45||G.cpu.hp<=6);
     opts=opts.concat([{label:'✒️ Borrador del Creador',cpu:vale,run:async()=>{
       if(ev.negated||!(G.borrador>0))return;G.borrador--;ev.negated=true;ev.fate=ev.kind==='habilidad'?'queda':'mictlan';ev.by='cpu';
-      bannerCreador('✒️ BORRADOR DEL CREADOR',(ARCADE&&ARCADE.nombre||'El rival')+' borra '+(ev.kind==='llamado'?'el llamado de ':'')+C[ev.cid].name);
+      bannerCreador('✒️ BORRADOR DEL CREADOR',(ARCADE&&ARCADE.nombre||'El adversario')+' borra '+(ev.kind==='llamado'?'el llamado de ':'')+C[ev.cid].name);
       lg('✒️ <b>BORRADOR DEL CREADOR</b>: '+arcadeEsc(ARCADE&&ARCADE.nombre||'CPU')+' borra <b>'+C[ev.cid].name+'</b> de la historia. (Le quedan '+G.borrador+')','#ffd166');playSound('destroy');}}]);
   }
   if(C[ev.cid]&&C[ev.cid].costoNegar&&r==='cpu'&&G.cpu.hp<=C[ev.cid].costoNegar+1) opts=[];
@@ -5726,7 +5754,7 @@ async function respRito(r,cid){
   if(!ok) return;
   const i=G[r].hand.indexOf(cid); if(i<0) return;
   G[r].hand.splice(i,1);
-  lg('🐉 <b>RITO</b>'+who(r)+': <b>'+C[cid].name+'</b> entra durante el turno del rival.','#ffe066');
+  lg('🐉 <b>RITO</b>'+who(r)+': <b>'+C[cid].name+'</b> entra durante el turno del adversario.','#ffe066');
   await placeChar(r,cid,{via:'especial',from:'la mano (RITO)',por:cid});
 }
 // APOYO de Uso Rápido usado como respuesta (Cataclismo)
@@ -5764,7 +5792,7 @@ async function resolveNegation(ev){
   if(ev.by&&ev.by!==ev.o) await offerTrasNegar(ev.o);
   renderAll();
 }
-// Bebé Balam: cuando el rival niega o destruye una de tus cartas
+// Bebé Balam: cuando el adversario niega o destruye una de tus cartas
 async function offerTrasNegar(o){
   if(!G||G.over) return;
   for(const cid of [...new Set(G[o].hand)]){
@@ -5855,7 +5883,7 @@ function campoTargets(ctx,modo){
   const out=[];
   [opp(ctx.o),ctx.o].forEach(o=>{
     G[o].pj.forEach((p,i)=>{if(p&&!(p.ixRival&&o===ctx.o)&&!inmune(o,i,ctx.o,modo==='destruir'?'destruir':'afectar')&&!(modo==='destruir'&&o!==ctx.o&&bastion(o)))out.push({o,z:'campo',i,cid:p.id,own:o});});
-    // Un SECTOR colocado por el rival en tu lado sigue siendo de su dueño (own)
+    // Un SECTOR colocado por el adversario en tu lado sigue siendo de su dueño (own)
     ['left','right'].forEach(side=>{const ow=sectOwner(o,side);if(G[o].sect[side]&&!esZonaPJ(o,'sector',side)&&!(modo==='destruir'&&ow!==ctx.o&&bastion(ow)))out.push({o,z:'sector',side,cid:G[o].sect[side],own:ow});});
     if(G[o].arena&&!(modo==='destruir'&&o!==ctx.o&&bastion(o))) out.push({o,z:'arena',cid:G[o].arena,own:o});
     G[o].apoyo.forEach((a,i)=>{if(a&&a.type!=='pjzona'&&!(modo==='destruir'&&o!==ctx.o&&bastion(o))&&!(modo==='destruir'&&a.type==='alma'&&controlaPasiva(o,'protege_almas'))&&!(modo==='destruir'&&anilloProtegido(o,a)))out.push({o,z:'apoyo',i,cid:a.card,own:a.duenio||o});});
@@ -6035,7 +6063,7 @@ function auraBonus(o){
     const i=P.pj.indexOf(a.tgt||a.host); if(i<0) return;
     const st=equipStats(o,a), ee=equipEff(a.card)||{}; add(i,{f:st.f,r:st.r,c:st.c,i:st.i,kw:ee.otorgar?[ee.otorgar]:[],inm:null});
   });
-  // Penalizaciones del rival (Sector Bloqueado): no afectan a quien es inmune a todo
+  // Penalizaciones del adversario (Sector Bloqueado): no afectan a quien es inmune a todo
   pend.forEach(({tgt,v})=>tgt.forEach(i=>{if(!B[i].inmA)add(i,v);}));
   return B;
   function add(i,v){B[i].f+=v.f;B[i].r+=v.r;B[i].c+=v.c;B[i].i+=v.i;B[i].kw.push(...v.kw);if(v.inm==='total')B[i].inmA=true;else if(v.inm)B[i].inmD=true;}
@@ -6560,7 +6588,7 @@ let _pendingLeaves=[];
 // ════════════════════════════════════
 // SELECTOR DE BARAJAS PRECONSTRUIDAS
 // ════════════════════════════════════
-// DSEL guarda la elección (id de baraja del jugador; rival: 'espejo' | 'aleatoria' | id).
+// DSEL guarda la elección (id de baraja del jugador; adversario: 'espejo' | 'aleatoria' | id).
 // DK guarda las barajas resueltas para la partida en curso.
 let DSEL={jugador:null,cpu:'aleatoria'}, DK=null;
 // Barajas guardadas en el Constructor (localStorage "chh_decks") y la que se manda a probar ("chh_sim_probar")
@@ -6693,7 +6721,7 @@ function initGame(){
   resolveDecks();
   ['combatMod','chooseModal','sectorModal','discardModal','endgameModal','bsModal'].forEach(id=>document.getElementById(id).classList.remove('show'));
   if(_pickResolve){const r=_pickResolve;_pickResolve=null;r(null);}
-  document.getElementById('logwrap').innerHTML='';
+  document.getElementById('logwrap').innerHTML='';_logN=0;try{document.getElementById('logN').hidden=true;document.getElementById('logUlt').textContent='Aquí verás lo último que pasó en la partida.';logCerrar();}catch(e){}
   SEL_IDX=-1; ATK_SLOT=null; _pendingLeaves=[];
   if(_combatClose){_combatClose=null;}
   G={
@@ -6706,8 +6734,8 @@ function initGame(){
   };
   showDetail(null);
   renderAll();
-  lg('🃏 Tú: <b>'+DK.jugador.nombre+'</b> · Rival: <b>'+DK.cpu.nombre+'</b>'+(DK.cpuModo==='espejo'?' (espejo)':DK.cpuModo==='aleatoria'?' (al azar)':''),'var(--blue)');
-  [['Tu baraja',DK.jugador],['Baraja rival',DK.cpu]].forEach(([q,b])=>(b._avisos||[]).forEach(a=>lg('⚠ '+q+' · '+a,'var(--gold2)')));
+  lg('🃏 Tú: <b>'+DK.jugador.nombre+'</b> · Adversario: <b>'+DK.cpu.nombre+'</b>'+(DK.cpuModo==='espejo'?' (espejo)':DK.cpuModo==='aleatoria'?' (al azar)':''),'var(--blue)');
+  [['Tu baraja',DK.jugador],['Baraja del adversario',DK.cpu]].forEach(([q,b])=>(b._avisos||[]).forEach(a=>lg('⚠ '+q+' · '+a,'var(--gold2)')));
   sorteoInicio();
 }
 
@@ -6722,7 +6750,7 @@ function sorteoUI(){
     m=document.createElement('div');m.id='sorteoModal';m.className='choose-overlay';
     m.innerHTML='<div class="choose-box sorteo-box"><div class="ep-tt">🎲 SORTEO DE INICIO</div>'+
       '<div class="sorteo-dados"><div class="sorteo-lado"><div class="sorteo-dado" id="dadoP">⚀</div><b>TÚ</b></div>'+
-      '<div class="sorteo-vs">VS</div><div class="sorteo-lado r"><div class="sorteo-dado" id="dadoC">⚀</div><b id="dadoCNom">RIVAL</b></div></div>'+
+      '<div class="sorteo-vs">VS</div><div class="sorteo-lado r"><div class="sorteo-dado" id="dadoC">⚀</div><b id="dadoCNom">ADVERSARIO</b></div></div>'+
       '<div class="sorteo-msg" id="sorteoMsg">Tirando los dados…</div></div>';
     (document.getElementById('stage')||document.body).appendChild(m);
   }
@@ -6757,7 +6785,7 @@ async function sorteoInicio(){
     msg.innerHTML='<b style="color:var(--green)">¡Ganas el dado!</b> Tú decides quién empieza.';
     await W(1000); if(!vivo()){m.classList.remove('show');return;}
     m.classList.remove('show');
-    const i=await askChoice('🎲 GANASTE EL DADO ('+a+' vs '+b+')<br><small style="font-weight:600;opacity:.85">Quien inicia juega primero, pero no puede declarar batalla en su primer turno.</small>',['⚔ EMPIEZO YO','🛡 QUE EMPIECE EL RIVAL']);
+    const i=await askChoice('🎲 GANASTE EL DADO ('+a+' vs '+b+')<br><small style="font-weight:600;opacity:.85">Quien inicia juega primero, pero no puede declarar batalla en su primer turno.</small>',['⚔ EMPIEZO YO','🛡 QUE EMPIECE EL ADVERSARIO']);
     if(!vivo()) return;
     empiezo=i!==1;
   } else {
@@ -6776,9 +6804,9 @@ async function sorteoInicio(){
     renderAll();
   } else {
     G.active='cpu'; G.phase='cpu';
-    lg(ganaJ?'🛡 Le cedes el primer turno al rival.':'☠ El rival toma el primer turno.','var(--red)');
+    lg(ganaJ?'🛡 Le cedes el primer turno al adversario.':'☠ El adversario toma el primer turno.','var(--red)');
     lg('ℹ La CPU inicia el choque: no puede declarar batalla en su primer turno. Tú sí podrás atacar en tu primer turno.','var(--muted)');
-    showBanner('cpu','INICIA EL RIVAL','TURNO DEL RIVAL',1500);
+    showBanner('cpu','INICIA EL ADVERSARIO','TURNO DEL ADVERSARIO',1500);
     renderAll();
     later(cpuTurn,1700);
   }
@@ -6791,7 +6819,7 @@ function checkEnd(){
     G._revivio=true;G.cpu.hp=G.revivir;
     for(let k=0;k<2&&G.cpu.bp.length;k++)drawFrom('cpu','bp');
     G.player.pj.forEach(p=>{if(p){p.resting=true;p.attacked=true;}});
-    bannerCreador('📖 SEGUNDA EDICIÓN',(ARCADE&&ARCADE.nombre||'El rival')+' reescribe su historia: vuelve con '+G.revivir+' corazones');
+    bannerCreador('📖 SEGUNDA EDICIÓN',(ARCADE&&ARCADE.nombre||'El adversario')+' reescribe su historia: vuelve con '+G.revivir+' corazones');
     lg('📖 <b>SEGUNDA EDICIÓN</b>: '+arcadeEsc(ARCADE&&ARCADE.nombre||'CPU')+' se niega a perder. Regresa con <b>'+G.revivir+'</b> corazones, roba 2 cartas y tus personajes quedan agotados este turno.','#ffd166');
     playSound('victory');renderAll();return false;
   }
@@ -6862,8 +6890,8 @@ function showDetail(cid,opt){
       if(eq.length) h+='<div class="dt-text" style="color:var(--orange)">⚙ Equipado con: '+eq.map(a=>C[a.card].name).join(', ')+'</div>';
       if(supp(L.o,L.i)) h+='<div class="dt-text" style="color:var(--purple)">⛓ Habilidades negadas'+(live.neg?' hasta el final del turno':' por '+suppPor(L.o,L.i))+'</div>';
       if(live.mats&&live.mats.length) h+='<div class="dt-text" style="color:#ffe066">✦ Materiales: '+live.mats.map(m=>C[m].name).join(', ')+'</div>';
-      if(live.inmA) h+='<div class="dt-text" style="color:var(--gold2)">🛡 No le afectan habilidades ni efectos del rival</div>';
-      else if(live.inmD) h+='<div class="dt-text" style="color:var(--gold2)">🛡 No puede ser destruido por efectos del rival</div>';
+      if(live.inmA) h+='<div class="dt-text" style="color:var(--gold2)">🛡 No le afectan habilidades ni efectos del adversario</div>';
+      else if(live.inmD) h+='<div class="dt-text" style="color:var(--gold2)">🛡 No puede ser destruido por efectos del adversario</div>';
       if(live.bloq>0) h+='<div class="dt-text" style="color:var(--purple)">🔒 No puede atacar ni defender los corazones</div>';
       if(live.lock>0) h+='<div class="dt-text" style="color:var(--red)">⏳ Espada de Cristal: descansa '+live.lock+' turno(s) más</div>';
     }
@@ -6991,7 +7019,7 @@ function prestTenidas(o,cid){
   n+=P.apoyo.filter(a=>a&&a.card===cid).length;
   if(P.sect){if(P.sect.left===cid)n++;if(P.sect.right===cid)n++;}
   if(P.arena===cid)n++;
-  // v91 · también cuenta si quien la tomó la dejó en el campo rival (SECTOR colocado del otro lado, ARENA/zona de héroe)
+  // v91 · también cuenta si quien la tomó la dejó en el campo del adversario (SECTOR colocado del otro lado, ARENA/zona de héroe)
   const r=opp(o);['left','right'].forEach(sd=>{if(G[r].sect[sd]===cid&&sectOwner(r,sd)===o)n++;});
   G[r].pj.forEach(p=>{if(p&&p.id===cid&&p.duenio===o)n++;});
   return n;
@@ -7164,7 +7192,7 @@ function chileyBloq(cid){return enCombate()&&chileyActiva()&&!chileyExento(cid);
 function esDescarte(e){const j=JSON.stringify(e||{});return /descartar_esta|"costo":"descartar"|"descartarEsta":true/.test(j);}
 function otroTonalPeleo(o,p){const L=G._peleo&&G._peleo.k===turnKey()?G._peleo.L:[];return !!p&&L.some(x=>x.o===o&&x.p!==p&&esTk(x.id));}
 function marcarPeleo(o,p){if(!p)return;if(!G._peleo||G._peleo.k!==turnKey())G._peleo={k:turnKey(),L:[]};G._peleo.L.push({o,p,id:p.id});}
-// Jika, Justiciera Tonalkin (v232): en el turno rival, cuando un TONALKIN tuyo va a ser vencido en Combate,
+// Jika, Justiciera Tonalkin (v232): en el turno del adversario, cuando un TONALKIN tuyo va a ser vencido en Combate,
 // puedes retirar 1 CONTADOR DE ALMA de cualquier PERSONAJE de tu campo; si lo haces, no es destruido
 async function jikaSalva(o,i){
   const p=G[o].pj[i];
@@ -7269,7 +7297,7 @@ Object.assign(PASOS,{
     if(F.length>1){const i=o==='player'?await preguntaDe(o,'🌟 ¿Desde dónde llamas la forma SUPER?',F.map(x=>(x.z==='mano'?'✋ ':'🂠 ')+C[x.cid].name+(x.z==='mano'?' (mano)':' (BP)'))):F.findIndex(x=>x.z==='bp');f=F[Math.max(0,i==null?0:i)]||F[0];}
     return await superTransformar(o,f.cid,f.z,ctx.slot);
   },
-  // Gran Onda Vital: confina 2 TONALKIN de tu mano o paga 4 contadores; el rival sacrifica todos sus personajes
+  // Gran Onda Vital: confina 2 TONALKIN de tu mano o paga 4 contadores; el adversario sacrifica todos sus personajes
   async onda_vital(ctx){
     const o=ctx.o, r=opp(o);
     const mano=G[o].hand.map((c,i)=>matchF(c,TK_F)?{z:'mano',i,cid:c}:null).filter(Boolean), hayM=mano.length>=2, hayC=ctrCampo(o)>=4;
@@ -7360,12 +7388,12 @@ Object.assign(PASOS,{
     const o=ctx.o, r=opp(o), opts=[];
     G[r].apoyo.forEach((a,i)=>{if(a&&a.type==='alma')opts.push({o:r,z:'apoyo',i,cid:a.card});});
     if(G[r].ba.length) opts.push({o:r,z:'ba',i:0,cid:G[r].ba[0]});
-    if(!opts.length){lg('✨ '+C[ctx.cid].name+': el rival no tiene ALMAS que confinar.','var(--muted)');return true;}
+    if(!opts.length){lg('✨ '+C[ctx.cid].name+': el adversario no tiene ALMAS que confinar.','var(--muted)');return true;}
     let x;
-    if(ctx.interactive){const k=await askChoice('🟣 '+C[ctx.cid].name.toUpperCase()+'<br>¿Qué ALMA confinas?',opts.map(y=>y.z==='ba'?'🂠 Tope de la BA rival':'💙 '+C[y.cid].name+(C[y.cid].val?' (+'+C[y.cid].val+')':'')));x=opts[k??0];}
+    if(ctx.interactive){const k=await askChoice('🟣 '+C[ctx.cid].name.toUpperCase()+'<br>¿Qué ALMA confinas?',opts.map(y=>y.z==='ba'?'🂠 Tope de la BA del adversario':'💙 '+C[y.cid].name+(C[y.cid].val?' (+'+C[y.cid].val+')':'')));x=opts[k??0];}
     else x=opts.filter(y=>y.z==='apoyo').sort((a,b)=>(C[b.cid].val||0)-(C[a.cid].val||0))[0]||opts[0];
     if(!x) return true;
-    if(x.z==='ba'){const c=G[r].ba.shift();if(c){G[r].conf.push(c);lg('⛓ <b>'+C[ctx.cid].name+'</b>'+who(o)+' confina el tope de la BA rival: <b>'+C[c].name+'</b>.','var(--purple)');}}
+    if(x.z==='ba'){const c=G[r].ba.shift();if(c){G[r].conf.push(c);lg('⛓ <b>'+C[ctx.cid].name+'</b>'+who(o)+' confina el tope de la BA del adversario: <b>'+C[c].name+'</b>.','var(--purple)');}}
     else await quitarDelCampo(o,x,'conf');
     renderAll();
     return true;
@@ -7442,7 +7470,7 @@ Object.assign(PASOS,{
     const ops=[];
     if(n>=5) ops.push({k:'robar',t:'🃏 (5+) Robar 2 cartas de tu BP'});
     if(n>=10) ops.push({k:'cor',t:'💔 (10+) Tu adversario pierde 2 corazones'});
-    if(n>=25) ops.push({k:'mano',t:'⛓ (25+) Confinar '+n+' carta(s) de la mano rival (pierde 1 ❤ por cada una)'});
+    if(n>=25) ops.push({k:'mano',t:'⛓ (25+) Confinar '+n+' carta(s) de la mano del adversario (pierde 1 ❤ por cada una)'});
     if(!ops.length){lg('💀 Menos de 5 cartas confinadas: ningún efecto se activa.','var(--muted)');return true;}
     let op=ops[ops.length-1];
     if(ctx.interactive&&ops.length>1){const k=await askChoice('💀 MODO BERSERKER · '+n+' cartas confinadas<br>Elige UN efecto:',ops.map(x=>x.t));if(k!=null&&ops[k])op=ops[k];}
@@ -7615,7 +7643,7 @@ function onBoardPJ(o,i){
     if(ATK_SLOT===i){ATK_SLOT=null;lg('↩ Ataque cancelado.','var(--muted)');renderAll();}
     else selectAtk(i);
   }
-  showDetail(card.id,{live:card,title:o==='cpu'?'CPU':'TUYO',acts:fieldActs(o,i)});
+  showDetail(card.id,{live:card,title:o==='cpu'?'ADVERSARIO':'TUYO',acts:fieldActs(o,i)});
 }
 function renderSects(o){
   ['left','right'].forEach(side=>{
@@ -7625,7 +7653,7 @@ function renderSects(o){
       const in2=document.createElement('div');in2.id=(o==='player'?'pP':'cP')+k;pintaPJ(in2,o,k);in2.classList.add('pjz');in2.insertAdjacentHTML('beforeend','<div class="zona-tag">SECTOR</div>');el.appendChild(in2);return;}
     el.className='bc bc-sect'+(cid?' occ':'');
     el.innerHTML=cid?imgTag(cid,'ci'):'<span class="zlbl">SECT<br>'+(side==='left'?'IZQ':'DER')+'</span>';
-    if(cid&&sectOwner(o,side)!==o) el.insertAdjacentHTML('beforeend','<div class="rest-tag" style="background:rgba(192,64,255,.85)">'+(sectOwner(o,side)==='player'?'TUYA':'CPU')+'</div>');
+    if(cid&&sectOwner(o,side)!==o) el.insertAdjacentHTML('beforeend','<div class="rest-tag" style="background:rgba(192,64,255,.85)">'+(sectOwner(o,side)==='player'?'TUYA':'ADV.')+'</div>');
     el.onclick=cid?()=>showDetail(cid,{title:'SECTOR '+(side==='left'?'IZQ':'DER'),
       acts:sectOwner(o,side)==='player'&&o==='player'&&myAction()?activables('player',cid,'sector',{zone:'sector',side}):[]}):null;
     // Sector de Personaje: zona de PERSONAJE extra dibujada sobre el sector
@@ -7749,11 +7777,11 @@ function _buildMenuActions(cid,idx,at,card){
       if(espBloqueado()) fal.push('los llamados especiales están bloqueados');
       if(mictlanCerrado()) fal.push('el Mictlán está cerrado');
       if(choqueDiosesOn()) fal.push('el Choque de Dioses lo impide');
-      acts.push({label:'⚡ Uso Rápido: se activa como respuesta',ok:false,why:'Aparecerá cuando el rival declare un ataque en SU Fase de Combate'+(fal.length?'. Ahora no podrías: '+fal.join(', ')+'.':' (te preguntará si respondes).'),fn:()=>{}});
+      acts.push({label:'⚡ Uso Rápido: se activa como respuesta',ok:false,why:'Aparecerá cuando el adversario declare un ataque en SU Fase de Combate'+(fal.length?'. Ahora no podrías: '+fal.join(', ')+'.':' (te preguntará si respondes).'),fn:()=>{}});
       return acts;
     }
     if(!effs.length&&(card.efectos||[]).some(e=>e.cuando==='respuesta')){
-      acts.push({label:'⚡ Uso Rápido: se activa como respuesta',ok:false,why:(card.efectos||[]).some(e=>e.accion==='amenaza_mitica')?'Aparecerá cuando el rival ataque a uno de tus personajes':'Aparecerá cuando el rival llame o active algo que puedas negar',fn:()=>{}});
+      acts.push({label:'⚡ Uso Rápido: se activa como respuesta',ok:false,why:(card.efectos||[]).some(e=>e.accion==='amenaza_mitica')?'Aparecerá cuando el adversario ataque a uno de tus personajes':'Aparecerá cuando el adversario llame o active algo que puedas negar',fn:()=>{}});
       return acts;
     }
     if(card.subtipo==='equipo'){
@@ -7773,14 +7801,14 @@ function _buildMenuActions(cid,idx,at,card){
     let why='';
     if(!ok){
       if(pend) why=card.subtipo==='rapido'?'Uso Rápido: pendiente de programar':'Aún no programado en la simulación';
-      else if(!fase) why=card.faseCombate?'Solo durante tu Fase de Combate':card.subtipo==='rapido'?'Uso Rápido: en tu Fase de Acción o de Combate, o como respuesta en el turno rival':phaseWhy();
-      else if(!zonaOk) why=card.colocarApoyoRival?'El rival no tiene zonas de apoyo vacías':'Necesitas una zona de apoyo libre';
+      else if(!fase) why=card.faseCombate?'Solo durante tu Fase de Combate':card.subtipo==='rapido'?'Uso Rápido: en tu Fase de Acción o de Combate, o como respuesta en el turno del adversario':phaseWhy();
+      else if(!zonaOk) why=card.colocarApoyoRival?'El adversario no tiene zonas de apoyo vacías':'Necesitas una zona de apoyo libre';
       else why=firstWhy;
     }
     acts.push({label:'🔴 Activar'+(cost?' (−'+cost+' ❤)':''),ok,why,fn:()=>doApoyo(idx)});
   }
   if(card.type==='apoyoR'){
-    acts.push({label:'⚡ Solo en turno del rival',ok:false,why:'Reacción automática: pendiente de implementar',fn:()=>{}});
+    acts.push({label:'⚡ Solo en turno del adversario',ok:false,why:'Reacción automática: pendiente de implementar',fn:()=>{}});
   }
   if(card.type==='arena'){
     const unica=hasPassive(cid,'unica_en_campo')&&(G.player.arena===cid||G.cpu.arena===cid);
@@ -7860,12 +7888,12 @@ function renderDecks(){
   baEl.classList.toggle('draw-pending',drawing&&!G.drewBA);
 }
 function renderUI(){
-  const lbls={sorteo:'SORTEO DE INICIO',draw:'FASE DE ROBO',ofrenda:'FASE DE OFRENDA',action:'FASE DE ACCIÓN',combat:'FASE DE COMBATE',cpu:'TURNO CPU',discard:'DESCARTE',end:'FIN DE TURNO'};
+  const lbls={sorteo:'SORTEO DE INICIO',draw:'FASE DE ROBO',ofrenda:'FASE DE OFRENDA',action:'FASE DE ACCIÓN',combat:'FASE DE COMBATE',cpu:'TURNO DEL ADVERSARIO',discard:'DESCARTE',end:'FIN DE TURNO'};
   const descs={
     draw:'Toca tu B.ALMAS y tu BARAJA para robar',
     ofrenda:'Devuelve tu mano, revuelve y roba de nuevo',
     action:'Toca una carta de tu mano · '+G.callsLeft+' llamado(s)',
-    combat:G.turn===1?'Primer turno: no puedes declarar batalla':'Toca un PJ tuyo (verde) y luego un rival',
+    combat:G.turn===1?'Primer turno: no puedes declarar batalla':'Toca un PJ tuyo (verde) y luego uno del adversario',
     cpu:'CPU está jugando…',
     discard:'Elige qué cartas descartar',
     end:'Resolviendo efectos de fin de turno…'
@@ -7875,7 +7903,7 @@ function renderUI(){
   document.getElementById('centerLbl').textContent=ph;
   document.getElementById('phdesc').textContent=G.over?'':(descs[G.phase]||'');
   const tp=document.getElementById('tpill');
-  tp.textContent='T'+G.turn+' · '+(G.active==='player'?'TÚ':'CPU');
+  tp.textContent='T'+G.turn+' · '+(G.active==='player'?'TÚ':'ADVERSARIO');
   tp.className='tpill '+(G.active==='player'?'p':'c');
   const btn=document.getElementById('btnMain');
   if(G.over){btn.disabled=false;btn.textContent='↺ NUEVA PARTIDA';btn.className='gbtn gold';}
@@ -8025,7 +8053,7 @@ async function activateEquipo(o,cid0){
   const e=equipEff(cid0)||{};
   if(e.medallon) return activateMedallon(o,cid0);
   if(e.unicoActivo&&['player','cpu'].some(x=>G[x].apoyo.some(a=>a&&a.card===cid0&&(a.duenio||x)===o))){lg('⚠ Solo puedes tener 1 <b>'+C[cid0].name+'</b> activa a la vez.','var(--red)');return;}
-  if(errBloqApoyo(o)){lg('🦅 <b>Errantes de Phorus</b>: no puedes activar APOYOS durante el turno del rival.','var(--purple)');return;}
+  if(errBloqApoyo(o)){lg('🦅 <b>Errantes de Phorus</b>: no puedes activar APOYOS durante el turno del adversario.','var(--purple)');return;}
   const desdeM=e.desdeMictlan;
   const objetivos=()=>desdeM?cands(o,'mictlan',Object.assign({tipos:['pj','amalgama']},desdeM)).filter(x=>!e.niegaHost||especialPermitido(x.cid,cid0,'mictlan')):G[o].pj.map((p,i)=>p&&!p.ixRival&&(!e.filtroObjetivo||matchF(p.id,e.filtroObjetivo))?{z:'campo',i,cid:p.id,o}:null).filter(Boolean);
   if(freeApoAp(o)===-1||!objetivos().length||(desdeM&&freePJ(o)===-1)) return;
@@ -8183,7 +8211,7 @@ async function elegirDefensor(o,as,ds){
   if(eR(def)<=eF(atk)&&g&&SCORE(def.id)>=SCORE(g.p.id)*.6){lg('🛡 <b>'+C[g.p.id].name+'</b> (CPU) defiende a '+C[def.id].name+'.','var(--green)');return await trasDefender(r,g.i,ds);}
   return ds;
 }
-// Resuelve un ataque de o (slot as) contra el personaje rival en ds. No dispara efectos de salida (afterBattle lo hace).
+// Resuelve un ataque de o (slot as) contra el personaje del adversario en ds. No dispara efectos de salida (afterBattle lo hace).
 async function battle(o,as,ds){
   const r=opp(o), atk=G[o].pj[as];
   if(!atk||!G[r].pj[ds]) return null;
@@ -8231,7 +8259,7 @@ async function battle(o,as,ds){
   marcarPeleo(o,atk);marcarPeleo(r,G[r].pj[ds]);
   const objetivos=[ds];
   if(hasKw(atk,'DOBLE BATALLA')&&!hasKw(atk,'BARBARIE')){const j=mismoSector(r,ds).find(k=>k!==ds);if(j!=null){objetivos.push(j);res.html+='⚔ <b>DOBLE BATALLA</b>: choca con dos personajes del mismo sector.<br>';}}
-  if(hasKw(atk,'BARBARIE')){G[r].pj.forEach((p,i)=>{if(p&&i!==ds)objetivos.push(i);});if(objetivos.length>1)res.html+='🪓 <b>BARBARIE</b>: ataca a todos los personajes del rival.<br>';}
+  if(hasKw(atk,'BARBARIE')){G[r].pj.forEach((p,i)=>{if(p&&i!==ds)objetivos.push(i);});if(objetivos.length>1)res.html+='🪓 <b>BARBARIE</b>: ataca a todos los personajes del adversario.<br>';}
   for(const t of objetivos){
     const def=G[r].pj[t];
     if(!def||G[o].pj[as]!==atk) continue;
@@ -8328,7 +8356,7 @@ function clash(atk,def){
     }
     p.res=p.resB;return 'heart';
   };
-  // PRIMER DAÑO: daña primero y el rival no puede responder al choque
+  // PRIMER DAÑO: daña primero y el adversario no puede responder al choque
   if(fa&&!fd){out.d=hit(def,nDR);out.a='none';}
   else if(fd&&!fa){out.a=hit(atk,nAR);out.d='none';}
   else{out.a=hit(atk,nAR);out.d=hit(def,nDR);}
@@ -8397,14 +8425,14 @@ async function runEOT(o){
     for(const x of mios){
       if(x.tipo==='quetzal'){await volverQuetzal(o,x.cid);if(!G||G.over)return;continue;}
       const r=opp(o), list=campoTargets({o},'destruir').filter(t=>t.o===r&&t.z==='campo');
-      lg('🔥 <b>'+C[x.cid].name+'</b>'+who(o)+': al final del turno se destruyen '+list.length+' personaje(s) del rival.','var(--red)');
+      lg('🔥 <b>'+C[x.cid].name+'</b>'+who(o)+': al final del turno se destruyen '+list.length+' personaje(s) del adversario.','var(--red)');
       for(const t of list){await quitarDelCampo(o,t,'destruir');if(!G||G.over)return;}
       await procDestrQ();
     }
   }
   // Epidemia
   for(let i=0;i<PJ_N;i++){const p=G[o].pj[i];if(p&&p.epidemia){delete p.epidemia;const v=C[p.id].cost;leaveField(o,i,'mictlan');marcaDestruida(o,p.id);
-    lg('🦠 <b>Epidemia</b>'+who(o)+': <b>'+C[p.id].name+'</b> es destruido; durante 2 turnos del rival se destruirán sus personajes de valor '+v+' o menor.','var(--red)');
+    lg('🦠 <b>Epidemia</b>'+who(o)+': <b>'+C[p.id].name+'</b> es destruido; durante 2 turnos del adversario se destruirán sus personajes de valor '+v+' o menor.','var(--red)');
     G.epidemia={o:opp(o),v,n:2};renderAll();await fireLeave(o,p.id);await procDestrQ();if(!G||G.over)return;}}
   if(G.epidemia&&G.epidemia.o===o){const ep=G.epidemia;const list=campoTargets({o:opp(o)},'destruir').filter(t=>t.o===o&&t.z==='campo'&&C[t.cid].cost<=ep.v);
     lg('🦠 Epidemia: '+list.length+' personaje(s)'+who(o)+' de valor '+ep.v+' o menor son destruidos.','var(--red)');
@@ -8454,7 +8482,7 @@ async function endTurn(){
   } else finishTurn();
 }
 function finishTurn(){
-  showBanner('cpu','FIN DE TURNO','TURNO DEL RIVAL',1400);
+  showBanner('cpu','FIN DE TURNO','TURNO DEL ADVERSARIO',1400);
   G.phase='cpu'; G.active='cpu';
   tickTurn();
   G.used={player:{},cpu:{}};
@@ -8660,7 +8688,7 @@ async function cpuTurn(){
     P.hand.splice(P.hand.indexOf(cid),1);P.sect[side]=cid;if(hasPassive(cid,'pj_extra'))G.used.cpu.sectPJ=turnKey();
     lg('🟣 CPU coloca <b>'+C[cid].name+'</b> en Sector '+(side==='left'?'IZQ':'DER')+'.','var(--as)');playSound('call');renderAll();
   }
-  // 4a) SECTOR que se coloca del lado rival (Sector Bloqueado): donde el jugador tenga más fuerza
+  // 4a) SECTOR que se coloca del lado del adversario (Sector Bloqueado): donde el jugador tenga más fuerza
   for(const cid of [...P.hand]){
     if(C[cid].type!=='sector'||!['rival','ambos'].includes(C[cid].colocar)||C[cid].soloResp||errBloqSector('cpu','player')) continue;
     if(C[cid].colocar==='ambos'&&!['left','right'].some(sd=>slotsOf('player',sd).some(j=>G.player.pj[j]&&(SCORE(G.player.pj[j].id)>=35||eI(G.player.pj[j])>=2)))) continue;
@@ -8686,7 +8714,7 @@ async function cpuTurn(){
   for(let n=0;n<6&&G.callsLeft>0;n++){
     if(!alive()) return;
     const at=almaT('cpu');
-    // Oxkotetl se guarda para revelarlo (salvo que el rival no tenga personajes)
+    // Oxkotetl se guarda para revelarlo (salvo que el adversario no tenga personajes)
     const cpuReglas=c=>{const n=reglasSac(c);if(!reglasPuede('cpu',c))return false;if(!n)return true;const L=reglasPropios('cpu').map(y=>SCORE(y.cid)).sort((a,b)=>a-b).slice(0,n);return L.reduce((t,v)=>t+v,0)<SCORE(c);};
     const best=P.hand.map((c,i)=>({c,i})).filter(x=>C[x.c].type==='pj'&&!hasPassive(x.c,'chanheko_mano')&&(reglasOn()?cpuReglas(x.c):C[x.c].cost<=almaT('cpu',x.c))&&llamadoOk('cpu',x.c)&&!puedeNormal('cpu',x.c)&&!hasPassive(x.c,'tortura')&&!(x.c==='oxkotetl'&&G.player.pj.some(Boolean))).sort((a,b)=>C[b.c].cost-C[a.c].cost)[0];
     if(!best) break;
@@ -9173,7 +9201,7 @@ function ajAbrir(){
     '<h4>🎵 MÚSICA <span class="aj-v" id="ajMusV">'+pct(AJ.mus)+'</span></h4><input type="range" class="aj-r" id="ajMus" min="0" max="1" step="0.05" value="'+AJ.mus+'">'+
     '<h4>🔊 EFECTOS DE SONIDO <span class="aj-v" id="ajSfxV">'+(MUTED?'silencio':pct(AJ.sfx))+'</span></h4><input type="range" class="aj-r" id="ajSfx" min="0" max="1" step="0.05" value="'+(MUTED?0:AJ.sfx)+'">'+
     '<div class="ap-note">Las pistas y los efectos ya vienen nivelados para que ninguno suene más fuerte que otro.</div>'+
-    '<h4>⏱ VELOCIDAD DEL RIVAL (CPU)</h4>'+chips('ajVel',[['lenta','🐢 Lenta'],['normal','▶ Normal'],['rapida','⏩ Rápida']],AJ.vel)+
+    '<h4>⏱ VELOCIDAD DEL ADVERSARIO (CPU)</h4>'+chips('ajVel',[['lenta','🐢 Lenta'],['normal','▶ Normal'],['rapida','⏩ Rápida']],AJ.vel)+
     '<h4>📣 AVISOS DE FASE</h4>'+chips('ajFases',[['todos','📣 Todos'],['propios','🙋 Solo mis fases'],['off','🔕 Apagados']],avisosFase())+
     '<h4>✨ EFECTOS VISUALES</h4>'+chips('ajFx',[['on','✨ Completos'],['off','🔋 Reducidos']],fxModo())+
     '<h4>🎲 VISTA DEL TABLERO</h4>'+chips('ajVista',[['3d','⬒ Inclinada 3D'],['plana','▭ Plana']],AJ.vista==='plana'?'plana':'3d')+
@@ -9489,12 +9517,12 @@ function fxBarajar(elId){
   let x=0,y=0,e=el; while(e&&e!==board){x+=e.offsetLeft;y+=e.offsetTop;e=e.offsetParent;}
   if(e!==board) return;
   const h=el.offsetHeight*.92, w=Math.min(el.offsetWidth*.92,h*2/3), x0=x+el.offsetWidth/2-w/2, y0=y+el.offsetHeight/2-h/2;
-  const rival=elId.startsWith('cpu');
+  const esRiv=elId.startsWith('cpu');
   for(let i=0;i<8;i++){
     const d=document.createElement('div'); d.className='fx-shuf';
-    d.style.cssText='left:'+x0+'px;top:'+y0+'px;width:'+w+'px;height:'+h+'px;background-image:url("'+REV+'");z-index:'+(40+i)+(rival?';rotate:180deg':'');
+    d.style.cssText='left:'+x0+'px;top:'+y0+'px;width:'+w+'px;height:'+h+'px;background-image:url("'+REV+'");z-index:'+(40+i)+(esRiv?';rotate:180deg':'');
     board.appendChild(d);
-    const sd=i%2?1:-1, dx=sd*w*.72, up=(rival?1:-1)*h*.07, st=rival?1:-1;
+    const sd=i%2?1:-1, dx=sd*w*.72, up=(esRiv?1:-1)*h*.07, st=esRiv?1:-1;
     try{const a=d.animate([
         {transform:'translate(0,0) rotate(0deg)',offset:0},
         {transform:'translate('+dx+'px,'+up+'px) rotate('+(sd*11)+'deg)',offset:.3},
@@ -9633,7 +9661,7 @@ function arcadePreparar(){
     const j=deckById(ARCADE.jugador), por=b=>b&&(C[b.portada]||C[(b.bp||[])[0]&&b.bp[0].id]);
     vs.innerHTML='<div class="vs-side">'+(ARCADE.avatar?'<img src="'+arcadeEsc(ARCADE.avatar)+'" alt="" style="border-radius:50%;object-fit:cover;aspect-ratio:1">':por(j)?'<img src="'+por(j).imgMin+'" alt="">':'<span class="vs-ico">🛡</span>')+'<span style="min-width:0"><small>TÚ</small><b>'+arcadeEsc(j?j.nombre:'')+'</b></span></div>'+
       '<span class="vs-x">VS</span><div class="vs-side r">'+(ARCADE.retrato?'<img src="'+arcadeEsc(ARCADE.retrato)+'" alt="" style="object-fit:cover;object-position:top">':'<span class="vs-ico">🤖</span>')+
-      '<span style="min-width:0"><small>'+(ARCADE.jefe?(ARCADE.jefeTxt?arcadeEsc(ARCADE.jefeTxt):'JEFE FINAL'):'RIVAL')+'</small><b>'+arcadeEsc(ARCADE.nombre)+'</b></span></div>';
+      '<span style="min-width:0"><small>'+(ARCADE.jefe?(ARCADE.jefeTxt?arcadeEsc(ARCADE.jefeTxt):'JEFE FINAL'):'ADVERSARIO')+'</small><b>'+arcadeEsc(ARCADE.nombre)+'</b></span></div>';
     vs.hidden=false;
   }
   document.getElementById('bootBtn').textContent='⚔ ¡A PELEAR!';
@@ -9651,13 +9679,13 @@ function arcadePreparar(){
       lg('👑 <b>PODERES DEL JEFE</b> · '+pw.join(' · ')+'.','#ffd166');}
     const extra=(['muy_dificil','epico','caotico','creador'].includes(ARCADE.nivel)?3:0)+(ARCADE.corazonesExtra||0);
     if(extra){G.cpu.hp+=extra;lg('🕹 '+arcadeEsc(ARCADE.nombre)+' empieza con '+G.cpu.hp+' corazones.','#ff4d6d');}
-    // v52 · Ruta Épica: poderes del rival (mano extra, almas activas desde el inicio, robo extra por turno)
+    // v52 · Ruta Épica: poderes del adversario (mano extra, almas activas desde el inicio, robo extra por turno)
     {const me=+ARCADE.manoExtra||0, ae=+ARCADE.almasExtra||0;
      for(let k=0;k<me&&G.cpu.bp.length;k++) drawFrom('cpu','bp');
      for(let k=0;k<ae&&G.cpu.ba.length;k++){const z=freeApo('cpu');if(z<0)break;G.cpu.apoyo[z]={card:G.cpu.ba.shift(),type:'alma',bonus:0,eot:false};}
      const pod=[me?'+'+me+' carta(s) en su mano inicial':'',ae?ae+' alma(s) activas desde el inicio':'',ARCADE.roboExtra?'roba '+ARCADE.roboExtra+' carta(s) extra cada turno':''].filter(Boolean);
      if(pod.length) lg('☠ <b>PODER ÉPICO</b> · '+arcadeEsc(ARCADE.nombre)+': '+pod.join(' · ')+'.','#ff2244');}
-    // v92 · El rival empieza con una ARENA ya activa (Aventura: arena_inicial). Si la tiene en su baraja, se usa esa copia.
+    // v92 · El adversario empieza con una ARENA ya activa (Aventura: arena_inicial). Si la tiene en su baraja, se usa esa copia.
     if(ARCADE.arenaInicial&&C[ARCADE.arenaInicial]&&C[ARCADE.arenaInicial].type==='arena'&&!G.cpu.arena){
       const ai=ARCADE.arenaInicial;for(const z of ['hand','bp']){const k=G.cpu[z].indexOf(ai);if(k>=0){G.cpu[z].splice(k,1);break;}}
       if(G.player.arena===ai&&hasPassive(ai,'unica_en_campo')){}else{G.cpu.arena=ai;
@@ -9773,10 +9801,11 @@ function arcadeYaJugado(){
 // ── Control (gamepad.js): qué hace cada botón en la Simulación ──
 window.GP_CFG={
   principalTxt:'Fase / Turno',
-  zonas:['#handrow','#board','#detail','#btnMain'],
+  zonas:['#handrow','#board','#detail','#btnMain','#btnLog'],
   scroll:'#logwrap',
+  ambito:()=>{const d=document.getElementById('logDrawer');return d&&d.classList.contains('on')?d:null;},
   // v236 · LT/RT bajan/suben el texto de la carta (panel izquierdo) cuando no cabe; al llegar al final, siguen con el registro
-  gatillo:d=>{const f=window.GP&&GP.foco();if(f&&f.closest&&f.closest('#logwrap'))return false;
+  gatillo:d=>{const f=window.GP&&GP.foco();if(f&&f.closest&&f.closest('#logwrap'))return false;if(document.getElementById('logDrawer').classList.contains('on'))return false;
     const dt=document.getElementById('detail');if(!dt||!dt.offsetParent||dt.scrollHeight<=dt.clientHeight+4)return false;
     const fin=d>0?dt.scrollTop+dt.clientHeight>=dt.scrollHeight-2:dt.scrollTop<=0;if(fin)return false;
     dt.scrollBy({top:d*120,behavior:'smooth'});return true;},
@@ -9790,6 +9819,7 @@ window.GP_CFG={
   select:()=>document.getElementById('btnMute'),
   // B sin ventana abierta: cancela el ataque elegido o la selección (nunca sale de la partida)
   atras:()=>{
+    if(document.getElementById('logDrawer').classList.contains('on')){logCerrar();return true;}
     if(document.querySelector('#bsModal.show,#chooseModal.show,#sectorModal.show,#combatMod.show,#discardModal.show,#dsList.show,#endgameModal.show,#epConfirm.show')) return false;
     if(typeof G!=='undefined'&&G&&!G.over){
       try{if(typeof ATK_SLOT!=='undefined'&&ATK_SLOT!==null){ATK_SLOT=null;renderAll();return true;}
@@ -9816,7 +9846,7 @@ try{const _bt=battle;battle=async function(o,as,ds){
   try{if(G&&G.player.pj.filter(Boolean).length<antes){rumble(220,.85);vibraCel(80);}
       else if(o==='player'&&G&&r)rumble(70,.3);}catch(e){}
   return r;};}catch(e){}
-// Llamados especiales y Amalgamas (tuyos o del rival)
+// Llamados especiales y Amalgamas (tuyos o del adversario)
 try{const _pc=placeChar;placeChar=async function(o,cid,opt){const r=await _pc.apply(this,arguments);
   try{if(opt&&(opt.via==='especial'||opt.desde==='bs')){
     if(C[cid]&&C[cid].type==='amalgama') rumbleSeq([[0,110,.6],[170,140,.8],[360,300,1]]);
@@ -10042,7 +10072,7 @@ function peekRefrescar(){try{const h=peekCandidata();if(h)peekShow(h);else peekH
   hr.addEventListener('click',()=>setTimeout(peekRefrescar,30));
   hr.addEventListener('scroll',()=>{if(PEEK.h)peekShow(PEEK.h);},{passive:true});
 })();
-// v210 · Al re-pintar la mano (pasa muchas veces mientras juega el rival) ya no se oculta y vuelve a aparecer:
+// v210 · Al re-pintar la mano (pasa muchas veces mientras juega el adversario) ya no se oculta y vuelve a aparecer:
 //        si la carta ampliada sigue siendo la misma, se queda quieta; y el control conserva su lugar en la mano.
 {const _rh=renderHand;renderHand=function(){
   let gpI=-1;try{const L0=[...document.querySelectorAll('#handrow .hcard')],f=window.GP&&GP.activo()&&GP.foco(),h=f&&f.closest&&f.closest('#handrow .hcard');if(h)gpI=L0.indexOf(h);}catch(e){}
@@ -10195,7 +10225,7 @@ function salirPartida(ev,a){
 
 /* ═══ v198 · Elegir objetivo de ataque: más notorio ═══ */
 #board.eligiendo.con-obj [id^="cP"].occ:not(.tgt){filter:brightness(.5) saturate(.55);transition:filter .2s}
-/* v199 · Sin objetivos (rival sin personajes atacables): se resalta el ataque directo */
+/* v199 · Sin objetivos (adversario sin personajes atacables): se resalta el ataque directo */
 .dt-btn.atk-directo{border-color:#ff3355!important;color:#fff!important;background:linear-gradient(180deg,rgba(255,51,85,.45),rgba(160,10,40,.55))!important;
   box-shadow:0 0 0 1px rgba(255,51,85,.6),0 0 16px rgba(255,51,85,.55);animation:atkDirP 1s ease-in-out infinite}
 @keyframes atkDirP{50%{box-shadow:0 0 0 2px #ff3355,0 0 26px rgba(255,51,85,.85)}}
@@ -10309,7 +10339,7 @@ function salirPartida(ev,a){
   }
   if(window.GP_CFG) GP_CFG.moverLogico=moverLogico;
 
-  // ── 2) Elegir objetivo: el cursor salta al rival, flecha del atacante al objetivo y aviso en el centro ──
+  // ── 2) Elegir objetivo: el cursor salta al adversario, flecha del atacante al objetivo y aviso en el centro ──
   let ultAtk=null;
   {const _sa=selectAtk;selectAtk=function(slot){
     const r=_sa.apply(this,arguments);
@@ -10341,8 +10371,8 @@ function salirPartida(ev,a){
       document.querySelectorAll('#board .tgt').forEach(el=>{if(!el.querySelector('.mira'))el.insertAdjacentHTML('beforeend','<span class="mira"></span>');});
       document.querySelectorAll('#board .atk-sel').forEach(el=>{if(!el.querySelector('.atk-tag'))el.insertAdjacentHTML('beforeend','<span class="atk-tag">⚔ ATACA</span>');});
       const lb=$('centerLbl');
-      // Rival sin personajes en tu Fase de Combate: se avisa que tus personajes atacan directo
-      if(lb&&!sel&&G&&!G.over&&G.active==='player'&&G.phase==='combat'&&!G.cpu.pj.some(Boolean)&&document.querySelector('#board .can-atk')){lb.textContent='💥 EL RIVAL NO TIENE DEFENSORES · TOCA UN PERSONAJE PARA ATACAR DIRECTO';lb.classList.add('directo');}
+      // Adversario sin personajes en tu Fase de Combate: se avisa que tus personajes atacan directo
+      if(lb&&!sel&&G&&!G.over&&G.active==='player'&&G.phase==='combat'&&!G.cpu.pj.some(Boolean)&&document.querySelector('#board .can-atk')){lb.textContent='💥 EL ADVERSARIO NO TIENE DEFENSORES · TOCA UN PERSONAJE PARA ATACAR DIRECTO';lb.classList.add('directo');}
       else if(lb) lb.classList.remove('directo');
       if(lb){lb.classList.toggle('eligiendo',sel);if(sel)lb.textContent=!hayObj?'💥 SIN DEFENSORES ATACABLES: ATACA DIRECTO A SUS CORAZONES':gpOn()?'⚔ ELIGE A QUIÉN ATACAR · B CANCELA':'⚔ ELIGE A QUIÉN ATACAR · TOCA DE NUEVO PARA CANCELAR';}
       if(sel) flechaLoop();
@@ -10466,8 +10496,8 @@ function salirPartida(ev,a){
 // ════════════════════════════════════════════════════════════════════
 // v210 · CONTROL EN EL TABLERO
 //  · Todas las casillas se recorren con la cruceta (también las vacías): el cursor avanza casilla por casilla, como en la mesa real
-//  · Al pasar el cursor por un personaje (tuyo o del rival) se ve su carta en el panel de detalle, sin elegirlo
-//  · El cursor y su marco no se pierden cuando el tablero o la mano se vuelven a pintar (p. ej. mientras juega el rival)
+//  · Al pasar el cursor por un personaje (tuyo o del adversario) se ve su carta en el panel de detalle, sin elegirlo
+//  · El cursor y su marco no se pierden cuando el tablero o la mano se vuelven a pintar (p. ej. mientras juega el adversario)
 // ════════════════════════════════════════════════════════════════════
 (function(){
   if(!window.GP_CFG) return;
@@ -10516,20 +10546,20 @@ function salirPartida(ev,a){
 <script>
 // ════════════════════════════════════════════════════════════════════
 // v191 · PARTIDA GUIADA (simulacion.html?modo=tutorial)
-// Choque preestablecido contra un rival de práctica: barajas en orden fijo, sin revolver,
-// rival con jugadas guionizadas que nunca ataca, y el Guardián del Nexo señalando
+// Choque preestablecido contra un adversario de práctica: barajas en orden fijo, sin revolver,
+// adversario con jugadas guionizadas que nunca ataca, y el Guardián del Nexo señalando
 // exactamente qué tocar en cada paso (lo demás queda bloqueado).
 // ════════════════════════════════════════════════════════════════════
 const TUTO=(()=>{try{return new URLSearchParams(location.search).get('modo')==='tutorial'?{}:null;}catch(e){return null;}})();
 if(TUTO){(function(){
   const GUIA='assets/intro/guardian.png';
-  const RIVAL='Rival de práctica';
+  const RIV_NOM='Adversario de práctica';
   const llenar=(id,n)=>Array.from({length:n},()=>id);
   const MAZO_J={id:'tuto_j',nombre:'Héroes del Nexo (práctica)',
     manoInicial:['primos_sur','vigilante_aguila','nj_panncho','nj_emmiliano'],
     bp:['nj_addela','vigilante_aguila','nj_addela','metal_argon','nj_panncho','primos_sur'].concat(llenar('nj_emmiliano',10)).map(id=>({id,copias:1})),
     ba:['alma_caballero','alma_defensor','alma_difunta'].concat(llenar('alma_caballero',10)).map(id=>({id,copias:1})),bs:[]};
-  const MAZO_C={id:'tuto_c',nombre:RIVAL,
+  const MAZO_C={id:'tuto_c',nombre:RIV_NOM,
     manoInicial:['nj_addela','alma_caballero','nj_panncho','nj_emmiliano'],
     bp:llenar('primos_sur',12).map(id=>({id,copias:1})),
     ba:llenar('alma_caballero',12).map(id=>({id,copias:1})),bs:[]};
@@ -10554,7 +10584,7 @@ if(TUTO){(function(){
   {const _ig=initGame;initGame=function(){
     TUTO.cpuLlama=['nj_addela','nj_panncho'];
     const r=_ig.apply(this,arguments);
-    if(G){G.cpu.hp=2;G.tuto=true;lg('🎓 <b>PARTIDA GUIADA</b> · El '+RIVAL.toLowerCase()+' empieza con 2 corazones (en un choque normal son '+R.corazones+').','var(--gold2)');renderAll();}
+    if(G){G.cpu.hp=2;G.tuto=true;lg('🎓 <b>PARTIDA GUIADA</b> · El '+RIV_NOM.toLowerCase()+' empieza con 2 corazones (en un choque normal son '+R.corazones+').','var(--gold2)');renderAll();}
     return r;};}
   // ── Mesa de la partida guiada: el Puente de Nexotlan (Modo Aventura), sin importar la que tenga elegida el jugador ──
   const MESA_T='assets/simulacion/mesas/mesa_puente.jpg';
@@ -10573,15 +10603,15 @@ if(TUTO){(function(){
     coach.iniciar();
   };
 
-  // ── Rival guionizado: roba, activa un alma, llama a un personaje y pasa (nunca ataca) ──
+  // ── Adversario guionizado: roba, activa un alma, llama a un personaje y pasa (nunca ataca) ──
   cpuTurn=async function(){
     const g=GEN,alive=()=>g===GEN&&G&&!G.over,W=ms=>new Promise(r=>setTimeout(r,ms));
     const P=G.cpu;
     await W(600);if(!alive())return;
     await faseBanner('cpu','draw');if(!alive())return;
-    if(P.ba.length){drawFrom('cpu','ba');lg('💙 El rival roba de su B.Almas.','var(--ac)');playSound('card');renderAll();}
+    if(P.ba.length){drawFrom('cpu','ba');lg('💙 El adversario roba de su B.Almas.','var(--ac)');playSound('card');renderAll();}
     await W(600);if(!alive())return;
-    if(P.bp.length){drawFrom('cpu','bp');lg('🃏 El rival roba de su Baraja.','var(--muted)');playSound('card');renderAll();}
+    if(P.bp.length){drawFrom('cpu','bp');lg('🃏 El adversario roba de su Baraja.','var(--muted)');playSound('card');renderAll();}
     await W(900);if(!alive())return;
     const ai=P.hand.findIndex(c=>C[c].type==='alma'),z=freeApo('cpu');
     if(ai>=0&&z>=0){await activateAlma('cpu',ai,z);if(!alive())return;}
@@ -10659,12 +10689,12 @@ if(TUTO){(function(){
     {t:'Activa tu alma',x:'Toca <b>'+nom+'</b> en tu mano.',el:()=>manoEl(id),hecho:()=>selEs(id)||G.almaUsed},
     {t:'Toca «Activar alma»',x:txt,el:()=>actBtn('Activar alma'),hecho:()=>G.almaUsed,atras:()=>!selEs(id)},
   ];}
-  const esperaRival=(t,x,turno)=>({t,x,rival:true,hecho:()=>G.active==='player'&&G.turn===turno&&!document.querySelector('.choose-overlay.show')});
+  const esperaRival=(t,x,turno)=>({t,x,adversario:true,hecho:()=>G.active==='player'&&G.turn===turno&&!document.querySelector('.choose-overlay.show')});
 
   const PASOS=[
     // ── TU 1er TURNO ──
     {t:'¡Bienvenido al Nexo!',x:'Soy el <b>Guardián del Nexo</b>. Vamos a jugar un choque juntos, paso a paso.<br>Tú solo toca lo que brille.',sig:'¡VAMOS!'},
-    {t:'Cómo se gana',x:'Cada jugador tiene <b>corazones</b> ❤. Si dejas al rival en 0, ganas.<br>En un choque normal son 10; para practicar, tu rival solo tiene <b>2</b>.',el:hpBox,sig:'ENTENDIDO'},
+    {t:'Cómo se gana',x:'Cada jugador tiene <b>corazones</b> ❤. Si dejas al adversario en 0, ganas.<br>En un choque normal son 10; para practicar, tu adversario solo tiene <b>2</b>.',el:hpBox,sig:'ENTENDIDO'},
     {t:'Tu mano',x:'Estas son tus cartas. Los <b>personajes</b> pelean por ti, y las <b>almas</b> te dan el poder para llamarlos.',el:()=>$('handrow'),sig:'SIGUIENTE'},
     ...robar('Cada turno empieza robando 2 cartas. Primero toca tu <b>Baraja de Almas</b>.','Ahora toca tu <b>Baraja principal</b>.'),
     ...activar('alma_caballero','Alma de Caballero','Puedes activar <b>una alma por turno</b>. Vale <b>2</b>.'),
@@ -10674,9 +10704,9 @@ if(TUTO){(function(){
     {t:'Paciencia',x:'El <b>Vigilante Águila</b> cuesta 4 y solo tienes 2 almas. Lo llamarás más adelante.',el:()=>manoEl('vigilante_aguila'),sig:'SIGUIENTE'},
     {t:'Ve a combate',x:'Ya hiciste todo en tu <b>Fase de Acción</b>. Toca el botón para pasar al combate.',el:()=>$('btnMain'),hecho:()=>G.phase==='combat'||G.active==='cpu'},
     {t:'Termina tu turno',x:'Quien empieza el choque <b>no puede atacar en su primer turno</b>. Toca <b>FIN DE TURNO</b>.',el:()=>$('btnMain'),hecho:()=>G.active==='cpu'},
-    esperaRival('Turno del rival','Observa: el rival también roba, activa un alma y llama a un personaje.',2),
+    esperaRival('Turno del adversario','Observa: el adversario también roba, activa un alma y llama a un personaje.',2),
     // ── TU 2º TURNO ──
-    {t:'¡Un rival en la mesa!',x:'El rival llamó a <b>Ninjiachi Addela</b>: ⚔2 🛡3 ❤1. Vamos por él.',el:()=>pjEl('cpu','nj_addela'),sig:'SIGUIENTE'},
+    {t:'¡Un adversario en la mesa!',x:'El adversario llamó a <b>Ninjiachi Addela</b>: ⚔2 🛡3 ❤1. Vamos por él.',el:()=>pjEl('cpu','nj_addela'),sig:'SIGUIENTE'},
     {t:'Fase de Ofrenda',x:'Desde tu 2º turno, si tus almas suman <b>4 o menos</b>, cambias tu mano completa por cartas nuevas. Toca <b>EJECUTAR OFRENDA</b>.',el:()=>$('btnMain'),hecho:()=>G.phase!=='ofrenda'},
     ...robar('¡Mano nueva! Ahora roba como siempre: <b>Baraja de Almas</b>…','…y <b>Baraja principal</b>.'),
     ...activar('alma_defensor','Alma de Defensor','El <b>Alma de Defensor</b> vale 3. Con ella sumarás <b>5</b>.'),
@@ -10684,10 +10714,10 @@ if(TUTO){(function(){
     ...llamar('nj_addela','a tu Addela','Puedes hacer <b>2 llamados por turno</b>. Llama también a tu <b>Ninjiachi Addela</b> (coste 2).'),
     {t:'¡A combate!',x:'Tus nuevos personajes descansan, pero <b>Los Primos del Sur</b> ya pueden atacar. Toca el botón.',el:()=>$('btnMain'),hecho:()=>G.phase==='combat'},
     {t:'Elige al atacante',x:'Toca a <b>Los Primos del Sur</b> (⚔3).',el:()=>pjEl('player','primos_sur'),hecho:()=>ATK_SLOT===slotDe('player','primos_sur')||combateAbierto()||!enMesa('cpu','nj_addela')},
-    {t:'Elige el objetivo',x:'Ahora toca a <b>Ninjiachi Addela</b> del rival.',el:()=>pjEl('cpu','nj_addela'),hecho:()=>combateAbierto()||!enMesa('cpu','nj_addela'),atras:()=>ATK_SLOT===null&&!combateAbierto()},
+    {t:'Elige el objetivo',x:'Ahora toca a <b>Ninjiachi Addela</b> del adversario.',el:()=>pjEl('cpu','nj_addela'),hecho:()=>combateAbierto()||!enMesa('cpu','nj_addela'),atras:()=>ATK_SLOT===null&&!combateAbierto()},
     {t:'Así se resuelve',x:'Cada uno golpea con su <b>⚔ Fuerza</b> contra la <b>🛡 Resistencia</b> del otro. Si la resistencia llega a 0, pierde 1 ❤.<br>Tu ⚔3 dejó a Addela sin resistencia y perdió su único corazón: ¡eliminado! Tus Primos aguantan con 🛡1.',el:combateBox,ok:()=>[document.querySelector('#combatMod .cb-close')],hecho:()=>!combateAbierto()&&!enMesa('cpu','nj_addela')},
     {t:'Termina tu turno',x:'Toca <b>FIN DE TURNO</b>. La resistencia de tus personajes se recupera al terminar el turno.',el:()=>$('btnMain'),hecho:()=>G.active==='cpu'},
-    esperaRival('Turno del rival','El rival prepara a su siguiente defensor…',3),
+    esperaRival('Turno del adversario','El adversario prepara a su siguiente defensor…',3),
     // ── TU 3er TURNO ──
     {t:'Un defensor más fuerte',x:'Llegó <b>Ninjiachi Panncho</b>: ⚔3 🛡4.<br>Como ya tienes <b>5 almas</b>, esta vez no hay Ofrenda.',el:()=>pjEl('cpu','nj_panncho'),sig:'SIGUIENTE'},
     ...robar('Roba tu alma…','…y tu carta.'),
@@ -10695,7 +10725,7 @@ if(TUTO){(function(){
     {t:'Elige bien',x:'Panncho tiene 🛡4: tu <b>Vigilante Águila</b> (⚔4) puede romperla y aguantar su golpe con 🛡6. Tócalo.',el:()=>pjEl('player','vigilante_aguila'),hecho:()=>ATK_SLOT===slotDe('player','vigilante_aguila')||combateAbierto()||!enMesa('cpu','nj_panncho')},
     {t:'Ataca a Panncho',x:'Toca a <b>Ninjiachi Panncho</b>.',el:()=>pjEl('cpu','nj_panncho'),hecho:()=>combateAbierto()||!enMesa('cpu','nj_panncho'),atras:()=>ATK_SLOT===null&&!combateAbierto()},
     {t:'¡Fuera Panncho!',x:'Tu ⚔4 acabó con su 🛡4. Su ⚔3 solo bajó tu resistencia de 6 a 3.',el:combateBox,ok:()=>[document.querySelector('#combatMod .cb-close')],hecho:()=>!combateAbierto()&&!enMesa('cpu','nj_panncho')},
-    {t:'¡Ataque directo!',x:'El rival se quedó <b>sin personajes</b>: ahora puedes atacar directo a sus corazones. Toca a <b>Los Primos del Sur</b>.',el:()=>pjEl('player','primos_sur'),hecho:()=>G.cpu.hp<2||G.over},
+    {t:'¡Ataque directo!',x:'El adversario se quedó <b>sin personajes</b>: ahora puedes atacar directo a sus corazones. Toca a <b>Los Primos del Sur</b>.',el:()=>pjEl('player','primos_sur'),hecho:()=>G.cpu.hp<2||G.over},
     {t:'¡El golpe final!',x:'Le queda <b>1 ❤</b>. Toca a tu <b>Ninjiachi Addela</b>.',el:()=>pjEl('player','nj_addela'),hecho:()=>G.over},
   ];
 

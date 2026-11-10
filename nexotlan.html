@@ -176,65 +176,84 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 /* ── v239 · ADVERSARIOS (como la selección de compañero: el mapa de Nexotlan detrás, centrado en dónde está cada uno) ── */
 #sAdv{background:#06122a;overflow:hidden}
 .du-mapa{position:absolute;inset:0;overflow:hidden}
-.du-mapa img{position:absolute;left:0;top:0;transform-origin:0 0;transition:transform .9s cubic-bezier(.3,.8,.25,1);filter:saturate(1.1) brightness(.85);will-change:transform}
-.du-mapa .du-mk{position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;border:3px solid #ffc04d;box-shadow:0 0 18px #ffc04d;animation:duMk 1.6s ease-out infinite;opacity:.95}
+.du-mapa img{position:absolute;left:0;top:0;transform-origin:0 0;transition:transform .9s cubic-bezier(.3,.8,.25,1);filter:saturate(1.1) brightness(.8);will-change:transform}
+.du-mapa .du-mk{position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;border:3px solid var(--dc,#ffc04d);box-shadow:0 0 18px var(--dc,#ffc04d);animation:duMk 1.6s ease-out infinite;opacity:.95}
 .du-mapa .du-mk.off{border-color:#7a87a8;box-shadow:none;animation:none;opacity:.5}
 @keyframes duMk{0%{transform:scale(.6);opacity:1}100%{transform:scale(1.7);opacity:0}}
 .du-vel{position:absolute;inset:0;pointer-events:none;background:
-  repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 4px),
-  linear-gradient(90deg,rgba(4,12,34,.15) 0%,rgba(4,12,34,.05) 40%,rgba(4,12,34,.72) 62%,rgba(4,12,34,.9) 100%),
-  linear-gradient(180deg,rgba(4,12,34,.35),transparent 30%,transparent 62%,rgba(4,12,34,.85))}
+  radial-gradient(ellipse at 42% 70%,rgba(255,255,255,.06),transparent 55%),
+  linear-gradient(90deg,rgba(4,10,28,.88) 0,rgba(4,10,28,.55) 170px,rgba(4,10,28,.05) 40%,rgba(4,10,28,.35) 62%,rgba(4,10,28,.7) 100%),
+  linear-gradient(180deg,rgba(4,10,28,.4),transparent 24%,transparent 70%,rgba(4,10,28,.75))}
 .du-top{position:absolute;left:14px;top:12px;display:flex;align-items:center;gap:6px;z-index:6}
-.du-pj{position:absolute;left:6%;bottom:0;height:calc(100% - 64px);width:44%;display:flex;align-items:flex-end;justify-content:center;z-index:2;pointer-events:none}
-.du-pj img{max-height:100%;max-width:100%;object-fit:contain;filter:drop-shadow(0 10px 22px rgba(0,0,0,.6));animation:duPj .45s cubic-bezier(.2,.8,.2,1)}
-.du-pj img.sil{filter:brightness(0) drop-shadow(0 0 14px rgba(54,214,255,.55));opacity:.85}
-@keyframes duPj{from{opacity:0;transform:translateX(-24px)}to{opacity:1;transform:none}}
-.du-carta{position:absolute;left:18px;top:70px;width:clamp(70px,11vw,124px);z-index:5;transform:rotate(-4deg);display:none}
-.du-carta.on{display:block}
-.du-carta img{width:100%;border-radius:6px;box-shadow:0 6px 16px rgba(0,0,0,.6);border:2px solid rgba(255,255,255,.85)}
-.du-carta span{position:absolute;left:-6px;top:-10px;background:linear-gradient(180deg,#ff5a3c,#c8161e);color:#fff;font:900 10px 'Orbitron',sans-serif;letter-spacing:1px;padding:3px 9px;border-radius:5px;border:1.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.5)}
-.du-info{position:absolute;right:0;top:12px;width:min(48%,560px);z-index:4;padding-right:16px}
-.du-nom{position:relative;background:linear-gradient(90deg,#ff7a14,#ffa62b);color:#fff;font:900 clamp(15px,2.3vw,24px) 'Orbitron',sans-serif;letter-spacing:1px;padding:9px 16px 9px 34px;
-  clip-path:polygon(16px 0,100% 0,100% 100%,0 100%);text-shadow:0 2px 0 rgba(0,0,0,.55),0 0 8px rgba(0,0,0,.4);box-shadow:inset 0 -3px 0 rgba(0,0,0,.25);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.du-ttl{color:#cfe6ff;font-size:13px;margin:6px 0 0 34px;font-style:italic}
-.du-hearts{display:flex;gap:6px;margin:10px 0 2px 34px;align-items:center}
-.du-hearts i{width:24px;height:22px;background:#2a3350;clip-path:path('M12 21s-8.5-5.3-10.6-10C-.3 6.6 3 2 7 2c2.2 0 3.8 1.2 5 3 1.2-1.8 2.8-3 5-3 4 0 7.3 4.6 5.6 9-2.1 4.7-10.6 10-10.6 10z')}
-.du-hearts i.on{background:linear-gradient(180deg,#ff5a7a,#d8124a)}
-.du-hearts small{font-size:10.5px;color:var(--muted);margin-left:6px;letter-spacing:1px}
-.du-sec{margin:10px 0 0 34px}
-.du-sec h5{font:800 12.5px 'Orbitron',sans-serif;letter-spacing:1px;color:#fff;margin:0 0 5px;padding-bottom:4px;border-bottom:2px solid #ff9a1f;display:flex;gap:10px;align-items:center}
-.du-sec h5 em{font-style:normal;color:#ffc04d;letter-spacing:2px}
-.du-sec p{margin:0;font-size:13.5px;line-height:1.45;color:#e7eefc;text-shadow:0 1px 2px #000}
-.du-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
-.du-chips span{font-size:11.5px;padding:4px 9px;border-radius:999px;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.14)}
-.du-chips .ok{color:#5be3a0;border-color:rgba(91,227,160,.4)}.du-chips .no{color:#ff9aa8;border-color:rgba(255,90,120,.35)}
-.du-sel{position:absolute;left:14px;bottom:12px;width:min(62%,760px);z-index:5}
-.du-tabs{display:flex;gap:4px;align-items:flex-end}
-.du-tabs button{font:800 11px 'Orbitron',sans-serif;letter-spacing:1px;color:#cfd8ee;background:linear-gradient(180deg,#1b2440,#0e1428);border:1px solid rgba(255,255,255,.15);border-bottom:none;
-  padding:8px 16px;border-radius:9px 9px 0 0;cursor:pointer;clip-path:polygon(8px 0,calc(100% - 8px) 0,100% 100%,0 100%)}
-.du-tabs button.on{color:#111;background:linear-gradient(180deg,#fff,#dfe7f7);padding-top:10px}
-.du-tabs button:focus-visible{outline:2px solid #ffc04d;outline-offset:-2px}
-.du-caja{background:linear-gradient(180deg,rgba(10,16,34,.94),rgba(6,10,24,.94));border:1px solid rgba(255,255,255,.14);border-radius:0 12px 12px 12px;padding:9px 10px 10px;box-shadow:0 10px 30px rgba(0,0,0,.55)}
-.du-desc{font-size:12px;color:#cfd8ee;margin:0 2px 8px}
-.du-lista{display:flex;gap:9px;overflow-x:auto;padding:4px 2px 6px;scrollbar-width:thin}
-.du-av{position:relative;flex:none;width:58px;height:58px;border-radius:50%;padding:0;border:3px solid var(--fc,#f5a623);background:#0b1430;cursor:pointer;overflow:visible;box-shadow:0 3px 8px rgba(0,0,0,.5);transition:transform .12s}
-.du-av img{width:100%;height:100%;border-radius:50%;object-fit:cover;object-position:50% 12%}
+/* Columna de adversarios (izquierda) */
+.du-col{position:absolute;left:12px;top:66px;bottom:12px;width:154px;display:flex;flex-direction:column;gap:8px;z-index:5}
+.du-tabs{display:flex;gap:4px}
+.du-tabs button{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 2px 5px;border-radius:10px;border:1px solid rgba(255,255,255,.14);
+  background:rgba(8,14,34,.82);color:#cfd8ee;cursor:pointer;font:800 9px 'Orbitron',sans-serif;letter-spacing:.5px}
+.du-tabs button i{font-style:normal;font-size:16px;line-height:1.1}
+.du-tabs button small{font-size:8.5px;opacity:.75}
+.du-tabs button.on{background:linear-gradient(180deg,#ffd35a,#ff9a1f);color:#2a1600;border-color:#fff}
+.du-tabs button:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.du-lista{flex:1;min-height:0;overflow-y:auto;display:grid;grid-template-columns:repeat(2,64px);justify-content:space-between;align-content:start;gap:10px 8px;padding:6px 6px 8px;
+  background:rgba(6,10,26,.72);border:1px solid rgba(255,255,255,.1);border-radius:14px;scrollbar-width:thin}
+.du-av{position:relative;width:64px;height:64px;border-radius:16px;padding:0;border:2.5px solid var(--fc,#f5a623);background:#0b1430;cursor:pointer;overflow:visible;box-shadow:0 3px 8px rgba(0,0,0,.5);transition:transform .12s;transform:rotate(45deg) scale(.82)}
+.du-av img{width:100%;height:100%;border-radius:13px;object-fit:cover;object-position:50% 12%;transform:rotate(-45deg) scale(1.38)}
+.du-av span.cl{position:absolute;inset:0;border-radius:13px;overflow:hidden;display:block}
 .du-av.sil img{filter:brightness(0);opacity:.8}
-.du-av.sil::after{content:'?';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#7fe3ff;font:900 22px 'Orbitron',sans-serif;text-shadow:0 0 8px #000}
+.du-av.sil::after{content:'?';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#7fe3ff;font:900 22px 'Orbitron',sans-serif;text-shadow:0 0 8px #000;transform:rotate(-45deg)}
 .du-av.lock{filter:grayscale(1);opacity:.45}
-.du-av.lock::after{content:'🔒';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:20px}
-.du-av:hover,.du-av:focus-visible{transform:translateY(-3px);outline:none}
-.du-av.on{box-shadow:0 0 0 3px #fff,0 0 16px var(--fc,#f5a623)}
-.du-av.on::before{content:'✔';position:absolute;right:-6px;top:-6px;width:20px;height:20px;border-radius:50%;background:#ff9a1f;color:#fff;font-size:12px;font-weight:900;display:flex;align-items:center;justify-content:center;border:2px solid #fff;z-index:2}
-.du-av .gu{position:absolute;left:-5px;bottom:-4px;font-size:15px;z-index:2;filter:drop-shadow(0 1px 2px #000)}
-.du-acc{position:absolute;right:16px;bottom:14px;display:flex;flex-direction:column;gap:8px;z-index:6;align-items:flex-end}
-.du-btn{font:900 13px 'Orbitron',sans-serif;letter-spacing:1px;color:#2a1600;background:linear-gradient(180deg,#ffd35a,#ff9a1f);border:2px solid #fff;border-radius:999px;padding:11px 22px;cursor:pointer;box-shadow:0 4px 0 #b25d00,0 8px 18px rgba(0,0,0,.5);min-width:210px}
-.du-btn.sec{background:linear-gradient(180deg,#2a3556,#141c33);color:#fff;border-color:rgba(255,255,255,.5);box-shadow:0 4px 0 #070b18,0 8px 18px rgba(0,0,0,.5)}
-.du-btn:disabled{filter:grayscale(.9);opacity:.6;cursor:not-allowed}
+.du-av.lock::after{content:'🔒';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:18px;transform:rotate(-45deg)}
+.du-av:hover,.du-av:focus-visible{transform:rotate(45deg) scale(.9);outline:none}
+.du-av.on{transform:rotate(45deg) scale(.92);box-shadow:0 0 0 3px #fff,0 0 18px var(--fc,#f5a623)}
+.du-av .gu{position:absolute;right:-8px;top:-8px;font-size:14px;z-index:2;transform:rotate(-45deg);filter:drop-shadow(0 1px 2px #000)}
+/* Personaje al centro, grande */
+.du-pj{position:absolute;left:170px;right:41%;bottom:0;top:4px;display:flex;align-items:flex-end;justify-content:center;z-index:2;pointer-events:none}
+.du-pj img{height:100%;width:auto;max-width:150%;object-fit:contain;object-position:bottom;filter:drop-shadow(0 12px 26px rgba(0,0,0,.65));animation:duPj .5s cubic-bezier(.2,.8,.2,1);transform-origin:bottom center}
+.du-pj img.grande{transform:scale(1.12)}
+.du-pj img.sil{filter:brightness(0) drop-shadow(0 0 14px rgba(54,214,255,.55));opacity:.85}
+@keyframes duPj{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1}}
+.du-pj img.grande{animation-name:duPjG}
+@keyframes duPjG{from{opacity:0;transform:translateY(18px) scale(1.06)}to{opacity:1;transform:scale(1.12)}}
+/* Placa de información (derecha), con el color del distrito */
+.du-info{position:absolute;right:14px;top:66px;max-height:calc(100% - 80px);overflow-y:auto;width:min(40%,500px);z-index:4;display:flex;flex-direction:column;gap:10px;padding:16px 18px 14px;
+  background:linear-gradient(160deg,rgba(10,18,42,.9),rgba(5,9,24,.92));border:1px solid rgba(255,255,255,.12);border-top:3px solid var(--dc,#ffc04d);border-radius:16px;
+  box-shadow:0 18px 40px rgba(0,0,0,.55),inset 0 0 40px rgba(0,0,0,.25);backdrop-filter:blur(3px)}
+.du-cab{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding-right:96px}
+.du-tipo{font:900 9.5px 'Orbitron',sans-serif;letter-spacing:2px;padding:4px 9px;border-radius:6px;color:#0b0f1d;background:var(--fc,#f5a623)}
+.du-dist{font-size:12px;color:var(--dc,#fff);font-weight:700}
+.du-nom{font:900 clamp(18px,2.6vw,30px) 'Orbitron',sans-serif;letter-spacing:.5px;color:#fff;line-height:1.1;padding-right:96px;text-shadow:0 2px 0 rgba(0,0,0,.6)}
+.du-nom::after{content:'';display:block;width:64px;height:4px;margin-top:8px;border-radius:2px;background:linear-gradient(90deg,var(--dc,#ffc04d),transparent)}
+.du-ttl{color:#cfe6ff;font-size:13.5px;font-style:italic;margin-top:-4px;padding-right:96px}
+.du-af{display:flex;align-items:center;gap:9px}
+.du-af i{width:15px;height:15px;transform:rotate(45deg);border-radius:3px;background:#1e2a48;border:1px solid rgba(255,255,255,.18)}
+.du-af i.on{background:linear-gradient(135deg,#7dffcf,#1fae7a);border-color:#c8ffe9;box-shadow:0 0 10px rgba(91,227,160,.7)}
+.du-af small{font:800 9.5px 'Orbitron',sans-serif;letter-spacing:1.5px;color:var(--muted);margin-left:4px}
+.du-cita{position:relative;margin:0;padding:10px 12px 10px 30px;font-size:14px;line-height:1.45;color:#e7eefc;font-style:italic;background:rgba(255,255,255,.04);border-radius:10px}
+.du-cita::before{content:'“';position:absolute;left:8px;top:-4px;font:900 36px Georgia,serif;color:var(--dc,#ffc04d);opacity:.85}
+.du-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.du-st{background:rgba(0,0,0,.32);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:7px 10px;min-width:0}
+.du-st small{display:block;font:800 8.5px 'Orbitron',sans-serif;letter-spacing:1.5px;color:var(--muted);margin-bottom:3px}
+.du-st b{display:block;font-size:13.5px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.du-st b em{font-style:normal;color:#ffc04d;letter-spacing:1px}
+.du-st .ok{color:#5be3a0}.du-st .no{color:#ff9aa8}
+.du-esp{height:2px}
+.du-acc{display:flex;gap:10px;flex-wrap:wrap}
+.du-acc .du-btn{flex:1}
+.du-carta{position:absolute;right:16px;top:-26px;width:clamp(64px,7.4vw,96px);z-index:5;transform:rotate(6deg);display:none}
+.du-carta.on{display:block}
+.du-carta img{width:100%;border-radius:6px;box-shadow:0 8px 18px rgba(0,0,0,.6);border:2px solid rgba(255,255,255,.9)}
+.du-carta span{position:absolute;left:-8px;top:-8px;background:linear-gradient(180deg,#ff5a3c,#c8161e);color:#fff;font:900 9.5px 'Orbitron',sans-serif;letter-spacing:1px;padding:3px 8px;border-radius:5px;border:1.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.5)}
+.du-btn{font:900 12.5px 'Orbitron',sans-serif;letter-spacing:1px;color:#2a1600;background:linear-gradient(180deg,#ffd35a,#ff9a1f);border:2px solid #fff;border-radius:12px;padding:11px 14px;cursor:pointer;box-shadow:0 4px 0 #b25d00,0 8px 18px rgba(0,0,0,.45);white-space:nowrap}
+.du-btn.sec{background:linear-gradient(180deg,#2a3556,#141c33);color:#fff;border-color:rgba(255,255,255,.45);box-shadow:0 4px 0 #070b18,0 8px 18px rgba(0,0,0,.45)}
+.du-btn:disabled{filter:grayscale(.9);opacity:.55;cursor:not-allowed}
 .du-btn:not(:disabled):hover{transform:translateY(-1px)}
 .du-btn:focus-visible{outline:3px solid #fff;outline-offset:3px}
-@media (max-height:520px){.du-info{top:8px}.du-sec{margin-top:6px}.du-sec p{font-size:12px;line-height:1.35}.du-av{width:46px;height:46px}.du-btn{padding:8px 16px;min-width:170px;font-size:11.5px}.du-carta{top:60px;width:64px}.du-hearts i{width:18px;height:17px}}
-@media (max-width:760px){.du-info{width:54%}.du-sel{width:calc(100% - 210px)}.du-pj{width:40%;left:2%}}
+@media (max-height:520px){.du-col{top:58px;width:132px}.du-lista{grid-template-columns:repeat(2,54px);gap:8px 6px}.du-av{width:54px;height:54px}
+  .du-info{top:56px;padding:10px 12px;gap:6px}.du-cita{font-size:12px;padding:7px 10px 7px 24px}.du-st{padding:5px 8px}.du-st b{font-size:12px}.du-btn{padding:8px 10px;font-size:11px}
+  .du-carta{width:56px;top:-18px}.du-nom{font-size:17px}.du-ttl{font-size:12px}.du-pj{left:146px}
+  .du-nom::after{margin-top:4px;height:3px}.du-cita{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+  .du-stats{gap:5px}.du-st small{font-size:7.5px;margin-bottom:1px}.du-af i{width:11px;height:11px}.du-cab{gap:4px}.du-tipo{padding:2px 7px;font-size:8.5px}.du-dist{font-size:11px}}
+@media (max-width:760px){.du-info{width:46%}.du-pj{right:45%}}
 @media (prefers-reduced-motion:reduce){.du-mapa img,.du-pj img,.hoy{transition:none;animation:none}.du-mapa .du-mk{animation:none}}
 .h-title{font-family:'Orbitron',monospace;font-weight:900;font-size:13px;letter-spacing:3px;color:var(--cyan);text-shadow:0 0 10px rgba(54,214,255,.5);white-space:nowrap}
 .h-sp{flex:1}
@@ -1042,11 +1061,9 @@ window.nxTip = function () {
   <div class="du-mapa" id="duMapa" aria-hidden="true"><img id="duMapaImg" alt=""><div class="du-mk" id="duMk"></div></div>
   <div class="du-vel" aria-hidden="true"></div>
   <div class="du-top"><button class="nx-back" id="duSalir" aria-label="Volver" title="Volver"></button><div class="nx-tit">ADVERSARIOS<small id="duCuenta"></small></div></div>
-  <div class="du-carta" id="duCarta"><span>AS</span><img id="duCartaImg" alt=""></div>
+  <aside class="du-col"><div class="du-tabs" id="duTabs" role="tablist"></div><div class="du-lista" id="duLista"></div></aside>
   <div class="du-pj" id="duPj"></div>
   <div class="du-info" id="duInfo"></div>
-  <div class="du-sel"><div class="du-tabs" id="duTabs" role="tablist"></div><div class="du-caja"><div class="du-desc" id="duDesc"></div><div class="du-lista" id="duLista"></div></div></div>
-  <div class="du-acc" id="duAcc"></div>
 </section>
 <section class="scr" id="sCarpeta">
   <div class="hud">
@@ -2865,7 +2882,8 @@ function pintarHoy() {
 }
 $('hHoy').onclick = () => { pintarHoy(); const b = $('hoyPanel'); b.classList.toggle('on'); if (b.classList.contains('on')) try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar(b.querySelector('.hy')), 60); } catch (e) {} };
 $('hAdv').onclick = () => { $('hoyPanel').classList.remove('on'); guardar(); abrirAdversarios('sMapa'); };
-$('mnVolver').onclick = () => $('mnPartida') && $('mnPartida').click();
+function irPortada() { guardar(); musica(null); irA('sTitulo'); pintarTitulo(); }
+$('mnVolver').onclick = irPortada;
 // ── ADVERSARIOS: perfil de cada personaje con el mapa detrás, centrado en dónde está ──
 const DU_TABS = [['rival', 'RIVALES', 'Los rivales que exploran Nexotlan. Véncelos para subir su afinidad y ganar sus cartas.'],
   ['heroe', 'HÉROES', 'Personajes del juego de cartas que te guían y te ayudan en tu aventura.'],
@@ -2899,46 +2917,56 @@ addEventListener('resize', () => { if ($('sAdv').classList.contains('on')) duCen
 function pintarAdversarios() {
   const L = listaDu(DU.tab), todos = PTS.filter(p => !esTurista(p) && TIPO_TXT[p.tipo]), con = todos.filter(conocido).length;
   $('duCuenta').textContent = con + ' / ' + todos.length + ' CONOCIDOS';
-  $('duTabs').innerHTML = DU_TABS.filter(([t]) => listaDu(t).length).map(([t, n]) => `<button role="tab" data-t="${t}" class="${t === DU.tab ? 'on' : ''}" aria-selected="${t === DU.tab}">${n} <small style="opacity:.7">${listaDu(t).filter(conocido).length}/${listaDu(t).length}</small></button>`).join('');
+  const ICO = { rival: '⚔', heroe: '❖', guardian: '★' };
+  $('duTabs').innerHTML = DU_TABS.filter(([t]) => listaDu(t).length).map(([t, n, d]) => `<button role="tab" data-t="${t}" class="${t === DU.tab ? 'on' : ''}" aria-selected="${t === DU.tab}" title="${esc(d)}"><i>${ICO[t]}</i>${n}<small>${listaDu(t).filter(conocido).length}/${listaDu(t).length}</small></button>`).join('');
   $('duTabs').querySelectorAll('button').forEach(b => b.onclick = () => { if (DU.tab === b.dataset.t) return; DU.tab = b.dataset.t; const c = listaDu(DU.tab).find(conocido) || listaDu(DU.tab)[0]; DU.id = c && c.id; pintarAdversarios();
     try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar(document.querySelector('#duLista .du-av.on')), 40); } catch (e) {} });
-  $('duDesc').textContent = (DU_TABS.find(x => x[0] === DU.tab) || [])[2] || '';
   $('duLista').innerHTML = L.map(p => {
     const d = distDe(p), k = conocido(p), lock = d && !distritoAbierto(d), [, tc] = TIPO_TXT[p.tipo];
-    return `<button class="du-av ${p.id === DU.id ? 'on' : ''} ${!k ? (lock ? 'lock' : 'sil') : ''}" data-id="${esc(p.id)}" style="--fc:${tc}" title="${esc(k ? p.nombre : '???')}" aria-label="${esc(k ? p.nombre : 'Desconocido')}">${imgMini(p)}${S.guia === p.id ? '<span class="gu">⭐</span>' : ''}</button>`; }).join('');
-  $('duLista').querySelectorAll('.du-av').forEach(b => { b.onclick = () => { DU.id = b.dataset.id; pintarAdversarios(); const n = document.querySelector('#duLista .du-av.on'); if (n) { n.scrollIntoView({ block: 'nearest', inline: 'nearest' }); try { if (window.GP && GP.activo()) GP.enfocar(n); } catch (e) {} } }; });
+    return `<button class="du-av ${p.id === DU.id ? 'on' : ''} ${!k ? (lock ? 'lock' : 'sil') : ''}" data-id="${esc(p.id)}" style="--fc:${tc}" title="${esc(k ? p.nombre : '???')}" aria-label="${esc(k ? p.nombre : 'Desconocido')}"><span class="cl">${imgMini(p)}</span>${S.guia === p.id ? '<span class="gu">⭐</span>' : ''}</button>`; }).join('');
+  $('duLista').querySelectorAll('.du-av').forEach(b => { b.onclick = () => { DU.id = b.dataset.id; pintarAdversarios(); const n = document.querySelector('#duLista .du-av.on'); if (n) { n.scrollIntoView({ block: 'nearest' }); try { if (window.GP && GP.activo()) GP.enfocar(n); } catch (e) {} } }; });
   pintarPerfilDu();
 }
 async function pintarPerfilDu() {
   const p = PTS.find(x => x.id === DU.id);
-  if (!p) { $('duInfo').innerHTML = ''; $('duPj').innerHTML = ''; $('duAcc').innerHTML = ''; $('duCarta').classList.remove('on'); return; }
+  if (!p) { $('duInfo').innerHTML = ''; $('duPj').innerHTML = ''; return; }
   const k = conocido(p), d = distDe(p), lock = d && !distritoAbierto(d), v = S.vencidos[p.id] || 0, dr = S.derrotas[p.id] || 0, hb = (S.hablados || {})[p.id] || 0;
+  const [tt, tc] = TIPO_TXT[p.tipo] || TIPO_TXT.rival, dc = (d && d.color) || '#ffc04d';
   const af = p.tipo === 'heroe' ? Math.min(4, hb) : Math.min(4, v);
-  const txt0 = s => String(s || '').split('|')[0].trim();
-  const bio = p.bio || p.descripcion || txt0(p.tipo === 'heroe' ? p.dialogo : p.entrada) || '';
+  const txt0 = x => String(x || '').split('|')[0].trim();
+  const bio = p.bio || p.descripcion || txt0(p.tipo === 'heroe' ? p.dialogo : (v ? p.revancha || p.entrada : p.entrada)) || '';
   const hoy = visibleHoy(p) && !lock, dias = (p._dias || []).map(x => x.charAt(0) + x.slice(1).toLowerCase()).join(' · ');
-  const chips = [];
-  if (d) chips.push(`<span style="color:${esc(d.color || '#fff')}">📍 ${esc(d.nombre)}</span>`);
-  chips.push(`<span>📅 ${dias || 'Todos los días'}</span>`);
-  if (k) chips.push(hoy ? '<span class="ok">● Hoy está en el mapa</span>' : '<span class="no">○ Hoy no está</span>');
-  if (p.tipo !== 'heroe' && k) { if (v) chips.push(`<span class="ok">✔ Vencido ×${v}</span>`); if (dr) chips.push(`<span class="no">✖ Derrotas ${dr}</span>`); if (p._mon) chips.push(`<span>🪙 ${p._mon}</span>`); }
-  $('duInfo').innerHTML = `<div class="du-nom">${esc(k ? p.nombre : '???')}</div>${k && p.titulo ? `<div class="du-ttl">${esc(p.titulo)}</div>` : ''}
-    <div class="du-hearts" title="Afinidad">${[0, 1, 2, 3].map(i => `<i class="${i < af ? 'on' : ''}"></i>`).join('')}<small>AFINIDAD</small></div>
-    <div class="du-sec"><h5>【${p.tipo === 'heroe' ? 'HÉROE' : p.tipo === 'guardian' ? 'GUARDIÁN' : 'RIVAL'}】</h5><p>${k ? esc(bio || '—') : lock ? '🔒 Su distrito aún está cerrado.' : '❔ Aún no lo conoces. Búscalo en ' + esc(d ? d.nombre : 'el mapa') + '.'}</p></div>
-    ${p.tipo !== 'heroe' ? `<div class="du-sec"><h5>【RETO】<em>${k || !lock ? STAR(estrellasDe(p)) : '☆☆☆☆☆'}</em></h5><p>${k ? esc(NIV_TXT[nivelDe(p)] || '') + (p.tipo === 'guardian' && (p._req || []).length && !cumple(p._req) ? ' · 🔒 antes vence a: ' + esc(nombresReq(p._req.filter(r => !vencido(r)))) : '') : 'Dificultad por descubrir'}</p></div>` : ''}
-    <div class="du-chips">${chips.join('')}</div>`;
-  // Carta "AS" (su carta) arriba a la izquierda
-  const cimg = k && p.carta ? cartaImg(p.carta, true) : ''; $('duCarta').classList.toggle('on', !!cimg); if (cimg) $('duCartaImg').src = cimg;
-  // Botones
+  const bloqReq = p.tipo === 'guardian' && (p._req || []).length && !cumple(p._req);
+  const st = [];
+  if (p.tipo !== 'heroe') {
+    st.push(`<div class="du-st"><small>DIFICULTAD</small><b><em>${k || !lock ? STAR(estrellasDe(p)) : '☆☆☆☆☆'}</em> ${k ? esc(NIV_TXT[nivelDe(p)] || '') : ''}</b></div>`);
+    st.push(`<div class="du-st"><small>TU RÉCORD</small><b>${k ? `<span class="ok">✔ ${v}</span> · <span class="no">✖ ${dr}</span>` : '—'}</b></div>`);
+    st.push(`<div class="du-st"><small>RECOMPENSA</small><b>${k && p._mon ? '🪙 ' + p._mon + (v ? ' · revancha ' + Math.ceil(p._mon / 4) : '') : '—'}</b></div>`);
+  } else st.push(`<div class="du-st"><small>CONVERSACIONES</small><b>${hb || 0}</b></div>`);
+  st.push(`<div class="du-st"><small>APARECE</small><b>${esc(dias || 'Todos los días')}${k ? (hoy ? ' · <span class="ok">hoy sí</span>' : ' · <span class="no">hoy no</span>') : ''}</b></div>`);
+  const cimg = k && p.carta ? cartaImg(p.carta, true) : '';
   const puedeIr = k && hoy, puedeGuia = k && !!(p.imagen);
-  $('duAcc').innerHTML = `<button class="du-btn sec" id="duGuia" ${puedeGuia ? '' : 'disabled'}>${S.guia === p.id ? '⭐ GUÍA DEL MENÚ' : '☆ ELEGIR COMO GUÍA'}</button>
-    <button class="du-btn" id="duIr" ${puedeIr ? '' : 'disabled'}>📍 ${p.tipo === 'heroe' ? 'IR A VERLO' : vencido(p.id) ? 'IR A REVANCHA' : 'IR A RETARLO'}</button>`;
+  $('duInfo').style.setProperty('--dc', dc); $('duInfo').style.setProperty('--fc', tc); $('duMapa').style.setProperty('--dc', dc);
+  $('duInfo').innerHTML = `${cimg ? `<div class="du-carta on"><span>AS</span><img src="${esc(cimg)}" alt=""></div>` : ''}
+    <div class="du-cab"><span class="du-tipo">${tt}</span>${d ? `<span class="du-dist">📍 ${esc(d.nombre)}</span>` : ''}</div>
+    <div class="du-nom">${esc(k ? p.nombre : '???')}</div>${k && p.titulo ? `<div class="du-ttl">${esc(p.titulo)}</div>` : ''}
+    <div class="du-af" title="Afinidad">${[0, 1, 2, 3].map(i => `<i class="${i < af ? 'on' : ''}"></i>`).join('')}<small>AFINIDAD ${af}/4</small></div>
+    <p class="du-cita">${k ? esc(bio || '…') : lock ? '🔒 Su distrito aún está cerrado.' : 'Aún no lo conoces. Búscalo en ' + esc(d ? d.nombre : 'el mapa') + '.'}</p>
+    <div class="du-stats">${st.join('')}</div>
+    ${bloqReq && k ? `<div class="du-st"><small>PARA RETARLO</small><b class="no">🔒 Vence antes a: ${esc(nombresReq(p._req.filter(r => !vencido(r))))}</b></div>` : ''}
+    <div class="du-esp"></div>
+    <div class="du-acc"><button class="du-btn sec" id="duGuia" ${puedeGuia ? '' : 'disabled'}>${S.guia === p.id ? '⭐ ES TU GUÍA' : '☆ ELEGIR GUÍA'}</button>
+      <button class="du-btn" id="duIr" ${puedeIr ? '' : 'disabled'}>📍 ${p.tipo === 'heroe' ? 'IR A VERLO' : vencido(p.id) ? 'REVANCHA' : 'RETARLO'}</button></div>`;
   $('duIr').onclick = () => { if (!puedeIr) return; VOLVER = 'sMapa'; entrarMapa().then(() => { setTimeout(() => { centrarEn(p.x, p.y, true); setTimeout(() => abrirFicha(p.id), 300); }, 120); }); };
   $('duGuia').onclick = () => { if (!puedeGuia) return; S.guia = S.guia === p.id ? null : p.id; guardar(); toast(S.guia ? '⭐ ' + p.nombre + ' te acompañará en el menú' : 'Guía del menú: al azar'); pintarAdversarios(); };
   duCentrar();
   const ret = k || !lock ? await retrato(p) : null;
   if (DU.id !== p.id) return;
-  $('duPj').innerHTML = ret ? `<img class="${k ? '' : 'sil'}" src="${esc(ret.src)}" alt="">` : '';
+  if (!ret) { $('duPj').innerHTML = ''; return; }
+  // v241 · se recorta el borde transparente para que el personaje llene el espacio; los guardianes se ven más imponentes
+  let src = ret.src; try { const r = await recortePj(ret.src); if (r && r.src) src = r.src; } catch (e) {}
+  if (DU.id !== p.id) return;
+  $('duPj').innerHTML = `<img class="${k ? '' : 'sil'} ${p.tipo === 'guardian' ? 'grande' : ''}" src="${esc(src)}" alt="">`;
 }
 $('duSalir').onclick = () => { guardar(); if (DU.de === 'sMapa') { irA('sMapa'); pintarHud(); ajustarZoom(ZOOM); } else abrirMenu(); };
 function pintarMenu() {
@@ -2970,14 +2998,14 @@ function pintarMenu() {
     op('mnAdv', '👥', 'ADVERSARIOS', (() => { const t = PTS.filter(p => !esTurista(p) && TIPO_TXT[p.tipo]); return t.filter(conocido).length + '/' + t.length + ' conocidos · elige tu guía'; })()) +
     op('mnDiario', '📖', 'DIARIO', `${r.ven}/${r.tot} vencidos · ${S.victorias || 0}-${S.perdidas || 0}`) +
     (Object.keys(S.fisicas || {}).length ? op('mnFisicas', '🏆', 'CARTAS BOSS', Object.keys(S.fisicas).length + ' de ' + fisicasDef().length + ' · recompensas físicas') : '') +
-    op('mnPartida', '⇄', 'CAMBIAR PARTIDA', 'Volver a la portada');
+    '';   // v241 · "Cambiar partida" lo hace el botón Volver (arriba a la izquierda)
   $('mnBaraja').onclick = () => { VOLVER = 'sMenu'; abrirMazo(); };
   if ($('mnTienda')) $('mnTienda').onclick = () => { if (!lc.ok) { toast('🔒 Comerciante: ' + lc.txt); return; } VOLVER = 'sMenu'; abrirTienda(com); };
   if ($('mnCarpeta')) $('mnCarpeta').onclick = () => { if (!lr.ok) { toast('🔒 Carpetero: ' + lr.txt); return; } VOLVER = 'sMenu'; abrirCarpeta(car); };
   $('mnDiario').onclick = abrirDiario;
   $('mnAdv').onclick = () => abrirAdversarios('sMenu');
   if ($('mnFisicas')) $('mnFisicas').onclick = abrirFisicas;
-  $('mnPartida').onclick = () => { guardar(); musica(null); irA('sTitulo'); pintarTitulo(); };
+
 }
 async function abrirMenu() {
   if (!S || !S.baraja) { irA('sTitulo'); pintarTitulo(); return; }
@@ -3266,7 +3294,7 @@ window.GP_CFG = {
     if ($('sAdv').classList.contains('on')) { $('duSalir').click(); return true; }
     if ($('hoyPanel').classList.contains('on')) { $('hoyPanel').classList.remove('on'); return true; }
     if (mapaLibre()) { $('hSalir').click(); return true; }                       // B en el mapa: al menú
-    if ($('sMenu').classList.contains('on')) { $('mnPartida').click(); return true; }   // B en el menú: a la portada
+    if ($('sMenu').classList.contains('on')) { irPortada(); return true; }   // B en el menú: a la portada
     return false;
   },
   clicables: '#dCaja, #sbPkg',

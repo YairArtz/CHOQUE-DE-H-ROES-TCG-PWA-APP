@@ -211,6 +211,10 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 .du-pj img{height:100%;width:auto;max-width:150%;object-fit:contain;object-position:bottom;filter:drop-shadow(0 12px 26px rgba(0,0,0,.65));animation:duPj .5s cubic-bezier(.2,.8,.2,1);transform-origin:bottom center}
 .du-pj img.grande{transform:scale(1.12)}
 .du-pj img.alto{height:94%}
+.du-pj img.fijo{max-width:200%}
+.du-pj img.ancho{max-width:185%}
+@media (max-height:520px){.du-pj img.ancho{transform:scale(1.2)}.du-pj img.grande.ancho{animation-name:duPjA}}   /* v246 · en celular las alas abiertas se veían chicas */
+@keyframes duPjA{from{opacity:0;transform:translateY(18px) scale(1.14)}to{opacity:1;transform:scale(1.2)}}
 .du-pj img.sil{filter:brightness(0) drop-shadow(0 0 14px rgba(54,214,255,.55));opacity:.85}
 @keyframes duPj{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1}}
 .du-pj img.grande{animation-name:duPjG}
@@ -2972,8 +2976,11 @@ async function pintarPerfilDu() {
   let src = ret.src, rr = 0.7; try { const r = await recortePj(ret.src); if (r && r.src) { src = r.src; rr = r.r || rr; } } catch (e) {}
   if (DU.id !== p.id) return;
   // v243 · Solo los guardianes de imagen ancha (alas, capa, brazos abiertos) se agrandan; los altos se quedan dentro de la pantalla
-  const tam = p.tipo === 'guardian' && rr >= 0.8 ? 'grande' : rr < 0.72 ? 'alto' : '';
-  $('duPj').innerHTML = `<img class="${k ? '' : 'sil'} ${tam}" src="${esc(src)}" alt="">`;
+  // v246 · Los muy anchos (alas abiertas) pueden ocupar más ancho en pantallas angostas (celular).
+  //        En mapa.txt, «tamano = 80» fija la altura del personaje en esta pantalla (% del alto disponible), p. ej. para arte de medio cuerpo
+  const tamFijo = Math.max(30, Math.min(130, parseFloat(p.tamano) || 0)) || 0;
+  const tam = p.tamano && tamFijo ? 'fijo' : p.tipo === 'guardian' && rr >= 1.1 ? 'grande ancho' : p.tipo === 'guardian' && rr >= 0.8 ? 'grande' : rr < 0.72 ? 'alto' : '';
+  $('duPj').innerHTML = `<img class="${k ? '' : 'sil'} ${tam}" src="${esc(src)}" alt=""${tam === 'fijo' ? ` style="height:${tamFijo}%"` : ''}>`;
 }
 $('duSalir').onclick = () => { guardar(); if (DU.de === 'sMapa') { irA('sMapa'); pintarHud(); ajustarZoom(ZOOM); } else abrirMenu(); };
 function pintarMenu() {
@@ -3104,9 +3111,9 @@ function portalPortada(fondo) {
   const medir = () => { const w = P.clientWidth || innerWidth, h = P.clientHeight || innerHeight;
     P.style.setProperty('--vmin', Math.min(w, h) + 'px'); P.style.setProperty('--vmax-n', Math.max(w, h)); };
   medir(); addEventListener('resize', medir);
-  const quieto = matchMedia('(prefers-reduced-motion: reduce)').matches, WARP = { cx: .5, cy: .5 };
+  const quieto = matchMedia('(prefers-reduced-motion: reduce)').matches, WARP = { cx: .5, cy: .5 }; let rampa = 0;
   // Llegada (al abrir el modo y cada vez que regresas a la portada)
-  const llegar = () => { if (quieto) return; if (typeof cargaVisible === 'function' && cargaVisible()) { clearTimeout(llegar._w); llegar._w = setTimeout(llegar, 150); return; } [P, t].forEach(e => { e.classList.remove('llega'); void e.offsetWidth; e.classList.add('llega'); });
+  const llegar = () => { rampa = 0; if (quieto) return; if (typeof cargaVisible === 'function' && cargaVisible()) { clearTimeout(llegar._w); llegar._w = setTimeout(llegar, 150); return; } [P, t].forEach(e => { e.classList.remove('llega'); void e.offsetWidth; e.classList.add('llega'); });
     clearTimeout(llegar._t); llegar._t = setTimeout(() => [P, t].forEach(e => e.classList.remove('llega')), 3400); };
   llegar(); new MutationObserver(() => { if (t.classList.contains('on') && !llegar._on) llegar(); llegar._on = t.classList.contains('on'); }).observe(t, { attributes: true, attributeFilter: ['class'] });
   llegar._on = t.classList.contains('on');
@@ -3120,11 +3127,15 @@ function portalPortada(fondo) {
   let W = 0, H = 0, dpr = 1, ult = 0;
   const tam = () => { dpr = 1; W = cv.clientWidth; H = cv.clientHeight; cv.width = W * dpr; cv.height = H * dpr; };
   tam(); addEventListener('resize', tam);
+  // v246 · Un solo ciclo de animación aunque la portada se arme de nuevo, y al regresar a la portada las estrellas
+  //        arrancan suave (0 → velocidad normal en ~0.9 s) en lugar de salir disparadas
+  const yo = (window.__nxPortal = (window.__nxPortal || 0) + 1);
   const paso = ts => {
+    if (window.__nxPortal !== yo || !P.isConnected) return;
     requestAnimationFrame(paso);
-    if (!t.classList.contains('on') || document.hidden) { ult = 0; return; }   // al volver no recupera el tiempo perdido
+    if (!t.classList.contains('on') || document.hidden) { ult = 0; rampa = 0; return; }   // al volver no recupera el tiempo perdido
     if (ts - ult < 32) return;                       // ~30 cuadros por segundo: suficiente y deja libre al equipo
-    const dt = Math.min(50, ts - (ult || ts)); ult = ts; if (!W) tam();
+    const dt = Math.min(34, ts - (ult || ts)) * rampa; ult = ts; rampa = Math.min(1, rampa + .04); if (!W) tam();
     cx.setTransform(dpr, 0, 0, dpr, 0, 0); cx.clearRect(0, 0, W, H);
     const ox = W * WARP.cx, oy = H * WARP.cy, R = Math.hypot(W, H) * .62, gira = ts / 9000;
     for (const s of est) {

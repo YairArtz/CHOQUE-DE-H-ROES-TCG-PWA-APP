@@ -586,6 +586,9 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 .handwrap{width:100%;height:calc(var(--ch) + 16px);display:flex;justify-content:center;min-width:0}
 .handrow{display:flex;gap:4px;overflow-x:auto;overflow-y:hidden;padding:8px 4px 0;max-width:100%;scrollbar-width:none}
 .handrow::-webkit-scrollbar{display:none}
+.handrow .hcard{transition:margin-left .18s ease}
+.handrow .hcard:hover,.handrow .hcard.gp-foco{z-index:3}
+.handrow .hcard.sel{z-index:4}
 .hcard{flex-shrink:0;width:var(--cw);height:var(--ch);position:relative;cursor:pointer}
 .hcard-img{width:100%;height:100%;border-radius:5px;border:1.5px solid rgba(255,255,255,.18);
   object-fit:contain;background:#000;display:block;transition:transform .18s,border-color .18s,box-shadow .18s}
@@ -7589,6 +7592,17 @@ function renderSects(o){
     }
   });
 }
+// v236 · Si la mano no cabe (PC), las cartas se enciman para que todas se vean; si aún así no cabe, la rueda la desplaza
+function ajustarMano(){
+  const hr=document.getElementById('handrow'); if(!hr) return;
+  const L=[...hr.children]; L.forEach(c=>c.style.marginLeft='');
+  if(L.length<2||!matchMedia('(hover:hover) and (pointer:fine)').matches) return;
+  const cw=L[0].offsetWidth, av=(hr.parentElement?hr.parentElement.clientWidth:hr.clientWidth)-12, tot=L.length*cw+(L.length-1)*4;
+  if(!cw||tot<=av) return;
+  const m=Math.max(-cw*.7,4-(tot-av)/(L.length-1));
+  L.forEach((c,i)=>{if(i)c.style.marginLeft=m.toFixed(1)+'px';});
+}
+let _manoN=0;
 function renderHand(){
   const hand=G.player.hand;
   const el=document.getElementById('handrow');
@@ -7610,7 +7624,11 @@ function renderHand(){
     };
     el.appendChild(wrap);
   });
+  try{ajustarMano();if(hand.length>_manoN&&el.scrollWidth>el.clientWidth)el.scrollLeft=el.scrollWidth;_manoN=hand.length;}catch(e){}
 }
+try{addEventListener('resize',()=>{try{ajustarMano();}catch(e){}});
+  document.getElementById('handrow').addEventListener('wheel',e=>{const hr=e.currentTarget;
+    if(hr.scrollWidth>hr.clientWidth+2&&Math.abs(e.deltaY)>Math.abs(e.deltaX)){hr.scrollLeft+=e.deltaY;e.preventDefault();}},{passive:false});}catch(e){}
 function buildMenuActions(cid,idx,at,card){
   const acts=_buildMenuActions(cid,idx,at,card);
   let usado=false;   // v221 · un toque = una jugada; si la mano cambió, el botón ya no hace nada
@@ -9078,7 +9096,9 @@ function ajAbrir(){
   grupo('ajIncl',v=>{AJ.incl=v;if(AJ.vista!=='3d'){AJ.vista='3d';ajAbrir();}ajGuardar();try{vistaAplicar();}catch(e){}});
   grupo('ajFases',v=>{try{localStorage.setItem('cdh_sim_fases',v);}catch(e){}});
   grupo('ajFx',v=>{try{localStorage.setItem('cdh_sim_fx',v);}catch(e){}fxAplicar();});
-  if($('ajVib')) grupo('ajVib',v=>{AJ.vib=v==='1';ajGuardar();if(AJ.vib){try{navigator.vibrate&&navigator.vibrate(60);}catch(e){}rumble(150,.6);}});
+  if($('ajVib')) grupo('ajVib',v=>{AJ.vib=v==='1';ajGuardar();if(AJ.vib){let ok=false;try{ok=!!(navigator.vibrate&&navigator.vibrate(120));}catch(e){}rumble(150,.6);
+    if(!ok&&!(window.GP&&GP.activo&&GP.activo())&&/Android|iPhone|iPad|iPod|Mobi/i.test(navigator.userAgent))
+      lg('📳 Este navegador no permite que la página vibre el celular'+(/iPhone|iPad|iPod/i.test(navigator.userAgent)?' (Safari en iPhone/iPad no lo soporta)':' (revisa que la vibración del sistema esté encendida y que no esté en ahorro de batería)')+'. El control sí vibra.','var(--orange)');}});
   $('ajAp').onclick=apAbrir;
   $('ajReset').onclick=()=>{AJ=Object.assign({},AJ_DEF);ajGuardar();try{vistaAplicar();}catch(e){}MUTED=false;try{localStorage.setItem('cdh_sim_mute','0');localStorage.setItem('cdh_sim_fases','todos');localStorage.setItem('cdh_sim_fx','on');}catch(e){}
     fxAplicar();mpVol();const b=$('btnMute');if(b)b.textContent='🔊';ajAbrir();};
@@ -9341,7 +9361,7 @@ function fxSacudir(nivel){
 }
 function fxDiv(cls,x,y,tam){const L=fxLayer(); if(!L) return null; const e=document.createElement('div'); e.className=cls;
   e.style.cssText='left:'+x+'px;top:'+y+'px;width:'+tam+'px;height:'+tam+'px'; L.appendChild(e); setTimeout(()=>e.remove(),700); return e;}
-function fxVibrar(p){try{if(navigator.vibrate)navigator.vibrate(p);}catch(e){}try{if(window.GP&&GP.vibrar)GP.vibrar(Array.isArray(p)?p.reduce((a,b)=>a+b,0):p,.7);}catch(e){}}
+function fxVibrar(p){}   // v236 · la vibración la hacen rumble()/vibraCel() (respetan ⚙ Ajustes → Vibración)
 // Daño directo: marco rojo que late, corazón roto, chispas desde tus corazones y sacudida según el daño
 function fxDano(o,r,why){
   if(!fxOn()) return;
@@ -9366,22 +9386,26 @@ function sonBarajar(){
 }
 function fxBarajar(elId){
   if(!fxOn()) return; const now=Date.now(); if(now-(_fxBarT[elId]||0)<1000) return; _fxBarT[elId]=now;
-  const el=fxEl(elId), L=fxLayer(); if(!el||!L||!el.offsetHeight) return;
-  const p=fxPos(el), h=p.h*.92, w=Math.min(p.w*.92,h*2/3), x0=p.x+p.w/2-w/2, y0=p.y+p.h/2-h/2;
+  const el=fxEl(elId), board=document.getElementById('board'); if(!el||!board||!el.offsetHeight) return;
+  // v236 · dentro del tablero (por debajo del cintillo de fase, z 60) y con su misma inclinación 3D
+  let x=0,y=0,e=el; while(e&&e!==board){x+=e.offsetLeft;y+=e.offsetTop;e=e.offsetParent;}
+  if(e!==board) return;
+  const h=el.offsetHeight*.92, w=Math.min(el.offsetWidth*.92,h*2/3), x0=x+el.offsetWidth/2-w/2, y0=y+el.offsetHeight/2-h/2;
+  const rival=elId.startsWith('cpu');
   for(let i=0;i<8;i++){
     const d=document.createElement('div'); d.className='fx-shuf';
-    d.style.cssText='left:'+x0+'px;top:'+y0+'px;width:'+w+'px;height:'+h+'px;background-image:url("'+REV+'");z-index:'+(10+i);
-    L.appendChild(d);
-    const sd=i%2?1:-1, dx=sd*w*.72, up=-h*.07;
+    d.style.cssText='left:'+x0+'px;top:'+y0+'px;width:'+w+'px;height:'+h+'px;background-image:url("'+REV+'");z-index:'+(40+i)+(rival?';rotate:180deg':'');
+    board.appendChild(d);
+    const sd=i%2?1:-1, dx=sd*w*.72, up=(rival?1:-1)*h*.07, st=rival?1:-1;
     try{const a=d.animate([
         {transform:'translate(0,0) rotate(0deg)',offset:0},
         {transform:'translate('+dx+'px,'+up+'px) rotate('+(sd*11)+'deg)',offset:.3},
-        {transform:'translate('+dx+'px,'+(up+i*1.2)+'px) rotate('+(sd*11)+'deg)',offset:.44},
-        {transform:'translate(0,'+(-i*1.6)+'px) rotate('+(sd*2)+'deg)',offset:.8},
+        {transform:'translate('+dx+'px,'+(up-st*i*1.2)+'px) rotate('+(sd*11)+'deg)',offset:.44},
+        {transform:'translate(0,'+(st*i*1.6)+'px) rotate('+(sd*2)+'deg)',offset:.8},
         {transform:'translate(0,0) rotate(0deg) scale(1.03)',offset:.92},
         {transform:'translate(0,0) rotate(0deg) scale(1)',offset:1}],
       {duration:820,delay:i*24,easing:'cubic-bezier(.3,.7,.3,1)',fill:'both'});
-      a.onfinish=()=>d.remove();}catch(e){}
+      a.onfinish=()=>d.remove();}catch(er){}
     setTimeout(()=>d.remove(),1300);
   }
   sonBarajar();
@@ -9653,6 +9677,11 @@ window.GP_CFG={
   principalTxt:'Fase / Turno',
   zonas:['#handrow','#board','#detail','#btnMain'],
   scroll:'#logwrap',
+  // v236 · LT/RT bajan/suben el texto de la carta (panel izquierdo) cuando no cabe; al llegar al final, siguen con el registro
+  gatillo:d=>{const f=window.GP&&GP.foco();if(f&&f.closest&&f.closest('#logwrap'))return false;
+    const dt=document.getElementById('detail');if(!dt||!dt.offsetParent||dt.scrollHeight<=dt.clientHeight+4)return false;
+    const fin=d>0?dt.scrollTop+dt.clientHeight>=dt.scrollHeight-2:dt.scrollTop<=0;if(fin)return false;
+    dt.scrollBy({top:d*120,behavior:'smooth'});return true;},
   inicial:()=>{const b=document.getElementById('bootBtn');if(window.GP&&GP.valido(b))return b;return document.querySelector('#handrow .hcard')||document.getElementById('btnMain');},
   principal:()=>{const v=e=>window.GP&&GP.valido(e);
     const eg=[...document.querySelectorAll('#endgameModal .endgame-btn')].find(v); if(eg) return eg;
@@ -9673,7 +9702,9 @@ window.GP_CFG={
   }
 };
 // v81 · Vibración del control (y del celular) en los momentos importantes · se apaga en ⚙ Ajustes
-function rumble(ms,f){if(!AJ.vib)return;try{if(window.GP&&GP.vibrar)GP.vibrar(ms,Math.max(.45,f));}catch(e){}}   // v82 · vibra aunque el control no tenga el foco (si tocaste la pantalla)
+function rumble(ms,f){if(!AJ.vib)return;try{if(window.GP&&GP.vibrar)GP.vibrar(ms,Math.max(.45,f));}catch(e){}
+  // v236 · el celular también vibra en estos momentos (antes solo lo hacía el control)
+  try{if(!(window.GP&&GP.activo&&GP.activo())&&f>=.4)vibraCel(Math.round(Math.min(400,ms*(.5+f*.5))));}catch(e){}}   // v82 · vibra aunque el control no tenga el foco (si tocaste la pantalla)
 function rumbleSeq(L){L.forEach(([t,ms,f])=>setTimeout(()=>rumble(ms,f),t));}
 function vibraCel(p){if(!AJ.vib||!navigator.vibrate)return;try{navigator.vibrate(p);}catch(e){}}
 try{const _gpH=hurt;hurt=function(o,n,why){const r=_gpH.apply(this,arguments);

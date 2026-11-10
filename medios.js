@@ -74,6 +74,7 @@
 
   function puedeAuto() {
     try { if (localStorage.getItem('chh_medios_auto') === '0') return false; } catch (e) {}
+    try { if (localStorage.getItem('chh_musica_datos') === '1') return true; } catch (e) {}   // v234 · el jugador eligió bajar música también con datos
     const c = navigator.connection;
     if (c && (c.saveData || /(2g|3g)$/.test(c.effectiveType || '') || c.type === 'cellular')) return false;
     return true;

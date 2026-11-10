@@ -284,6 +284,24 @@ html[data-mesa="imagen"] .aztec-bg{opacity:1;background-size:cover;background-po
   background:radial-gradient(circle,rgba(255,255,255,.9) 0%,rgba(255,200,90,.55) 35%,transparent 70%)}
 @keyframes fxHit{0%{opacity:0;transform:scale(.4)}25%{opacity:1;transform:scale(1.1)}100%{opacity:0;transform:scale(1.5)}}
 .fx-vig{position:absolute;inset:0;pointer-events:none;animation:fxVig .6s ease-out forwards}
+/* v235 · Paquete de animaciones 1: partículas, barajar, daño directo y pausa de impacto */
+.fx-dano{position:absolute;inset:0;pointer-events:none;border:calc(var(--H) * .012) solid rgba(255,30,60,.92);
+  box-shadow:inset 0 0 calc(var(--H) * .2) rgba(255,0,40,.85),inset 0 0 calc(var(--H) * .05) rgba(255,140,140,.9);animation:fxDano 1s ease-out forwards}
+.fx-dano.fuerte{border-width:calc(var(--H) * .022);box-shadow:inset 0 0 calc(var(--H) * .3) rgba(255,0,40,.95),inset 0 0 calc(var(--H) * .07) rgba(255,160,160,.95)}
+@keyframes fxDano{0%{opacity:0}10%{opacity:1}28%{opacity:.3}46%{opacity:.95}100%{opacity:0}}
+.game.fx-shake2{animation:fxShake2 .6s cubic-bezier(.36,.07,.19,.97)}
+@keyframes fxShake2{10%,90%{transform:translate(-2px,2px)}20%,80%{transform:translate(7px,-4px)}30%,50%,70%{transform:translate(-11px,5px) rotate(-.5deg)}40%,60%{transform:translate(11px,-4px) rotate(.5deg)}}
+.fx-onda{position:absolute;border-radius:50%;pointer-events:none;border:3px solid rgba(255,244,210,.95);
+  box-shadow:0 0 18px rgba(255,200,90,.9),inset 0 0 12px rgba(255,255,255,.8);animation:fxOnda .5s ease-out forwards}
+@keyframes fxOnda{0%{opacity:1;transform:translate(-50%,-50%) scale(.15)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.7)}}
+.fx-flash{position:absolute;border-radius:50%;pointer-events:none;mix-blend-mode:screen;
+  background:radial-gradient(circle,#fff 0%,rgba(255,232,170,.95) 22%,rgba(255,150,40,.4) 52%,transparent 70%);animation:fxFlash .3s ease-out forwards}
+@keyframes fxFlash{0%{opacity:0;transform:translate(-50%,-50%) scale(.3)}30%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(1.35)}}
+#game.fx-stop .bc{filter:brightness(1.75) saturate(1.35)}
+#game.fx-stop,#game.fx-stop *{animation-play-state:paused!important}
+.fx-shuf{position:absolute;border-radius:4px;background:#111 center/cover no-repeat;box-shadow:0 3px 10px rgba(0,0,0,.65),0 0 6px rgba(127,227,255,.35);pointer-events:none;will-change:transform}
+.fx-corazon{position:absolute;pointer-events:none;font-size:calc(var(--H) * .075);line-height:1;filter:drop-shadow(0 0 10px rgba(255,0,60,.95));animation:fxCorazon .95s cubic-bezier(.2,.8,.2,1) forwards}
+@keyframes fxCorazon{0%{opacity:0;transform:translate(-50%,-50%) scale(.4)}18%{opacity:1;transform:translate(-50%,-62%) scale(1.35)}40%{transform:translate(-50%,-62%) scale(1.1) rotate(-9deg)}100%{opacity:0;transform:translate(-50%,-150%) scale(.8) rotate(16deg)}}
 .fx-vig.red{box-shadow:inset 0 0 calc(var(--H) * .25) rgba(255,20,50,.75)}
 .fx-vig.gold{box-shadow:inset 0 0 calc(var(--H) * .22) rgba(245,166,35,.6)}
 @keyframes fxVig{0%{opacity:0}20%{opacity:1}100%{opacity:0}}
@@ -9308,15 +9326,94 @@ function fxMictlan(o,xs){
   try{if(x&&G&&o==='player'&&(src==='bp'||src==='ba'))fxFly(src==='ba'?'playerBA':'playerBP','handrow',null,true);
       else if(x&&G&&o==='cpu'&&(src==='bp'||src==='ba'))fxFly(src==='ba'?'cpuBA':'cpuBP','cpuhand',null,true);}catch(e){}
   return x;};}
+// ── v235 · Chispas extra con el motor de partículas existente (fxpAdd) ──
+function fxChispas(x,y,n,op){
+  if(!fxOn()||typeof fxpAdd!=='function') return; op=op||{};
+  const col=op.col||['#ffffff','#fff1c1','#ffd166','#ff9a3c'], sp=op.v||1;
+  for(let i=0,k=fxpN(n);i<k;i++){const a=Math.random()*Math.PI*2,v=(2.5+Math.random()*7.5)*sp;
+    fxpAdd({tipo:'chispa',x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-(op.sube||0),g:op.g!=null?op.g:.14,drag:.92,max:14+Math.random()*18,s:1.5+Math.random()*1.6,col:col[i%col.length]});}
+}
+function fxCentro(el){const p=(typeof stageRect==='function'?stageRect(el):fxPos(el));return {x:p.x+p.w/2,y:p.y+p.h/2,w:p.w,h:p.h};}
+function fxSacudir(nivel){
+  const g=document.getElementById('game'); if(!g||!fxOn()) return;
+  g.classList.remove('fx-shake','fx-shake2'); void g.offsetWidth;
+  const c=nivel>=2?'fx-shake2':'fx-shake'; g.classList.add(c); setTimeout(()=>g.classList.remove(c),nivel>=2?620:480);
+}
+function fxDiv(cls,x,y,tam){const L=fxLayer(); if(!L) return null; const e=document.createElement('div'); e.className=cls;
+  e.style.cssText='left:'+x+'px;top:'+y+'px;width:'+tam+'px;height:'+tam+'px'; L.appendChild(e); setTimeout(()=>e.remove(),700); return e;}
+function fxVibrar(p){try{if(navigator.vibrate)navigator.vibrate(p);}catch(e){}try{if(window.GP&&GP.vibrar)GP.vibrar(Array.isArray(p)?p.reduce((a,b)=>a+b,0):p,.7);}catch(e){}}
+// Daño directo: marco rojo que late, corazón roto, chispas desde tus corazones y sacudida según el daño
+function fxDano(o,r,why){
+  if(!fxOn()) return;
+  const L=fxLayer(), hb=fxEl(o==='player'?'playerHB':'cpuHB');
+  if(o==='player'&&L){const v=document.createElement('div');v.className='fx-dano'+(r>=3?' fuerte':'');L.appendChild(v);setTimeout(()=>v.remove(),1050);
+    fxVibrar(r>=3?[70,40,140]:[60]);}
+  else fxVig('gold');
+  if(hb){const c=fxCentro(hb);
+    const h=fxDiv('fx-corazon',c.x,c.y,0); if(h){h.textContent='💔';h.style.width=h.style.height='auto';}
+    if(r>=3) fxChispas(c.x,c.y,r*4,{col:o==='player'?['#ffffff','#ff9aa8','#ff3355']:['#ffffff','#ffe9a8','#ffd166'],v:.8});}
+  if(o==='player'||r>=3) fxSacudir(r>=3?2:1);
+}
+// Barajar: los reversos se separan en dos mitades y se intercalan, con sonido de cartas
+const _fxBarT={};
+function sonBarajar(){
+  if(MUTED||!(AJ.sfx>0)) return; if(sfxPlay('shuffle')) return;
+  try{const ac=getAC(),dest=sfxBus(),now=ac.currentTime;
+    for(let i=0;i<13;i++){const t=now+.12+i*.032+Math.random()*.01,len=.035,buf=ac.createBuffer(1,Math.floor(ac.sampleRate*len),ac.sampleRate),dd=buf.getChannelData(0);
+      for(let k=0;k<dd.length;k++)dd[k]=(Math.random()*2-1)*Math.pow(1-k/dd.length,3);
+      const s=ac.createBufferSource(),f=ac.createBiquadFilter(),gg=ac.createGain();s.buffer=buf;f.type='bandpass';f.frequency.value=2200+Math.random()*1800;f.Q.value=.9;gg.gain.value=.32;
+      s.connect(f);f.connect(gg);gg.connect(dest);s.start(t);}}catch(e){}
+}
+function fxBarajar(elId){
+  if(!fxOn()) return; const now=Date.now(); if(now-(_fxBarT[elId]||0)<1000) return; _fxBarT[elId]=now;
+  const el=fxEl(elId), L=fxLayer(); if(!el||!L||!el.offsetHeight) return;
+  const p=fxPos(el), h=p.h*.92, w=Math.min(p.w*.92,h*2/3), x0=p.x+p.w/2-w/2, y0=p.y+p.h/2-h/2;
+  for(let i=0;i<8;i++){
+    const d=document.createElement('div'); d.className='fx-shuf';
+    d.style.cssText='left:'+x0+'px;top:'+y0+'px;width:'+w+'px;height:'+h+'px;background-image:url("'+REV+'");z-index:'+(10+i);
+    L.appendChild(d);
+    const sd=i%2?1:-1, dx=sd*w*.72, up=-h*.07;
+    try{const a=d.animate([
+        {transform:'translate(0,0) rotate(0deg)',offset:0},
+        {transform:'translate('+dx+'px,'+up+'px) rotate('+(sd*11)+'deg)',offset:.3},
+        {transform:'translate('+dx+'px,'+(up+i*1.2)+'px) rotate('+(sd*11)+'deg)',offset:.44},
+        {transform:'translate(0,'+(-i*1.6)+'px) rotate('+(sd*2)+'deg)',offset:.8},
+        {transform:'translate(0,0) rotate(0deg) scale(1.03)',offset:.92},
+        {transform:'translate(0,0) rotate(0deg) scale(1)',offset:1}],
+      {duration:820,delay:i*24,easing:'cubic-bezier(.3,.7,.3,1)',fill:'both'});
+      a.onfinish=()=>d.remove();}catch(e){}
+    setTimeout(()=>d.remove(),1300);
+  }
+  sonBarajar();
+}
+{const _sh=sh;sh=function(a){const r=_sh.apply(this,arguments);
+  try{if(G&&G.turn>=1&&G.phase!=='sorteo'&&a&&a.length>1)for(const o of ['player','cpu']){if(a===G[o].bp)fxBarajar(o==='player'?'playerBP':'cpuBP');else if(a===G[o].ba)fxBarajar(o==='player'?'playerBA':'cpuBA');}}catch(e){}
+  return r;};}
+// Choque: pausa de impacto, destello, onda y chispas en el punto de contacto (más fuerte con más FUERZA)
+async function fxChoque(ea,ed,fA,fD,t0){
+  if(!fxOn()) return;
+  const D=fxEl(ed); if(!D||!D.isConnected) return;
+  const espera=t0+210-Date.now(); if(espera>0) await new Promise(r=>setTimeout(r,espera));   // cuando llega el cometa del ataque
+  const g=document.getElementById('game'), f=Math.max(fA||0,fD||0);
+  if(g){g.classList.add('fx-stop');await new Promise(r=>setTimeout(r,85));g.classList.remove('fx-stop');}   // pausa de impacto
+  const b=fxCentro(D);
+  fxDiv('fx-flash',b.x,b.y,b.h*1.5); fxDiv('fx-onda',b.x,b.y,b.h*1.1);
+  if(f>=4) fxChispas(b.x,b.y,f*3,{v:f>=8?1.3:1});
+  fxSacudir(f>=8?2:1);
+  fxVibrar(f>=8?[40,30,60]:[35]);
+}
 // Daño a corazones: número flotante, destello y sacudida
 {const _h=hurt;hurt=function(o,n,why){const r=_h.apply(this,arguments);
-  try{if(r>0&&G){fxNum(o==='player'?'playerHB':'cpuHB','−'+r+' ❤',o==='player'?'red':'gold');fxVig(o==='player'?'red':'gold');
+  try{if(r>0&&G){fxNum(o==='player'?'playerHB':'cpuHB','−'+r+' ❤',o==='player'?'red':'gold');fxDano(o,r,why);
     if(why!=='costo'){if(o==='cpu')FXS.dmgHecho+=r;else FXS.dmgRecibido+=r;}}}catch(e){}
   return r;};}
 // Choques entre personajes: impacto y números de fuerza
 {const _b=battle;battle=async function(o,as,ds){
   const r=opp(o), ea=(o==='player'?'pP':'cP')+as, ed=(r==='player'?'pP':'cP')+ds;
+  if(o==='player'&&G&&G[o].pj[as]&&fxOn()) animAttack(ea);   // v235 · anticipación también en tus ataques
+  const t0=Date.now();
   const res=await _b.apply(this,arguments);
+  try{if(res&&res.first&&G) await fxChoque(ea,ed,res.first.a.f,res.first.d.f,t0);}catch(e){}
   try{if(res&&res.first&&G){
     fxHit(ed);fxNum(ed,'−'+res.first.a.f,'red');
     setTimeout(()=>{fxHit(ea);fxNum(ea,'−'+res.first.d.f,'gold');},180);

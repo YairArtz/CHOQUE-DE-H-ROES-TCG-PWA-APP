@@ -172,6 +172,7 @@
 
   function inicial() {
     if (OSK.abierto()) { const k = OSK.panel.querySelector('button'); if (k) return k; }
+    if (SELP.abierto()) { const k = SELP.panel.querySelector('button.sel') || SELP.panel.querySelector('button'); if (k) return k; }
     const c = CFG();
     const pref = c.inicial && c.inicial();
     if (valido(pref)) return pref;
@@ -204,7 +205,7 @@
     let b1 = null, s1 = 1e12, b2 = null, s2 = 1e12, b3 = null, s3 = 1e12;
     // Un menú abierto puede limitar el movimiento a su zona (GP_CFG.ambito)
     const c = CFG(); let raiz = null;
-    try { raiz = OSK.abierto() ? OSK.panel : (c.ambito && c.ambito(foco)); } catch (e) {}
+    try { raiz = OSK.abierto() ? OSK.panel : SELP.abierto() ? SELP.panel : (c.ambito && c.ambito(foco)); } catch (e) {}
     const antes = (a, b) => !!(a && b && (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING));   // ¿a va antes que b?
     candidatos(raiz || undefined).forEach(el => {
       if (el === foco || el.contains(foco) || foco.contains(el)) return;
@@ -284,6 +285,7 @@
     const opt = { bubbles: true, cancelable: true, clientX: x, clientY: y, view: window };
     try { const ev = new PointerEvent('pointerdown', opt); ev._gp = true; el.dispatchEvent(ev); } catch (e) {}
     if (activo && OSK.esTexto(el)) { vibrar(18, .25); OSK.abrir(el); return; }   // v193 · teclado en pantalla
+    if (el.tagName === 'SELECT' && activo && !el.disabled) { vibrar(18, .25); SELP.abrir(el); return; }   // v234 · la lista nativa no responde al control: se abre una propia
     if (el.tagName === 'INPUT' || el.tagName === 'SELECT') { el.focus(); if (el.tagName === 'SELECT') try { el.showPicker(); } catch (e) {} return; }
     vibrar(18, .25);   // antes del clic: si el clic cambia de página, la vibración ya terminó
     el.click();
@@ -296,6 +298,7 @@
   const RX_ATRAS = /^\s*(✕|×|x(?=\s|$)|←|◀|cancelar|cerrar|atr[aá]s|volver|no\b|salir de|regresar)/i;   // 'x' sola (no nombres que empiezan con X, como Xolo)
   function atras() {
     if (OSK.abierto()) { OSK.borrar(); return; }
+    if (SELP.abierto()) { SELP.cerrar(); return; }
     const c = CFG();
     if (c.atras && c.atras() === true) return;
     const L = candidatos();
@@ -371,6 +374,42 @@
   // Al tocar con A un campo de texto se abre un teclado que se maneja con el control
   // (PC sin teclado, TV o una versión instalada como juego). Con el dedo o el teclado físico no aparece.
   //   Cruceta: mover · A: escribir · B: borrar · X: mayúsculas · Y: espacio · LB/RB: mover el cursor · Start: listo
+  // ── v234 · Lista para <select> manejable con el control (la lista nativa del sistema no recibe el gamepad) ──
+  const SELP = (function () {
+    let panel = null, sel = null;
+    function cerrar() {
+      if (panel) { panel.remove(); panel = null; }
+      const e = sel; sel = null;
+      if (e && e.isConnected && activo) { foco = e; try { dibujarAnillo(); } catch (er) {} }
+    }
+    function abrir(s) {
+      cerrar(); sel = s;
+      panel = document.createElement('div'); panel.id = 'gpSel';
+      panel.style.cssText = 'position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.62)';
+      const box = document.createElement('div');
+      box.style.cssText = 'background:#0d1530;border:1px solid rgba(0,207,255,.55);border-radius:14px;padding:10px;max-height:80vh;overflow:auto;width:min(360px,92vw);display:flex;flex-direction:column;gap:6px;box-shadow:0 12px 44px rgba(0,0,0,.65)';
+      const tit = document.createElement('div');
+      tit.textContent = s.getAttribute('aria-label') || s.title || 'Elige una opción';
+      tit.style.cssText = "font:700 12px 'Orbitron',system-ui,sans-serif;color:#9fd8ff;letter-spacing:.08em;padding:4px 6px 6px;text-transform:uppercase";
+      box.appendChild(tit);
+      [...s.options].forEach((o, i) => {
+        if (o.disabled || o.hidden) return;
+        const b = document.createElement('button'), act = i === s.selectedIndex;
+        b.type = 'button'; b.textContent = (act ? '✓ ' : '') + o.textContent; b.dataset.i = i; if (act) b.className = 'sel';
+        b.style.cssText = 'text-align:left;font:600 14px system-ui,sans-serif;color:#fff;cursor:pointer;border-radius:9px;padding:10px 12px;flex:none;' +
+          (act ? 'background:rgba(0,207,255,.22);border:1px solid #00cfff' : 'background:rgba(255,255,255,.06);border:1px solid transparent');
+        b.onclick = ev => { ev.stopPropagation(); const cambio = s.selectedIndex !== i; s.selectedIndex = i;
+          if (cambio) { s.dispatchEvent(new Event('input', { bubbles: true })); s.dispatchEvent(new Event('change', { bubbles: true })); } cerrar(); };
+        box.appendChild(b);
+      });
+      panel.appendChild(box);
+      panel.addEventListener('click', e => { if (e.target === panel) cerrar(); });
+      document.body.appendChild(panel);
+      const k = box.querySelector('button.sel') || box.querySelector('button');
+      if (k) { try { k.scrollIntoView({ block: 'center' }); } catch (e) {} foco = k; modoPuntero = false; try { dibujarAnillo(); } catch (e) {} }
+    }
+    return { abrir, cerrar, abierto: () => !!panel && panel.isConnected, get panel() { return panel; } };
+  })();
   const OSK = (function () {
     const st = document.createElement('style');
     st.textContent = `

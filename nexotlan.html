@@ -110,6 +110,12 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 .t-info{font-size:14px;color:var(--muted);min-height:20px;position:relative;z-index:1}
 .t-cont{width:min(340px,100%);position:relative;z-index:1;font-size:13px;color:var(--muted);text-align:center}
 .t-cont .bar{height:6px;border-radius:4px;background:rgba(0,0,0,.45);overflow:hidden;margin:6px 0 4px;--dc:var(--cyan)}
+.t-est{width:min(340px,100%);position:relative;z-index:1;display:flex;flex-direction:column;gap:6px;align-items:center;font-size:12px;color:var(--muted);text-align:center;line-height:1.35}
+.t-est b{color:#fff;font-weight:700}
+.t-est .ok{color:#5be3a0}.t-est .fal{color:#ffc857}
+.t-est .chipm{font:inherit;font-size:11.5px;color:var(--muted);background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:5px 12px;cursor:pointer}
+.t-est .chipm.on{color:#fff;border-color:var(--cyan);background:rgba(54,214,255,.16)}
+.t-est .chipm:focus-visible{outline:2px solid var(--gold2);outline-offset:2px}
 .t-cont .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--purple));transition:width .2s}
 .t-save{font-size:15px;color:#cfe0ff;background:rgba(10,20,48,.7);border:1px solid var(--line);border-radius:10px;padding:10px 14px;position:relative;z-index:1}
 .t-save b{color:var(--cyan)}
@@ -783,6 +789,7 @@ body.nx-sismo2{animation:nxSismo2 .09s linear infinite}
     <button class="bt sec" id="tDescargar">⬇ DESCARGAR CONTENIDO</button>
   </div>
   <div class="t-cont" id="tContenido" hidden><div class="bar"><i id="tcBar"></i></div><span id="tcTxt"></span></div>
+  <div class="t-est" id="tEstado" hidden><span id="teTxt"></span><button class="chipm" id="tMusDatos" type="button" aria-pressed="false">🎵 Música con datos móviles: NO</button></div>
   <div class="t-info" id="tInfo">Cargando Nexotlan…</div>
 </section>
 <!-- v207 · Pantalla de carga con TIPS · [config] fondo_carga / logo / carga_sprite · consejos en assets/nexotlan/tips.txt -->
@@ -2471,6 +2478,7 @@ async function contenido(op) {          // op: { auto, musica }
     const L = itemsContenido(), red = navigator.onLine, musica = op.musica !== false;
     btn.disabled = true;
     let n = 0, bajados = 0, cambios = 0, faltan = 0, sinMusica = 0;
+    const noEx = {};   // v232 · archivos que mapa.txt menciona pero no existen en el sitio: no cuentan como faltantes
     // En automático no se muestra nada mientras solo revisa lo guardado: la barra aparece si de verdad hay algo que bajar
     const visible = () => !op.auto || bajando > 0;
     let bajando = 0;
@@ -2486,11 +2494,13 @@ async function contenido(op) {          // op: { auto, musica }
           if (it.tipo === 'aud' && !musica) sinMusica++;
           else { bajando++; try { if (await guardarArchivo(e.url)) { bajados++; if (e.estado === 'cambio') cambios++; } else faltan++; } catch (er) { faltan++; } }
         } else if (e.estado === 'falta') faltan++;
+        else if (e.estado === 'noexiste') noEx[it.cands[0]] = 1;
         n++; if (visible()) pinta(n, L.length, bajando ? 'Descargando contenido nuevo… ' + bajados + '/' + bajando : 'Revisando ' + n + '/' + L.length);
       }
     };
     await Promise.all([trabajador(), trabajador(), trabajador()]);
-    try { localStorage.setItem('chh_nx_contenido', String(Date.now())); } catch (e) {}
+    try { localStorage.setItem('chh_nx_contenido', String(Date.now())); if (red) localStorage.setItem('chh_nx_noexiste', JSON.stringify(noEx)); } catch (e) {}
+    pintarEstado();
     const partes = [];
     if (bajados) partes.push('⬇ ' + bajados + ' archivo(s) descargado(s)' + (cambios ? ' (' + cambios + ' actualizado(s))' : ''));
     if (sinMusica) partes.push('🎵 ' + sinMusica + ' canción(es) esperan Wi-Fi');
@@ -2508,9 +2518,49 @@ function contenidoAuto() {
   if (!navigator.onLine || !DIST.length) return;
   let ult = 0; try { ult = +localStorage.getItem('chh_nx_contenido') || 0; } catch (e) {}
   const auto = window.CHH_MEDIOS ? CHH_MEDIOS.puedeAuto() : true;
-  contenido({ auto: true, revisar: Date.now() - ult > 12 * 3600e3, musica: auto });
+  contenido({ auto: true, revisar: Date.now() - ult > 12 * 3600e3, musica: auto || musicaConDatos() });
 }
 $('tDescargar').onclick = () => contenido({ auto: false, revisar: true, musica: true });
+// ── v234 · Estado de lo descargado (solo mira el dispositivo, sin gastar datos) + música con datos móviles ──
+const musicaConDatos = () => { try { return localStorage.getItem('chh_musica_datos') === '1'; } catch (e) { return false; } };
+const mbTxt = b => b >= 1048576 ? (b / 1048576).toFixed(b >= 10485760 ? 0 : 1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB';
+let _est = null;
+async function estadoContenido() {
+  let noEx = {}; try { noEx = JSON.parse(localStorage.getItem('chh_nx_noexiste') || '{}') || {}; } catch (e) {}
+  const L = itemsContenido().filter(it => !noEx[it.cands[0]]);
+  const R = { total: L.length, ok: 0, img: 0, mus: 0, bytes: 0 };
+  let i = 0;
+  const uno = async () => { while (i < L.length) { const it = L[i++]; let r = null;
+    for (const u of it.cands) { r = await enCache(u); if (r) break; }
+    if (r) { R.ok++; let n = +(r.headers.get('content-length') || 0); if (!n && it.tipo !== 'aud') { try { n = (await r.blob()).size; } catch (e) {} } R.bytes += n; }
+    else if (it.tipo === 'aud') R.mus++; else R.img++; } };
+  await Promise.all([uno(), uno(), uno(), uno()]);
+  return R;
+}
+async function pintarEstado() {
+  const box = $('tEstado'); if (!box || !('caches' in window) || !DIST.length) return;
+  if (_est) return _est;
+  _est = (async () => {
+    const R = await estadoContenido(), fal = R.img + R.mus;
+    const partes = [];
+    if (R.img) partes.push(R.img + (R.img > 1 ? ' imágenes' : ' imagen'));
+    if (R.mus) partes.push(R.mus + (R.mus > 1 ? ' canciones' : ' canción'));
+    $('teTxt').innerHTML = `💾 Guardado en este dispositivo: <b>${R.ok}/${R.total}</b> archivos` + (R.bytes ? ` · ${mbTxt(R.bytes)}` : '') +
+      (fal ? `<br><span class="fal">Faltan ${partes.join(' y ')}</span>${!musicaConDatos() && R.mus ? ' · la música se baja sola con Wi-Fi' : ''}` : '<br><span class="ok">✔ Todo listo para jugar sin esperas</span>');
+    const b = $('tMusDatos'), on = musicaConDatos();
+    b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    b.textContent = '🎵 Música con datos móviles: ' + (on ? 'SÍ' : 'NO');
+    box.hidden = false;
+  })().finally(() => { _est = null; });
+  return _est;
+}
+$('tMusDatos').onclick = () => {
+  const on = !musicaConDatos();
+  try { localStorage.setItem('chh_musica_datos', on ? '1' : '0'); } catch (e) {}
+  toast(on ? '🎵 La música también se descargará con datos móviles' : '🎵 La música solo se descargará con Wi-Fi');
+  pintarEstado();
+  if (on && navigator.onLine) contenido({ auto: true, musica: true });
+};
 
 
 // ════════════════ v227 · CARTAS BOSS: recompensas físicas ════════════════
@@ -3065,6 +3115,7 @@ $('dCaja').addEventListener('click', e => { if (!e.target.closest('.d-ops')) { e
   else if (EDITOR) entrarMapa();
   if (avisosMapa.length) setTimeout(() => nubeFondo(true), 6000); else nubeFondo(true);
   setTimeout(() => contenidoAuto(), 2500);       // revisa/descarga el contenido nuevo en segundo plano
+  setTimeout(() => pintarEstado(), 600);
 })();
 function normalizar(x) {
   if (x && x.baraja) {

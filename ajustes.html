@@ -253,6 +253,7 @@ footer{padding:26px 16px 6px;text-align:center;font-size:13px;font-weight:600;co
     <section class="sec" id="s-datos"><h2>💾 DATOS Y ALMACENAMIENTO</h2>
       <div class="row col"><div class="lbl"><b>Espacio usado</b><span id="stDesc">Calculando…</span></div><div class="bar"><i id="stBar"></i></div></div>
       <div class="row"><div class="lbl"><b>Descargar música y medios automáticamente</b><span>Guarda música, efectos, micas y playmats para jugar sin internet. La música pesada solo se baja con Wi-Fi.</span></div><button class="sw" id="medAuto" type="button" aria-label="Descarga automática"></button></div>
+      <div class="row"><div class="lbl"><b>Bajar música también con datos móviles</b><span>Apagado: las canciones solo se descargan solas con Wi-Fi. Encendido: también con datos (cada canción pesa 1–3 MB).</span></div><button class="sw" id="musDatos" type="button" aria-label="Música con datos móviles"></button></div>
       <div class="row"><div class="lbl"><b>Medios descargados</b><span id="medDesc">Calculando…</span></div><button class="bt pel" id="medBorrar" type="button">🗑 Borrar</button></div>
       <div class="row"><div class="lbl"><b>Respaldo de mi progreso</b><span>Descarga un archivo con todo lo guardado en este dispositivo (desbloqueos, logros, tema, avatar, partidas) o restaura uno anterior.</span></div>
         <div class="bts"><button class="bt acc" id="exp" type="button">📤 Descargar</button><button class="bt" id="imp" type="button">📥 Restaurar</button></div>
@@ -409,6 +410,8 @@ async function pintarMedios() {
   $('medBorrar').disabled = !n;
 }
 $('medAuto').classList.toggle('on', LS.get('chh_medios_auto') !== '0');
+$('musDatos').classList.toggle('on', LS.get('chh_musica_datos') === '1');
+$('musDatos').onclick = () => { const on = !$('musDatos').classList.contains('on'); $('musDatos').classList.toggle('on', on); LS.set('chh_musica_datos', on ? '1' : '0'); };
 $('medAuto').onclick = () => { const on = !$('medAuto').classList.contains('on'); $('medAuto').classList.toggle('on', on); LS.set('chh_medios_auto', on ? '1' : '0'); };
 $('medBorrar').onclick = async () => {
   if (!(await NX_UI.confirmar('La música y los medios se volverán a descargar cuando los uses (necesitas internet).', { titulo: '¿Borrar medios descargados?', si: 'Borrar', peligro: true }))) return;

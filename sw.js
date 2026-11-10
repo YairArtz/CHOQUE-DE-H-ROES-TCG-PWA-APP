@@ -61,7 +61,7 @@
 //  v8:   shell cache-first + revalidación, JSON red-primero, fallbacks por tipo.
 // ================================================================
 try { importScripts('./config.js'); } catch (e) {}   // direcciones de los servidores (config.js)
-const CACHE_NAME    = 'chh-tcg-v241';
+const CACHE_NAME    = 'chh-tcg-v242';
 const CACHE_DYNAMIC = 'chh-paginas-v1';    // estable: páginas/JSON/JS visitados (NO subir; lo precargado se renueva solo)
 const CACHE_IMG     = 'chh-img-v1';      // estable: imágenes, fuentes y PDFs. Subir SOLO si reemplazas imágenes con el mismo nombre
 const CACHE_AUDIO   = 'chh-audio-v1';    // estable: pistas de bgm.js. Subir SOLO si reemplazas un .mp3 con el mismo nombre
@@ -81,7 +81,7 @@ const IMG_MAX       = 800;    // máx. entradas en caché de imágenes (480+ car
 const CATALOG_JSON = /(cartas\.json|cartas_simulacion\.json|comics_config\.json|intro_config\.json)$/i;
 
 const CACHE_CORE = [
-  './', './boot.html', './index.html', './calculadora.html',
+  './', './boot.html', './index.html', './actualizar.js', './calculadora.html',
   './perfil.html', './calendario.html', './constructor.html',
   './torneo-director.html', './noticias.html', './tienda.html', './tienda-fisica.html',
   './ajustes.html', './intro.html', './intro_config.json',
@@ -128,13 +128,17 @@ const CACHE_SIM = [
 
 const NO_CACHE_ORIGINS = ['script.google.com', 'script.googleusercontent.com', 'docs.google.com'];
 
+// v242 · Avisa el avance a las pantallas abiertas (actualizar.js muestra la barra de progreso)
+async function avisar(m) { try { (await self.clients.matchAll({ includeUncontrolled: true, type: 'window' })).forEach(c => c.postMessage(Object.assign({ type: 'SW_PROG' }, m))); } catch (e) {} }
 self.addEventListener('install', event => {
   self.skipWaiting();
+  const lista = [...CACHE_CORE, ...CACHE_SIM]; let hechos = 0;
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache =>
-      Promise.allSettled([...CACHE_CORE, ...CACHE_SIM].map(url =>
+      Promise.allSettled(lista.map(url =>
         fetchTimeout(new Request(url, { cache: 'no-cache' }), 30000)
           .then(r => { if (r.ok) return cache.put(url, r); })
+          .finally(() => { hechos++; if (hechos % 4 === 0 || hechos === lista.length) avisar({ fase: 'instalar', n: hechos, t: lista.length }); })
       )).then(async () => {
         // Lo recién precargado manda: se quita su copia vieja de la caché de páginas
         try {
@@ -164,6 +168,17 @@ self.addEventListener('activate', event => {
       }
     } catch (e) {}
     await Promise.all(keys.filter(k => !KEEP_CACHES.includes(k)).map(k => caches.delete(k)));
+    // v242 · Las páginas, scripts y datos guardados fuera de la precarga (p. ej. visitados antes) se renuevan ahora,
+    // para que ninguna pantalla se quede con la versión anterior. Si una falla (sin red), se conserva la copia que había.
+    try {
+      const dyn = await caches.open(CACHE_DYNAMIC);
+      const rqs = (await dyn.keys()).filter(rq => new URL(rq.url).origin === self.location.origin && /\.(html|js|json|txt)$|\/$/.test(new URL(rq.url).pathname));
+      let i = 0, hechos = 0;
+      const uno = async () => { while (i < rqs.length) { const rq = rqs[i++];
+        try { const r = await fetchTimeout(new Request(rq.url, { cache: 'no-cache' }), 12000); if (r && r.ok) await dyn.put(rq, r); } catch (e) {}
+        hechos++; if (hechos % 3 === 0 || hechos === rqs.length) avisar({ fase: 'renovar', n: hechos, t: rqs.length }); } };
+      await Promise.all([uno(), uno(), uno(), uno(), uno(), uno()]);
+    } catch (e) {}
     await self.clients.claim();
   })());
 });
@@ -171,6 +186,7 @@ self.addEventListener('activate', event => {
 self.addEventListener('message', event => {
   if (!event.data) return;
   if (event.data.type === 'SKIP_WAITING') self.skipWaiting();
+  if (event.data.type === 'GET_VERSION' && event.ports && event.ports[0]) event.ports[0].postMessage({ v: CACHE_NAME });
   if (event.data.type === 'CHECK_UPDATES') checkUpdates();
 });
 
@@ -189,6 +205,8 @@ self.addEventListener('fetch', event => {
   if (url.origin !== self.location.origin) return;
 
   const path = url.pathname;
+  // v242 · sw.js siempre directo a la red (actualizar.js compara con él la versión del sitio)
+  if (/\/sw\.js$/.test(path)) return;
 
   // Audio: caché con soporte de Range; la primera vez, red + descarga en segundo plano
   if (/\.(mp3|m4a|ogg|wav)$/i.test(path)) {

@@ -458,6 +458,9 @@ if ('serviceWorker' in navigator) {
       .catch(function (err) { console.log('[PWA] SW error:', err); });
   });
 }
+// v242 · Actualización obligatoria (también si se entra directo a index.html)
+(function () { var sc = document.createElement('script'); sc.src = 'actualizar.js';
+  sc.onload = function () { try { CHH_ACT.revisar({ destino: 'index.html' }); } catch (e) {} }; document.head.appendChild(sc); })();
 // ── Botón de instalación ──
 let deferredPrompt = null;
 const installBtn = document.createElement('button'); installBtn.id = 'installBtn'; installBtn.type = 'button'; installBtn.textContent = '⬇ INSTALAR APP';

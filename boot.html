@@ -213,12 +213,15 @@ body.out .scene{transition:opacity .45s;opacity:0}
 })();
 </script>
 <script src="gamepad.js"></script>
+<script src="actualizar.js"></script>
 <script>
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js', {scope:'./'})
       .then(function(reg){ if(reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'}); })
       .catch(function(err){ console.log('[Boot] SW error:',err); });
   }
+  // v242 · Actualización obligatoria: si hay una versión nueva en el sitio, se instala antes de entrar a la app
+  try { window.CHH_ACT && CHH_ACT.revisar({ destino: 'index.html' }); } catch (e) {}
 </script>
 </body>
 </html>

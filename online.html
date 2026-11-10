@@ -1744,9 +1744,13 @@ async function loadData(onProgress){
       img, imgMin:c.imgMin?resolveImg(minBase||base,c.imgMin):(minBase&&c.img&&!/^(https?:|data:|\/|\.\/)/.test(c.img)?minBase+c.img:img),
       gama:c.gama??0, esp:c.llamadoEspecial||null, subtipo:c.subtipo||'normal', colocar:c.colocar||null, sustituto:c.sustitutoAmalgama||null, noNormal:!!c.noNormal, noEspecial:!!c.noEspecial, soloPor:c.soloPor||null, colocarApoyoRival:c.colocarApoyoRival||0, faseCombate:!!c.faseCombate, sectorTurnos:c.sectorTurnos||0, soloPorValor:c.soloPorValor??null, costoColocar:c.costoColocar||null,
       invitado:!!c.invitado, dios:!!c.dios, proto:!!c.prototipo, soloResp:!!c.soloRespuesta, noNeg:!!c.noNegable, noNegLlamado:!!c.noNegableLlamado, boss:!!c.boss, costoNegar:c.costoNegar||0, soloPorNombre:c.soloPorNombre||null, soloOrigen:c.soloOrigen||null, soloPorSi:!!c.soloPorSi, hab:(c.habilidades||[]).map(h=>String(h).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase()),
-      eff:c.texto||'', efectos:Array.isArray(c.efectos)?c.efectos:[], tester:!!c.tester, nx:c.nombreTambien||'', ctrOk:!!c.contadores
+      eff:c.texto||'', efectos:Array.isArray(c.efectos)?c.efectos:[], tester:!!c.tester, nx:c.nombreTambien||'', ctrOk:!!c.contadores,
+      superDe:c.superDe||null, superCtr:c.superCtr||2
     };
   });
+  // v238 · SUPER (genérico): la carta base gana la acción "Transformarse" en el campo (para los SUPER actuales y futuros)
+  Object.values(C).forEach(sc=>{const b=sc.superDe&&C[sc.superDe];if(!b||b.efectos.some(e=>e.accion==='super_desde_base'))return;
+    b.efectos=b.efectos.concat([{cuando:'accion',accion:'super_desde_base',sinAnuncio:true,texto:'🌟 Transformarse en SUPER (retira '+sc.superCtr+' CONTADORES DE ALMA)',condicion:{superBase:true},pasos:[{accion:'super_desde_base'}]}]);});
   REV=resolveImg(base,(DATA.assets||{}).reverso);
   // Fondo del tablero (se reemplaza subiendo otra imagen o cambiando assets.tablero)
   const tab=(DATA.assets||{}).tablero;
@@ -2055,7 +2059,9 @@ function altoActivo(){return !!G&&['player','cpu'].some(o=>G[o].apoyo.some(a=>a&
 // Jakkyel como APOYO en el campo de o (colocada por su rival)
 function jakkyelEn(o){return !!G&&G[o].apoyo.some(a=>a&&a.duenio&&a.duenio!==o&&a.card==='jakkyel');}
 function ofrendaNegada(o){return altoActivo()||jakkyelEn(o)||controlaPasiva(o,'anula_ofrenda');}
-async function inicioAccion(o){
+{const _ua=useAbility;useAbility=async function(o){const r=await _ua.apply(this,arguments);try{await superOfrecer(o);}catch(e){}return r;};}
+async function inicioAccion(o){ const r=await _inicioAccion(o); try{await superOfrecer(o);}catch(e){} return r; }
+async function _inicioAccion(o){
   // v82 · AGOTADO: quien defendió en el turno rival pasa este turno descansando (no ataca ni vuelve a defender)
   if(G&&!G.over) G[o].pj.forEach(p=>{if(p&&p.agot>0)p.resting=true;});
   if(G&&!G.over) await errantesInicio(); 
@@ -5125,7 +5131,11 @@ function condWhy(o,cid,cond,src){
   if(cond.almasCampoMin&&almasActivas('player')+almasActivas('cpu')<cond.almasCampoMin) return 'Se necesitan '+cond.almasCampoMin+' ALMAS activas en el campo';
   if(cond.pjCampoMin&&G.player.pj.filter(Boolean).length+G.cpu.pj.filter(Boolean).length<cond.pjCampoMin) return 'Se necesitan '+cond.pjCampoMin+' personajes en el campo';
   if(cond.tkVencidoTurno&&!(G.tkVencido&&G.tkVencido[o]===turnKey())) return 'Ningún PERSONAJE TONALKIN fue vencido y enviado a tu Mictlán este turno';
-  if(cond.chilayaSuper&&!tkPrincesas(o).length) return 'Necesitas a "Chilaya, Princesa Tonalkin" en tu campo con 2 o más CONTADORES DE ALMA';
+  if(cond.chilayaSuper&&!superBases(o,cid).length) return 'Necesitas a "'+(C[C[cid].superDe]||{name:'su forma base'}).name+'" en tu campo con '+superNec(cid)+' o más CONTADORES DE ALMA';
+  if(cond.superBase){const p=src&&src.slot!=null?G[o].pj[src.slot]:null, F=superFuentes(o,cid);
+    if(!F.length) return 'No tienes su forma SUPER en tu mano ni en tu BP';
+    if(!p||!F.some(f=>(p.ctr||0)>=superNec(f.cid))) return 'Necesita '+superNec(F[0].cid)+' CONTADORES DE ALMA';
+    if(espBloqueado()) return 'Los llamados especiales están bloqueados';}
   if(cond.ondaVitalCosto&&G[o].hand.filter(c=>matchF(c,{tipo:'pj',nombreIncluye:'TONALKIN'})).length<2&&ctrCampo(o)<4) return 'Necesitas 2 PERSONAJES TONALKIN en tu mano o 4 CONTADORES DE ALMA en tu campo';
   if(cond.baMin&&G[o].ba.length<cond.baMin) return 'Tu BA está vacía';
   if(cond.tonalKenRetorno&&!tkKenCostos(o).length) return 'Necesitas un PERSONAJE TONALKIN en tu campo, mano o Mictlán para confinar';
@@ -7092,6 +7102,59 @@ const TK_F={tipo:'pj',nombreIncluye:'TONALKIN'};
 function esTk(cid){return !!cid&&matchF(cid,{nombreIncluye:'TONALKIN'});}
 function ctrCampo(o){return G[o].pj.reduce((t,p)=>t+(p&&p.ctr||0),0)+contAlma(o);}
 function ponerCtr(o,p,n){if(!p||!n)return;p.ctr=(p.ctr||0)+n;lg('🔷 <b>'+C[p.id].name+'</b>'+who(o)+' recibe '+n+' CONTADOR(ES) DE ALMA (total '+p.ctr+').','#7fe3ff');}
+// ── v238 · SUPER genérico: superDe = id de la forma base; superCtr = contadores que se retiran (2) ──
+function superNec(sid){return (C[sid]&&C[sid].superCtr)||2;}
+function superBases(o,sid){const b=C[sid]&&C[sid].superDe; if(!b) return [];
+  return G[o].pj.map((p,i)=>p&&p.id===b&&!p.ixRival&&(p.ctr||0)>=superNec(sid)?{z:'campo',i,cid:p.id,o}:null).filter(Boolean);}
+function superFuentes(o,baseCid){const out=[],vis=new Set();
+  [['mano',G[o].hand],['bp',G[o].bp]].forEach(([z,arr])=>arr.forEach(c=>{if(C[c]&&C[c].superDe&&(!baseCid||C[c].superDe===baseCid)&&!vis.has(z+c)){vis.add(z+c);out.push({z,cid:c});}}));
+  return out;}
+async function superTransformar(o,sid,z,baseSlot){
+  const nec=superNec(sid); let bases=superBases(o,sid); if(baseSlot!=null) bases=bases.filter(b=>b.i===baseSlot);
+  if(!bases.length) return false;
+  let x=bases[0];
+  if(bases.length>1){const r=await choose({o,cid:sid,vars:{},interactive:o==='player'},bases,1,{sub:'Elige a "'+C[C[sid].superDe].name+'" (se retiran '+nec+' CONTADORES DE ALMA)',min:1,score:y=>G[o].pj[y.i].ctr||0});if(r&&r[0])x=r[0];}
+  const pr=G[o].pj[x.i], arr=()=>z==='mano'?G[o].hand:G[o].bp; if(!pr||!arr().includes(sid)) return false;
+  if(espBloqueado()){lg('⚠ Los llamados especiales están bloqueados: no puede transformarse.','var(--orange)');return false;}
+  const resto=Math.max(0,(pr.ctr||0)-nec), sd=sideOfSlot(o,x.i);
+  pr.ctr=resto;
+  lg('🔷 <b>'+C[pr.id].name+'</b>'+who(o)+': retira '+nec+' CONTADORES DE ALMA y va al Mictlán.','#7fe3ff');
+  leaveField(o,x.i,'mictlan');renderAll();await fireLeave(o,pr.id);
+  if(!G||G.over) return false;
+  const neg=!await announce(o,sid,'llamado',{z},{especial:true});
+  if(neg) return false;
+  const k=arr().indexOf(sid); if(k<0) return false;
+  const slot=freeIn(o,sd);
+  if(slot===undefined){lg('⚠ Sin zona libre en ese SECTOR.','var(--red)');return false;}
+  arr().splice(k,1);
+  await placeChar(o,sid,{via:'especial',slot,from:z==='mano'?'la mano (transformación)':'la BP (transformación)',por:sid});
+  if(z==='bp') sh(G[o].bp);
+  const q=G[o].pj[slot];
+  if(q&&q.id===sid&&resto) ponerCtr(o,q,resto);
+  showBanner(o==='player'?'player':'end','SUPER TONALKIN',C[sid].name.split(',')[0].toUpperCase(),1500);
+  renderAll();
+  return true;
+}
+// Pregunta (como otras cartas) cuando la forma base ya tiene los contadores y la SUPER está en tu mano o BP. Solo en tu Fase de Acción.
+async function superOfrecer(o){
+  if(!G||G.over||G.active!==o||G.phase!=='action'||G._superOfr||espBloqueado()) return;
+  G._superOfr=true; G._superVisto=G._superVisto||{};
+  try{
+    for(let i=0;i<G[o].pj.length;i++){
+      const p=G[o].pj[i]; if(!p||p.ixRival||!(p.ctr>0)) continue;
+      const F=superFuentes(o,p.id).filter(f=>(p.ctr||0)>=superNec(f.cid)); if(!F.length) continue;
+      const clave=o+':'+i+':'+turnKey()+':'+p.ctr; if(G._superVisto[clave]) continue; G._superVisto[clave]=true;
+      let f=null;
+      if(o==='player'){
+        const ops=F.map(x=>'🌟 Sí, llamar a '+C[x.cid].name+(x.z==='mano'?' desde tu mano':' desde tu BP'));
+        const r=await preguntaDe(o,'🌟 <b>'+C[p.id].name+'</b> tiene '+p.ctr+' CONTADORES DE ALMA.<br>¿Retiras '+superNec(F[0].cid)+' y la transformas en su forma SUPER?<br><small>Si dices que no, puedes hacerlo después desde su menú.</small>',[...ops,'✖ Ahora no']);
+        if(r==null||r>=F.length) continue; f=F[r];
+      } else f=F.find(x=>x.z==='mano')||F[0];
+      await superTransformar(o,f.cid,f.z,i);
+      if(!G||G.over) return;
+    }
+  } finally {G&&(G._superOfr=false);}
+}
 function tkPrincesas(o){return G[o].pj.map((p,i)=>p&&p.id==='tk_chilaya'&&(p.ctr||0)>=2&&!p.ixRival?{z:'campo',i,cid:p.id,o}:null).filter(Boolean);}
 function tkKenCostos(o){const L=[];G[o].pj.forEach((p,i)=>{if(p&&!p.ixRival&&matchF(p.id,TK_F))L.push({z:'campo',i,cid:p.id,o});});
   G[o].hand.forEach((c,i)=>{if(matchF(c,TK_F))L.push({z:'mano',i,cid:c,o});});G[o].mictlan.forEach((c,i)=>{if(matchF(c,TK_F))L.push({z:'mictlan',i,cid:c,o});});return L;}
@@ -7197,28 +7260,15 @@ Object.assign(PASOS,{
     if(x&&G[o].pj[x.i]) ponerCtr(o,G[o].pj[x.i],2);
     return true;
   },
-  // Chilaya, Super Tonalkin: retira 2 contadores de la Princesa, la envía al Mictlán y toma su lugar
-  async chilaya_super(ctx){
-    const o=ctx.o, hi=G[o].hand.indexOf(ctx.cid); if(hi<0) return false;
-    const list=tkPrincesas(o); if(!list.length) return false;
-    const [x]=await choose(ctx,list,1,{sub:'Elige a "Chilaya, Princesa Tonalkin" (se retiran 2 CONTADORES DE ALMA)',min:1,score:y=>G[o].pj[y.i].ctr||0});
-    const pr=x&&G[o].pj[x.i]; if(!pr) return false;
-    const resto=Math.max(0,(pr.ctr||0)-2), sd=sideOfSlot(o,x.i);
-    pr.ctr=resto;
-    lg('🔷 <b>'+C[pr.id].name+'</b>'+who(o)+': retira 2 CONTADORES DE ALMA y va al Mictlán.','#7fe3ff');
-    leaveField(o,x.i,'mictlan');renderAll();await fireLeave(o,pr.id);
-    if(!G||G.over) return false;
-    const neg=!await announce(o,ctx.cid,'llamado',{z:'mano'},{especial:true});
-    if(neg) return false;
-    const k=G[o].hand.indexOf(ctx.cid); if(k<0) return false;
-    const slot=freeIn(o,sd);
-    if(slot===undefined){lg('⚠ Sin zona libre en ese SECTOR.','var(--red)');return false;}
-    G[o].hand.splice(k,1);
-    await placeChar(o,ctx.cid,{via:'especial',slot,from:'la mano (transformación)',por:ctx.cid});
-    const q=G[o].pj[slot];
-    if(q&&q.id===ctx.cid&&resto) ponerCtr(o,q,resto);
-    showBanner(o==='player'?'player':'end','SUPER TONALKIN',C[ctx.cid].name.split(',')[0].toUpperCase(),1500);
-    return true;
+  // SUPER (Chilaya, Super Tonalkin y futuros): desde la mano
+  async chilaya_super(ctx){return await superTransformar(ctx.o,ctx.cid,'mano');},
+  // SUPER desde la carta base en el campo (elige la forma SUPER de la mano o la BP)
+  async super_desde_base(ctx){
+    const o=ctx.o, p=ctx.slot!=null?G[o].pj[ctx.slot]:null; if(!p) return false;
+    const F=superFuentes(o,p.id).filter(f=>(p.ctr||0)>=superNec(f.cid)); if(!F.length) return false;
+    let f=F[0];
+    if(F.length>1){const i=o==='player'?await preguntaDe(o,'🌟 ¿Desde dónde llamas la forma SUPER?',F.map(x=>(x.z==='mano'?'✋ ':'🂠 ')+C[x.cid].name+(x.z==='mano'?' (mano)':' (BP)'))):F.findIndex(x=>x.z==='bp');f=F[Math.max(0,i==null?0:i)]||F[0];}
+    return await superTransformar(o,f.cid,f.z,ctx.slot);
   },
   // Gran Onda Vital: confina 2 TONALKIN de tu mano o paga 4 contadores; el rival sacrifica todos sus personajes
   async onda_vital(ctx){

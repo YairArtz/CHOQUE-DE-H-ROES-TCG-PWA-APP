@@ -295,6 +295,10 @@
 
     .sobre-close{margin-top:10px;font-family:'Orbitron',sans-serif;font-size:.6rem;font-weight:700;letter-spacing:2px;color:var(--muted);background:none;border:1px solid var(--border);padding:10px 24px;border-radius:5px;cursor:pointer;text-shadow:0 1px 3px rgba(0,0,0,.5);}
     .sobre-close:hover{border-color:var(--gold);color:var(--gold);}
+    .sobre-acc{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+    .sobre-otro{color:#1a1000;background:linear-gradient(135deg,#ffd166,#f5a623);border-color:#f5a623;}
+    .sobre-otro:hover{color:#1a1000;filter:brightness(1.1);}
+    .sobre-otro:disabled{opacity:.4;cursor:not-allowed;filter:grayscale(.6);}
 
     .sobre-tap-hint{font-family:'Orbitron',sans-serif;font-size:.85rem;color:var(--gold);letter-spacing:3px;animation:pulse 1.5s ease infinite;text-shadow:0 0 10px rgba(245,166,35,.5),0 2px 6px rgba(0,0,0,.8);margin-top:4px;}
     @keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
@@ -688,7 +692,7 @@
   </div>
   <div class="sobre-tap-hint" id="sobre-hint">⚡ TOCA PARA ABRIR ⚡</div>
   <div class="reveal-cards" id="reveal-cards"></div>
-  <button class="sobre-close" id="sobre-close" style="display:none" onclick="cerrarSobre()">CONTINUAR</button>
+  <div class="sobre-acc"><button class="sobre-close" id="sobre-close" style="display:none" onclick="cerrarSobre()">CONTINUAR</button><button class="sobre-close sobre-otro" id="sobre-otro" style="display:none" onclick="abrirOtro()">ABRIR OTRO</button></div>
 </div>
 
 <!-- Overlay CARTA REVELADA (compra suelta) -->
@@ -1252,6 +1256,7 @@ function iniciarApertura(packid, costo, imagen) {
   if (abriendo || comprando) return;   // ← bloqueo antes de que se toque el sobre
   if (hpSaldo < costo) { mostrarToast('Saldo insuficiente: ' + hpSaldo + ' / ' + costo + ' HP'); return; }
   comprando = true;                    // ← reserva el turno YA
+  ultSobre = { packid, costo, imagen };   // v250 · para «ABRIR OTRO»
   sobreActual = packid;
   sobreImagen = imagen || (packid + '.png');
   cartasReveladas = [];
@@ -1269,6 +1274,7 @@ function iniciarApertura(packid, costo, imagen) {
   reveal.innerHTML = '';
   reveal.style.height = '';
   closeBtn.style.display = 'none';
+  const otroBtn = document.getElementById('sobre-otro'); if (otroBtn) otroBtn.style.display = 'none';
   hint.textContent = '⚡ TOCA PARA ABRIR ⚡';
   hint.style.display = '';
 
@@ -1387,9 +1393,29 @@ async function cortarSobre() {
   hint.style.display = '';
 
   abriendo = false;
+  setTimeout(() => revelarSiToca(0), 450);
+}
+
+// v250 · Revelación épica (revelacion.js) cuando la carta de arriba es Secreta o Foil:
+// sale al centro boca abajo, giros de suspenso, volteo con destello, título y brillo holográfico; luego regresa a la pila
+let revelando = false, ultSobre = null;
+const RAREZAS_EPICAS = ['secreta', 'foil', 'foil_poco_comun'];
+async function revelarSiToca(i) {
+  const c = cartasReveladas[i], el = document.getElementById('rc-' + i);
+  if (!c || !el || !window.Revelacion || !RAREZAS_EPICAS.includes(c.rareza) || el.dataset.revelada) return;
+  el.dataset.revelada = '1'; revelando = true;
+  try { await Revelacion.mostrar({ img: CARTAS_IMG_BASE + c.imagen, nombre: c.nombre, rareza: c.rareza, desde: el }); } catch (e) {}
+  revelando = false;
+}
+function abrirOtro() {
+  if (!ultSobre || revelando) return;
+  if (hpSaldo < ultSobre.costo) { mostrarToast('Saldo insuficiente: ' + hpSaldo + ' / ' + ultSobre.costo + ' HP'); return; }
+  abriendo = false; comprando = false;
+  iniciarApertura(ultSobre.packid, ultSobre.costo, ultSobre.imagen);
 }
 
 function avanzarCarta() {
+  if (revelando) return;
   const total = cartasReveladas.length;
   const current = document.getElementById('rc-' + cartaActual);
   if (!current) return;
@@ -1412,6 +1438,7 @@ function avanzarCarta() {
         next.style.transform = 'scale(1)';
         next.style.zIndex = total + 1;
         next.setAttribute('onclick', 'avanzarCarta()');
+        setTimeout(() => revelarSiToca(cartaActual), 380);
       }, 300);
     }
     const hint = document.getElementById('sobre-hint');
@@ -1421,6 +1448,8 @@ function avanzarCarta() {
     setTimeout(() => {
       document.getElementById('sobre-hint').style.display = 'none';
       document.getElementById('sobre-close').style.display = '';
+      const ob = document.getElementById('sobre-otro');
+      if (ob && ultSobre) { ob.textContent = `ABRIR OTRO · ${ultSobre.costo} HP`; ob.disabled = hpSaldo < ultSobre.costo; ob.style.display = ''; }
     }, 400);
   }
 }
@@ -2263,6 +2292,7 @@ abrirSeccion = function(tab) {
 </script>
 <script src="settings.js"></script>
 <script src="cosmeticos.js"></script>
+<script src="revelacion.js"></script>
 <!-- Música de fondo persistente -->
 <script src="bgm.js"></script>
 </body>

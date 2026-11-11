@@ -475,6 +475,7 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 .mc-inf .f-n{padding-right:34px}
 .mc-inf p{font-size:14.5px;line-height:1.4;color:#cfe0ff;margin:8px 0;white-space:pre-wrap}
 .mc-inf .f-btns{flex-wrap:wrap}
+#mSobre [hidden]{display:none!important}   /* v250 · CONTINUAR no aparece antes de tiempo */
 .premio{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin:6px 0 10px}
 .premio figure{width:min(140px,calc(26 * var(--uw)));animation:premioIn .6s cubic-bezier(.2,1.4,.4,1) both}
 .premio figure:nth-child(2){animation-delay:.25s}.premio figure:nth-child(3){animation-delay:.5s}
@@ -1133,6 +1134,7 @@ window.nxTip = function () {
 
 <script src="nube.js"></script>
 <script src="medios.js"></script>
+<script src="revelacion.js"></script>
 <script>
 // ── Orientación horizontal (como Simulación y Arcade) ──
 const MOVIL = matchMedia('(pointer:coarse)').matches;
@@ -2413,7 +2415,17 @@ async function comprarSobre(sb) {
   $('sbPkg').classList.add('abre'); $('sbHint').hidden = true;
   await new Promise(r => setTimeout(r, 520));
   $('sbPkg').style.display = 'none';
-  $('sbRes').innerHTML = `<div class="premio">${res.map(x => `<figure><img src="${esc(cartaImg(x.id, true))}" alt=""><figcaption>${esc(nomC(x.id))}${x.repetida ? `<br><span style="color:#5cc8ff">Completa · +${x.repetida} <i class="mn"></i></span>` : (CARD[x.id] || {}).tipo === 'amalgama' ? '<br><span style="color:#ffd166">✨ AMALGAMA</span>' : `<br><span class="rz" style="color:${RZ[RAREZA(x.id)][1]}">${RAREZA(x.id) === 3 ? '★ ' : ''}${RZ[RAREZA(x.id)][0]}</span>`}</figcaption></figure>`).join('')}</div>`;
+  $('sbRes').innerHTML = `<div class="premio">${res.map(x => `<figure${RAREZA(x.id) === 3 && window.Revelacion ? ' class="por-revelar" style="visibility:hidden"' : ''}><img src="${esc(cartaImg(x.id, true))}" alt=""><figcaption>${esc(nomC(x.id))}${x.repetida ? `<br><span style="color:#5cc8ff">Completa · +${x.repetida} <i class="mn"></i></span>` : (CARD[x.id] || {}).tipo === 'amalgama' ? '<br><span style="color:#ffd166">✨ AMALGAMA</span>' : `<br><span class="rz" style="color:${RZ[RAREZA(x.id)][1]}">${RAREZA(x.id) === 3 ? '★ ' : ''}${RZ[RAREZA(x.id)][0]}</span>`}</figcaption></figure>`).join('')}</div>`;
+  // v250 · Cada Joya se revela con la animación épica (revelacion.js): sale al centro, suspenso, volteo, «¡JOYA!» y regresa
+  const porRev = [...$('sbRes').querySelectorAll('figure.por-revelar')];
+  if (porRev.length) {
+    await new Promise(r => setTimeout(r, 700));
+    for (const fg of porRev) {
+      const k = [...fg.parentNode.children].indexOf(fg), x = res[k];
+      try { await Revelacion.mostrar({ img: cartaImg(x.id, true), nombre: nomC(x.id), rareza: 'joya', desde: fg, raiz: $('stage') }); } catch (e) {}
+      fg.style.visibility = ''; fg.classList.remove('por-revelar');
+    }
+  }
   $('sbOk').hidden = false;
   try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('sbOk')), 300); } catch (e) {}
   await new Promise(r => { $('sbOk').onclick = r; });

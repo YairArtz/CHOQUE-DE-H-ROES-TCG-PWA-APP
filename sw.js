@@ -61,7 +61,7 @@
 //  v8:   shell cache-first + revalidación, JSON red-primero, fallbacks por tipo.
 // ================================================================
 try { importScripts('./config.js'); } catch (e) {}   // direcciones de los servidores (config.js)
-const CACHE_NAME    = 'chh-tcg-v249';
+const CACHE_NAME    = 'chh-tcg-v250';
 const CACHE_DYNAMIC = 'chh-paginas-v1';    // estable: páginas/JSON/JS visitados (NO subir; lo precargado se renueva solo)
 const CACHE_IMG     = 'chh-img-v1';      // estable: imágenes, fuentes y PDFs. Subir SOLO si reemplazas imágenes con el mismo nombre
 const CACHE_AUDIO   = 'chh-audio-v1';    // estable: pistas de bgm.js. Subir SOLO si reemplazas un .mp3 con el mismo nombre
@@ -81,7 +81,7 @@ const IMG_MAX       = 800;    // máx. entradas en caché de imágenes (480+ car
 const CATALOG_JSON = /(cartas\.json|cartas_simulacion\.json|comics_config\.json|intro_config\.json)$/i;
 
 const CACHE_CORE = [
-  './', './boot.html', './index.html', './actualizar.js', './calculadora.html',
+  './', './boot.html', './index.html', './actualizar.js', './revelacion.js', './calculadora.html',
   './perfil.html', './calendario.html', './constructor.html',
   './torneo-director.html', './noticias.html', './tienda.html', './tienda-fisica.html',
   './ajustes.html', './intro.html', './intro_config.json',

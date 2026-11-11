@@ -1835,6 +1835,9 @@ async function loadData(onProgress){
     };
   });
   // v238 · SUPER (genérico): la carta base gana la acción "Transformarse" en el campo (para los SUPER actuales y futuros)
+  // v256 · SUPER atascado en la mano: revelarlo y regresarlo a la BP para añadir su forma base desde la BP (1 vez por turno)
+  Object.values(C).forEach(sc=>{const b=sc.superDe&&C[sc.superDe];if(!b||sc.efectos.some(e=>e.accion==='super_cambio'))return;
+    sc.efectos=sc.efectos.concat([{cuando:'mano',accion:'super_cambio',limite:'turno',texto:'Revelarla y regresarla a tu BP: añadir «'+b.name+'» desde tu BP',condicion:{superCambio:true},pasos:[{accion:'super_cambio'}]}]);});
   Object.values(C).forEach(sc=>{const b=sc.superDe&&C[sc.superDe];if(!b||b.efectos.some(e=>e.accion==='super_desde_base'))return;
     b.efectos=b.efectos.concat([{cuando:'accion',accion:'super_desde_base',sinAnuncio:true,texto:'🌟 Transformarse en SUPER (retira '+sc.superCtr+' CONTADORES DE ALMA)',condicion:{superBase:true},pasos:[{accion:'super_desde_base'}]}]);});
   REV=resolveImg(base,(DATA.assets||{}).reverso);
@@ -5235,6 +5238,9 @@ function condWhy(o,cid,cond,src){
     if(!(p.ctr>0)) return 'Necesita 1 CONTADOR DE ALMA';
     if(p.lock>0||p.bloq>0) return 'No puede declarar batalla este turno';}
   if(cond.chilayaSuper&&!superBases(o,cid).length) return 'Necesitas a "'+(C[C[cid].superDe]||{name:'su forma base'}).name+'" en tu campo con '+superNec(cid)+' o más CONTADORES DE ALMA';
+  if(cond.superCambio){const b=C[cid]&&C[cid].superDe;
+    if(!b||!G[o].hand.includes(cid)) return 'Debe estar en tu mano';
+    if(!G[o].bp.includes(b)) return 'No tienes a «'+C[b].name+'» en tu BP';}
   if(cond.superBase){const p=src&&src.slot!=null?G[o].pj[src.slot]:null, F=superFuentes(o,cid);
     if(!F.length) return 'No tienes su forma SUPER en tu mano ni en tu BP';
     if(!p||!F.some(f=>(p.ctr||0)>=superNec(f.cid))) return 'Necesita '+superNec(F[0].cid)+' CONTADORES DE ALMA';
@@ -7396,6 +7402,18 @@ Object.assign(PASOS,{
     if(x&&G[o].pj[x.i]) ponerCtr(o,G[o].pj[x.i],2);
     return true;
   },
+  // v256 · SUPER en la mano ↔ su forma base en la BP
+  async super_cambio(ctx){
+    const o=ctx.o, sid=ctx.cid, b=C[sid]&&C[sid].superDe;
+    const hi=G[o].hand.indexOf(sid), bi=b?G[o].bp.indexOf(b):-1;
+    if(hi<0||bi<0) return false;
+    G[o].hand.splice(hi,1); G[o].bp.push(sid);
+    G[o].bp.splice(G[o].bp.indexOf(b),1); G[o].hand.push(b);
+    sh(G[o].bp);
+    lg('🔁 '+(o==='player'?'Revelas':'El adversario revela')+' <b>'+C[sid].name+'</b> y la regresa a su BP: añade <b>'+C[b].name+'</b> a su mano. La BP se revuelve.','#7fe3ff');
+    try{if(o==='player')clearSel(sid);}catch(e){}
+    renderAll(); return true;
+  },
   // v255 · Huitlak, Super Tonalkin: retira 1 contador y puede atacar otra vez este turno
   async huitlak_otra(ctx){
     const o=ctx.o, p=ctx.slot!=null?G[o].pj[ctx.slot]:null; if(!p||!(p.ctr>0)) return false;
@@ -8701,6 +8719,7 @@ function nivelCreador(){return !!G&&G.cpuNivel==='creador';}
 function cpuFalla(f){const lv={facil:.45,medio:.2}[G&&G.cpuNivel]||0;return Math.random()<lv*(f||1);}
 function cpuQuiereMano(cid,e){
   const acc=new Set((e.pasos||[e]).map(s=>s.accion));
+  if(acc.has('super_cambio')) return !superBases('cpu',cid).length;   // v256 · si no puede transformarse ya, cambia el SUPER por su forma base
   if(acc.has('ninjiachi_zona')) return zonasLibresPJ('cpu').length>0&&G.cpu.bp.some(c=>matchF(c,NINJA)&&C[c].type==='pj');
   if(acc.has('oxkotetl')){const ps=G.player.pj.filter(Boolean);return ps.length>=2&&ps.reduce((t,p)=>t+SCORE(p.id),0)>P_SCORE_OX()-40||ps.length>=3; }
   if((e.pasos||[]).some(s=>s.filtro&&s.filtro.invitado)) return true;                 // Mojito

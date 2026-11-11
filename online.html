@@ -323,6 +323,56 @@ html[data-mesa="imagen"] .aztec-bg{opacity:1;background-size:cover;background-po
   78%{transform:scale(1);opacity:1}100%{transform:scale(.35) translateY(30%);opacity:0}}
 .fx-show .lbl{position:relative;font-family:'Orbitron',sans-serif;font-weight:900;letter-spacing:4px;font-size:clamp(11px,calc(var(--H) * .035),20px);
   color:#fff;text-shadow:0 0 8px var(--fxc),0 0 20px var(--fxc);animation:fxShowBg 1.25s ease forwards}
+/* v251 · VÓRTICE: Amalgamas, transformaciones Super y cartas Secretas (más largo y solo para esas) */
+.fx-show.vortice{pointer-events:auto;cursor:pointer;animation:fxShowBg 1.7s ease forwards;background:radial-gradient(ellipse at center,rgba(0,0,0,.35),rgba(0,0,0,.82))}
+.fx-show.vortice .lbl{animation:fxShowBg 1.7s ease forwards}
+.fx-show .vx{position:absolute;width:calc(var(--H) * 1.5);aspect-ratio:1;pointer-events:none}
+.fx-show .vx i{position:absolute;inset:0;border-radius:50%;
+  background:repeating-conic-gradient(from 0deg,transparent 0deg 14deg,var(--fxc) 22deg,transparent 34deg 60deg);
+  -webkit-mask-image:radial-gradient(circle,transparent 6%,#000 22%,#000 40%,transparent 68%);mask-image:radial-gradient(circle,transparent 6%,#000 22%,#000 40%,transparent 68%);
+  opacity:0;animation:vxGiro 1.1s cubic-bezier(.55,0,.75,.4) forwards}
+.fx-show .vx i:nth-child(2){animation-delay:.08s;transform:rotate(40deg);filter:hue-rotate(40deg) brightness(1.3)}
+.fx-show .vx i:nth-child(3){animation-delay:.16s;transform:rotate(80deg);filter:brightness(1.8)}
+@keyframes vxGiro{0%{opacity:0;transform:scale(1.25) rotate(0)}20%{opacity:.9}85%{opacity:.85}100%{opacity:0;transform:scale(.08) rotate(-900deg)}}
+.fx-show .vx b{position:absolute;left:50%;top:50%;width:14%;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%) scale(0);
+  background:radial-gradient(circle,#fff 0 20%,var(--fxc) 45%,transparent 70%);animation:vxNucleo 1.1s ease-in forwards}
+@keyframes vxNucleo{0%{transform:translate(-50%,-50%) scale(0)}80%{transform:translate(-50%,-50%) scale(1.4);opacity:1}100%{transform:translate(-50%,-50%) scale(4);opacity:0}}
+.fx-show .vx em{position:absolute;left:50%;top:50%;width:30%;aspect-ratio:1;border-radius:50%;border:6px solid var(--fxc);transform:translate(-50%,-50%) scale(.2);opacity:0;
+  box-shadow:0 0 30px var(--fxc),inset 0 0 20px #fff;animation:vxOnda .7s cubic-bezier(.2,.7,.3,1) 1s forwards}
+@keyframes vxOnda{0%{opacity:1;transform:translate(-50%,-50%) scale(.2)}100%{opacity:0;transform:translate(-50%,-50%) scale(3.2);border-width:1px}}
+.fx-show.vortice img{opacity:0;animation:vxCarta 1.7s cubic-bezier(.2,.9,.25,1.1) forwards}
+@keyframes vxCarta{0%,55%{opacity:0;transform:scale(.05) rotate(-540deg)}72%{opacity:1;transform:scale(1.12) rotate(4deg)}80%{transform:scale(1) rotate(0)}92%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.4) translateY(30%)}}
+/* v251 · LETRERO DE FIN DE CHOQUE (antes de la ventana final) */
+.fin-cine{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;pointer-events:auto;cursor:pointer;overflow:hidden;
+  background:radial-gradient(ellipse at center,rgba(0,0,0,.15),rgba(0,0,0,.78));animation:fcBg 1.75s ease forwards}
+@keyframes fcBg{0%{opacity:0}8%{opacity:1}86%{opacity:1}100%{opacity:0}}
+.fin-cine .fc-rays{position:absolute;width:calc(var(--W) * 1.6);aspect-ratio:1;border-radius:50%;opacity:0;
+  background:repeating-conic-gradient(from 0deg,var(--fcc) 0deg 5deg,transparent 5deg 15deg);
+  -webkit-mask-image:radial-gradient(circle,#000 0%,transparent 60%);mask-image:radial-gradient(circle,#000 0%,transparent 60%);animation:fcRays 1.75s ease .25s forwards}
+@keyframes fcRays{0%{opacity:0;transform:rotate(0) scale(.6)}25%{opacity:.35}100%{opacity:0;transform:rotate(80deg) scale(1.1)}}
+.fin-cine .fc-band{position:absolute;left:-10%;right:-10%;height:calc(var(--H) * .26);transform:skewY(-4deg) scaleX(0);transform-origin:left center;
+  background:linear-gradient(90deg,transparent,var(--fcb) 12%,var(--fcb) 88%,transparent);box-shadow:0 0 40px var(--fcc);
+  border-top:2px solid var(--fcc);border-bottom:2px solid var(--fcc);animation:fcBand .35s cubic-bezier(.7,0,.2,1) .05s forwards}
+@keyframes fcBand{to{transform:skewY(-4deg) scaleX(1)}}
+.fin-cine .fc-txt{position:relative;font-family:'Orbitron',sans-serif;font-weight:900;letter-spacing:.06em;line-height:1;white-space:nowrap;
+  font-size:clamp(34px,calc(var(--H) * .17),150px);color:transparent;background:linear-gradient(180deg,#fff 15%,var(--fct) 55%,var(--fcd) 100%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-stroke:2px rgba(0,0,0,.55);
+  filter:drop-shadow(0 0 14px var(--fcc)) drop-shadow(0 5px 0 rgba(0,0,0,.6));opacity:0;animation:fcGolpe .5s cubic-bezier(.2,1.6,.4,1) .3s forwards}
+@keyframes fcGolpe{0%{opacity:0;transform:scale(3.2);filter:blur(10px)}60%{opacity:1;filter:blur(0) drop-shadow(0 0 14px var(--fcc))}100%{opacity:1;transform:scale(1)}}
+.fin-cine .fc-txt::after{content:'';position:absolute;inset:0;background:linear-gradient(110deg,transparent 40%,rgba(255,255,255,.85) 50%,transparent 60%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;background-size:250% 100%;background-position:150% 0;animation:fcBrillo .7s ease .85s forwards}
+@keyframes fcBrillo{to{background-position:-50% 0}}
+.fin-cine .fc-flash{position:absolute;inset:0;background:#fff;opacity:0;animation:fcFlash .45s ease-out .32s}
+@keyframes fcFlash{0%{opacity:.75}100%{opacity:0}}
+.fin-cine .fc-spk{position:absolute;left:50%;top:50%;width:var(--s);height:var(--s);background:var(--c);opacity:0;
+  clip-path:polygon(50% 0,60% 40%,100% 50%,60% 60%,50% 100%,40% 60%,0 50%,40% 40%);animation:fcSpk 1s cubic-bezier(.1,.8,.3,1) var(--d) forwards}
+@keyframes fcSpk{0%{opacity:1;transform:translate(-50%,-50%) scale(.3)}100%{opacity:0;transform:translate(calc(-50% + var(--x)),calc(-50% + var(--y))) scale(1) rotate(180deg)}}
+.fin-cine.derrota .fc-txt{animation:fcCae .6s cubic-bezier(.5,0,.4,1.4) .25s forwards}
+@keyframes fcCae{0%{opacity:0;transform:translateY(-120%) rotate(-3deg)}70%{opacity:1;transform:translateY(4%) rotate(1deg)}100%{opacity:1;transform:none}}
+.fin-cine.derrota .fc-flash{background:#ff1a3c}
+.game.fin-gris{filter:grayscale(.75) brightness(.7);transition:filter .8s ease}
+.endgame-overlay.eg-espera{visibility:hidden!important;opacity:0!important}
+@media (prefers-reduced-motion:reduce){.fx-show .vx,.fin-cine .fc-rays{display:none}}
 /* Cartas que vuelan */
 .fx-fly{position:absolute;border-radius:4px;background:#000 center/cover no-repeat;box-shadow:0 4px 14px rgba(0,0,0,.6),0 0 10px rgba(245,166,35,.45);
   transition:transform .55s cubic-bezier(.3,.7,.3,1),opacity .55s ease;will-change:transform}
@@ -340,6 +390,20 @@ html[data-mesa="imagen"] .aztec-bg{opacity:1;background-size:cover;background-po
 :root.fx-off .board::after{display:none}
 /* Pantalla final */
 .eg-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:8px 0 6px;width:100%}
+/* v251 · Calificación del Choque */
+.eg-calif{display:flex;align-items:center;gap:12px;width:100%;margin:6px 0 6px;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,209,102,.25)}
+.eg-letra{flex:0 0 auto;width:64px;height:64px;display:flex;align-items:center;justify-content:center;border-radius:12px;font-family:'Orbitron',sans-serif;font-weight:900;font-size:42px;line-height:1;
+  color:var(--cc);border:2px solid var(--cc);background:radial-gradient(circle,rgba(255,255,255,.08),rgba(0,0,0,.35));text-shadow:0 0 12px var(--cc);box-shadow:0 0 18px color-mix(in srgb,var(--cc) 45%,transparent),inset 0 0 14px color-mix(in srgb,var(--cc) 30%,transparent)}
+.endgame-overlay:not(.eg-espera) .eg-letra{animation:egSello .55s cubic-bezier(.2,1.6,.4,1) .35s both}
+@keyframes egSello{0%{opacity:0;transform:scale(2.6) rotate(-14deg)}100%{opacity:1;transform:none}}
+.eg-desg{flex:1;min-width:0;display:grid;grid-template-columns:1fr 1fr;gap:2px 12px;font-size:10.5px;color:#9fb3cc;text-align:left}
+.eg-desg div{display:flex;justify-content:space-between;gap:6px;white-space:nowrap}
+.eg-desg b{color:#e6eefc;font-family:'Orbitron',sans-serif;font-size:10px}
+.eg-desg .tot{grid-column:1/-1;margin-top:3px;padding-top:3px;border-top:1px solid rgba(255,255,255,.12);color:#ffd166;font-weight:700}
+.eg-desg .tot b{color:#ffd166;font-size:12px}
+.eg-desg .rec{grid-column:1/-1;color:#7fe3ff;font-size:10px}
+@media (max-height:520px){.eg-letra{width:46px!important;height:46px!important;font-size:28px!important}.eg-calif{padding:6px 8px;margin:2px 0 4px}.eg-calif~.eg-stats{display:none}.endgame-overlay .endgame-icon{display:none}}
+:root.rot .eg-letra{width:46px;height:46px;font-size:28px}:root.rot .eg-calif{padding:6px 8px;margin:2px 0 4px}:root.rot .eg-calif~.eg-stats{display:none}:root.rot .endgame-overlay .endgame-icon{display:none}
 .eg-stat{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:6px 4px;text-align:center}
 .eg-stat b{display:block;font-family:'Orbitron',sans-serif;font-size:16px;color:#ffd166}
 .eg-stat small{font-size:9px;color:#9fb3cc;letter-spacing:1px}
@@ -6707,7 +6771,7 @@ function resolveDecks(){
   DK={jugador:jug,cpu,cpuModo:modo};
 }
 function showDeckSelect(){
-  document.getElementById('endgameModal').classList.remove('show');
+  document.getElementById('endgameModal').classList.remove('show','eg-espera');
   cargarBarajasPropias();
   if(G) G.over=true;
   GEN++;
@@ -6851,7 +6915,13 @@ function endGame(won,reason){
       ';animation-delay:'+(Math.random()*.4)+'s;animation-duration:'+(0.9+Math.random()*.6)+'s;';
     parts.appendChild(p);
   }
-  document.getElementById('endgameModal').classList.add('show');
+  const egm=document.getElementById('endgameModal');
+  egm.classList.add('show');
+  // v251 · Primero el letrero animado; la ventana final aparece al terminar (o al tocar)
+  if(cineOn()&&!/abandon/i.test(String(reason||''))){
+    egm.classList.add('eg-espera');
+    finCine(won).then(()=>{if(!egm.classList.contains('show'))return;egm.classList.remove('eg-espera');egm.style.animation='none';void egm.offsetWidth;egm.style.animation='';});
+  }
 }
 function checkDrawDone(){
   if(G.drewBA&&G.drewBP){
@@ -7869,7 +7939,7 @@ function renderDecks(){
     else{
     ar.className='bc bc-arz'+(a?' occ':'');
     ar.innerHTML=a?imgTag(a,'ci'):'<span class="zlbl">ARENA</span>';
-    ar.onclick=a?()=>showDetail(a,{title:'ARENA'+(o==='cpu'?' · CPU':''),acts:o==='player'&&myAction()?activables('player',a,'accion',{zone:'arena'}):[]}):null;
+    ar.onclick=a?()=>showDetail(a,{title:'ARENA'+(o==='cpu'?' · ADVERSARIO':''),acts:o==='player'&&myAction()?activables('player',a,'accion',{zone:'arena'}):[]}):null;
     }
     const cf=document.getElementById(px+'CF'), top=G[o].conf[G[o].conf.length-1];
     const nAb=(G[o].abajo||[]).length;
@@ -9205,6 +9275,8 @@ function ajAbrir(){
     '<h4>⏱ VELOCIDAD DEL ADVERSARIO (CPU)</h4>'+chips('ajVel',[['lenta','🐢 Lenta'],['normal','▶ Normal'],['rapida','⏩ Rápida']],AJ.vel)+
     '<h4>📣 AVISOS DE FASE</h4>'+chips('ajFases',[['todos','📣 Todos'],['propios','🙋 Solo mis fases'],['off','🔕 Apagados']],avisosFase())+
     '<h4>✨ EFECTOS VISUALES</h4>'+chips('ajFx',[['on','✨ Completos'],['off','🔋 Reducidos']],fxModo())+
+    '<h4>🌀 ANIMACIONES ESPECIALES</h4>'+chips('ajCine',[['1','🌀 Activadas'],['0','✖ Apagadas']],AJ.cine===false?'0':'1')+
+    '<div class="ap-note">Vórtice al llamar Amalgamas, transformaciones Super y cartas Secretas, y letrero de VICTORIA / DERROTA al terminar. Se saltan tocando la pantalla.</div>'+
     '<h4>🎲 VISTA DEL TABLERO</h4>'+chips('ajVista',[['3d','⬒ Inclinada 3D'],['plana','▭ Plana']],AJ.vista==='plana'?'plana':'3d')+
     '<h4>📐 INCLINACIÓN (vista 3D)</h4>'+chips('ajIncl',[['suave','Suave'],['normal','Normal'],['fuerte','Pronunciada']],INCL[AJ.incl]?AJ.incl:'normal')+
     '<div class="ap-note">Efectos completos: chispas al llamar, atacar, destruir y recibir daño. Reducidos los apaga (ahorra batería).</div>'+
@@ -9223,6 +9295,7 @@ function ajAbrir(){
   grupo('ajIncl',v=>{AJ.incl=v;if(AJ.vista!=='3d'){AJ.vista='3d';ajAbrir();}ajGuardar();try{vistaAplicar();}catch(e){}});
   grupo('ajFases',v=>{try{localStorage.setItem('cdh_sim_fases',v);}catch(e){}});
   grupo('ajFx',v=>{try{localStorage.setItem('cdh_sim_fx',v);}catch(e){}fxAplicar();});
+  grupo('ajCine',v=>{AJ.cine=v==='1';ajGuardar();});
   if($('ajVib')) grupo('ajVib',v=>{AJ.vib=v==='1';ajGuardar();if(AJ.vib){let ok=false;try{ok=!!(navigator.vibrate&&navigator.vibrate(120));}catch(e){}rumble(150,.6);
     if(!ok&&!(window.GP&&GP.activo&&GP.activo())&&/Android|iPhone|iPad|iPod|Mobi/i.test(navigator.userAgent))
       lg('📳 Este navegador no permite que la página vibre el celular'+(/iPhone|iPad|iPod/i.test(navigator.userAgent)?' (Safari en iPhone/iPad no lo soporta)':' (revisa que la vibración del sistema esté encendida y que no esté en ahorro de batería)')+'. El control sí vibra.','var(--orange)');}});
@@ -9435,13 +9508,41 @@ function fxVig(cls){
   if(cls==='red'){const g=document.getElementById('game');if(g){g.classList.remove('fx-shake');void g.offsetWidth;g.classList.add('fx-shake');setTimeout(()=>g.classList.remove('fx-shake'),480);}}
 }
 let _fxShowT=0;
+// v251 · Animaciones especiales (vórtice y letrero de fin): Ajustes → ANIMACIONES ESPECIALES
+function cineOn(){return AJ.cine!==false&&fxOn();}
+function esVortice(cid){const c=C[cid];return !!(c&&(c.type==='amalgama'||c.superDe||c.rareza==='secreta'));}
 function fxShowcase(cid,etiqueta,color){
   if(!fxOn()||!C[cid]) return;
   const L=fxLayer(); if(!L) return;
   const now=Date.now(); if(now-_fxShowT<900) return; _fxShowT=now;
-  const w=document.createElement('div'); w.className='fx-show'; w.style.setProperty('--fxc',color);
-  w.innerHTML='<div class="rays"></div><img src="'+(C[cid].img||C[cid].imgMin)+'" onerror="this.onerror=null;this.src=\''+C[cid].imgMin+'\'" alt=""><div class="lbl">'+etiqueta+'</div>';
-  L.appendChild(w); setTimeout(()=>w.remove(),1300);
+  const vx=cineOn()&&esVortice(cid);
+  const w=document.createElement('div'); w.className='fx-show'+(vx?' vortice':''); w.style.setProperty('--fxc',color);
+  w.innerHTML=(vx?'<div class="vx"><i></i><i></i><i></i><b></b><em></em></div>':'<div class="rays"></div>')+'<img src="'+(C[cid].img||C[cid].imgMin)+'" onerror="this.onerror=null;this.src=\''+C[cid].imgMin+'\'" alt=""><div class="lbl">'+etiqueta+'</div>';
+  L.appendChild(w);
+  if(vx){w.onclick=()=>w.remove();setTimeout(()=>{if(w.isConnected){try{const g=document.querySelector('.game');if(g){g.classList.remove('fx-shake');void g.offsetWidth;g.classList.add('fx-shake');setTimeout(()=>g.classList.remove('fx-shake'),500);}}catch(e){}}},1000);}
+  setTimeout(()=>w.remove(),vx?1750:1300);
+}
+// v251 · Letrero de fin de Choque: «¡VICTORIA!» cae como golpe sobre la mesa (o «DERROTA» en rojo) antes de la ventana final
+function finCine(won){
+  return new Promise(res=>{
+    const L=fxLayer(); if(!L||!cineOn()){res();return;}
+    const w=document.createElement('div'); w.className='fin-cine'+(won?'':' derrota');
+    const col=won?{c:'#ffd166',b:'rgba(60,35,0,.88)',t:'#ffd166',d:'#f5a623'}:{c:'#ff2244',b:'rgba(45,0,8,.9)',t:'#ff6b81',d:'#9b0020'};
+    w.style.cssText='--fcc:'+col.c+';--fcb:'+col.b+';--fct:'+col.t+';--fcd:'+col.d;
+    let spk='';const cs=won?['#ffd166','#fff','#f5a623','#4dcfff','#ff8c42']:['#ff2244','#ff8888','#8a0f22'];
+    for(let i=0;i<(won?26:12);i++){const a=Math.random()*Math.PI*2,d=(won?120:70)+Math.random()*(won?260:120);
+      spk+='<i class="fc-spk" style="--x:'+(Math.cos(a)*d).toFixed(0)+'px;--y:'+(Math.sin(a)*d*.7).toFixed(0)+'px;--s:'+(8+Math.random()*14).toFixed(0)+'px;--c:'+cs[i%cs.length]+';--d:'+(.32+Math.random()*.25).toFixed(2)+'s"></i>';}
+    w.innerHTML='<div class="fc-rays"></div><div class="fc-band"></div><div class="fc-txt">'+(won?'¡VICTORIA!':'DERROTA')+'</div><div class="fc-flash"></div>'+spk;
+    L.appendChild(w);
+    const g=document.querySelector('.game');
+    const t1=setTimeout(()=>{try{if(g){g.classList.remove('fx-shake');void g.offsetWidth;g.classList.add('fx-shake');setTimeout(()=>g.classList.remove('fx-shake'),500);if(!won)g.classList.add('fin-gris');}}catch(e){}},330);
+    let listo=false;
+    const fin=()=>{if(listo)return;listo=true;clearTimeout(t1);clearTimeout(t2);document.removeEventListener('keydown',tecla,true);w.remove();try{if(g)g.classList.remove('fin-gris');}catch(e){}res();};
+    const tecla=e=>{if(['Enter',' ','Escape'].includes(e.key)){e.preventDefault();e.stopPropagation();fin();}};
+    document.addEventListener('keydown',tecla,true);
+    w.onclick=fin;
+    const t2=setTimeout(fin,1750);
+  });
 }
 let _fxFlying=0;
 function fxFly(fromEl,toEl,img,back){
@@ -9581,8 +9682,10 @@ async function fxChoque(ea,ed,fA,fD,t0){
   try{opt=opt||{};
     if(G&&C[cid]&&(opt.via==='especial'||C[cid].type==='amalgama')){
       if(o==='player') FXS.esp++;
-      const am=C[cid].type==='amalgama';
-      fxShowcase(cid,(am?'✦ AMALGAMA':'✨ LLAMADO ESPECIAL')+(o==='cpu'?' · CPU':''),am?'#ffe066':(C[cid].dios?'#ff8c42':o==='player'?'#00ff9d':'#cc55ff'));
+      const am=C[cid].type==='amalgama', sp=!!C[cid].superDe;
+      fxShowcase(cid,(am?'✦ AMALGAMA':sp?'⚡ SUPER TRANSFORMACIÓN':C[cid].rareza==='secreta'?'★ CARTA SECRETA':'✨ LLAMADO ESPECIAL')+(o==='cpu'?' · ADVERSARIO':''),am?'#ffe066':sp?'#4dcfff':C[cid].rareza==='secreta'?'#e040fb':(C[cid].dios?'#ff8c42':o==='player'?'#00ff9d':'#cc55ff'));
+    }else if(G&&C[cid]&&C[cid].rareza==='secreta'){   // v251 · las Secretas tienen su vórtice aunque se llamen normal
+      fxShowcase(cid,'★ CARTA SECRETA'+(o==='cpu'?' · ADVERSARIO':''),'#e040fb');
     }}catch(e){}
   return await _pc.apply(this,arguments);};}
 // Cartas destruidas (para el resumen)
@@ -9593,6 +9696,30 @@ async function fxChoque(ea,ed,fA,fD,t0){
     if(G) _fxManoAntes=[...G.player.hand];}catch(e){}};}
 // Nueva partida: reinicia el resumen y aplica el fondo de la baraja
 {const _ig=initGame;initGame=function(){fxReset();const r=_ig.apply(this,arguments);try{cosmAplicar();}catch(e){}try{apAplicarMesa(apMesaGuardada());}catch(e){}return r;};}
+// v251 · CALIFICACIÓN DEL CHOQUE (solo victorias, sin tutorial ni abandono)
+//   Victoria 500 · Rapidez hasta 400 (3 turnos tuyos o menos = 400, −40 por cada turno extra)
+//   Corazones conservados hasta 400 · Cartas propias perdidas hasta 200 (−25 c/u) · Destruidas al adversario hasta 200 (+25 c/u)
+//   S ≥ 1400 · A ≥ 1150 · B ≥ 900 · C el resto (máximo 1700)
+const CALIF_COL={S:'#ffd166',A:'#4dcfff',B:'#00ff9d',C:'#b9a2ff'};
+function califCalc(won,reason){
+  try{
+    if(!won||!G||G.tuto||/abandon/i.test(String(reason||''))) return null;
+    const propios=Math.max(1,Math.ceil((+G.turn||1)/2)), max=Math.max(1,+R.corazones||1), hp=Math.max(0,Math.min(max,+G.player.hp||0));
+    const d={victoria:500,rapidez:Math.max(0,Math.min(400,400-40*(propios-3))),corazones:Math.round(hp/max*400),
+      cartas:Math.max(0,200-25*(FXS.destP||0)),destruidas:Math.min(200,25*(FXS.destC||0))};
+    const pts=d.victoria+d.rapidez+d.corazones+d.cartas+d.destruidas;
+    const letra=pts>=1400?'S':pts>=1150?'A':pts>=900?'B':'C';
+    return {letra,pts,d,propios,hp,max};
+  }catch(e){return null;}
+}
+function califHtml(c){
+  if(!c) return '';
+  const f=(t,v)=>'<div><span>'+t+'</span><b>+'+v+'</b></div>';
+  let rec='';try{const k='cdh_calif_mejor',m=+localStorage.getItem(k)||0;if(c.pts>m){localStorage.setItem(k,String(c.pts));if(m)rec='<div class="rec">★ ¡Nuevo récord personal!</div>';}}catch(e){}
+  return '<div class="eg-calif"><div class="eg-letra" style="--cc:'+CALIF_COL[c.letra]+'">'+c.letra+'</div><div class="eg-desg">'+
+    f('Victoria',c.d.victoria)+f('Rapidez ('+c.propios+' t.)',c.d.rapidez)+f('Corazones '+c.hp+'/'+c.max,c.d.corazones)+f('Cartas intactas',c.d.cartas)+f('Destruidas',c.d.destruidas)+
+    '<div class="tot"><span>CALIFICACIÓN</span><b>'+c.pts+' pts</b></div>'+rec+'</div></div>';
+}
 // Pantalla final con resumen y MVP
 {const _eg=endGame;endGame=function(won,reason){
   const ya=G&&G.over;
@@ -9604,7 +9731,8 @@ async function fxChoque(ea,ed,fA,fD,t0){
     let mvp=Object.entries(pts).sort((a,b)=>b[1]-a[1])[0];
     if(!mvp){const vivos=G.player.pj.filter(Boolean).sort((a,b)=>SCORE(b.id)-SCORE(a.id));if(vivos[0])mvp=[vivos[0].id,0];}
     const st=(v,t)=>'<div class="eg-stat"><b>'+v+'</b><small>'+t+'</small></div>';
-    box.innerHTML='<div class="eg-stats">'+st(G.turn,'TURNOS')+st(FXS.dmgHecho,'DAÑO ❤')+st(FXS.destC,'DESTRUIDAS')+st(FXS.esp,'ESPECIALES')+'</div>'+
+    const cal=G.calif=califCalc(won,reason);
+    box.innerHTML=califHtml(cal)+'<div class="eg-stats">'+st(G.turn,'TURNOS')+st(FXS.dmgHecho,'DAÑO ❤')+st(FXS.destC,'DESTRUIDAS')+st(FXS.esp,'ESPECIALES')+'</div>'+
       (mvp&&C[mvp[0]]?'<div class="eg-mvp"><img src="'+C[mvp[0]].imgMin+'" alt=""><div><small>⭐ CARTA MÁS VALIOSA</small><b>'+C[mvp[0]].name+'</b><span class="d">'+
         [(FXS.kills[mvp[0]]?FXS.kills[mvp[0]]+' victoria(s) en combate':''),(FXS.dmgBy[mvp[0]]?FXS.dmgBy[mvp[0]]+' corazón(es) directos':'')].filter(Boolean).join(' · ')+'</span></div></div>':'')+
       '<div style="font-size:10px;color:#9fb3cc;margin-bottom:6px">Corazones perdidos: '+FXS.dmgRecibido+' · Tus cartas destruidas: '+FXS.destP+'</div>';
@@ -9749,7 +9877,8 @@ function arcadeYaJugado(){
   _eg.apply(this,arguments);
   if(!ARCADE||ya) return;
   try{localStorage.setItem('chh_arcade_result',JSON.stringify({id:ARCADE.id,slot:ARCADE.slot,ronda:ARCADE.ronda,won:!!won,turnos:G.turn,
-    corazones:G.player.hp,intacto:G.player.hp>=R.corazones,danio:(typeof FXS!=='undefined'?FXS.dmgHecho:0),st:arsResumen(),ts:Date.now()}));}catch(e){}
+    corazones:G.player.hp,intacto:G.player.hp>=R.corazones,danio:(typeof FXS!=='undefined'?FXS.dmgHecho:0),st:arsResumen(),
+    calif:G.calif?G.calif.letra:null,califPts:G.calif?G.calif.pts:0,ts:Date.now()}));}catch(e){}
   const box=document.getElementById('endgameBox');
   box.querySelectorAll('.endgame-btn').forEach(b=>b.style.display='none');
   const go=document.createElement('button');go.className='endgame-btn';go.textContent=ARC_VOLVER==='arcade.html'?'🕹 CONTINUAR':'🗺 CONTINUAR';
@@ -9810,8 +9939,10 @@ window.GP_CFG={
     const dt=document.getElementById('detail');if(!dt||!dt.offsetParent||dt.scrollHeight<=dt.clientHeight+4)return false;
     const fin=d>0?dt.scrollTop+dt.clientHeight>=dt.scrollHeight-2:dt.scrollTop<=0;if(fin)return false;
     dt.scrollBy({top:d*120,behavior:'smooth'});return true;},
-  inicial:()=>{const b=document.getElementById('bootBtn');if(window.GP&&GP.valido(b))return b;return document.querySelector('#handrow .hcard')||document.getElementById('btnMain');},
+  inicial:()=>{const fc=document.querySelector('.fin-cine');if(fc)return fc;   // v251 · A durante el letrero lo salta
+    const b=document.getElementById('bootBtn');if(window.GP&&GP.valido(b))return b;return document.querySelector('#handrow .hcard')||document.getElementById('btnMain');},
   principal:()=>{const v=e=>window.GP&&GP.valido(e);
+    const fc=document.querySelector('.fin-cine'); if(fc) return fc;
     const eg=[...document.querySelectorAll('#endgameModal .endgame-btn')].find(v); if(eg) return eg;
     const b=document.getElementById('bootBtn'); if(v(b)) return b;
     return document.getElementById('btnMain');},
@@ -9820,6 +9951,7 @@ window.GP_CFG={
   select:()=>document.getElementById('btnMute'),
   // B sin ventana abierta: cancela el ataque elegido o la selección (nunca sale de la partida)
   atras:()=>{
+    {const fc=document.querySelector('.fin-cine,.fx-show.vortice');if(fc){fc.click();return true;}}
     if(document.getElementById('logDrawer').classList.contains('on')){logCerrar();return true;}
     if(document.querySelector('#bsModal.show,#chooseModal.show,#sectorModal.show,#combatMod.show,#discardModal.show,#dsList.show,#endgameModal.show,#epConfirm.show')) return false;
     if(typeof G!=='undefined'&&G&&!G.over){

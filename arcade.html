@@ -2012,6 +2012,7 @@ function showVS(i,modo,res,opt){
   $('vsMeta').innerHTML='<span class="badge lv-'+lv+'">'+NIV[lv]+'</span>'+(r.corazones?'<span class="badge" style="color:#ff4d6d">+'+esc(r.corazones)+' ❤</span>':'')+pods.map(x=>'<span class="badge pod" title="Poder épico">'+x+'</span>').join('')+(r.banlist==='no'||r._ruta===3?'<span class="badge pod" title="Su baraja ignora la banlist">⛓ SIN BANLIST</span>':'')+(r._ruta===5?'<span class="badge" style="color:#ffd166" title="Regla heroica">🛡 1 COPIA</span>':'')+
     '<span class="vs-me">'+(avatarPerfil()?'<img src="'+esc(avatarPerfil())+'" alt="" style="width:44px;height:44px;border-radius:50%;border:2px solid var(--gold)">':PLAYER_IMG?'<img src="'+PLAYER_IMG+'" alt="">':'<img src="'+esc(deckPortada(b))+'" alt="">')+esc(g.nombre)+' · '+esc(b?b.nombre:bjNom(g))+'</span>'+
     (modo!=='intro'&&res&&res.turnos?'<span class="badge" style="color:#9fb3cc">'+res.turnos+' TURNOS</span>':'')+
+    (modo!=='intro'&&res&&res.won&&/^[SABC]$/.test(res.calif||'')?'<span class="badge" style="color:'+({S:'#ffd166',A:'#4dcfff',B:'#00ff9d',C:'#b9a2ff'})[res.calif]+';border-color:currentColor" title="Calificación del combate">CALIFICACIÓN '+res.calif+(res.califPts?' · '+res.califPts+' PTS':'')+'</span>':'')+
     (opt.replay?'<span class="badge" style="color:#cc55ff">REVANCHA · NO CUENTA PARA LA RUTA</span>':'<span class="vs-cr">'+monedas(g)+'</span>');
   if(r._ruta===3&&modo==='intro'&&!opt.replay&&!sessionStorage.getItem('chh_epi_aviso')){try{sessionStorage.setItem('chh_epi_aviso','1');}catch(e){}}
   const frase=modo==='intro'?(r.entrada||'¡En guardia!'):(res.won?(r.victoria||'…'):(r.derrota||'…'));
@@ -2064,9 +2065,12 @@ function procesarResultado(){
   const i=g.pendiente.ronda, replay=!!g.pendiente.replay;
   let gameover=false, continuar=false;
   g.pendiente=null;g.ultimo=Date.now();
-  if(replay){(g.rejugadas=g.rejugadas||[]).push({ronda:i+1,won:res.won,turnos:res.turnos,ts:res.ts});}
+  // v251 · Calificación del combate (S/A/B/C): se guarda en el historial y la mejor de cada ronda en g.califs
+  const cal=res.won&&/^[SABC]$/.test(res.calif||'')?res.calif:null;
+  if(cal){const O={C:1,B:2,A:3,S:4};g.califs=g.califs||{};if(!g.califs[i]||O[cal]>O[g.califs[i]])g.califs[i]=cal;}
+  if(replay){(g.rejugadas=g.rejugadas||[]).push({ronda:i+1,won:res.won,turnos:res.turnos,cal,ts:res.ts});}
   else{
-    (g.historial=g.historial||[]).push({ronda:i+1,won:res.won,turnos:res.turnos,ts:res.ts});
+    (g.historial=g.historial||[]).push({ronda:i+1,won:res.won,turnos:res.turnos,cal,ts:res.ts});
     const rn=rutaN(g);
     if(res.won){g.victorias=(g.victorias||0)+1;if(g.ronda===i)g.ronda=i+1;
       if(rn>=3&&g.ronda>=SELLO_EPICO&&!(g.sello>0)&&g.ronda<RIV.length){g.sello=SELLO_EPICO;g._sellonuevo=true;}

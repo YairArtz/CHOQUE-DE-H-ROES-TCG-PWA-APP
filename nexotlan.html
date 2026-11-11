@@ -239,6 +239,8 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 .du-cita::before{content:'“';position:absolute;left:8px;top:-4px;font:900 36px Georgia,serif;color:var(--dc,#ffc04d);opacity:.85}
 .du-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .du-st{background:rgba(0,0,0,.32);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:7px 10px;min-width:0}
+.du-cal{display:inline-block;min-width:18px;padding:0 5px;border-radius:5px;font-family:'Orbitron',monospace;font-weight:900;font-size:.9em;text-align:center;border:1px solid currentColor}
+.du-cal.cS{color:#ffd166;text-shadow:0 0 6px #ffd166}.du-cal.cA{color:#4dcfff}.du-cal.cB{color:#00ff9d}.du-cal.cC{color:#b9a2ff}
 .du-st small{display:block;font:800 8.5px 'Orbitron',sans-serif;letter-spacing:1.5px;color:var(--muted);margin-bottom:3px}
 .du-st b{display:block;font-size:13.5px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .du-st b em{font-style:normal;color:#ffc04d;letter-spacing:1px}
@@ -1971,17 +1973,24 @@ async function procesarResultado() {
     else S.fase2[p0.id] = 2;                                                                            // al perder se reintenta directo la 2ª forma
   }
   const antes = vencido(p.id);
-  S.historial.push({ p: p.id, won: !!res.won, dia: S.dia, turnos: res.turnos || 0, ts: Date.now() });
+  const cal = res.won && !res.abandono && /^[SABC]$/.test(res.calif || '') ? res.calif : null;
+  S.historial.push({ p: p.id, won: !!res.won, dia: S.dia, turnos: res.turnos || 0, ts: Date.now(), ...(cal ? { cal } : {}) });
   if (S.historial.length > 200) S.historial = S.historial.slice(-200);
-  let premio = 0;
+  let premio = 0, bonoCal = 0, mejorCal = false;
   if (res.won) { S.vencidos[p.id] = (S.vencidos[p.id] || 0) + 1; S.victorias++; premio = antes ? Math.ceil(p._mon / 4) : p._mon; S.monedas += premio; }
+  // v251 · Calificación del Choque: se guarda la mejor contra cada adversario; S da +50% de monedas y A +25%
+  if (cal) {
+    const ORD = { C: 1, B: 2, A: 3, S: 4 }; S.calif = S.calif || {};
+    if (!S.calif[p.id] || ORD[cal] > ORD[S.calif[p.id]]) { mejorCal = !!S.calif[p.id]; S.calif[p.id] = cal; }
+    bonoCal = premio ? Math.round(premio * (cal === 'S' ? .5 : cal === 'A' ? .25 : 0)) : 0; S.monedas += bonoCal;
+  }
   else { S.derrotas[p.id] = (S.derrotas[p.id] || 0) + 1; S.perdidas++; }
   S.dia++;                               // cada Choque consume el día
   guardar();
   mostrarMapa(); centrarEn(p._x, p._y);
   await dialogo(p, res.won ? p.victoria : p.derrota);
   if (res.abandono) await mensaje('🚪 CHOQUE ABANDONADO', 'Saliste del Choque antes de terminarlo: cuenta como <b>derrota</b>.');
-  if (premio) { sonMonedas(); toast('<i class="mn"></i> +' + premio + ' monedas'); }
+  if (premio) { sonMonedas(); toast('<i class="mn"></i> +' + premio + ' monedas' + (bonoCal ? ` · <b>+${bonoCal}</b> por calificación ${cal}` : '') + (mejorCal ? ' · ¡mejor calificación!' : '')); }
   if (res.won && !res.abandono) { const cartas = darPremio(p, !antes); guardar(); pintarHud(); await mostrarPremio(cartas); }
   if (res.won && !res.abandono) await entregarFisica(resolverCarta(fase === 2 ? p0.fase2_carta_fisica : p0.carta_fisica), p0);   // v227 · carta BOSS (1 vez por partida)
   await revisarAperturas(true);
@@ -2991,7 +3000,8 @@ async function pintarPerfilDu() {
   const st = [];
   if (p.tipo !== 'heroe') {
     st.push(`<div class="du-st"><small>DIFICULTAD</small><b><em>${k || !lock ? STAR(estrellasDe(p)) : '☆☆☆☆☆'}</em> ${k ? esc(NIV_TXT[nivelDe(p)] || '') : ''}</b></div>`);
-    st.push(`<div class="du-st"><small>TU RÉCORD</small><b>${k ? `<span class="ok">✔ ${v}</span> · <span class="no">✖ ${dr}</span>` : '—'}</b></div>`);
+    const cal = (S.calif || {})[p.id];   // v251 · mejor calificación contra este adversario
+    st.push(`<div class="du-st"><small>TU RÉCORD</small><b>${k ? `<span class="ok">✔ ${v}</span> · <span class="no">✖ ${dr}</span>${cal ? ` · <span class="du-cal c${cal}" title="Tu mejor calificación">${cal}</span>` : ''}` : '—'}</b></div>`);
     st.push(`<div class="du-st"><small>RECOMPENSA</small><b>${k && p._mon ? '🪙 ' + p._mon + (v ? ' · revancha ' + Math.ceil(p._mon / 4) : '') : '—'}</b></div>`);
   } else st.push(`<div class="du-st"><small>CONVERSACIONES</small><b>${hb || 0}</b></div>`);
   st.push(`<div class="du-st"><small>APARECE</small><b>${esc(dias || 'Todos los días')}${k ? (hoy ? ' · <span class="ok">hoy sí</span>' : ' · <span class="no">hoy no</span>') : ''}</b></div>`);

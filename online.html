@@ -324,8 +324,8 @@ html[data-mesa="imagen"] .aztec-bg{opacity:1;background-size:cover;background-po
 .fx-show .lbl{position:relative;font-family:'Orbitron',sans-serif;font-weight:900;letter-spacing:4px;font-size:clamp(11px,calc(var(--H) * .035),20px);
   color:#fff;text-shadow:0 0 8px var(--fxc),0 0 20px var(--fxc);animation:fxShowBg 1.25s ease forwards}
 /* v251 · VÓRTICE: Amalgamas, transformaciones Super y cartas Secretas (más largo y solo para esas) */
-.fx-show.vortice{pointer-events:auto;cursor:pointer;animation:vxFondo 3.3s ease forwards;background:radial-gradient(ellipse at center,rgba(0,0,0,.35),rgba(0,0,0,.82))}
-.fx-show.vortice .lbl{animation:vxFondo 3.3s ease forwards}
+.fx-show.vortice{pointer-events:auto;cursor:pointer;animation:vxFondo 2.75s ease forwards;background:radial-gradient(ellipse at center,rgba(0,0,0,.35),rgba(0,0,0,.82))}
+.fx-show.vortice .lbl{animation:vxFondo 2.75s ease forwards}
 @keyframes vxFondo{0%{opacity:0}6%{opacity:1}90%{opacity:1}100%{opacity:0}}   /* v252 · la carta se queda más tiempo a la vista */
 .fx-show .vx{position:absolute;width:calc(var(--H) * 1.5);aspect-ratio:1;pointer-events:none}
 .fx-show .vx i{position:absolute;inset:0;border-radius:50%;
@@ -341,8 +341,8 @@ html[data-mesa="imagen"] .aztec-bg{opacity:1;background-size:cover;background-po
 .fx-show .vx em{position:absolute;left:50%;top:50%;width:30%;aspect-ratio:1;border-radius:50%;border:6px solid var(--fxc);transform:translate(-50%,-50%) scale(.2);opacity:0;
   box-shadow:0 0 30px var(--fxc),inset 0 0 20px #fff;animation:vxOnda .7s cubic-bezier(.2,.7,.3,1) 1s forwards}
 @keyframes vxOnda{0%{opacity:1;transform:translate(-50%,-50%) scale(.2)}100%{opacity:0;transform:translate(-50%,-50%) scale(3.2);border-width:1px}}
-.fx-show.vortice img{opacity:0;animation:vxCarta 3.3s cubic-bezier(.2,.9,.25,1.1) forwards}
-@keyframes vxCarta{0%,29%{opacity:0;transform:scale(.05) rotate(-540deg)}38%{opacity:1;transform:scale(1.12) rotate(4deg)}43%{transform:scale(1) rotate(0)}93%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.4) translateY(30%)}}
+.fx-show.vortice img{opacity:0;animation:vxCarta 2.75s cubic-bezier(.2,.9,.25,1.1) forwards}
+@keyframes vxCarta{0%,35%{opacity:0;transform:scale(.05) rotate(-540deg)}45%{opacity:1;transform:scale(1.12) rotate(4deg)}51%{transform:scale(1) rotate(0)}92%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.4) translateY(30%)}}
 /* v251 · LETRERO DE FIN DE CHOQUE (antes de la ventana final) */
 .fin-cine{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;pointer-events:auto;cursor:pointer;overflow:hidden;
   background:radial-gradient(ellipse at center,rgba(0,0,0,.15),rgba(0,0,0,.78));animation:fcBg 1.75s ease forwards}
@@ -9070,20 +9070,26 @@ function mpUnlocked(){
   if(!id) return [];
   try{return JSON.parse(localStorage.getItem('nhMusica_'+id)||'[]');}catch(e){return [];}
 }
+// v253 · También las pistas del Modo Aventura (musica_config.json → "aventura"), como en Soundtrack:
+//        se desbloquean al abrir distritos / vencer guardianes (nhMusicaNx_<id>) y traen su ruta completa
+function mpLogrosNx(){const id=mpJugadorId();if(!id)return [];try{return JSON.parse(localStorage.getItem('nhMusicaNx_'+id)||'[]');}catch(e){return [];}}
+function mpRuta(t){return /\//.test(t.file)?t.file:MP.carpeta+t.file;}
 function mpBuild(){
-  const d=mpUnlocked();
-  MP.tracks=MP.pistas.map((p,i)=>({id:p.id,file:p.archivo||(p.id+'.mp3'),title:p.titulo||p.id,dur:p.duracion||'',
-    pts:p.pts||0,slot:i+1,libre:!p.pts||d.includes(p.id)}));
+  const d=mpUnlocked(), nx=mpLogrosNx();
+  const base=MP.pistas.map(p=>({id:p.id,file:p.archivo||(p.id+'.mp3'),title:p.titulo||p.id,dur:p.duracion||'',pts:p.pts||0,libre:!p.pts||d.includes(p.id)}));
+  const av=(MP.aventura||[]).filter(p=>p&&p.id&&p.titulo).map(p=>({id:p.id,file:p.archivo||(p.id+'.mp3'),title:p.titulo,dur:p.duracion||'',pts:0,nx:true,como:p.como||'',
+    libre:[].concat(p.desbloqueo||[]).some(r=>r&&nx.includes(r))}));
+  MP.tracks=base.concat(av).map((t,i)=>Object.assign(t,{slot:i+1}));
 }
 async function mpLoad(){
   try{const prev=JSON.parse(localStorage.getItem('chh_musica_config')||'null');
-    if(prev&&Array.isArray(prev.pistas)){MP.carpeta=prev.carpeta||MP.carpeta;MP.pistas=prev.pistas;}}catch(e){}
+    if(prev&&Array.isArray(prev.pistas)){MP.carpeta=prev.carpeta||MP.carpeta;MP.pistas=prev.pistas;MP.aventura=Array.isArray(prev.aventura)?prev.aventura:[];}}catch(e){}
   mpBuild();mpRender();
   try{
     const r=await fetch('musica_config.json',{cache:'no-cache'});
     if(r.ok){const cfg=await r.json();
-      if(Array.isArray(cfg.pistas)){MP.carpeta=cfg.carpeta||MP.carpeta;MP.pistas=cfg.pistas;
-        try{localStorage.setItem('chh_musica_config',JSON.stringify({carpeta:MP.carpeta,pistas:MP.pistas}));}catch(e){}}}
+      if(Array.isArray(cfg.pistas)){MP.carpeta=cfg.carpeta||MP.carpeta;MP.pistas=cfg.pistas;MP.aventura=Array.isArray(cfg.aventura)?cfg.aventura:[];
+        try{localStorage.setItem('chh_musica_config',JSON.stringify({carpeta:MP.carpeta,pistas:MP.pistas,aventura:MP.aventura}));}catch(e){}}}
   }catch(e){}
   const cur=MP.tracks[MP.idx]&&MP.tracks[MP.idx].id;
   mpBuild();
@@ -9097,8 +9103,8 @@ function mpRender(){
   MP.tracks.forEach((t,i)=>{
     const d=document.createElement('div');
     d.className='mp-track'+(i===MP.idx?' act':'')+(t.libre?'':' lock');
-    d.innerHTML='<span class="mp-tn">'+String(t.slot).padStart(2,'0')+'</span><span class="mp-tt">'+(t.libre?'':'🔒 ')+t.title+'</span><span class="mp-td">'+(t.libre?t.dur:t.pts+' pts')+'</span>';
-    d.onclick=()=>t.libre?mpSelect(i):lg('🔒 <b>'+t.title+'</b> · '+t.pts+' pts de liga · Desbloquéala en la Tienda.','var(--purple)');
+    d.innerHTML='<span class="mp-tn">'+String(t.slot).padStart(2,'0')+'</span><span class="mp-tt">'+(t.libre?'':'🔒 ')+t.title+'</span><span class="mp-td">'+(t.libre?t.dur:t.nx?'AVENTURA':t.pts+' pts')+'</span>';
+    d.onclick=()=>t.libre?mpSelect(i):lg(t.nx?'🔒 <b>'+t.title+'</b> · '+(t.como||'Desbloquéala')+' en el Modo Aventura.':'🔒 <b>'+t.title+'</b> · '+t.pts+' pts de liga · Desbloquéala en la Tienda.','var(--purple)');
     box.appendChild(d);
   });
 }
@@ -9107,7 +9113,7 @@ function mpSelect(i){
   if(!t||!t.libre) return;
   MP.idx=i;
   const req=++MP.req;
-  const url=new URL(MP.carpeta+t.file,location.href).href;
+  const url=new URL(mpRuta(t),location.href).href;
   MP.cur=url;
   const suena=src=>{if(req!==MP.req)return;mpAudio.src=src;mpAudio.loop=MP.loop;mpVol();
     mpAudio.play().then(()=>{MP.on=true;mpUI();}).catch(()=>{MP.on=false;mpUI();});};
@@ -9164,7 +9170,7 @@ mpAudio.addEventListener('timeupdate',()=>{
 });
 mpAudio.addEventListener('ended',()=>{if(!MP.loop)mpNext();});
 // Si la Tienda desbloquea algo en otra pestaña
-window.addEventListener('storage',e=>{if(e.key==='nhMusica_updated'){const cur=MP.tracks[MP.idx]&&MP.tracks[MP.idx].id;mpBuild();MP.idx=MP.tracks.findIndex(t=>t.id===cur);mpRender();}});
+window.addEventListener('storage',e=>{if(e.key==='nhMusica_updated'||/^nhMusicaNx_/.test(e.key||'')){const cur=MP.tracks[MP.idx]&&MP.tracks[MP.idx].id;mpBuild();MP.idx=MP.tracks.findIndex(t=>t.id===cur);mpRender();}});
 // Pausar al salir de la app
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&MP.on){mpAudio.pause();MP.on=false;MP._resume=true;mpUI();}
   else if(!document.hidden&&MP._resume){MP._resume=false;mpAudio.play().then(()=>{MP.on=true;mpUI();}).catch(()=>{});}});
@@ -9335,7 +9341,7 @@ async function descListas(){
   let cosm=[];
   if(window.CHH_COSM){try{const [a,b]=await Promise.all([CHH_COSM.disponibles('mica'),CHH_COSM.disponibles('playmat')]);
     cosm=a.concat(b).filter(x=>x.origen!=='clasico').map(x=>x.img);}catch(e){}}
-  const mus=(MP.tracks||[]).filter(t=>t.libre).map(t=>MP.carpeta+t.file);
+  const mus=(MP.tracks||[]).filter(t=>t.libre).map(mpRuta);
   if(ARCADE&&ARCADE.musica) mus.unshift(ARCADE.musica);
   return {sfx,cosm,mus};
 }
@@ -9521,7 +9527,7 @@ function fxShowcase(cid,etiqueta,color){
   w.innerHTML=(vx?'<div class="vx"><i></i><i></i><i></i><b></b><em></em></div>':'<div class="rays"></div>')+'<img src="'+(C[cid].img||C[cid].imgMin)+'" onerror="this.onerror=null;this.src=\''+C[cid].imgMin+'\'" alt=""><div class="lbl">'+etiqueta+'</div>';
   L.appendChild(w);
   if(vx){w.onclick=()=>w.remove();setTimeout(()=>{if(w.isConnected){try{const g=document.querySelector('.game');if(g){g.classList.remove('fx-shake');void g.offsetWidth;g.classList.add('fx-shake');setTimeout(()=>g.classList.remove('fx-shake'),500);}}catch(e){}}},1000);}
-  setTimeout(()=>w.remove(),vx?3350:1300);
+  setTimeout(()=>w.remove(),vx?2800:1300);
 }
 // v251 · Letrero de fin de Choque: «¡VICTORIA!» cae como golpe sobre la mesa (o «DERROTA» en rojo) antes de la ventana final
 function finCine(won){
@@ -10148,7 +10154,7 @@ let _fxpLlamado=null;
     const L=_fxpLlamado&&_fxpLlamado.o===o&&Date.now()-_fxpLlamado.t<1500?_fxpLlamado:null;
     const cid=p?p.id:(L&&L.cid), esp=!!(L&&L.esp&&(!p||p.id===L.cid));
     const col=fxpColor(o,cid,esp);
-    if(esp&&fxOn()) setTimeout(()=>fxpEntrada(elId,col,true),(cineOn()&&esVortice(cid))?3300:1050);   // después de la presentación a pantalla completa
+    if(esp&&fxOn()) setTimeout(()=>fxpEntrada(elId,col,true),(cineOn()&&esVortice(cid))?2750:1050);   // después de la presentación a pantalla completa
     else fxpEntrada(elId,col,esp);}catch(e){}};}
 {const _ad=animDestroy;animDestroy=function(elId,cb){try{fxpDestruir(elId);}catch(e){}return _ad.apply(this,arguments);};}
 {const _af=animDefeated;animDefeated=function(elId,cb){try{fxpDestruir(elId,'#ff3b3b');}catch(e){}return _af.apply(this,arguments);};}

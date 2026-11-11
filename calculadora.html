@@ -721,14 +721,14 @@ function mpRender(){
     if(!t.libre){
       div.style.opacity = '0.45';
       div.style.cursor = 'default';
-      div.addEventListener('click', function(){ mpToastBloqueada(t.title, t.pts); });
+      div.addEventListener('click', function(){ mpToastBloqueada(t.title, t.pts, t.nx ? (t.como || 'Desbloquéala') + ' en el Modo Aventura' : ''); });
     } else {
       div.addEventListener('click', function(){ mpSelect(i); });
     }
     div.innerHTML =
       '<div class="mp-track-num"' + (!t.libre?' style="color:var(--muted)"':'') + '>' + String(t.slot).padStart(2,'0') + '</div>' +
       '<div class="mp-track-name"' + (!t.libre?' style="color:var(--muted)"':'') + '>' + (!t.libre?'🔒 ':'') + t.title + '</div>' +
-      '<div class="mp-track-dur">' + (t.libre ? t.dur : t.pts+'pts') + '</div>';
+      '<div class="mp-track-dur">' + (t.libre ? t.dur : t.nx ? 'AVENTURA' : t.pts+'pts') + '</div>';
     tracks.appendChild(div);
   });
 }
@@ -737,45 +737,42 @@ function mpSelect(i){
   if(!MP_TRACKS[i]?.libre) return;
   mpIdx=i;
   const t=MP_TRACKS[i];
-  mpAudio.src=MP_CARPETA+t.file;
+  mpAudio.src=/\//.test(t.file)?t.file:MP_CARPETA+t.file;
   mpAudio.loop=mpLoop;
   mpAudio.play().then(()=>{mpOn=true;mpUI();}).catch(()=>{mpOn=false;mpUI();});
   document.getElementById('mp-now-name').textContent=t.title;
   mpRender();
 }
 
-function mpToastBloqueada(title, pts){
+function mpToastBloqueada(title, pts, msg){
   const old=document.getElementById('mp-toast-lock');
   if(old) old.remove();
   const el=document.createElement('div');
   el.id='mp-toast-lock';
-  el.textContent='🔒 '+title+' · '+pts+' pts de liga · Desbloquea en Tienda';
+  el.textContent='🔒 '+title+' · '+(msg || (pts+' pts de liga · Desbloquea en Tienda'));
   el.style.cssText='position:fixed;bottom:130px;left:50%;transform:translateX(-50%);background:rgba(10,16,36,.97);border:1px solid rgba(180,70,255,.4);color:#e0eeff;font-family:Orbitron,monospace;font-size:9px;letter-spacing:.8px;padding:10px 14px;border-radius:8px;z-index:9999;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis;';
   document.body.appendChild(el);
   setTimeout(function(){ el.remove(); }, 2800);
 }
 
 function mpInit(){
+  // v253 · El catálogo sale de musica_config.json (igual que Soundtrack y el Simulador), incluidas las pistas del Modo Aventura
   MP_CARPETA = 'musica_choque/';
-  MP_CATALOGO = [
-    {id:'pista_1',  titulo:'Choque de Héroes',           duracion:'2:17', pts:0  },
-    {id:'pista_2',  titulo:'Kilimanjaro',                duracion:'2:08', pts:0  },
-    {id:'pista_3',  titulo:'L.A.B. Metalúrgico',         duracion:'2:23', pts:0  },
-    {id:'pista_4',  titulo:'Legión del Mar',             duracion:'4:00', pts:0  },
-    {id:'pista_5',  titulo:'Encantadoras de Shalem',     duracion:'2:19', pts:0  },
-    {id:'pista_6',  titulo:'EX-Pada Reencarnada',        duracion:'2:38', pts:0  },
-    {id:'pista_7',  titulo:'Max-Kara',                   duracion:'2:58', pts:0  },
-    {id:'pista_8',  titulo:'Mictlán, tierra de Muertos', duracion:'2:37', pts:0  },
-    {id:'pista_9',  titulo:'Archivos de Nexotlan',       duracion:'2:58', pts:0  },
-    {id:'pista_10', titulo:'Vellond, el Gran Regente',   duracion:'3:03', pts:0  },
-    {id:'pista_11', titulo:'Titán de Nexotlán',          duracion:'0:00', pts:30 },
-    {id:'pista_12', titulo:'Choque Ancestral',           duracion:'0:00', pts:40 },
-    {id:'pista_13', titulo:'Batalla de Nexotlan',        duracion:'4:20', pts:50 },
-    {id:'pista_14', titulo:'Pista 14',                   duracion:'0:00', pts:60 },
-    {id:'pista_15', titulo:'Pista 15',                   duracion:'0:00', pts:70 },
-  ];
+  MP_CATALOGO = []; MP_AVENTURA = [];
+  try{const prev=JSON.parse(localStorage.getItem('chh_musica_config')||'null');
+    if(prev&&Array.isArray(prev.pistas)){MP_CARPETA=prev.carpeta||MP_CARPETA;MP_CATALOGO=prev.pistas;MP_AVENTURA=Array.isArray(prev.aventura)?prev.aventura:[];}}catch(e){}
   MP_TRACKS = mpBuildTracks();
   mpRender();
+  fetch('musica_config.json',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(cfg=>{
+    if(!cfg||!Array.isArray(cfg.pistas)) return;
+    MP_CARPETA=cfg.carpeta||MP_CARPETA; MP_CATALOGO=cfg.pistas; MP_AVENTURA=Array.isArray(cfg.aventura)?cfg.aventura:[];
+    try{localStorage.setItem('chh_musica_config',JSON.stringify({carpeta:MP_CARPETA,pistas:MP_CATALOGO,aventura:MP_AVENTURA}));}catch(e){}
+    const prevId=MP_TRACKS[mpIdx]?.id; MP_TRACKS=mpBuildTracks(); mpIdx=MP_TRACKS.findIndex(t=>t.id===prevId); mpRender();
+  }).catch(()=>{});
+}
+let MP_AVENTURA = [];
+function mpLogrosNx(){
+  try{const j=JSON.parse(localStorage.getItem('nhSesion')||'null');if(!j?.id)return [];return JSON.parse(localStorage.getItem('nhMusicaNx_'+j.id)||'[]');}catch(e){return [];}
 }
 
 function mpGetDesbloqueadas(){
@@ -787,12 +784,11 @@ function mpGetDesbloqueadas(){
 }
 
 function mpBuildTracks(){
-  const d=mpGetDesbloqueadas();
-  return MP_CATALOGO.map((p,i)=>({
-    id:p.id, file:p.id+'.mp3', title:p.titulo, dur:p.duracion,
-    slot:i+1, pts:p.pts,
-    libre: p.pts===0 || d.includes(p.id)
-  }));
+  const d=mpGetDesbloqueadas(), nx=mpLogrosNx();
+  const base=MP_CATALOGO.filter(p=>p&&p.id).map(p=>({id:p.id, file:p.archivo||p.id+'.mp3', title:p.titulo||p.id, dur:p.duracion||'', pts:+p.pts||0, libre:!(+p.pts>0)||d.includes(p.id)}));
+  const av=MP_AVENTURA.filter(p=>p&&p.id&&p.titulo).map(p=>({id:p.id, file:p.archivo||p.id+'.mp3', title:p.titulo, dur:p.duracion||'', pts:0, nx:true, como:p.como||'',
+    libre:[].concat(p.desbloqueo||[]).some(r=>r&&nx.includes(r))}));
+  return base.concat(av).map((t,i)=>Object.assign(t,{slot:i+1}));
 }
 
 function mpTogglePlay(){
@@ -857,7 +853,7 @@ mpAudio.addEventListener('ended',()=>{if(!mpLoop)mpNext();});
 
 // Recargar si tienda desbloqueó algo
 window.addEventListener('storage',(e)=>{
-  if(e.key==='nhMusica_updated'){
+  if(e.key==='nhMusica_updated'||/^nhMusicaNx_/.test(e.key||'')){
     const prevId=MP_TRACKS[mpIdx]?.id;
     MP_TRACKS=mpBuildTracks();
     mpIdx=MP_TRACKS.findIndex(t=>t.id===prevId);

@@ -4145,8 +4145,12 @@ async function salvarDeSalida(o,i){
 // Grandor el León: tus otros EX-PADA no pueden ser destruidos por Batalla
 async function sobreviveBatalla(o,i){
   const p=G[o].pj[i]; if(!p) return false;
-  const prot=G[o].pj.some((q,j)=>q&&j!==i&&!supp(o,j)&&(C[q.id].efectos||[]).some(e=>e.cuando==='pasivo'&&e.accion==='protege_batalla'&&matchF(p.id,e.filtro||{})));
-  const ok=prot||await jikaSalva(o,i)||await salvarDeSalida(o,i);
+  // v255 · ORGULLO (Huitlak, Super Tonalkin): no se beneficia de habilidades de PERSONAJES que eviten que sea vencido
+  const org=hasKw(p,'ORGULLO');
+  if(org&&(G[o].pj.some((q,j)=>q&&j!==i&&!supp(o,j)&&hasPassive(q.id,'jika_justicia'))||G[o].pj.some((q,j)=>q&&j!==i&&!supp(o,j)&&(C[q.id].efectos||[]).some(e=>e.cuando==='pasivo'&&e.accion==='protege_batalla'&&matchF(p.id,e.filtro||{})))))
+    lg('🦁 <b>ORGULLO</b>: <b>'+C[p.id].name+'</b> no acepta la protección de otros personajes.','var(--muted)');
+  const prot=!org&&G[o].pj.some((q,j)=>q&&j!==i&&!supp(o,j)&&(C[q.id].efectos||[]).some(e=>e.cuando==='pasivo'&&e.accion==='protege_batalla'&&matchF(p.id,e.filtro||{})));
+  const ok=prot||(!org&&await jikaSalva(o,i))||await salvarDeSalida(o,i);
   if(ok&&G[o].pj[i]===p){p.cor=Math.max(1,p.cor);p.res=p.resB;}
   return ok;
 }
@@ -5224,6 +5228,11 @@ function condWhy(o,cid,cond,src){
   if(cond.almasCampoMin&&almasActivas('player')+almasActivas('cpu')<cond.almasCampoMin) return 'Se necesitan '+cond.almasCampoMin+' ALMAS activas en el campo';
   if(cond.pjCampoMin&&G.player.pj.filter(Boolean).length+G.cpu.pj.filter(Boolean).length<cond.pjCampoMin) return 'Se necesitan '+cond.pjCampoMin+' personajes en el campo';
   if(cond.tkVencidoTurno&&!(G.tkVencido&&G.tkVencido[o]===turnKey())) return 'Ningún PERSONAJE TONALKIN fue vencido y enviado a tu Mictlán este turno';
+  if(cond.huitlakOtra){const p=src&&src.slot!=null?G[o].pj[src.slot]:null;
+    if(!p) return 'Debe estar en el campo';
+    if(!p.attacked) return 'Primero debe atacar este turno';
+    if(!(p.ctr>0)) return 'Necesita 1 CONTADOR DE ALMA';
+    if(p.lock>0||p.bloq>0) return 'No puede declarar batalla este turno';}
   if(cond.chilayaSuper&&!superBases(o,cid).length) return 'Necesitas a "'+(C[C[cid].superDe]||{name:'su forma base'}).name+'" en tu campo con '+superNec(cid)+' o más CONTADORES DE ALMA';
   if(cond.superBase){const p=src&&src.slot!=null?G[o].pj[src.slot]:null, F=superFuentes(o,cid);
     if(!F.length) return 'No tienes su forma SUPER en tu mano ni en tu BP';
@@ -6936,7 +6945,7 @@ function checkDrawDone(){
 // ════════════════════════════════════
 // PANEL DE DETALLE (izquierda)
 // ════════════════════════════════════
-const KW_NOM={'DOBLE BATALLA':'DOBLE BATALLA',DESATADO:'DESATADO',COSMO:'COSMO',EMBOSCADA:'EMBOSCADA',HEROISMO:'HEROÍSMO',BRUTALIDAD:'BRUTALIDAD',VALENTIA:'VALENTÍA',BASTION:'BASTIÓN',ELITE:'ÉLITE','PRIMER DANO':'PRIMER DAÑO',GUARDA:'GUARDA',BARBARIE:'BARBARIE',INMATERIAL:'INMATERIAL',RESURGIR:'RESURGIR'};
+const KW_NOM={'DOBLE BATALLA':'DOBLE BATALLA',DESATADO:'DESATADO',COSMO:'COSMO',EMBOSCADA:'EMBOSCADA',HEROISMO:'HEROÍSMO',BRUTALIDAD:'BRUTALIDAD',VALENTIA:'VALENTÍA',BASTION:'BASTIÓN',ELITE:'ÉLITE','PRIMER DANO':'PRIMER DAÑO',GUARDA:'GUARDA',BARBARIE:'BARBARIE',INMATERIAL:'INMATERIAL',RESURGIR:'RESURGIR',ORGULLO:'ORGULLO'};
 function showDetail(cid,opt){
   opt=opt||{};
   const el=document.getElementById('detail');
@@ -7384,6 +7393,36 @@ Object.assign(PASOS,{
     const list=idx.map(i=>({z:'campo',i,cid:G[o].pj[i].id,o}));
     const [x]=await choose(ctx,list,1,{sub:'Elige el TONALKIN que recibe +2 CONTADORES DE ALMA',min:1,score:y=>(y.cid==='tk_chilaya'?50:0)+SCORE(y.cid)});
     if(x&&G[o].pj[x.i]) ponerCtr(o,G[o].pj[x.i],2);
+    return true;
+  },
+  // v255 · Huitlak, Super Tonalkin: retira 1 contador y puede atacar otra vez este turno
+  async huitlak_otra(ctx){
+    const o=ctx.o, p=ctx.slot!=null?G[o].pj[ctx.slot]:null; if(!p||!(p.ctr>0)) return false;
+    p.ctr--; p.attacked=false; p.resting=false;
+    lg('🔥 <b>'+C[p.id].name+'</b>'+who(o)+' retira 1 CONTADOR DE ALMA: ¡puede atacar nuevamente!','#ffe066');
+    showBanner(o==='player'?'player':'end','¡OTRA VEZ!',C[p.id].name.split(',')[0].toUpperCase(),1100);
+    renderAll(); return true;
+  },
+  // v255 · Ira Tonalkin: +2 CONTADORES DE ALMA a un TONALKIN de tu campo; ese personaje puede transformarse ahora (aún en el turno del adversario)
+  async ira_tonalkin(ctx){
+    const o=ctx.o, L=G[o].pj.map((p,i)=>p&&isChar(p.id)&&esTk(p.id)&&!p.ixRival?{z:'campo',i,cid:p.id,o}:null).filter(Boolean);
+    if(!L.length) return false;
+    const val=y=>{const q=G[o].pj[y.i];return superFuentes(o,q.id).some(f=>(q.ctr||0)+2>=superNec(f.cid))?100:0;};
+    const [x]=L.length===1?[L[0]]:await choose(ctx,L,1,{sub:'IRA TONALKIN: elige el TONALKIN que recibe 2 CONTADORES DE ALMA',min:1,score:y=>val(y)+SCORE(y.cid)});
+    const q=x&&G[o].pj[x.i]; if(!q) return false;
+    ponerCtr(o,q,2);
+    lg('😡 <b>IRA TONALKIN</b>'+who(o)+': <b>'+C[q.id].name+'</b> recibe 2 CONTADORES DE ALMA ('+(q.ctr||0)+').','#ff8c42');
+    renderAll();
+    const F=superFuentes(o,q.id).filter(f=>(q.ctr||0)>=superNec(f.cid));
+    if(!F.length||espBloqueado()) return true;
+    let f=F.find(z=>z.z==='mano')||F[0];
+    let si=!esPersona(o);
+    if(esPersona(o)){
+      const ops=F.map(z=>'🌟 Transformar en '+C[z.cid].name+(z.z==='mano'?' (mano)':' (BP)'));
+      const k=await preguntaDe(o,'😡 IRA TONALKIN<br><b>'+C[q.id].name+'</b> puede TRANSFORMARSE ahora. ¿Lo haces?',ops.concat(['✖ Ahora no']));
+      si=k>=0&&k<F.length; if(si) f=F[k];
+    }
+    if(si){const slot=G[o].pj.indexOf(q);if(slot>=0)await superTransformar(o,f.cid,f.z,slot);}
     return true;
   },
   // SUPER (Chilaya, Super Tonalkin y futuros): desde la mano
@@ -8381,6 +8420,20 @@ async function battle(o,as,ds){
 }
 // Efectos tras el combate: salidas del campo, "es vencido" y "vence a otro en batalla"
 // v237 · Chilaya (y similares): en cuanto un TONALKIN es vencido y enviado al Mictlán, se ofrece llamarla desde la mano (en cualquier turno)
+// v255 · CPU: usa a Huitlak, Super Tonalkin para atacar otra vez cuando tiene un objetivo que puede vencer o ataque directo
+async function cpuHuitlakOtra(){
+  if(!G||G.over||G.active!=='cpu') return false;
+  for(let i=0;i<PJ_N;i++){
+    const p=G.cpu.pj[i]; if(!p) continue;
+    const k=(C[p.id].efectos||[]).findIndex(e=>e.cuando==='combate'&&e.condicion&&e.condicion.huitlakOtra);
+    if(k<0||effWhy('cpu',p.id,C[p.id].efectos[k],k,{zone:'campo',slot:i})) continue;
+    const vale=G.player.pj.some((q,j)=>q&&atacable('cpu',i,j)&&eR(q)<=eF(p)&&!(q.cor<=1&&hasKw(q,'HEROISMO')))||(puedeDirecto('cpu',i)&&!G.player.pj.some(Boolean));
+    if(!vale) continue;
+    await useAbility('cpu',p.id,C[p.id].efectos[k],k,{zone:'campo',slot:i});
+    return !!(G.cpu.pj[i]===p&&canAtk('cpu',i));
+  }
+  return false;
+}
 async function tkOfrecerMano(){
   if(!G||G.over||!G.tkVencido) return;
   G._tkOfr=G._tkOfr||{};
@@ -8400,6 +8453,21 @@ async function tkOfrecerMano(){
       await useAbility(s,cid,e,k,{zone:'mano'});
       renderAll();
     }
+    // v255 · APOYOS RÁPIDOS que reaccionan a un TONALKIN vencido (Ira Tonalkin)
+    for(const cid of [...new Set(G[s].hand)]){
+      if(!G||G.over) return;
+      if(!C[cid]||C[cid].type!=='apoyo') continue;
+      const k=(C[cid].efectos||[]).findIndex(e=>e.cuando==='activar'&&e.condicion&&e.condicion.tkVencidoTurno&&!e.pendiente);
+      if(k<0||!G[s].hand.includes(cid)) continue;
+      const clave=s+':'+cid; if(G._tkOfr[clave]===turnKey()+':'+(G.tkVencidoN||0)) continue;
+      G._tkOfr[clave]=turnKey()+':'+(G.tkVencidoN||0);
+      if(effWhy(s,cid,C[cid].efectos[k],k,{zone:'mano'})||freeApoAp(s)===-1||errBloqApoyo(s)||(C[cid].subtipo==='rapido'&&rapidosBloq(cid))) continue;
+      let si=s==='cpu'&&!onlineOn();
+      if(esPersona(s)) si=(await preguntaDe(s,'😡 Un TONALKIN tuyo fue vencido.<br>¿Activas <b>'+C[cid].name+'</b> desde tu mano?',['✅ Sí, activarla','✖ No']))===0;
+      if(!si) continue;
+      await activateApoyo(s,G[s].hand.indexOf(cid));
+      renderAll();
+    }
   }
 }
 async function afterBattle(o,as,res){
@@ -8408,6 +8476,10 @@ async function afterBattle(o,as,res){
     const mudo=await fireLeave(s,cid);
     if(comb){tkTrasVencido(s,cid,obj);if(G.tkVencido&&G.tkVencido[s]===turnKey())G.tkVencidoN=(G.tkVencidoN||0)+1;}
     if(comb&&s!==o&&esTk(cid)&&isChar(cid)){G.jikaSP=G.jikaSP||{};G.jikaSP[s]=turnKey();}   // v254 · Jika, Super Tonalkin
+    if(comb){   // v255 · Huitlak, Super Tonalkin: cuando vence a un PERSONAJE en Combate, +1 CONTADOR DE ALMA
+      const vo=s!==o?G[o].pj[as]:(res.first&&res.first.d?G[opp(o)].pj.find(q=>q&&q.id===res.first.d.id):null), L=vo?locate(vo):null;
+      if(L&&L.o!==s&&hasPassive(vo.id,'huitlak_super')&&!supp(L.o,L.i)){ponerCtr(L.o,vo,1);lg('🔥 <b>'+C[vo.id].name+'</b>'+who(L.o)+' vence a <b>'+C[cid].name+'</b>: +1 CONTADOR DE ALMA ('+(vo.ctr||0)+').','#7fe3ff');}
+    }
     if(comb&&!mudo){const ven=s===o?(res.first&&res.first.d?{o:opp(o),id:res.first.d.id}:null):{o,id:res.atkId};await runTrigger(s,cid,'vencido',{zone:'fuera',vencedor:ven});}
     renderAll();
     if(checkEnd()) return;
@@ -8988,7 +9060,7 @@ async function cpuTurn(){
   else lg(atkers0.length?'⚔️ <b>CPU — Fase de Combate.</b> Atacando con '+atkers0.length+' personaje(s)…':'⏸ CPU no tiene atacantes disponibles este turno.',atkers0.length?'var(--red)':'var(--muted)');
   if(nivelAlto()) for(let n=0;n<12;n++){              // v216 · elige el mejor ataque disponible cada vez
     if(!alive()) return;
-    const m=cpuMejorAtaque(); if(!m) break;
+    let m=cpuMejorAtaque(); if(!m&&await cpuHuitlakOtra()) m=cpuMejorAtaque(); if(!m) break;
     if(m.v<=0){P.pj.forEach((p,i)=>{if(p&&canAtk('cpu',i))p.attacked=true;});lg('⏸ <b>CPU</b> calcula que ningún ataque le conviene y conserva a sus personajes.','var(--muted)');break;}
     if(!await step(900)) return;
     const atk=P.pj[m.as]; if(!atk) continue;
@@ -9000,7 +9072,8 @@ async function cpuTurn(){
     if(!alive()||checkEnd()) return;
   }
   for(let n=0;n<10;n++){
-    const as=P.pj.findIndex((p,i)=>canAtk('cpu',i));
+    let as=P.pj.findIndex((p,i)=>canAtk('cpu',i));
+    if(as<0&&await cpuHuitlakOtra()) as=P.pj.findIndex((p,i)=>canAtk('cpu',i));
     if(as<0) break;
     if(!await step(900)) return;
     const atk=P.pj[as];if(!atk) continue;

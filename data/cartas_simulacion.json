@@ -38375,6 +38375,97 @@
    "rareza": "comun"
   },
   {
+   "id": "tk_huitlak_super",
+   "nombre": "Huitlak, Super Tonalkin",
+   "tipo": "pj",
+   "coste": 6,
+   "imp": 2,
+   "cor": 2,
+   "fue": 6,
+   "res": 4,
+   "superDe": "tk_huitlak",
+   "superCtr": 2,
+   "habilidades": [
+    "ORGULLO"
+   ],
+   "contadores": true,
+   "noNormal": true,
+   "soloPor": [
+    "tk_huitlak_super"
+   ],
+   "texto": "HABILIDAD: (Esta carta puede contener \"CONTADORES DE ALMA\") TRANSFORMAR: Retira 2 \"CONTADORES DE ALMA\" de \"HUITLAK, RIVAL TONALKIN\" y envíalo al MICTLÁN: llama a este PERSONAJE de forma especial desde tu mano o BP al mismo SECTOR; conserva los contadores restantes. ESTE PERSONAJE solo puede llamarse de esta manera. Cuando vence a un PERSONAJE en Combate, coloca 1 \"CONTADOR DE ALMA\" sobre esta carta. Puedes retirar 1 Contador para que este PERSONAJE pueda atacar nuevamente ese turno (1 vez por turno). ORGULLO: No puede beneficiarse de habilidades de PERSONAJES que eviten que sea vencido.",
+   "efectos": [
+    {
+     "cuando": "mano",
+     "texto": "Retirar 2 contadores de Huitlak, Rival Tonalkin y transformarlo en Super Tonalkin",
+     "condicion": {
+      "chilayaSuper": true
+     },
+     "pasos": [
+      {
+       "accion": "chilaya_super"
+      }
+     ],
+     "sinAnuncio": true
+    },
+    {
+     "cuando": "pasivo",
+     "accion": "huitlak_super"
+    },
+    {
+     "cuando": "combate",
+     "limite": "turno",
+     "texto": "Retirar 1 CONTADOR DE ALMA: atacar nuevamente",
+     "condicion": {
+      "huitlakOtra": true
+     },
+     "pasos": [
+      {
+       "accion": "huitlak_otra"
+      }
+     ]
+    }
+   ],
+   "img": "./cartas_3/TONALKIN_011_full.jpg",
+   "imgMin": "./cartas_3/TONALKIN_011.jpg",
+   "tester": true,
+   "expansion": "test",
+   "rareza": "comun"
+  },
+  {
+   "id": "tk_ira",
+   "nombre": "Ira Tonalkin",
+   "tipo": "apoyo",
+   "subtipo": "rapido",
+   "texto": "Cuando un PERSONAJE con \"TONALKIN\" en su nombre es vencido: puedes colocar 2 \"CONTADORES DE ALMA\" sobre otro PERSONAJE \"TONALKIN\" en tu campo. Ese PERSONAJE puede TRANSFORMARSE ahora, aún en el turno del adversario. (El efecto de \"IRA TONALKIN\" solo puede ser activado una vez por turno)",
+   "efectos": [
+    {
+     "cuando": "activar",
+     "limite": "turno",
+     "condicion": {
+      "tkVencidoTurno": true,
+      "controlas": {
+       "filtro": {
+        "tipo": "pj",
+        "nombreIncluye": "TONALKIN"
+       },
+       "texto": "Necesitas otro PERSONAJE TONALKIN en tu campo"
+      }
+     },
+     "pasos": [
+      {
+       "accion": "ira_tonalkin"
+      }
+     ]
+    }
+   ],
+   "img": "./cartas_3/TONALKIN_012_full.jpg",
+   "imgMin": "./cartas_3/TONALKIN_012.jpg",
+   "tester": true,
+   "expansion": "test",
+   "rareza": "comun"
+  },
+  {
    "id": "tk_chilaya",
    "nombre": "Chilaya, Princesa Tonalkin",
    "tipo": "pj",

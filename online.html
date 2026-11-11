@@ -2184,6 +2184,7 @@ function inmune(o,slot,by,kind){
   if(p.inmTmp===turnKey()) return true;
   if(p.inmA) return true;
   if(medallonDe(o,p)>=0) return true;
+  if(jikaSuperProtege(o,p)) return true;
   return kind==='destruir'&&!!p.inmD;
 }
 function opp(o){return o==='player'?'cpu':'player';}
@@ -7198,6 +7199,33 @@ async function respAmenaza(r,ev,cid){
 // v231 · TONALKIN (expansión TEST): Contadores de Alma en personajes, RESURGIR, Jika, Tonal-Ken, Planeta Chiley
 // ════════════════════════════════════
 const TK_F={tipo:'pj',nombreIncluye:'TONALKIN'};
+// v254 · JIKA, SUPER TONALKIN
+//  · Mientras esté en tu campo (sin habilidad anulada), tus OTROS «TONALKIN» no pueden ser seleccionados por el adversario
+//  · 1 vez por turno: si un TONALKIN tuyo es vencido en Combate durante el turno del adversario, coloca 1 CONTADOR DE ALMA
+//    sobre un PERSONAJE TONALKIN de tu campo
+function jikaSuperProtege(o,p){
+  if(!G||!p||!isChar(p.id)||!esTk(p.id)) return false;
+  return G[o].pj.some((q,k)=>q&&q!==p&&hasPassive(q.id,'jika_super')&&!supp(o,k));
+}
+async function jikaSuperCtr(){
+  if(!G||G.over||!G.jikaSP) return;
+  G.jikaSU=G.jikaSU||{};
+  for(const s of ['player','cpu']){
+    if(G.jikaSP[s]!==turnKey()||G.jikaSU[s]===turnKey()) continue;
+    const j=G[s].pj.findIndex((q,k)=>q&&hasPassive(q.id,'jika_super')&&!supp(s,k));
+    if(j<0) continue;
+    const L=G[s].pj.map((q,i)=>q&&isChar(q.id)&&esTk(q.id)?{z:'campo',i,cid:q.id,o:s}:null).filter(Boolean);
+    if(!L.length) continue;
+    G.jikaSU[s]=turnKey();
+    const jid=G[s].pj[j].id;
+    lg('⚡ <b>'+C[jid].name+'</b>'+who(s)+': un TONALKIN fue vencido en Combate → coloca 1 CONTADOR DE ALMA.','#7fe3ff');
+    let pick=L.length===1?L:await choose({o:s,cid:jid,interactive:esPersona(s)},L,1,{sub:'Coloca 1 CONTADOR DE ALMA sobre un PERSONAJE TONALKIN',min:1,
+      score:y=>(G[s].pj[y.i].id==='tk_jika'||G[s].pj[y.i].id==='tk_chilaya'?50:0)+SCORE(y.cid)});
+    if(!pick||!pick.length) pick=[L[0]];
+    const q=G[s].pj[pick[0].i]; if(q) ponerCtr(s,q,1);
+    renderAll();
+  }
+}
 function esTk(cid){return !!cid&&matchF(cid,{nombreIncluye:'TONALKIN'});}
 function ctrCampo(o){return G[o].pj.reduce((t,p)=>t+(p&&p.ctr||0),0)+contAlma(o);}
 function ponerCtr(o,p,n){if(!p||!n)return;p.ctr=(p.ctr||0)+n;lg('🔷 <b>'+C[p.id].name+'</b>'+who(o)+' recibe '+n+' CONTADOR(ES) DE ALMA (total '+p.ctr+').','#7fe3ff');}
@@ -8380,6 +8408,7 @@ async function afterBattle(o,as,res){
     if(!G||G.over) return;
     const mudo=await fireLeave(s,cid);
     if(comb){tkTrasVencido(s,cid,obj);if(G.tkVencido&&G.tkVencido[s]===turnKey())G.tkVencidoN=(G.tkVencidoN||0)+1;}
+    if(comb&&s!==o&&esTk(cid)&&isChar(cid)){G.jikaSP=G.jikaSP||{};G.jikaSP[s]=turnKey();}   // v254 · Jika, Super Tonalkin
     if(comb&&!mudo){const ven=s===o?(res.first&&res.first.d?{o:opp(o),id:res.first.d.id}:null):{o,id:res.atkId};await runTrigger(s,cid,'vencido',{zone:'fuera',vencedor:ven});}
     renderAll();
     if(checkEnd()) return;
@@ -8393,6 +8422,7 @@ async function afterBattle(o,as,res){
   }
   renderAll(); if(checkEnd()) return;
   try{await tkOfrecerMano();}catch(e){}
+  try{await jikaSuperCtr();}catch(e){}
 }
 let _combatClose=null;
 async function playerAttack(as,ds){

@@ -7667,7 +7667,7 @@ function renderHP(o){
   const n=Math.max(R.corazones,G[o].hp);
   for(let i=0;i<n;i++) h+='<span class="hgem'+(i>=G[o].hp?' lost':'')+'"></span>';
   hb.innerHTML=h;
-  hb.style.setProperty('--hn',Math.min(10,Math.max(5,n<=10?n:Math.ceil(n/2))));
+  hb.style.setProperty('--hn',n<=20?10:Math.ceil(n/2));   // v258 · siempre 10 por fila: con más de 10 corazones bajan a una segunda fila del mismo tamaño
   document.getElementById(o==='player'?'playerHPn':'cpuHPn').textContent=G[o].hp;
   pintarPlacas();
 }

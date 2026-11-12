@@ -2381,6 +2381,7 @@ function matchF(cid,f){
   if(f.id&&cid!==f.id) return false;
   const nmF=c.nx?c.name+' '+c.nx:c.name;
   if(f.nombreIncluye&&![].concat(f.nombreIncluye).some(n=>K(nmF).includes(K(n)))) return false;
+  if(f.nombreNo&&K(c.name)===K(f.nombreNo)) return false;   // v259 · «con un nombre distinto»
   if(f.nombreTodos&&![].concat(f.nombreTodos).every(n=>K(nmF).includes(K(n)))) return false;
   if(f.excluirId&&cid===f.excluirId) return false;
   if(f.dios&&!c.dios) return false;
@@ -2587,7 +2588,7 @@ const PASOS={
     leaveField(ctx.o,x.i,'bp_fondo');
     lg('↩ <b>'+C[x.cid].name+'</b>'+who(ctx.o)+' regresa al fondo de su baraja.','var(--muted)');
     renderAll();await fireLeave(ctx.o,x.cid);
-    return await PASOS.llamar_especial(ctx,{origen:'bp',filtro:{tipo:'pj',valorMax:v}});
+    return await PASOS.llamar_especial(ctx,{origen:'bp',filtro:{tipo:'pj',valorMax:v,nombreNo:C[x.cid].name}});   // v259 · errata: nombre distinto
   },
   async ganar_corazones(ctx,st){
     const n=st.cantidad??ctx.vars.n??0;
@@ -3948,7 +3949,7 @@ const PASOS={
       const ctrl=x.o;
       await quitarDelCampo(ctx.o,x,modo);hechos++;
       if(abajo&&confAbajoDesdeConf(x.cid)) lg('⬇ <b>'+C[x.cid].name+'</b> queda confinada BOCA ABAJO (fuera del juego).','var(--purple)');
-      if(st.castigo&&hurt(ctrl,st.castigo,'efecto')){lg('💔 '+(ctrl==='player'?'Pierdes':'La CPU pierde')+' '+st.castigo+' corazón.','var(--red)');playSound('damage');}
+      if(st.castigo&&hurt(ctrl,st.castigo,'efecto',ctx.o)){lg('💔 '+(ctrl==='player'?'Pierdes':'La CPU pierde')+' '+st.castigo+' corazón.','var(--red)');playSound('damage');}
       renderAll();
       if(!G||G.over) return false;
     }
@@ -4182,7 +4183,7 @@ async function temakEnteReaccion(o,cid){
     if(s2<0) return;
     lg('🌀 <b>'+C[p.id].name+'</b>'+who(r)+' destruye a <b>'+C[cid].name+'</b>.','var(--red)');
     await quitarDelCampo(r,{o,z:'campo',i:s2,cid},'destruir'); await procDestrQ();
-    if(G&&!G.over&&hurt(o,1,'efecto')){lg('💔 '+(o==='player'?'Pierdes':'La CPU pierde')+' 1 corazón.','var(--red)');playSound('damage');}
+    if(G&&!G.over&&hurt(o,1,'efecto',r)){lg('💔 '+(o==='player'?'Pierdes':'La CPU pierde')+' 1 corazón.','var(--red)');playSound('damage');}
     checkEnd(); return;
   }
 }
@@ -5647,7 +5648,7 @@ async function penachosGolpe(o,r,ds,atk){
   if(k<n){
     const al=p.penachos.splice(k,1)[0]; G[r].mictlan.push(al);
     lg('🪶 <b>'+C[atk.id].name+'</b>'+who(o)+' ataca una carta boca abajo… era <b>'+C[al].name+'</b>: va al Mictlán y '+(o==='player'?'pierdes':'la CPU pierde')+' 1 corazón.','var(--purple)');
-    if(hurt(o,1,'efecto')) playSound('damage');
+    if(hurt(o,1,'efecto',r)) playSound('damage');
     if(!p.penachos.length){delete p.penachos;lg('🪶 <b>'+C[p.id].name+'</b>'+who(r)+' queda descubierto: vuelve boca arriba.','var(--muted)');}
     checkEnd(); return;
   }
@@ -6047,7 +6048,7 @@ const SIDE_NOM=(o,side)=>(o==='player'?'Tu sector ':'Sector de la CPU ')+(side==
 
 // ── Corazones de jugador (ARENA Nexotlan los protege de ataques y efectos; los costos sí se pagan) ──
 function protegeCorazones(o){return !!G[o].arena&&hasPassive(G[o].arena,'proteger_corazones');}
-function hurt(o,n,why){
+function hurt(o,n,why,src){
   if(n<=0) return 0;
   if(G&&why==='ataque'&&controlaPasiva(o,'primer_impacto_cero')&&G.used[o]['pic']!==turnKey()){
     G.used[o]['pic']=turnKey();lg('🐆 <b>El Defensor Jaguar</b>: el primer impacto a '+(o==='player'?'tus corazones':'los corazones de la CPU')+' este turno se reduce a 0.','var(--green)');return 0;}
@@ -6063,7 +6064,9 @@ function hurt(o,n,why){
     lg('🟣 <b>Chahneko</b>'+who(o)+' se descarta al Mictlán: el daño ('+n+') a '+(o==='player'?'tus corazones':'los corazones de la CPU')+' se niega.','#7fe9ff');
     if(typeof renderAll==='function')setTimeout(()=>{try{renderAll();}catch(e){}},0);
     return 0;}
-  if(why!=='costo'&&protegeCorazones(o)){lg('🌀 <b>'+C[G[o].arena].name+'</b>: los corazones de '+(o==='player'?'tu lado':'la CPU')+' no pueden disminuir.','var(--green)');return 0;}
+  // v259 · NEXOTLAN (errata): solo evita el daño por EFECTOS o HABILIDADES de cartas del ADVERSARIO
+  //        (el daño de combate, los costos y los efectos de tus propias cartas sí te afectan)
+  if(why!=='costo'&&why!=='ataque'&&why!=='reflejo'&&src!==o&&protegeCorazones(o)){lg('🌀 <b>'+C[G[o].arena].name+'</b>: '+(o==='player'?'no recibes':'el adversario no recibe')+' daño por efectos de cartas del adversario.','var(--green)');return 0;}
   G[o].hp=Math.max(0,G[o].hp-n);
   if(o==='player'&&AJ.vib&&navigator.vibrate){try{navigator.vibrate(n>1?[70,50,70]:60);}catch(e){}}
   return n;
@@ -6251,7 +6254,7 @@ async function placeChar(o,cid,opt){
   if(ninjaEnZona(o,'nj_addela','sector')&&cid!=='nj_addela'){live.cor+=1;lg('🥷 <b>Ninjiachi Addela</b>: <b>'+C[cid].name+'</b>'+who(o)+' gana un corazón extra.','#ffe066');}
   live.resting=!((entersActive(o,side)||hasKw(live,'BRUTALIDAD'))&&!firstTurnBlock);
   {const sc=G[o].sect[side];const ec=sc&&(C[sc].efectos||[]).find(x=>x.cuando==='pasivo'&&x.accion==='castigo_llamado');
-   if(ec&&hurt(o,ec.n||1,'efecto')){lg('💔 <b>'+C[sc].name+'</b>: '+(o==='player'?'pierdes':'la CPU pierde')+' '+(ec.n||1)+' corazón por llamar a ese sector.','var(--red)');playSound('damage');}}
+   if(ec&&hurt(o,ec.n||1,'efecto',sectOwner(o,side))){lg('💔 <b>'+C[sc].name+'</b>: '+(o==='player'?'pierdes':'la CPU pierde')+' '+(ec.n||1)+' corazón por llamar a ese sector.','var(--red)');playSound('damage');}}
   lg((opt.via==='especial'?'✨ <b>Llamado especial</b>'+who(o)+': ':(o==='player'?'✅ ':'🔴 CPU llama ')+'')+'<b>'+C[cid].name+'</b>'+
      (opt.from?' desde '+opt.from:'')+(opt.zonaTxt?' a la '+opt.zonaTxt:' en sector '+(side==='left'?'IZQ':'DER'))+(live.resting?' 😴':' 🔥 ¡Entra en batalla!'),
      opt.via==='especial'?'#ffe066':(o==='player'?'var(--green)':'var(--red)'));
@@ -8822,7 +8825,6 @@ function cpuPrevChoque(as,ds){
 function cpuValorAtaque(as,ds){
   const atk=G.cpu.pj[as];
   if(ds==null){                                     // directo a los corazones
-    if(protegeCorazones('player')) return -1;
     const n=eI(atk); if(!n) return -1;
     return n>=G.player.hp?9999:n*(G.player.hp<=6?30:G.player.hp<=10?22:16);
   }

@@ -1358,9 +1358,12 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
       <button class="ibtn" onclick="enterLandscape()" title="Pantalla completa">⛶</button>
     </div>
     <div class="sr-block">
-      <div class="hp-row"><span class="hp-lbl">MANO</span><div class="cpu-hand-row" id="cpuhand"></div></div>
-      <div class="hp-row"><span class="hp-lbl">ADV.</span><div class="hp-gems" id="cpuHB"></div><span class="hp-num" id="cpuHPn" style="color:var(--red)">10</span></div>
-      <div class="hp-row"><span class="hp-lbl">TÚ</span><div class="hp-gems" id="playerHB"></div><span class="hp-num" id="playerHPn" style="color:var(--green)">10</span></div>
+      <!-- v257 · Placas de jugador: foto de perfil, nombre y corazones oficiales -->
+      <div class="placa riv" id="placaC"><div class="pl-av" id="plAvC"></div><div class="pl-tx"><b class="pl-nom" id="plNomC">ADVERSARIO</b><small class="pl-sub" id="plSubC"></small></div><span class="pl-hp"><i></i><b class="hp-num" id="cpuHPn">10</b></span></div>
+      <div class="hp-gems" id="cpuHB"></div>
+      <div class="hp-row pl-mano"><span class="hp-lbl">MANO</span><div class="cpu-hand-row" id="cpuhand"></div></div>
+      <div class="placa yo" id="placaP"><div class="pl-av" id="plAvP"></div><div class="pl-tx"><b class="pl-nom" id="plNomP">TÚ</b><small class="pl-sub" id="plSubP"></small></div><span class="pl-hp"><i></i><b class="hp-num" id="playerHPn">10</b></span></div>
+      <div class="hp-gems" id="playerHB"></div>
       <div class="res-line">🃏 <span id="handCt">0</span> · <span id="almaLbl" style="color:var(--ac)">Almas: 0</span> · Llamados: <span id="callsLbl" style="color:var(--gold)">2</span></div>
     </div>
     <div class="sr-block">
@@ -7664,7 +7667,39 @@ function renderHP(o){
   const n=Math.max(R.corazones,G[o].hp);
   for(let i=0;i<n;i++) h+='<span class="hgem'+(i>=G[o].hp?' lost':'')+'"></span>';
   hb.innerHTML=h;
+  hb.style.setProperty('--hn',Math.min(10,Math.max(5,n<=10?n:Math.ceil(n/2))));
   document.getElementById(o==='player'?'playerHPn':'cpuHPn').textContent=G[o].hp;
+  pintarPlacas();
+}
+// v257 · Placas: foto de perfil y nombre (Arcade / Nexotlan / En línea / tutorial / práctica)
+function placaDatos(o){
+  const ses=(()=>{try{return JSON.parse(localStorage.getItem('nhSesion')||'null');}catch(e){return null;}})();
+  const enl=typeof ON!=='undefined'&&ON&&ON.jugando;
+  if(o==='player'){
+    let img=ARCADE&&ARCADE.avatar||'';
+    if(!img&&ses&&ses.id&&ses.tipo!=='tienda'){let id=null;try{id=localStorage.getItem('nhAv_'+String(ses.id).trim())||localStorage.getItem('nhAv_'+String(ses.id).trim().toUpperCase());}catch(e){}
+      img=!id?'avatares/avatar_1.jpg':/^av_p\d+$/.test(id)?'avatares/'+id+'.jpg':(id.match(/^av(\d+)$/)?'avatares/avatar_'+id.match(/^av(\d+)$/)[1]+'.jpg':'avatares/avatar_1.jpg');}
+    const nom=(enl&&ON.nombre)||(ses&&ses.tipo!=='tienda'&&(ses.nick||ses.nombre||ses.id))||'TÚ';
+    return {nom,sub:(DK&&DK.jugador&&DK.jugador.nombre)||'',img,ico:'🛡'};
+  }
+  const por=DK&&DK.cpu&&(C[DK.cpu.portada]||C[(DK.cpu.bp||[])[0]&&DK.cpu.bp[0].id]);
+  if(ARCADE) return {nom:ARCADE.nombre||'Adversario',sub:ARCADE.jefe?(ARCADE.jefeTxt||'GUARDIÁN'):(DK&&DK.cpu&&DK.cpu.nombre)||'',img:ARCADE.retrato||(por&&por.imgMin)||'',ico:'⚔',ret:!!ARCADE.retrato};
+  if(enl) return {nom:ON.rivalNombre||'Adversario',sub:'EN LÍNEA',img:'',ico:'🌐'};
+  if(G&&G.tuto) return {nom:'Adversario de práctica',sub:'Partida guiada',img:por&&por.imgMin||'',ico:'🎓'};
+  return {nom:'Adversario',sub:(DK&&DK.cpu&&DK.cpu.nombre)||'',img:por&&por.imgMin||'',ico:'⚔'};
+}
+let _placaK='';
+function pintarPlacas(){
+  try{
+    const a=placaDatos('player'),b=placaDatos('cpu'),k=JSON.stringify([a,b]);
+    if(k!==_placaK){_placaK=k;
+      [['P',a],['C',b]].forEach(([x,d])=>{const av=document.getElementById('plAv'+x);if(!av)return;
+        av.style.backgroundImage=d.img?'url("'+String(d.img).replace(/"/g,'%22')+'")':'';av.style.backgroundPosition=d.ret?'center 12%':'';av.textContent=d.img?'':d.ico;
+        document.getElementById('plNom'+x).textContent=d.nom;document.getElementById('plSub'+x).textContent=d.sub;});}
+    const act=G&&!G.over?G.active:null;
+    document.getElementById('placaP').classList.toggle('activo',act==='player');
+    document.getElementById('placaC').classList.toggle('activo',act==='cpu');
+  }catch(e){}
 }
 function renderApos(o){
   const px=o==='player'?'pA':'cA';
@@ -10483,6 +10518,27 @@ function salirPartida(ev,a){
 #playerHB .hgem{background-image:linear-gradient(160deg,#9dffd0 0%,#18e08a 45%,#068a52 100%);filter:drop-shadow(0 0 2px rgba(0,232,122,.6))}
 #playerHB .hgem.lost{background:#163026;background-image:none;filter:none}
 .hp-gems{gap:2px}
+/* ═══ v257 · PLACAS DE JUGADOR (panel derecho): foto, nombre y corazones oficiales del juego ═══ */
+.placa{--pc:#18e08a;display:flex;align-items:center;gap:7px;padding:5px 6px 5px 5px;margin-top:3px;border-radius:10px;position:relative;
+  background:linear-gradient(100deg,color-mix(in srgb,var(--pc) 20%,transparent),rgba(0,0,0,.28) 70%);border:1px solid color-mix(in srgb,var(--pc) 45%,transparent);transition:box-shadow .3s,border-color .3s}
+.placa.riv{--pc:#ff3d5a}
+.placa.activo{border-color:var(--pc);box-shadow:0 0 12px color-mix(in srgb,var(--pc) 55%,transparent),inset 0 0 10px color-mix(in srgb,var(--pc) 18%,transparent)}
+.placa.activo::after{content:'';position:absolute;left:-1px;top:8px;bottom:8px;width:3px;border-radius:3px;background:var(--pc);box-shadow:0 0 6px var(--pc)}
+.pl-av{flex:0 0 auto;width:38px;height:38px;border-radius:50%;background:#14101e center 18%/cover no-repeat;border:2px solid var(--pc);
+  box-shadow:0 0 8px color-mix(in srgb,var(--pc) 55%,transparent);display:flex;align-items:center;justify-content:center;font-size:18px}
+.pl-tx{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.15}
+.pl-nom{font-family:'Orbitron',sans-serif;font-size:10px;font-weight:800;letter-spacing:.3px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pl-sub{font-size:9.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pl-hp{flex:0 0 auto;display:flex;align-items:center;gap:3px}
+.pl-hp i{width:18px;height:18px;background:url("assets/simulacion/corazon.png") center/contain no-repeat;filter:drop-shadow(0 1px 2px rgba(0,0,0,.7))}
+.pl-hp .hp-num{font-size:15px!important;min-width:0;color:#fff;text-shadow:0 0 6px var(--pc)}
+.hp-gems#cpuHB,.hp-gems#playerHB{display:grid;grid-template-columns:repeat(var(--hn,10),minmax(0,1fr));gap:2px;margin:4px 3px 3px;flex:none}
+.hgem,#playerHB .hgem{width:auto;height:auto;aspect-ratio:1;border-radius:0;transform:none;-webkit-mask:none;mask:none;box-shadow:none;
+  background:url("assets/simulacion/corazon.png") center/contain no-repeat!important;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.75));transition:filter .3s,opacity .3s,transform .3s}
+.hgem.lost,#playerHB .hgem.lost{filter:grayscale(1) brightness(.32);opacity:.6;transform:scale(.86)}
+.pl-mano{margin-top:2px}
+@media (max-height:440px){.pl-av{width:28px;height:28px;font-size:13px}.placa{padding:3px 5px 3px 4px;gap:5px}.pl-sub{display:none}.pl-nom{font-size:9px}.pl-hp i{width:14px;height:14px}.pl-hp .hp-num{font-size:12px!important}.hp-gems#cpuHB,.hp-gems#playerHB{margin:2px 2px 1px}}
+:root.rot .pl-av{width:28px;height:28px;font-size:13px}:root.rot .placa{padding:3px 5px 3px 4px;gap:5px}:root.rot .pl-sub{display:none}:root.rot .pl-nom{font-size:9px}
 
 /* ═══ v198 · Elegir objetivo de ataque: más notorio ═══ */
 #board.eligiendo.con-obj [id^="cP"].occ:not(.tgt){filter:brightness(.5) saturate(.55);transition:filter .2s}
@@ -10929,7 +10985,7 @@ if(TUTO){(function(){
   const manoEl=id=>{const i=G.player.hand.indexOf(id);return i<0?null:document.querySelectorAll('#handrow .hcard')[i]||null;};
   const actBtn=txt=>[...document.querySelectorAll('#dtActs button,#dtActs .dt-btn')].find(b=>b.textContent.includes(txt)&&!b.disabled)||null;
   const selEs=id=>SEL_IDX>=0&&G.player.hand[SEL_IDX]===id;
-  const hpBox=()=>{const e=$('cpuHB');return e?e.closest('.hp-row').parentElement:null;};
+  const hpBox=()=>{const e=$('cpuHB');return e?e.closest('.sr-block'):null;};
   const sectorBox=()=>document.querySelector('#sectorModal.show .sector-box');
   const sectorBtns=()=>[$('sectorBtnIzq'),$('sectorBtnDer')].filter(b=>b&&!b.disabled);
   const combateBox=()=>document.querySelector('#combatMod.show .cbox');

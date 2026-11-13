@@ -53,6 +53,10 @@
 #   musica_choque (opcional) música de TODOS los Choques de este distrito (un punto con musica = … la cambia)
 #   paisaje     (opcional) imagen panorámica angosta en assets/nexotlan/paisajes/ (ej. 1600×500 px)
 #               aparece detrás de los rivales y héroes de este distrito al hablar con ellos
+#   dlc         (opcional) SKU de un producto de la Tienda Digital (hoja Productos_Digitales). El distrito y todos
+#               sus puntos SOLO existen para quien compró ese producto; a los demás se les muestra sellado con
+#               ✦ CONTENIDO PREMIUM y un botón a la Tienda. No cuenta para la ruta principal ni para ser Campeón.
+#               (dlc = … también sirve en un [punto:…] suelto y en un [sobre:…] de comerciante.txt)
 #
 #  ── [punto:ID] ──
 #   tipo        rival | heroe | guardian
@@ -1515,3 +1519,76 @@ fase2_sonido =
 final = si
 final_audio = 
 fondo_mesa = assets/nexotlan/mesa_final.jpg
+
+# ════════════════ DLC · LAS CATACUMBAS DE NEXOTLAN  (producto: dlc_catacumbas) ════════════════
+#  Solo aparece para quien tiene el producto dlc_catacumbas (Tienda Digital → Contenido Premium).
+#  Se abre al vencer a la Guardiana de la Puerta. Sus rivales usan dificultad fija (no cambian la ruta).
+
+[distrito:catacumbas]
+dlc = dlc_catacumbas
+nombre = Las Catacumbas de Nexotlan
+descripcion = Bajo la escalinata de la Puerta duermen los que Nexotlan olvidó. Sus guardianes custodian un osario que ningún mapa registra… y el lamento que se escucha al fondo no es del viento.
+color = #7dffb2
+x = 61.5
+y = 94
+forma = 56,90 62,87 67,91 66,99 57,99
+radio = 5
+etiqueta = 72,97
+requiere = g_aurora
+musica_choque = assets/nexotlan/musica/piramide.mp3
+paisaje = catacumbas.jpg
+fondo_mesa = mictlan
+
+[punto:dlc_llorona]
+tipo = rival
+nombre = Cihuacóatl
+titulo = El Lamento de las Catacumbas
+distrito = catacumbas
+x = 58.6
+y = 95
+carta = cihuacoatl
+baraja = r2_llorona
+dificultad = dificil
+corazones = 1
+monedas = 160
+entrada = ¿Escuchas eso? Es mi voz… llamando a los que se perdieron aquí abajo. | Con mi lamento en el campo, nadie usa sus habilidades. Solo queda la fuerza.
+victoria = Mi llanto se apaga… por esta noche.
+derrota = Ahora también tú lloras en las Catacumbas.
+revancha = ¿Vuelves a bajar? Las Catacumbas nunca olvidan a quien las visita.
+
+[punto:dlc_tzina]
+tipo = rival
+nombre = Tzina
+titulo = Guía del Osario
+distrito = catacumbas
+x = 64.4
+y = 95.2
+carta = tzina
+baraja = r4_micte
+dificultad = muy_dificil
+corazones = 1
+monedas = 190
+entrada = Toca y Teco cuidan la entrada; yo guío a los que se atreven a seguir. | Cada carta que cae al Mictlán… regresa como un arma.
+victoria = Sabes el camino de regreso. Pocos lo saben.
+derrota = Te perdiste en el osario. Yo te guiaré… hacia abajo.
+revancha = El osario cambió de forma desde tu última visita.
+
+[punto:dlc_g_mictecacihuatl]
+tipo = guardian
+nombre = Mictecacihuatl
+titulo = Reina de las Catacumbas
+distrito = catacumbas
+x = 61.6
+y = 91.2
+imagen = arcade/personajes/rival_08.png
+carta = mictecacihuatl
+baraja = mictlan
+dificultad = epico
+corazones = 3
+monedas = 600
+requiere = dlc_llorona, dlc_tzina
+musica = assets/nexotlan/musica/guardian.mp3
+entrada = Bajaste hasta mi trono, viajero. | Todo lo que muere en Nexotlan termina aquí… y yo decido si vuelve a levantarse. | Muéstrame si tu alma vale más que un hueso en mi osario.
+victoria = Tu llama… sigue ardiendo incluso aquí abajo. | Ve. Las Catacumbas te reconocen como su señor.
+derrota = Una calavera más para mi trono.
+revancha = La Reina no olvida. Siéntate otra vez frente a mí.

@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8"/>
-<script src="config.js"></script><script src="nucleo.js"></script>
+<script src="config.js"></script><script src="nucleo.js"></script><script src="compras.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Tienda — Nexo de Héroes</title>
   <link rel="manifest" href="manifest.json"/>
@@ -499,6 +499,31 @@
     .mp-ir:disabled{opacity:.6;cursor:wait;}
     .mp-no{border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--muted);}
     @media (min-width:700px){.mp-fondo{align-items:center;}.mp-hoja{border-radius:14px;}}
+
+    /* ══ DLC DESTACADO (Contenido Premium) ══ */
+    .prh{position:relative;border-radius:12px;overflow:hidden;margin-bottom:16px;background:#050a0c;border:1px solid rgba(95,232,208,.32);
+      box-shadow:0 0 0 1px rgba(0,0,0,.6),0 10px 30px rgba(0,0,0,.45);}
+    .prh-img{aspect-ratio:16/7;background:#04080a center/cover no-repeat;position:relative;}
+    .prh-img::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 45%,rgba(5,10,12,.96));}
+    .prh-cuerpo{position:relative;padding:0 16px 16px;margin-top:-46px;}
+    .prh-tipo{font-family:'Orbitron',sans-serif;font-size:.5rem;font-weight:900;letter-spacing:1.6px;color:var(--esp);}
+    .prh h2{font-family:'Orbitron',sans-serif;font-weight:900;font-size:1.25rem;line-height:1.12;letter-spacing:.5px;color:#f2fff9;
+      text-shadow:0 2px 0 #000,0 0 18px rgba(95,232,208,.35);margin:4px 0 6px;}
+    .prh-desc{font-size:.98rem;color:#cfe3de;line-height:1.42;max-width:64ch;}
+    .prh-inc{list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:12px 0 0;}
+    .prh-inc li{font-size:.86rem;line-height:1.3;color:#e9fff7;padding:9px 10px 9px 28px;position:relative;border-radius:7px;
+      background:rgba(95,232,208,.07);border:1px solid rgba(95,232,208,.22);}
+    .prh-inc li::before{content:'✦';position:absolute;left:10px;top:8px;color:var(--esp);font-size:.8rem;}
+    .prh-acc{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px;}
+    .prh-acc .pr-precio{font-size:1.25rem;}
+    .prh-acc .pr-btn{margin-left:0;padding:11px 18px;font-size:.6rem;}
+    .prh-cod{font-family:'Orbitron',sans-serif;font-size:.56rem;font-weight:900;letter-spacing:1.4px;padding:11px 14px;border-radius:6px;cursor:pointer;
+      border:1px dashed rgba(95,232,208,.55);background:transparent;color:var(--esp);}
+    .prh.tengo{border-color:rgba(0,255,157,.4);}
+
+    /* ══ RIEL + ESCENA (solo vista amplia) ══ */
+    #td-rail,#td-escena{display:none;}
+    #td-main{position:relative;}
     /* ══ VISTA AMPLIA (PC / tablet horizontal) — se desactiva en Ajustes (html.hz-off) ══ */
     @media (min-width:1000px) and (min-height:560px){
       html:not(.hz-off) .container{max-width:1240px;padding:26px 28px 60px;}
@@ -530,6 +555,70 @@
       html:not(.hz-off) .pr-grid{grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:14px;}
       html:not(.hz-off) .hist-overlay{align-items:center;}
       html:not(.hz-off) .hist-modal{border-radius:12px;max-width:620px;max-height:80vh;}
+
+      /* ── Tienda horizontal: riel de secciones · vitrina · Doctor Sitho de cuerpo entero ── */
+      html:not(.hz-off) body{height:var(--appH,100vh);min-height:0;overflow:hidden;}
+      html:not(.hz-off) .container{max-width:none;flex:1;min-height:0;padding:14px 18px;display:flex;flex-direction:column;animation:none;}
+      html:not(.hz-off) .container>a[href="tienda-fisica.html"]{display:none!important;}
+      html:not(.hz-off) #tienda-content[style*="block"]{display:grid!important;flex:1;min-height:0;
+        grid-template-columns:232px minmax(0,1fr) clamp(300px,27vw,430px);grid-template-rows:auto minmax(0,1fr);
+        grid-template-areas:"head main esc" "rail main esc";gap:14px;}
+      html:not(.hz-off) #vend,html:not(.hz-off) #cat-menu,html:not(.hz-off) .sec-back{display:none!important;}
+      html:not(.hz-off) #jugador-header{grid-area:head;margin:0;padding:10px 12px;gap:10px;border-color:rgba(245,166,35,.28);
+        background:linear-gradient(160deg,rgba(var(--nx-k3),.98),rgba(var(--nx-k1),.98));}
+      html:not(.hz-off) .jh-avatar{width:40px;height:40px;}
+      html:not(.hz-off) .jh-nombre{font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+      html:not(.hz-off) .jh-info{min-width:0;}
+      html:not(.hz-off) .jh-pts{font-size:.5rem;}
+      html:not(.hz-off) .jh-pts b{font-size:1rem;}
+
+      html:not(.hz-off) #td-rail{grid-area:rail;display:flex;flex-direction:column;gap:6px;min-height:0;overflow-y:auto;padding:2px 2px 4px;scrollbar-width:thin;}
+      html:not(.hz-off) #td-rail button,html:not(.hz-off) #td-rail a{position:relative;display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+        font-family:'Orbitron',sans-serif;font-size:.6rem;font-weight:900;letter-spacing:1.2px;color:#d9e4f2;text-decoration:none;cursor:pointer;
+        padding:11px 12px;border-radius:8px;background:linear-gradient(180deg,rgba(var(--nx-k3),.96),rgba(var(--nx-k1),.96));
+        border:1px solid rgba(var(--nx-k6),1);box-shadow:inset 0 1px 0 rgba(255,255,255,.04);transition:border-color .15s,background .15s;}
+      html:not(.hz-off) #td-rail .rl-i{width:26px;height:26px;flex:0 0 26px;display:flex;align-items:center;justify-content:center;font-size:1.05rem;}
+      html:not(.hz-off) #td-rail .rl-i img{width:100%;height:100%;object-fit:contain;}
+      html:not(.hz-off) #td-rail button:hover,html:not(.hz-off) #td-rail a:hover{border-color:rgba(245,166,35,.5);}
+      html:not(.hz-off) #td-rail button:focus-visible,html:not(.hz-off) #td-rail a:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+      html:not(.hz-off) #td-rail button.on{color:#1a1000;border-color:#ffd27a;background:linear-gradient(180deg,#ffd27a,#e0951a);box-shadow:0 0 16px rgba(245,166,35,.35);}
+      html:not(.hz-off) #td-rail button em{margin-left:auto;font-style:normal;font-size:.44rem;letter-spacing:1px;padding:3px 6px;border-radius:3px;background:var(--esp);color:#062421;}
+      html:not(.hz-off) #td-rail button.on em{background:#1a1000;color:#ffd27a;}
+      html:not(.hz-off) #td-rail .rl-sep{height:1px;background:rgba(var(--nx-k6),1);margin:4px 6px;}
+      html:not(.hz-off) #td-rail a{margin-top:auto;color:var(--muted);font-size:.55rem;}
+
+      @media (max-height:820px){
+        html:not(.hz-off) #td-rail{gap:5px;}
+        html:not(.hz-off) #td-rail button,html:not(.hz-off) #td-rail a{padding:7px 10px;}
+        html:not(.hz-off) #td-rail .rl-sep{margin:2px 6px;}
+      }
+      html:not(.hz-off) #td-main{grid-area:main;min-height:0;overflow-y:auto;padding:22px 26px 28px;border-radius:12px;scrollbar-width:thin;
+        background:radial-gradient(120% 70% at 50% 0%,rgba(245,166,35,.06),transparent 60%),linear-gradient(180deg,rgba(var(--nx-k2,var(--nx-k1)),.97),rgba(var(--nx-k1),.98));
+        border:1px solid rgba(245,166,35,.45);box-shadow:inset 0 0 0 4px rgba(var(--nx-k1),1),inset 0 0 0 5px rgba(245,166,35,.22),0 14px 40px rgba(0,0,0,.5);}
+      html:not(.hz-off) #td-main .section-panel.active{animation:tdPanel .28s ease-out;}
+      @keyframes tdPanel{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+      html:not(.hz-off) .prh-img{aspect-ratio:16/6;}
+      html:not(.hz-off) .prh-cuerpo{padding:0 22px 20px;margin-top:-62px;}
+      html:not(.hz-off) .prh h2{font-size:1.7rem;}
+      html:not(.hz-off) .pr-grid{grid-template-columns:repeat(auto-fill,minmax(330px,1fr));}
+
+      html:not(.hz-off) #td-escena{grid-area:esc;display:block;position:relative;min-height:0;border-radius:12px;overflow:hidden;
+        border:1px solid rgba(95,232,208,.25);background:#05090c;}
+      html:not(.hz-off) .esc-fondo{position:absolute;inset:0;background:url('assets/nexotlan/mercado.jpg') 22% center/cover no-repeat;filter:saturate(.8) brightness(.55);}
+      html:not(.hz-off) .esc-fondo::after{content:'';position:absolute;inset:0;
+        background:radial-gradient(70% 55% at 50% 58%,rgba(95,232,208,.16),transparent 70%),linear-gradient(180deg,rgba(4,8,12,.25),rgba(4,8,12,.15) 45%,rgba(4,8,12,.92));}
+      html:not(.hz-off) .esc-doc{position:absolute;left:50%;bottom:0;height:90%;width:100%;object-fit:contain;object-position:center bottom;transform:translateX(-50%);
+        filter:drop-shadow(0 18px 30px rgba(0,0,0,.7));animation:escEntra .7s cubic-bezier(.2,.8,.2,1) both,escFlota 6s ease-in-out .7s infinite;}
+      @keyframes escEntra{from{opacity:0;transform:translate(-30%,0);}to{opacity:1;transform:translate(-50%,0);}}
+      @keyframes escFlota{0%,100%{transform:translate(-50%,0);}50%{transform:translate(-50%,-5px);}}
+      html:not(.hz-off) .esc-globo{position:absolute;left:12px;right:12px;bottom:12px;padding:12px 15px 14px;border-radius:10px;
+        background:linear-gradient(160deg,rgba(10,28,30,.95),rgba(6,12,18,.96));border:1px solid rgba(95,232,208,.45);
+        box-shadow:0 0 0 1px rgba(0,0,0,.6),0 0 24px rgba(95,232,208,.14);}
+      html:not(.hz-off) .esc-globo b{display:block;font-family:'Orbitron',sans-serif;font-size:.62rem;letter-spacing:1.5px;color:var(--esp);}
+      html:not(.hz-off) .esc-globo small{display:block;font-size:.76rem;color:var(--muted);margin-top:1px;}
+      html:not(.hz-off) .esc-globo p{font-size:1.05rem;line-height:1.36;color:#e8f6f2;margin-top:7px;min-height:2.7em;}
+      html:not(.hz-off) .esc-globo p.cambia{animation:vendTxt .35s ease-out;}
+      @media (prefers-reduced-motion:reduce){html:not(.hz-off) .esc-doc{animation:none;}html:not(.hz-off) #td-main .section-panel.active{animation:none;}}
     }
   </style>
 <script src="nexo-ui.js"></script>
@@ -574,6 +663,23 @@
         <div class="vend-txt" id="vend-txt">¡Pasa, pasa! Lo mejor del Multiverso, recién llegado de otras dimensiones.</div>
       </div>
     </div>
+
+    <!-- ═══ RIEL DE SECCIONES (vista amplia) ═══ -->
+    <nav id="td-rail" aria-label="Secciones de la tienda">
+      <button data-sec="premium"><span class="rl-i">✦</span>PREMIUM<em>DLC</em></button>
+      <button data-sec="sobres"><span class="rl-i"><img src="hero_pesos/hp_coin.png" alt="" onerror="this.parentElement.textContent='💰'"/></span>SOBRES</button>
+      <button data-sec="cartas"><span class="rl-i">🃏</span>CARTAS</button>
+      <button data-sec="cosmeticos"><span class="rl-i">🎴</span>MICAS Y PLAYMATS</button>
+      <div class="rl-sep"></div>
+      <button data-sec="avatares"><span class="rl-i">👤</span>AVATARES</button>
+      <button data-sec="fondos"><span class="rl-i">🌌</span>FONDOS</button>
+      <button data-sec="temas"><span class="rl-i">🎨</span>TEMAS</button>
+      <button data-sec="musica"><span class="rl-i">🎵</span>MÚSICA</button>
+      <button data-sec="heroes"><span class="rl-i">🦸</span>HÉROES DEL MENÚ</button>
+      <div class="rl-sep"></div>
+      <button data-sec="canjear"><span class="rl-i">🔑</span>CANJEAR CÓDIGO</button>
+      <a href="tienda-fisica.html"><span class="rl-i">📦</span>TIENDA ONLINE</a>
+    </nav>
 
     <!-- ═══ MENÚ CATEGORÍAS ═══ -->
     <div id="cat-menu">
@@ -646,6 +752,7 @@
       </div>
     </div>
 
+    <main id="td-main">
     <!-- ═══ SECCIÓN SOBRES ═══ -->
     <div id="sec-sobres" class="section-panel">
       <button class="sec-back" onclick="volverMenu()">◀ TIENDA</button>
@@ -737,6 +844,7 @@
       <div class="stitle">✦ CONTENIDO PREMIUM</div>
       <p class="pr-intro">Se compra con dinero real: paga aquí con Mercado Pago o activa el código CDH que te dieron en la Tienda Online. Lo que compras queda ligado a tu ID para siempre.</p>
       <div class="mp-aviso" id="mp-aviso" role="status"></div>
+      <div id="pr-hero"></div>
       <div class="pr-filtros" id="pr-filtros"></div>
       <div class="pr-grid" id="pr-grid"><div class="empty-tab">⏳ Cargando...</div></div>
       <button class="pr-codigo" onclick="abrirSeccion('canjear')">🔑 TENGO UN CÓDIGO</button>
@@ -784,6 +892,26 @@
       <div id="qr-historial"><div class="empty-tab">⏳ Cargando...</div></div>
     </div>
 
+    <div id="sec-musica" class="section-panel">
+      <button class="sec-back" onclick="volverMenu()">◀ TIENDA</button>
+      <div class="stitle">🎵 MÚSICA</div>
+      <p style="font-size:.8rem;color:var(--muted);margin-bottom:16px;line-height:1.5;">
+        Las pistas 1–10 están disponibles para todos. Las adicionales se desbloquean con puntos de liga.
+      </p>
+      <div id="musica-pts-bar" style="font-family:'Orbitron',sans-serif;font-size:.75rem;color:var(--gold);margin-bottom:16px;text-align:right;">
+        Tus puntos: <b id="musica-pts-val">—</b>
+      </div>
+      <div id="musica-grid"></div>
+    </div>
+    </main>
+
+    <!-- ═══ ESCENA: Doctor Sitho de cuerpo entero (vista amplia) ═══ -->
+    <div id="td-escena">
+      <div class="esc-fondo"></div>
+      <img class="esc-doc" src="assets/nexotlan/personajes/doctor.png" alt="Doctor Sitho Falabeuf" onerror="this.remove()"/>
+      <div class="esc-globo" aria-live="polite"><b>DOCTOR SITHO FALABEUF</b><small>Mercader de recuerdos</small><p id="esc-txt">¡Pasa, pasa! Lo mejor del Multiverso, recién llegado de otras dimensiones.</p></div>
+    </div>
+
   </div>
 </div>
 
@@ -801,17 +929,6 @@
     </div>
   </div>
 
-  <div id="sec-musica" class="section-panel">
-    <button class="sec-back" onclick="volverMenu()">◀ TIENDA</button>
-    <div class="stitle">🎵 MÚSICA</div>
-    <p style="font-size:.8rem;color:var(--muted);margin-bottom:16px;line-height:1.5;">
-      Las pistas 1–10 están disponibles para todos. Las adicionales se desbloquean con puntos de liga.
-    </p>
-    <div id="musica-pts-bar" style="font-family:'Orbitron',sans-serif;font-size:.75rem;color:var(--gold);margin-bottom:16px;text-align:right;">
-      Tus puntos: <b id="musica-pts-val">—</b>
-    </div>
-    <div id="musica-grid"></div>
-  </div>
 
 <!-- Overlay apertura de sobre -->
 <div class="sobre-overlay" id="sobre-overlay">
@@ -1117,6 +1234,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('jugador-header').classList.add('visible');
   vendDecir('bienvenida', false);
   aplicarItemsGuardados();
+  document.querySelectorAll('#td-rail [data-sec]').forEach(b => b.onclick = () => abrirSeccion(b.dataset.sec));
+  const qSec = new URLSearchParams(location.search).get('sec');
+  if (!new URLSearchParams(location.search).get('mp')) {
+    if (qSec && TD_SECS.indexOf(qSec) >= 0) abrirSeccion(qSec);
+    else if (tdHz()) abrirSeccion(TD_DEF);
+  }
+  TD_MQ.addEventListener && TD_MQ.addEventListener('change', () => { if (tdHz() && !tdSec) abrirSeccion(TD_DEF); });
   mpAlRegresar();
   // En paralelo: si el ranking tarda, ya no bloquea el saldo de HP
   await Promise.allSettled([calcularPuntos(), cargarSaldoHP()]);
@@ -1159,8 +1283,8 @@ async function vendDecir(sec, mini) {
   if (lista.length > 1 && i === vendUlt[sec]) i = (i + 1) % lista.length;
   vendUlt[sec] = i;
   const nom = (jugador && (jugador.nombre || jugador.nick)) || 'viajero';
-  el.textContent = lista[i].replace(/\{nombre\}/g, String(nom).split(' ')[0]);
-  el.classList.remove('cambia'); void el.offsetWidth; el.classList.add('cambia');
+  const frase = lista[i].replace(/\{nombre\}/g, String(nom).split(' ')[0]);
+  [el, document.getElementById('esc-txt')].forEach(x => { if (!x) return; x.textContent = frase; x.classList.remove('cambia'); void x.offsetWidth; x.classList.add('cambia'); });
 }
 
 // ════════════════════════════════════════════
@@ -1172,6 +1296,7 @@ function escHtml(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, c =>
 function escAttr(t) { return escHtml(t).replace(/\(/g, '%28').replace(/\)/g, '%29'); }
 function prIcono(t) { return ({ dlc: '✦', mica: '🎴', playmat: '🟫', heroe: '🦸', arena: '🏟️', paquete: '🎁' })[t] || '✦'; }
 function guardarCompras(lista) {
+  if (window.CHH_COMPRAS) { CHH_COMPRAS.guardar(lista); return; }
   try { localStorage.setItem('chh_compras', JSON.stringify({ id: jugador && jugador.id, skus: lista, t: Date.now() })); } catch (e) {}
 }
 function precioMXN(n) {
@@ -1194,36 +1319,62 @@ async function cargarPremium(forzar) {
     grid.innerHTML = `<div class="empty-tab">⚠️ No se pudo cargar el contenido premium. <br><button class="pr-btn" style="margin:10px auto 0;display:inline-block" onclick="cargarPremium(true)">REINTENTAR</button></div>`;
   }
 }
+// descripcion en la hoja:  "Texto principal | Incluye 1 | Incluye 2 | …"
+function prPartes(p) { const a = String(p.descripcion || '').split('|').map(x => x.trim()).filter(Boolean); return { desc: a[0] || '', inc: a.slice(1) }; }
+function prBoton(p, grande) {
+  if (p.tengo) return '<span class="pr-btn ok">✓ EN TU COLECCIÓN</span>' + (grande && p.tipo === 'dlc' ? ' <a class="pr-btn" href="nexotlan.html">JUGAR EN NEXOTLAN</a>' : '');
+  if (p.activo && premiumMP && Number(p.precio_mxn) > 0) return `<button class="pr-btn" onclick="mpAbrir('${escHtml(p.sku)}')">${grande ? 'PAGAR CON MERCADO PAGO' : 'PAGAR'}</button>`;
+  if (p.activo && p.link_compra) return `<a class="pr-btn" href="${escHtml(p.link_compra)}" target="_blank" rel="noopener">COMPRAR</a>`;
+  return '<span class="pr-btn off">PRÓXIMAMENTE</span>';
+}
+function prDestacado(lista) {
+  const pedido = new URLSearchParams(location.search).get('sku');
+  return lista.find(p => pedido && p.sku === pedido) || lista.find(p => p.tipo === 'dlc' && p.activo && !p.tengo) || lista.find(p => p.tipo === 'dlc') || null;
+}
+function pintarHeroPremium(p) {
+  const box = document.getElementById('pr-hero'); if (!box) return;
+  if (!p) { box.innerHTML = ''; return; }
+  const { desc, inc } = prPartes(p);
+  const precio = !p.tengo && Number(p.precio_mxn) > 0 ? `<div class="pr-precio">${precioMXN(p.precio_mxn)}<small>MXN</small></div>` : '';
+  box.innerHTML = `<article class="prh${p.tengo ? ' tengo' : ''}">
+    <div class="prh-img" ${p.imagen ? `style="background-image:url('${escAttr(p.imagen)}')"` : ''} role="img" aria-label="${escHtml(p.nombre)}"></div>
+    <div class="prh-cuerpo">
+      <div class="prh-tipo">${p.tipo === 'dlc' ? 'EXPANSIÓN DEL MODO AVENTURA' : (PR_TIPOS[p.tipo] || '')}</div>
+      <h2>${escHtml(p.nombre)}</h2>
+      ${desc ? `<p class="prh-desc">${escHtml(desc)}</p>` : ''}
+      ${inc.length ? `<ul class="prh-inc">${inc.map(x => `<li>${escHtml(x)}</li>`).join('')}</ul>` : ''}
+      <div class="prh-acc">${precio}${prBoton(p, true)}${p.tengo ? '' : `<button class="prh-cod" onclick="abrirSeccion('canjear')">🔑 TENGO UN CÓDIGO</button>`}</div>
+    </div>
+  </article>`;
+}
 function pintarPremium() {
   const grid = document.getElementById('pr-grid'), fil = document.getElementById('pr-filtros');
   const lista = premiumCache || [];
+  const dest = prDestacado(lista);
+  pintarHeroPremium(dest);
   const tipos = [...new Set(lista.map(p => p.tipo))];
   if (prFiltro !== 'todo' && prFiltro !== 'mios' && tipos.indexOf(prFiltro) < 0) prFiltro = 'todo';
   const btns = [['todo', 'TODO']].concat(tipos.map(t => [t, PR_TIPOS[t] || t.toUpperCase()]));
   if (lista.some(p => p.tengo)) btns.push(['mios', 'MI COLECCIÓN']);
   fil.innerHTML = tipos.length > 1 || lista.some(p => p.tengo)
     ? btns.map(([k, n]) => `<button class="${k === prFiltro ? 'on' : ''}" onclick="prFiltro='${k}';pintarPremium()">${n}</button>`).join('') : '';
-  const ver = lista.filter(p => prFiltro === 'todo' || (prFiltro === 'mios' ? p.tengo : p.tipo === prFiltro));
+  const ver = lista.filter(p => (prFiltro === 'todo' ? p !== dest : (prFiltro === 'mios' ? p.tengo : p.tipo === prFiltro)));
   if (!lista.length) { grid.innerHTML = '<div class="empty-tab">El Doctor está preparando su colección privada. Vuelve pronto.</div>'; return; }
-  if (!ver.length) { grid.innerHTML = '<div class="empty-tab">Nada por aquí todavía.</div>'; return; }
+  if (!ver.length) { grid.innerHTML = dest && prFiltro === 'todo' ? '' : '<div class="empty-tab">Nada por aquí todavía.</div>'; return; }
   const nombres = {}; lista.forEach(p => nombres[p.sku] = p.nombre);
   grid.innerHTML = ver.map(p => {
     const img = p.imagen ? `style="background-image:url('${escAttr(p.imagen)}')"` : '';
     const inc = p.tipo === 'paquete' && p.contenido && p.contenido.length
       ? `<div class="pr-inc">Incluye: ${p.contenido.map(c => escHtml(nombres[c] || c)).join(', ')}</div>` : '';
-    let btn;
-    if (p.tengo) btn = '<span class="pr-btn ok">✓ EN TU COLECCIÓN</span>';
-    else if (p.activo && premiumMP && Number(p.precio_mxn) > 0) btn = `<button class="pr-btn" onclick="mpAbrir('${escHtml(p.sku)}')">PAGAR</button>`;
-    else if (p.activo && p.link_compra) btn = `<a class="pr-btn" href="${escHtml(p.link_compra)}" target="_blank" rel="noopener">COMPRAR</a>`;
-    else btn = '<span class="pr-btn off">PRÓXIMAMENTE</span>';
+    const btn = prBoton(p, false), pt = prPartes(p);
     const precio = !p.tengo && Number(p.precio_mxn) > 0 ? `<div class="pr-precio">${precioMXN(p.precio_mxn)}<small>MXN</small></div>` : '';
     return `<div class="pr-card${p.tengo ? ' tengo' : ''}">
       <div class="pr-img" ${img}>${p.imagen ? '' : prIcono(p.tipo)}</div>
       <div class="pr-cuerpo">
         <span class="pr-tipo">${PR_TIPOS[p.tipo] || escHtml(String(p.tipo || '').toUpperCase())}</span>
         <div class="pr-nom">${escHtml(p.nombre)}</div>
-        ${p.descripcion ? `<div class="pr-desc">${escHtml(p.descripcion)}</div>` : ''}
-        ${inc}
+        ${pt.desc ? `<div class="pr-desc">${escHtml(pt.desc)}</div>` : ''}
+        ${inc || (pt.inc.length ? `<div class="pr-inc">Incluye: ${pt.inc.map(escHtml).join(' · ')}</div>` : '')}
         <div class="pr-pie">${precio}${btn}</div>
       </div>
     </div>`;
@@ -1397,7 +1548,16 @@ async function calcularPuntos() {
 // ════════════════════════════════════════════
 //  NAVEGACIÓN CATEGORÍAS
 // ════════════════════════════════════════════
+// Vista amplia (PC / tablet horizontal): riel a la izquierda, siempre hay una sección abierta
+const TD_MQ = matchMedia('(min-width:1000px) and (min-height:560px)'), TD_DEF = 'premium';
+const TD_SECS = ['sobres', 'avatares', 'fondos', 'temas', 'cartas', 'canjear', 'musica', 'cosmeticos', 'heroes', 'premium'];
+let tdSec = null;
+function tdHz() { return TD_MQ.matches && !document.documentElement.classList.contains('hz-off'); }
 function abrirSeccion(sec) {
+  if (TD_SECS.indexOf(sec) < 0) sec = TD_DEF;
+  tdSec = sec;
+  document.querySelectorAll('#td-rail [data-sec]').forEach(b => { const on = b.dataset.sec === sec; b.classList.toggle('on', on); b.setAttribute('aria-current', on ? 'page' : 'false'); });
+  const tm = document.getElementById('td-main'); if (tm) tm.scrollTop = 0;
   document.getElementById('cat-menu').style.display = 'none';
   document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
   document.getElementById('sec-' + sec).classList.add('active');
@@ -1418,6 +1578,8 @@ function abrirSeccion(sec) {
 
 function volverMenu() {
   detenerScanner();
+  if (tdHz()) { abrirSeccion(TD_DEF); return; }
+  tdSec = null;
   document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
   document.getElementById('cat-menu').style.display = '';
   vendDecir('bienvenida', false);

@@ -345,6 +345,8 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 .dlab{position:absolute;transform:translate(-50%,-50%);font-family:'Orbitron',monospace;font-weight:900;letter-spacing:2px;font-size:11px;text-transform:uppercase;white-space:nowrap;pointer-events:none;
   color:#fff;text-shadow:0 0 6px var(--dc),0 0 14px var(--dc),0 2px 2px #000;z-index:2;opacity:.9}
 .dlab.lock{color:#8b98bd;text-shadow:0 2px 2px #000}
+.dlab.dlc{pointer-events:auto;cursor:pointer;background:rgba(3,20,12,.78);border:1px solid var(--dc);border-radius:8px;padding:5px 9px;color:var(--dc);text-shadow:0 0 8px var(--dc),0 2px 2px #000;box-shadow:0 0 14px rgba(0,0,0,.6)}
+.dlab.dlc small{color:#d8ffe9}
 .dlab small{display:block;text-align:center;font-size:8px;letter-spacing:1px;opacity:.85;margin-top:2px}
 .zoom{position:absolute;right:12px;bottom:14px;display:flex;flex-direction:column;gap:6px;z-index:15}
 .zoom .hb{width:42px;height:42px;font-size:18px}
@@ -1137,6 +1139,7 @@ window.nxTip = function () {
 <script src="nube.js"></script>
 <script src="medios.js"></script>
 <script src="revelacion.js"></script>
+<script src="compras.js"></script>
 <script>
 // ── Orientación horizontal (como Simulación y Arcade) ──
 const MOVIL = matchMedia('(pointer:coarse)').matches;
@@ -1241,7 +1244,9 @@ const NIV_SIM = { legendario: 'muy_dificil' };
 const AUTO_RIVAL = ['facil', 'medio', 'dificil', 'muy_dificil', 'muy_dificil', 'epico', 'epico', 'caotico', 'caotico'];
 const AUTO_GUARD = ['legendario', 'legendario', 'legendario', 'epico', 'epico', 'epico', 'caotico', 'caotico', 'caotico'];
 
-let CFG = {}, DIST = [], PTS = [], RAW = [];
+let CFG = {}, DIST = [], PTS = [], RAW = [], DLC_BLOQ = [], _dlcFirma = '';
+// DLC: lo que en mapa.txt / comerciante.txt lleva  dlc = sku  solo existe si el jugador compró ese producto (compras.js)
+const tieneDLC = sku => !sku || EDITOR || !!(window.CHH_COMPRAS && CHH_COMPRAS.tiene(sku));
 let DATA = { cartas: [], barajas: [] }, CARD = {}, GALI = {};
 let S = null;                                // partida
 let SEL = null, ZOOM = 1, MUTE = false;
@@ -1266,8 +1271,13 @@ function construirModelo(secs) {
   RAW = secs;
   CFG = Object.assign({ titulo: 'NEXOTLAN', subtitulo: '', dias: 'Lunes, Martes, Miércoles, Jueves, Viernes, Sábado, Domingo' }, secs.find(s => s._sec === 'config') || {});
   CFG._dias = lista(CFG.dias); if (!CFG._dias.length) CFG._dias = ['Día'];
-  DIST = secs.filter(s => s._sec === 'distrito').map((s, i) => Object.assign(s, { id: s._id, _i: i, _x: num(s.x, 50), _y: num(s.y, 50), _r: num(s.radio, 12), color: s.color || '#36d6ff', _req: lista(s.requiere) }));
-  PTS = secs.filter(s => s._sec === 'punto').map(s => Object.assign(s, {
+  const todosD = secs.filter(s => s._sec === 'distrito').map((s, i) => Object.assign(s, { id: s._id, _i: i, _x: num(s.x, 50), _y: num(s.y, 50), _r: num(s.radio, 12), color: s.color || '#36d6ff', _req: lista(s.requiere), dlc: String(s.dlc || '').trim().toLowerCase() }));
+  DLC_BLOQ = todosD.filter(d => d.dlc && !tieneDLC(d.dlc));
+  const fuera = new Set(DLC_BLOQ.map(d => d.id)), dlcDe = {};
+  todosD.forEach(d => { if (d.dlc) dlcDe[d.id] = d.dlc; });
+  DIST = todosD.filter(d => !fuera.has(d.id));
+  _dlcFirma = (window.CHH_COMPRAS ? CHH_COMPRAS.lista() : []).join(',');
+  PTS = secs.filter(s => s._sec === 'punto' && !fuera.has(s.distrito) && tieneDLC(String(s.dlc || '').trim().toLowerCase())).map(s => Object.assign(s, { _dlc: String(s.dlc || '').trim().toLowerCase() || dlcDe[s.distrito] || '',
     id: s._id, tipo: ({ personaje: 'heroe', 'héroe': 'heroe', heroe: 'heroe', guardian: 'guardian', 'guardián': 'guardian' }[(s.tipo || 'rival').toLowerCase()] || 'rival'), _x: num(s.x, 50), _y: num(s.y, 50),
     _dias: lista(s.dias).map(d => NK(d).slice(0, 3)), _req: lista(s.requiere), _mon: parseInt(s.monedas, 10) || 0
   }));
@@ -1538,8 +1548,8 @@ function visibleHoy(p) {
 function nivelDe(p) {
   const v = String(p.dificultad || 'auto').toLowerCase();
   if (NIVELES.includes(v)) return v;
-  const d = distDe(p), i = d ? d._i : 0;
-  const k = DIST.length > 1 ? Math.min(8, Math.round(i * 8 / (DIST.length - 1))) : 0;
+  const d = distDe(p), ruta = DIST.filter(x => !x.dlc), i = !d ? 0 : d.dlc ? ruta.length - 1 : Math.max(0, ruta.indexOf(d));
+  const k = ruta.length > 1 ? Math.min(8, Math.round(i * 8 / (ruta.length - 1))) : 0;
   return (p.tipo === 'guardian' ? AUTO_GUARD : AUTO_RIVAL)[k];
 }
 function progresoDistrito(d) {
@@ -1573,7 +1583,8 @@ function svgMapa() {
   const rio = 'M-40,560 C180,520 300,640 470,600 S760,470 900,560 S1150,760 1320,690 S1560,540 1660,600 L1660,700 C1540,640 1400,780 1300,790 S1050,660 900,650 S650,560 470,690 S170,610 -40,660 Z';
   // caminos entre distritos (en orden)
   let caminos = '';
-  for (let i = 1; i < DIST.length; i++) { const a = DIST[i - 1], b = DIST[i]; const ax = a._x / 100 * MW, ay = a._y / 100 * MH, bx = b._x / 100 * MW, by = b._y / 100 * MH;
+  const RUTA = DIST.filter(x => !x.dlc);
+  for (let i = 1; i < RUTA.length; i++) { const a = RUTA[i - 1], b = RUTA[i]; const ax = a._x / 100 * MW, ay = a._y / 100 * MH, bx = b._x / 100 * MW, by = b._y / 100 * MH;
     caminos += `<path d="M${ax},${ay} Q${(ax + bx) / 2 + (by - ay) * .2},${(ay + by) / 2 - (bx - ax) * .2} ${bx},${by}" />`; }
   const zonas = DIST.map(d => { const ab = distritoAbierto(d); const p = pathDe(formaDistrito(d));
     return `<g class="z" data-d="${esc(d.id)}"><path d="${p}" fill="${ab ? d.color : '#1a2242'}" fill-opacity="${ab ? .2 : .55}" stroke="${ab ? d.color : '#3a4670'}" stroke-width="${ab ? 4 : 3}" ${ab ? 'filter="url(#glow)"' : 'stroke-dasharray="14 10"'}/>
@@ -1590,12 +1601,36 @@ function svgMapa() {
     <g fill="none" stroke="#5aa8ff" stroke-opacity=".22" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">${calles}</g>
     <path d="${rio}" fill="url(#agua)" stroke="#36d6ff" stroke-opacity=".55" stroke-width="3"/>
     <g fill="none" stroke="#ffd166" stroke-opacity=".35" stroke-width="7" stroke-dasharray="2 16" stroke-linecap="round">${caminos}</g>
-    ${zonas}
+    ${zonas}${zonasDLC()}
   </svg>`;
 }
 function capaBloqueo() {      // con mapa ilustrado: oscurece los distritos cerrados
   const z = DIST.filter(d => !distritoAbierto(d)).map(d => `<path d="${pathDe(formaDistrito(d))}" fill="#000" fill-opacity=".62" stroke="#3a4670" stroke-width="3" stroke-dasharray="14 10"/>`).join('');
-  return `<svg class="lock-layer" viewBox="0 0 ${MW} ${MH}" preserveAspectRatio="xMidYMid slice">${z}</svg>`;
+  return `<svg class="lock-layer" viewBox="0 0 ${MW} ${MH}" preserveAspectRatio="xMidYMid slice">${z}${zonasDLC()}</svg>`;
+}
+// Distritos de un DLC que el jugador no tiene: se ven sellados (no cuentan para la ruta ni para Campeón)
+function zonasDLC() {
+  return DLC_BLOQ.map(d => `<path d="${pathDe(formaDistrito(d))}" fill="#03140c" fill-opacity=".7" stroke="${esc(d.color || '#7dffb2')}" stroke-opacity=".75" stroke-width="3" stroke-dasharray="6 9"/>`).join('');
+}
+async function verDLC(id) {
+  const d = DLC_BLOQ.find(x => x.id === id); if (!d) return;
+  const u = await primeraImg(candidatos(d.paisaje, 'paisajes'));
+  const h = `${u ? `<img src="${esc(u)}" alt="" style="width:100%;border-radius:10px;margin-bottom:10px;max-height:150px;object-fit:cover">` : ''}
+    <div style="line-height:1.5">${esc(d.descripcion || 'Un distrito nuevo de Nexotlan.')}</div>
+    <div style="margin-top:10px;color:var(--muted);font-size:14px">Es contenido premium. Consíguelo en la <b style="color:var(--text)">Tienda Digital → Contenido Premium</b> (Mercado Pago o código CDH) y se abre aquí en tu aventura.</div>`;
+  const i = await mensaje('✦ ' + (d.nombre || d.id).toUpperCase(), h, [['VER EN LA TIENDA', 'gold'], ['AHORA NO', 'sec']]);
+  if (i === 0) { guardar(true); CHH_COMPRAS.irATienda(d.dlc); }
+}
+// Si el jugador compró (o perdió) un DLC desde la última vez, se rehace el mapa sin recargar
+function dlcRevisar() {
+  if (!window.CHH_COMPRAS) return;
+  const aplicar = () => {
+    if (CHH_COMPRAS.lista().join(',') === _dlcFirma) return;
+    construirModelo(RAW); if (S) S = normalizar(S);
+    if ($('sMapa') && $('sMapa').classList.contains('on')) pintarMapa();
+  };
+  CHH_COMPRAS.alCambiar(aplicar);
+  CHH_COMPRAS.sincronizar(true).then(aplicar).catch(() => {});
 }
 const PIN = {
   rival: c => `<svg viewBox="0 0 34 44"><path d="M17 43C17 43 3 26 3 16a14 14 0 0 1 28 0c0 10-14 27-14 27z" fill="url(#gg)" stroke="#5a3a00" stroke-width="2"/><defs><linearGradient id="gg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe9a0"/><stop offset="1" stop-color="#e09a12"/></linearGradient></defs><circle cx="17" cy="16" r="9" fill="#2a1a00" opacity=".85"/><text x="17" y="21" font-size="12" text-anchor="middle">⚔</text></svg>`,
@@ -1705,7 +1740,10 @@ function pintarMapa() {
       <span class="pin">${(PIN[p.tipo] || PIN.rival)()}${v ? '<span class="ok">✔</span>' : ''}${nuevoNpc ? '<span class="ex">!</span>' : (esComerciante(p) ? '<span class="ok" style="background:#ffd166;box-shadow:0 0 8px #ffd166">🛒</span>' : '')}${bloq ? '<span class="ok" style="background:#3a4670;color:#fff;box-shadow:none">🔒</span>' : ''}</span>
       <span class="lab">${esc(p.nombre)}</span></button>`;
   }).join('');
-  mi.innerHTML = fondo + etq + pts;
+  const dlab = DLC_BLOQ.map(d => { const et = String(d.etiqueta || '').split(',').map(Number), lx = isFinite(et[0]) && et.length === 2 ? et[0] : d._x, ly = isFinite(et[1]) && et.length === 2 ? et[1] : d._y - d._r * .55;
+    return `<button class="dlab dlc" data-dlc="${esc(d.id)}" style="left:${lx}%;top:${ly}%;--dc:${esc(d.color || '#7dffb2')}">✦ ${esc(d.nombre || d.id)}<small>CONTENIDO PREMIUM</small></button>`; }).join('');
+  mi.innerHTML = fondo + etq + dlab + pts;
+  mi.querySelectorAll('.dlab.dlc').forEach(b => { b.onclick = () => { if (b._movido) { b._movido = false; return; } verDLC(b.dataset.dlc); }; });
   precargar();
   mi.querySelectorAll('.pt').forEach(b => { b.onclick = e => { if (b._movido) { b._movido = false; return; } abrirFicha(b.dataset.id); }; });
   if (EDITOR) activarEditor();
@@ -1995,7 +2033,7 @@ async function procesarResultado() {
   if (res.won && !res.abandono) await entregarFisica(resolverCarta(fase === 2 ? p0.fase2_carta_fisica : p0.carta_fisica), p0);   // v227 · carta BOSS (1 vez por partida)
   await revisarAperturas(true);
   const esFinal = res.won && !res.abandono && /^(si|sí|1|true)$/i.test(String(p0.final || '').trim());
-  const campeon = res.won && p.tipo === 'guardian' && DIST.every(d => distritoAbierto(d)) && PTS.filter(x => x.tipo === 'guardian').every(x => vencido(x.id)) && !S.campeon;
+  const campeon = res.won && p.tipo === 'guardian' && DIST.filter(d => !d.dlc).every(d => distritoAbierto(d)) && PTS.filter(x => x.tipo === 'guardian' && !x._dlc).every(x => vencido(x.id)) && !S.campeon;
   if (campeon) { S.campeon = Date.now(); guardar(); }
   if (esFinal) await pantallaFinal(p0, !antes);                // jefe final (final = si): pantalla de victoria épica con su audio
   else if (campeon) await mensaje('👑 ¡CAMPEÓN DE NEXOTLAN!', `Venciste a todos los guardianes en ${S.dia} días. Puedes seguir explorando y retando a todos para completar tu diario.`);
@@ -2358,7 +2396,7 @@ function pintarTienda() {
   $('tdTabs').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.t === TD.tab));
   const B = $('tdBody'); let h = '';
   if (TD.tab === 'sobres') {
-    const L = COM.sobres.filter(sobreDisponible), faltan = COM.sobres.length - L.length;
+    const SB = COM.sobres.filter(sb => tieneDLC(String(sb.dlc || '').trim().toLowerCase())), L = SB.filter(sobreDisponible), faltan = SB.length - L.length;
     h = `<div class="td-nota">Las cartas van a tu <b style="color:var(--text)">🎁 cofre</b>. Cada sobre sale de una <b style="color:var(--text)">📦 caja</b> con un número fijo de cartas: lo que ya salió no se repite hasta rellenarla, así que cada sobre te acerca a sus <b style="color:#ffd166">★ Joyas</b>.${faltan ? ` · ${faltan} sobre(s) más al avanzar en Nexotlan.` : ''}</div>`;
     h += L.length ? `<div class="td-sobres">${L.map(sb => { const pr = parseInt(sb.precio, 10) || 100, ok = S.monedas >= pr;
       return `<div class="td-s"><div class="pk">${imgSobre(sb)}</div><b>${esc(sb.nombre || sb.id)}</b><small>${esc(sb.descripcion || '')}</small>${pintarCajaSobre(sb)}
@@ -3420,6 +3458,7 @@ $('dCaja').addEventListener('click', e => { if (!e.target.closest('.d-ops')) { e
   // La partida se guarda sola en este dispositivo en cada cambio; la nube se sincroniza en segundo plano
   // (si la nube tarda o falla, el modo sigue funcionando con la copia local).
   S = normalizar(cargarLocal());
+  setTimeout(dlcRevisar, 900);                   // DLC comprados en la Tienda (compras.js)
   pintarTitulo(); portadaPersonal();
   if (!(S && S.baraja && S.pendiente)) quitarCarga();
   const avisosMapa = revisarMapa();

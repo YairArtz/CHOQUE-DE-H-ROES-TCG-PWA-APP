@@ -1112,6 +1112,64 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 .dt-hint{font-size:13px!important}
 .dt-btn{font-size:14.5px!important;padding:8px 9px!important}
 .dt-why{font-size:12px!important}
+
+/* ═══ v260 · PANEL DE DETALLE (columna izquierda) ═══
+   Marco dorado para la carta, nombre y tipo, fichas de estadísticas con icono, estados como etiquetas,
+   habilidades exclusivas con su descripción y el texto de la carta con términos resaltados */
+.dv{--tc:#ffd166;display:flex;flex-direction:column;gap:7px}
+.dv .dt-acts:empty{display:none}
+.dv-carta{position:relative;align-self:center;padding:5px;border-radius:10px;
+  background:linear-gradient(160deg,#f2c14e,#8a5a12 40%,#e8b13a 60%,#6b4410);box-shadow:0 6px 22px rgba(0,0,0,.65),0 0 0 1px rgba(0,0,0,.6)}
+.dv-carta::before{content:'';position:absolute;inset:2px;border-radius:8px;border:1px solid rgba(255,235,170,.55);pointer-events:none}
+.dv-carta img{display:block;max-width:100%;max-height:calc(var(--H) * .42);aspect-ratio:5/7;object-fit:contain;border-radius:6px;background:#000}
+.dv-ctx{position:absolute;top:-7px;left:50%;transform:translateX(-50%);white-space:nowrap;font-family:'Orbitron',sans-serif;font-size:8.5px;font-weight:800;letter-spacing:1px;
+  padding:2px 8px;border-radius:20px;background:#1a1426;color:#e8dcc0;border:1px solid rgba(255,235,170,.5);box-shadow:0 2px 6px rgba(0,0,0,.6)}
+.dv-ctx.tuyo{background:#0d3324;color:#5cffb0;border-color:#18e08a}.dv-ctx.adv{background:#3a0d16;color:#ff8296;border-color:#ff3d5a}
+.dv-nom{font-family:'Orbitron',sans-serif;font-weight:800;font-size:13.5px;line-height:1.25;color:#fff;text-align:center;letter-spacing:.3px;
+  padding:6px 8px;border-radius:7px;background:linear-gradient(90deg,transparent,rgba(255,209,102,.13) 20%,rgba(255,209,102,.13) 80%,transparent);
+  border-top:1px solid rgba(255,209,102,.35);border-bottom:1px solid rgba(255,209,102,.35)}
+.dv-meta{display:flex;flex-wrap:wrap;justify-content:center;gap:4px}
+.dv-tag{font-family:'Orbitron',sans-serif;font-size:9px;font-weight:700;letter-spacing:1px;padding:3px 8px;border-radius:5px;color:var(--tc);border:1px solid var(--tc);
+  background:color-mix(in srgb,var(--tc) 14%,transparent)}
+.dv-tag.alt{--tc:#ffd166}.dv-tag.dios{--tc:#ff8c42}
+.dv-stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}
+.dv-st small{overflow:hidden;max-width:100%;white-space:nowrap}
+.dv-st{display:flex;flex-direction:column;align-items:center;gap:1px;padding:5px 2px 4px;border-radius:7px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);position:relative}
+.dv-st i{font-style:normal;font-size:15px;line-height:1;height:17px;display:flex;align-items:center}
+.dv-st i.cz{width:17px;background:url("assets/simulacion/corazon.png") center/contain no-repeat}
+.dv-st b{font-family:'Orbitron',sans-serif;font-size:17px;font-weight:900;line-height:1.05;color:#fff}
+.dv-st small{font-size:8.5px;letter-spacing:.8px;color:var(--muted);font-weight:700;text-transform:uppercase}
+.dv-st b.up{color:#5cffb0}.dv-st b.dn{color:#ff6b81}
+.dv-st em{position:absolute;top:2px;right:4px;font-style:normal;font-size:8.5px;color:var(--muted)}
+.dv-st.v{border-color:rgba(255,209,102,.35)}.dv-st.v b{color:#ffd166}
+.dv-st.f{border-color:rgba(255,120,60,.35)}.dv-st.r{border-color:rgba(77,207,255,.35)}.dv-st.c{border-color:rgba(255,61,90,.35)}.dv-st.i{border-color:rgba(255,200,40,.3)}
+.dv-est{display:flex;flex-wrap:wrap;gap:4px;justify-content:center}
+.dv-pill{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;background:color-mix(in srgb,var(--pc,#9fb3cc) 15%,transparent);
+  color:var(--pc,#9fb3cc);border:1px solid color-mix(in srgb,var(--pc,#9fb3cc) 50%,transparent)}
+.dv-sec{border-radius:8px;background:rgba(0,0,0,.28);border:1px solid rgba(255,209,102,.22);overflow:hidden}
+.dv-sec>h5{margin:0;padding:5px 9px;font-family:'Orbitron',sans-serif;font-size:9.5px;font-weight:800;letter-spacing:1.2px;color:#ffd166;
+  background:linear-gradient(90deg,rgba(255,209,102,.16),transparent);border-bottom:1px solid rgba(255,209,102,.18)}
+.dv-sec>div{padding:7px 9px;font-size:13px;line-height:1.5;color:#e9e4d8}
+.dv-sec.esp{border-color:rgba(255,224,102,.35)}.dv-sec.esp>h5{color:#ffe066}
+.dv-sec.inf>h5{color:#7fe3ff;background:linear-gradient(90deg,rgba(127,227,255,.14),transparent);border-color:rgba(127,227,255,.18)}.dv-sec.inf{border-color:rgba(127,227,255,.25)}
+.dv-kw{padding:6px 8px!important;display:flex;flex-direction:column;gap:5px}
+.dv-kw .k{display:flex;gap:7px;align-items:flex-start}
+.dv-kw .k b{flex:0 0 auto;font-family:'Orbitron',sans-serif;font-size:9px;font-weight:800;letter-spacing:.6px;padding:3px 6px;border-radius:4px;color:#1a1000;background:linear-gradient(180deg,#ffe066,#e3a51a);margin-top:1px}
+.dv-kw .k b.tmp{background:linear-gradient(180deg,#9ee8ff,#3fb4e0)}
+.dv-kw .k span{font-size:11.5px;line-height:1.4;color:#cfc7b4}
+.dv-inf{display:flex;flex-direction:column;gap:3px}
+.dv-inf div{display:flex;gap:6px;align-items:flex-start;font-size:12px;line-height:1.4}
+.ef-lbl{display:inline-block;font-family:'Orbitron',sans-serif;font-size:9.5px;font-weight:800;letter-spacing:.8px;color:#1a1000;background:#ffd166;padding:1px 5px;border-radius:3px;margin:2px 3px 1px 0}
+.ef-q{color:#ffd166;font-weight:700}
+.ef-up{color:#fff;font-weight:700;letter-spacing:.2px}
+.ef-kw{color:#ff9d3c;font-weight:800}
+.ef-par{color:#9b927e;font-style:italic}
+.ef-num{color:#5cffb0;font-weight:800}
+.ef-br{display:block;height:5px}
+:root.rot .dv-nom,body.compact .dv-nom{font-size:12px}
+@media (max-width:1100px){.dv-st small{font-size:0}.dv-st small::after{content:attr(data-c);font-size:8px}}
+:root.rot .dv-st small{font-size:0}:root.rot .dv-st small::after{content:attr(data-c);font-size:8px}
+@media (max-height:520px){.dv-st b{font-size:14px}.dv-st i{font-size:12px;height:14px}.dv-st i.cz{width:14px}.dv-nom{font-size:12px;padding:4px 6px}.dv-sec>div{font-size:12px}}
 .loge{font-size:13px!important;line-height:1.5!important;padding:2px 0!important}
 .ph-badge{font-size:10.5px!important}
 .ph-desc{font-size:12.5px!important}
@@ -6959,6 +7017,30 @@ function checkDrawDone(){
 // PANEL DE DETALLE (izquierda)
 // ════════════════════════════════════
 const KW_NOM={'DOBLE BATALLA':'DOBLE BATALLA',DESATADO:'DESATADO',COSMO:'COSMO',EMBOSCADA:'EMBOSCADA',HEROISMO:'HEROÍSMO',BRUTALIDAD:'BRUTALIDAD',VALENTIA:'VALENTÍA',BASTION:'BASTIÓN',ELITE:'ÉLITE','PRIMER DANO':'PRIMER DAÑO',GUARDA:'GUARDA',BARBARIE:'BARBARIE',INMATERIAL:'INMATERIAL',RESURGIR:'RESURGIR',ORGULLO:'ORGULLO'};
+// v260 · Descripciones oficiales de habilidades exclusivas (Reglamento)
+const KW_DESC={ALERTA:'No descansa después de haber defendido.',BARBARIE:'Puede atacar una vez a cada personaje en el campo de tu adversario.',
+  BRUTALIDAD:'Puede declarar batalla el mismo turno en que fue llamado.',COMANDAR:'Puede usar a un personaje de tu otro sector para defenderlo.',
+  COSMO:'Si robas esta carta, puedes llamarla de forma especial a tu lado del campo.','DOBLE BATALLA':'Puede chocar simultáneamente con dos personajes del adversario que estén en el mismo sector.',
+  ELITE:'Al declarar un ataque, puedes duplicar su fuerza y resistencia hasta el final de ese combate.',EMBOSCADA:'Puede atacar directamente los corazones del adversario sin importar cuántos personajes controle.',
+  FORTALEZA:'No puede atacar.',GUARDA:'Puede defender a un personaje que se encuentre en otro sector.',HEROISMO:'No puede ser destruido en combate.',
+  INVULNERABLE:'No puede ser destruido por efectos de cartas o habilidades.','PRIMER DANO':'En el choque daña primero: el contrincante no puede responder al choque.',
+  TORTURA:'Mientras permanezca en el campo, su controlador pierde un corazón al inicio de su turno.',TOXINA:'Si es vencido y enviado al Mictlán, tu adversario no podrá llamar personajes del mismo valor o menor en su próxima Fase de Acción.',
+  ORGULLO:'No puede beneficiarse de habilidades de PERSONAJES que eviten que sea vencido.',RESURGIR:'Si es vencido, regresa al campo al final del turno.'};
+const EF_UP=/\b(PERSONAJES?|ALMAS?|APOYOS?|SECTOR(?:ES)?|ARENAS?|AMALGAMAS?|MICTL[ÁA]N|BP|BA|BS|DIOS(?:ES)?|CONTADORES?|EQUIPOS?|CORAZ[ÓO]N(?:ES)?|FUERZA|RESISTENCIA|IMPACTO|VALOR|CONFINAD[OA]S?|CONFINA|TRANSFORMAR(?:SE)?|H[ÉE]ROES?|INVITADOS?|NEGAR|ATAQUE|COMBATE|CHOQUE)\b/g;
+function fmtEfecto(t){
+  t=String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const kws=Object.keys(KW_NOM).map(k=>KW_NOM[k]).concat(Object.keys(KW_NOM)).sort((x,y)=>y.length-x.length).map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'));
+  const P=[];const guarda=h=>{P.push(h);return '\u0001'+(P.length-1)+'\u0002';};
+  t=t.replace(/\(([^()]{3,})\)/g,(m,x)=>guarda('<span class="ef-par">('+x+')</span>'));
+  t=t.replace(/["“]([^"”]{2,})["”]/g,(m,x)=>guarda('<span class="ef-q">«'+x+'»</span>'));
+  // Etiquetas («HABILIDAD:», «TRANSFORMAR:», «MODO BERSERKER:», «5 o más:») solo al inicio de una oración
+  t=t.replace(/(^|[.)\u0002]\s*)([A-ZÁÉÍÓÚÑ0-9][A-ZÁÉÍÓÚÑ0-9 ]{2,}?|\d+ o m[aá]s):/g,(m,pre,lbl)=>pre+guarda('<span class="ef-br"></span><span class="ef-lbl">'+lbl.trim()+'</span>'));
+  if(kws.length) t=t.replace(new RegExp('\\b('+kws.join('|')+')\\b','g'),m=>guarda('<span class="ef-kw">'+m+'</span>'));
+  t=t.replace(EF_UP,m=>guarda('<span class="ef-up">'+m+'</span>'));
+  t=t.replace(/([+−-]\d+)/g,m=>guarda('<span class="ef-num">'+m+'</span>'));
+  for(let k=0;k<6&&/\u0001\d+\u0002/.test(t);k++) t=t.replace(/\u0001(\d+)\u0002/g,(m,i)=>P[+i]);
+  return t.replace(/^(\s*<span class="ef-br"><\/span>)/,'');
+}
 function showDetail(cid,opt){
   opt=opt||{};
   const el=document.getElementById('detail');
@@ -6966,40 +7048,60 @@ function showDetail(cid,opt){
     el.innerHTML='<div class="dt-hint">Toca cualquier carta de tu mano o del tablero para verla aquí en grande.<br><br>Las acciones de la carta aparecen debajo de la imagen.</div>';
     return;
   }
-  const c=C[cid], live=opt.live;
-  let h='<div class="dt-img"><img src="'+c.img+'" alt=""></div>';
-  h+='<div class="dt-name">'+c.name+(opt.title?' · '+opt.title:'')+'<br><span class="dt-tag" style="color:'+(TCOL[c.type]||'#fff')+';border-color:'+(TCOL[c.type]||'#fff')+'">'+(TNOM[c.type]||c.type)+(c.invitado?' · HÉROE INVITADO':'')+(c.dios?' · DIOS':'')+'</span></div>';
-  h+='<div class="dt-acts" id="dtActs"></div>';
+  const c=C[cid], live=opt.live, tc=TCOL[c.type]||'#ffd166';
+  const ctxCl=/ADVERSARIO/.test(opt.title||'')?'adv':/^TUYO/.test(opt.title||'')?'tuyo':'';
+  let h='<div class="dv" style="--tc:'+tc+'">';
+  h+='<div class="dv-carta">'+(opt.title?'<span class="dv-ctx '+ctxCl+'">'+opt.title+'</span>':'')+'<div class="dt-img"><img src="'+c.img+'" alt=""></div></div>';
+  h+='<div class="dv-nom">'+c.name+'</div>';
+  const sub=c.type==='apoyo'&&c.subtipo?({rapido:'USO RÁPIDO',equipo:'EQUIPO',continuo:'CONTINUO',normal:'NORMAL'}[c.subtipo]||String(c.subtipo).toUpperCase()):'';
+  h+='<div class="dv-meta"><span class="dv-tag">'+(TNOM[c.type]||c.type)+'</span>'+(sub?'<span class="dv-tag">'+sub+'</span>':'')+(c.invitado?'<span class="dv-tag alt">HÉROE INVITADO</span>':'')+(c.dios?'<span class="dv-tag dios">DIOS</span>':'')+(c.leyenda?'<span class="dv-tag alt">LEYENDA</span>':'')+'</div>';
+  const st=(cl,ico,val,lbl,base,extra)=>{const n=+val,bb=base==null?null:+base;const cmp=bb==null||isNaN(n)||isNaN(bb)?'':n>bb?' up':n<bb?' dn':'';
+    return '<div class="dv-st '+cl+'"><i'+(ico==='cz'?' class="cz">':'>'+ico)+'</i><b class="'+cmp.trim()+'">'+val+'</b><small data-c="'+lbl.slice(0,3).toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')+'">'+lbl+'</small>'+(extra?'<em>'+extra+'</em>':'')+'</div>';};
+  const est=[], inf=[];
+  const pill=(col,txt)=>est.push('<span class="dv-pill" style="--pc:'+col+'">'+txt+'</span>');
   if(isChar(cid)){
     const f=live?eF(live):c.fue, r=live?eR(live):c.res, k=live?live.cor:c.cor, im=live?eI(live):c.imp;
-    h+='<div class="dt-stats">'+(c.type==='amalgama'?'<span style="color:#ffe066">✦ Gama '+c.gama+'</span>':'<span style="color:var(--gold2)">◆'+c.cost+'</span>')+'<span class="sf">⚔'+f+'</span><span class="sr">🛡'+r+(live&&r!==Math.max(1,live.resB)?'/'+Math.max(1,live.resB):'')+'</span><span class="sc">'+'❤'.repeat(Math.max(0,k))+'</span><span style="color:var(--muted)">IMP '+im+'</span></div>';
+    const rMax=live?Math.max(1,live.resB):c.res;
+    h+='<div class="dv-stats">'+(c.type==='amalgama'?st('v','✦',c.gama,'Gama'):st('v','★',c.cost,'Valor'))+
+      st('f','⚔',f,'Fuerza',c.fue)+st('r','🛡',r,'Resist.',live?rMax:c.res,live&&r!==rMax?'/'+rMax:'')+st('c','cz',k,'Corazones',c.cor)+st('i','💥',im,'Impacto',c.imp)+'</div>';
     const sg=n=>(n>0?'+':'')+n;
-    if(live&&(live.bF||live.bR||live.bC||live.bI)) h+='<div class="dt-text" style="color:'+((live.bF||0)+(live.bR||0)<0?'var(--red)':'var(--green)')+'">✨ Bonos activos: '+(live.bF?sg(live.bF)+'⚔ ':'')+(live.bR?sg(live.bR)+'🛡 ':'')+(live.bC?sg(live.bC)+'❤ ':'')+(live.bI?sg(live.bI)+' IMP':'')+'</div>';
+    if(live&&(live.bF||live.bR||live.bC||live.bI)) inf.push(['✨','<span style="color:'+((live.bF||0)+(live.bR||0)<0?'#ff6b81':'#5cffb0')+'">Bonos activos: '+(live.bF?sg(live.bF)+' ⚔ ':'')+(live.bR?sg(live.bR)+' 🛡 ':'')+(live.bC?sg(live.bC)+' ❤ ':'')+(live.bI?sg(live.bI)+' 💥':'')+'</span>']);
     const L=live&&locate(live);
-    if(live&&live.ctr>0) h+='<div class="dt-text" style="color:#7fe3ff;font-weight:bold">◆ Contadores de Alma: '+live.ctr+' (suman +'+live.ctr+' a tus ALMAS en juego)</div>';
-    if(live&&live.tk3) h+='<div class="dt-text" style="color:#ffe066">🔥 Tonal-Ken: FUERZA y RESISTENCIA triplicadas (pierde 1 VIDA al final de su próximo turno)</div>';
-    if(live&&live.cen>0) h+='<div class="dt-text" style="color:#d68cff;font-weight:bold">☯ Contadores de Energía Negativa: '+live.cen+' <span style="color:var(--muted);font-weight:normal">(si se retira el último, el personaje es destruido)</span></div>';
+    if(live&&live.ctr>0) pill('#7fe3ff','◆ '+live.ctr+' CONTADOR'+(live.ctr>1?'ES':'')+' DE ALMA');
+    if(live&&live.tk3) pill('#ffe066','🔥 TONAL-KEN ×3');
+    if(live&&live.cen>0) pill('#d68cff','☯ '+live.cen+' ENERGÍA NEGATIVA');
+    if(live&&live.ctr>0) inf.push(['◆','Los contadores suman +'+live.ctr+' a tus ALMAS en juego.']);
+    if(live&&live.tk3) inf.push(['🔥','Tonal-Ken: FUERZA y RESISTENCIA triplicadas (pierde 1 VIDA al final de su próximo turno).']);
+    if(live&&live.cen>0) inf.push(['☯','Si se retira el último contador de Energía Negativa, el personaje es destruido.']);
     if(L){
       const eq=G[L.o].apoyo.filter(a=>a&&a.type==='equipo'&&(a.tgt===live||a.host===live));
-      if(eq.length) h+='<div class="dt-text" style="color:var(--orange)">⚙ Equipado con: '+eq.map(a=>C[a.card].name).join(', ')+'</div>';
-      if(supp(L.o,L.i)) h+='<div class="dt-text" style="color:var(--purple)">⛓ Habilidades negadas'+(live.neg?' hasta el final del turno':' por '+suppPor(L.o,L.i))+'</div>';
-      if(live.mats&&live.mats.length) h+='<div class="dt-text" style="color:#ffe066">✦ Materiales: '+live.mats.map(m=>C[m].name).join(', ')+'</div>';
-      if(live.inmA) h+='<div class="dt-text" style="color:var(--gold2)">🛡 No le afectan habilidades ni efectos del adversario</div>';
-      else if(live.inmD) h+='<div class="dt-text" style="color:var(--gold2)">🛡 No puede ser destruido por efectos del adversario</div>';
-      if(live.bloq>0) h+='<div class="dt-text" style="color:var(--purple)">🔒 No puede atacar ni defender los corazones</div>';
-      if(live.lock>0) h+='<div class="dt-text" style="color:var(--red)">⏳ Espada de Cristal: descansa '+live.lock+' turno(s) más</div>';
+      if(eq.length) inf.push(['⚙','<span style="color:var(--orange)">Equipado con: <b>'+eq.map(a=>C[a.card].name).join(', ')+'</b></span>']);
+      if(supp(L.o,L.i)) pill('#c77dff','⛓ HABILIDADES NEGADAS'+(live.neg?' (este turno)':''));
+      if(supp(L.o,L.i)&&!live.neg) inf.push(['⛓','Negadas por '+suppPor(L.o,L.i)+'.']);
+      if(live.mats&&live.mats.length) inf.push(['✦','<span style="color:#ffe066">Materiales: '+live.mats.map(m=>C[m].name).join(', ')+'</span>']);
+      if(live.inmA) pill('#ffd166','🛡 INMUNE A EFECTOS RIVALES');
+      else if(live.inmD) pill('#ffd166','🛡 NO DESTRUIBLE POR EFECTOS');
+      if(live.bloq>0) pill('#c77dff','🔒 NO PUEDE ATACAR');
+      if(live.lock>0) pill('#ff6b81','⏳ DESCANSA '+live.lock+' TURNO(S)');
     }
-    if(live&&live.resting) h+='<div class="dt-text" style="color:var(--red)">😴 En descanso</div>';
+    if(live&&live.resting) pill('#ff6b81','😴 EN DESCANSO');
+    else if(live&&live.attacked) pill('#ffb347','⚔ YA ATACÓ');
+    else if(live&&L&&L.o==='player'&&G&&G.active==='player'&&!G.over) pill('#5cffb0','🔥 LISTO PARA COMBATE');
   } else if(c.type==='alma'||opt.alma){
-    h+='<div class="dt-stats"><span class="sr">💙 Valor '+(opt.alma?almaVal(opt.alma):c.val)+'</span></div>';
-    if(opt.alma&&opt.alma.cen>0) h+='<div class="dt-text" style="color:#d68cff;font-weight:bold">☯ Contadores de Energía Negativa: '+opt.alma.cen+'</div><div class="dt-text" style="color:var(--muted)">Mientras tenga contadores su VALOR es 0, salvo para llamar personajes con "DESATADO" o "GARDUÑA" (ahí vale '+((C[opt.alma.card].val||0)+(opt.alma.bonus||0)+(opt.alma.cont||0))+'). Si pierde su último contador es destruida'+(hasPassive(opt.alma.card,'anillo_sellador')?' (el Anillo no, si controlas un TEMAK/XOLOT/DESATADO)':'')+'.</div>';
+    h+='<div class="dv-stats" style="grid-template-columns:minmax(0,120px);justify-content:center">'+st('v','💠',opt.alma?almaVal(opt.alma):c.val,'Valor')+'</div>';
+    if(opt.alma&&opt.alma.cen>0){pill('#d68cff','☯ '+opt.alma.cen+' ENERGÍA NEGATIVA');
+      inf.push(['☯','Mientras tenga contadores su VALOR es 0, salvo para llamar personajes con "DESATADO" o "GARDUÑA" (ahí vale '+((C[opt.alma.card]||{}).val||0)+').']);}
   }
-  const kws=[...c.hab.map(k=>KW_NOM[k]||k),...(live?Object.keys(live.tmp).map(k=>(KW_NOM[k]||k)+' (temporal)'):[]),...(live&&live.perm?Object.keys(live.perm).map(k=>KW_NOM[k]||k):[]),...(live&&live.kwA?[...new Set(live.kwA)].filter(k=>!c.hab.includes(k)).map(k=>(KW_NOM[k]||k)+' (aura)'):[])];
-  if(kws.length) h+='<div class="dt-text" style="color:#ffe066;font-weight:700">⚡ '+kws.join(' · ')+'</div>';
-  if(opt.equipo){const st=equipStats(opt.owner,opt.equipo);h+='<div class="dt-text" style="color:var(--orange)">⚙ Ahora otorga: '+(st.f?'+'+st.f+'⚔ ':'')+(st.r?'+'+st.r+'🛡 ':'')+(st.c?'+'+st.c+'❤ ':'')+(st.i?'+'+st.i+' IMP':'')+'</div>';}
-  if(c.esp) h+='<div class="dt-text" style="color:#ffe066">✨ Llamado especial: '+(c.esp.texto||spResumen(c.esp))+'</div>';
-  if(c.eff) h+='<div class="dt-text">'+c.eff+'</div>';
+  if(opt.equipo){const sq=equipStats(opt.owner,opt.equipo);inf.push(['⚙','<span style="color:var(--orange)">Ahora otorga: '+(sq.f?'+'+sq.f+' ⚔ ':'')+(sq.r?'+'+sq.r+' 🛡 ':'')+(sq.c?'+'+sq.c+' ❤ ':'')+(sq.i?'+'+sq.i+' 💥':'')+'</span>']);}
+  if(est.length) h+='<div class="dv-est">'+est.join('')+'</div>';
+  h+='<div class="dt-acts" id="dtActs"></div>';
+  const kws=[...c.hab.map(k=>[k,'']),...(live?Object.keys(live.tmp).map(k=>[k,'temporal']):[]),...(live&&live.perm?Object.keys(live.perm).map(k=>[k,'']):[]),...(live&&live.kwA?[...new Set(live.kwA)].filter(k=>!c.hab.includes(k)).map(k=>[k,'aura']):[])];
+  if(kws.length) h+='<div class="dv-sec"><h5>⚡ HABILIDADES EXCLUSIVAS</h5><div class="dv-kw">'+kws.map(([k,t])=>'<div class="k"><b class="'+(t?'tmp':'')+'">'+(KW_NOM[k]||k)+(t?' · '+t.toUpperCase():'')+'</b><span>'+(KW_DESC[k]||'')+'</span></div>').join('')+'</div></div>';
+  if(c.esp) h+='<div class="dv-sec esp"><h5>✨ LLAMADO ESPECIAL</h5><div>'+fmtEfecto(c.esp.texto||spResumen(c.esp))+'</div></div>';
+  if(c.eff) h+='<div class="dv-sec"><h5>📜 EFECTO</h5><div class="dt-text">'+fmtEfecto(c.eff)+'</div></div>';
+  if(inf.length) h+='<div class="dv-sec inf"><h5>ℹ ESTADO</h5><div class="dv-inf">'+inf.map(([i,t])=>'<div><span>'+i+'</span><span>'+t+'</span></div>').join('')+'</div></div>';
   if((c.efectos||[]).some(e=>e.pendiente)) h+='<div class="dt-text" style="color:var(--muted);font-size:10px">⏳ Parte de su habilidad aún no está programada en la simulación.</div>';
+  h+='</div>';
   el.innerHTML=h;
   const box=document.getElementById('dtActs');
   (opt.acts||[]).forEach(a=>{

@@ -187,6 +187,7 @@
     }
     function stop(bus, fade = 0.15) {
       if (!bus || !ctx) return;
+      if (bus.fallback) stop(bus.fallback, fade);
       try {
         const t = ctx.currentTime;
         [bus, bus.heavy].forEach(g => { if (!g) return; g.gain.cancelScheduledValues(t); g.gain.setValueAtTime(g.gain.value, t); g.gain.linearRampToValueAtTime(0, t + fade); });
@@ -297,8 +298,41 @@
       staticz(c, bus, t + dur * 0.3, dur * 0.5, gain * 0.12, 40);
     }
 
+    // ── Pista del boot grabada (assets/logo/boot.mp3): suena exacta cada vez ──
+    let bootURL = null, bootAB = null, bootBuf = null, bootErr = false;
+    function preload(url) {
+      if (bootURL === url || !window.fetch) return; bootURL = url; bootAB = null; bootBuf = null; bootErr = false;
+      fetch(url).then(r => { if (!r.ok) throw 0; return r.arrayBuffer(); }).then(ab => { bootAB = ab; }).catch(() => { bootErr = true; });
+    }
+    function decode(c) {
+      if (bootBuf) return Promise.resolve(bootBuf);
+      if (bootErr || !bootURL) return Promise.reject();
+      const wait = bootAB ? Promise.resolve(bootAB) : new Promise((res, rej) => {
+        const t0 = Date.now(), v = () => bootAB ? res(bootAB) : (bootErr || Date.now() - t0 > 2500) ? rej() : setTimeout(v, 40); v();
+      });
+      return wait.then(ab => new Promise((res, rej) => c.decodeAudioData(ab.slice(0), res, rej))).then(b => (bootBuf = b));
+    }
+    function bootFile(fallback) {
+      const c = get(); if (!c) return null;
+      const t0 = performance.now();
+      const bus = c.createGain(); bus.gain.value = 0.95; bus.connect(c.destination);   // ya viene mezclada: sin compresor ni sala
+      const play = buf => {
+        const off = (performance.now() - t0) / 1000;           // si tardó en cargar, entra sincronizada con la animación
+        if (off > buf.duration - 0.2) return;
+        const s = c.createBufferSource(); s.buffer = buf; s.connect(bus); s.start(c.currentTime + 0.01, off);
+      };
+      const go = () => decode(c).then(play).catch(() => { if (performance.now() - t0 < 400) { const b = fallback(); if (b) bus.fallback = b; } });
+      if (c.state === 'running') go(); else c.resume().then(go).catch(() => {});
+      return bus;
+    }
+
     return {
+      preload,
       boot() {
+        if (bootURL && !bootErr) return bootFile(() => this.bootSynth());
+        return this.bootSynth();
+      },
+      bootSynth() {
         return run((c, t, bus) => {
           charge(c, bus, t, 1.15);
           [0.35, 0.62, 0.82, 0.98].forEach((d, i) => snap(c, bus, t + d, 0.2 + i * 0.07));
@@ -351,12 +385,12 @@
       return this.getAttribute('mode') === 'compact' ? 0.55 : 1;
     }
 
-    assetURL(name) {
+    assetURL(name, ext = 'webp') {
       const map = window.CDH_LOGO_ASSETS;
       if (map && map[name]) return map[name];
       let base = this.getAttribute('src') || 'assets/logo/';
       if (!base.endsWith('/')) base += '/';
-      return new URL(base + name + '.webp', document.baseURI).href;
+      return new URL(base + name + '.' + ext, document.baseURI).href;
     }
 
     connectedCallback() {
@@ -413,6 +447,9 @@
         if (this.state === 'boot' && this.hasAttribute('skippable')) this.skip();
       });
 
+      // Pista del boot: se descarga desde ya si este logo puede hacer boot
+      const m0 = this.getAttribute('mode');
+      if ((m0 === 'boot' || m0 === 'wait') && !this.hasAttribute('muted')) SFX.preload(this.assetURL('boot', 'mp3'));
       this.hideAll();
       this.load().then(() => this.start());
     }
@@ -490,7 +527,7 @@
     /* ───────────── Secuencia de arranque (≈4.4 s) ───────────── */
     boot() {
       this.state = 'boot'; this.hideAll();
-      if (!this.hasAttribute('muted')) this.bootBus = SFX.boot();
+      if (!this.hasAttribute('muted')) { SFX.preload(this.assetURL('boot', 'mp3')); this.bootBus = SFX.boot(); }
       this.el.rock.src = this.emptyImg.src;
       this.t0 = performance.now();
       const E = this.el, I = this.intensity;

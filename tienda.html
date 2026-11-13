@@ -476,6 +476,29 @@
     .qr-resultado-ok.prod .qr-hp{color:var(--esp);font-size:1.05rem;}
     .qr-prod-img{width:92px;height:116px;margin:4px auto 8px;border-radius:8px;background:#05080c center/cover no-repeat;border:1px solid rgba(95,232,208,.4);
       display:flex;align-items:center;justify-content:center;font-size:2.4rem;color:var(--esp);box-shadow:0 0 22px rgba(95,232,208,.25);}
+    /* ══ PAGO CON MERCADO PAGO ══ */
+    .mp-aviso{display:none;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:9px;margin-bottom:14px;font-size:.95rem;line-height:1.4;
+      background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text);}
+    .mp-aviso.on{display:flex;}
+    .mp-aviso b{font-family:'Orbitron',sans-serif;font-size:.62rem;letter-spacing:1px;display:block;margin-bottom:2px;}
+    .mp-aviso.ok{border-color:rgba(0,255,157,.45);background:rgba(0,255,157,.07);} .mp-aviso.ok b{color:var(--neon);}
+    .mp-aviso.esp{border-color:rgba(245,166,35,.45);background:rgba(245,166,35,.07);} .mp-aviso.esp b{color:var(--gold);}
+    .mp-aviso.mal{border-color:rgba(255,80,80,.45);background:rgba(255,80,80,.07);} .mp-aviso.mal b{color:#ff7a7a;}
+    .mp-aviso .mp-x{margin-left:auto;background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer;padding:0 2px;}
+    .mp-fondo{display:none;position:fixed;inset:0;z-index:1600;background:rgba(0,0,0,.82);align-items:flex-end;justify-content:center;}
+    .mp-fondo.on{display:flex;}
+    .mp-hoja{width:100%;max-width:440px;background:var(--card);border:1px solid rgba(95,232,208,.35);border-radius:14px 14px 0 0;padding:20px 18px calc(22px + env(safe-area-inset-bottom));}
+    .mp-hoja h3{font-family:'Orbitron',sans-serif;font-size:.85rem;letter-spacing:.5px;color:var(--text);margin:0 0 4px;}
+    .mp-hoja .mp-monto{font-family:'Orbitron',sans-serif;font-weight:900;font-size:1.5rem;color:var(--gold);margin:6px 0 10px;}
+    .mp-hoja .mp-monto small{font-size:.6rem;color:var(--muted);margin-left:4px;}
+    .mp-hoja p{font-size:.92rem;color:var(--muted);line-height:1.45;margin:0 0 8px;}
+    .mp-hoja .mp-id{font-family:'Orbitron',sans-serif;font-size:.62rem;color:var(--esp);letter-spacing:1px;}
+    .mp-acc{display:flex;gap:8px;margin-top:14px;}
+    .mp-acc button{flex:1;font-family:'Orbitron',sans-serif;font-size:.6rem;font-weight:900;letter-spacing:1.4px;padding:13px 10px;border-radius:8px;cursor:pointer;}
+    .mp-ir{border:none;background:linear-gradient(135deg,#00b1ea,#0a7fd1);color:#fff;}
+    .mp-ir:disabled{opacity:.6;cursor:wait;}
+    .mp-no{border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--muted);}
+    @media (min-width:700px){.mp-fondo{align-items:center;}.mp-hoja{border-radius:14px;}}
     /* ══ VISTA AMPLIA (PC / tablet horizontal) — se desactiva en Ajustes (html.hz-off) ══ */
     @media (min-width:1000px) and (min-height:560px){
       html:not(.hz-off) .container{max-width:1240px;padding:26px 28px 60px;}
@@ -712,7 +735,8 @@
     <div id="sec-premium" class="section-panel">
       <button class="sec-back" onclick="volverMenu()">◀ TIENDA</button>
       <div class="stitle">✦ CONTENIDO PREMIUM</div>
-      <p class="pr-intro">Se compra con dinero real en la Tienda Online. Recibes un código CDH y lo activas aquí: queda ligado a tu ID para siempre.</p>
+      <p class="pr-intro">Se compra con dinero real: paga aquí con Mercado Pago o activa el código CDH que te dieron en la Tienda Online. Lo que compras queda ligado a tu ID para siempre.</p>
+      <div class="mp-aviso" id="mp-aviso" role="status"></div>
       <div class="pr-filtros" id="pr-filtros"></div>
       <div class="pr-grid" id="pr-grid"><div class="empty-tab">⏳ Cargando...</div></div>
       <button class="pr-codigo" onclick="abrirSeccion('canjear')">🔑 TENGO UN CÓDIGO</button>
@@ -764,6 +788,19 @@
 </div>
 
   <!-- ═══ SECCIÓN MÚSICA ═══ -->
+  <div class="mp-fondo" id="mp-fondo" onclick="if(event.target===this)mpCerrar()">
+    <div class="mp-hoja" role="dialog" aria-modal="true" aria-labelledby="mp-tit">
+      <h3 id="mp-tit">—</h3>
+      <div class="mp-monto" id="mp-monto">—</div>
+      <p>Pagas en Mercado Pago con tarjeta, OXXO, SPEI o tu saldo. Al terminar regresas aquí y el producto se activa en tu cuenta.</p>
+      <p class="mp-id" id="mp-id"></p>
+      <div class="mp-acc">
+        <button class="mp-no" onclick="mpCerrar()">CANCELAR</button>
+        <button class="mp-ir" id="mp-ir" onclick="mpIr()">PAGAR</button>
+      </div>
+    </div>
+  </div>
+
   <div id="sec-musica" class="section-panel">
     <button class="sec-back" onclick="volverMenu()">◀ TIENDA</button>
     <div class="stitle">🎵 MÚSICA</div>
@@ -1080,6 +1117,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('jugador-header').classList.add('visible');
   vendDecir('bienvenida', false);
   aplicarItemsGuardados();
+  mpAlRegresar();
   // En paralelo: si el ranking tarda, ya no bloquea el saldo de HP
   await Promise.allSettled([calcularPuntos(), cargarSaldoHP()]);
 });
@@ -1129,7 +1167,7 @@ async function vendDecir(sec, mini) {
 //  CONTENIDO PREMIUM (hoja Productos_Digitales · se activa con códigos CDH)
 // ════════════════════════════════════════════
 const PR_TIPOS = { dlc: 'EXPANSIÓN', mica: 'MICA', playmat: 'PLAYMAT', heroe: 'HÉROE', arena: 'ARENA', paquete: 'PAQUETE' };
-let premiumCache = null, prFiltro = 'todo';
+let premiumCache = null, prFiltro = 'todo', premiumMP = false;
 function escHtml(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]); }
 function escAttr(t) { return escHtml(t).replace(/\(/g, '%28').replace(/\)/g, '%29'); }
 function prIcono(t) { return ({ dlc: '✦', mica: '🎴', playmat: '🟫', heroe: '🦸', arena: '🏟️', paquete: '🎁' })[t] || '✦'; }
@@ -1148,8 +1186,10 @@ async function cargarPremium(forzar) {
     const d = await fetchJSON(`${HERO_PESOS_URL}?action=productos_digitales&playerid=${encodeURIComponent(jugador.id)}`, 20000);
     if (d.status !== 'ok') throw new Error(d.message || 'Error');
     premiumCache = d.productos || [];
+    premiumMP = !!d.mp;
     if (Array.isArray(d.compras)) guardarCompras(d.compras);
     pintarPremium();
+    mpRevisarGuardado();
   } catch (e) {
     grid.innerHTML = `<div class="empty-tab">⚠️ No se pudo cargar el contenido premium. <br><button class="pr-btn" style="margin:10px auto 0;display:inline-block" onclick="cargarPremium(true)">REINTENTAR</button></div>`;
   }
@@ -1173,6 +1213,7 @@ function pintarPremium() {
       ? `<div class="pr-inc">Incluye: ${p.contenido.map(c => escHtml(nombres[c] || c)).join(', ')}</div>` : '';
     let btn;
     if (p.tengo) btn = '<span class="pr-btn ok">✓ EN TU COLECCIÓN</span>';
+    else if (p.activo && premiumMP && Number(p.precio_mxn) > 0) btn = `<button class="pr-btn" onclick="mpAbrir('${escHtml(p.sku)}')">PAGAR</button>`;
     else if (p.activo && p.link_compra) btn = `<a class="pr-btn" href="${escHtml(p.link_compra)}" target="_blank" rel="noopener">COMPRAR</a>`;
     else btn = '<span class="pr-btn off">PRÓXIMAMENTE</span>';
     const precio = !p.tengo && Number(p.precio_mxn) > 0 ? `<div class="pr-precio">${precioMXN(p.precio_mxn)}<small>MXN</small></div>` : '';
@@ -1187,6 +1228,104 @@ function pintarPremium() {
       </div>
     </div>`;
   }).join('');
+}
+
+
+// ════════════════════════════════════════════
+//  PAGO CON MERCADO PAGO (Checkout Pro). El servidor crea la liga y entrega el producto
+//  solo después de confirmar el pago con la API de Mercado Pago.
+// ════════════════════════════════════════════
+const MP_PEND = 'chh_mp_pend', MP_DIAS = 5;
+let mpSku = null, mpRevisado = false;
+function mpAviso(clase, titulo, texto) {
+  const el = document.getElementById('mp-aviso');
+  if (!clase) { el.className = 'mp-aviso'; el.innerHTML = ''; return; }
+  el.className = 'mp-aviso on ' + clase;
+  el.innerHTML = `<div><b>${titulo}</b>${texto}</div><button class="mp-x" aria-label="Cerrar aviso" onclick="mpAviso()">×</button>`;
+}
+function mpAbrir(sku) {
+  const p = (premiumCache || []).find(x => x.sku === sku);
+  if (!p) return;
+  mpSku = sku;
+  document.getElementById('mp-tit').textContent = p.nombre;
+  document.getElementById('mp-monto').innerHTML = `${precioMXN(p.precio_mxn)}<small>MXN</small>`;
+  document.getElementById('mp-id').textContent = 'SE ACTIVA EN: ' + jugador.id;
+  const b = document.getElementById('mp-ir'); b.disabled = false; b.textContent = 'PAGAR ' + precioMXN(p.precio_mxn);
+  document.getElementById('mp-fondo').classList.add('on');
+}
+function mpCerrar() { document.getElementById('mp-fondo').classList.remove('on'); mpSku = null; }
+async function mpIr() {
+  if (!mpSku) return;
+  const b = document.getElementById('mp-ir'); b.disabled = true; b.textContent = 'ABRIENDO…';
+  try {
+    const volver = location.origin + location.pathname;
+    const d = await mpPedir(`${HERO_PESOS_URL}?action=mp_crear&playerid=${encodeURIComponent(jugador.id)}&sku=${encodeURIComponent(mpSku)}&volver=${encodeURIComponent(volver)}`);
+    if (d.status !== 'ok' || !d.url) throw new Error(d.message || 'No se pudo iniciar el pago');
+    try { localStorage.setItem(MP_PEND, JSON.stringify({ id: jugador.id, ref: d.referencia, t: Date.now() })); } catch (e) {}
+    location.href = d.url;
+  } catch (e) {
+    mpCerrar();
+    mostrarToast('⚠️ ' + (e.message || 'No se pudo iniciar el pago'));
+  }
+}
+// Sin límite de tiempo: si la sesión venció, nucleo.js pide el PIN a mitad de la llamada y la repite
+async function mpPedir(url) {
+  let r;
+  try { r = await fetch(url); } catch (e) { throw new Error('Sin conexión'); }
+  try { return await r.json(); } catch (e) { throw new Error('Respuesta inválida del servidor'); }
+}
+function mpLeerPend() {
+  try {
+    const p = JSON.parse(localStorage.getItem(MP_PEND) || 'null');
+    if (!p || p.id !== jugador.id || Date.now() - p.t > MP_DIAS * 86400000) { localStorage.removeItem(MP_PEND); return null; }
+    return p;
+  } catch (e) { return null; }
+}
+async function mpVerificar(paymentId, silencio) {
+  const url = `${HERO_PESOS_URL}?action=mp_verificar&playerid=${encodeURIComponent(jugador.id)}` +
+    (paymentId ? `&payment_id=${encodeURIComponent(paymentId)}` : '') + (silencio ? '&nx_silencio=1' : '');
+  const d = silencio ? await fetchJSON(url, 30000) : await mpPedir(url);
+  if (d.status !== 'ok') throw new Error(d.message || 'No se pudo confirmar el pago');
+  if (Array.isArray(d.compras)) guardarCompras(d.compras);
+  const res = d.resultados || [];
+  const entregados = res.filter(r => r.estado === 'entregado');
+  if (entregados.length) { try { localStorage.removeItem(MP_PEND); } catch (e) {} }
+  return { res, entregados };
+}
+function mpMostrarResultado(r, regreso) {
+  const nombres = r.entregados.map(x => '«' + escHtml(x.nombre) + '»').join(', ');
+  const est = r.res.map(x => x.estado);
+  if (r.entregados.length) {
+    mpAviso('ok', 'PAGO APROBADO', `${nombres} ya es tuyo y quedó ligado a tu ID.`);
+    vendDecir('entregado');
+    cargarPremium(true);
+  } else if (est.some(e => e === 'pending' || e === 'in_process' || e === 'authorized') || regreso === 'pendiente') {
+    mpAviso('esp', 'PAGO PENDIENTE', 'Si pagaste en OXXO o por transferencia, se activa solo cuando Mercado Pago lo acredite. Puedes cerrar la app.');
+  } else if (est.indexOf('revisar') >= 0) {
+    mpAviso('esp', 'PAGO EN REVISIÓN', 'Recibimos tu pago pero necesita revisión manual. Escríbenos desde la Tienda Online con tu ID.');
+  } else if (regreso === 'error' || est.some(e => e === 'rejected' || e === 'cancelled')) {
+    mpAviso('mal', 'EL PAGO NO SE COMPLETÓ', 'No se hizo ningún cargo. Puedes intentarlo de nuevo con otro método.');
+  } else if (regreso === 'ok') {
+    mpAviso('esp', 'CONFIRMANDO PAGO', 'Mercado Pago aún no lo reporta. Se activará solo en unos minutos; vuelve a esta sección para verlo.');
+  }
+}
+// Al volver de Mercado Pago: tienda.html?mp=ok|pendiente|error&payment_id=…
+async function mpAlRegresar() {
+  const q = new URLSearchParams(location.search), regreso = q.get('mp');
+  if (!regreso) return;
+  const pid = q.get('payment_id') || q.get('collection_id') || '';
+  try { history.replaceState(null, '', location.pathname); } catch (e) {}
+  abrirSeccion('premium');
+  mpRevisado = true;
+  mpAviso('esp', 'CONFIRMANDO PAGO', 'Consultando tu pago con Mercado Pago…');
+  try { mpMostrarResultado(await mpVerificar(/^\d+$/.test(pid) ? pid : '', false), regreso); }
+  catch (e) { mpAviso('esp', 'CONFIRMANDO PAGO', 'No pudimos consultar tu pago ahora. Si se aprobó, se activará solo en unos minutos.'); }
+}
+// Al abrir Premium con un pago pendiente guardado en este dispositivo
+async function mpRevisarGuardado() {
+  if (mpRevisado || !premiumMP || !mpLeerPend()) return;
+  mpRevisado = true;
+  try { const r = await mpVerificar('', true); if (r.entregados.length) mpMostrarResultado(r); } catch (e) {}
 }
 
 // ════════════════════════════════════════════
@@ -1273,6 +1412,7 @@ function abrirSeccion(sec) {
   else if (sec === 'cosmeticos') { cargarCosmeticos(); }
   else if (sec === 'heroes') { cargarHeroesTienda(); }
   else if (sec === 'premium') { cargarPremium(); }
+  if (sec !== 'premium') mpCerrar();
   vendDecir(sec, true);
 }
 

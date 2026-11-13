@@ -79,7 +79,7 @@ html,body{height:100%;background:var(--ink);color:var(--txt);overflow:hidden;fon
 .bl{bottom:max(16px,env(safe-area-inset-bottom));left:max(18px,env(safe-area-inset-left));color:var(--mut)}
 .br{bottom:max(14px,env(safe-area-inset-bottom));right:max(18px,env(safe-area-inset-right))}
 .br img{width:42px;opacity:.75}
-.fx{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:50}
+.fx{position:fixed;inset:0;background:radial-gradient(circle at 50% 45%,#eaf8ff,#7cc8ff 45%,#1d5bff);opacity:0;pointer-events:none;z-index:50}
 .fx.go{animation:flash .7s ease-out forwards}
 @keyframes flash{0%{opacity:0}25%{opacity:.9}100%{opacity:0}}
 body.out .scene{transition:opacity .45s;opacity:0}
@@ -197,12 +197,17 @@ body.out .scene{transition:opacity .45s;opacity:0}
   }
   function comenzar(){
     if(saliendo||bloqueo)return;saliendo=true;
-    sonInicio();try{navigator.vibrate&&navigator.vibrate(30);}catch(e){}
-    try{if(window.GP&&GP.vibrar)GP.vibrar(120,.6);}catch(e){}
-    $('fx').classList.add('go');
+    // Estallido de plasma del logo (con su sonido). Si existe assets/inicio/comenzar.mp3, suena ese en su lugar.
+    var propio=!!sfx,conLogo=!!(logo&&logo.burst&&(logo.state==='idle'||logo.state==='fade'));
+    if(conLogo){try{logo.burst({sound:!propio});}catch(e){conLogo=false;}}
+    if(propio||!conLogo)sonInicio();
+    try{navigator.vibrate&&navigator.vibrate([30,60,40]);}catch(e){}
+    try{if(window.GP&&GP.vibrar)GP.vibrar(220,.8);}catch(e){}
     if(aud){var a=aud,v=a.volume,iv=setInterval(function(){v-=.08;if(v<=0){clearInterval(iv);a.pause();}else a.volume=v;},40);}
-    // Con sonido propio se espera a que termine (máximo 2.5 s) antes de pasar al menú
-    var dur=(sfx&&isFinite(sfx.duration)&&sfx.duration>0)?Math.min(2500,Math.max(850,sfx.duration*1000)):850;
+    // Se deja ver el estallido (≈1.4 s); con sonido propio se espera a que termine (máximo 2.5 s)
+    var base=conLogo?1400:850;
+    var dur=(propio&&isFinite(sfx.duration)&&sfx.duration>0)?Math.min(2500,Math.max(base,sfx.duration*1000)):base;
+    if(conLogo)setTimeout(function(){$('fx').classList.add('go');},dur-650);else $('fx').classList.add('go');
     setTimeout(function(){document.body.classList.add('out');},dur-500);
     setTimeout(function(){location.href='index.html';},dur);
   }

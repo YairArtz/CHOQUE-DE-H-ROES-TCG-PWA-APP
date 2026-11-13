@@ -215,6 +215,7 @@ footer{padding:26px 16px 6px;text-align:center;font-size:13px;font-weight:600;co
       <div class="row"><div class="lbl"><b>Pista de fondo</b><span id="bgmPista">La de siempre</span></div><div class="bts"><a class="bt acc" href="musica.html">🎵 Soundtrack</a><button class="bt oculto" id="bgmReset" type="button">↺ La de siempre</button></div></div>
       <div class="row"><div class="lbl"><b>Música en los Choques</b><span>Simulación, Arcade, Online y Modo Aventura.</span></div><div class="rng"><input type="range" id="simMus" min="0" max="1" step="0.05" aria-label="Música en los Choques"><em id="simMusV"></em></div></div>
       <div class="row"><div class="lbl"><b>Efectos de sonido en los Choques</b></div><div class="rng"><input type="range" id="simSfx" min="0" max="1" step="0.05" aria-label="Efectos de sonido"><em id="simSfxV"></em></div></div>
+      <div class="row"><div class="lbl"><b>Sonido del logo</b><span>Energía y estallido del logo animado (pantalla de inicio y registros).</span></div><button class="sw" id="logoSfx" type="button" aria-label="Sonido del logo"></button></div>
       <div class="row"><div class="lbl"><b>Música del Modo Aventura</b><span>Mapa y menús de Nexotlan.</span></div><button class="sw" id="nxMus" type="button" aria-label="Música del Modo Aventura"></button></div>
     </section>
 
@@ -341,6 +342,8 @@ const AJ = (() => { let a = {}; try { a = JSON.parse(LS.get('cdh_sim_ajustes') |
 const ajGuardar = () => LS.set('cdh_sim_ajustes', JSON.stringify(AJ));
 rango('simMus', AJ.mus, v => { AJ.mus = v; ajGuardar(); });
 rango('simSfx', AJ.sfx, v => { AJ.sfx = v; ajGuardar(); if (v > 0) LS.set('cdh_sim_mute', '0'); });
+$('logoSfx').classList.toggle('on', LS.get('chh_logo_sfx') !== '0');
+$('logoSfx').onclick = () => { const on = !$('logoSfx').classList.contains('on'); $('logoSfx').classList.toggle('on', on); LS.set('chh_logo_sfx', on ? null : '0'); };
 $('nxMus').classList.toggle('on', LS.get('chh_nexotlan_mute') !== '1');
 $('nxMus').onclick = () => { const on = !$('nxMus').classList.contains('on'); $('nxMus').classList.toggle('on', on); LS.set('chh_nexotlan_mute', on ? '0' : '1'); };
 function segLS(id, val, fn) { const g = $(id); marcarSeg(g, val); g.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; fn(b.dataset.v); marcarSeg(g, b.dataset.v); toast('Guardado'); }); }

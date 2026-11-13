@@ -12,8 +12,9 @@
  *   intensity  0.2 – 1.5  multiplicador de energía  (default: 1; compact = 0.55)
  *   progress   0 – 1  (solo loader) dibuja el anillo de carga
  *   skippable  presente = tocar durante el boot lo salta
+ *   muted      presente = sin sonido (el sonido también se apaga en Ajustes: chh_logo_sfx = '0')
  *
- * Métodos:  el.play('boot'|'title')   el.burst()   el.skip()
+ * Métodos:  el.play('boot'|'title')   el.burst({sound:true})   el.skip()
  * Eventos:  "cdh-logo:ready" (fin del boot / logo listo)
  */
 (() => {
@@ -125,6 +126,154 @@
     return { pts, kids };
   }
 
+  /* ───────────── Sonido sintetizado (Web Audio, sin archivos) ─────────────
+   * Se apaga desde Ajustes → Sonido → "Sonido del logo" (localStorage chh_logo_sfx = '0').
+   * Solo suena si el jugador ya tocó la página (los navegadores bloquean el audio antes).  */
+  const SFX = (() => {
+    let ctx = null, out = null, noise = null;
+    const enabled = () => { try { return localStorage.getItem('chh_logo_sfx') !== '0'; } catch (e) { return true; } };
+    const activated = () => !navigator.userActivation || navigator.userActivation.hasBeenActive;
+
+    function get() {
+      if (!enabled() || !activated()) return null;
+      if (!ctx) {
+        const C = window.AudioContext || window.webkitAudioContext; if (!C) return null;
+        try { ctx = new C(); } catch (e) { return null; }
+        const comp = ctx.createDynamicsCompressor();
+        comp.threshold.value = -16; comp.knee.value = 12; comp.ratio.value = 5; comp.attack.value = 0.003; comp.release.value = 0.2;
+        out = ctx.createGain(); out.gain.value = 0.75;
+        out.connect(comp); comp.connect(ctx.destination);
+        const len = ctx.sampleRate * 2; noise = ctx.createBuffer(1, len, ctx.sampleRate);
+        const d = noise.getChannelData(0); for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      }
+      return ctx;
+    }
+    // Ejecuta solo si el audio corre de verdad (nunca encola sonidos para que salgan tarde)
+    function run(fn) {
+      const c = get(); if (!c) return null;
+      const bus = c.createGain(); bus.connect(out);
+      const go = () => { try { fn(c, c.currentTime + 0.02, bus); } catch (e) {} };
+      if (c.state === 'running') go();
+      else {
+        let ok = false;
+        c.resume().then(() => { ok = true; go(); }).catch(() => {});
+        setTimeout(() => { if (!ok) bus.disconnect(); }, 250);
+      }
+      return bus;
+    }
+    function stop(bus, fade = 0.12) {
+      if (!bus || !ctx) return;
+      try { const t = ctx.currentTime; bus.gain.cancelScheduledValues(t); bus.gain.setValueAtTime(bus.gain.value, t); bus.gain.linearRampToValueAtTime(0, t + fade); } catch (e) {}
+      setTimeout(() => { try { bus.disconnect(); } catch (e) {} }, fade * 1000 + 60);
+    }
+
+    // ── Primitivas ──
+    function env(c, g, t, a, peak, dur, curve = 'exp') {
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(peak, t + a);
+      if (curve === 'exp') g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      else g.gain.linearRampToValueAtTime(0, t + dur);
+    }
+    function nz(c, bus, t, dur, o) {
+      const s = c.createBufferSource(); s.buffer = noise; s.loop = true;
+      s.playbackRate.value = o.rate || 1;
+      const f = c.createBiquadFilter(); f.type = o.type || 'bandpass'; f.Q.value = o.q || 1;
+      f.frequency.setValueAtTime(o.f || 1000, t);
+      if (o.f2) f.frequency.exponentialRampToValueAtTime(o.f2, t + dur);
+      const g = c.createGain(); env(c, g, t, o.a || 0.005, o.gain || 0.3, dur, o.curve);
+      s.connect(f); f.connect(g); g.connect(bus);
+      s.start(t, Math.random() * 1.5); s.stop(t + dur + 0.05);
+    }
+    function tone(c, bus, t, dur, o) {
+      const s = c.createOscillator(); s.type = o.type || 'sine';
+      s.frequency.setValueAtTime(o.f, t);
+      if (o.f2) s.frequency.exponentialRampToValueAtTime(o.f2, t + (o.glide || dur));
+      if (o.detune) s.detune.value = o.detune;
+      const g = c.createGain(); env(c, g, t, o.a || 0.004, o.gain || 0.3, dur, o.curve);
+      let node = s;
+      if (o.lp) { const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.setValueAtTime(o.lp, t); if (o.lp2) f.frequency.exponentialRampToValueAtTime(o.lp2, t + dur); f.Q.value = o.q || 0.8; s.connect(f); node = f; }
+      node.connect(g); g.connect(bus);
+      s.start(t); s.stop(t + dur + 0.05);
+    }
+    // Chisporroteo eléctrico: ráfaga de chasquidos cortos
+    function crackle(c, bus, t, dur, density, gain, hp = 2400) {
+      const n = Math.max(1, Math.round(dur * density));
+      for (let i = 0; i < n; i++) {
+        const tt = t + Math.random() * dur, d = 0.004 + Math.random() * 0.018;
+        nz(c, bus, tt, d, { type: 'highpass', f: hp + Math.random() * 3000, q: 0.7, gain: gain * (0.35 + Math.random() * 0.65), a: 0.001 });
+      }
+    }
+    function zap(c, bus, t, gain) {
+      tone(c, bus, t, 0.22, { type: 'sawtooth', f: 2400, f2: 90, glide: 0.2, gain: gain * 0.22, lp: 5000, lp2: 600 });
+      tone(c, bus, t, 0.16, { type: 'square', f: 1300, f2: 160, gain: gain * 0.08, detune: 25 });
+      nz(c, bus, t, 0.2, { type: 'bandpass', f: 4000, f2: 900, q: 2, gain: gain * 0.35 });
+      crackle(c, bus, t, 0.28, 70, gain * 0.28);
+    }
+    function boom(c, bus, t, gain) {
+      tone(c, bus, t, 1.1, { f: 120, f2: 32, glide: 0.9, gain: gain * 0.9, a: 0.003 });
+      tone(c, bus, t, 0.5, { type: 'triangle', f: 240, f2: 60, glide: 0.4, gain: gain * 0.35 });
+      nz(c, bus, t, 1.4, { type: 'lowpass', f: 2400, f2: 90, q: 0.6, gain: gain * 0.75, a: 0.002 });
+      nz(c, bus, t, 0.35, { type: 'bandpass', f: 6000, f2: 1500, q: 0.9, gain: gain * 0.4 });
+      crackle(c, bus, t + 0.05, 0.9, 55, gain * 0.25);
+    }
+    function impact(c, bus, t, gain, pitch = 1) {
+      tone(c, bus, t, 0.42, { f: 170 * pitch, f2: 42, glide: 0.32, gain: gain * 0.85, a: 0.002 });
+      nz(c, bus, t, 0.16, { type: 'bandpass', f: 1400 * pitch, f2: 300, q: 1.2, gain: gain * 0.6, a: 0.001 });
+      [620, 933, 1247].forEach((f, i) => tone(c, bus, t + 0.005, 0.5 - i * 0.1, { f: f * pitch, gain: gain * (0.07 - i * 0.015), a: 0.002 }));
+      zap(c, bus, t + 0.02, gain * 0.45);
+    }
+    function charge(c, bus, t, dur) {
+      [0, 7].forEach(dt => tone(c, bus, t, dur, { type: 'sawtooth', f: 55, f2: 520, glide: dur, gain: 0.12, a: dur * 0.85, curve: 'lin', lp: 260, lp2: 4200, q: 4, detune: dt }));
+      tone(c, bus, t, dur, { f: 110, f2: 880, glide: dur, gain: 0.1, a: dur * 0.9, curve: 'lin' });
+      nz(c, bus, t, dur, { type: 'bandpass', f: 500, f2: 5000, q: 3, gain: 0.12, a: dur * 0.9, curve: 'lin' });
+      for (let i = 0; i < 6; i++) { const k = i / 6; crackle(c, bus, t + k * dur, dur / 6, 10 + 90 * k * k, 0.12 + 0.2 * k); }
+    }
+    function neon(c, bus, t, pattern, dur) {
+      const s = c.createOscillator(), s2 = c.createOscillator();
+      s.type = 'sawtooth'; s.frequency.value = 100; s2.type = 'square'; s2.frequency.value = 200;
+      const f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1100; f.Q.value = 2.5;
+      const g = c.createGain(); g.gain.setValueAtTime(0, t);
+      const step = dur / (pattern.length - 1);
+      pattern.forEach((v, i) => {
+        g.gain.setValueAtTime(v * 0.16, t + i * step);
+        if (v > 0.5) crackle(c, bus, t + i * step, 0.03, 300, 0.12);
+      });
+      g.gain.setValueAtTime(0.16, t + dur); g.gain.linearRampToValueAtTime(0.035, t + dur + 0.3); g.gain.linearRampToValueAtTime(0, t + dur + 1.4);
+      s.connect(f); s2.connect(f); f.connect(g); g.connect(bus);
+      s.start(t); s2.start(t); s.stop(t + dur + 1.5); s2.stop(t + dur + 1.5);
+    }
+    function shimmer(c, bus, t, dur, gain = 1) {
+      const notes = [1568, 2093, 2637, 3136, 4186, 3520];
+      notes.forEach((f, i) => tone(c, bus, t + i * dur / 9, 0.5, { f, gain: gain * 0.05, a: 0.004 }));
+      nz(c, bus, t, dur, { type: 'bandpass', f: 2500, f2: 10000, q: 4, gain: gain * 0.07, a: dur * 0.4, curve: 'lin' });
+    }
+
+    return {
+      boot() {
+        return run((c, t, bus) => {
+          charge(c, bus, t, 1.15);
+          [0.35, 0.62, 0.82, 0.98].forEach((d, i) => zap(c, bus, t + d, 0.25 + i * 0.08));
+          boom(c, bus, t + 1.15, 1);
+          impact(c, bus, t + 2.08, 0.95, 1);
+          impact(c, bus, t + 2.48, 0.6, 1.35);
+          impact(c, bus, t + 2.83, 1.1, 0.82);
+          impact(c, bus, t + 3.5, 0.3, 2.1);                 // aterriza el badge de Codex
+          neon(c, bus, t + 3.35, [0, 1, 0.1, 0.9, 0, 0, 1, 0.35, 1, 1], 0.9);
+          shimmer(c, bus, t + 3.9, 1.1);
+        });
+      },
+      burst() {
+        return run((c, t, bus) => {
+          zap(c, bus, t, 0.9);
+          boom(c, bus, t + 0.02, 0.8);
+          [0, 0.09, 0.18].forEach((d, i) => impact(c, bus, t + d, 0.28, 1.3 + i * 0.15));
+          shimmer(c, bus, t + 0.25, 0.9, 0.9);
+        });
+      },
+      stop
+    };
+  })();
+
   class CdhLogo extends HTMLElement {
     static get observedAttributes() { return ['mode', 'progress', 'intensity']; }
 
@@ -135,7 +284,9 @@
       this.t0 = performance.now(); this.state = 'idle';
       this.nextBolt = 0; this.nextCrawl = 0; this.nextShine = 2.2; this.nextFlicker = 3;
       this.visible = true; this.raf = 0; this.timers = [];
-      this.reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      // Movimiento reducido del sistema o "Animaciones" apagadas en Ajustes → sin boot ni temblores
+      let anim = true; try { anim = (JSON.parse(localStorage.getItem('chh_settings') || '{}') || {}).animations !== false; } catch (e) {}
+      this.reduced = !anim || matchMedia('(prefers-reduced-motion: reduce)').matches;
     }
 
     get intensity() {
@@ -211,6 +362,7 @@
     }
 
     disconnectedCallback() {
+      SFX.stop(this.bootBus); this.bootBus = null;
       cancelAnimationFrame(this.raf); this.raf = 0;
       this.timers.forEach(clearTimeout); this.timers = [];
     }
@@ -258,6 +410,7 @@
     }
 
     clearAnims() {
+      SFX.stop(this.bootBus); this.bootBus = null;
       this.timers.forEach(clearTimeout); this.timers = [];
       this.root.querySelectorAll('*').forEach(n => n.getAnimations && n.getAnimations().forEach(a => a.cancel()));
     }
@@ -281,6 +434,7 @@
     /* ───────────── Secuencia de arranque (≈4.4 s) ───────────── */
     boot() {
       this.state = 'boot'; this.hideAll();
+      if (!this.hasAttribute('muted')) this.bootBus = SFX.boot();
       this.el.rock.src = this.emptyImg.src;
       this.t0 = performance.now();
       const E = this.el, I = this.intensity;
@@ -418,8 +572,10 @@
     }
 
     /* ───────────── Efectos reutilizables ───────────── */
-    burst() {
+    // opts.sound = false → solo la animación (p. ej. si la página pone su propio sonido)
+    burst(opts = {}) {
       if (!this.loaded) return;
+      if (opts.sound !== false && !this.hasAttribute('muted')) SFX.burst();
       const E = this.el;
       this.flash(0.8, 600); this.shake(8, 380);
       this.ring(ROCK.cx, ROCK.cy, 0.8, 900);

@@ -68,6 +68,11 @@
 #chhCarga .cg-marca{position:absolute;left:18px;top:14px;display:flex;align-items:center}
 #chhCarga .cg-logo{max-height:46px;max-width:180px;object-fit:contain;filter:drop-shadow(0 4px 14px rgba(0,0,0,.7))}
 #chhCarga .cg-t{font-family:'Orbitron',monospace;font-weight:900;font-size:14px;letter-spacing:.3em;color:#cfe0ff}
+#chhCarga .cg-cdh{display:block;width:clamp(60px,10vmin,112px)}
+#chhCarga .cg-cdh[hidden]{display:none}
+@media (orientation:portrait) and (max-width:620px){#chhCarga .cg-marca:has(.cg-cdh:not([hidden])){left:50%;top:max(52px,7vh);transform:translateX(-50%)}#chhCarga .cg-cdh{width:min(46vw,26vh,210px)}}
+:root.rot #chhCarga .cg-marca{left:18px;top:14px;transform:none}
+:root.rot #chhCarga .cg-cdh{width:clamp(60px,10vmin,112px)}
 #chhCarga .cg-caja{width:min(800px,94%);aspect-ratio:2.25/1;max-height:64vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
   padding:5% 9% 6%;text-align:center;box-sizing:border-box}
 #chhCarga .cg-caja>svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
@@ -108,7 +113,7 @@
     if (G) return G;
     const st = document.createElement('style'); st.textContent = css; (document.head || document.documentElement).appendChild(st);
     G = document.createElement('div'); G.id = 'chhCarga'; G.hidden = true; G.setAttribute('role', 'status');
-    G.innerHTML = '<div class="cg-marca"><img class="cg-logo" alt="" hidden><div class="cg-t">CHOQUE DE HÉROES</div></div>' +
+    G.innerHTML = '<div class="cg-marca"><cdh-logo class="cg-cdh" mode="wait" hidden></cdh-logo><img class="cg-logo" alt="" hidden><div class="cg-t">CHOQUE DE HÉROES</div></div>' +
       '<div class="cg-caja"><svg viewBox="0 0 100 44" preserveAspectRatio="none" aria-hidden="true"><path class="m" d="M3 5 L56 5 L58.5 1.5 L100 1 L96.5 40 L48 40 L45.5 43.5 L0 43.5 Z"/></svg>' +
       '<div class="cg-tab">TIPS</div><div class="cg-tt"></div><div class="cg-x"></div></div>' +
       '<div class="cg-pie"><div class="cg-spr"><div class="cg-naipe"></div></div><span>CARGANDO<i></i></span></div><div class="cg-sig">TOCA PARA CONTINUAR</div>';
@@ -117,10 +122,26 @@
     return G;
   }
   function visible() { return !!G && !G.hidden && !G.classList.contains('fuera'); }
-  // Aspecto: Nexotlan usa su logo, fondo e imagen de carga; el resto, el título del juego y el fondo indicado
+  // Logo animado (cdh-logo.js): se carga solo si la página no lo trae; si no llega, queda el texto
+  function logoAnimado() {
+    if (!window.customElements) return null;
+    if (!customElements.get('cdh-logo') && !document.querySelector('script[data-cdh-logo]')) {
+      const sc = document.createElement('script'); sc.src = 'cdh-logo.js'; sc.setAttribute('data-cdh-logo', '');
+      (document.head || document.documentElement).appendChild(sc);
+    }
+    return G.querySelector('.cg-cdh');
+  }
+  // Aspecto: Nexotlan usa su logo, fondo e imagen de carga; Arcade su título; el resto, el logo animado del juego
   function vestir(tipo, fondo) {
-    const lg = G.querySelector('.cg-logo'), t = G.querySelector('.cg-t'), spr = G.querySelector('.cg-spr');
+    const lg = G.querySelector('.cg-logo'), t = G.querySelector('.cg-t'), spr = G.querySelector('.cg-spr'), cdh = G.querySelector('.cg-cdh');
     lg.hidden = true; t.hidden = false; t.textContent = 'CHOQUE DE HÉROES'; G.style.backgroundImage = '';
+    cdh.hidden = true; cdh.setAttribute('mode', 'wait');
+    if (tipo !== 'nexotlan' && tipo !== 'arcade' && logoAnimado()) {
+      customElements.whenDefined('cdh-logo').then(() => {
+        if (!visible()) return;
+        cdh.hidden = false; t.hidden = true; cdh.setAttribute('mode', 'compact');
+      });
+    }
     spr.innerHTML = '<div class="cg-naipe"></div>';
     let f = fondo;
     if (tipo === 'nexotlan') {
@@ -161,7 +182,7 @@
     clearTimeout(tFin); clearTimeout(tSeguro);
     const f = alFin; alFin = null; G.classList.remove('listo');
     if (f) { f(); return; }                               // se va a otra página: la pantalla se queda puesta
-    G.classList.add('fuera'); setTimeout(() => { if (G.classList.contains('fuera')) G.hidden = true; }, 450);
+    G.classList.add('fuera'); setTimeout(() => { if (G.classList.contains('fuera')) { G.hidden = true; const c = G.querySelector('.cg-cdh'); if (c) c.setAttribute('mode', 'wait'); } }, 450);
   }
   function saltar() { if (visible() && G.classList.contains('listo')) quitar(true); }
   function esperar() { return new Promise(r => { const t0 = Date.now(), v = () => (!visible() || Date.now() - t0 > 16000) ? r() : setTimeout(v, 60); v(); }); }

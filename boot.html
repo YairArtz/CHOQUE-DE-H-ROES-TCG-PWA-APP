@@ -16,7 +16,7 @@
   Imágenes opcionales en assets/inicio/ (si no existen se usan las de siempre):
     logo_1.png        primer logo      (si falta: footer-logo.png)
     logo_2.png        segundo logo     (si falta: assets/nexotlan/titulo/logo.png)
-    titulo_logo.png   logo del título  (si falta: logo-hd.png)
+    (el logo del título es el animado <cdh-logo> → cdh-logo.js + assets/logo/)
     titulo_fondo.jpg  fondo del título (si falta: fondo generado)
     titulo_heroe.png  héroe del título (opcional)
     titulo.mp3        música del título (suena si el navegador lo permite)
@@ -61,9 +61,8 @@ html,body{height:100%;background:var(--ink);color:var(--txt);overflow:hidden;fon
 #sTitle .hero{position:absolute;bottom:0;right:4%;height:78%;object-fit:contain;opacity:0;filter:drop-shadow(0 0 30px rgba(139,92,255,.35));transition:opacity 1.4s .3s}
 #sTitle.on .hero.ok{opacity:.9}
 #sTitle .core{position:relative;display:flex;flex-direction:column;align-items:center;gap:clamp(18px,4vh,40px);z-index:2}
-#sTitle .logo{width:min(78vw,520px);max-height:52vh;object-fit:contain;
-  filter:drop-shadow(0 0 22px rgba(54,214,255,.45)) drop-shadow(0 10px 30px rgba(0,0,0,.8));transform:scale(.9);opacity:0;transition:transform 1.2s cubic-bezier(.2,.9,.25,1.15),opacity .9s}
-#sTitle.on .logo{transform:none;opacity:1}
+/* Logo animado (cdh-logo.js): boot de plasma la primera vez de la sesión, luego reposo */
+#sTitle .logo{width:min(84vw,560px,60vh)}
 /* el triángulo de MD → un rombo escalonado tipo greca detrás del logo */
 #sTitle .glyph{position:absolute;top:50%;left:50%;width:min(70vw,440px);aspect-ratio:1;transform:translate(-50%,-56%) rotate(45deg);
   border:1.5px solid rgba(143,176,255,.35);box-shadow:0 0 30px rgba(54,214,255,.15) inset;opacity:0;transition:opacity 1.6s .4s}
@@ -71,7 +70,8 @@ html,body{height:100%;background:var(--ink);color:var(--txt);overflow:hidden;fon
 #sTitle.on .glyph{opacity:1}
 #press{font-family:'Orbitron',sans-serif;font-weight:700;font-size:clamp(12px,3vw,16px);letter-spacing:.42em;padding-left:.42em;color:#fff;
   display:flex;align-items:center;gap:14px;opacity:0;transition:opacity .6s 1s;background:none;border:0;cursor:pointer}
-#sTitle.on #press{opacity:1;animation:blink 2.2s 1.6s ease-in-out infinite}
+#sTitle.on.listo #press{opacity:1;animation:blink 2.2s 1.6s ease-in-out infinite}
+#press{transition-delay:.15s}
 #press i{font-style:normal;width:30px;height:30px;border-radius:50%;border:2px solid #fff;display:inline-flex;align-items:center;justify-content:center;font-size:13px;letter-spacing:0;padding:0}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
 .corner{position:absolute;font-size:clamp(11px,2.4vw,14px);font-weight:600;color:#c8d4f5;line-height:1.5;z-index:2;letter-spacing:.04em}
@@ -87,7 +87,7 @@ body.out .scene{transition:opacity .45s;opacity:0}
   font-size:10px;letter-spacing:.3em;color:#7d8ab3;background:none;border:1px solid #2a3561;border-radius:20px;padding:7px 12px;opacity:.7}
 #skip[hidden]{display:none}
 @media (orientation:portrait){#sTitle .hero{right:-18%;height:62%;opacity:0}#sTitle.on .hero.ok{opacity:.5}}
-@media (prefers-reduced-motion:reduce){.mote,#press{animation:none!important}#sTitle .logo,.slogo img{transition:opacity .6s}}
+@media (prefers-reduced-motion:reduce){.mote,#press{animation:none!important}.slogo img{transition:opacity .6s}}
 </style>
 </head>
 <body>
@@ -107,7 +107,7 @@ body.out .scene{transition:opacity .45s;opacity:0}
   <div class="vig"></div><div class="scan"></div>
   <div class="glyph"></div>
   <div class="core">
-    <img class="logo" id="tLogo" src="logo-hd.png" alt="Choque de Héroes · Nexo de Héroes">
+    <cdh-logo class="logo" id="tLogo" mode="wait"></cdh-logo>
     <button id="press" type="button"><span id="pressTxt">TOCA PARA COMENZAR</span></button>
   </div>
   <div class="corner tl"><div id="ver">Ver. —</div><div id="pid">Jugador: invitado</div></div>
@@ -117,6 +117,7 @@ body.out .scene{transition:opacity .45s;opacity:0}
 <div class="fx" id="fx"></div>
 <button id="skip" type="button" hidden>OMITIR</button>
 
+<script src="cdh-logo.js"></script>
 <script src="actualizar.js"></script>
 <script>
 (function(){
@@ -130,15 +131,13 @@ body.out .scene{transition:opacity .45s;opacity:0}
   var listos=Promise.all([
     probar([DIR+'logo_1.png',DIR+'logo_1.webp','footer-logo.png']),
     probar([DIR+'logo_2.png',DIR+'logo_2.webp','assets/nexotlan/titulo/logo.png']),
-    probar([DIR+'titulo_logo.png',DIR+'titulo_logo.webp','logo-hd.png']),
     probar([DIR+'titulo_fondo.jpg',DIR+'titulo_fondo.webp']),
     probar([DIR+'titulo_heroe.png',DIR+'titulo_heroe.webp'])
   ]).then(function(r){
     if(r[0])$('logo1').src=r[0];
     if(r[1])$('logo2').src=r[1];
-    if(r[2])$('tLogo').src=r[2];
-    if(r[3])$('tBg').style.backgroundImage='url("'+r[3]+'")';
-    if(r[4]){$('tHero').src=r[4];$('tHero').classList.add('ok');}
+    if(r[2])$('tBg').style.backgroundImage='url("'+r[2]+'")';
+    if(r[3]){$('tHero').src=r[3];$('tHero').classList.add('ok');}
     return r;
   });
 
@@ -154,8 +153,17 @@ body.out .scene{transition:opacity .45s;opacity:0}
   var escenas=['sStudio','sLogo1','sLogo2','sTitle'], actual=-1, timers=[], enTitulo=false, saliendo=false;
   function mostrar(i){escenas.forEach(function(id,j){$(id).classList.toggle('on',j===i);});actual=i;}
   function limpiar(){timers.forEach(clearTimeout);timers=[];}
+  // Logo animado: boot completo la primera vez de la sesión; después entra directo en reposo.
+  // "TOCA PARA COMENZAR" aparece cuando el logo termina (o a los 6 s si algo falla).
+  var logo=$('tLogo'),logoListo=false;
+  function marcarListo(){if(logoListo)return;logoListo=true;$('sTitle').classList.add('listo');}
+  logo.addEventListener('cdh-logo:ready',marcarListo);
+  function logoEnBoot(){return !!(logo&&logo.state==='boot');}
   function titulo(){
     limpiar();enTitulo=true;$('skip').hidden=true;mostrar(3);
+    var yaVisto=false;try{yaVisto=sessionStorage.getItem('chh_boot_visto')==='1';}catch(e){}
+    try{logo.setAttribute('mode',yaVisto?'title':'boot');}catch(e){}
+    setTimeout(marcarListo,yaVisto?1200:6000);
     try{sessionStorage.setItem('chh_boot_visto','1');}catch(e){}
     musicaTitulo();
     if(window.GP_CFG)setTimeout(function(){try{if(window.GP&&GP.activo())GP.enfocar($('press'));}catch(e){}},400);
@@ -198,13 +206,14 @@ body.out .scene{transition:opacity .45s;opacity:0}
     setTimeout(function(){document.body.classList.add('out');},dur-500);
     setTimeout(function(){location.href='index.html';},dur);
   }
-  $('sTitle').addEventListener('click',function(){if(enTitulo)comenzar();});
+  // Durante el boot del logo, el primer toque lo salta; el siguiente ya comienza
+  $('sTitle').addEventListener('click',function(){if(!enTitulo)return;if(logoEnBoot()){logo.skip();return;}comenzar();});
   $('press').addEventListener('click',function(e){e.stopPropagation();if(enTitulo)comenzar();});
   // Tocar durante la cortina la salta
   function saltar(){if(!enTitulo&&!bloqueo)titulo();}
   ['sStudio','sLogo1','sLogo2'].forEach(function(id){$(id).addEventListener('click',saltar);});
   $('skip').addEventListener('click',saltar);
-  document.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '||e.key==='Escape'){e.preventDefault();enTitulo?comenzar():saltar();}});
+  document.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '||e.key==='Escape'){e.preventDefault();if(enTitulo&&logoEnBoot()){logo.skip();return;}enTitulo?comenzar():saltar();}});
   window.GP_CFG={principal:function(){return enTitulo?$('press'):$('skip');},inicial:function(){return enTitulo?$('press'):$('skip');},principalTxt:'Comenzar'};
   var gpTxt=function(){try{if(window.GP&&GP.activo())$('pressTxt').innerHTML='PRESIONA <i>A</i>';}catch(e){}};
   window.addEventListener('gamepadconnected',function(){setTimeout(gpTxt,200);});

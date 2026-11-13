@@ -127,147 +127,203 @@
   }
 
   /* ───────────── Sonido sintetizado (Web Audio, sin archivos) ─────────────
+   * Diseño "épico": electricidad estática, roca que cruje y pisotones con sala reverberante.
+   * Todo es ruido filtrado + subgraves saturados (nada de ondas cuadradas ni "beeps").
    * Se apaga desde Ajustes → Sonido → "Sonido del logo" (localStorage chh_logo_sfx = '0').
    * Solo suena si el jugador ya tocó la página (los navegadores bloquean el audio antes).  */
   const SFX = (() => {
-    let ctx = null, out = null, noise = null;
+    let ctx = null, out = null, verb = null, noise = null, shaper = null;
+    const R = (a, b) => a + Math.random() * (b - a);
     const enabled = () => { try { return localStorage.getItem('chh_logo_sfx') !== '0'; } catch (e) { return true; } };
     const activated = () => !navigator.userActivation || navigator.userActivation.hasBeenActive;
 
+    function build(c) {
+      const comp = c.createDynamicsCompressor();
+      comp.threshold.value = -14; comp.knee.value = 10; comp.ratio.value = 6; comp.attack.value = 0.002; comp.release.value = 0.25;
+      out = c.createGain(); out.gain.value = 0.9;
+      out.connect(comp); comp.connect(c.destination);
+      // Ruido blanco base
+      const len = c.sampleRate * 2; noise = c.createBuffer(1, len, c.sampleRate);
+      const d = noise.getChannelData(0); for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      // Sala grande: respuesta al impulso generada (estéreo, cola oscura de ~3 s)
+      const il = Math.floor(c.sampleRate * 3), ir = c.createBuffer(2, il, c.sampleRate);
+      for (let ch = 0; ch < 2; ch++) {
+        const x = ir.getChannelData(ch); let lp = 0;
+        for (let i = 0; i < il; i++) {
+          const k = i / il; lp += (Math.random() * 2 - 1 - lp) * (0.5 - 0.42 * k);   // se oscurece con el tiempo
+          x[i] = lp * Math.pow(1 - k, 2.6) * (i < c.sampleRate * 0.012 ? i / (c.sampleRate * 0.012) : 1);
+        }
+      }
+      verb = c.createConvolver(); verb.buffer = ir;
+      const vg = c.createGain(); vg.gain.value = 0.55; verb.connect(vg); vg.connect(out);
+      // Saturación suave para dar peso a los graves
+      shaper = c.createWaveShaper(); const n = 1024, cv = new Float32Array(n);
+      for (let i = 0; i < n; i++) { const x = i / (n - 1) * 2 - 1; cv[i] = Math.tanh(x * 3.4) / Math.tanh(3.4); }
+      shaper.curve = cv; shaper.oversample = '2x'; shaper.connect(out);
+    }
     function get() {
       if (!enabled() || !activated()) return null;
       if (!ctx) {
         const C = window.AudioContext || window.webkitAudioContext; if (!C) return null;
-        try { ctx = new C(); } catch (e) { return null; }
-        const comp = ctx.createDynamicsCompressor();
-        comp.threshold.value = -16; comp.knee.value = 12; comp.ratio.value = 5; comp.attack.value = 0.003; comp.release.value = 0.2;
-        out = ctx.createGain(); out.gain.value = 0.75;
-        out.connect(comp); comp.connect(ctx.destination);
-        const len = ctx.sampleRate * 2; noise = ctx.createBuffer(1, len, ctx.sampleRate);
-        const d = noise.getChannelData(0); for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+        try { ctx = new C(); build(ctx); } catch (e) { ctx = null; return null; }
       }
       return ctx;
     }
-    // Ejecuta solo si el audio corre de verdad (nunca encola sonidos para que salgan tarde)
+    // Cada secuencia tiene su bus (seco + envío a la sala) para poder cortarla al saltar
     function run(fn) {
       const c = get(); if (!c) return null;
-      const bus = c.createGain(); bus.connect(out);
+      const bus = c.createGain(), send = c.createGain(), heavy = c.createGain();
+      bus.connect(out); bus.connect(send); send.gain.value = 0.32; send.connect(verb);
+      heavy.connect(shaper); heavy.connect(send);
+      bus.heavy = heavy;
       const go = () => { try { fn(c, c.currentTime + 0.02, bus); } catch (e) {} };
       if (c.state === 'running') go();
       else {
         let ok = false;
         c.resume().then(() => { ok = true; go(); }).catch(() => {});
-        setTimeout(() => { if (!ok) bus.disconnect(); }, 250);
+        setTimeout(() => { if (!ok) { bus.disconnect(); heavy.disconnect(); } }, 250);
       }
       return bus;
     }
-    function stop(bus, fade = 0.12) {
+    function stop(bus, fade = 0.15) {
       if (!bus || !ctx) return;
-      try { const t = ctx.currentTime; bus.gain.cancelScheduledValues(t); bus.gain.setValueAtTime(bus.gain.value, t); bus.gain.linearRampToValueAtTime(0, t + fade); } catch (e) {}
-      setTimeout(() => { try { bus.disconnect(); } catch (e) {} }, fade * 1000 + 60);
+      try {
+        const t = ctx.currentTime;
+        [bus, bus.heavy].forEach(g => { if (!g) return; g.gain.cancelScheduledValues(t); g.gain.setValueAtTime(g.gain.value, t); g.gain.linearRampToValueAtTime(0, t + fade); });
+      } catch (e) {}
+      setTimeout(() => { try { bus.disconnect(); bus.heavy && bus.heavy.disconnect(); } catch (e) {} }, fade * 1000 + 80);
     }
 
     // ── Primitivas ──
-    function env(c, g, t, a, peak, dur, curve = 'exp') {
+    function env(g, t, a, peak, dur, curve) {
       g.gain.setValueAtTime(0.0001, t);
       g.gain.linearRampToValueAtTime(peak, t + a);
-      if (curve === 'exp') g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-      else g.gain.linearRampToValueAtTime(0, t + dur);
+      if (curve === 'lin') g.gain.linearRampToValueAtTime(0.0001, t + dur);
+      else g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     }
-    function nz(c, bus, t, dur, o) {
-      const s = c.createBufferSource(); s.buffer = noise; s.loop = true;
-      s.playbackRate.value = o.rate || 1;
-      const f = c.createBiquadFilter(); f.type = o.type || 'bandpass'; f.Q.value = o.q || 1;
+    // Ruido filtrado (opcionalmente con barrido de filtro)
+    function nz(c, dst, t, dur, o) {
+      const s = c.createBufferSource(); s.buffer = noise; s.loop = true; s.playbackRate.value = o.rate || 1;
+      const f = c.createBiquadFilter(); f.type = o.type || 'bandpass'; f.Q.value = o.q || 0.8;
       f.frequency.setValueAtTime(o.f || 1000, t);
-      if (o.f2) f.frequency.exponentialRampToValueAtTime(o.f2, t + dur);
-      const g = c.createGain(); env(c, g, t, o.a || 0.005, o.gain || 0.3, dur, o.curve);
-      s.connect(f); f.connect(g); g.connect(bus);
+      if (o.f2) f.frequency.exponentialRampToValueAtTime(o.f2, t + (o.sweep || dur));
+      const g = c.createGain(); env(g, t, o.a || 0.004, o.gain || 0.3, dur, o.curve);
+      s.connect(f); f.connect(g); g.connect(dst);
       s.start(t, Math.random() * 1.5); s.stop(t + dur + 0.05);
+      return g;
     }
-    function tone(c, bus, t, dur, o) {
-      const s = c.createOscillator(); s.type = o.type || 'sine';
-      s.frequency.setValueAtTime(o.f, t);
-      if (o.f2) s.frequency.exponentialRampToValueAtTime(o.f2, t + (o.glide || dur));
-      if (o.detune) s.detune.value = o.detune;
-      const g = c.createGain(); env(c, g, t, o.a || 0.004, o.gain || 0.3, dur, o.curve);
-      let node = s;
-      if (o.lp) { const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.setValueAtTime(o.lp, t); if (o.lp2) f.frequency.exponentialRampToValueAtTime(o.lp2, t + dur); f.Q.value = o.q || 0.8; s.connect(f); node = f; }
-      node.connect(g); g.connect(bus);
-      s.start(t); s.stop(t + dur + 0.05);
+    function sub(c, dst, t, dur, f1, f2, gain, glide) {
+      const o = c.createOscillator(); o.type = 'sine';
+      o.frequency.setValueAtTime(f1, t); o.frequency.exponentialRampToValueAtTime(f2, t + (glide || dur * 0.6));
+      const g = c.createGain(); env(g, t, 0.002, gain, dur);
+      o.connect(g); g.connect(dst); o.start(t); o.stop(t + dur + 0.05);
     }
-    // Chisporroteo eléctrico: ráfaga de chasquidos cortos
-    function crackle(c, bus, t, dur, density, gain, hp = 2400) {
+
+    // Electricidad estática: chasquidos secos + chisporroteo con amplitud aleatoria
+    function staticz(c, bus, t, dur, gain, density = 60) {
       const n = Math.max(1, Math.round(dur * density));
       for (let i = 0; i < n; i++) {
-        const tt = t + Math.random() * dur, d = 0.004 + Math.random() * 0.018;
-        nz(c, bus, tt, d, { type: 'highpass', f: hp + Math.random() * 3000, q: 0.7, gain: gain * (0.35 + Math.random() * 0.65), a: 0.001 });
+        const tt = t + Math.random() * dur;
+        nz(c, bus, tt, R(0.002, 0.012), { type: 'highpass', f: R(1600, 5000), q: 0.6, gain: gain * R(0.2, 0.85), a: 0.0005 });
       }
-    }
-    function zap(c, bus, t, gain) {
-      tone(c, bus, t, 0.22, { type: 'sawtooth', f: 2400, f2: 90, glide: 0.2, gain: gain * 0.22, lp: 5000, lp2: 600 });
-      tone(c, bus, t, 0.16, { type: 'square', f: 1300, f2: 160, gain: gain * 0.08, detune: 25 });
-      nz(c, bus, t, 0.2, { type: 'bandpass', f: 4000, f2: 900, q: 2, gain: gain * 0.35 });
-      crackle(c, bus, t, 0.28, 70, gain * 0.28);
-    }
-    function boom(c, bus, t, gain) {
-      tone(c, bus, t, 1.1, { f: 120, f2: 32, glide: 0.9, gain: gain * 0.9, a: 0.003 });
-      tone(c, bus, t, 0.5, { type: 'triangle', f: 240, f2: 60, glide: 0.4, gain: gain * 0.35 });
-      nz(c, bus, t, 1.4, { type: 'lowpass', f: 2400, f2: 90, q: 0.6, gain: gain * 0.75, a: 0.002 });
-      nz(c, bus, t, 0.35, { type: 'bandpass', f: 6000, f2: 1500, q: 0.9, gain: gain * 0.4 });
-      crackle(c, bus, t + 0.05, 0.9, 55, gain * 0.25);
-    }
-    function impact(c, bus, t, gain, pitch = 1) {
-      tone(c, bus, t, 0.42, { f: 170 * pitch, f2: 42, glide: 0.32, gain: gain * 0.85, a: 0.002 });
-      nz(c, bus, t, 0.16, { type: 'bandpass', f: 1400 * pitch, f2: 300, q: 1.2, gain: gain * 0.6, a: 0.001 });
-      [620, 933, 1247].forEach((f, i) => tone(c, bus, t + 0.005, 0.5 - i * 0.1, { f: f * pitch, gain: gain * (0.07 - i * 0.015), a: 0.002 }));
-      zap(c, bus, t + 0.02, gain * 0.45);
-    }
-    function charge(c, bus, t, dur) {
-      [0, 7].forEach(dt => tone(c, bus, t, dur, { type: 'sawtooth', f: 55, f2: 520, glide: dur, gain: 0.12, a: dur * 0.85, curve: 'lin', lp: 260, lp2: 4200, q: 4, detune: dt }));
-      tone(c, bus, t, dur, { f: 110, f2: 880, glide: dur, gain: 0.1, a: dur * 0.9, curve: 'lin' });
-      nz(c, bus, t, dur, { type: 'bandpass', f: 500, f2: 5000, q: 3, gain: 0.12, a: dur * 0.9, curve: 'lin' });
-      for (let i = 0; i < 6; i++) { const k = i / 6; crackle(c, bus, t + k * dur, dur / 6, 10 + 90 * k * k, 0.12 + 0.2 * k); }
-    }
-    function neon(c, bus, t, pattern, dur) {
-      const s = c.createOscillator(), s2 = c.createOscillator();
-      s.type = 'sawtooth'; s.frequency.value = 100; s2.type = 'square'; s2.frequency.value = 200;
-      const f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1100; f.Q.value = 2.5;
+      // siseo que "tiembla" (ganancia cambiando cada pocos ms)
+      const s = c.createBufferSource(); s.buffer = noise; s.loop = true;
+      const hp = c.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 4200;
+      const pk = c.createBiquadFilter(); pk.type = 'peaking'; pk.frequency.value = 7500; pk.gain.value = 6;
       const g = c.createGain(); g.gain.setValueAtTime(0, t);
-      const step = dur / (pattern.length - 1);
-      pattern.forEach((v, i) => {
-        g.gain.setValueAtTime(v * 0.16, t + i * step);
-        if (v > 0.5) crackle(c, bus, t + i * step, 0.03, 300, 0.12);
-      });
-      g.gain.setValueAtTime(0.16, t + dur); g.gain.linearRampToValueAtTime(0.035, t + dur + 0.3); g.gain.linearRampToValueAtTime(0, t + dur + 1.4);
-      s.connect(f); s2.connect(f); f.connect(g); g.connect(bus);
-      s.start(t); s2.start(t); s.stop(t + dur + 1.5); s2.stop(t + dur + 1.5);
+      for (let tt = t; tt < t + dur; tt += R(0.006, 0.03)) g.gain.setValueAtTime(Math.random() < 0.55 ? gain * R(0.05, 0.4) : 0, tt);
+      g.gain.setValueAtTime(0, t + dur);
+      s.connect(hp); hp.connect(pk); pk.connect(g); g.connect(bus);
+      s.start(t, Math.random()); s.stop(t + dur + 0.05);
     }
-    function shimmer(c, bus, t, dur, gain = 1) {
-      const notes = [1568, 2093, 2637, 3136, 4186, 3520];
-      notes.forEach((f, i) => tone(c, bus, t + i * dur / 9, 0.5, { f, gain: gain * 0.05, a: 0.004 }));
-      nz(c, bus, t, dur, { type: 'bandpass', f: 2500, f2: 10000, q: 4, gain: gain * 0.07, a: dur * 0.4, curve: 'lin' });
+    // Chasquido de arco eléctrico (descarga): golpe brillante + pequeño cuerpo grave
+    function snap(c, bus, t, gain) {
+      nz(c, bus, t, 0.05, { type: 'highpass', f: 1200, q: 0.5, gain: gain * 0.9, a: 0.0005 });
+      nz(c, bus, t, 0.22, { type: 'bandpass', f: 5200, f2: 1800, q: 1.4, gain: gain * 0.35, a: 0.001 });
+      sub(c, bus.heavy, t, 0.12, 180, 70, gain * 0.35);
+      staticz(c, bus, t + 0.01, 0.35, gain * 0.5, 90);
+    }
+    // Roca que cruje: granos de ruido con tono rocoso, densos al principio y luego escombros
+    function rocks(c, bus, t, dur, gain, bright = 1) {
+      const n = Math.round(dur * 140);
+      for (let i = 0; i < n; i++) {
+        const k = Math.pow(Math.random(), 2.2), tt = t + k * dur;   // se concentran al inicio
+        const lvl = gain * (1 - k * 0.85) * R(0.3, 1);
+        nz(c, bus, tt, R(0.006, 0.045), { type: 'bandpass', f: R(220, 1900) * bright, q: R(1.5, 5), gain: lvl, a: 0.0008 });
+      }
+      // grano grueso (fractura)
+      nz(c, bus, t, 0.35, { type: 'lowpass', f: 1400 * bright, f2: 300, q: 1.2, gain: gain * 0.55, a: 0.002 });
+    }
+    // Pisotón: subgrave saturado + golpe de cuerpo + roca + cola de sala
+    function stomp(c, bus, t, gain, size = 1) {
+      sub(c, bus.heavy, t, 0.9 * size, 62 / Math.sqrt(size), 30, gain * 0.95, 0.5 * size);
+      sub(c, bus.heavy, t, 0.09, 150, 55, gain * 0.6);                       // ataque (pegada)
+      nz(c, bus, t, 1.1 * size, { type: 'lowpass', f: 900, f2: 90, q: 0.7, gain: gain * 0.7, a: 0.002 });
+      nz(c, bus, t, 0.08, { type: 'bandpass', f: 2600, q: 0.7, gain: gain * 0.35, a: 0.0005 });   // transitorio
+      nz(c, bus.heavy, t, 0.3 * size, { type: 'bandpass', f: 240, f2: 120, q: 1.3, gain: gain * 0.75, a: 0.002 });   // pecho del golpe (se oye en bocinas de celular)
+      rocks(c, bus, t + 0.008, 0.55 * size, gain * 0.45);
+      rocks(c, bus, t + 0.18, 0.9 * size, gain * 0.1, 1.6);                  // escombros que caen
+    }
+    // Retumbo largo (tierra temblando)
+    function rumble(c, bus, t, dur, gain) {
+      const g = nz(c, bus.heavy, t, dur, { type: 'lowpass', f: 140, f2: 55, q: 1, gain: gain, a: dur * 0.15 });
+      return g;
+    }
+    // Carga de energía: retumbo creciente + soplo que se abre + estática cada vez más densa
+    function charge(c, bus, t, dur) {
+      nz(c, bus.heavy, t, dur, { type: 'lowpass', f: 70, f2: 260, q: 2, gain: 0.5, a: dur * 0.95, curve: 'lin' });
+      nz(c, bus, t, dur, { type: 'bandpass', f: 250, f2: 3800, q: 0.9, gain: 0.32, a: dur * 0.95, curve: 'lin' });
+      nz(c, bus, t + dur * 0.4, dur * 0.6, { type: 'highpass', f: 2000, f2: 9000, q: 0.7, gain: 0.12, a: dur * 0.55, curve: 'lin' });
+      for (let i = 0; i < 8; i++) { const k = i / 8; staticz(c, bus, t + k * dur, dur / 8, 0.12 + 0.35 * k * k, 8 + 110 * k * k); }
+    }
+    // Encendido del neón: arcos eléctricos en cada parpadeo + zumbido de transformador grave
+    function neon(c, bus, t, pattern, dur) {
+      const step = dur / (pattern.length - 1);
+      pattern.forEach((v, i) => { if (v > 0.5) { snap(c, bus, t + i * step, 0.28); } });
+      const hum = c.createGain(); hum.gain.setValueAtTime(0, t);
+      const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 420; lp.Q.value = 0.7;
+      [60, 120, 180, 240].forEach((f, i) => {
+        const o = c.createOscillator(); o.frequency.value = f; const g = c.createGain(); g.gain.value = [0.5, 0.35, 0.2, 0.1][i];
+        o.connect(g); g.connect(lp); o.start(t); o.stop(t + dur + 1.8);
+      });
+      pattern.forEach((v, i) => hum.gain.setValueAtTime(v * 0.09, t + i * step));
+      hum.gain.setValueAtTime(0.09, t + dur); hum.gain.linearRampToValueAtTime(0.02, t + dur + 0.5); hum.gain.linearRampToValueAtTime(0, t + dur + 1.7);
+      lp.connect(hum); hum.connect(bus);
+    }
+    // Barrido de energía (para el brillo): soplo resonante que sube, sin notas
+    function sweep(c, bus, t, dur, gain = 1) {
+      nz(c, bus, t, dur, { type: 'bandpass', f: 900, f2: 7500, q: 5, gain: gain * 0.16, a: dur * 0.45, curve: 'lin' });
+      nz(c, bus, t, dur * 0.8, { type: 'highpass', f: 6000, f2: 11000, q: 0.5, gain: gain * 0.05, a: dur * 0.3, curve: 'lin' });
+      staticz(c, bus, t + dur * 0.3, dur * 0.5, gain * 0.12, 40);
     }
 
     return {
       boot() {
         return run((c, t, bus) => {
           charge(c, bus, t, 1.15);
-          [0.35, 0.62, 0.82, 0.98].forEach((d, i) => zap(c, bus, t + d, 0.25 + i * 0.08));
-          boom(c, bus, t + 1.15, 1);
-          impact(c, bus, t + 2.08, 0.95, 1);
-          impact(c, bus, t + 2.48, 0.6, 1.35);
-          impact(c, bus, t + 2.83, 1.1, 0.82);
-          impact(c, bus, t + 3.5, 0.3, 2.1);                 // aterriza el badge de Codex
+          [0.35, 0.62, 0.82, 0.98].forEach((d, i) => snap(c, bus, t + d, 0.2 + i * 0.07));
+          // 1.15 · explota la energía y aparece la roca
+          snap(c, bus, t + 1.13, 0.8);
+          stomp(c, bus, t + 1.15, 1.0, 1.5);
+          rumble(c, bus, t + 1.15, 2.4, 0.35);
+          staticz(c, bus, t + 1.2, 1.0, 0.3, 70);
+          // las palabras golpean
+          stomp(c, bus, t + 2.08, 0.85, 1.1); snap(c, bus, t + 2.08, 0.35);
+          stomp(c, bus, t + 2.48, 0.55, 0.8); snap(c, bus, t + 2.48, 0.25);
+          stomp(c, bus, t + 2.83, 1.0, 1.35); snap(c, bus, t + 2.83, 0.4);
+          // aterriza el badge de Codex
+          rocks(c, bus, t + 3.5, 0.35, 0.22, 1.3); sub(c, bus.heavy, t + 3.5, 0.18, 110, 50, 0.35);
           neon(c, bus, t + 3.35, [0, 1, 0.1, 0.9, 0, 0, 1, 0.35, 1, 1], 0.9);
-          shimmer(c, bus, t + 3.9, 1.1);
+          sweep(c, bus, t + 3.9, 1.1);
         });
       },
       burst() {
         return run((c, t, bus) => {
-          zap(c, bus, t, 0.9);
-          boom(c, bus, t + 0.02, 0.8);
-          [0, 0.09, 0.18].forEach((d, i) => impact(c, bus, t + d, 0.28, 1.3 + i * 0.15));
-          shimmer(c, bus, t + 0.25, 0.9, 0.9);
+          snap(c, bus, t, 0.85);
+          stomp(c, bus, t + 0.015, 0.95, 1.3);
+          rumble(c, bus, t, 1.4, 0.3);
+          staticz(c, bus, t + 0.05, 0.9, 0.3, 80);
+          sweep(c, bus, t + 0.25, 0.9, 0.9);
         });
       },
       stop

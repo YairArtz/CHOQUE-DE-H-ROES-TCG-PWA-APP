@@ -295,7 +295,7 @@
     let el = h; while (el && !clicable(el)) el = el.parentElement;
     if (el) { tocar(el); foco = el; }
   }
-  const RX_ATRAS = /^\s*(✕|×|x(?=\s|$)|←|◀|cancelar|cerrar|atr[aá]s|volver|no\b|salir de|regresar)/i;   // 'x' sola (no nombres que empiezan con X, como Xolo)
+  const RX_ATRAS = /^\s*(✕|×|x(?=\s|$)|←|◀|‹|cancelar|cerrar|atr[aá]s|volver|no\b|salir de|regresar)/i;   // 'x' sola (no nombres que empiezan con X, como Xolo)
   function atras() {
     if (OSK.abierto()) { OSK.borrar(); return; }
     if (SELP.abierto()) { SELP.cerrar(); return; }
@@ -339,25 +339,40 @@
     const horiz = s.scrollWidth > s.clientWidth + 2 && !(s.scrollHeight > s.clientHeight + 2);
     if (horiz) s.scrollBy({ left: dir * 160, behavior: 'smooth' }); else s.scrollBy({ top: dir * 120, behavior: 'smooth' });
   }
+  // v264 · Vibración con prioridad: un golpe suave ya no corta a uno fuerte que sigue sonando
+  //   (antes cada llamada reemplazaba a la anterior y su "apagado" de seguridad cortaba los impactos largos).
+  //   · Toques suaves (< .35) solo usan el motor ligero: se sienten como un clic.
+  //   · Golpes fuertes usan los dos motores; el pesado lleva la intensidad.
+  let _vbFin = 0, _vbM = 0, _vbStop = 0;
   function vibrar(ms, f) {
-    // Vibra en todos los controles conectados que lo soporten (no solo el primero de la lista)
     try {
       const pads = [...(navigator.getGamepads ? navigator.getGamepads() : [])].filter(g => g && g.vibrationActuator);
       if (!pads.length) return false;
-      const d = Math.max(20, ms || 120), m = Math.max(.15, Math.min(1, f || .6));
+      const d = Math.round(Math.max(20, Math.min(2000, ms || 120))), m = Math.max(.12, Math.min(1, f || .6)), ahora = performance.now();
+      // Si sigue sonando uno más fuerte y este terminaría antes, no lo interrumpe
+      if (ahora < _vbFin && m < _vbM - .05) {
+        // …y si dura más, su resto suena cuando termine el fuerte
+        const resto = ahora + d - _vbFin;
+        if (resto > 40) setTimeout(() => vibrar(resto, m), _vbFin - ahora);
+        return true;
+      }
+      const fuerte = m < .35 ? 0 : m, ligero = Math.min(1, m < .35 ? m + .15 : m * .75 + .2);
       pads.forEach(g => {
         const v = g.vibrationActuator;
-        if (v.playEffect) v.playEffect(v.effects && !v.effects.includes('dual-rumble') && v.effects.includes('trigger-rumble') ? 'trigger-rumble' : 'dual-rumble',
-          { startDelay: 0, duration: d, strongMagnitude: m, weakMagnitude: Math.min(1, m + .1) }).catch(() => {});
+        const tipo = v.effects && !v.effects.includes('dual-rumble') && v.effects.includes('trigger-rumble') ? 'trigger-rumble' : 'dual-rumble';
+        if (v.playEffect) v.playEffect(tipo, { startDelay: 0, duration: d, strongMagnitude: fuerte, weakMagnitude: ligero,
+            leftTrigger: tipo === 'trigger-rumble' ? m * .6 : undefined, rightTrigger: tipo === 'trigger-rumble' ? m * .6 : undefined }).catch(() => {});
         else if (v.pulse) v.pulse(m, d).catch(() => {});   // navegadores con la API anterior
       });
-      // Seguro: apaga el motor al terminar (algunos controles se quedan vibrando si la página cambia)
-      clearTimeout(vibrar._t); vibrar._t = setTimeout(parar, d + 150);
+      _vbM = m; _vbFin = ahora + d;
+      // Seguro: apaga el motor cuando termina el ÚLTIMO efecto (algunos controles se quedan vibrando si la página cambia)
+      clearTimeout(_vbStop); _vbStop = setTimeout(() => { if (performance.now() >= _vbFin - 5) { _vbFin = 0; _vbM = 0; parar(); } }, d + 150);
       return true;
     } catch (e) { return false; }
   }
   // Detiene la vibración de todos los controles
   function parar() {
+    _vbFin = 0; _vbM = 0;
     try {
       [...navigator.getGamepads()].filter(Boolean).forEach(g => {
         const v = g.vibrationActuator; if (!v) return;

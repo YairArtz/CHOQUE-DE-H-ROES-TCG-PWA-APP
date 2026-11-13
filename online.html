@@ -9920,7 +9920,7 @@ async function fxChoque(ea,ed,fA,fD,t0){
   fxDiv('fx-flash',b.x,b.y,b.h*1.5); fxDiv('fx-onda',b.x,b.y,b.h*1.1);
   if(f>=4) fxChispas(b.x,b.y,f*3,{v:f>=8?1.3:1});
   fxSacudir(f>=8?2:1);
-  fxVibrar(f>=8?[40,30,60]:[35]);
+  rumbleImpacto(f);   // v264 · el control vibra justo en el impacto, más fuerte con más FUERZA
 }
 // Daño a corazones: número flotante, destello y sacudida
 {const _h=hurt;hurt=function(o,n,why){const r=_h.apply(this,arguments);
@@ -10235,6 +10235,9 @@ function rumble(ms,f){if(!AJ.vib)return;try{if(window.GP&&GP.vibrar)GP.vibrar(ms
   // v236 · el celular también vibra en estos momentos (antes solo lo hacía el control)
   try{if(!(window.GP&&GP.activo&&GP.activo())&&f>=.4)vibraCel(Math.round(Math.min(400,ms*(.5+f*.5))));}catch(e){}}   // v82 · vibra aunque el control no tenga el foco (si tocaste la pantalla)
 function rumbleSeq(L){L.forEach(([t,ms,f])=>setTimeout(()=>rumble(ms,f),t));}
+// v264 · Impacto de un Choque entre personajes: duración e intensidad según la FUERZA mayor (con eco en los golpes de 8+)
+function rumbleImpacto(f){f=+f||0;const m=Math.min(1,.5+f*.05),ms=f>=10?320:f>=8?260:f>=5?190:140;
+  if(f>=8)rumbleSeq([[0,ms,m],[ms+50,140,Math.max(.45,m-.3)]]);else rumble(ms,m);}
 function vibraCel(p){if(!AJ.vib||!navigator.vibrate)return;try{navigator.vibrate(p);}catch(e){}}
 try{const _gpH=hurt;hurt=function(o,n,why){const r=_gpH.apply(this,arguments);
   try{if(r>0&&o==='player')rumble(Math.min(600,200+80*r),Math.min(1,.6+.1*r));

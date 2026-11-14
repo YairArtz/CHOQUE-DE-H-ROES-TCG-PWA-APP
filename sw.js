@@ -61,7 +61,7 @@
 //  v8:   shell cache-first + revalidación, JSON red-primero, fallbacks por tipo.
 // ================================================================
 try { importScripts('./config.js'); } catch (e) {}   // direcciones de los servidores (config.js)
-const CACHE_NAME    = 'chh-tcg-v268';
+const CACHE_NAME    = 'chh-tcg-v269';
 const CACHE_DYNAMIC = 'chh-paginas-v1';    // estable: páginas/JSON/JS visitados (NO subir; lo precargado se renueva solo)
 const CACHE_IMG     = 'chh-img-v1';      // estable: imágenes, fuentes y PDFs. Subir SOLO si reemplazas imágenes con el mismo nombre
 const CACHE_AUDIO   = 'chh-audio-v1';    // estable: pistas de bgm.js. Subir SOLO si reemplazas un .mp3 con el mismo nombre
@@ -89,6 +89,8 @@ const CACHE_CORE = [
   './logo-hd.png', './footer-logo.png',
   './cdh-logo.js', './assets/logo/rock.webp', './assets/logo/rock_empty.webp', './assets/logo/elec.webp', './assets/logo/w_choque.webp',
   './assets/logo/w_de.webp', './assets/logo/w_heroes.webp', './assets/logo/badge.webp', './assets/logo/plate.webp', './assets/logo/boot.mp3',
+  './nexotlan-logo.js', './assets/logo/nx0.webp', './assets/logo/nx1.webp', './assets/logo/nx2.webp', './assets/logo/nx3.webp',
+  './assets/logo/nx4.webp', './assets/logo/nx5.webp', './assets/logo/nx6.webp', './assets/logo/nx7.webp',
   './ranking.html', './coleccion.html', './settings.js', './nexo-ui.js', './config.js', './pantalla.js', './nucleo.js', './compras.js', './hub.js', './misiones.html', './bgm.js', './manual.js',
   './noticias.json', './comics.html', './lector.html', './comics_config.json'
 ];

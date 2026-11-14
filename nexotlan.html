@@ -911,7 +911,12 @@ body.nx-sismo2{animation:nxSismo2 .09s linear infinite}
 @keyframes fnFlota{50%{transform:translateY(-8px)}}
 @keyframes fnLatido{50%{transform:scale(1.05)}}
 @media (prefers-reduced-motion:reduce){body.nx-sismo,body.nx-sismo2,#nxTrans .tr-a{animation:none}}
+/* Logo animado del Modo Aventura (nexotlan-logo.js) · se apaga con [config] logo_animado = no */
+.t-logo-anim{display:block;position:relative;z-index:1;width:min(760px,calc(88 * var(--uw)),calc(34 * var(--uh) * 4.33))}
+:root.q900:not(.movil) .t-logo-anim{width:min(900px,calc(90 * var(--uw)),calc(44 * var(--uh) * 4.33))}
+:root.h520 .t-logo-anim{width:min(760px,calc(88 * var(--uw)),calc(26 * var(--uh) * 4.33))}
 </style>
+<script src="nexotlan-logo.js" defer></script>
 </head>
 <body>
 <div id="stage">
@@ -920,6 +925,7 @@ body.nx-sismo2{animation:nxSismo2 .09s linear infinite}
   <a class="esq" href="index.html">← MENÚ</a>
   <div class="t-kicker">Choque de Héroes · Modo Aventura</div>
   <img class="t-logo" id="tLogo" alt="" hidden>
+  <nexotlan-logo class="t-logo-anim" id="tLogoAnim" mode="wait" hidden></nexotlan-logo>
   <div class="t-title" id="tTitulo">NEXOTLAN</div>
   <div class="t-sub" id="tSub">La ciudad entre dimensiones</div>
   <div class="t-save" id="tSave" hidden></div>
@@ -982,7 +988,8 @@ window.nxTip = function () {
   var q=function(u){return 'url("'+String(u).replace(/"/g,'%22')+'")';};
   var t=document.getElementById('sTitulo');
   if(c.fondo){t.classList.add('con-fondo');t.style.backgroundImage='linear-gradient(rgba(5,10,28,.25),rgba(5,10,28,.78)),'+q(c.fondo);}
-  if(c.logo){var l=document.getElementById('tLogo');l.src=c.logo;l.hidden=false;document.getElementById('tTitulo').hidden=true;}
+  if(c.logoAnim!==false&&window.customElements){document.getElementById('tLogoAnim').hidden=false;document.getElementById('tTitulo').hidden=true;}
+  else if(c.logo){var l=document.getElementById('tLogo');l.src=c.logo;l.hidden=false;document.getElementById('tTitulo').hidden=true;}
   if(c.titulo){document.getElementById('tTitulo').textContent=c.titulo;}
   var g=document.getElementById('carga');
   if(c.carga)g.style.backgroundImage=q(c.carga);
@@ -995,6 +1002,22 @@ window.nxTip = function () {
     if(pa&&pa.x&&Date.now()-pa.ts<20000){document.getElementById('cgTT').textContent=pa.tt||'Consejo';document.getElementById('cgX').textContent=pa.x;window.__tipUlt=pa.x;
       window.__cargaMin=Math.max(pa.fin||0,Date.now()+1500);var bb=document.getElementById('cgBar');bb.style.transitionDuration='0s';bb.style.width='0';void bb.offsetWidth;bb.style.transitionDuration=(window.__cargaMin-Date.now())+'ms';bb.style.width='100%';}}catch(e){}
   window.__cargaT=setTimeout(function(){g.classList.add('fuera');setTimeout(function(){g.hidden=true;},500);},15000);   // seguro
+})();
+</script>
+<script>
+// Logo animado de la portada: boot épico la primera vez; al regresar a la portada, entra y hace el estallido
+(function(){
+  var A=document.getElementById('tLogoAnim'),t=document.getElementById('sTitulo'),visto=false,on=false;
+  function go(){
+    if(!A||A.hidden)return;
+    var g=document.getElementById('carga');
+    if(g&&!g.hidden&&!g.classList.contains('fuera')){clearTimeout(go._w);go._w=setTimeout(go,150);return;}   // espera a que se quite la pantalla de carga
+    A.setAttribute('mode',visto?'title':'boot');
+    if(visto)setTimeout(function(){if(A.burst&&t.classList.contains('on'))A.burst();},800);
+    visto=true;
+  }
+  new MutationObserver(function(){var o=t.classList.contains('on');if(o&&!on)go();if(!o&&on&&A)A.setAttribute('mode','wait');on=o;}).observe(t,{attributes:true,attributeFilter:['class']});
+  on=t.classList.contains('on');if(on)setTimeout(go,0);
 })();
 </script>
 
@@ -3244,7 +3267,12 @@ async function portadaPersonal() {
   const t = $('sTitulo');
   if (fondo) { t.classList.add('con-fondo'); t.style.backgroundImage = `linear-gradient(rgba(5,10,28,.25),rgba(5,10,28,.78)),url("${fondo}")`; }
   if (!/^(no|0|false|estatica|estática)$/i.test(String(CFG.portada_animada || '').trim())) try { portalPortada(fondo); } catch (e) {}
-  if (logo) { $('tLogo').src = logo; $('tLogo').alt = CFG.titulo || 'NEXOTLAN'; $('tLogo').hidden = false; $('tTitulo').hidden = true; }
+  // Logo animado (Choque de Héroes + NEXOTLAN). [config] logo_animado = no → usa la imagen de logo / el texto
+  const logoAnim = !/^(no|0|false|estatica|estática)$/i.test(String(CFG.logo_animado || '').trim()) && !!window.customElements;
+  $('tLogoAnim').hidden = !logoAnim;
+  if (logoAnim) { $('tLogo').hidden = true; $('tTitulo').hidden = true; }
+  else if (logo) { $('tLogo').src = logo; $('tLogo').alt = CFG.titulo || 'NEXOTLAN'; $('tLogo').hidden = false; $('tTitulo').hidden = true; }
+  else { $('tLogo').hidden = true; $('tTitulo').hidden = false; }
   // v195 · Pantalla de carga: [config] fondo_carga (si no, la portada) · textos_carga = frases al azar separadas por |
   const carga = await primeraImg(candidatos(CFG.fondo_carga, 'titulo'));
   const textos = String(CFG.textos_carga || '').split('|').map(x => x.trim()).filter(Boolean);
@@ -3254,7 +3282,7 @@ async function portadaPersonal() {
   textos.filter(x => /^consejo\s*:/i.test(x)).forEach(x => tips.push(['Consejo', x.replace(/^consejo\s*:\s*/i, '')]));
   const vistos = new Set(); tips = tips.filter(t => t[1] && !vistos.has(t[1]) && vistos.add(t[1]));
   const sprite = await primeraImg(candidatos(CFG.carga_sprite, 'titulo'));
-  try { localStorage.setItem('chh_nx_portada', JSON.stringify({ fondo: fondo || '', logo: logo || '', carga: carga || '', titulo: CFG.titulo || '', textos, tips, sprite: sprite || '' })); } catch (e) {}
+  try { localStorage.setItem('chh_nx_portada', JSON.stringify({ logoAnim, fondo: fondo || '', logo: logo || '', carga: carga || '', titulo: CFG.titulo || '', textos, tips, sprite: sprite || '' })); } catch (e) {}
   const g = $('carga'); if (g && !g.hidden) { if (carga) g.style.backgroundImage = `url("${carga}")`; if (logo) { $('cgLogo').src = logo; $('cgLogo').hidden = false; $('cgT').hidden = true; } }
 }
 function resumenSlot(x) {

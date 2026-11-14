@@ -328,6 +328,8 @@
 
     return {
       preload,
+      // Secuencias propias de otros logos (p. ej. <nexotlan-logo>) con las mismas primitivas y la misma sala
+      custom(fn) { return run((c, t, bus) => fn({ nz, sub, staticz, snap, rocks, stomp, rumble, charge, sweep }, c, t, bus)); },
       boot() {
         if (bootURL && !bootErr) return bootFile(() => this.bootSynth());
         return this.bootSynth();
@@ -990,5 +992,6 @@
     }
   }
 
+  CdhLogo.SFX = SFX;   // reutilizable por otros componentes: customElements.get('cdh-logo').SFX
   customElements.define('cdh-logo', CdhLogo);
 })();

@@ -305,10 +305,23 @@ html.heroica .h1{background:linear-gradient(90deg,#fff2c4,#ffb300,#fff6d8,#ffb30
 #vsBg::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(3,5,10,.92) 0%,rgba(3,5,10,.55) 45%,rgba(3,5,10,.15) 70%,rgba(3,5,10,.35) 100%)}
 .vs-rays{position:absolute;inset:-30%;opacity:.18;background:repeating-conic-gradient(from 0deg at 72% 50%,var(--acc) 0deg 5deg,transparent 5deg 16deg);animation:spin 40s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+/* ── v272 · Cinemáticas: entrada con BARRIDO de líneas (como pantalla vieja) + RESPIRACIÓN suave del retrato ──
+   El barrido usa una máscara de franjas horizontales que se van llenando; la respiración usa las propiedades
+   independientes scale/translate, así no choca con los transform que ya tiene cada retrato. */
+@property --rb{syntax:'<length>';inherits:false;initial-value:7px}
+@keyframes vnBarrido{
+  0%{--rb:0px;filter:brightness(2.2) saturate(.6);opacity:.2;
+     -webkit-mask-image:repeating-linear-gradient(180deg,#000 0 var(--rb),transparent var(--rb) 7px);mask-image:repeating-linear-gradient(180deg,#000 0 var(--rb),transparent var(--rb) 7px)}
+  35%{opacity:1}
+  70%{filter:brightness(1.25)}
+  97%{--rb:7px;-webkit-mask-image:repeating-linear-gradient(180deg,#000 0 var(--rb),transparent var(--rb) 7px);mask-image:repeating-linear-gradient(180deg,#000 0 var(--rb),transparent var(--rb) 7px)}
+  100%{--rb:7px;filter:none;opacity:1;-webkit-mask-image:none;mask-image:none}}
+@keyframes vnRespira{0%,100%{scale:1 1;translate:0 0}50%{scale:1.005 1.013;translate:0 -.25%}}
+@media (prefers-reduced-motion:reduce){.vn-resp,#vsChar{animation-name:none!important;opacity:1!important}}
 #vsChar{position:absolute;right:max(calc(var(--W)*2/100),8px);bottom:0;height:min(96%,calc(var(--H) * .96));max-width:calc(var(--W)*58/100);object-fit:contain;object-position:bottom right;
-  filter:drop-shadow(0 0 30px rgba(0,0,0,.8)) drop-shadow(0 0 22px var(--acc));animation:charIn .7s cubic-bezier(.2,.9,.25,1.1) both}
+  filter:drop-shadow(0 0 30px rgba(0,0,0,.8)) drop-shadow(0 0 22px var(--acc));animation:charIn .7s cubic-bezier(.2,.9,.25,1.1) both,vnBarrido .65s ease-out both,vnRespira 4.4s .7s ease-in-out infinite;transform-origin:50% 100%}
 #vsChar.card{height:auto;width:min(calc(var(--W)*36/100),360px);bottom:50%;transform:translateY(50%) rotate(3deg);border-radius:14px;
-  box-shadow:0 0 0 2px var(--acc),0 0 40px var(--acc);animation:charInC .7s cubic-bezier(.2,.9,.25,1.1) both}
+  box-shadow:0 0 0 2px var(--acc),0 0 40px var(--acc);animation:charInC .7s cubic-bezier(.2,.9,.25,1.1) both,vnBarrido .65s ease-out both,vnRespira 4.4s .7s ease-in-out infinite;transform-origin:50% 50%}
 @keyframes charIn{from{opacity:0;transform:translateX(18%)}to{opacity:1;transform:none}}
 @keyframes charInC{from{opacity:0;transform:translate(18%,50%) rotate(8deg)}to{opacity:1;transform:translateY(50%) rotate(3deg)}}
 .vs-l{position:absolute;left:max(calc(var(--W)*3/100),12px);top:50%;transform:translateY(-50%);width:min(calc(var(--W)*52/100),560px);display:flex;flex-direction:column;gap:10px;z-index:2}
@@ -1994,11 +2007,13 @@ function showVS(i,modo,res,opt){
   opt=opt||{};
   const r=RIV[i], g=slot(), N=RIV.length, lv=nivelDe(r,i,N), jefe=i===N-1, acc=r.color||(jefe?'#ff2244':'#f5a623');
   const sec=$('sVS');sec.style.setProperty('--acc',acc);
-  const bg=$('vsBg');bg.style.backgroundImage=r._fondo?'url("'+r._fondo+'")':'radial-gradient(ellipse at 70% 50%,'+acc+'55,transparent 60%),linear-gradient(135deg,#0b0e18,#03050a)';
+  const bg=$('vsBg');bg.style.animation='none';void bg.offsetWidth;bg.style.animation='vnBarrido .5s ease-out both';   // v272 · barrido del fondo en cada pantalla VS
+  bg.style.backgroundImage=r._fondo?'url("'+r._fondo+'")':'radial-gradient(ellipse at 70% 50%,'+acc+'55,transparent 60%),linear-gradient(135deg,#0b0e18,#03050a)';
   const ch=$('vsChar');
   if(r._img){ch.className='';ch.src=r._img;}else{ch.className='card';ch.src=cartaImg(r.carta,true);}
   ch.style.display=ch.src?'':'none';
   ch.style.animation='none';void ch.offsetWidth;ch.style.animation='';
+  if(!ch.complete){ch.style.animationPlayState='paused';ch.onload=ch.onerror=()=>{ch.style.animationPlayState='';};}   // v272 · la entrada espera a que cargue el retrato
   $('vsTag').textContent=modo==='intro'?((opt.replay?'↺ REVANCHA · ':'')+(jefe?'☠ JEFE FINAL':'COMBATE '+(i+1)+' DE '+N)):(res.won?'¡VICTORIA!':(opt.gameover?'GAME OVER':'DERROTA'));
   $('vsTag').className='vs-tag'+(modo!=='intro'?' res-title '+(res.won?'win':'lose'):'');
   if(modo!=='intro'){$('vsTag').style.fontSize='clamp(22px,calc(var(--W)*.04),40px)';$('vsTag').style.letterSpacing='5px';}else{$('vsTag').style.fontSize='';$('vsTag').style.letterSpacing='';}

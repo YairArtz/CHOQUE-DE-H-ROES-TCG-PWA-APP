@@ -536,7 +536,7 @@ async function _checkTorneosBanner() {
   const API = ((window.CHH_CONFIG||{}).torneos||'https://script.google.com/macros/s/AKfycbxQwDgsNe-toSWetc2f-xkveQcywfGwOVQvsOEySgRc2z8YZG09mB20jUjrI9qO1yo9Uw/exec');
   const res = await fetchT(API + '?_t=' + Date.now()); if (!res.ok) return;
   const data = await res.json(); const torneos = data.torneos || []; if (!torneos.length) return;
-  const vistos = JSON.parse(localStorage.getItem('chh_last_torneos') || '[]');
+  const vistos = ((k,d)=>{try{return JSON.parse(localStorage.getItem(k)||d)}catch(e){return JSON.parse(d)}})('chh_last_torneos','[]');
   const nuevos = torneos.filter(t => !vistos.includes(t.storeid + '_' + t.tourname)); if (!nuevos.length) return;
   localStorage.setItem('chh_last_torneos', JSON.stringify(torneos.map(t => t.storeid + '_' + t.tourname)));
   for (const t of nuevos.slice(0, 2)) { const lugar = [t.ciudad, t.estado].filter(Boolean).join(', '); chhNotif('torneo', t.tourname, (t.date || '') + (t.time ? ' · ' + t.time : '') + (lugar ? ' · ' + lugar : ''), './calendario.html'); }

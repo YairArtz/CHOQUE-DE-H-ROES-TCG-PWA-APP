@@ -140,7 +140,8 @@ const TEMA_ANIMS_FULL = {
 
 function loadSettings() {
   const saved = localStorage.getItem('chh_settings');
-  return saved ? { ...DEFAULT_SETTINGS, ...JSON.parse(saved) } : { ...DEFAULT_SETTINGS };
+  // v271 · si el dato se corrompe no se cae ninguna página: se usan los valores por defecto
+  try { return saved ? { ...DEFAULT_SETTINGS, ...JSON.parse(saved) } : { ...DEFAULT_SETTINGS }; } catch (e) { return { ...DEFAULT_SETTINGS }; }
 }
 
 function saveSettings(settings) {

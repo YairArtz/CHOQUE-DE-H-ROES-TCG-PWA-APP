@@ -225,11 +225,6 @@
     .col-stat-val{font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:900;color:var(--accent);display:block;}
     .col-stat-lbl{font-size:.6rem;color:var(--muted);margin-top:1px;}
     /* Modal carta ampliada */
-    .carta-modal{background:var(--card);border:1px solid var(--border);border-radius:12px 12px 0 0;padding:20px 18px 36px;width:100%;max-width:460px;display:flex;flex-direction:column;align-items:center;gap:14px;}
-    .carta-modal-img{width:200px;max-width:80vw;border-radius:8px;display:block;}
-    .carta-modal-nombre{font-family:'Orbitron',sans-serif;font-size:.8rem;font-weight:900;letter-spacing:2px;text-align:center;}
-    .carta-modal-rareza{font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:2px;padding:3px 10px;border-radius:3px;}
-    .carta-modal-qty{color:var(--muted);font-size:.75rem;}
 
     /* ── BARAJAS ── */
     .baraja-item{background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:6px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:border-color .2s;}
@@ -410,7 +405,7 @@
       html:not(.hz-off) .coleccion-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr));}
       /* Ventanas: centradas en lugar de hoja inferior */
       html:not(.hz-off) .modal-overlay{align-items:center;}
-      html:not(.hz-off) .carta-modal,html:not(.hz-off) .avatar-modal,html:not(.hz-off) .badge-detail-modal{border-radius:12px;}
+      html:not(.hz-off) .avatar-modal,html:not(.hz-off) .badge-detail-modal{border-radius:12px;}
       html:not(.hz-off) .avatar-modal{max-width:640px;max-height:82vh;}
       html:not(.hz-off) .avatars-grid{grid-template-columns:repeat(6,1fr);}
     }
@@ -568,17 +563,6 @@
 </div><!-- /container -->
 
 <!-- ════ MODAL AVATARES ════ -->
-
-<!-- Modal carta colección -->
-<div class="modal-overlay" id="carta-col-modal" onclick="cerrarCartaModal()">
-  <div class="carta-modal" onclick="event.stopPropagation()">
-    <img id="carta-col-img" class="carta-modal-img" src="" alt=""/>
-    <div class="carta-modal-nombre" id="carta-col-nombre"></div>
-    <div class="carta-modal-rareza" id="carta-col-rareza"></div>
-    <div class="carta-modal-qty" id="carta-col-qty"></div>
-    <button class="btn-secondary" style="margin-top:4px;width:auto;padding:8px 24px" onclick="cerrarCartaModal()">CERRAR</button>
-  </div>
-</div>
 
 <!-- Modal detalle de badge -->
 <div class="modal-overlay" id="badge-detail-modal" onclick="cerrarBadgeModal()">
@@ -1032,7 +1016,7 @@ function calcularBadgesAuto(historial, totalPts, posGlobal, datosHP) {
   ganados.add('nuevo_jugador');
 
   // — Barajas —
-  const barajas = JSON.parse(localStorage.getItem('chh_decks') || '[]');
+  const barajas = ((k,d)=>{try{return JSON.parse(localStorage.getItem(k)||d)}catch(e){return JSON.parse(d)}})('chh_decks','[]');
   if (barajas.length >= 1)  ganados.add('minimalista');
   if (barajas.length >= 5)  ganados.add('arquitecto');
   if (barajas.length > 10)  ganados.add('coleccionista');
@@ -1179,7 +1163,7 @@ function calcularBadgesAuto(historial, totalPts, posGlobal, datosHP) {
     if (localStorage.getItem('chh_visto_archivo_banlist') === '1') ganados.add('historiador');
 
     // Estratega — guardó baraja Y consultó reglamento
-    const barajasHay = JSON.parse(localStorage.getItem('chh_decks') || '[]').length > 0;
+    const barajasHay = ((k,d)=>{try{return JSON.parse(localStorage.getItem(k)||d)}catch(e){return JSON.parse(d)}})('chh_decks','[]').length > 0;
     const consultoReglamento = localStorage.getItem('chh_consulto_reglamento') === '1';
     if (barajasHay && consultoReglamento) ganados.add('estratega');
 
@@ -1389,7 +1373,7 @@ function _nextLogro() {
 
 function verificarLogrosNuevos(todosGanados) {
   const KEY = `nhBadges_${jugador.id}`;
-  const previos = new Set(JSON.parse(localStorage.getItem(KEY) || '[]'));
+  const previos = new Set(((k,d)=>{try{return JSON.parse(localStorage.getItem(k)||d)}catch(e){return JSON.parse(d)}})(KEY,'[]'));
   const nuevos  = [...todosGanados].filter(id => !previos.has(id));
   // Guardar estado actual
   localStorage.setItem(KEY, JSON.stringify([...todosGanados]));
@@ -1729,7 +1713,7 @@ function mostrarPanelTienda() {
 }
 
 function abrirDirectorTorneo(tourname, inscritos) {
-  const sesion = JSON.parse(localStorage.getItem('nhSesion') || 'null');
+  const sesion = ((k,d)=>{try{return JSON.parse(localStorage.getItem(k)||d)}catch(e){return JSON.parse(d)}})('nhSesion','null');
   const params = new URLSearchParams({
     storeid:   sesion?.id || tienda?.id || '',
     tourname:  tourname || '',
@@ -2686,147 +2670,7 @@ async function generarTarjeta() {
 }
 </script>
 
-<!-- ════ COLECCIÓN ════ -->
-<script>
-// ════════════════════════════════════════════════════════
-//  MI COLECCIÓN — cartas obtenidas de sobres
-// ════════════════════════════════════════════════════════
 
-// ── Cambia esta ruta si tus imágenes viven en otra carpeta ──
-const CARTAS_IMG_BASE_COL = 'cartas/';
-
-const HERO_PESOS_URL_PERFIL = ((window.CHH_CONFIG||{}).heroPesos||'https://script.google.com/macros/s/AKfycbwSrBH7yJiyTlPabzJ_WiXQDWPe7RpATmuTTWAe3uVRy6wuGh15QpuOMzSiZVixJK_S/exec');
-
-const RAREZA_COLOR_COL = {
-  comun:'var(--muted)', poco_comun:'#4fc3f7', rara:'#64c864',
-  foil:'var(--gold)', foil_poco_comun:'#ff7043', secreta:'#e040fb'
-};
-const RAREZA_LABEL_COL = {
-  comun:'COMÚN', poco_comun:'P.COMÚN', rara:'RARA',
-  foil:'FOIL', foil_poco_comun:'FOIL P.C.', secreta:'SECRETA'
-};
-
-let coleccionData = [];
-let coleccionFiltro = 'todas';
-
-async function cargarColeccion() {
-  const cont = document.getElementById('coleccion-container');
-  try {
-    const r = await fetch(`${HERO_PESOS_URL_PERFIL}?action=historial&playerid=${encodeURIComponent(jugador.id)}`);
-    const d = await r.json();
-    if (d.status !== 'ok' || !d.historial?.length) {
-      cont.innerHTML = '<div class="empty-msg">📦 Aún no tienes cartas.<br><small style="opacity:.5;font-size:.75rem">Abre sobres en la Tienda para comenzar.</small></div>';
-      return;
-    }
-    const mapa = {};
-    for (const sobre of d.historial) {
-      for (const c of (Array.isArray(sobre.cartas) ? sobre.cartas : [])) {
-        const key = c.nombre;
-        if (!mapa[key]) mapa[key] = { nombre: c.nombre, rareza: c.rareza || 'comun', imagen: c.imagen || '', qty: 0 };
-        mapa[key].qty++;
-      }
-    }
-    const orden = {secreta:0,foil:1,foil_poco_comun:2,rara:3,poco_comun:4,comun:5};
-    coleccionData = Object.values(mapa).sort((a,b) => (orden[a.rareza]??6)-(orden[b.rareza]??6));
-    coleccionFiltro = 'todas';
-    renderColeccion();
-  } catch(e) {
-    cont.innerHTML = '<div class="empty-msg">⚠️ Error al cargar colección.</div>';
-  }
-}
-
-function renderColeccion() {
-  const cont = document.getElementById('coleccion-container');
-  const filtradas = coleccionFiltro === 'todas' ? coleccionData : coleccionData.filter(c => c.rareza === coleccionFiltro);
-  const totalQty = coleccionData.reduce((s,c)=>s+c.qty,0);
-  const ordenR = ['comun','poco_comun','rara','foil','foil_poco_comun','secreta'];
-  const rarezasPresentes = [...new Set(coleccionData.map(c=>c.rareza))].sort((a,b)=>ordenR.indexOf(a)-ordenR.indexOf(b));
-
-  const statsHTML = `<div class="coleccion-stats">
-    <div class="col-stat"><span class="col-stat-val">${totalQty}</span><div class="col-stat-lbl">CARTAS</div></div>
-    <div class="col-stat"><span class="col-stat-val">${coleccionData.length}</span><div class="col-stat-lbl">ÚNICAS</div></div>
-    <div class="col-stat"><span class="col-stat-val">${rarezasPresentes.length}</span><div class="col-stat-lbl">RAREZAS</div></div>
-  </div>`;
-
-  // Barras de progreso por rareza (usa el total de cartas únicas del catálogo si está disponible)
-  const totalCatalogo = window._totalCartasCatalogo || {};
-  const progresoHTML = rarezasPresentes.length ? `<div class="col-progreso">
-    <div class="col-prog-title">PROGRESO POR RAREZA</div>
-    ${ordenR.filter(r => rarezasPresentes.includes(r)).map(r => {
-      const tengo = coleccionData.filter(c => c.rareza === r).length;
-      const total = totalCatalogo[r] || tengo;
-      const pct = total > 0 ? Math.min(100, Math.round((tengo/total)*100)) : 0;
-      const color = RAREZA_COLOR_COL[r] || 'var(--accent)';
-      const label = RAREZA_LABEL_COL[r] || r;
-      return `<div class="col-prog-row">
-        <div class="col-prog-lbl">${label}</div>
-        <div class="col-prog-bar-wrap"><div class="col-prog-bar" style="width:${pct}%;background:${color};"></div></div>
-        <div class="col-prog-count">${tengo}${total>tengo?'/'+total:''}</div>
-      </div>`;
-    }).join('')}
-  </div>` : '';
-
-  const filtrosHTML = `<div class="coleccion-filtros">
-    <button class="col-filtro ${coleccionFiltro==='todas'?'active':''}" onclick="filtrarColeccion('todas')">TODAS (${coleccionData.length})</button>
-    ${rarezasPresentes.map(r => {
-      const activo = coleccionFiltro === r;
-      const color = RAREZA_COLOR_COL[r] || 'var(--accent)';
-      return `<button class="col-filtro ${activo?'active':''}"
-        style="${activo?`border-color:${color};color:${color};background:rgba(255,255,255,.04)`:''}"
-        onclick="filtrarColeccion('${r}')">${RAREZA_LABEL_COL[r]||r.toUpperCase()} (${coleccionData.filter(c=>c.rareza===r).length})</button>`;
-    }).join('')}
-  </div>`;
-
-  const gridHTML = filtradas.length === 0
-    ? `<div class="empty-msg">Sin cartas en esta rareza.</div>`
-    : `<div class="coleccion-grid">${filtradas.map((c,i) => {
-        const qtyClass = c.qty >= 3 ? 'qty3' : c.qty === 2 ? 'qty2' : 'qty1';
-        const imgSrc = c.imagen
-          ? (c.imagen.startsWith('http') || c.imagen.includes('/') ? c.imagen : CARTAS_IMG_BASE_COL + c.imagen)
-          : '';
-        const imgHTML = imgSrc
-          ? `<img src="${imgSrc}" alt="${c.nombre}" loading="lazy"
-               onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
-             <div class="col-placeholder" style="display:none">${c.nombre}</div>`
-          : `<div class="col-placeholder">${c.nombre}</div>`;
-        return `<div class="col-card ${c.rareza}" onclick="abrirCartaModal(${i})" title="${c.nombre}">
-          ${imgHTML}
-          <span class="col-qty ${qtyClass}">x${c.qty}</span>
-          <div class="col-rarity-bar ${c.rareza}"></div>
-        </div>`;
-      }).join('')}</div>`;
-
-  cont.innerHTML = statsHTML + progresoHTML + filtrosHTML + gridHTML;
-}
-
-function filtrarColeccion(rareza) {
-  coleccionFiltro = rareza;
-  renderColeccion();
-}
-
-function abrirCartaModal(idx) {
-  const filtradas = coleccionFiltro === 'todas' ? coleccionData : coleccionData.filter(c=>c.rareza===coleccionFiltro);
-  const c = filtradas[idx];
-  if (!c) return;
-  const color = RAREZA_COLOR_COL[c.rareza] || 'var(--muted)';
-  const imgSrc = c.imagen
-    ? (c.imagen.startsWith('http') || c.imagen.includes('/') ? c.imagen : CARTAS_IMG_BASE_COL + c.imagen)
-    : '';
-  const img = document.getElementById('carta-col-img');
-  img.src = imgSrc || '';
-  img.style.display = imgSrc ? 'block' : 'none';
-  document.getElementById('carta-col-nombre').textContent = c.nombre;
-  const rarezaEl = document.getElementById('carta-col-rareza');
-  rarezaEl.textContent = RAREZA_LABEL_COL[c.rareza] || c.rareza.toUpperCase();
-  rarezaEl.style.cssText = `background:${color}20;color:${color};border:1px solid ${color}60`;
-  document.getElementById('carta-col-qty').textContent = `${c.qty} copia${c.qty !== 1 ? 's' : ''} en tu colección`;
-  document.getElementById('carta-col-modal').classList.add('active');
-}
-
-function cerrarCartaModal() {
-  document.getElementById('carta-col-modal').classList.remove('active');
-}
-</script>
 
 
 <script>
@@ -2935,7 +2779,7 @@ async function _checkTorneosBanner() {
   const data = await res.json();
   const torneos = data.torneos || [];
   if (!torneos.length) return;
-  const vistos  = JSON.parse(localStorage.getItem('chh_last_torneos') || '[]');
+  const vistos  = ((k,d)=>{try{return JSON.parse(localStorage.getItem(k)||d)}catch(e){return JSON.parse(d)}})('chh_last_torneos','[]');
   const nuevos  = torneos.filter(t => !vistos.includes(t.storeid + '_' + t.tourname));
   if (!nuevos.length) return;
   localStorage.setItem('chh_last_torneos', JSON.stringify(torneos.map(t => t.storeid + '_' + t.tourname)));

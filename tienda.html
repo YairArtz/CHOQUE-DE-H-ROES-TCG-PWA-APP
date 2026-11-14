@@ -1502,22 +1502,6 @@ async function fetchJSON(url, ms = 20000) {
 //  PUNTOS RANKING
 // ════════════════════════════════════════════
 
-// ════════════════════════════════════════════
-//  MÚSICA — Cargar catálogo desde JSON
-// ════════════════════════════════════════════
-async function cargarCatalogoMusica() {
-  try {
-    const res = await fetch('musica_config.json?v=' + Date.now());
-    const cfg = await res.json();
-    CATALOGO.musica = (cfg.pistas || []).map(p => ({
-      id: p.id, nombre: p.titulo, pts: p.pts,
-      slot: cfg.pistas.indexOf(p) + 1,
-      file: p.id + '.mp3', dur: p.duracion
-    }));
-  } catch(e) {
-    console.warn('musica_config.json no disponible');
-  }
-}
 
 
 async function calcularPuntos() {
@@ -2748,10 +2732,6 @@ function getMusicaDesbloqueada() {
   const key = keyMusicaDesbloqueada();
   if (!key) return [];
   try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) { return []; }
-}
-function pistaBloqueada(pista) {
-  if (pista.pts === 0) return false; // gratis
-  return !getMusicaDesbloqueada().includes(pista.id);
 }
 
 function renderMusica() {

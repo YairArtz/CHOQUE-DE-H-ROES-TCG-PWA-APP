@@ -61,7 +61,7 @@
 //  v8:   shell cache-first + revalidación, JSON red-primero, fallbacks por tipo.
 // ================================================================
 try { importScripts('./config.js'); } catch (e) {}   // direcciones de los servidores (config.js)
-const CACHE_NAME    = 'chh-tcg-v270';
+const CACHE_NAME    = 'chh-tcg-v271';
 const CACHE_DYNAMIC = 'chh-paginas-v1';    // estable: páginas/JSON/JS visitados (NO subir; lo precargado se renueva solo)
 const CACHE_IMG     = 'chh-img-v1';      // estable: imágenes, fuentes y PDFs. Subir SOLO si reemplazas imágenes con el mismo nombre
 const CACHE_AUDIO   = 'chh-audio-v1';    // estable: pistas de bgm.js. Subir SOLO si reemplazas un .mp3 con el mismo nombre
@@ -89,7 +89,7 @@ const CACHE_CORE = [
   './logo-hd.png', './footer-logo.png',
   './cdh-logo.js', './assets/logo/rock.webp', './assets/logo/rock_empty.webp', './assets/logo/elec.webp', './assets/logo/w_choque.webp',
   './assets/logo/w_de.webp', './assets/logo/w_heroes.webp', './assets/logo/badge.webp', './assets/logo/plate.webp', './assets/logo/boot.mp3',
-  './temas-ui.js', './nexotlan-logo.js', './assets/logo/nx0.webp', './assets/logo/nx1.webp', './assets/logo/nx2.webp', './assets/logo/nx3.webp',
+  './temas-ui.js', './assets/logo/nav-logo.png', './nexotlan-logo.js', './assets/logo/nx0.webp', './assets/logo/nx1.webp', './assets/logo/nx2.webp', './assets/logo/nx3.webp',
   './assets/logo/nx4.webp', './assets/logo/nx5.webp', './assets/logo/nx6.webp', './assets/logo/nx7.webp',
   './ranking.html', './coleccion.html', './settings.js', './nexo-ui.js', './config.js', './pantalla.js', './nucleo.js', './compras.js', './hub.js', './misiones.html', './bgm.js', './manual.js',
   './noticias.json', './comics.html', './lector.html', './comics_config.json'
@@ -130,6 +130,15 @@ const CACHE_SIM = [
   './img/simulacion/tablero.jpg'
 ];
 
+// v271 · Librerías externas de versión fija (lector de cómics, mapa de tiendas): se guardan para que funcionen sin internet
+const CDN_LIBS = [
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
+  'https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js',
+  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
+  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
+];
+const CDN_HOSTS = /^(cdnjs\.cloudflare\.com|cdn\.jsdelivr\.net|unpkg\.com)$/;
 const NO_CACHE_ORIGINS = ['script.google.com', 'script.googleusercontent.com', 'docs.google.com'];
 
 // v242 · Avisa el avance a las pantallas abiertas (actualizar.js muestra la barra de progreso)
@@ -207,6 +216,9 @@ self.addEventListener('fetch', event => {
   // Fuentes: los .woff2 de gstatic son inmutables → caché-primero; el CSS se revalida
   if (url.hostname.includes('fonts.gstatic.com')) { event.respondWith(cacheFirst(req)); return; }
   if (url.hostname.includes('fonts.googleapis.com')) { event.respondWith(staleWhileRevalidate(req)); return; }
+
+  // Librerías de CDN con versión en la ruta: caché primero (no cambian nunca)
+  if (CDN_HOSTS.test(url.hostname) && /@\d|\/\d+\.\d+(\.\d+)?\//.test(url.pathname)) { event.respondWith(cacheFirst(req)); return; }
 
   if (url.origin !== self.location.origin) return;
 
@@ -475,6 +487,10 @@ async function warmPages() {
   // activar la versión nueva (era lo que dejaba "Buscando la versión nueva…" trabado en la pantalla de actualización)
   const hayNueva = () => !!(self.registration.installing || self.registration.waiting);
   for (let k = 0; k < 15 && !hayNueva(); k++) await timeout(1000);   // deja pasar primero lo que la página actual necesita (red móvil)
+  try {   // v271 · librerías del lector y del mapa (con CORS para que la copia sirva sin conexión)
+    const ci = await caches.open(CACHE_IMG);
+    for (const u of CDN_LIBS) { if (hayNueva()) return; if (await caches.match(u)) continue; const r = await fetchTimeout(new Request(u, { mode: 'cors' }), 30000); if (r && r.ok) await ci.put(u, r); }
+  } catch (e) {}
   const cache = await caches.open(CACHE_DYNAMIC);   // estable: no se re-descarga en cada versión
   for (const url of CACHE_WARM) {
     if (hayNueva()) return;
@@ -533,15 +549,6 @@ async function cartaCacheFirst(req, url) {
   }
   const r = await desdeRed();
   return r || new Response('', { status: 504 });
-}
-
-// Imágenes de assets/: copia descargada por medios.js → si no, la estrategia normal
-async function medioPrimero(req, url) {
-  try {
-    const c = await (await caches.open(CACHE_MEDIOS)).match(url.origin + url.pathname);
-    if (c) return c;
-  } catch (e) {}
-  return staleWhileRevalidate(req);
 }
 
 // Imágenes de assets/: copia descargada por medios.js → si no, caché normal de imágenes

@@ -273,7 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const params = new URLSearchParams(window.location.search);
   const sid    = params.get('storeid') || '';
   const tname  = params.get('tourname') || '';
-  const sesion = JSON.parse(localStorage.getItem('nhSesion') || 'null');
+  const sesion = ((k,d)=>{try{return JSON.parse(localStorage.getItem(k)||d)}catch(e){return JSON.parse(d)}})('nhSesion','null');
 
   if (sesion && sesion.tipo === 'tienda') tienda = sesion;
   else if (sid) tienda = { id: sid, nombre: sid };
@@ -687,7 +687,7 @@ async function guardarResultados() {
     }).map(j => j.id)
   ].filter(Boolean);
 
-  const sesion  = JSON.parse(localStorage.getItem('nhSesion') || 'null');
+  const sesion  = ((k,d)=>{try{return JSON.parse(localStorage.getItem(k)||d)}catch(e){return JSON.parse(d)}})('nhSesion','null');
   const storeId = sesion?.id || tienda?.id || '';
   const fecha   = new Date().toISOString().split('T')[0];
 

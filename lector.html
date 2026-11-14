@@ -4,362 +4,456 @@
 <meta charset="UTF-8">
 <script src="config.js"></script><script src="nucleo.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#04061a">
 <title>Lector — Nexo de Héroes</title>
-<link rel="icon" href="img/favicon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
+<!-- ═══════════════════════════════════════════════════════════════════
+     LECTOR DE CÓMICS · v271 (rediseño)
+     Interfaz con el estilo del Nexo (azul noche, barras de cristal, botones con punta),
+     acento del color del arco de cada cómic (comics_config.json → arcos[].color).
+     Motor intacto: PDF.js + StPageFlip, todas las páginas pre-renderizadas antes de
+     encuadernar (fix de la página 4), zoom con pellizco en fase de captura y HD con LRU.
+     Nuevo: luz ambiental con la portada · barra para saltar de página con vista previa ·
+     índice de páginas · modo libro / una página · se rehace el libro al girar el teléfono ·
+     proporción real de las páginas del PDF · créditos con "siguiente número" ·
+     los cómics bloqueados no se abren desde una dirección directa.
+     ═══════════════════════════════════════════════════════════════════ -->
 <style>
   :root{
-    --bg-0:#000; --bg-1:#0a0e1a; --bg-2:#111827;
-    --acc-gold:#e8c86a; --acc-red:#c53030; --acc-cyan:#4fd1c5;
-    --txt-1:#f5f5f5; --txt-2:#a0aec0; --border:rgba(232,200,106,.25);
+    --k1:4,6,26; --k3:10,14,34; --k4:16,22,46; --ln:143,176,255;
+    --txt:#eef2ff; --muted:#8d9bc7; --gold:#f5c842; --gold-d:#f5a623; --cyan:#36d6ff; --purple:#cc55ff; --red:#ff4d6d;
+    --arc:#f5a623;           /* color del arco (se cambia al cargar el cómic) */
+    --hud-ease:cubic-bezier(.22,1,.36,1);
+    --sat:env(safe-area-inset-top); --sab:env(safe-area-inset-bottom);
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none}
-  html,body{background:#000;color:var(--txt-1);font-family:'Rajdhani',sans-serif;height:100vh;height:100dvh;overflow:hidden;overscroll-behavior:none}
+  html,body{background:rgb(var(--k1));color:var(--txt);font-family:'Rajdhani',sans-serif;height:100vh;height:100dvh;overflow:hidden;overscroll-behavior:none}
+  button{font:inherit;color:inherit}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  @keyframes fadeOnly{from{opacity:0}to{opacity:1}}
 
-  /* HUD superior */
-  .hud-top{
-    position:fixed;top:0;left:0;right:0;z-index:30;
-    background:linear-gradient(180deg,rgba(0,0,0,.9),rgba(0,0,0,0));
-    padding:14px 16px calc(14px + env(safe-area-inset-top)) 16px;
-    padding-top:calc(14px + env(safe-area-inset-top));
-    display:flex;align-items:center;gap:12px;
-    transition:transform .3s ease,opacity .3s ease;
-  }
-  .hud-top.hidden{transform:translateY(-100%);opacity:0;pointer-events:none}
-  .btn-icon{
-    background:rgba(20,25,40,.7);border:1px solid var(--border);color:var(--acc-gold);
-    width:40px;height:40px;border-radius:50%;font-size:20px;cursor:pointer;
-    display:grid;place-items:center;backdrop-filter:blur(8px);transition:.2s;
-  }
-  .btn-icon:hover{background:rgba(232,200,106,.15)}
-  .btn-icon:active{transform:scale(.9)}
-  .hud-title{flex:1;min-width:0;overflow:hidden;border-left:4px solid var(--acc-gold);padding-left:12px}
-  .hud-title h1{font-family:'Orbitron',sans-serif;font-size:clamp(14px,3.6vw,20px);font-weight:900;color:#eef2ff;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;line-height:1.1}
-  .hud-title .prog{font-family:'Orbitron',sans-serif;font-size:.65rem;color:var(--txt-2);letter-spacing:2px;margin-top:3px}
-  /* v197 · Regresar: mismo botón que la barra común de los módulos (‹ a la izquierda) */
-  .btn-volver{width:42px;min-width:42px;height:38px;padding:0 0 0 6px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;
-    background:rgba(16,22,40,.88);border:1px solid rgba(143,176,255,.28);color:#eef2ff;font-size:22px;line-height:1;cursor:pointer;text-decoration:none;
-    clip-path:polygon(9px 0,100% 0,100% 100%,9px 100%,0 50%);transition:color .15s,border-color .15s,background .15s}
-  .btn-volver:hover,.btn-volver:focus-visible{color:#f5c842;border-color:#f5c842;outline:none}
-  .hud-acc{display:flex;align-items:center;gap:8px;flex-shrink:0}
-  .hud-acc #bgm-btn{position:static!important;inset:auto!important;width:36px!important;height:36px!important;opacity:1!important;transform:none!important}
-  /* Progreso de lectura */
-  .prog-bar{position:fixed;left:0;right:0;bottom:0;height:3px;z-index:29;background:rgba(232,200,106,.12)}
-  .prog-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc-gold),var(--acc-red));transition:width .4s ease}
-  /* Fin del cómic: botón para ver los créditos (solo en la última página) */
-  .fin-pill{position:fixed;right:16px;bottom:calc(92px + env(safe-area-inset-bottom));z-index:32;display:none;align-items:center;gap:8px;
-    padding:11px 18px;border:none;border-radius:24px;cursor:pointer;background:linear-gradient(135deg,var(--acc-gold),#c9a94d);color:#0a0e1a;
-    font-family:'Orbitron',sans-serif;font-size:.72rem;font-weight:900;letter-spacing:2px;box-shadow:0 6px 24px rgba(0,0,0,.6),0 0 18px rgba(232,200,106,.35)}
-  .fin-pill.show{display:inline-flex;animation:fadeIn .4s ease}
-  .nav-btn.fin{background:linear-gradient(135deg,var(--acc-gold),#c9a94d);color:#0a0e1a;border-color:transparent;font-size:15px}
-  /* Aviso para continuar donde te quedaste */
-  .aviso{position:fixed;left:50%;top:calc(78px + env(safe-area-inset-top));transform:translateX(-50%);z-index:35;display:none;align-items:center;gap:12px;
-    padding:10px 10px 10px 16px;border-radius:12px;background:rgba(10,14,26,.95);border:1px solid var(--border);box-shadow:0 10px 30px rgba(0,0,0,.6);
-    font-size:.95rem;color:var(--txt-1);max-width:calc(100vw - 24px)}
-  .aviso.show{display:flex;animation:fadeIn .3s ease}
-  .aviso button{flex-shrink:0;border:1px solid var(--border);background:rgba(232,200,106,.12);color:var(--acc-gold);border-radius:8px;padding:7px 12px;
-    font-family:'Orbitron',sans-serif;font-size:.62rem;font-weight:700;letter-spacing:1px;cursor:pointer}
-  /* Splash con la portada del cómic */
-  .splash-cover{width:min(150px,36vw);aspect-ratio:2/3;object-fit:cover;border-radius:6px;margin:0 auto 18px;display:none;
-    box-shadow:0 14px 40px rgba(0,0,0,.8),0 0 0 1px var(--border)}
-  .splash-cover.ok{display:block;animation:fadeIn .5s ease}
-  .splash-tit{font-family:'Orbitron',sans-serif;font-size:.85rem;font-weight:700;letter-spacing:3px;color:var(--acc-gold);margin-bottom:16px;text-transform:uppercase}
+  /* ── Luz ambiental: la portada desenfocada detrás de las páginas ── */
+  #ambient{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;
+    background:radial-gradient(ellipse 70% 60% at 50% 45%,rgba(var(--k4),.6),rgb(var(--k1)) 75%)}
+  #ambient .amb{position:absolute;inset:-12%;background:center/cover no-repeat;filter:blur(46px) saturate(1.35);opacity:0;transform:scale(1.1);transition:opacity 1.2s ease}
+  #ambient .amb.ok{opacity:.32}
+  #ambient::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 65% 70% at 50% 50%,transparent 35%,rgba(var(--k1),.92) 100%)}
 
-  /* Zona del libro */
-  #stage{
-    position:absolute;inset:0;
-    display:grid;place-items:center;
-    background:radial-gradient(ellipse at center,rgba(20,25,40,.5),#000 70%);
-    touch-action:pan-y pinch-zoom;
-  }
-  #book-wrap{
-    position:relative;
-    max-width:100vw;max-height:100vh;
-    filter:drop-shadow(0 20px 40px rgba(0,0,0,.8));
-    transform-origin:center center;
-    will-change:transform;
-  }
-  #book-wrap.animar{transition:transform .3s cubic-bezier(.22,1,.36,1)}
+  /* ── Zona del libro ── */
+  #stage{position:absolute;inset:0;z-index:1;display:grid;place-items:center;touch-action:pan-y pinch-zoom}
+  #book-wrap{position:relative;max-width:100vw;max-height:100vh;transform-origin:center center;will-change:transform;
+    filter:drop-shadow(0 24px 48px rgba(0,0,0,.75)) drop-shadow(0 0 1px rgba(var(--ln),.25))}
+  #book-wrap.animar{transition:transform .3s var(--hud-ease)}
   body.zoomed .tap-zone{pointer-events:none}
   body.zoomed #stage{cursor:grab}
   body.zoomed #stage:active{cursor:grabbing}
-
-  /* Badge de zoom (HUD superior) */
-  .zoom-badge{
-    position:fixed;top:calc(64px + env(safe-area-inset-top));right:16px;z-index:31;
-    background:rgba(20,25,40,.85);border:1px solid var(--acc-gold);color:var(--acc-gold);
-    padding:6px 12px;border-radius:20px;
-    font-family:'Orbitron',sans-serif;font-size:.7rem;letter-spacing:2px;font-weight:700;
-    display:none;align-items:center;gap:8px;
-    backdrop-filter:blur(8px);
-    animation:fadeIn .2s ease;
-    cursor:pointer;
-  }
-  .zoom-badge.show{display:inline-flex}
-  .zoom-badge span{font-size:.9rem}
   #book{margin:0 auto}
-  .page{
-    background:#111;
-    display:flex;align-items:center;justify-content:center;
-    overflow:hidden;
-    box-shadow:inset 0 0 20px rgba(0,0,0,.5);
-  }
-  .page canvas,.page img{max-width:100%;max-height:100%;display:block}
-  .page-empty{color:var(--txt-2);font-family:'Orbitron',sans-serif;font-style:italic;opacity:.4;font-size:.9rem;text-align:center;padding:20px}
+  .page{background:#0b0e1a;display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:inset 0 0 18px rgba(0,0,0,.45)}
+  .page canvas,.page img{width:100%;height:100%;object-fit:contain;display:block}
+  .page-empty{color:var(--muted);font-family:'Orbitron',sans-serif;opacity:.5;font-size:.8rem;letter-spacing:2px;text-align:center;padding:20px}
   .stf__parent{margin:0 auto}
 
-  /* Splash de carga */
-  #splash{
-    position:fixed;inset:0;z-index:50;background:#000;
-    display:grid;place-items:center;
-    transition:opacity .5s ease;
-  }
-  #splash.gone{opacity:0;pointer-events:none}
-  .splash-inner{text-align:center;padding:20px}
-  .splash-logo{font-family:'Orbitron',sans-serif;font-size:1.8rem;font-weight:900;color:var(--acc-gold);letter-spacing:8px;text-shadow:0 0 30px rgba(232,200,106,.5);margin-bottom:24px;animation:pulse 2s ease-in-out infinite}
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
-  .splash-bar{width:min(280px,70vw);height:3px;background:rgba(232,200,106,.15);border-radius:2px;overflow:hidden;margin:0 auto}
-  .splash-fill{height:100%;background:linear-gradient(90deg,var(--acc-gold),var(--acc-red));width:0%;transition:width .3s ease;box-shadow:0 0 10px var(--acc-gold)}
-  .splash-msg{font-family:'Orbitron',sans-serif;font-size:.7rem;letter-spacing:3px;color:var(--txt-2);margin-top:16px}
-  .splash-err{color:var(--acc-red);font-family:'Rajdhani',sans-serif;margin-top:20px;font-size:.95rem;max-width:80vw}
+  /* Zonas para pasar página (con flecha que aparece al tocarlas o al pasar el mouse) */
+  .tap-zone{position:absolute;top:12%;bottom:12%;width:18%;z-index:5;cursor:pointer;display:flex;align-items:center}
+  .tap-zone.left{left:0;justify-content:flex-start;padding-left:10px}
+  .tap-zone.right{right:0;justify-content:flex-end;padding-right:10px}
+  .tap-zone i{font-style:normal;width:46px;height:46px;display:grid;place-items:center;font-size:26px;color:var(--txt);opacity:0;
+    background:rgba(var(--k3),.72);border:1px solid rgba(var(--ln),.28);clip-path:polygon(12px 0,100% 0,100% 100%,12px 100%,0 50%);transition:opacity .25s,transform .25s}
+  .tap-zone.right i{clip-path:polygon(0 0,calc(100% - 12px) 0,100% 50%,calc(100% - 12px) 100%,0 100%)}
+  .tap-zone.flash i{opacity:.95}
+  @media (hover:hover){.tap-zone:hover i{opacity:.85}}
 
-  /* HUD inferior */
-  .hud-bottom{
-    position:fixed;bottom:0;left:0;right:0;z-index:30;
-    background:linear-gradient(0deg,rgba(0,0,0,.9),rgba(0,0,0,0));
-    padding:20px 16px calc(16px + env(safe-area-inset-bottom)) 16px;
-    display:flex;align-items:center;gap:12px;
-    transition:transform .3s ease,opacity .3s ease;
-  }
-  .hud-bottom.hidden{transform:translateY(100%);opacity:0;pointer-events:none}
-  .nav-btn{
-    background:rgba(20,25,40,.7);border:1px solid var(--border);color:var(--acc-gold);
-    width:44px;height:44px;border-radius:50%;font-size:22px;cursor:pointer;
-    display:grid;place-items:center;backdrop-filter:blur(8px);flex-shrink:0;
-  }
+  /* ── HUD (barras de cristal, mismo estilo que las barras del Nexo) ── */
+  .hud{position:fixed;left:0;right:0;z-index:30;transition:transform .35s var(--hud-ease),opacity .35s var(--hud-ease)}
+  .hud-top{top:0;padding:calc(10px + var(--sat)) 14px 12px;display:flex;align-items:center;gap:12px;
+    background:linear-gradient(180deg,rgba(var(--k1),.95),rgba(var(--k1),.78));border-bottom:1px solid rgba(var(--ln),.16);
+    box-shadow:0 8px 24px rgba(0,0,0,.4);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+  .hud-top::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,var(--arc) 30%,var(--arc) 70%,transparent);opacity:.55}
+  .hud-top.hidden{transform:translateY(-110%);opacity:0;pointer-events:none}
+  .hud-bottom{bottom:0;padding:12px 14px calc(12px + var(--sab));
+    background:linear-gradient(0deg,rgba(var(--k1),.95),rgba(var(--k1),.78));border-top:1px solid rgba(var(--ln),.16);
+    box-shadow:0 -8px 24px rgba(0,0,0,.4);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+  .hud-bottom.hidden{transform:translateY(110%);opacity:0;pointer-events:none}
+
+  /* Botón regresar con punta (igual que la barra común) */
+  .btn-volver{width:42px;min-width:42px;height:38px;padding:0 0 0 6px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;
+    background:rgba(var(--k4),.9);border:1px solid rgba(var(--ln),.28);color:var(--txt);font-size:22px;line-height:1;cursor:pointer;text-decoration:none;
+    clip-path:polygon(9px 0,100% 0,100% 100%,9px 100%,0 50%);transition:color .15s,border-color .15s,background .15s}
+  .btn-volver:hover,.btn-volver:focus-visible{color:var(--gold);border-color:var(--gold);outline:none}
+  .tit{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;border-left:3px solid var(--arc);padding-left:11px}
+  .tit .arco{font-family:'Orbitron',sans-serif;font-size:.56rem;letter-spacing:.22em;color:var(--arc);text-transform:uppercase;font-weight:700;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;filter:brightness(1.35)}
+  .tit h1{font-family:'Orbitron',sans-serif;font-size:clamp(13px,3.4vw,18px);font-weight:900;letter-spacing:.06em;text-transform:uppercase;line-height:1.1;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tit .sub{font-size:.85rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.1}
+  .acc{display:flex;align-items:center;gap:8px;flex-shrink:0}
+  .ib{width:40px;height:38px;display:grid;place-items:center;flex-shrink:0;cursor:pointer;font-size:17px;line-height:1;
+    background:rgba(var(--k4),.88);border:1px solid rgba(var(--ln),.26);color:var(--txt);
+    clip-path:polygon(7px 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%,0 7px);transition:color .15s,border-color .15s,background .15s,transform .15s}
+  .ib:hover,.ib:focus-visible{color:var(--gold);border-color:var(--gold);outline:none}
+  .ib:active{transform:scale(.92)}
+  .ib.on{color:var(--arc);border-color:var(--arc);background:rgba(var(--k4),.98)}
+  .ib svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .acc #bgm-btn{position:static!important;inset:auto!important;width:40px!important;height:38px!important;opacity:1!important;transform:none!important;border-radius:0!important;
+    clip-path:polygon(7px 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%,0 7px);background:rgba(var(--k4),.88)!important;border:1px solid rgba(var(--ln),.26)!important}
+  #btn-modo[hidden]{display:none}
+
+  /* Dock inferior: anterior · barra para saltar de página · siguiente */
+  .dock{display:flex;align-items:center;gap:12px;max-width:980px;margin:0 auto}
+  .nav-btn{width:46px;height:46px;flex-shrink:0;display:grid;place-items:center;cursor:pointer;font-size:24px;line-height:1;color:var(--txt);
+    background:rgba(var(--k4),.9);border:1px solid rgba(var(--ln),.28);transition:color .15s,border-color .15s,transform .15s,background .15s}
+  #btn-prev{clip-path:polygon(11px 0,100% 0,100% 100%,11px 100%,0 50%);padding-left:6px}
+  #btn-next{clip-path:polygon(0 0,calc(100% - 11px) 0,100% 50%,calc(100% - 11px) 100%,0 100%);padding-right:6px}
+  .nav-btn:hover:not(:disabled),.nav-btn:focus-visible{color:var(--gold);border-color:var(--gold);outline:none}
+  .nav-btn:active:not(:disabled){transform:scale(.92)}
   .nav-btn:disabled{opacity:.3;cursor:not-allowed}
-  .nav-btn:active:not(:disabled){transform:scale(.9)}
-  .thumbs{
-    flex:1;display:flex;gap:6px;overflow-x:auto;padding:4px 2px;
-    scrollbar-width:none;
-  }
-  .thumbs::-webkit-scrollbar{display:none}
-  .thumb{
-    flex-shrink:0;width:34px;height:48px;
-    background:#1a1f30;border:1px solid rgba(232,200,106,.15);
-    border-radius:3px;cursor:pointer;
-    display:grid;place-items:center;
-    font-family:'Orbitron',sans-serif;font-size:.6rem;color:var(--txt-2);
-    transition:.2s;overflow:hidden;position:relative;
-  }
-  .thumb.active{border-color:var(--acc-gold);box-shadow:0 0 8px rgba(232,200,106,.4)}
-  .thumb img{width:100%;height:100%;object-fit:cover}
-  .thumb .num{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.7);font-size:.55rem;padding:1px}
+  .nav-btn.fin{background:linear-gradient(135deg,var(--gold),var(--gold-d));color:#1a1206;border-color:transparent;font-size:18px}
+  .scrub{flex:1;min-width:0;position:relative;display:flex;flex-direction:column;gap:7px}
+  .scrub-info{display:flex;justify-content:space-between;align-items:baseline;font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:.16em;color:var(--muted)}
+  .scrub-info b{color:var(--txt);font-size:.78rem;letter-spacing:.08em}
+  .scrub-info .pct{color:var(--arc);filter:brightness(1.35)}
+  .rango{position:relative;height:22px}
+  .rango .track{position:absolute;left:0;right:0;top:50%;height:4px;margin-top:-2px;background:rgba(var(--ln),.16)}
+  .rango .fill{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,var(--arc),var(--gold));box-shadow:0 0 10px var(--arc)}
+  #scrub{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer;touch-action:none}
+  .rango .thumb-dot{position:absolute;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;background:var(--txt);transform:rotate(45deg);
+    box-shadow:0 0 0 3px rgba(var(--k1),.9),0 0 12px var(--arc);pointer-events:none;transition:left .25s var(--hud-ease)}
+  .rango.drag .thumb-dot{transition:none;background:var(--gold)}
+  .burbuja{position:absolute;bottom:34px;left:0;transform:translateX(-50%);display:none;flex-direction:column;align-items:center;gap:5px;pointer-events:none;z-index:2}
+  .burbuja.show{display:flex;animation:fadeOnly .15s ease}
+  .burbuja img{width:74px;height:auto;max-height:112px;object-fit:contain;background:#0b0e1a;border:1px solid var(--arc);box-shadow:0 10px 24px rgba(0,0,0,.6)}
+  .burbuja b{font-family:'Orbitron',sans-serif;font-size:.7rem;letter-spacing:.1em;background:rgba(var(--k3),.95);border:1px solid rgba(var(--ln),.3);padding:3px 8px}
 
-  /* Créditos finales */
-  #creditos{
-    position:fixed;inset:0;z-index:40;background:linear-gradient(180deg,#000,#0a0e1a 40%,#000);
-    overflow-y:auto;padding:calc(60px + env(safe-area-inset-top)) 20px calc(40px + env(safe-area-inset-bottom));
-    display:none;
-  }
-  #creditos.show{display:block;animation:fadeIn .6s ease}
-  @keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-  .cred-close{
-    position:fixed;top:calc(14px + env(safe-area-inset-top));left:16px;z-index:41;
-  }
-  .cred-inner{max-width:520px;margin:0 auto;text-align:center}
-  .cred-fin{font-family:'Orbitron',sans-serif;font-size:2.2rem;font-weight:900;color:var(--acc-gold);letter-spacing:12px;margin-bottom:8px;text-shadow:0 0 20px rgba(232,200,106,.4)}
-  .cred-sub{font-family:'Orbitron',sans-serif;font-size:.75rem;color:var(--txt-2);letter-spacing:4px;margin-bottom:40px;padding:0 8px}
+  /* Línea de progreso siempre visible + contador fugaz al pasar página con el HUD oculto */
+  .prog-bar{position:fixed;left:0;right:0;bottom:0;height:3px;z-index:29;background:rgba(var(--ln),.1)}
+  .prog-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--arc),var(--gold));box-shadow:0 0 8px var(--arc);transition:width .4s ease}
+  #pag-flash{position:fixed;left:50%;bottom:calc(18px + var(--sab));transform:translateX(-50%);z-index:28;opacity:0;pointer-events:none;
+    font-family:'Orbitron',sans-serif;font-size:.7rem;letter-spacing:.14em;padding:6px 12px;background:rgba(var(--k3),.88);border:1px solid rgba(var(--ln),.25);transition:opacity .3s}
+  #pag-flash.show{opacity:1}
 
-  /* Bloque de crédito individual */
-  .cred-persona{
-    margin-bottom:32px;padding-bottom:32px;
-    border-bottom:1px solid rgba(232,200,106,.12);
-    animation:fadeIn .6s ease;
-  }
-  .cred-persona:last-of-type{border-bottom:none}
-  .cred-avatar{
-    width:110px;height:110px;border-radius:50%;
-    margin:0 auto 16px;overflow:hidden;
-    border:2px solid var(--acc-gold);
-    box-shadow:0 0 30px rgba(232,200,106,.4);
-    background:var(--bg-2);display:grid;place-items:center;color:var(--acc-gold);font-family:'Orbitron',sans-serif;font-size:2.5rem;
-  }
-  .cred-avatar img{width:100%;height:100%;object-fit:cover}
-  .cred-rol{font-family:'Orbitron',sans-serif;font-size:.7rem;color:var(--acc-red);letter-spacing:4px;margin-bottom:8px;text-transform:uppercase;font-weight:700}
-  .cred-nombre{font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;color:var(--acc-gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px}
-  .cred-bio{color:var(--txt-1);line-height:1.5;font-size:.9rem;margin-bottom:16px;padding:0 8px;opacity:.9}
-  .cred-redes{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
-  .cred-red{
-    background:rgba(20,25,40,.7);border:1px solid var(--border);color:var(--acc-gold);
-    padding:8px 14px;border-radius:24px;
-    font-family:'Orbitron',sans-serif;font-size:.65rem;letter-spacing:2px;
-    text-decoration:none;transition:.2s;display:inline-flex;align-items:center;gap:6px;
-  }
-  .cred-red:hover{background:rgba(232,200,106,.15);transform:translateY(-2px)}
-  .cred-acciones{display:flex;flex-direction:column;gap:12px;margin-top:24px}
-  .cred-btn{
-    background:linear-gradient(135deg,var(--acc-red),#8b1e1e);color:#fff;
-    border:none;padding:14px 24px;font-family:'Orbitron',sans-serif;
-    font-size:.8rem;letter-spacing:2px;font-weight:700;border-radius:4px;
-    cursor:pointer;transition:.2s;text-decoration:none;text-align:center;display:block;
-  }
-  .cred-btn.gold{background:linear-gradient(135deg,var(--acc-gold),#c9a94d);color:#0a0e1a}
-  .cred-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.4)}
+  /* Insignia de zoom */
+  .zoom-badge{position:fixed;top:calc(74px + var(--sat));right:14px;z-index:31;display:none;align-items:center;gap:8px;cursor:pointer;
+    background:rgba(var(--k3),.92);border:1px solid var(--arc);color:var(--txt);padding:7px 12px;
+    font-family:'Orbitron',sans-serif;font-size:.66rem;letter-spacing:.14em;font-weight:700;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+    clip-path:polygon(7px 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%,0 7px)}
+  .zoom-badge.show{display:inline-flex;animation:fadeOnly .2s ease}
 
-  /* Zonas de tap */
-  .tap-zone{position:absolute;top:0;bottom:0;width:20%;z-index:5;cursor:pointer}
-  .tap-zone.left{left:0}
-  .tap-zone.right{right:0}
+  /* Botón de créditos en la última página */
+  .fin-pill{position:fixed;right:16px;bottom:calc(104px + var(--sab));z-index:32;display:none;align-items:center;gap:8px;padding:12px 18px;border:none;cursor:pointer;
+    background:linear-gradient(135deg,var(--gold),var(--gold-d));color:#1a1206;font-family:'Orbitron',sans-serif;font-size:.7rem;font-weight:900;letter-spacing:.16em;
+    clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px);box-shadow:0 0 22px rgba(245,200,66,.4)}
+  .fin-pill.show{display:inline-flex;animation:fadeIn .4s ease}
+
+  /* Aviso para continuar donde te quedaste */
+  .aviso{position:fixed;left:50%;top:calc(76px + var(--sat));transform:translateX(-50%);z-index:35;display:none;align-items:center;gap:12px;
+    padding:10px 10px 10px 16px;background:rgba(var(--k3),.96);border:1px solid rgba(var(--ln),.28);border-left:3px solid var(--arc);
+    box-shadow:0 12px 30px rgba(0,0,0,.6);font-size:.98rem;max-width:calc(100vw - 24px)}
+  .aviso.show{display:flex;animation:fadeOnly .3s ease}
+  .aviso b{color:var(--gold)}
+  .aviso button{flex-shrink:0;border:1px solid rgba(var(--ln),.3);background:rgba(var(--k4),.9);color:var(--txt);padding:7px 12px;cursor:pointer;
+    font-family:'Orbitron',sans-serif;font-size:.6rem;font-weight:700;letter-spacing:.1em}
+  .aviso button:hover,.aviso button:focus-visible{border-color:var(--gold);color:var(--gold);outline:none}
+
+  /* ── Índice de páginas (hoja inferior) ── */
+  #indice{position:fixed;inset:0;z-index:45;display:none}
+  #indice.show{display:block}
+  #indice .velo{position:absolute;inset:0;background:rgba(2,3,12,.62);animation:fadeOnly .2s ease}
+  #indice .hoja{position:absolute;left:0;right:0;bottom:0;max-height:78vh;display:flex;flex-direction:column;
+    background:linear-gradient(180deg,rgba(var(--k4),.98),rgba(var(--k3),.99));border-top:1px solid rgba(var(--ln),.24);box-shadow:0 -18px 40px rgba(0,0,0,.6);
+    padding:14px 16px calc(16px + var(--sab));animation:subir .35s var(--hud-ease)}
+  @keyframes subir{from{transform:translateY(40%);opacity:0}to{transform:none;opacity:1}}
+  #indice .hoja::before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:linear-gradient(90deg,transparent,var(--arc),transparent)}
+  .idx-hd{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+  .idx-hd h2{flex:1;font-family:'Orbitron',sans-serif;font-size:.78rem;letter-spacing:.2em;font-weight:900}
+  .idx-hd h2 span{color:var(--muted);font-weight:500}
+  .idx-grid{overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:10px;padding:2px 2px 6px;scrollbar-width:thin}
+  .idx-p{position:relative;display:block;width:100%;padding:0;cursor:pointer;background:#0b0e1a;border:1px solid rgba(var(--ln),.16);overflow:hidden;transition:border-color .15s,transform .15s}
+  .idx-p::before{content:"";display:block;padding-top:calc(100% / var(--pr,.6667))}
+  .idx-p img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+  .idx-p span{position:absolute;left:0;bottom:0;font-family:'Orbitron',sans-serif;font-size:.58rem;letter-spacing:.06em;padding:2px 6px;background:rgba(var(--k1),.86)}
+  .idx-p.vista{opacity:.62}
+  .idx-p.act{border-color:var(--arc);box-shadow:0 0 0 1px var(--arc),0 0 16px var(--arc);opacity:1}
+  .idx-p.act span{background:var(--arc);color:#0a0e1a;font-weight:700}
+  .idx-p:hover,.idx-p:focus-visible{border-color:var(--gold);outline:none;transform:translateY(-2px)}
+
+  /* ── Pantalla de carga ── */
+  #splash{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:rgb(var(--k1));transition:opacity .55s ease;overflow:hidden}
+  #splash.gone{opacity:0;pointer-events:none}
+  #splash .sp-bg{position:absolute;inset:-12%;background:center/cover no-repeat;filter:blur(40px) saturate(1.3);opacity:0;transition:opacity .9s}
+  #splash .sp-bg.ok{opacity:.38}
+  #splash::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 60% 60% at 50% 45%,transparent,rgba(var(--k1),.94) 85%);pointer-events:none}
+  .sp-in{position:relative;z-index:1;text-align:center;padding:24px;display:flex;flex-direction:column;align-items:center;max-width:420px;width:100%}
+  .sp-cover{position:relative;width:min(170px,40vw);margin-bottom:22px;display:none;animation:flota 5s ease-in-out infinite}
+  .sp-cover.ok{display:block;animation:fadeIn .6s ease,flota 5s .6s ease-in-out infinite}
+  .sp-cover img{width:100%;display:block;box-shadow:0 18px 44px rgba(0,0,0,.8),0 0 0 1px rgba(var(--ln),.25),0 0 40px -6px var(--arc)}
+  .sp-cover::after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.35) 50%,transparent 60%);background-size:300% 100%;
+    animation:brillo 2.8s ease-in-out infinite;mix-blend-mode:overlay}
+  @keyframes flota{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-6px) rotate(1deg)}}
+  @keyframes brillo{0%{background-position:120% 0}60%,100%{background-position:-30% 0}}
+  .sp-logo{font-family:'Orbitron',sans-serif;font-size:1.5rem;font-weight:900;letter-spacing:.5em;color:var(--txt);margin:0 0 20px .5em;
+    text-shadow:0 0 24px rgba(var(--ln),.5);animation:pulso 2s ease-in-out infinite}
+  @keyframes pulso{50%{opacity:.5}}
+  .sp-arco{font-family:'Orbitron',sans-serif;font-size:.58rem;letter-spacing:.24em;color:var(--arc);text-transform:uppercase;font-weight:700;margin-bottom:6px;filter:brightness(1.35)}
+  .sp-tit{font-family:'Orbitron',sans-serif;font-size:clamp(15px,4.4vw,20px);font-weight:900;letter-spacing:.06em;text-transform:uppercase;line-height:1.2}
+  .sp-sub{color:var(--muted);font-size:1rem;margin-top:3px;min-height:1.1em}
+  .sp-bar{position:relative;width:min(300px,76vw);height:6px;margin:22px auto 0;background:rgba(var(--ln),.12);overflow:hidden;
+    clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%)}
+  .sp-bar i{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,var(--arc),var(--gold));box-shadow:0 0 12px var(--arc);transition:width .3s ease}
+  .sp-bar i::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 10px,rgba(var(--k1),.55) 10px 12px)}
+  .sp-msg{display:flex;justify-content:space-between;width:min(300px,76vw);margin-top:10px;font-family:'Orbitron',sans-serif;font-size:.58rem;letter-spacing:.16em;color:var(--muted)}
+  .sp-msg b{color:var(--txt)}
+  .sp-err{display:none;margin-top:20px;padding:14px 16px;text-align:left;font-size:.98rem;line-height:1.4;max-width:min(420px,88vw);
+    background:rgba(var(--k3),.92);border:1px solid rgba(255,77,109,.45);border-left:3px solid var(--red)}
+  .sp-err strong{font-family:'Orbitron',sans-serif;font-size:.72rem;letter-spacing:.12em;color:var(--red);display:block;margin-bottom:6px}
+  .sp-err a{color:var(--gold)}
+  .sp-err .acciones{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 18px;cursor:pointer;text-decoration:none;border:1px solid rgba(var(--ln),.3);
+    background:rgba(var(--k4),.92);color:var(--txt);font-family:'Orbitron',sans-serif;font-size:.68rem;font-weight:700;letter-spacing:.14em;
+    clip-path:polygon(9px 0,100% 0,100% calc(100% - 9px),calc(100% - 9px) 100%,0 100%,0 9px);transition:color .15s,border-color .15s,transform .15s}
+  .btn:hover,.btn:focus-visible{color:var(--gold);border-color:var(--gold);outline:none}
+  .btn:active{transform:scale(.97)}
+  .btn.prim{background:linear-gradient(135deg,var(--gold),var(--gold-d));color:#1a1206;border-color:transparent}
+  .btn.prim:hover,.btn.prim:focus-visible{color:#1a1206;filter:brightness(1.08)}
+
+  /* ── Créditos ── */
+  #creditos{position:fixed;inset:0;z-index:40;display:none;overflow-y:auto;overflow-x:hidden;background:rgb(var(--k1));
+    padding:calc(64px + var(--sat)) 18px calc(40px + var(--sab))}
+  #creditos.show{display:block;animation:fadeOnly .5s ease}
+  #creditos .cr-bg{position:fixed;inset:-12%;background:center/cover no-repeat;filter:blur(44px) saturate(1.3);opacity:.28;pointer-events:none}
+  #creditos::before{content:"";position:fixed;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 30%,transparent,rgba(var(--k1),.92) 80%);pointer-events:none}
+  .cred-close{position:fixed;top:calc(12px + var(--sat));left:14px;z-index:41}
+  .cr-in{position:relative;z-index:1;max-width:760px;margin:0 auto;text-align:center}
+  .cr-fin{font-family:'Orbitron',sans-serif;font-size:clamp(2.6rem,12vw,4rem);font-weight:900;letter-spacing:.4em;margin-left:.4em;line-height:1;
+    background:linear-gradient(180deg,#fff,var(--gold) 55%,var(--gold-d));-webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 22px rgba(245,200,66,.35));animation:fadeIn .7s ease}
+  .cr-linea{width:min(320px,70%);height:2px;margin:16px auto;background:linear-gradient(90deg,transparent,var(--arc),transparent)}
+  .cr-tit{font-family:'Orbitron',sans-serif;font-size:.74rem;letter-spacing:.24em;color:var(--muted);text-transform:uppercase;padding:0 8px}
+  .cr-sec{font-family:'Orbitron',sans-serif;font-size:.62rem;letter-spacing:.3em;color:var(--arc);filter:brightness(1.35);margin:34px 0 14px}
+  .cr-personas{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;text-align:left}
+  .persona{position:relative;display:flex;gap:14px;align-items:flex-start;padding:16px;background:rgba(var(--k3),.82);border:1px solid rgba(var(--ln),.18);
+    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);animation:fadeIn .6s ease both}
+  .persona::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--arc)}
+  .av{width:72px;height:72px;flex-shrink:0;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:rgba(var(--k4),.9);
+    box-shadow:0 0 0 2px var(--arc),0 0 22px -4px var(--arc);font-family:'Orbitron',sans-serif;font-size:1.6rem;font-weight:900;color:var(--txt)}
+  .av img{width:100%;height:100%;object-fit:cover}
+  .pd{min-width:0;flex:1}
+  .rol{display:inline-block;font-family:'Orbitron',sans-serif;font-size:.54rem;letter-spacing:.16em;font-weight:700;text-transform:uppercase;color:var(--arc);
+    filter:brightness(1.35);margin-bottom:4px}
+  .nom{font-family:'Orbitron',sans-serif;font-size:.95rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px}
+  .bio{color:#c9d3f5;line-height:1.45;font-size:.95rem}
+  .redes{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .red{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;text-decoration:none;color:var(--txt);border:1px solid rgba(var(--ln),.26);background:rgba(var(--k4),.85);
+    font-family:'Orbitron',sans-serif;font-size:.54rem;letter-spacing:.12em;transition:color .15s,border-color .15s}
+  .red:hover,.red:focus-visible{color:var(--gold);border-color:var(--gold);outline:none}
+  .sig{display:flex;gap:14px;align-items:center;text-align:left;padding:14px;margin-top:6px;background:rgba(var(--k3),.86);border:1px solid rgba(var(--ln),.2);
+    text-decoration:none;color:var(--txt);transition:border-color .15s,transform .15s}
+  .sig:hover,.sig:focus-visible{border-color:var(--gold);outline:none;transform:translateY(-2px)}
+  .sig img{width:64px;aspect-ratio:2/3;object-fit:cover;flex-shrink:0;box-shadow:0 8px 20px rgba(0,0,0,.6)}
+  .sig .k{font-family:'Orbitron',sans-serif;font-size:.54rem;letter-spacing:.2em;color:var(--arc);filter:brightness(1.35)}
+  .sig .t{font-family:'Orbitron',sans-serif;font-size:.85rem;font-weight:900;letter-spacing:.05em;text-transform:uppercase;margin:4px 0 2px}
+  .sig .s{color:var(--muted);font-size:.95rem}
+  .sig .go{margin-left:auto;font-family:'Orbitron',sans-serif;font-size:.62rem;letter-spacing:.12em;white-space:nowrap;color:var(--gold)}
+  .cr-acciones{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:30px}
 </style>
 </head>
 <body>
 
+<div id="ambient"><div class="amb" id="amb"></div></div>
+
 <div id="splash">
-  <div class="splash-inner">
-    <img class="splash-cover" id="splash-cover" alt="">
-    <div class="splash-tit" id="splash-tit"></div>
-    <div class="splash-logo" id="splash-logo">NEXO</div>
-    <div class="splash-bar"><div id="splash-fill" class="splash-fill"></div></div>
-    <div id="splash-msg" class="splash-msg">Abriendo el códice…</div>
-    <div id="splash-err" class="splash-err" style="display:none"></div>
+  <div class="sp-bg" id="sp-bg"></div>
+  <div class="sp-in">
+    <div class="sp-cover" id="sp-cover"><img id="sp-img" alt=""></div>
+    <div class="sp-logo" id="sp-logo">NEXO</div>
+    <div class="sp-arco" id="sp-arco"></div>
+    <div class="sp-tit" id="sp-tit"></div>
+    <div class="sp-sub" id="sp-sub"></div>
+    <div class="sp-bar"><i id="sp-fill"></i></div>
+    <div class="sp-msg"><span id="sp-msg">ABRIENDO EL CÓDICE…</span><b id="sp-pct">0%</b></div>
+    <div class="sp-err" id="sp-err"></div>
   </div>
 </div>
 
-<div id="hud-top" class="hud-top hidden">
+<header id="hud-top" class="hud hud-top hidden">
   <a class="btn-volver" href="comics.html" onclick="salir();return false" aria-label="Regresar a la Comicteca" title="Comicteca">‹</a>
-  <div class="hud-title">
+  <div class="tit">
+    <div class="arco" id="t-arco"></div>
     <h1 id="titulo">—</h1>
-    <div class="prog" id="prog">— / —</div>
+    <div class="sub" id="t-sub"></div>
   </div>
-  <div class="hud-acc" id="hud-acc"><button class="btn-icon" onclick="toggleFullscreen()" aria-label="Pantalla completa" title="Pantalla completa (F)">⛶</button></div>
-</div>
+  <div class="acc" id="hud-acc">
+    <button class="ib" id="btn-indice" onclick="abrirIndice()" aria-label="Índice de páginas" title="Índice (I)">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></button>
+    <button class="ib" id="btn-modo" onclick="cambiarModo()" aria-label="Libro o una página" title="Libro / una página (M)" hidden>
+      <svg viewBox="0 0 24 24" id="ico-modo"></svg></button>
+    <button class="ib" onclick="toggleFullscreen()" aria-label="Pantalla completa" title="Pantalla completa (F)">
+      <svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+  </div>
+</header>
 
 <div id="stage">
-  <div class="tap-zone left" id="tap-left"></div>
-  <div class="tap-zone right" id="tap-right"></div>
+  <div class="tap-zone left" id="tap-left"><i>‹</i></div>
+  <div class="tap-zone right" id="tap-right"><i>›</i></div>
   <div id="book-wrap"><div id="book"></div></div>
 </div>
 
-<button id="zoom-badge" class="zoom-badge" onclick="resetZoom()" title="Restablecer zoom">
-  <span>🔍</span><span id="zoom-nivel">1.0×</span> ✕
-</button>
+<button id="zoom-badge" class="zoom-badge" onclick="resetZoom()" title="Restablecer zoom (0)"><span>⌕</span><span id="zoom-nivel">1.0×</span> ✕</button>
 
 <div class="prog-bar" aria-hidden="true"><i id="prog-fill"></i></div>
+<div id="pag-flash"></div>
 <button class="fin-pill" id="fin-pill" onclick="mostrarCreditos()">★ VER CRÉDITOS ›</button>
 <div class="aviso" id="aviso"><span id="aviso-txt"></span><button id="aviso-ini">↺ DESDE EL INICIO</button></div>
 
-<div id="hud-bottom" class="hud-bottom hidden">
-  <button class="nav-btn" id="btn-prev" aria-label="Anterior">‹</button>
-  <div class="thumbs" id="thumbs"></div>
-  <button class="nav-btn" id="btn-next" aria-label="Siguiente">›</button>
+<footer id="hud-bottom" class="hud hud-bottom hidden">
+  <div class="dock">
+    <button class="nav-btn" id="btn-prev" aria-label="Anterior">‹</button>
+    <div class="scrub">
+      <div class="scrub-info"><span>PÁGINA <b id="pg-act">—</b> DE <b id="pg-tot">—</b></span><span class="pct" id="pg-pct">0%</span></div>
+      <div class="rango" id="rango">
+        <div class="track"><div class="fill" id="sc-fill"></div></div>
+        <div class="thumb-dot" id="sc-dot"></div>
+        <input type="range" id="scrub" min="1" max="1" value="1" step="1" aria-label="Ir a la página">
+        <div class="burbuja" id="burbuja"><img id="bur-img" alt=""><b id="bur-n">1</b></div>
+      </div>
+    </div>
+    <button class="nav-btn" id="btn-next" aria-label="Siguiente">›</button>
+  </div>
+</footer>
+
+<div id="indice" aria-hidden="true">
+  <div class="velo" onclick="cerrarIndice()"></div>
+  <div class="hoja" role="dialog" aria-label="Índice de páginas">
+    <div class="idx-hd"><h2>ÍNDICE <span id="idx-n"></span></h2><button class="ib" onclick="cerrarIndice()" aria-label="Cerrar índice">✕</button></div>
+    <div class="idx-grid" id="idx-grid"></div>
+  </div>
 </div>
 
 <div id="creditos">
+  <div class="cr-bg" id="cr-bg"></div>
   <button class="btn-volver cred-close" onclick="cerrarCreditos()" aria-label="Volver a la última página" title="Volver a la última página">‹</button>
-  <div class="cred-inner">
-    <div class="cred-fin">FIN</div>
-    <div class="cred-sub" id="cred-titulo">— · — —</div>
-    <div id="cred-personas"></div>
-    <div class="cred-acciones">
-      <button class="cred-btn gold" onclick="reiniciar()">↺ LEER DE NUEVO</button>
-      <button class="cred-btn" onclick="cerrarCreditos()" style="background:rgba(20,25,40,.85);border:1px solid var(--border);color:var(--acc-gold)">‹ VOLVER A LA ÚLTIMA PÁGINA</button>
-      <a class="cred-btn" href="comics.html">COMICTECA</a>
+  <div class="cr-in">
+    <div class="cr-fin">FIN</div>
+    <div class="cr-linea"></div>
+    <div class="cr-tit" id="cred-titulo">—</div>
+    <div class="cr-sec" id="cr-sec-cred">CRÉDITOS</div>
+    <div class="cr-personas" id="cred-personas"></div>
+    <div id="cr-sig"></div>
+    <div class="cr-acciones">
+      <button class="btn prim" onclick="reiniciar()">↺ LEER DE NUEVO</button>
+      <button class="btn" onclick="cerrarCreditos()">‹ ÚLTIMA PÁGINA</button>
+      <a class="btn" href="comics.html">COMICTECA</a>
     </div>
   </div>
 </div>
 
 <script>
 // ========== Config PDF.js ==========
-pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+if(window.pdfjsLib)pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
 // ========== Estado ==========
 const params=new URLSearchParams(location.search);
 const comicId=params.get('id');
+let config=null;
 let comic=null;
 let pdf=null;
 let flipBook=null;
 let paginaActual=0;
 let totalPaginas=0;
+let PAGE_RATIO=2/3;         // proporción real de las páginas (se lee de la página 1 del PDF)
 const cache=new Map();       // num -> url de baja resolución (para navegación rápida)
 const cacheHD=new Map();     // num -> url de alta resolución (para zoom)
 const hdEnCurso=new Set();   // páginas que se están renderizando en HD
 const HD_MAX_CACHE=6;        // número máximo de páginas en HD (LRU)
 const ZOOM_UMBRAL_HD=1.3;    // a partir de este zoom, cargamos HD
 let hudTimer=null;
+let sinClick=0;              // marca de tiempo del último deslizamiento (para no contarlo también como toque)
 let hudVisible=true;
+// Modo de lectura: 'auto' = libro (doble página) en pantallas horizontales grandes · 'pagina' = siempre una página
+const K_MODO='comics_modo';
+let modo=(()=>{try{return localStorage.getItem(K_MODO)==='pagina'?'pagina':'auto'}catch(e){return 'auto'}})();
 
 // ========== Utilidades ==========
 const $=id=>document.getElementById(id);
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
-function setSplashProgress(pct,msg){$('splash-fill').style.width=pct+'%';if(msg)$('splash-msg').textContent=msg}
-function splashError(msg){
-  $('splash-err').style.display='block';
-  $('splash-err').innerHTML=escapeHtml(msg)+'<br><br><a href="comics.html" style="color:var(--acc-gold)">← Volver a la Comicteca</a>';
-  $('splash-msg').style.display='none';
+function lsJSON(k,d){try{const v=JSON.parse(localStorage.getItem(k)||'null');return v==null?d:v}catch(e){return d}}
+function setSplashProgress(pct,msg){$('sp-fill').style.width=pct+'%';$('sp-pct').textContent=Math.round(pct)+'%';if(msg)$('sp-msg').textContent=msg.toUpperCase()}
+function splashError(titulo,html){
+  const e=$('sp-err');e.style.display='block';
+  e.innerHTML='<strong>'+escapeHtml(titulo)+'</strong>'+(html||'')+'<div class="acciones"><a class="btn" href="comics.html">‹ COMICTECA</a></div>';
+  $('sp-msg').parentElement.style.display='none';$('sp-fill').parentElement.style.display='none';
 }
 function salir(){guardarPagina();location.href='comics.html'}
-// v197 · Página donde te quedaste (por cómic) y lectura completada
+// Página donde te quedaste (por cómic) y lectura completada
 const K_PAG='comics_pagina';
-function guardarPagina(){try{if(!comic)return;const m=JSON.parse(localStorage.getItem(K_PAG)||'{}')||{};
+function guardarPagina(){try{if(!comic)return;const m=lsJSON(K_PAG,{});
   if(paginaActual>0&&!enUltima())m[comic.id]=paginaActual;else delete m[comic.id];localStorage.setItem(K_PAG,JSON.stringify(m));}catch(e){}}
-function paginaGuardada(){try{return +((JSON.parse(localStorage.getItem(K_PAG)||'{}')||{})[comic.id])||0;}catch(e){return 0}}
-function marcarLeido(){try{const leidos=JSON.parse(localStorage.getItem('comics_leidos')||'[]');if(!leidos.includes(comic.id)){leidos.push(comic.id);localStorage.setItem('comics_leidos',JSON.stringify(leidos));}}catch(e){}}
+function paginaGuardada(){return +(lsJSON(K_PAG,{})[comic.id])||0}
+function marcarLeido(){try{const leidos=lsJSON('comics_leidos',[]);if(!leidos.includes(comic.id)){leidos.push(comic.id);localStorage.setItem('comics_leidos',JSON.stringify(leidos));}}catch(e){}}
 // ¿Se está viendo la última página? (en doble página, el último par)
 function enUltima(){return totalPaginas>0&&paginasVisibles().includes(totalPaginas)}
 function siguiente(){if(zoomScale>1.05)return;if(enUltima()){mostrarCreditos();return}flipBook?.flipNext()}
 function anterior(){if(zoomScale>1.05)return;if($('creditos').classList.contains('show')){cerrarCreditos();return}flipBook?.flipPrev()}
-function avisar(txt,fnIni){$('aviso-txt').textContent=txt;$('aviso').classList.add('show');
+function irA(idx){if(!flipBook)return;idx=Math.max(0,Math.min(totalPaginas-1,idx));flipBook.turnToPage(idx);paginaActual=idxReal(idx);alCambiarPagina()}
+// En doble página StPageFlip abre el par completo: se toma la página que realmente quedó a la izquierda
+function idxReal(d){try{const v=flipBook.getCurrentPageIndex();return typeof v==='number'?v:d}catch(e){return d}}
+function avisar(txt,fnIni){$('aviso-txt').innerHTML=txt;$('aviso').classList.add('show');
   $('aviso-ini').onclick=()=>{$('aviso').classList.remove('show');fnIni&&fnIni();};
   clearTimeout(avisar._t);avisar._t=setTimeout(()=>$('aviso').classList.remove('show'),7000);}
 function estadoFin(){
   const u=enUltima();
   $('fin-pill').classList.toggle('show',u&&!$('creditos').classList.contains('show'));
   const b=$('btn-next');b.classList.toggle('fin',u);b.textContent=u?'★':'›';b.setAttribute('aria-label',u?'Ver créditos':'Siguiente');
-  $('prog-fill').style.width=(totalPaginas?Math.min(100,Math.max(...paginasVisibles(),1)/totalPaginas*100):0)+'%';
   if(u)marcarLeido();
 }
 function toggleFullscreen(){
-  if(!document.fullscreenElement){
-    document.documentElement.requestFullscreen?.().catch(()=>{});
-  }else{document.exitFullscreen?.()}
+  if(!document.fullscreenElement){document.documentElement.requestFullscreen?.().catch(()=>{});}
+  else{document.exitFullscreen?.()}
+}
+
+// Todo lo que se actualiza al cambiar de página (contador, barra, índice, botones)
+function alCambiarPagina(){
+  const vis=paginasVisibles(), ult=Math.max(...vis,1), txt=vis.length>1?vis[0]+'–'+vis[vis.length-1]:String(vis[0]||1);
+  const pct=totalPaginas?Math.round(ult/totalPaginas*100):0;
+  $('pg-act').textContent=txt;$('pg-tot').textContent=totalPaginas;$('pg-pct').textContent=pct+'%';
+  $('prog-fill').style.width=pct+'%';
+  if(!$('rango').classList.contains('drag')){$('scrub').value=paginaActual+1;pintarScrub(paginaActual+1)}
+  $('btn-prev').disabled=paginaActual<=0;$('btn-next').disabled=false;
+  marcarIndice();estadoFin();
+  if(!hudVisible){const f=$('pag-flash');f.textContent=txt+' / '+totalPaginas;f.classList.add('show');clearTimeout(f._t);f._t=setTimeout(()=>f.classList.remove('show'),1100)}
 }
 
 // ========== HUD auto-hide ==========
 function mostrarHUD(){
   hudVisible=true;
-  $('hud-top').classList.remove('hidden');
-  $('hud-bottom').classList.remove('hidden');
+  $('hud-top').classList.remove('hidden');$('hud-bottom').classList.remove('hidden');$('pag-flash').classList.remove('show');
   clearTimeout(hudTimer);
-  hudTimer=setTimeout(ocultarHUD,3500);
+  hudTimer=setTimeout(ocultarHUD,3800);
 }
 function ocultarHUD(){
+  if($('indice').classList.contains('show')||$('rango').classList.contains('drag'))return;   // no se esconde mientras usas el índice o la barra
   hudVisible=false;
-  $('hud-top').classList.add('hidden');
-  $('hud-bottom').classList.add('hidden');
+  $('hud-top').classList.add('hidden');$('hud-bottom').classList.add('hidden');
 }
 function toggleHUD(){hudVisible?ocultarHUD():mostrarHUD()}
 
 // ========== Dimensiones del libro ==========
+function puedeLibro(){return innerWidth>innerHeight&&innerWidth>=768}
 function calcularTam(){
-  const vw=window.innerWidth, vh=window.innerHeight;
-  const landscape=vw>vh && vw>=768;
-  const ratio=2/3;
+  const vw=window.innerWidth, vh=window.innerHeight, r=PAGE_RATIO, m=20;
   let w,h;
-  if(landscape){
-    h=Math.min(vh-40,900);
-    w=Math.round(h*ratio*2);
-    if(w>vw-40){w=vw-40;h=Math.round(w/2/ratio)}
+  if(puedeLibro()&&modo!=='pagina'){
+    h=Math.min(vh-m*2,1100);
+    w=Math.round(h*r*2);
+    if(w>vw-m*2){w=vw-m*2;h=Math.round(w/2/r)}
     return{w,h,landscape:true,single:false}
-  }else{
-    h=Math.min(vh-40,vh*.92);
-    w=Math.round(h*ratio);
-    if(w>vw-20){w=vw-20;h=Math.round(w/ratio)}
-    return{w,h,landscape:false,single:true}
   }
+  h=Math.min(vh-m*2,1400);
+  w=Math.round(h*r);
+  if(w>vw-16){w=vw-16;h=Math.round(w/r)}
+  return{w,h,landscape:false,single:true}
 }
 
 // ========== Render de página PDF ==========
@@ -371,58 +465,47 @@ async function renderPagina(num){
   const viewport=page.getViewport({scale:1});
   // En PDFs largos limitamos el DPR para no consumir tanta RAM en móvil.
   const dprBase=window.devicePixelRatio||1;
-  const dpr=totalPaginas>30?Math.min(1.5,dprBase):dprBase;
+  const dpr=totalPaginas>30?Math.min(1.5,dprBase):Math.min(2.5,dprBase);
   const scale=Math.min(pageW/viewport.width,h/viewport.height)*dpr;
   const scaled=page.getViewport({scale});
   const canvas=document.createElement('canvas');
   canvas.width=scaled.width;canvas.height=scaled.height;
-  canvas.style.width='100%';canvas.style.height='auto';
   const ctx=canvas.getContext('2d');
   await page.render({canvasContext:ctx,viewport:scaled}).promise;
   // Blob URL en vez de Data URL: ~33% menos memoria, mejor GC.
-  const blob=await new Promise(res=>canvas.toBlob(res,'image/jpeg',0.85));
-  const url=blob?URL.createObjectURL(blob):canvas.toDataURL('image/jpeg',0.85);
-  // Liberar el canvas y la página del PDF cuanto antes.
+  const blob=await new Promise(res=>canvas.toBlob(res,'image/jpeg',0.86));
+  const url=blob?URL.createObjectURL(blob):canvas.toDataURL('image/jpeg',0.86);
   canvas.width=0;canvas.height=0;
   try{page.cleanup()}catch(_){}
   cache.set(num,url);
   return url;
 }
 
-// Render HD: escala mucho mayor, para que al hacer zoom no se vea borroso.
-// Se hace sólo bajo demanda para las páginas que el usuario está viendo con zoom.
+// Render HD bajo demanda para las páginas que se ven con zoom.
 async function renderPaginaHD(num){
   if(cacheHD.has(num))return cacheHD.get(num);
   const page=await pdf.getPage(num);
   const {w,h,single}=calcularTam();
   const pageW=single?w:w/2;
   const viewport=page.getViewport({scale:1});
-  // Renderizamos a la escala que necesitaría el zoom máximo * dpr.
-  // Con esto, al hacer pinch a 4× la página sigue siendo nítida.
   const dpr=window.devicePixelRatio||1;
   const baseScale=Math.min(pageW/viewport.width,h/viewport.height);
   const scale=baseScale*dpr*ZOOM_MAX;
   const scaled=page.getViewport({scale});
-  // Salvaguarda de tamaño: algunos móviles fallan con canvas > 16k px.
+  // Salvaguarda de tamaño: algunos móviles fallan con canvas enormes.
   const maxDim=Math.max(scaled.width,scaled.height);
-  let finalScale=scale;
-  if(maxDim>8192){
-    finalScale=scale*(8192/maxDim);
-  }
+  const finalScale=maxDim>8192?scale*(8192/maxDim):scale;
   const finalVP=finalScale===scale?scaled:page.getViewport({scale:finalScale});
   const canvas=document.createElement('canvas');
   canvas.width=finalVP.width;canvas.height=finalVP.height;
-  const ctx=canvas.getContext('2d');
-  await page.render({canvasContext:ctx,viewport:finalVP}).promise;
+  await page.render({canvasContext:canvas.getContext('2d'),viewport:finalVP}).promise;
   const blob=await new Promise(res=>canvas.toBlob(res,'image/jpeg',0.92));
   const url=blob?URL.createObjectURL(blob):canvas.toDataURL('image/jpeg',0.92);
   canvas.width=0;canvas.height=0;
   try{page.cleanup()}catch(_){}
-
   // LRU: si superamos el máximo, expulsamos la más vieja y liberamos su URL.
   if(cacheHD.size>=HD_MAX_CACHE){
-    const primera=cacheHD.keys().next().value;
-    const urlVieja=cacheHD.get(primera);
+    const primera=cacheHD.keys().next().value, urlVieja=cacheHD.get(primera);
     cacheHD.delete(primera);
     if(urlVieja&&urlVieja.startsWith('blob:'))URL.revokeObjectURL(urlVieja);
   }
@@ -434,69 +517,65 @@ async function renderPaginaHD(num){
 function paginasVisibles(){
   const {single}=calcularTam();
   const actual=paginaActual+1;
-  if(single) return [actual].filter(n=>n>=1&&n<=totalPaginas);
-  // En doble página, el spread es (paginaActual, paginaActual+1).
+  if(single||actual===1) return [actual].filter(n=>n>=1&&n<=totalPaginas);   // la portada va sola
   return [actual,actual+1].filter(n=>n>=1&&n<=totalPaginas);
 }
 
-// Aplica el src HD al <img> correspondiente dentro del libro renderizado.
 function aplicarHD(num,url){
   document.querySelectorAll('#book .page[data-pagina="'+num+'"] img').forEach(img=>{
-    if(img.src!==url){
-      // Precarga silenciosa para que el swap no muestre parpadeo.
-      const tmp=new Image();
-      tmp.onload=()=>{img.src=url};
-      tmp.src=url;
-    }
+    if(img.src!==url){const tmp=new Image();tmp.onload=()=>{img.src=url};tmp.src=url;}   // precarga: sin parpadeo
+  });
+}
+function pedirHD(nums){
+  nums.forEach(num=>{
+    if(cacheHD.has(num)){aplicarHD(num,cacheHD.get(num));return}
+    if(hdEnCurso.has(num))return;
+    hdEnCurso.add(num);
+    renderPaginaHD(num).then(url=>aplicarHD(num,url)).catch(e=>console.warn('Render HD falló para página',num,e)).finally(()=>hdEnCurso.delete(num));
   });
 }
 
-// Solicita HD de una lista de páginas, con dedupe.
-function pedirHD(nums){
-  nums.forEach(num=>{
-    if(cacheHD.has(num)){
-      aplicarHD(num,cacheHD.get(num));
-      return;
-    }
-    if(hdEnCurso.has(num))return;
-    hdEnCurso.add(num);
-    renderPaginaHD(num).then(url=>{
-      aplicarHD(num,url);
-    }).catch(e=>{
-      console.warn('Render HD falló para página',num,e);
-    }).finally(()=>{
-      hdEnCurso.delete(num);
-    });
-  });
-}
+// ========== Bloqueo (mismo criterio que la Comicteca) ==========
+function bloqueado(c){return !!(c&&c.desbloqueo&&c.desbloqueo.requiere&&!lsJSON('comics_desbloqueados',[]).includes(c.id))}
 
 // ========== Inicialización ==========
 async function init(){
+  if(!window.pdfjsLib||!window.St){splashError('No se pudo cargar el lector','<div>Revisa tu conexión: la primera vez el lector necesita internet para descargar sus componentes. Después funciona sin conexión.</div>');return}
   if(!comicId){splashError('No se indicó qué cómic leer.');return}
 
   setSplashProgress(5,'Consultando catálogo…');
-  let config;
   try{
     const r=await fetch('comics_config.json?v='+Date.now());
     if(!r.ok)throw new Error('HTTP '+r.status);
     config=await r.json();
-  }catch(e){splashError('No pude cargar el catálogo.\n'+e.message);return}
+  }catch(e){
+    try{const r=await fetch('comics_config.json');config=await r.json()}   // sin red: copia guardada
+    catch(e2){splashError('No pude cargar el catálogo.','<div>'+escapeHtml(e.message)+'</div>');return}
+  }
 
   comic=(config.comics||[]).find(c=>c.id===comicId);
-  if(!comic){splashError('Cómic no encontrado: '+comicId);return}
+  if(!comic){splashError('Cómic no encontrado',' <div>'+escapeHtml(comicId)+'</div>');return}
 
-  $('titulo').textContent=comic.titulo;
+  // Color e identidad del arco
+  const arco=(config.arcos||[]).find(a=>a.id===comic.arco);
+  if(arco&&arco.color)document.documentElement.style.setProperty('--arc',arco.color);
+  const nomArco=arco?arco.nombre:'';
+  $('titulo').textContent=comic.titulo;$('t-sub').textContent=comic.subtitulo||'';$('t-arco').textContent=nomArco;
+  $('sp-arco').textContent=nomArco;$('sp-tit').textContent=comic.titulo;$('sp-sub').textContent=comic.subtitulo||'';
   document.title=comic.titulo+' — Nexo de Héroes';
-  // Splash con la portada
-  $('splash-tit').textContent=comic.titulo+(comic.subtitulo?' · '+comic.subtitulo:'');
-  if(comic.portada){const cv=$('splash-cover');cv.onload=()=>{cv.classList.add('ok');$('splash-logo').style.display='none'};cv.src=comic.portada;}
+  if(comic.portada){
+    const im=$('sp-img');im.onload=()=>{$('sp-cover').classList.add('ok');$('sp-logo').style.display='none';
+      const u='url("'+encodeURI(comic.portada)+'")';['sp-bg','amb','cr-bg'].forEach(id=>{$(id).style.backgroundImage=u});$('sp-bg').classList.add('ok');$('amb').classList.add('ok')};
+    im.src=comic.portada;
+  }
+
+  if(bloqueado(comic)){
+    splashError('🔒 Este cómic está bloqueado','<div>Desbloquéalo en la Comicteca para leerlo.</div>');return;
+  }
 
   setSplashProgress(10,'Descargando PDF…');
-
-  // Intento 1: modo normal (streaming). Rápido para PDFs bien formados.
-  // Intento 2: modo robusto (descarga completa antes de parsear). Rescata PDFs
-  // con estructuras raras: xref dañado, streams no estándar, exportaciones
-  // atípicas de InDesign/Photoshop, etc.
+  // Intento 1: modo normal (streaming). Intento 2: modo robusto (descarga completa antes de leer),
+  // rescata PDFs con estructura rara (xref dañado, exportaciones atípicas de InDesign/Photoshop…).
   async function intentarAbrirPDF(opcionesExtra){
     const loadingTask=pdfjsLib.getDocument({
       url:comic.pdf,
@@ -506,74 +585,55 @@ async function init(){
       ...opcionesExtra
     });
     loadingTask.onProgress=data=>{
-      if(data.total){
-        const pct=10+Math.round((data.loaded/data.total)*15);
-        setSplashProgress(Math.min(pct,25),'Descargando PDF…');
-      }
+      if(data.total){setSplashProgress(Math.min(10+Math.round((data.loaded/data.total)*15),25),'Descargando PDF…')}
     };
     return await loadingTask.promise;
   }
-
   try{
     pdf=await intentarAbrirPDF({});
   }catch(e1){
     console.warn('Intento 1 falló, reintentando en modo robusto',e1);
     setSplashProgress(15,'Reintentando en modo robusto…');
     try{
-      pdf=await intentarAbrirPDF({
-        disableAutoFetch:true,
-        disableStream:true,
-        disableRange:true
-      });
+      pdf=await intentarAbrirPDF({disableAutoFetch:true,disableStream:true,disableRange:true});
     }catch(e2){
       const detalle=(e2&&e2.message)||String(e2);
-      $('splash-err').style.display='block';
-      $('splash-err').innerHTML=
-        '<strong>No pude abrir este PDF.</strong><br>'+
-        '<span style="font-size:.85em;opacity:.75">'+escapeHtml(detalle)+'</span><br><br>'+
-        'Suele deberse a un PDF exportado con estructura no estándar. '+
-        'Prueba re-exportarlo desde el original (por ejemplo, "Guardar como PDF/A" o '+
-        '"Reducir tamaño de archivo" en Acrobat) o linealízalo con Ghostscript / <em>qpdf --linearize</em>.<br><br>'+
-        '<a href="'+encodeURI(comic.pdf)+'" target="_blank" rel="noopener" style="color:var(--acc-gold);text-decoration:underline">Descargar el PDF directamente</a><br><br>'+
-        '<a href="comics.html" style="color:var(--acc-gold)">← Volver a la Comicteca</a>';
-      $('splash-msg').style.display='none';
+      splashError('No pude abrir este PDF',
+        '<div style="font-size:.88em;opacity:.75;margin-bottom:8px">'+escapeHtml(detalle)+'</div>'+
+        '<div>Suele deberse a un PDF exportado con estructura no estándar. Prueba re-exportarlo (por ejemplo "Guardar como PDF/A" o '+
+        '"Reducir tamaño de archivo" en Acrobat) o linealízalo con <em>qpdf --linearize</em>.</div>'+
+        '<div style="margin-top:8px"><a href="'+encodeURI(comic.pdf)+'" target="_blank" rel="noopener">Descargar el PDF directamente</a></div>');
       return;
     }
   }
 
   totalPaginas=pdf.numPages;
-  $('prog').textContent='1 / '+totalPaginas;
+  try{const p1=await pdf.getPage(1),v=p1.getViewport({scale:1});if(v.width>0&&v.height>0)PAGE_RATIO=Math.max(.45,Math.min(1,v.width/v.height));}catch(e){}
+  document.documentElement.style.setProperty('--pr',PAGE_RATIO);
 
-  // ===== FIX del bug de página 4 =====
-  // StPageFlip toma un snapshot del HTML al llamar loadFromHTML().
-  // Si sólo pre-cargábamos 4 páginas, las páginas 5+ quedaban como divs vacíos
-  // dentro del libro rendereado, y las imágenes cargadas después no se
-  // reflejaban visualmente. La solución: renderizar TODAS las páginas antes
-  // de construir el libro.
+  // FIX de la página 4: StPageFlip toma una foto del HTML al llamar loadFromHTML(); por eso se
+  // renderizan TODAS las páginas antes de construir el libro.
   setSplashProgress(25,'Preparando páginas…');
   for(let i=1;i<=totalPaginas;i++){
-    try{
-      await renderPagina(i);
-    }catch(e){
-      console.warn('Error renderizando página',i,e);
-    }
-    const pct=25+Math.round((i/totalPaginas)*65);
-    setSplashProgress(pct,'Preparando página '+i+' / '+totalPaginas);
+    try{await renderPagina(i)}catch(e){console.warn('Error renderizando página',i,e)}
+    setSplashProgress(25+Math.round((i/totalPaginas)*65),'Preparando página '+i+' / '+totalPaginas);
   }
 
   setSplashProgress(95,'Encuadernando…');
   construirLibro();
-  construirMiniaturas();
+  construirIndice();
+  prepararScrub();
 
   setSplashProgress(100,'Listo');
   setTimeout(()=>{
     $('splash').classList.add('gone');
-    setTimeout(()=>$('splash').style.display='none',500);
+    setTimeout(()=>$('splash').style.display='none',550);
     mostrarHUD();
-    // Continuar donde te quedaste
     const g=paginaGuardada();
-    if(g>0&&g<totalPaginas-1){flipBook.turnToPage(g);paginaActual=g;$('prog').textContent=(g+1)+' / '+totalPaginas;actualizarMiniaturas();actualizarBotones();
-      avisar('Continúas en la página '+(g+1),()=>{flipBook.turnToPage(0);paginaActual=0;$('prog').textContent='1 / '+totalPaginas;actualizarMiniaturas();actualizarBotones();guardarPagina();});}
+    if(g>0&&g<totalPaginas-1){
+      irA(g);
+      avisar('Continúas en la <b>página '+(g+1)+'</b>',()=>{irA(0);guardarPagina();});
+    }
     try{if(window.GP&&GP.activo())GP.enfocar($('btn-next'))}catch(e){}
   },300);
 }
@@ -581,22 +641,17 @@ async function init(){
 // ========== StPageFlip ==========
 function construirLibro(){
   const {w,h,single}=calcularTam();
-  const bookEl=$('book');
+  let bookEl=$('book');
+  if(!bookEl){bookEl=document.createElement('div');bookEl.id='book';$('book-wrap').appendChild(bookEl)}
   bookEl.innerHTML='';
 
   // Todas las páginas ya están renderizadas en cache; las inyectamos con img.
   for(let i=1;i<=totalPaginas;i++){
     const div=document.createElement('div');
-    div.className='page';
-    div.dataset.pagina=i;
-    const src=cache.get(i);
-    if(src){
-      const img=document.createElement('img');
-      img.src=src;img.alt='Página '+i;
-      div.appendChild(img);
-    }else{
-      div.innerHTML='<div class="page-empty">Página '+i+'</div>';
-    }
+    div.className='page';div.dataset.pagina=i;
+    const src=cacheHD.get(i)||cache.get(i);
+    if(src){const img=document.createElement('img');img.src=src;img.alt='Página '+i;img.draggable=false;div.appendChild(img)}
+    else div.innerHTML='<div class="page-empty">PÁGINA '+i+'</div>';
     bookEl.appendChild(div);
   }
 
@@ -604,416 +659,330 @@ function construirLibro(){
     width:single?w:w/2,
     height:h,
     size:'fixed',
-    minWidth:200,maxWidth:1200,
-    minHeight:300,maxHeight:1800,
+    minWidth:200,maxWidth:1600,
+    minHeight:300,maxHeight:2000,
     maxShadowOpacity:.5,
     showCover:true,
     mobileScrollSupport:false,
     usePortrait:single,
     drawShadow:true,
-    flippingTime:600,
-    swipeDistance:30
+    flippingTime:650,
+    swipeDistance:30,
+    // v271 · El libro ya no escucha toques ni arrastres por su cuenta (antes tocar el centro para ver los
+    // controles también pasaba la página). Los gestos los decide el lector: deslizar = pasar página con la
+    // animación del libro · tocar a los lados = pasar página · tocar el centro = mostrar/ocultar controles.
+    useMouseEvents:false,
+    showPageCorners:false
   });
-
   flipBook.loadFromHTML(bookEl.querySelectorAll('.page'));
-
   flipBook.on('flip',e=>{
     paginaActual=e.data;
-    $('prog').textContent=(paginaActual+1)+' / '+totalPaginas;
-    actualizarMiniaturas();
-    actualizarBotones();
-    // Resetear zoom al cambiar de página
-    if(zoomScale>1.01) resetZoom();
-    // Precarga HD de la página actual si acabamos de resetear con zoom > umbral
-    // (no aplica aquí porque acabamos de resetear, pero por si en el futuro se
-    // cambia el comportamiento, dejamos el hook.)
-    // v197 · Los créditos ya NO se abren solos: en la última página aparece "VER CRÉDITOS"
+    if(zoomScale>1.01)resetZoom();   // al cambiar de página se quita el zoom
+    alCambiarPagina();
     guardarPagina();
   });
-
   $('btn-prev').onclick=()=>{anterior();mostrarHUD()};
   $('btn-next').onclick=()=>{siguiente();mostrarHUD()};
-  actualizarBotones();
+  actualizarModoUI();
+  firmaLibro=firma();
+  alCambiarPagina();
 }
 
-function actualizarBotones(){
-  $('btn-prev').disabled=paginaActual<=0;
-  $('btn-next').disabled=false;
-  estadoFin();
+// Rehace el libro conservando la página (al girar el teléfono o cambiar de modo)
+let firmaLibro='';
+function firma(){const t=calcularTam();return t.single+':'+t.w+'x'+t.h}
+function reconstruirLibro(){
+  if(!flipBook||!totalPaginas)return;
+  const pag=paginaActual;
+  resetZoom();
+  try{flipBook.destroy()}catch(e){}
+  flipBook=null;
+  construirLibro();
+  if(pag>0){try{flipBook.turnToPage(pag)}catch(e){}paginaActual=idxReal(pag)}
+  firmaLibro=firma();
+  alCambiarPagina();
 }
 
-// ========== Miniaturas ==========
-function construirMiniaturas(){
-  const cont=$('thumbs');
-  cont.innerHTML='';
+// ========== Modo de lectura ==========
+const ICO_LIBRO='<path d="M3 5c3-1 6-1 9 1v14c-3-2-6-2-9-1z"/><path d="M21 5c-3-1-6-1-9 1v14c3-2 6-2 9-1z"/>';
+const ICO_PAGINA='<rect x="6" y="3" width="12" height="18"/><path d="M9 8h6M9 12h6"/>';
+function actualizarModoUI(){
+  const b=$('btn-modo');b.hidden=!puedeLibro();
+  const libro=modo!=='pagina';
+  $('ico-modo').innerHTML=libro?ICO_LIBRO:ICO_PAGINA;
+  b.title=libro?'Modo libro · cambiar a una página (M)':'Una página · cambiar a modo libro (M)';
+  b.setAttribute('aria-label',b.title);
+}
+function cambiarModo(){
+  if(!puedeLibro())return;
+  modo=modo==='pagina'?'auto':'pagina';
+  try{localStorage.setItem(K_MODO,modo)}catch(e){}
+  reconstruirLibro();mostrarHUD();
+}
+
+// ========== Barra para saltar de página (con vista previa) ==========
+function pintarScrub(n){
+  const p=totalPaginas>1?(n-1)/(totalPaginas-1):0;
+  $('sc-fill').style.width=(p*100)+'%';$('sc-dot').style.left=(p*100)+'%';
+  return p;
+}
+function prepararScrub(){
+  const s=$('scrub'),R=$('rango'),B=$('burbuja');
+  s.max=totalPaginas;s.value=paginaActual+1;pintarScrub(+s.value);
+  const ver=()=>{const n=+s.value,p=pintarScrub(n);B.style.left=(p*100)+'%';$('bur-n').textContent=n+' / '+totalPaginas;
+    const u=cache.get(n);if(u)$('bur-img').src=u;B.classList.add('show');mostrarHUD();};
+  s.addEventListener('pointerdown',()=>{R.classList.add('drag');ver()});
+  s.addEventListener('input',()=>{R.classList.add('drag');ver()});
+  const soltar=()=>{if(!R.classList.contains('drag'))return;R.classList.remove('drag');B.classList.remove('show');
+    const idx=(+s.value)-1;if(idx!==paginaActual)irA(idx);guardarPagina();mostrarHUD();};
+  s.addEventListener('change',soltar);s.addEventListener('pointerup',soltar);s.addEventListener('pointercancel',soltar);
+  s.addEventListener('blur',()=>{R.classList.remove('drag');B.classList.remove('show')});
+}
+
+// ========== Índice de páginas ==========
+function construirIndice(){
+  const g=$('idx-grid');g.innerHTML='';$('idx-n').textContent='· '+totalPaginas+' PÁGINAS';
   for(let i=1;i<=totalPaginas;i++){
-    const t=document.createElement('div');
-    t.className='thumb';
-    t.dataset.pagina=i;
+    const b=document.createElement('button');b.className='idx-p';b.dataset.p=i;b.setAttribute('aria-label','Página '+i);
     const src=cache.get(i);
-    if(src){
-      const img=document.createElement('img');img.src=src;t.appendChild(img);
-    }
-    const num=document.createElement('div');num.className='num';num.textContent=i;
-    t.appendChild(num);
-    t.onclick=()=>{
-      flipBook?.turnToPage(i-1);
-      mostrarHUD();
-    };
-    cont.appendChild(t);
+    b.innerHTML=(src?'<img loading="lazy" alt="" src="'+src+'">':'')+'<span>'+i+'</span>';
+    b.onclick=()=>{cerrarIndice();irA(i-1);guardarPagina();};
+    g.appendChild(b);
   }
-  actualizarMiniaturas();
+  marcarIndice();
 }
-function actualizarMiniaturas(){
-  $('thumbs').querySelectorAll('.thumb').forEach((t,i)=>{
-    t.classList.toggle('active',i===paginaActual);
-    if(i===paginaActual)t.scrollIntoView({inline:'center',behavior:'smooth',block:'nearest'});
-  });
+function marcarIndice(){
+  const vis=paginasVisibles();
+  $('idx-grid').querySelectorAll('.idx-p').forEach(b=>{const n=+b.dataset.p;b.classList.toggle('act',vis.includes(n));b.classList.toggle('vista',n<vis[0])});
 }
+function abrirIndice(){
+  if(!totalPaginas)return;
+  marcarIndice();$('indice').classList.add('show');$('indice').setAttribute('aria-hidden','false');mostrarHUD();
+  const a=$('idx-grid').querySelector('.idx-p.act');if(a)a.scrollIntoView({block:'center'});
+  try{if(window.GP&&GP.activo())GP.enfocar(a||$('idx-grid').firstChild)}catch(e){}
+}
+function cerrarIndice(){$('indice').classList.remove('show');$('indice').setAttribute('aria-hidden','true');mostrarHUD()}
 
-// ========== Créditos (múltiples personas) ==========
+// ========== Créditos ==========
 function obtenerCreditos(){
-  // Prioridad: creditos[] (nuevo formato) > autor (retrocompat)
-  if(Array.isArray(comic.creditos) && comic.creditos.length){
-    return comic.creditos;
-  }
-  if(comic.autor){
-    return [{
-      rol: 'Guión y Arte',
-      nombre: comic.autor.nombre,
-      foto: comic.autor.foto,
-      bio: comic.autor.bio,
-      redes: comic.autor.redes || {}
-    }];
-  }
+  if(Array.isArray(comic.creditos)&&comic.creditos.length)return comic.creditos;
+  if(comic.autor)return [{rol:'Guión y Arte',nombre:comic.autor.nombre,foto:comic.autor.foto,bio:comic.autor.bio,redes:comic.autor.redes||{}}];
   return [];
 }
-
+// Siguiente número del mismo arco (según "orden")
+function siguienteComic(){
+  const lista=(config&&config.comics||[]).filter(c=>c.arco===comic.arco&&c.id!==comic.id&&(+c.orden||0)>(+comic.orden||0));
+  lista.sort((a,b)=>(+a.orden||0)-(+b.orden||0));
+  return lista[0]||null;
+}
 function mostrarCreditos(){
   const creditos=obtenerCreditos();
-  if(!creditos.length){$('cred-personas').innerHTML='';$('creditos').classList.add('show');ocultarHUD();estadoFin();marcarLeido();return}
-
-  $('cred-titulo').textContent=(comic.titulo||'').toUpperCase()+(comic.subtitulo?' · '+comic.subtitulo.toUpperCase():'');
-
-  const cont=$('cred-personas');
-  cont.innerHTML='';
+  $('cred-titulo').textContent=(comic.titulo||'')+(comic.subtitulo?' · '+comic.subtitulo:'');
+  $('cr-sec-cred').style.display=creditos.length?'':'none';
+  const cont=$('cred-personas');cont.innerHTML='';
   const iconos={facebook:'ⓕ',instagram:'ⓘ',twitter:'𝕏',x:'𝕏',web:'⚭',tienda:'🛒',youtube:'▶',tiktok:'♪'};
-
   creditos.forEach((p,idx)=>{
-    const bloque=document.createElement('div');
-    bloque.className='cred-persona';
-    bloque.style.animationDelay=(idx*.15)+'s';
-
-    // Avatar
-    const av=document.createElement('div');
-    av.className='cred-avatar';
-    if(p.foto){
-      const img=document.createElement('img');
-      img.src=p.foto;
-      img.onerror=()=>{av.innerHTML=(p.nombre||'?').charAt(0)};
-      av.appendChild(img);
-    }else{
-      av.textContent=(p.nombre||'?').charAt(0);
+    const card=document.createElement('div');card.className='persona';card.style.animationDelay=(idx*.12)+'s';
+    const av=document.createElement('div');av.className='av';
+    const ini=(p.nombre||'?').charAt(0).toUpperCase();
+    if(p.foto){const img=document.createElement('img');img.alt='';img.src=p.foto;img.onerror=()=>{av.textContent=ini};av.appendChild(img)}else av.textContent=ini;
+    const d=document.createElement('div');d.className='pd';
+    d.innerHTML='<div class="rol">'+escapeHtml(p.rol||'Crédito')+'</div><div class="nom">'+escapeHtml(p.nombre||'—')+'</div>'+(p.bio?'<div class="bio">'+escapeHtml(p.bio)+'</div>':'');
+    const redes=Object.entries(p.redes||{}).filter(([k,v])=>v);
+    if(redes.length){
+      const r=document.createElement('div');r.className='redes';
+      redes.forEach(([k,v])=>{const a=document.createElement('a');a.className='red';a.href=v;a.target='_blank';a.rel='noopener';a.innerHTML='<span>'+(iconos[k]||'●')+'</span>'+escapeHtml(k.toUpperCase());r.appendChild(a)});
+      d.appendChild(r);
     }
-    bloque.appendChild(av);
-
-    // Rol
-    const rol=document.createElement('div');
-    rol.className='cred-rol';
-    rol.textContent=p.rol||'CRÉDITO';
-    bloque.appendChild(rol);
-
-    // Nombre
-    const nom=document.createElement('div');
-    nom.className='cred-nombre';
-    nom.textContent=p.nombre||'—';
-    bloque.appendChild(nom);
-
-    // Bio
-    if(p.bio){
-      const bio=document.createElement('div');
-      bio.className='cred-bio';
-      bio.textContent=p.bio;
-      bloque.appendChild(bio);
-    }
-
-    // Redes
-    if(p.redes){
-      const redes=document.createElement('div');
-      redes.className='cred-redes';
-      let count=0;
-      Object.entries(p.redes).forEach(([k,v])=>{
-        if(!v)return;
-        count++;
-        const link=document.createElement('a');
-        link.className='cred-red';link.href=v;link.target='_blank';link.rel='noopener';
-        link.innerHTML='<span>'+(iconos[k]||'●')+'</span>'+k.toUpperCase();
-        redes.appendChild(link);
-      });
-      if(count>0)bloque.appendChild(redes);
-    }
-
-    cont.appendChild(bloque);
+    card.appendChild(av);card.appendChild(d);cont.appendChild(card);
   });
-
+  // Siguiente número
+  const s=siguienteComic(),sc=$('cr-sig');sc.innerHTML='';
+  if(s){
+    const lock=bloqueado(s);
+    sc.innerHTML='<div class="cr-sec">CONTINÚA LA HISTORIA</div>'+
+      '<a class="sig" href="'+(lock?'comics.html':'lector.html?id='+encodeURIComponent(s.id))+'">'+
+      (s.portada?'<img alt="" onerror="this.remove()" src="'+encodeURI(s.portada)+'">':'')+
+      '<div><div class="k">SIGUIENTE NÚMERO</div><div class="t">'+escapeHtml(s.titulo||'')+'</div><div class="s">'+escapeHtml(s.subtitulo||'')+'</div></div>'+
+      '<span class="go">'+(lock?'🔒 EN LA COMICTECA':'LEER ›')+'</span></a>';
+  }
   $('creditos').classList.add('show');$('creditos').scrollTop=0;
-  ocultarHUD();estadoFin();marcarLeido();
-  try{if(window.GP&&GP.activo())setTimeout(()=>GP.enfocar(document.querySelector('#creditos .cred-btn.gold')),80)}catch(e){}
+  ocultarHUD();estadoFin();marcarLeido();guardarPagina();
+  try{if(window.GP&&GP.activo())setTimeout(()=>GP.enfocar(document.querySelector('#creditos .btn.prim')),80)}catch(e){}
 }
 function cerrarCreditos(){$('creditos').classList.remove('show');estadoFin();mostrarHUD();try{if(window.GP&&GP.activo())GP.enfocar($('btn-next'))}catch(e){}}
-function reiniciar(){
-  cerrarCreditos();
-  flipBook?.turnToPage(0);paginaActual=0;$('prog').textContent='1 / '+totalPaginas;actualizarMiniaturas();actualizarBotones();guardarPagina();
-}
+function reiniciar(){cerrarCreditos();irA(0);guardarPagina()}
 
 // ========== Zoom táctil (pinch + pan + doble-tap) ==========
 let zoomScale=1, zoomX=0, zoomY=0;
 let pinchInicio=null;   // {dist, scaleInicial, xInicial, yInicial}
 let panInicio=null;     // {x, y, tx, ty, moved}
-let ultimoTap=0;        // timestamp del último tap simple (para detectar doble-tap)
-let ultimoTapX=0, ultimoTapY=0;
+let ultimoTap=0, ultimoTapX=0, ultimoTapY=0;
 const ZOOM_MIN=1, ZOOM_MAX=4, ZOOM_DOBLE_TAP=2.4;
-
 const bookWrap=$('book-wrap');
 const zoomBadge=$('zoom-badge');
 
 function aplicarZoom(animar){
-  if(animar) bookWrap.classList.add('animar');
-  else bookWrap.classList.remove('animar');
+  bookWrap.classList.toggle('animar',!!animar);
   bookWrap.style.transform=`translate3d(${zoomX}px, ${zoomY}px, 0) scale(${zoomScale})`;
   const zoomed=zoomScale>1.05;
   document.body.classList.toggle('zoomed',zoomed);
   zoomBadge.classList.toggle('show',zoomed);
   $('zoom-nivel').textContent=zoomScale.toFixed(1)+'×';
-  if(animar) setTimeout(()=>bookWrap.classList.remove('animar'),320);
-  // Si el zoom supera el umbral, cargar la versión HD de las páginas visibles.
-  if(zoomScale>=ZOOM_UMBRAL_HD){
-    pedirHD(paginasVisibles());
-  }
+  if(animar)setTimeout(()=>bookWrap.classList.remove('animar'),320);
+  if(zoomScale>=ZOOM_UMBRAL_HD)pedirHD(paginasVisibles());   // con zoom se carga la versión HD
 }
-
-function resetZoom(){
-  zoomScale=1; zoomX=0; zoomY=0;
-  aplicarZoom(true);
-}
-
-// Clamp del pan para que la página no se salga demasiado
+function resetZoom(){zoomScale=1;zoomX=0;zoomY=0;aplicarZoom(true)}
 function ajustarPan(){
   if(zoomScale<=1){zoomX=0;zoomY=0;return}
   const rect=bookWrap.getBoundingClientRect();
-  const maxX=Math.max(0,(rect.width-window.innerWidth)/2 + 60);
-  const maxY=Math.max(0,(rect.height-window.innerHeight)/2 + 60);
+  const maxX=Math.max(0,(rect.width-window.innerWidth)/2+60);
+  const maxY=Math.max(0,(rect.height-window.innerHeight)/2+60);
   zoomX=Math.max(-maxX,Math.min(maxX,zoomX));
   zoomY=Math.max(-maxY,Math.min(maxY,zoomY));
 }
-
 function dist(t1,t2){return Math.hypot(t2.clientX-t1.clientX,t2.clientY-t1.clientY)}
 
-// --- Handlers en FASE DE CAPTURA para interceptar antes que StPageFlip ---
-// StPageFlip registra sus listeners en el elemento del libro; al capturar aquí
-// arriba, podemos bloquear el evento con stopImmediatePropagation() y evitar
-// que interprete el swipe como cambio de página cuando estamos manipulando zoom.
-function esGestoZoom(e){
-  return e.touches.length>=2 || (zoomScale>1.05);
-}
-
+// Handlers en FASE DE CAPTURA: interceptan antes que StPageFlip para que el pellizco
+// o el arrastre con zoom no se interpreten como cambio de página.
 $('stage').addEventListener('touchstart',e=>{
   if(e.touches.length===2){
-    // Iniciar pinch: bloqueamos StPageFlip
-    e.preventDefault();
-    e.stopImmediatePropagation();
-    pinchInicio={
-      dist:dist(e.touches[0],e.touches[1]),
-      scaleInicial:zoomScale,
-      xInicial:zoomX,
-      yInicial:zoomY
-    };
+    e.preventDefault();e.stopImmediatePropagation();
+    pinchInicio={dist:dist(e.touches[0],e.touches[1]),scaleInicial:zoomScale,xInicial:zoomX,yInicial:zoomY};
     panInicio=null;
-    // Si StPageFlip ya empezó a interpretar un swipe con el primer dedo,
-    // le enviamos un touchcancel para que aborte.
-    try{
-      const cancel=new TouchEvent('touchcancel',{bubbles:true,cancelable:true,touches:e.touches});
-      $('book').dispatchEvent(cancel);
-    }catch(_){/* algunos navegadores no permiten construir TouchEvent */}
-  }else if(e.touches.length===1 && zoomScale>1.05){
-    // Pan: también bloqueamos StPageFlip
-    e.preventDefault();
-    e.stopImmediatePropagation();
+    try{$('book').dispatchEvent(new TouchEvent('touchcancel',{bubbles:true,cancelable:true,touches:e.touches}))}catch(_){}   // aborta un swipe a medias
+  }else if(e.touches.length===1&&zoomScale>1.05){
+    e.preventDefault();e.stopImmediatePropagation();
     const t=e.touches[0];
     panInicio={x:t.clientX,y:t.clientY,tx:zoomX,ty:zoomY,moved:false};
   }
 },{passive:false,capture:true});
 
 $('stage').addEventListener('touchmove',e=>{
-  if(pinchInicio && e.touches.length===2){
-    e.preventDefault();
-    e.stopImmediatePropagation();
-    const d=dist(e.touches[0],e.touches[1]);
-    const factor=d/pinchInicio.dist;
+  if(pinchInicio&&e.touches.length===2){
+    e.preventDefault();e.stopImmediatePropagation();
+    const factor=dist(e.touches[0],e.touches[1])/pinchInicio.dist;
     zoomScale=Math.max(ZOOM_MIN,Math.min(ZOOM_MAX,pinchInicio.scaleInicial*factor));
     const rel=zoomScale/pinchInicio.scaleInicial;
-    zoomX=pinchInicio.xInicial*rel;
-    zoomY=pinchInicio.yInicial*rel;
-    ajustarPan();
-    aplicarZoom(false);
-  }else if(panInicio && e.touches.length===1 && zoomScale>1.05){
-    e.preventDefault();
-    e.stopImmediatePropagation();
+    zoomX=pinchInicio.xInicial*rel;zoomY=pinchInicio.yInicial*rel;
+    ajustarPan();aplicarZoom(false);
+  }else if(panInicio&&e.touches.length===1&&zoomScale>1.05){
+    e.preventDefault();e.stopImmediatePropagation();
     const t=e.touches[0];
-    zoomX=panInicio.tx+(t.clientX-panInicio.x);
-    zoomY=panInicio.ty+(t.clientY-panInicio.y);
-    if(Math.abs(t.clientX-panInicio.x)>4||Math.abs(t.clientY-panInicio.y)>4){
-      panInicio.moved=true;
-    }
-    ajustarPan();
-    aplicarZoom(false);
-  }else if(zoomScale>1.05 && e.touches.length===1){
-    // Estamos zoomeados: bloquear siempre para que StPageFlip no lea el swipe
-    e.preventDefault();
-    e.stopImmediatePropagation();
+    zoomX=panInicio.tx+(t.clientX-panInicio.x);zoomY=panInicio.ty+(t.clientY-panInicio.y);
+    if(Math.abs(t.clientX-panInicio.x)>4||Math.abs(t.clientY-panInicio.y)>4)panInicio.moved=true;
+    ajustarPan();aplicarZoom(false);
+  }else if(zoomScale>1.05&&e.touches.length===1){
+    e.preventDefault();e.stopImmediatePropagation();
   }else if(e.touches.length===1){
-    // Sin zoom: prevenir scroll de rebote (pero dejar pasar a StPageFlip)
-    if(!e.target.closest('#creditos')&&!e.target.closest('.thumbs')){
-      e.preventDefault();
-    }
+    e.preventDefault();   // sin zoom: evita el rebote de la página (StPageFlip sí recibe el gesto)
   }
 },{passive:false,capture:true});
 
 $('stage').addEventListener('touchend',e=>{
-  const wasPinch=!!pinchInicio;
-  const wasPan=!!panInicio;
-  if(e.touches.length<2) pinchInicio=null;
-  if(e.touches.length===0) panInicio=null;
-
-  // Si veníamos de un gesto de zoom, bloqueamos también el touchend
-  // para que StPageFlip no lo interprete como fin de swipe.
-  if(wasPinch||wasPan||zoomScale>1.05){
-    e.stopImmediatePropagation();
-  }
-
-  if(e.touches.length===0){
-    // Snap back si quedó ligeramente por encima de 1
-    if(zoomScale<1.05 && zoomScale!==1){
-      resetZoom();
-    }
-  }
+  const wasPinch=!!pinchInicio, wasPan=!!panInicio;
+  if(e.touches.length<2)pinchInicio=null;
+  if(e.touches.length===0)panInicio=null;
+  if(wasPinch||wasPan||zoomScale>1.05)e.stopImmediatePropagation();
+  if(e.touches.length===0&&zoomScale<1.05&&zoomScale!==1)resetZoom();
 },{capture:true});
 
-// --- Doble tap para zoom rápido (in/out) ---
-// Se registra sin capture porque no queremos interferir con taps normales.
+// Doble toque: acerca / restablece
 $('stage').addEventListener('touchend',e=>{
   if(e.changedTouches.length!==1||e.touches.length!==0)return;
-  // Si venimos de un pan real (con movimiento), no contar como tap
-  if(panInicio && panInicio.moved){return}
-  const t=e.changedTouches[0];
-  const ahora=Date.now();
+  if(panInicio&&panInicio.moved)return;
+  const t=e.changedTouches[0], ahora=Date.now();
   const dx=Math.abs(t.clientX-ultimoTapX), dy=Math.abs(t.clientY-ultimoTapY);
-  if(ahora-ultimoTap<320 && dx<40 && dy<40){
+  if(ahora-ultimoTap<320&&dx<40&&dy<40){
     e.preventDefault();
-    if(zoomScale>1.05){
-      resetZoom();
-    }else{
-      const rect=bookWrap.getBoundingClientRect();
-      const cx=rect.left+rect.width/2;
-      const cy=rect.top+rect.height/2;
+    if(zoomScale>1.05)resetZoom();
+    else{
+      const rect=bookWrap.getBoundingClientRect(), cx=rect.left+rect.width/2, cy=rect.top+rect.height/2;
       zoomScale=ZOOM_DOBLE_TAP;
-      zoomX=(cx-t.clientX)*(zoomScale-1)/zoomScale;
-      zoomY=(cy-t.clientY)*(zoomScale-1)/zoomScale;
-      ajustarPan();
-      aplicarZoom(true);
+      zoomX=(cx-t.clientX)*(zoomScale-1)/zoomScale;zoomY=(cy-t.clientY)*(zoomScale-1)/zoomScale;
+      ajustarPan();aplicarZoom(true);
     }
     ultimoTap=0;
-  }else{
-    ultimoTap=ahora;
-    ultimoTapX=t.clientX;
-    ultimoTapY=t.clientY;
-  }
+  }else{ultimoTap=ahora;ultimoTapX=t.clientX;ultimoTapY=t.clientY}
 });
 
-// --- Wheel + Ctrl para desktop ---
+// Ctrl + rueda (PC)
 $('stage').addEventListener('wheel',e=>{
-  if(!e.ctrlKey && !e.metaKey)return;
+  if(!e.ctrlKey&&!e.metaKey)return;
   e.preventDefault();
-  const factor=e.deltaY<0?1.15:1/1.15;
-  const nuevoScale=Math.max(ZOOM_MIN,Math.min(ZOOM_MAX,zoomScale*factor));
-  if(nuevoScale===zoomScale)return;
-  const rect=bookWrap.getBoundingClientRect();
-  const cx=rect.left+rect.width/2, cy=rect.top+rect.height/2;
-  const rel=nuevoScale/zoomScale;
-  zoomX=(zoomX+(cx-e.clientX))*rel-(cx-e.clientX);
-  zoomY=(zoomY+(cy-e.clientY))*rel-(cy-e.clientY);
-  zoomScale=nuevoScale;
-  if(zoomScale<=1){zoomX=0;zoomY=0}
-  ajustarPan();
-  aplicarZoom(false);
+  const nuevo=Math.max(ZOOM_MIN,Math.min(ZOOM_MAX,zoomScale*(e.deltaY<0?1.15:1/1.15)));
+  if(nuevo===zoomScale)return;
+  const rect=bookWrap.getBoundingClientRect(), cx=rect.left+rect.width/2, cy=rect.top+rect.height/2, rel=nuevo/zoomScale;
+  zoomX=(zoomX+(cx-e.clientX))*rel-(cx-e.clientX);zoomY=(zoomY+(cy-e.clientY))*rel-(cy-e.clientY);
+  zoomScale=nuevo;if(zoomScale<=1){zoomX=0;zoomY=0}
+  ajustarPan();aplicarZoom(false);
 },{passive:false});
 
-// ========== Interacción de navegación ==========
+// ========== Navegación ==========
 $('stage').addEventListener('click',e=>{
-  if(zoomScale>1.05)return;
-  if(e.target.classList.contains('tap-zone'))return;
+  if(zoomScale>1.05||Date.now()-sinClick<400)return;
+  if(e.target.closest('.tap-zone'))return;
   toggleHUD();
 });
-$('tap-left').addEventListener('click',e=>{
-  if(zoomScale>1.05)return;
-  e.stopPropagation();anterior();mostrarHUD();
-});
-$('tap-right').addEventListener('click',e=>{
-  if(zoomScale>1.05)return;
-  e.stopPropagation();siguiente();mostrarHUD();
-});
-// Deslizar hacia la izquierda en la última página: créditos
-{let sx=null;$('stage').addEventListener('touchstart',e=>{sx=e.touches.length===1&&zoomScale<=1.05?e.touches[0].clientX:null},{passive:true});
- $('stage').addEventListener('touchend',e=>{if(sx==null||e.touches.length)return;const dx=e.changedTouches[0].clientX-sx;sx=null;if(dx<-70&&enUltima())mostrarCreditos();},{passive:true});}
+function flashZona(z){z.classList.add('flash');clearTimeout(z._t);z._t=setTimeout(()=>z.classList.remove('flash'),380)}
+$('tap-left').addEventListener('click',e=>{if(zoomScale>1.05||Date.now()-sinClick<400)return;e.stopPropagation();flashZona(e.currentTarget);anterior()});
+$('tap-right').addEventListener('click',e=>{if(zoomScale>1.05||Date.now()-sinClick<400)return;e.stopPropagation();flashZona(e.currentTarget);siguiente()});
+// Deslizar (dedo o mouse) para pasar página; en la última página, deslizar a la izquierda abre los créditos
+function gestoSwipe(dx,dy,ms){
+  if(Math.abs(dx)<45||Math.abs(dx)<Math.abs(dy)*1.3||ms>900)return false;
+  sinClick=Date.now();dx<0?siguiente():anterior();return true;
+}
+{let s=null;
+ $('stage').addEventListener('touchstart',e=>{s=e.touches.length===1&&zoomScale<=1.05?{x:e.touches[0].clientX,y:e.touches[0].clientY,t:Date.now()}:null},{passive:true});
+ $('stage').addEventListener('touchend',e=>{if(!s||e.touches.length)return;const c=e.changedTouches[0];gestoSwipe(c.clientX-s.x,c.clientY-s.y,Date.now()-s.t);s=null},{passive:true});
+ $('stage').addEventListener('touchcancel',()=>{s=null},{passive:true});
+ let m=null;
+ $('stage').addEventListener('pointerdown',e=>{m=e.pointerType==='mouse'&&e.button===0&&zoomScale<=1.05?{x:e.clientX,y:e.clientY,t:Date.now()}:null});
+ $('stage').addEventListener('pointerup',e=>{if(!m||e.pointerType!=='mouse')return;gestoSwipe(e.clientX-m.x,e.clientY-m.y,Date.now()-m.t);m=null});}
 
 // Teclado
 document.addEventListener('keydown',e=>{
+  if(e.target&&e.target.id==='scrub'&&/Arrow/.test(e.key))return;   // la barra usa sus propias flechas
+  const ind=$('indice').classList.contains('show');
+  if(e.key==='Escape'){if(ind)cerrarIndice();else if(zoomScale>1.05)resetZoom();else if($('creditos').classList.contains('show'))cerrarCreditos();else salir();return}
+  if(ind)return;
   if(e.key==='ArrowLeft'){anterior()}
   else if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();siguiente()}
-  else if(e.key==='Home'){if(flipBook){flipBook.turnToPage(0);paginaActual=0;$('prog').textContent='1 / '+totalPaginas;actualizarMiniaturas();actualizarBotones();}}
-  else if(e.key==='End'){if(flipBook){flipBook.turnToPage(totalPaginas-1);paginaActual=totalPaginas-1;$('prog').textContent=totalPaginas+' / '+totalPaginas;actualizarMiniaturas();actualizarBotones();}}
-  else if(e.key==='Escape'){if(zoomScale>1.05)resetZoom();else if($('creditos').classList.contains('show'))cerrarCreditos();else salir()}
+  else if(e.key==='Home'){irA(0)}
+  else if(e.key==='End'){irA(totalPaginas-1)}
   else if(e.key==='f'||e.key==='F')toggleFullscreen();
-  else if(e.key==='+'||e.key==='='){
-    zoomScale=Math.min(ZOOM_MAX,zoomScale*1.25);aplicarZoom(true);
-  }else if(e.key==='-'||e.key==='_'){
-    zoomScale=Math.max(ZOOM_MIN,zoomScale/1.25);
-    if(zoomScale<=1){zoomX=0;zoomY=0}
-    aplicarZoom(true);
-  }else if(e.key==='0'){resetZoom()}
+  else if(e.key==='i'||e.key==='I')abrirIndice();
+  else if(e.key==='m'||e.key==='M')cambiarModo();
+  else if(e.key==='+'||e.key==='='){zoomScale=Math.min(ZOOM_MAX,zoomScale*1.25);aplicarZoom(true)}
+  else if(e.key==='-'||e.key==='_'){zoomScale=Math.max(ZOOM_MIN,zoomScale/1.25);if(zoomScale<=1){zoomX=0;zoomY=0}aplicarZoom(true)}
+  else if(e.key==='0'){resetZoom()}
   mostrarHUD();
 });
 
-// Reajuste en rotación / resize
+// Al girar el teléfono o cambiar el tamaño de la ventana se rehace el libro con el tamaño nuevo
 let resizeT;
 window.addEventListener('resize',()=>{
   clearTimeout(resizeT);
   resizeT=setTimeout(()=>{
     if(!flipBook||!totalPaginas)return;
-    resetZoom();
-    const {w,h,single}=calcularTam();
-    try{
-      flipBook.update&&flipBook.update({
-        width:single?w:w/2,
-        height:h,
-        usePortrait:single
-      });
-    }catch(e){/* algunas versiones no exponen update */}
-  },200);
+    actualizarModoUI();
+    if(firma()!==firmaLibro)reconstruirLibro();
+  },220);
 });
 
 window.addEventListener('pagehide',guardarPagina);
-// v197 · Control (gamepad.js): LB/RB o la cruceta en los extremos pasan página · LT/RT zoom · B regresa
+// Control (gamepad.js): LB/RB o la cruceta en los extremos pasan página · LT/RT zoom · B regresa
 window.GP_CFG={
   principalTxt:'Siguiente',
-  principal:()=>$('creditos').classList.contains('show')?document.querySelector('#creditos .cred-btn.gold'):$('btn-next'),
-  inicial:()=>$('creditos').classList.contains('show')?document.querySelector('#creditos .cred-btn.gold'):$('btn-next'),
-  lbrb:d=>{if($('creditos').classList.contains('show'))return false;d>0?siguiente():anterior();mostrarHUD();return true},
-  sinDestino:(dx)=>{if($('creditos').classList.contains('show')||!dx)return false;dx>0?siguiente():anterior();mostrarHUD();return true},
+  principal:()=>$('creditos').classList.contains('show')?document.querySelector('#creditos .btn.prim'):$('btn-next'),
+  inicial:()=>$('creditos').classList.contains('show')?document.querySelector('#creditos .btn.prim'):$('btn-next'),
+  lbrb:d=>{if($('creditos').classList.contains('show')||$('indice').classList.contains('show'))return false;d>0?siguiente():anterior();mostrarHUD();return true},
+  sinDestino:(dx)=>{if($('creditos').classList.contains('show')||$('indice').classList.contains('show')||!dx)return false;dx>0?siguiente():anterior();mostrarHUD();return true},
   gatillo:d=>{if($('creditos').classList.contains('show'))return false;zoomScale=Math.max(ZOOM_MIN,Math.min(ZOOM_MAX,zoomScale*(d>0?1.15:1/1.15)));if(zoomScale<=1){zoomX=0;zoomY=0}ajustarPan();aplicarZoom(false);return true},
   stickDerecho:(rx,ry)=>{if(zoomScale<=1.05)return false;zoomX-=rx*14;zoomY-=ry*14;ajustarPan();aplicarZoom(false);return true},
-  atras:()=>{if($('aviso').classList.contains('show')){$('aviso').classList.remove('show');return true}if(zoomScale>1.05){resetZoom();return true}if($('creditos').classList.contains('show')){cerrarCreditos();return true}salir();return true},
-  start:()=>document.querySelector('.hud-acc .btn-icon')
+  atras:()=>{if($('indice').classList.contains('show')){cerrarIndice();return true}if($('aviso').classList.contains('show')){$('aviso').classList.remove('show');return true}if(zoomScale>1.05){resetZoom();return true}if($('creditos').classList.contains('show')){cerrarCreditos();return true}salir();return true},
+  start:()=>$('btn-indice'),
+  ambito:()=>$('indice').classList.contains('show')?$('indice'):null
 };
 // La música va en la barra superior (como en los demás módulos)
 function moverMusica(){const b=document.getElementById('bgm-btn');if(b&&!$('hud-acc').contains(b))$('hud-acc').appendChild(b)}

@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#0a0e1a">
 <title>Comicteca — Nexo de Héroes</title>
-<link rel="icon" href="img/favicon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&family=Cinzel:wght@600;700;900&display=swap" rel="stylesheet">
 <style>
@@ -610,8 +610,8 @@
   const jugador={
     hp: parseInt(localStorage.getItem('hero_pesos')||'0',10),
     puntos: parseInt(localStorage.getItem('puntos_ranking')||'0',10),
-    desbloqueados: JSON.parse(localStorage.getItem('comics_desbloqueados')||'[]'),
-    leidos: JSON.parse(localStorage.getItem('comics_leidos')||'[]')
+    desbloqueados: ((k,d)=>{try{return JSON.parse(localStorage.getItem(k)||d)}catch(e){return JSON.parse(d)}})('comics_desbloqueados','[]'),
+    leidos: ((k,d)=>{try{return JSON.parse(localStorage.getItem(k)||d)}catch(e){return JSON.parse(d)}})('comics_leidos','[]')
   };
 
   let config;

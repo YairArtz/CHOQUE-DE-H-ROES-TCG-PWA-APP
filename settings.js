@@ -215,6 +215,8 @@ function applyTema(temaId) {
     .accent,[style*="var(--accent)"]{color:var(--neon)!important;}`;
   const animCss = isAnimated ? TEMA_ANIMS_FULL[t.animId] : '';
   injectStyle('chh-tema-global', baseCss + animCss);
+  // v270 · El Simulador, el Arcade y el Online no cargan este archivo: leen el tema de aquí (temas-ui.js)
+  try { localStorage.setItem('chh_tema_ui', JSON.stringify({ id: temaId, hex: h, d, anim: isAnimated ? TEMA_PROPS_REGISTER + animCss : '' })); } catch (e) {}
   // Limpiar el legacy 'chh-tienda-color' si existía (versión antigua de tienda.html)
   const legacy = document.getElementById('chh-tienda-color');
   if (legacy) legacy.remove();

@@ -2164,7 +2164,7 @@ function abrirDiario() {
   $('diBorrar').onclick = async () => { if (await mensaje('🗑 ¿BORRAR LA PARTIDA?', '<b>' + esc(S.nombre || '') + '</b> · Día ' + ((S.dia || 0) + 1) + '<br>Se pierde todo su progreso (también en la nube).', [['🗑 BORRAR', 'red'], ['CANCELAR', 'sec']]) !== 0) return;
     // v208 · 2ª confirmación, igual que en las partidas de la portada (botones invertidos contra el doble toque)
     if (await mensaje('⚠ ÚLTIMA ADVERTENCIA', 'Vas a borrar <b>' + esc(S.nombre || '') + '</b> (' + (S.victorias || 0) + ' victorias · ' + (S.monedas || 0) + ' <i class="mn"></i>).<br><b style="color:#ff5a7a">Esto no se puede deshacer.</b>', [['NO, CONSERVARLA', 'gold'], ['SÍ, BORRAR PARA SIEMPRE', 'red']]) !== 1) return;
-    S = nueva(S.nombre, S.baraja, S.barajaNombre); S.u = Date.now(); guardar(); cerrarModal('mDiario'); musica(null); irA('sTitulo'); pintarTitulo(); toast('🗑 Partida borrada'); };
+    S = nueva(S.nombre, S.baraja, S.barajaNombre); S.u = Date.now(); guardar(); cerrarModal('mDiario'); musicaPortada(); irA('sTitulo'); pintarTitulo(); toast('🗑 Partida borrada'); };
 }
 function cerrarModal(id) { $(id).classList.remove('on'); }
 let NSEL = null, NMODO = 'nueva';
@@ -2668,7 +2668,7 @@ function itemsContenido() {
   const fondos = o => { ['playmat', 'fondo_inicio'].forEach(k => o[k] && add(candidatos(o[k], 'simulador'), 'img')); if (o.fondo_mesa && !/^[a-z]+$/.test(o.fondo_mesa)) add(candidatos(o.fondo_mesa, 'simulador'), 'img'); };
   if (CFG.mapa) add([DIR + CFG.mapa], 'img');
   img(CFG.fondo_titulo, 'titulo'); img(CFG.logo, 'titulo'); img(CFG.fondo_carga, 'titulo');
-  aud(CFG.musica); aud(CFG.musica_choque); aud(CFG.sonido_monedas); aud(CFG.audio_final); fondos(CFG);
+  aud(CFG.musica); aud(CFG.musica_titulo); aud(CFG.musica_choque); aud(CFG.sonido_monedas); aud(CFG.audio_final); fondos(CFG);
   DIST.forEach(d => { img(d.paisaje, 'paisajes'); aud(d.musica); aud(d.musica_choque); fondos(d); });
   PTS.forEach(p => {
     img(p.imagen, 'personajes'); img(p.fase2_imagen, 'personajes'); img(p.paisaje, 'paisajes'); img(p.fase2_paisaje, 'paisajes');
@@ -3000,7 +3000,16 @@ function pintarHoy() {
 }
 $('hHoy').onclick = () => { pintarHoy(); const b = $('hoyPanel'); b.classList.toggle('on'); if (b.classList.contains('on')) try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar(b.querySelector('.hy')), 60); } catch (e) {} };
 $('hAdv').onclick = () => { $('hoyPanel').classList.remove('on'); guardar(); abrirAdversarios('sMapa'); };
-function irPortada() { guardar(); musica(null); irA('sTitulo'); pintarTitulo(); }
+function irPortada() { guardar(); musicaPortada(); irA('sTitulo'); pintarTitulo(); }
+// Música de la portada: [config] musica_titulo (vacía = sin música). Suena al mostrarse la portada;
+// si el navegador la bloquea (aún no tocas la pantalla), arranca con el primer toque o tecla.
+function musicaPortada() { musica(CFG.musica_titulo || null); }
+(function () {
+  const t = $('sTitulo'); let on = t.classList.contains('on');
+  new MutationObserver(() => { const o = t.classList.contains('on'); if (o && !on && CFG.musica_titulo) musicaPortada(); on = o; }).observe(t, { attributes: true, attributeFilter: ['class'] });
+  const desbloquear = () => { if (t.classList.contains('on') && CFG.musica_titulo && !MUTE && $('aud').paused) musicaPortada(); };
+  ['pointerdown', 'keydown'].forEach(ev => addEventListener(ev, desbloquear, { capture: true, passive: true }));
+})();
 $('mnVolver').onclick = irPortada;
 // ── ADVERSARIOS: perfil de cada personaje con el mapa detrás, centrado en dónde está ──
 const DU_TABS = [['rival', 'RIVALES', 'Los rivales que exploran Nexotlan. Véncelos para subir su afinidad y ganar sus cartas.'],
@@ -3224,9 +3233,9 @@ function portalPortada(fondo) {
   const medir = () => { const w = P.clientWidth || innerWidth, h = P.clientHeight || innerHeight;
     P.style.setProperty('--vmin', Math.min(w, h) + 'px'); P.style.setProperty('--vmax-n', Math.max(w, h)); };
   medir(); addEventListener('resize', medir);
-  const quieto = matchMedia('(prefers-reduced-motion: reduce)').matches, WARP = { cx: .5, cy: .5 }; let rampa = 0;
+  const quieto = matchMedia('(prefers-reduced-motion: reduce)').matches, WARP = { cx: .5, cy: .5 };
   // Llegada (al abrir el modo y cada vez que regresas a la portada)
-  const llegar = () => { rampa = 0; if (quieto) return; if (typeof cargaVisible === 'function' && cargaVisible()) { clearTimeout(llegar._w); llegar._w = setTimeout(llegar, 150); return; } [P, t].forEach(e => { e.classList.remove('llega'); void e.offsetWidth; e.classList.add('llega'); });
+  const llegar = () => { if (quieto) return; if (typeof cargaVisible === 'function' && cargaVisible()) { clearTimeout(llegar._w); llegar._w = setTimeout(llegar, 150); return; } [P, t].forEach(e => { e.classList.remove('llega'); void e.offsetWidth; e.classList.add('llega'); });
     clearTimeout(llegar._t); llegar._t = setTimeout(() => [P, t].forEach(e => e.classList.remove('llega')), 3400); };
   llegar(); new MutationObserver(() => { if (t.classList.contains('on') && !llegar._on) llegar(); llegar._on = t.classList.contains('on'); }).observe(t, { attributes: true, attributeFilter: ['class'] });
   llegar._on = t.classList.contains('on');
@@ -3240,15 +3249,16 @@ function portalPortada(fondo) {
   let W = 0, H = 0, dpr = 1, ult = 0;
   const tam = () => { dpr = 1; W = cv.clientWidth; H = cv.clientHeight; cv.width = W * dpr; cv.height = H * dpr; };
   tam(); addEventListener('resize', tam);
-  // v246 · Un solo ciclo de animación aunque la portada se arme de nuevo, y al regresar a la portada las estrellas
-  //        arrancan suave (0 → velocidad normal en ~0.9 s) en lugar de salir disparadas
+  // v246 · Un solo ciclo de animación aunque la portada se arme de nuevo.
+  // v270 · Velocidad SIEMPRE constante: al regresar a la portada las estrellas siguen donde iban, sin arrancar
+  //        desde cero (ese arranque se veía como si aceleraran) y sin saltos (el paso de tiempo se limita a 34 ms)
   const yo = (window.__nxPortal = (window.__nxPortal || 0) + 1);
   const paso = ts => {
     if (window.__nxPortal !== yo || !P.isConnected) return;
     requestAnimationFrame(paso);
-    if (!t.classList.contains('on') || document.hidden) { ult = 0; rampa = 0; return; }   // al volver no recupera el tiempo perdido
+    if (!t.classList.contains('on') || document.hidden) { ult = 0; return; }   // al volver no recupera el tiempo perdido
     if (ts - ult < 32) return;                       // ~30 cuadros por segundo: suficiente y deja libre al equipo
-    const dt = Math.min(34, ts - (ult || ts)) * rampa; ult = ts; rampa = Math.min(1, rampa + .04); if (!W) tam();
+    const dt = Math.min(34, ts - (ult || ts)); ult = ts; if (!W) tam();
     cx.setTransform(dpr, 0, 0, dpr, 0, 0); cx.clearRect(0, 0, W, H);
     const ox = W * WARP.cx, oy = H * WARP.cy, R = Math.hypot(W, H) * .62, gira = ts / 9000;
     for (const s of est) {
@@ -3487,7 +3497,7 @@ $('dCaja').addEventListener('click', e => { if (!e.target.closest('.d-ops')) { e
   // (si la nube tarda o falla, el modo sigue funcionando con la copia local).
   S = normalizar(cargarLocal());
   setTimeout(dlcRevisar, 900);                   // DLC comprados en la Tienda (compras.js)
-  pintarTitulo(); portadaPersonal();
+  pintarTitulo(); portadaPersonal(); if ($('sTitulo').classList.contains('on')) musicaPortada();
   if (!(S && S.baraja && S.pendiente)) quitarCarga();
   const avisosMapa = revisarMapa();
   if (S && S.baraja && S.pendiente) {               // venimos de un Choque (terminado, abandonado o sin empezar)

@@ -9,10 +9,22 @@
 #  OJO: el ID entre corchetes ([distrito:puerta], [punto:vika]) es la identidad del punto o distrito.
 #       Si lo cambias, el juego lo trata como uno nuevo; usa  antes = id_viejo  para conservar el progreso.
 #
-#  Hay 3 tipos de bloque:
+#  Hay 4 tipos de bloque:
 #   [config]            ajustes generales
 #   [distrito:ID]       una zona del mapa (ID sin espacios: puerta, mercado…)
 #   [punto:ID]          un rival, héroe o guardián en el mapa (ID único, sin espacios)
+#   [submapa:ID]        (v274) una PANTALLA DE MAPA APARTE a la que se entra desde un distrito del mapa principal
+#
+#  ── [submapa:ID] ──
+#   nombre       nombre que sale arriba y en la barra para volver (ej. Bajo Nexotlan)
+#   descripcion  texto que aparece la primera vez que el jugador entra
+#   entrada      ID del distrito del MAPA PRINCIPAL que sirve de puerta: ahí aparece un portal "⇩ ENTRAR"
+#                (el submapa se abre cuando ese distrito se abre)
+#   imagen       imagen del submapa en assets/nexotlan/ (misma proporción que el mapa, 16:10). Vacío = mapa neón generado
+#   color, musica, boton (texto del portal, ej. BAJAR)
+#   dlc          (opcional) si el submapa es de un DLC; si no se pone, usa el del distrito de entrada
+#   Los distritos que van DENTRO del submapa llevan  submapa = ID  y sus x, y, forma, etiqueta son
+#   coordenadas (en %) de la imagen del submapa. Sus puntos se ponen igual que siempre (distrito = …).
 #
 #  ── [config] ──
 #   titulo, subtitulo
@@ -1524,13 +1536,22 @@ final_audio =
 fondo_mesa = assets/nexotlan/mesa_final.jpg
 
 # ════════════════ DLC · LAS CATACUMBAS DE NEXOTLAN  (producto: dlc_catacumbas) ════════════════
-#  Solo aparece para quien tiene el producto dlc_catacumbas (Tienda Digital → Contenido Premium).
-#  Se abre al vencer a la Guardiana de la Puerta. Sus rivales usan dificultad fija (no cambian la ruta).
+#  Solo existe para quien tiene el producto dlc_catacumbas (Tienda Digital → Contenido Premium).
+#  v274 · Ahora es un SUBMAPA: en el mapa principal la isla de las Catacumbas es solo la puerta (portal ⇩ BAJAR).
+#  Al tocarla se abre otra pantalla, "Bajo Nexotlan", con 3 distritos:
+#    1. Osario de Entrada     Toca y Teco (héroes) · Cihuacóatl, Xolo, Hellroth, Oxkotetl · Guardián ALFA
+#    2. Galerías Profundas    (abre al vencer al Guardián ALFA)  Tzina, Noth, EX-Pada Tiburón, Angie · Guardián SIGMA
+#    3. Torre de la Reina     (abre al vencer al Guardián SIGMA) La Hechicera de los Muertos · Mictecacihuatl
+#  Sus rivales usan dificultad fija y NADA de aquí cuenta para llegar a Vellond ni para ser Campeón.
+#  ALFA y SIGMA no tienen imagen todavía: se ve una silueta con su letra (campo  letra = …).
+#  Cuando tengas sus artes, ponlos en assets/nexotlan/personajes/ y escribe  imagen = archivo.png
+#  Cuando tengas la imagen del submapa, ponla en assets/nexotlan/ y escríbela en  imagen =  de [submapa:bajo_nexotlan].
+#  Luego abre nexotlan.html?editor=1, baja al submapa y arrastra los puntos a su lugar sobre el arte nuevo.
 
 [distrito:catacumbas]
 dlc = dlc_catacumbas
 nombre = Las Catacumbas de Nexotlan
-descripcion = Bajo la escalinata de la Puerta duermen los que Nexotlan olvidó. Sus guardianes custodian un osario que ningún mapa registra… y el lamento que se escucha al fondo no es del viento.
+descripcion = Bajo la isla de Nexotlan se abre un mundo que ningún mapa registra: un osario de tres niveles sellado por dos guardianes sin rostro, ALFA y SIGMA. En el fondo, la Reina de las Catacumbas espera… y el lamento que se escucha no es del viento.
 color = #7dffb2
 x = 61.5
 y = 94
@@ -1538,17 +1559,62 @@ forma = 56,90 62,87 67,91 66,99 57,99
 radio = 5
 etiqueta = 72,97
 requiere = g_aurora
+
+[submapa:bajo_nexotlan]
+nombre = Bajo Nexotlan · Las Catacumbas
+descripcion = Bajas por la escalinata oculta bajo la Puerta de Obsidiana… y la isla de Nexotlan queda sobre tu cabeza. El osario tiene tres niveles: la entrada, las galerías profundas y la torre de su Reina. Dos sellos sin rostro, ALFA y SIGMA, cierran el camino.
+entrada = catacumbas
+imagen = 
+color = #7dffb2
+musica = 
+boton = BAJAR
+
+# ── Nivel 1 · Osario de Entrada ──
+
+[distrito:osario]
+submapa = bajo_nexotlan
+nombre = Osario de Entrada
+descripcion = Los primeros niveles del osario. Aquí vagan los que todavía pelean.
+color = #7dffb2
+x = 25
+y = 38
+radio = 13
+etiqueta = 25,21
 musica_choque = assets/nexotlan/musica/piramide.mp3
 paisaje = catacumbas.jpg
 fondo_mesa = mictlan
+
+[punto:dlc_toca]
+tipo = heroe
+nombre = Toca
+titulo = Agresor del Mictlán
+distrito = osario
+x = 18
+y = 30
+carta = toca
+monedas = 60
+dialogo = ¡Alto! Nadie baja al osario sin que Toca lo huela primero. | …Hueles a Puerta de Obsidiana. Aurora te dejó pasar, ¿eh? | Escucha bien: las Catacumbas tienen tres niveles. Aquí arriba vagan los que todavía pelean. | Más abajo hay dos sellos. Los llamamos ALFA y SIGMA. Nadie sabe quién los puso… ni qué hay debajo de sus máscaras.
+dialogo2 = Si pierdes ante un sello, no te avergüences. Teco y yo hemos perdido cientos de veces. | Vence a los cuatro de este nivel y el primer sello te estará esperando a la salida del osario.
+
+[punto:dlc_teco]
+tipo = heroe
+nombre = Teco
+titulo = Cuidador del Mictlán
+distrito = osario
+x = 31
+y = 29
+carta = teco
+monedas = 60
+dialogo = Toca ladra mucho, pero tiene razón. | Yo cuido lo que cae al Mictlán. Cartas, almas… viajeros. | El Guardián ALFA confina todo lo que tocas. El Guardián SIGMA hace que lo que confinas vuelva, una y otra vez. | Y en la torre, la Reina espera a quien rompa los dos sellos.
+dialogo2 = Lo que cae aquí abajo no se pierde: espera. | Tzina te guiará por las galerías profundas, si el primer sello te deja pasar.
 
 [punto:dlc_llorona]
 tipo = rival
 nombre = Cihuacóatl
 titulo = El Lamento de las Catacumbas
-distrito = catacumbas
-x = 58.6
-y = 95
+distrito = osario
+x = 14
+y = 40
 carta = cihuacoatl
 baraja = r2_llorona
 dificultad = dificil
@@ -1559,39 +1625,227 @@ victoria = Mi llanto se apaga… por esta noche.
 derrota = Ahora también tú lloras en las Catacumbas.
 revancha = ¿Vuelves a bajar? Las Catacumbas nunca olvidan a quien las visita.
 
+[punto:dlc_xolo]
+tipo = rival
+nombre = Xolo
+titulo = Explorador del Mictlán
+distrito = osario
+x = 19
+y = 49
+carta = xolo
+baraja = mictlan
+dificultad = dificil
+corazones = 1
+monedas = 170
+entrada = ¡Un vivo! Hace siglos que no veía uno. | Yo recorro los nueve niveles del Mictlán desde antes de que existiera Nexotlan. | Veamos si sabes caminar entre los muertos.
+victoria = Caminas bien… para estar vivo.
+derrota = Te quedarás aquí conmigo. El Mictlán es grande; hay lugar para uno más.
+revancha = ¿Otra vuelta por el osario? Yo nunca me canso.
+
+[punto:dlc_oxkotetl]
+tipo = rival
+nombre = Oxkotetl
+titulo = Coloso del Osario
+distrito = osario
+x = 24.5
+y = 39
+carta = oxkotetl
+baraja = r2_prision
+dificultad = muy_dificil
+corazones = 1
+monedas = 220
+entrada = …Grrrhh. | (El coloso de piedra se levanta. Búho, Murciélago y Araña revolotean a su alrededor.) | Todo lo que tienes en el campo… será mío.
+victoria = (El coloso se desmorona en un montón de huesos y obsidiana.)
+derrota = (Oxkotetl vuelve a su sitio. Tus cartas quedaron atrapadas en sus grietas.)
+revancha = …Grrrhh. (Las grietas del coloso se abren de nuevo.)
+
+[punto:dlc_hellroth]
+tipo = rival
+nombre = Hellroth
+titulo = El Destructor del Osario
+distrito = osario
+x = 30.5
+y = 48
+carta = hellroth
+baraja = r2_sangre
+dificultad = muy_dificil
+corazones = 1
+monedas = 210
+entrada = No necesito ganar combates para destruirte. | Cada turno que pases frente a mí, tus corazones se apagan uno a uno. | Las Catacumbas se alimentan de eso.
+victoria = Imposible… aún te queda sangre.
+derrota = Otro corazón apagado para el osario.
+revancha = Volviste a darme corazones. Qué generoso.
+
+[punto:dlc_g_alfa]
+tipo = guardian
+nombre = Guardián de las Catacumbas ALFA
+titulo = Primer Sello del Osario
+letra = Α
+distrito = osario
+x = 37.5
+y = 39
+baraja = dlc_g_alfa
+dificultad = legendario
+corazones = 3
+borrador = 1
+monedas = 400
+requiere = dlc_llorona, dlc_xolo, dlc_oxkotetl, dlc_hellroth
+musica = assets/nexotlan/musica/guardian.mp3
+entrada = … | (Una figura sin rostro bloquea la salida del osario. En su pecho brilla una letra: Α.) | PRIMER SELLO. NADIE PASA SIN SER CONFINADO.
+victoria = …SELLO… ROTO. | (La figura se disuelve en polvo verde. El camino hacia las galerías profundas se ilumina.)
+derrota = CONFINADO. COMO TODOS.
+revancha = EL PRIMER SELLO SE REHACE. VUELVE A INTENTARLO.
+
+# ── Nivel 2 · Galerías Profundas (abre al vencer al Guardián ALFA) ──
+
+[distrito:galerias]
+submapa = bajo_nexotlan
+nombre = Galerías Profundas
+descripcion = Túneles que bajan en espiral bajo el osario. Lo que se confina aquí… no se queda quieto.
+color = #3fe0c0
+x = 70
+y = 38
+radio = 14
+etiqueta = 70,20
+requiere = dlc_g_alfa
+musica_choque = assets/nexotlan/musica/piramide.mp3
+paisaje = catacumbas.jpg
+fondo_mesa = mictlan
+
 [punto:dlc_tzina]
 tipo = rival
 nombre = Tzina
 titulo = Guía del Osario
-distrito = catacumbas
-x = 64.4
-y = 95.2
+distrito = galerias
+x = 60
+y = 30
 carta = tzina
 baraja = r4_micte
-dificultad = muy_dificil
+dificultad = legendario
 corazones = 1
-monedas = 190
-entrada = Toca y Teco cuidan la entrada; yo guío a los que se atreven a seguir. | Cada carta que cae al Mictlán… regresa como un arma.
+monedas = 230
+entrada = Rompiste el primer sello. Toca y Teco no lo creerán. | Yo guío a los que se atreven a seguir bajando. | Cada carta que cae al Mictlán… regresa como un arma.
 victoria = Sabes el camino de regreso. Pocos lo saben.
 derrota = Te perdiste en el osario. Yo te guiaré… hacia abajo.
-revancha = El osario cambió de forma desde tu última visita.
+revancha = Las galerías cambiaron de forma desde tu última visita.
+
+[punto:dlc_noth]
+tipo = rival
+nombre = Noth
+titulo = Dragón Alfa del Osario
+distrito = galerias
+x = 74
+y = 27
+carta = noth
+baraja = r2_dragones
+dificultad = legendario
+corazones = 1
+monedas = 240
+entrada = Mis dragones cayeron aquí hace mil años. | Yo los regreso de tres en tres. Ninguno se queda en el Mictlán mientras yo respire.
+victoria = Mis dragones… descansarán un poco más.
+derrota = Uno más para mi parvada de huesos.
+revancha = La parvada volvió a despertar. ¿Tú también?
+
+[punto:dlc_tiburon]
+tipo = rival
+nombre = EX-Pada Tiburón
+titulo = Fauces del Mictlán
+distrito = galerias
+x = 83
+y = 36
+carta = expada_tiburon
+baraja = h_expada
+dificultad = legendario
+corazones = 1
+monedas = 250
+entrada = Me lancé al Mictlán a propósito. | Cada vez que vuelvo, regreso más fuerte. ¿Puedes decir lo mismo?
+victoria = Volveré… siempre vuelvo.
+derrota = Al fondo. Ahí es donde se vuelve más fuerte.
+revancha = Te dije que volvería.
+
+[punto:dlc_angie]
+tipo = rival
+nombre = Angie
+titulo = La Hechicera de las Galerías
+distrito = galerias
+x = 63
+y = 45
+carta = angie
+baraja = r3_prision
+dificultad = legendario
+corazones = 2
+monedas = 260
+entrada = Baal y yo encontramos este lugar antes que nadie. | Lo que confino… lo uso en tu contra. Las paredes de estas galerías están hechas de eso.
+victoria = Hmph. Las paredes tendrán que esperar a otro.
+derrota = Una pieza más para mi colección.
+revancha = Mi colección te extrañaba.
+
+[punto:dlc_g_sigma]
+tipo = guardian
+nombre = Guardián de las Catacumbas SIGMA
+titulo = Último Sello del Osario
+letra = Σ
+distrito = galerias
+x = 76
+y = 47
+baraja = dlc_g_sigma
+dificultad = epico
+corazones = 4
+revivir = 2
+almas_extra = 1
+monedas = 500
+requiere = dlc_tzina, dlc_noth, dlc_tiburon, dlc_angie
+musica = assets/nexotlan/musica/guardian.mp3
+entrada = … | (Al fondo de las galerías, otra figura sin rostro. Su letra: Σ.) | ÚLTIMO SELLO. LO QUE VENCES, VUELVE. LO QUE CONFINAS, VUELVE. | TÚ NO.
+victoria = …LA REINA… DESPIERTA. | (El último sello se quiebra. Más abajo, la torre del osario se enciende de verde.)
+derrota = TÚ NO VUELVES.
+revancha = EL ÚLTIMO SELLO NUNCA SE ROMPE DOS VECES… INTÉNTALO.
+
+# ── Nivel 3 · Torre de la Reina (abre al vencer al Guardián SIGMA) ──
+
+[distrito:trono]
+submapa = bajo_nexotlan
+nombre = Torre de la Reina
+descripcion = La torre del osario, levantada con los huesos de todo lo que murió en Nexotlan. En su cima espera Mictecacihuatl.
+color = #b6ff6a
+x = 48
+y = 76
+radio = 12
+etiqueta = 48,62
+requiere = dlc_g_sigma
+musica_choque = assets/nexotlan/musica/piramide.mp3
+paisaje = catacumbas.jpg
+fondo_mesa = mictlan
+
+[punto:dlc_hechicera]
+tipo = heroe
+nombre = La Hechicera de los Muertos
+titulo = Voz de la Torre
+distrito = trono
+x = 40
+y = 79
+carta = hechicera
+monedas = 80
+dialogo = Rompiste los dos sellos. Hacía siglos que nadie llegaba a la torre. | La Reina no es cruel: solo decide qué vuelve a levantarse y qué se queda en el polvo. | Si la vences, el osario entero te reconocerá. Si no… serás parte de su trono.
+dialogo2 = La Reina escucha cada paso que das en la escalera. | Sube cuando estés listo. Ella no tiene prisa.
 
 [punto:dlc_g_mictecacihuatl]
 tipo = guardian
 nombre = Mictecacihuatl
 titulo = Reina de las Catacumbas
-distrito = catacumbas
-x = 61.6
-y = 91.2
+distrito = trono
+x = 52
+y = 74
 imagen = arcade/personajes/rival_08.png
 carta = mictecacihuatl
 baraja = mictlan
-dificultad = epico
-corazones = 3
-monedas = 600
-requiere = dlc_llorona, dlc_tzina
+dificultad = caotico
+corazones = 4
+borrador = 1
+monedas = 800
+requiere = dlc_g_sigma
 musica = assets/nexotlan/musica/guardian.mp3
-entrada = Bajaste hasta mi trono, viajero. | Todo lo que muere en Nexotlan termina aquí… y yo decido si vuelve a levantarse. | Muéstrame si tu alma vale más que un hueso en mi osario.
+entrada = Rompiste mis dos sellos, viajero. | Todo lo que muere en Nexotlan termina aquí… y yo decido si vuelve a levantarse. | Muéstrame si tu alma vale más que un hueso en mi osario.
 victoria = Tu llama… sigue ardiendo incluso aquí abajo. | Ve. Las Catacumbas te reconocen como su señor.
 derrota = Una calavera más para mi trono.
 revancha = La Reina no olvida. Siéntate otra vez frente a mí.

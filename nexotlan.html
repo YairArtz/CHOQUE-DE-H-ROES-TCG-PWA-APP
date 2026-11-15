@@ -349,6 +349,20 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 .dlab.dlc small{color:#d8ffe9}
 .dlab small{display:block;text-align:center;font-size:8px;letter-spacing:1px;opacity:.85;margin-top:2px}
 .zoom{position:absolute;right:12px;bottom:14px;display:flex;flex-direction:column;gap:6px;z-index:15}
+/* v274 · SUBMAPAS: portal en el mapa principal y barra para volver */
+.nx-portal{position:absolute;transform:translate(-50%,-50%);z-index:4;border:0;background:none;padding:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--dc)}
+.nx-portal i{width:46px;height:46px;border-radius:50%;border:2px solid var(--dc);box-shadow:0 0 18px var(--dc),inset 0 0 18px var(--dc);
+  background:radial-gradient(circle,#000 30%,color-mix(in srgb,var(--dc) 35%,transparent) 70%,transparent 72%);animation:nxPortal 2.4s linear infinite}
+.nx-portal i::after{content:'';display:block;width:100%;height:100%;border-radius:50%;border:2px dashed var(--dc);opacity:.65;animation:nxPortal 6s linear infinite reverse}
+.nx-portal span{font-family:'Orbitron',monospace;font-weight:900;font-size:10px;letter-spacing:2px;background:rgba(2,12,8,.85);border:1px solid var(--dc);border-radius:7px;padding:3px 8px;text-shadow:0 0 8px var(--dc);white-space:nowrap}
+.nx-portal small{margin-left:6px;color:#d8ffe9;font-size:9px}
+.nx-portal:hover i,.nx-portal:focus-visible i{transform:scale(1.12)}
+@keyframes nxPortal{to{transform:rotate(360deg)}}
+.sub-bar{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);z-index:15;display:flex;align-items:center;gap:10px;background:rgba(2,12,8,.82);border:1px solid var(--dc,#7dffb2);
+  border-radius:12px;padding:6px 14px 6px 6px;box-shadow:0 0 20px rgba(0,0,0,.6),0 0 14px color-mix(in srgb,var(--dc,#7dffb2) 40%,transparent)}
+.sub-bar[hidden]{display:none}
+.sub-bar b{font-family:'Orbitron',monospace;font-size:11px;letter-spacing:2px;color:var(--dc,#7dffb2);text-shadow:0 0 8px var(--dc,#7dffb2);text-transform:uppercase;white-space:nowrap}
+.sub-bar .hb{height:36px}
 .zoom .hb{width:42px;height:42px;font-size:18px}
 .toast{position:fixed;left:50%;top:calc(var(--hud) + 12px);transform:translateX(-50%) translateY(-10px);opacity:0;z-index:300;padding:10px 18px;border-radius:12px;background:rgba(5,10,28,.95);border:1px solid var(--cyan);
   color:var(--cyan);font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:1px;transition:all .25s;pointer-events:none;max-width:calc(92 * var(--uw));text-align:center}
@@ -1081,6 +1095,7 @@ window.nxTip = function () {
     <button class="hb" id="hMute" title="Música">🔊</button>
   </div>
   <div class="mapa" id="mapa"><div class="mi" id="mi"></div></div>
+  <div class="sub-bar" id="subBar" hidden><button class="hb" id="subVolver" aria-label="Volver al mapa de Nexotlan">⬆<span class="t">NEXOTLAN</span></button><b id="subNom"></b></div>
   <div class="hoy" id="hoyPanel" aria-label="Rivales de hoy"></div>
   <div class="zoom"><button class="hb" id="zMas" aria-label="Acercar">＋</button><button class="hb" id="zMenos" aria-label="Alejar">－</button></div>
 </section>
@@ -1281,8 +1296,12 @@ const AUTO_RIVAL = ['facil', 'medio', 'dificil', 'muy_dificil', 'muy_dificil', '
 const AUTO_GUARD = ['legendario', 'legendario', 'legendario', 'epico', 'epico', 'epico', 'caotico', 'caotico', 'caotico'];
 
 let CFG = {}, DIST = [], PTS = [], RAW = [], DLC_BLOQ = [], _dlcFirma = '';
+// v274 · SUBMAPAS: pantallas de mapa aparte (p. ej. Bajo Nexotlan) a las que se entra tocando un distrito del mapa principal
+let SUBS = [], VISTA = '';
 // DLC: lo que en mapa.txt / comerciante.txt lleva  dlc = sku  solo existe si el jugador compró ese producto (compras.js)
-const tieneDLC = sku => !sku || EDITOR || !!(window.CHH_COMPRAS && CHH_COMPRAS.tiene(sku));
+// v275 · Los testers con su ID escrita en testers.txt tienen todos los DLC sin pagarlos (el "*" no cuenta: eso abre el modo, no los DLC)
+let TESTER_DLC = false;
+const tieneDLC = sku => !sku || EDITOR || TESTER_DLC || !!(window.CHH_COMPRAS && CHH_COMPRAS.tiene(sku));
 let DATA = { cartas: [], barajas: [] }, CARD = {}, GALI = {};
 let S = null;                                // partida
 let SEL = null, ZOOM = 1, MUTE = false;
@@ -1308,8 +1327,13 @@ function construirModelo(secs) {
   CFG = Object.assign({ titulo: 'NEXOTLAN', subtitulo: '', dias: 'Lunes, Martes, Miércoles, Jueves, Viernes, Sábado, Domingo' }, secs.find(s => s._sec === 'config') || {});
   CFG._dias = lista(CFG.dias); if (!CFG._dias.length) CFG._dias = ['Día'];
   const todosD = secs.filter(s => s._sec === 'distrito').map((s, i) => Object.assign(s, { id: s._id, _i: i, _x: num(s.x, 50), _y: num(s.y, 50), _r: num(s.radio, 12), color: s.color || '#36d6ff', _req: lista(s.requiere), dlc: String(s.dlc || '').trim().toLowerCase() }));
-  DLC_BLOQ = todosD.filter(d => d.dlc && !tieneDLC(d.dlc));
-  const fuera = new Set(DLC_BLOQ.map(d => d.id)), dlcDe = {};
+  // v274 · [submapa:ID] + distritos con  submapa = ID  (heredan el dlc del submapa o de su distrito de entrada)
+  SUBS = secs.filter(s => s._sec === 'submapa').map(s => Object.assign(s, { id: s._id, entrada: String(s.entrada || '').trim(), color: s.color || '#7dffb2', imagen: String(s.imagen || '').trim() }));
+  todosD.forEach(d => { d._sub = String(d.submapa || '').trim();
+    if (d._sub && !d.dlc) { const sb = SUBS.find(x => x.id === d._sub), en = sb && todosD.find(x => x.id === sb.entrada); d.dlc = String((sb && sb.dlc) || (en && en.dlc) || '').trim().toLowerCase(); } });
+  const sinDLC = todosD.filter(d => d.dlc && !tieneDLC(d.dlc));
+  DLC_BLOQ = sinDLC.filter(d => !d._sub);              // en el mapa principal se ven sellados
+  const fuera = new Set(sinDLC.map(d => d.id)), dlcDe = {};
   todosD.forEach(d => { if (d.dlc) dlcDe[d.id] = d.dlc; });
   DIST = todosD.filter(d => !fuera.has(d.id));
   _dlcFirma = (window.CHH_COMPRAS ? CHH_COMPRAS.lista() : []).join(',');
@@ -1367,7 +1391,25 @@ function skyline(d) {
 function imgPunto(p) { if (!p.imagen) return ''; return /\//.test(p.imagen) ? 'assets/' + p.imagen.replace(/^assets\//, '') : DIR + 'personajes/' + p.imagen; }
 const _imgOk = {};
 function probar(u) { if (!u) return Promise.resolve(false); if (u in _imgOk) return Promise.resolve(_imgOk[u]); return new Promise(r => { const im = new Image(); im.onload = () => r(_imgOk[u] = true); im.onerror = () => r(_imgOk[u] = false); im.src = u; }); }
-async function retrato(p) { const a = await primeraImg(candidatos(p.imagen, 'personajes')); if (a) return { src: a, carta: false }; const c = cartaImg(p.carta, true); return c ? { src: c, carta: true } : null; }
+async function retrato(p) { const a = await primeraImg(candidatos(p.imagen, 'personajes')); if (a) return { src: a, carta: false }; const c = cartaImg(p.carta, true); return c ? { src: c, carta: true } : { src: silueta(p), carta: false }; }
+// v274 · Personaje SIN arte todavía (sin imagen ni carta): silueta encapuchada con su letra (mapa.txt  letra = Α)
+//        y el color de su distrito. En cuanto tenga  imagen = …  se usa la imagen.
+const _sil = {};
+function silueta(p) {
+  const d = distDe(p) || {}, col = /^#[0-9a-f]{3,8}$/i.test(d.color || '') ? d.color : '#7dffb2', L = String(p.letra || '?').trim().slice(0, 2), k = col + L;
+  if (_sil[k]) return _sil[k];
+  const t = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 900"><defs>
+<radialGradient id="h" cx=".5" cy=".42" r=".6"><stop offset="0" stop-color="${col}" stop-opacity=".45"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></radialGradient>
+<linearGradient id="c" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#16201b"/><stop offset="1" stop-color="#020604"/></linearGradient>
+<filter id="g" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+<ellipse cx="300" cy="420" rx="300" ry="420" fill="url(#h)"/>
+<path d="M300 70c-95 0-150 85-150 175 0 55 15 95 35 125-95 45-150 150-170 270l-15 260h600l-15-260c-20-120-75-225-170-270 20-30 35-70 35-125 0-90-55-175-150-175z" fill="url(#c)" stroke="${col}" stroke-opacity=".55" stroke-width="4"/>
+<path d="M300 120c-62 0-98 60-98 125 0 50 22 92 55 112h86c33-20 55-62 55-112 0-65-36-125-98-125z" fill="#000" opacity=".85"/>
+<g filter="url(#g)" fill="${col}"><ellipse cx="268" cy="250" rx="13" ry="6"/><ellipse cx="332" cy="250" rx="13" ry="6"/></g>
+<text x="300" y="640" text-anchor="middle" font-family="Orbitron,Arial Black,sans-serif" font-weight="900" font-size="190" fill="${col}" filter="url(#g)">${t(L)}</text></svg>`;
+  return (_sil[k] = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg));
+}
 function propias() { const out = []; try { (JSON.parse(localStorage.getItem('chh_decks') || '[]') || []).forEach((d, i) => { if (d && d.decks) out.push({ id: 'mis:' + i + ':' + (d.date || ''), nombre: d.name || ('Baraja ' + (i + 1)), estilo: 'Tu baraja del Constructor', propia: true }); }); } catch (e) {} return out; }
 // Barajas del modo: solo las básicas de la aventura ("aventura": true en data/cartas_simulacion.json).
 // Las del Constructor quedan fuera para que el reto no se rompa.
@@ -1572,7 +1614,45 @@ const diaClave = d => NK(diaNombre(d)).slice(0, 3);
 const vencido = id => (S.vencidos[id] || 0) > 0;
 function cumple(req) { return req.every(r => vencido(r) || (S.hablados[r] || 0) > 0); }
 // Solo cuenta la ruta actual de mapa.txt (requiere); lo abierto con un orden anterior ya no se salta la ruta
-function distritoAbierto(d) { return EDITOR || !d._req.length || cumple(d._req); }
+function distritoAbierto(d) {
+  if (EDITOR) return true;
+  if (d._sub) { const sb = subDe(d._sub); if (!sb || !subAbierto(sb)) return false; }   // v274 · un submapa abre con su distrito de entrada
+  return !d._req.length || cumple(d._req);
+}
+// ── v274 · SUBMAPAS ──
+const subDe = id => (id && SUBS.find(s => s.id === id)) || null;
+const vistaDist = d => (d && d._sub) || '';
+const vistaPunto = p => vistaDist(distDe(p));
+const enVista = d => vistaDist(d) === VISTA;
+function subAbierto(sb) { const en = DIST.find(d => d.id === sb.entrada); return EDITOR || (!!en && !en._sub && distritoAbierto(en) && DIST.some(d => d._sub === sb.id)); }
+const subDeEntrada = d => SUBS.find(s => s.entrada === d.id && DIST.some(x => x._sub === s.id)) || null;
+const mapaImgDe = v => v ? ((subDe(v) || {}).imagen || '') : (CFG.mapa || '');
+const musicaVista = () => (VISTA && (subDe(VISTA) || {}).musica) || CFG.musica;
+function progresoSub(sb) { const L = DIST.filter(d => d._sub === sb.id).map(progresoDistrito); return { tot: L.reduce((a, x) => a + x.tot, 0), ven: L.reduce((a, x) => a + x.ven, 0) }; }
+function cambiarVista(v, centrar) {
+  v = subDe(v) ? v : '';
+  const cambio = v !== VISTA; VISTA = v;
+  if (S && (S.vista || '') !== v) { S.vista = v; guardar(true); }
+  if (cambio && $('sMapa').classList.contains('on')) { cerrarFicha(); pintarMapa(); ajustarZoom(ZOOM); }
+  if (centrar !== false) { const d0 = DIST.filter(enVista).find(distritoAbierto) || DIST.find(enVista); if (d0) centrarEn(d0._x, d0._y); }
+  return cambio;
+}
+async function entrarSub(id) {
+  const sb = subDe(id); if (!sb || !subAbierto(sb)) return;
+  const m = $('mapa');
+  try { await m.animate([{ opacity: 1, filter: 'none' }, { opacity: 0, filter: 'brightness(2.2) blur(6px)' }], { duration: 380, easing: 'ease-in' }).finished; } catch (e) {}
+  cambiarVista(id); musica(sb.musica || CFG.musica);
+  try { m.animate([{ opacity: 0, transform: 'scale(1.06)' }, { opacity: 1, transform: 'none' }], { duration: 650, easing: 'ease-out' }); } catch (e) {}
+  S.subVistos = S.subVistos || {};
+  if (!S.subVistos[id]) { S.subVistos[id] = Date.now(); guardar(); if (sb.descripcion) await mensaje('⇩ ' + (sb.nombre || id).toUpperCase(), esc(sb.descripcion)); }
+}
+function salirSub() {
+  const sb = subDe(VISTA); if (!sb) return;
+  const en = DIST.find(d => d.id === sb.entrada);
+  cambiarVista('', false); musica(CFG.musica);
+  if (en) centrarEn(en._x, en._y, true);
+}
+function enfocarPunto(p, suave) { if (!p) return; const v = vistaPunto(p); if (v !== VISTA) cambiarVista(v, false); centrarEn(p._x, p._y, suave); }
 const distDe = p => DIST.find(d => d.id === p.distrito) || null;
 function visibleHoy(p) {
   if (EDITOR) return true;
@@ -1584,7 +1664,7 @@ function visibleHoy(p) {
 function nivelDe(p) {
   const v = String(p.dificultad || 'auto').toLowerCase();
   if (NIVELES.includes(v)) return v;
-  const d = distDe(p), ruta = DIST.filter(x => !x.dlc), i = !d ? 0 : d.dlc ? ruta.length - 1 : Math.max(0, ruta.indexOf(d));
+  const d = distDe(p), ruta = DIST.filter(x => !x.dlc && !x._sub), i = !d ? 0 : d.dlc ? ruta.length - 1 : Math.max(0, ruta.indexOf(d));
   const k = ruta.length > 1 ? Math.min(8, Math.round(i * 8 / (ruta.length - 1))) : 0;
   return (p.tipo === 'guardian' ? AUTO_GUARD : AUTO_RIVAL)[k];
 }
@@ -1619,30 +1699,31 @@ function svgMapa() {
   const rio = 'M-40,560 C180,520 300,640 470,600 S760,470 900,560 S1150,760 1320,690 S1560,540 1660,600 L1660,700 C1540,640 1400,780 1300,790 S1050,660 900,650 S650,560 470,690 S170,610 -40,660 Z';
   // caminos entre distritos (en orden)
   let caminos = '';
-  const RUTA = DIST.filter(x => !x.dlc);
+  const RUTA = VISTA ? DIST.filter(enVista) : DIST.filter(x => !x.dlc && !x._sub);
   for (let i = 1; i < RUTA.length; i++) { const a = RUTA[i - 1], b = RUTA[i]; const ax = a._x / 100 * MW, ay = a._y / 100 * MH, bx = b._x / 100 * MW, by = b._y / 100 * MH;
     caminos += `<path d="M${ax},${ay} Q${(ax + bx) / 2 + (by - ay) * .2},${(ay + by) / 2 - (bx - ax) * .2} ${bx},${by}" />`; }
-  const zonas = DIST.map(d => { const ab = distritoAbierto(d); const p = pathDe(formaDistrito(d));
+  const SB = subDe(VISTA);
+  const zonas = DIST.filter(enVista).map(d => { const ab = distritoAbierto(d); const p = pathDe(formaDistrito(d));
     return `<g class="z" data-d="${esc(d.id)}"><path d="${p}" fill="${ab ? d.color : '#1a2242'}" fill-opacity="${ab ? .2 : .55}" stroke="${ab ? d.color : '#3a4670'}" stroke-width="${ab ? 4 : 3}" ${ab ? 'filter="url(#glow)"' : 'stroke-dasharray="14 10"'}/>
       ${ab ? `<path d="${p}" fill="url(#rej)" opacity=".5"/>` : ''}</g>`; }).join('');
   return `<svg viewBox="0 0 ${MW} ${MH}" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
     <defs>
-      <radialGradient id="fondo" cx="50%" cy="45%" r="75%"><stop offset="0" stop-color="#16306e"/><stop offset=".6" stop-color="#0b1a44"/><stop offset="1" stop-color="#040a1e"/></radialGradient>
+      <radialGradient id="fondo" cx="50%" cy="45%" r="75%">${SB ? '<stop offset="0" stop-color="#0d2a1f"/><stop offset=".6" stop-color="#061710"/><stop offset="1" stop-color="#010604"/>' : '<stop offset="0" stop-color="#16306e"/><stop offset=".6" stop-color="#0b1a44"/><stop offset="1" stop-color="#040a1e"/>'}</radialGradient>
       <linearGradient id="agua" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0a3a9a"/><stop offset="1" stop-color="#062466"/></linearGradient>
       <pattern id="rej" width="26" height="26" patternUnits="userSpaceOnUse"><path d="M26 0H0V26" fill="none" stroke="#fff" stroke-opacity=".12" stroke-width="1"/></pattern>
       <filter id="glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
     </defs>
     <rect width="${MW}" height="${MH}" fill="url(#fondo)"/>
     <rect width="${MW}" height="${MH}" fill="url(#rej)" opacity=".35"/>
-    <g fill="none" stroke="#5aa8ff" stroke-opacity=".22" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">${calles}</g>
-    <path d="${rio}" fill="url(#agua)" stroke="#36d6ff" stroke-opacity=".55" stroke-width="3"/>
+    <g fill="none" stroke="${SB ? esc(SB.color) : '#5aa8ff'}" stroke-opacity="${SB ? .12 : .22}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">${calles}</g>
+    ${SB ? '' : `<path d="${rio}" fill="url(#agua)" stroke="#36d6ff" stroke-opacity=".55" stroke-width="3"/>`}
     <g fill="none" stroke="#ffd166" stroke-opacity=".35" stroke-width="7" stroke-dasharray="2 16" stroke-linecap="round">${caminos}</g>
-    ${zonas}${zonasDLC()}
+    ${zonas}${VISTA ? '' : zonasDLC()}
   </svg>`;
 }
 function capaBloqueo() {      // con mapa ilustrado: oscurece los distritos cerrados
-  const z = DIST.filter(d => !distritoAbierto(d)).map(d => `<path d="${pathDe(formaDistrito(d))}" fill="#000" fill-opacity=".62" stroke="#3a4670" stroke-width="3" stroke-dasharray="14 10"/>`).join('');
-  return `<svg class="lock-layer" viewBox="0 0 ${MW} ${MH}" preserveAspectRatio="xMidYMid slice">${z}${zonasDLC()}</svg>`;
+  const z = DIST.filter(d => enVista(d) && !distritoAbierto(d)).map(d => `<path d="${pathDe(formaDistrito(d))}" fill="#000" fill-opacity=".62" stroke="#3a4670" stroke-width="3" stroke-dasharray="14 10"/>`).join('');
+  return `<svg class="lock-layer" viewBox="0 0 ${MW} ${MH}" preserveAspectRatio="xMidYMid slice">${z}${VISTA ? '' : zonasDLC()}</svg>`;
 }
 // Distritos de un DLC que el jugador no tiene: se ven sellados (no cuentan para la ruta ni para Campeón)
 function zonasDLC() {
@@ -1765,20 +1846,27 @@ function fxRayos() {
 // ════════════════ PINTAR MAPA ════════════════
 function pintarMapa() {
   const mi = $('mi');
-  const fondo = CFG.mapa ? `<img class="fondo" src="${esc(DIR + CFG.mapa)}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('div'),{innerHTML:svgMapa()}).firstElementChild)">${capaFx()}${capaBloqueo()}` : svgMapa();
-  const etq = DIST.map(d => { const ab = distritoAbierto(d), pr = progresoDistrito(d);
+  if (VISTA && !(subDe(VISTA) && subAbierto(subDe(VISTA)))) { VISTA = ''; if (S) S.vista = ''; }   // v274 · submapa cerrado o sin DLC
+  const SB = subDe(VISTA), fimg = mapaImgDe(VISTA);
+  const fondo = fimg ? `<img class="fondo" src="${esc(DIR + fimg)}" alt="" onerror="this.replaceWith(Object.assign(document.createElement('div'),{innerHTML:svgMapa()}).firstElementChild)">${SB ? '' : capaFx()}${capaBloqueo()}` : svgMapa();
+  const sbar = $('subBar'); if (sbar) { sbar.hidden = !SB; if (SB) { $('subNom').textContent = SB.nombre || SB.id; $('subBar').style.setProperty('--dc', SB.color); } }
+  // Distrito de entrada a un submapa: portal para bajar (en el mapa principal)
+  const portales = VISTA ? '' : DIST.filter(d => !d._sub && distritoAbierto(d) && subDeEntrada(d)).map(d => { const sb = subDeEntrada(d), pr = progresoSub(sb);
+    return `<button class="nx-portal" data-sub="${esc(sb.id)}" style="left:${d._x}%;top:${d._y}%;--dc:${esc(sb.color || d.color)}" aria-label="Entrar a ${esc(sb.nombre || sb.id)}"><i></i><span>⇩ ${esc(sb.boton || 'ENTRAR')}<small>${pr.ven}/${pr.tot}</small></span></button>`; }).join('');
+  const etq = DIST.filter(enVista).map(d => { const ab = distritoAbierto(d), sbE = !VISTA && subDeEntrada(d), pr = sbE ? progresoSub(sbE) : progresoDistrito(d);
     const et = String(d.etiqueta || '').split(',').map(Number), lx = isFinite(et[0]) && et.length === 2 ? et[0] : d._x, ly = isFinite(et[1]) && et.length === 2 ? et[1] : d._y - d._r * .55;
     return `<div class="dlab ${ab ? '' : 'lock'}" style="left:${lx}%;top:${ly}%;--dc:${esc(d.color)}">${ab ? '' : '🔒 '}${esc(d.nombre || d.id)}${ab ? '<small>' + pr.ven + '/' + pr.tot + '</small>' : ''}</div>`; }).join('');
-  const pts = PTS.filter(visibleHoy).map(p => {
+  const pts = PTS.filter(p => enVista(distDe(p)) && visibleHoy(p)).map(p => {
     const v = vencido(p.id), nuevoNpc = p.tipo === 'heroe' && !(S.hablados[p.id] > 0);
     const bloq = p.tipo === 'guardian' && p._req.length && !cumple(p._req) && !EDITOR;
     return `<button class="pt ${p.tipo} ${p.tipo === 'guardian' && v ? 'jefe-ok' : ''}" data-id="${esc(p.id)}" style="left:${p._x}%;top:${p._y}%" aria-label="${esc(p.nombre)}">
       <span class="pin">${(PIN[p.tipo] || PIN.rival)()}${v ? '<span class="ok">✔</span>' : ''}${nuevoNpc ? '<span class="ex">!</span>' : (esComerciante(p) ? '<span class="ok" style="background:#ffd166;box-shadow:0 0 8px #ffd166">🛒</span>' : '')}${bloq ? '<span class="ok" style="background:#3a4670;color:#fff;box-shadow:none">🔒</span>' : ''}</span>
       <span class="lab">${esc(p.nombre)}</span></button>`;
   }).join('');
-  const dlab = DLC_BLOQ.map(d => { const et = String(d.etiqueta || '').split(',').map(Number), lx = isFinite(et[0]) && et.length === 2 ? et[0] : d._x, ly = isFinite(et[1]) && et.length === 2 ? et[1] : d._y - d._r * .55;
+  const dlab = (VISTA ? [] : DLC_BLOQ).map(d => { const et = String(d.etiqueta || '').split(',').map(Number), lx = isFinite(et[0]) && et.length === 2 ? et[0] : d._x, ly = isFinite(et[1]) && et.length === 2 ? et[1] : d._y - d._r * .55;
     return `<button class="dlab dlc" data-dlc="${esc(d.id)}" style="left:${lx}%;top:${ly}%;--dc:${esc(d.color || '#7dffb2')}">✦ ${esc(d.nombre || d.id)}<small>CONTENIDO PREMIUM</small></button>`; }).join('');
-  mi.innerHTML = fondo + etq + dlab + pts;
+  mi.innerHTML = fondo + etq + dlab + portales + pts;
+  mi.querySelectorAll('.nx-portal').forEach(b => { b.onclick = () => { if (b._movido) { b._movido = false; return; } entrarSub(b.dataset.sub); }; });
   mi.querySelectorAll('.dlab.dlc').forEach(b => { b.onclick = () => { if (b._movido) { b._movido = false; return; } verDLC(b.dataset.dlc); }; });
   precargar();
   mi.querySelectorAll('.pt').forEach(b => { b.onclick = e => { if (b._movido) { b._movido = false; return; } abrirFicha(b.dataset.id); }; });
@@ -1787,13 +1875,13 @@ function pintarMapa() {
 }
 let _pre = 0;
 function precargar() {        // retratos y paisajes de lo visible hoy, en segundo plano: fichas y diálogos abren al instante
-  const id = ++_pre, L = PTS.filter(visibleHoy);
+  const id = ++_pre, L = PTS.filter(p => enVista(distDe(p)) && visibleHoy(p));
   const paso = i => { if (id !== _pre || i >= L.length) return; retrato(L[i]).catch(() => {}); paisajeUrl(L[i]).catch(() => {}); setTimeout(() => paso(i + 1), 60); };
   setTimeout(() => paso(0), 400);
 }
 function nombresReq(req) { return req.map(r => (PTS.find(p => p.id === r) || {}).nombre || r).join(', '); }
 function pintarHud() {
-  $('hTitulo').textContent = CFG.titulo || 'NEXOTLAN';
+  $('hTitulo').textContent = (subDe(VISTA) || {}).titulo_hud || (VISTA ? (subDe(VISTA).nombre || CFG.titulo) : (CFG.titulo || 'NEXOTLAN'));
   $('hDia').innerHTML = `<i>DÍA ${S.dia + 1}</i><span>${esc(diaNombre(S.dia).toUpperCase())}</span>`;
   $('hMon').innerHTML = '<i class="mn"></i> ' + (S.monedas || 0);
   $('hMute').textContent = MUTE ? '🔇' : '🔊';
@@ -1836,7 +1924,7 @@ async function abrirFicha(id) {
   SEL = p; document.querySelectorAll('.pt').forEach(b => b.classList.toggle('sel', b.dataset.id === id));
   if (EDITOR) { mostrarBloque(p); }
   const d = distDe(p), [tt, tc] = TIPO_TXT[p.tipo] || TIPO_TXT.rival;
-  if (!EDITOR) musica((d && d.musica) || CFG.musica);       // música del distrito (si tiene) o la del mapa
+  if (!EDITOR) musica((d && d.musica) || musicaVista());       // música del distrito (si tiene) o la del mapa (o del submapa)
   const v = S.vencidos[p.id] || 0, dr = S.derrotas[p.id] || 0;
   const chips = [];
   if (d) chips.push(`<span class="chip" style="color:${esc(d.color)}">📍 ${esc(d.nombre)}</span>`);
@@ -2035,7 +2123,7 @@ async function procesarResultado() {
     precargarFase2(p0); ocupado(true, '⏳ ' + (p0.fase2_etiqueta || 'Transformación') + '…');
     S.historial.push({ p: p0.id, won: true, dia: S.dia, turnos: res.turnos || 0, ts: Date.now(), fase: 1 });
     S.fase2 = S.fase2 || {}; S.fase2[p0.id] = 1; S.victorias++; S.dia++; guardar();
-    mostrarMapa(); centrarEn(p0._x, p0._y);
+    mostrarMapa(); enfocarPunto(p0);
     if (p0.victoria) await dialogo(p0, p0.victoria);          // su reacción al caer la 1ª forma
     await transformacion(p0);                                   // cinemática: temblor, destello y aparece su forma verdadera
     await retoFase2(p0);
@@ -2063,7 +2151,7 @@ async function procesarResultado() {
   else { S.derrotas[p.id] = (S.derrotas[p.id] || 0) + 1; S.perdidas++; }
   S.dia++;                               // cada Choque consume el día
   guardar();
-  mostrarMapa(); centrarEn(p._x, p._y);
+  mostrarMapa(); enfocarPunto(p);
   await dialogo(p, res.won ? p.victoria : p.derrota);
   if (res.abandono) await mensaje('🚪 CHOQUE ABANDONADO', 'Saliste del Choque antes de terminarlo: cuenta como <b>derrota</b>.');
   if (premio) { sonMonedas(); toast('<i class="mn"></i> +' + premio + ' monedas' + (bonoCal ? ` · <b>+${bonoCal}</b> por calificación ${cal}` : '') + (mejorCal ? ' · ¡mejor calificación!' : '')); }
@@ -2071,7 +2159,7 @@ async function procesarResultado() {
   if (res.won && !res.abandono) await entregarFisica(resolverCarta(fase === 2 ? p0.fase2_carta_fisica : p0.carta_fisica), p0);   // v227 · carta BOSS (1 vez por partida)
   await revisarAperturas(true);
   const esFinal = res.won && !res.abandono && /^(si|sí|1|true)$/i.test(String(p0.final || '').trim());
-  const campeon = res.won && p.tipo === 'guardian' && DIST.filter(d => !d.dlc).every(d => distritoAbierto(d)) && PTS.filter(x => x.tipo === 'guardian' && !x._dlc).every(x => vencido(x.id)) && !S.campeon;
+  const campeon = res.won && p.tipo === 'guardian' && DIST.filter(d => !d.dlc && !d._sub).every(d => distritoAbierto(d)) && PTS.filter(x => x.tipo === 'guardian' && !x._dlc).every(x => vencido(x.id)) && !S.campeon;
   if (campeon) { S.campeon = Date.now(); guardar(); }
   if (esFinal) await pantallaFinal(p0, !antes);                // jefe final (final = si): pantalla de victoria épica con su audio
   else if (campeon) await mensaje('👑 ¡CAMPEÓN DE NEXOTLAN!', `Venciste a todos los guardianes en ${S.dia} días. Puedes seguir explorando y retando a todos para completar tu diario.`);
@@ -2146,7 +2234,7 @@ async function revisarAperturas(anunciar) {
   for (const d of DIST) {
     if (d._req.length && !S.abiertos[d.id] && cumple(d._req)) {
       S.abiertos[d.id] = Date.now(); guardar();
-      if (anunciar) { pintarMapa(); centrarEn(d._x, d._y, true); await mensaje('🗺 ¡NUEVO DISTRITO!', `<b style="color:${esc(d.color)}">${esc(d.nombre)}</b><br>${esc(d.descripcion || '')}`); }
+      if (anunciar) { if (vistaDist(d) !== VISTA) cambiarVista(vistaDist(d), false); pintarMapa(); centrarEn(d._x, d._y, true); await mensaje('🗺 ¡NUEVO DISTRITO!', `<b style="color:${esc(d.color)}">${esc(d.nombre)}</b><br>${esc(d.descripcion || '')}`); }
     }
   }
 }
@@ -2682,6 +2770,7 @@ function itemsContenido() {
   const aud = f => { f = String(f || '').trim(); if (f) add([f], 'aud'); };
   const fondos = o => { ['playmat', 'fondo_inicio'].forEach(k => o[k] && add(candidatos(o[k], 'simulador'), 'img')); if (o.fondo_mesa && !/^[a-z]+$/.test(o.fondo_mesa)) add(candidatos(o.fondo_mesa, 'simulador'), 'img'); };
   if (CFG.mapa) add([DIR + CFG.mapa], 'img');
+  SUBS.forEach(sb => { if (sb.imagen) add([DIR + sb.imagen], 'img'); aud(sb.musica); });
   img(CFG.fondo_titulo, 'titulo'); img(CFG.logo, 'titulo'); img(CFG.fondo_carga, 'titulo');
   aud(CFG.musica); aud(CFG.musica_titulo); aud(CFG.musica_choque); aud(CFG.sonido_monedas); aud(CFG.audio_final); fondos(CFG);
   DIST.forEach(d => { img(d.paisaje, 'paisajes'); aud(d.musica); aud(d.musica_choque); fondos(d); });
@@ -2931,6 +3020,7 @@ function mensaje(t, html, ops) {
 // Muestra el mapa ya dimensionado (sin esto, al volver de un Choque el mapa quedaba de alto 0 y no se veían los puntos)
 function mostrarMapa() {
   asegurarColeccion(); VOLVER = 'sMapa'; irA('sMapa'); cerrarFicha(); if (!_fxRayoT) fxRayos();
+  VISTA = S && subDe(S.vista) ? S.vista : '';         // v274 · regresa al submapa donde estaba
   pintarMapa(); ajustarZoom(ZOOM > 1 ? ZOOM : (ANCHO() < 700 ? 1.6 : 1));
   requestAnimationFrame(() => ajustarZoom(ZOOM));          // segunda medida, ya con el layout final
   musica(CFG.musica);
@@ -2945,8 +3035,8 @@ async function entrarMapa(primeraVez) {
   VOLVER = 'sMapa';
   ZOOM = 1; mostrarMapa(); ajustarZoom(ANCHO() < 700 ? 1.6 : 1);
   try { soundtrackNx(); } catch (e) {}   // partidas que ya iban avanzadas
-  const d0 = DIST.find(distritoAbierto) || DIST[0]; if (d0) centrarEn(d0._x, d0._y);
-  musica(CFG.musica);
+  const d0 = DIST.filter(enVista).find(distritoAbierto) || DIST.find(enVista) || DIST[0]; if (d0) centrarEn(d0._x, d0._y);
+  musica(musicaVista());
   if (primeraVez) {
     const guia = PTS.find(p => p.tipo === 'heroe' && visibleHoy(p));
     await mensaje('🗺 ' + (CFG.titulo || 'NEXOTLAN'), `Bienvenido, <b>${esc(S.nombre)}</b>.<br>Toca los puntos del mapa: <b style="color:#ffd166">⚔ rivales</b>, <b style="color:#36d6ff">💬 héroes</b> y <b style="color:#ff2f5a">★ guardianes</b>.<br>Cada Choque o descanso avanza un día y los rivales cambian de lugar según el día.`);
@@ -2997,6 +3087,7 @@ function retoHoy(p) {   // ¿se le puede retar hoy desde el mapa?
 }
 function imgMini(p) {   // retrato chico con respaldo al arte de su carta
   const a = imgPunto(p), c = p.carta ? cartaImg(p.carta, true) : '';
+  if (!a && !c) return `<img src="${esc(silueta(p))}" alt="" loading="lazy">`;   // v274 · sin arte todavía
   return `<img src="${esc(a || c)}" ${a && c ? `data-alt="${esc(c)}" onerror="if(this.dataset.alt){this.src=this.dataset.alt;this.dataset.alt='';}else this.onerror=null"` : ''} alt="" loading="lazy">`;
 }
 // ── HOY: lista rápida en el mapa de quién se puede retar hoy (tocar = ir y abrir su ficha) ──
@@ -3011,7 +3102,7 @@ function pintarHoy() {
     return `<button class="hy ${vencido(p.id) ? 'ven' : ''}" data-id="${esc(p.id)}" style="--fc:${tc}">${imgMini(p)}<span style="min-width:0"><b>${esc(p.nombre)}${p.tipo === 'guardian' ? ' ★' : ''}</b>
       <small>${esc(NIV_TXT[nivelDe(p)] || '')}${d ? ' · ' + esc(d.nombre) : ''}${vencido(p.id) ? ' · ✔ revancha' : (p._mon ? ' · ' + p._mon + ' 🪙' : '')}</small></span></button>`; }).join('')
     : '<div class="vacio">Hoy no hay rivales a tu alcance. Descansa 🌙 para que lleguen otros.</div>');
-  box.querySelectorAll('.hy').forEach(b => b.onclick = () => { const p = PTS.find(x => x.id === b.dataset.id); if (!p) return; box.classList.remove('on'); centrarEn(p.x, p.y, true); setTimeout(() => abrirFicha(p.id), 260); });
+  box.querySelectorAll('.hy').forEach(b => b.onclick = () => { const p = PTS.find(x => x.id === b.dataset.id); if (!p) return; box.classList.remove('on'); enfocarPunto(p, true); setTimeout(() => abrirFicha(p.id), 260); });
 }
 $('hHoy').onclick = () => { pintarHoy(); const b = $('hoyPanel'); b.classList.toggle('on'); if (b.classList.contains('on')) try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar(b.querySelector('.hy')), 60); } catch (e) {} };
 $('hAdv').onclick = () => { $('hoyPanel').classList.remove('on'); guardar(); abrirAdversarios('sMapa'); };
@@ -3039,12 +3130,14 @@ function abrirAdversarios(de) {
   try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar(document.querySelector('#duLista .du-av.on') || document.querySelector('#duLista .du-av')), 80); } catch (e) {}
 }
 let _duMapR = null;
-function duMapaListo() {
-  const im = $('duMapaImg'); if (!CFG.mapa) { im.removeAttribute('src'); return; }
-  const src = DIR + CFG.mapa; if (im.getAttribute('src') !== src) { im.onload = () => { _duMapR = im.naturalWidth / im.naturalHeight; duCentrar(); }; im.src = src; }
+function duMapaListo(p) {
+  p = p || PTS.find(x => x.id === DU.id);
+  const im = $('duMapaImg'), f = mapaImgDe(p ? vistaPunto(p) : ''); if (!f) { if (im.hasAttribute('src')) im.removeAttribute('src'); return; }
+  const src = DIR + f; if (im.getAttribute('src') !== src) { im.onload = () => { _duMapR = im.naturalWidth / im.naturalHeight; duCentrar(); }; im.src = src; }
 }
 function duCentrar() {
   const p = PTS.find(x => x.id === DU.id), box = $('duMapa'), im = $('duMapaImg'); if (!p || !box.clientWidth) return;
+  duMapaListo(p);
   const r = _duMapR || (MW && MH ? MW / MH : 16 / 9), W = Math.max(box.clientWidth * 2.2, box.clientHeight * 2.2 * r), H = W / r;
   im.style.width = W + 'px'; im.style.height = H + 'px';
   // el punto queda hacia la derecha-centro (detrás de la información), como el escenario de la referencia
@@ -3103,7 +3196,7 @@ async function pintarPerfilDu() {
     <div class="du-esp"></div>
     <div class="du-acc"><button class="du-btn sec" id="duGuia" ${puedeGuia ? '' : 'disabled'}>${S.guia === p.id ? '⭐ ES TU GUÍA' : '☆ ELEGIR GUÍA'}</button>
       <button class="du-btn" id="duIr" ${puedeIr ? '' : 'disabled'}>📍 ${p.tipo === 'heroe' ? 'IR A VERLO' : vencido(p.id) ? 'REVANCHA' : 'RETARLO'}</button></div>`;
-  $('duIr').onclick = () => { if (!puedeIr) return; VOLVER = 'sMapa'; entrarMapa().then(() => { setTimeout(() => { centrarEn(p.x, p.y, true); setTimeout(() => abrirFicha(p.id), 300); }, 120); }); };
+  $('duIr').onclick = () => { if (!puedeIr) return; VOLVER = 'sMapa'; entrarMapa().then(() => { setTimeout(() => { enfocarPunto(p, true); setTimeout(() => abrirFicha(p.id), 300); }, 120); }); };
   $('duGuia').onclick = () => { if (!puedeGuia) return; S.guia = S.guia === p.id ? null : p.id; guardar(); toast(S.guia ? '⭐ ' + p.nombre + ' te acompañará en el menú' : 'Guía del menú: al azar'); pintarAdversarios(); };
   duCentrar();
   const ret = k || !lock ? await retrato(p) : null;
@@ -3355,6 +3448,7 @@ async function borrarSlot(i) {
 $('tCont').onclick = () => abrirMenu();
 $('tNueva').onclick = () => pantallaBaraja('nueva');
 $('hSalir').onclick = () => { guardar(); abrirMenu(); };
+$('subVolver').onclick = () => salirSub();   // v274
 $('hDescansar').onclick = descansar;
 $('hDiario').onclick = abrirDiario;
 $('hBaraja').onclick = abrirMazo;
@@ -3454,7 +3548,7 @@ window.GP_CFG = {
     if ($('sFisicas').classList.contains('on')) { $('fxSalir').click(); return true; }
     if ($('sAdv').classList.contains('on')) { $('duSalir').click(); return true; }
     if ($('hoyPanel').classList.contains('on')) { $('hoyPanel').classList.remove('on'); return true; }
-    if (mapaLibre()) { $('hSalir').click(); return true; }                       // B en el mapa: al menú
+    if (mapaLibre()) { if (VISTA) salirSub(); else $('hSalir').click(); return true; }   // B en el mapa: sube del submapa o va al menú
     if ($('sMenu').classList.contains('on')) { irPortada(); return true; }   // B en el menú: a la portada
     return false;
   },
@@ -3501,6 +3595,7 @@ $('dCaja').addEventListener('click', e => { if (!e.target.closest('.d-ops')) { e
     window.GP_CFG = { principal: '.esq' };
     quitarCarga(); return;
   }
+  TESTER_DLC = !!(yo && lista.includes(String(yo.id).toUpperCase()));   // v275 · DLC gratis para los testers con ID en la lista
   const [txt, data, gal, lim, com] = await Promise.allSettled([leer(DIR + 'mapa.txt'), leer('data/cartas_simulacion.json', true), leer('cartas.json', true), leer('cartas-limitadas.json', true), leer(DIR + 'comerciante.txt')]);
   if (com.status === 'fulfilled') COM = parseCom(com.value);
   if (lim.status === 'fulfilled') (lim.value || []).forEach(x => { if (x && x.nombre) LIM[NK(x.nombre)] = x.estado; });

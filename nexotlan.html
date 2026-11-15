@@ -73,10 +73,10 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 @keyframes tpFlash{0%{opacity:0}18%{opacity:.95}100%{opacity:0}}
 #sTitulo.con-portal{background:transparent}
 #sTitulo.con-portal::before{z-index:1;opacity:.08}
-#sTitulo.con-portal>:not(.t-portal):not(.esq){position:relative;z-index:2}
+#sTitulo.con-portal>:not(.t-portal):not(.esq):not(.t-copy){position:relative;z-index:2}
 #sTitulo.llega .t-logo,#sTitulo.llega .t-title{animation:tpLogo 1.6s cubic-bezier(.2,.8,.2,1) .7s both}
 #sTitulo.llega .t-kicker,#sTitulo.llega .t-sub{animation:tpSube .9s ease 1.3s both}
-#sTitulo.llega .t-btns,#sTitulo.llega .t-save,#sTitulo.llega .t-info,#sTitulo.llega .t-cont{animation:tpSube .9s ease 1.6s both}
+#sTitulo.llega .t-ini,#sTitulo.llega .t-copy,#sTitulo.llega .t-btns,#sTitulo.llega .t-save,#sTitulo.llega .t-info,#sTitulo.llega .t-cont{animation:tpSube .9s ease 1.6s both}
 @keyframes tpLogo{0%{opacity:0;transform:scale(.35)}60%{opacity:1;transform:scale(1.04)}100%{opacity:1;transform:none}}
 @keyframes tpSube{from{opacity:0;transform:translateY(16px)}}
 #sTitulo.con-portal .t-logo{filter:drop-shadow(0 6px 24px rgba(0,0,0,.6)) drop-shadow(0 0 22px rgba(120,200,255,.35))}
@@ -118,6 +118,58 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 .t-est .chipm:focus-visible{outline:2px solid var(--gold2);outline-offset:2px}
 .t-cont .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--purple));transition:width .2s}
 .t-save{font-size:15px;color:#cfe0ff;background:rgba(10,20,48,.7);border:1px solid var(--line);border-radius:10px;padding:10px 14px;position:relative;z-index:1}
+/* ═══ v276 · Dos fases en la portada: TÍTULO (logo + COMENZAR + ©) → PARTIDAS ═══ */
+#sTitulo.fase-portada .t-btns,#sTitulo.fase-portada .t-cont,#sTitulo.fase-portada .t-est,#sTitulo.fase-portada .t-save,#sTitulo.fase-portada .t-ph,#sTitulo.fase-portada .t-atras{display:none!important}
+#sTitulo.fase-partidas .t-ini,#sTitulo.fase-partidas .t-copy,#sTitulo.fase-partidas .t-kicker,#sTitulo.fase-partidas .t-sub,
+#sTitulo.fase-partidas .t-logo,#sTitulo.fase-partidas .t-logo-anim,#sTitulo.fase-partidas .t-title,#sTitulo.fase-partidas>a.esq{display:none!important}
+#sTitulo.fase-portada{justify-content:center}
+.t-ini[hidden]{display:none!important}
+.t-ini{display:flex;justify-content:center;width:100%;margin-top:clamp(4px,calc(2 * var(--uh)),22px)}
+.t-comenzar{--cl:polygon(16px 0,100% 0,calc(100% - 16px) 100%,0 100%);position:relative;isolation:isolate;min-width:min(340px,78%);padding:17px 54px;
+  font-family:'Orbitron',monospace;font-weight:900;font-size:clamp(15px,calc(2.2 * var(--uh)),20px);letter-spacing:.42em;text-indent:.42em;color:#fff;
+  clip-path:var(--cl);background:linear-gradient(100deg,#0a1a46,#1b2f78 45%,#3a1a6e);text-shadow:0 0 12px rgba(120,220,255,.9),0 2px 0 #050b22;
+  transition:transform .18s cubic-bezier(.2,.9,.2,1),filter .18s;animation:tcLatido 2.6s ease-in-out infinite}
+.t-comenzar::before{content:'';position:absolute;inset:0;z-index:-1;clip-path:var(--cl);padding:2px;
+  background:linear-gradient(90deg,#36d6ff,#f5a623,#cc55ff,#36d6ff) 0 0/300% 100%;animation:tcBorde 4s linear infinite;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+.t-comenzar::after{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.55) 48%,rgba(160,230,255,.25) 54%,transparent 64%) 0 0/260% 100% no-repeat;
+  animation:tcBarre 3.2s cubic-bezier(.6,0,.3,1) infinite}
+.t-comenzar span{display:inline-block;position:relative}
+.t-comenzar span::before,.t-comenzar span::after{content:'›';position:absolute;top:50%;translate:0 -52%;font-size:1.4em;letter-spacing:0;color:#ffd166;text-shadow:0 0 10px #f5a623;animation:tcFlecha 1.3s ease-in-out infinite}
+.t-comenzar span::before{content:'‹';right:calc(100% + .5em)}
+.t-comenzar span::after{left:calc(100% + .1em)}
+@keyframes tcLatido{0%,100%{filter:drop-shadow(0 0 6px rgba(54,214,255,.45))}50%{filter:drop-shadow(0 0 18px rgba(54,214,255,.85)) drop-shadow(0 0 30px rgba(204,85,255,.4))}}
+@keyframes tcBorde{to{background-position:300% 0}}
+@keyframes tcBarre{0%,35%{background-position:130% 0}100%{background-position:-30% 0}}
+@keyframes tcFlecha{0%,100%{opacity:.35;transform:translateX(0)}50%{opacity:1;transform:translateX(var(--fx,4px))}}
+.t-comenzar span::before{--fx:-4px}
+.t-comenzar:is(:hover,:focus-visible,.gp-foco){outline:0;transform:scale(1.05);filter:drop-shadow(0 0 22px rgba(54,214,255,.95)) drop-shadow(0 0 40px rgba(204,85,255,.5))}
+.t-comenzar:active{transform:scale(.97);transition-duration:.06s}
+.t-comenzar:disabled{opacity:.4;animation:none;cursor:default}
+.t-comenzar:disabled::after,.t-comenzar:disabled span::before,.t-comenzar:disabled span::after{animation:none;opacity:0}
+.t-comenzar.dispara{animation:tcDispara .5s cubic-bezier(.2,.9,.2,1) forwards}
+@keyframes tcDispara{0%{transform:scale(1)}30%{transform:scale(1.12);filter:brightness(2.2) drop-shadow(0 0 40px #fff)}100%{transform:scale(1.3);opacity:0;filter:brightness(3) blur(6px)}}
+.t-copy{position:fixed;left:0;right:0;bottom:max(10px,env(safe-area-inset-bottom));z-index:3;text-align:center;pointer-events:none;
+  font-family:'Orbitron',monospace;font-size:10px;letter-spacing:.18em;color:rgba(220,232,255,.78);text-shadow:0 1px 4px #000;line-height:1.6}
+.t-copy small{display:block;font-family:'Rajdhani',sans-serif;font-size:11.5px;letter-spacing:.12em;color:rgba(170,188,225,.6)}
+#sTitulo.fase-portada .t-info{font-size:12.5px;opacity:.8}
+#sTitulo.fase-portada:has(#tComenzar:not(:disabled)) .t-info{display:none}
+:root.h520 #sTitulo.fase-portada{gap:10px}
+:root.h520 .t-copy{font-size:8.5px}:root.h520 .t-copy small{font-size:10px}
+.t-ph{display:flex;align-items:center;justify-content:center;width:100%;min-height:40px;position:relative;z-index:2}
+.t-pht{font-family:'Orbitron',monospace;font-weight:900;font-size:clamp(16px,calc(3 * var(--uh)),24px);letter-spacing:.32em;color:#fff;text-shadow:0 0 16px rgba(54,214,255,.75)}
+.t-pht::before,.t-pht::after{content:'';display:inline-block;vertical-align:middle;width:clamp(24px,calc(6 * var(--uw)),90px);height:2px;margin:0 16px;background:linear-gradient(90deg,transparent,#36d6ff)}
+.t-pht::after{background:linear-gradient(90deg,#36d6ff,transparent)}
+#sTitulo.fase-partidas{justify-content:safe center}
+#sTitulo.entra-partidas .t-ph{animation:tpSube .5s cubic-bezier(.2,.9,.2,1) both}
+#sTitulo.entra-partidas .sl{animation:slEntra .55s cubic-bezier(.2,.9,.2,1) both}
+#sTitulo.entra-partidas .sl:nth-child(2){animation-delay:.07s}#sTitulo.entra-partidas .sl:nth-child(3){animation-delay:.14s}
+#sTitulo.entra-partidas #tDescargar,#sTitulo.entra-partidas .t-cont,#sTitulo.entra-partidas .t-est,#sTitulo.entra-partidas .t-info{animation:tpSube .5s ease .22s both}
+@keyframes slEntra{from{opacity:0;transform:translateY(26px) scale(.96)}}
+#sTitulo.entra-portada .t-ini,#sTitulo.entra-portada .t-copy{animation:tpSube .6s ease both}
+#sTitulo.vuelve>:not(.t-portal):not(.esq):not(.t-copy){animation:tVuelve .45s ease both}
+@keyframes tVuelve{from{opacity:0}}
+@media (prefers-reduced-motion:reduce){.t-comenzar,.t-comenzar::before,.t-comenzar::after,.t-comenzar span::before,.t-comenzar span::after,#sTitulo.entra-partidas *,#sTitulo.entra-portada *,#sTitulo.vuelve *{animation:none!important}}
 .t-save b{color:var(--cyan)}
 .esq{position:fixed;top:14px;left:14px;z-index:5;padding:8px 12px;border-radius:9px;border:1px solid var(--line);background:rgba(10,20,48,.8);font-family:'Orbitron',monospace;font-size:10px;letter-spacing:1.5px;color:var(--cyan);text-decoration:none}
 
@@ -315,14 +367,41 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 @keyframes fxCae{from{transform:translateY(-110%)}to{transform:translateY(300%)}}
 .fx-chispa{width:10px;height:10px;border-radius:50%;background:radial-gradient(circle,#fff 0 18%,var(--c) 30%,transparent 70%);opacity:0;animation:fxSube ease-in-out infinite}
 @keyframes fxSube{0%{opacity:0;transform:translate(0,0)}20%{opacity:.9}80%{opacity:.6}100%{opacity:0;transform:translate(14px,-90px)}}
-.fx-rayos{inset:0;width:100%;height:100%;will-change:auto}
-.fx-rayo polyline{fill:none;stroke-linejoin:round;stroke-linecap:round}
-.fx-rayo .f{fill:var(--c);opacity:.22}
-.fx-rayo .h{stroke:var(--c);stroke-width:18;opacity:.32}
-.fx-rayo .r{stroke:var(--c);stroke-width:3}
-.fx-rayo .n{stroke:#fff;stroke-width:3.6}
-.fx-rayo{animation:fxDestello .9s ease-out forwards}
-@keyframes fxDestello{0%{opacity:0}6%{opacity:1}14%{opacity:.15}22%{opacity:1}55%{opacity:.7}100%{opacity:0}}
+/* ═══ v276 · Motion graphics del mapa ═══
+   Vórtices de 3 capas (espiral, contra-espiral y núcleo), halos con rayos de luz, ondas de energía, espuma en las cascadas,
+   barrido de luz, destello del cielo y un canvas con relámpagos afilados (terminan en punta), partículas que el vórtice
+   se traga, motas de energía y bruma. Todo se pausa fuera del mapa. */
+.fx-vort{aspect-ratio:1;translate:-50% -50%;animation:fxVRespira 9s ease-in-out infinite}
+.fx-vort>i{position:absolute;inset:0;border-radius:50%}
+.fx-vort .v1{opacity:.26;background:conic-gradient(from 0deg,transparent 0 8%,var(--c) 14%,transparent 26% 40%,var(--c) 48%,transparent 60% 74%,var(--c) 82%,transparent 94%);
+  -webkit-mask:radial-gradient(circle,transparent 12%,#000 26%,#000 46%,transparent 70%);mask:radial-gradient(circle,transparent 12%,#000 26%,#000 46%,transparent 70%);animation:fxGira 26s linear infinite}
+.fx-vort .v2{inset:14%;opacity:.3;background:repeating-conic-gradient(from 30deg,transparent 0 9deg,color-mix(in srgb,var(--c) 70%,#fff) 14deg,transparent 22deg 45deg);
+  -webkit-mask:radial-gradient(circle,transparent 18%,#000 34%,#000 44%,transparent 66%);mask:radial-gradient(circle,transparent 18%,#000 34%,#000 44%,transparent 66%);animation:fxGira 13s linear infinite reverse}
+.fx-vort .v3{inset:30%;background:radial-gradient(circle,#fff 0,color-mix(in srgb,var(--c) 80%,#fff) 14%,color-mix(in srgb,var(--c) 40%,transparent) 36%,transparent 68%);
+  mix-blend-mode:screen;animation:fxNucleo 3.4s ease-in-out infinite}
+.fx-vort.inv .v1{animation-direction:reverse;animation-duration:34s}.fx-vort.inv .v2{animation-direction:normal}
+@keyframes fxVRespira{0%,100%{transform:scale(.96)}50%{transform:scale(1.05)}}
+@keyframes fxNucleo{0%,100%{opacity:.35;transform:scale(.8)}45%{opacity:.85;transform:scale(1.1)}55%{opacity:.7;transform:scale(1.02)}}
+.fx-halo{aspect-ratio:1;translate:-50% -50%;mix-blend-mode:screen}
+.fx-halo>i{position:absolute;inset:0;border-radius:50%}
+.fx-halo .h1{background:repeating-conic-gradient(from 0deg,color-mix(in srgb,var(--c) 85%,#fff) 0 1.6deg,transparent 3deg 15deg);
+  -webkit-mask:radial-gradient(circle,#000 6%,rgba(0,0,0,.55) 22%,transparent 62%);mask:radial-gradient(circle,#000 6%,rgba(0,0,0,.55) 22%,transparent 62%);
+  opacity:.38;animation:fxGira 60s linear infinite,fxRayosLuz 5.5s ease-in-out infinite}
+.fx-halo .h2{inset:10%;background:repeating-conic-gradient(from 7deg,#fff 0 .8deg,transparent 2deg 23deg);
+  -webkit-mask:radial-gradient(circle,#000 4%,transparent 58%);mask:radial-gradient(circle,#000 4%,transparent 58%);opacity:.3;animation:fxGira 41s linear infinite reverse,fxRayosLuz 4.1s ease-in-out -1.7s infinite}
+.fx-halo .h3{inset:34%;border:2px solid color-mix(in srgb,var(--c) 70%,#fff);box-shadow:0 0 18px var(--c),inset 0 0 18px var(--c);opacity:0;animation:fxOnda 4.6s cubic-bezier(.15,.6,.35,1) infinite}
+.fx-halo .h3.b{animation-delay:-2.3s}
+@keyframes fxRayosLuz{0%,100%{opacity:.18}50%{opacity:.5}}
+@keyframes fxOnda{0%{opacity:0;transform:scale(.4)}12%{opacity:.85}100%{opacity:0;transform:scale(2.6)}}
+.fx-agua i.b{width:55%;left:22%;height:28%;opacity:.8}
+.fx-espuma{translate:-50% -50%;aspect-ratio:2.4;border-radius:50%;background:radial-gradient(ellipse,rgba(235,250,255,.75),rgba(150,225,255,.3) 40%,transparent 70%);
+  animation:fxEspuma 1.3s ease-in-out infinite}
+@keyframes fxEspuma{0%,100%{opacity:.45;transform:scale(.9,.85)}50%{opacity:.85;transform:scale(1.08,1.05)}}
+.fx-barrido{top:-20%;bottom:-20%;left:0;width:34%;transform:translateX(-120%) skewX(-18deg);
+  background:linear-gradient(90deg,transparent,rgba(170,225,255,.07) 30%,rgba(255,255,255,.16) 50%,rgba(220,170,255,.07) 70%,transparent);mix-blend-mode:screen;animation:fxBarre 17s cubic-bezier(.45,0,.25,1) 3s infinite}
+@keyframes fxBarre{0%{transform:translateX(-120%) skewX(-18deg)}55%,100%{transform:translateX(420%) skewX(-18deg)}}
+.fx-cielo{inset:0;opacity:0;mix-blend-mode:screen;background:radial-gradient(circle at var(--x,50%) var(--y,30%),color-mix(in srgb,var(--c,#b98cff) 70%,#fff) 0,color-mix(in srgb,var(--c,#b98cff) 35%,transparent) 22%,transparent 58%)}
+.fx-cv{inset:0;width:100%;height:100%;will-change:auto!important}
 @media (prefers-reduced-motion:reduce){.mfx{display:none}}
 .mi>svg,.mi>img.fondo{position:absolute;inset:0;width:100%;height:100%;display:block}
 .mi>img.fondo{object-fit:cover}
@@ -948,13 +1027,18 @@ body.nx-sismo2{animation:nxSismo2 .09s linear infinite}
 <body>
 <div id="stage">
 <!-- ══════ TÍTULO ══════ -->
-<section class="scr on" id="sTitulo">
+<section class="scr on fase-portada" id="sTitulo">
   <a class="esq" href="index.html">← MENÚ</a>
   <div class="t-kicker">Choque de Héroes · Modo Aventura</div>
   <img class="t-logo" id="tLogo" alt="" hidden>
   <nexotlan-logo class="t-logo-anim" id="tLogoAnim" mode="wait" hidden></nexotlan-logo>
   <div class="t-title" id="tTitulo">NEXOTLAN</div>
   <div class="t-sub" id="tSub">La ciudad entre dimensiones</div>
+  <!-- v276 · Pantalla de título: solo COMENZAR; después se pasa a la selección de partidas -->
+  <div class="t-ini" id="tIni"><button class="t-comenzar" id="tComenzar" type="button" disabled><span>COMENZAR</span></button></div>
+  <button class="esq t-atras" id="tAtras" type="button">← ATRÁS</button>
+  <div class="t-ph" id="tPh"><div class="t-pht">ELIGE TU PARTIDA</div></div>
+  <div class="t-copy" id="tCopy">© <span id="tAnio">2026</span> Yair Artz · Codex Studio<small>Choque de Héroes · Todos los derechos reservados</small></div>
   <div class="t-save" id="tSave" hidden></div>
   <div class="t-btns">
     <div class="slots" id="tSlots"></div>
@@ -1765,7 +1849,7 @@ const PIN = {
 //   fx_cascadas   x,y_arriba,y_abajo,ancho | … reflejos que bajan por las cascadas
 //   fx_relampagos x,y | …                     zonas donde caen los relámpagos de energía
 const FX_DEF = {
-  brillos: '47,16,7,#ffd36a | 47,39,2.2,#7ff0ff | 47,49.5,2.6,#7ff0ff | 16,14,9,#ff9a3c | 20,47,8,#ff5ad2 | 78,13,9,#5fe6ff | 72,48,8,#4fa8ff | 10.5,72,1.4,#ffb347',
+  brillos: '47,16,7,#ffd36a,rayos | 47,39,2.2,#7ff0ff | 47,49.5,2.6,#7ff0ff | 16,14,9,#ff9a3c | 20,47,8,#ff5ad2 | 78,13,9,#5fe6ff | 72,48,8,#4fa8ff | 10.5,72,1.4,#ffb347',
   remolinos: '16.5,14,17,#c86bff | 20,47,15,#ff5ad2 | 78,14,18,#46d8ff | 72,48,15,#3f8cff',
   cascadas: '9.5,26,52,.9 | 19.5,72,97,1.2 | 35,69,92,1.1 | 53.6,72,95,1.1 | 66,61,80,.9 | 63.6,20,37,.9 | 83.3,46,75,1 | 70,77,92,.8 | 72.4,78,91,.8',
   relampagos: '9,7 | 24,30 | 37,4 | 57,6 | 62,3 | 66,28 | 85,7 | 90,20 | 96,37 | 30,44'
@@ -1790,56 +1874,254 @@ function capaFx() {
   NIEBLA.forEach(([y, w, hh, d, o], i) => { h += `<div class="fx-nube niebla" style="top:${y}%;width:${w}%;height:${hh}%;--o:${o};animation-duration:${d}s;animation-delay:-${((Date.now() - FX_T0) / 1000 + d * i / NIEBLA.length) % d}s${i % 2 ? ';animation-direction:reverse' : ''}"></div>`; });
   h += `<div class="fx-niebla-base" style="animation-delay:${fxDelay(9)}"></div>`;
   // Remolinos
+  // v276 · vórtice de 3 capas: espiral, contra-espiral y núcleo que palpita (las partículas las dibuja el canvas)
   fxLista(V('remolinos'), 3).forEach(([x, y, t, c], i) => {
-    h += `<div class="fx-remo" style="left:${x}%;top:${y}%;width:${t}%;--c:${/^#[0-9a-f]{3,8}$/i.test(c || '') ? c : '#c86bff'};animation-delay:${fxDelay(i % 2 ? 34 : 26)}"></div>`;
+    const d = fxDelay(i % 2 ? 34 : 26);
+    h += `<div class="fx-vort ${i % 2 ? 'inv' : ''}" style="left:${x}%;top:${y}%;width:${t}%;--c:${/^#[0-9a-f]{3,8}$/i.test(c || '') ? c : '#c86bff'};animation-delay:${fxDelay(9)}"><i class="v1" style="animation-delay:${d}"></i><i class="v2" style="animation-delay:${fxDelay(13)}"></i><i class="v3" style="animation-delay:${fxDelay(3.4)}"></i></div>`;
   });
   // Brillos que palpitan
-  fxLista(V('brillos'), 3).forEach(([x, y, t, c], i) => {
-    const d = 2.6 + (i % 4) * .7;
-    h += `<div class="fx-brillo" style="left:${x}%;top:${y}%;width:${t}%;--c:${/^#[0-9a-f]{3,8}$/i.test(c || '') ? c : '#ffd36a'};animation-duration:${d}s;animation-delay:${fxDelay(d)}"></div>`;
+  // v276 · un 5º valor "rayos" agrega halo de rayos de luz y ondas de energía (fx_brillos = x,y,tamaño,color,rayos)
+  fxLista(V('brillos'), 3).forEach(([x, y, t, c, r], i) => {
+    const d = 2.6 + (i % 4) * .7, col = /^#[0-9a-f]{3,8}$/i.test(c || '') ? c : '#ffd36a';
+    h += `<div class="fx-brillo" style="left:${x}%;top:${y}%;width:${t}%;--c:${col};animation-duration:${d}s;animation-delay:${fxDelay(d)}"></div>`;
+    if (/^rayos?$/i.test(r || '')) h += `<div class="fx-halo" style="left:${x}%;top:${y}%;width:${t * 3.2}%;--c:${col}"><i class="h1" style="animation-delay:${fxDelay(60)},${fxDelay(5.5)}"></i><i class="h2"></i><i class="h3" style="animation-delay:${fxDelay(4.6)}"></i><i class="h3 b"></i></div>`;
   });
   // Cascadas
   fxLista(V('cascadas'), 3).forEach(([x, y1, y2, w], i) => {
     const d = 1.6 + (i % 3) * .35;
-    h += `<div class="fx-agua" style="left:${x}%;top:${y1}%;height:${Math.max(1, y2 - y1)}%;width:${+w || 1}%"><i style="animation-duration:${d}s;animation-delay:${fxDelay(d)}"></i></div>`;
+    h += `<div class="fx-agua" style="left:${x}%;top:${y1}%;height:${Math.max(1, y2 - y1)}%;width:${+w || 1}%"><i style="animation-duration:${d}s;animation-delay:${fxDelay(d)}"></i><i class="b" style="animation-duration:${(d * 1.35).toFixed(2)}s;animation-delay:${fxDelay(d * 1.35)}"></i></div>`;
+    if (+y2 < 98) h += `<i class="fx-espuma" style="left:${x}%;top:${y2}%;width:${(+w || 1) * 3.2}%;animation-delay:${fxDelay(1.3)}"></i>`;
   });
   // Chispas de energía que flotan
   for (let i = 0; i < 22; i++) {
     const x = (i * 37 + 11) % 97 + 1.5, y = 30 + (i * 53) % 65, d = 9 + (i % 5) * 2.2;
     h += `<i class="fx-chispa" style="left:${x}%;top:${y}%;animation-duration:${d}s;animation-delay:${fxDelay(d)};--c:${i % 3 ? '#9fe8ff' : '#e6a8ff'}"></i>`;
   }
-  return `<div class="mfx" aria-hidden="true">${h}<svg class="fx-rayos" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice"></svg></div>`;
+  h += `<div class="fx-barrido"></div>`;
+  return `<div class="mfx" aria-hidden="true">${h}<canvas class="fx-cv"></canvas><div class="fx-cielo"></div></div>`;
 }
-// Relámpagos de energía: se dibujan al azar cada pocos segundos (solo si el mapa está a la vista)
-function fxRayo() {
-  const svg = document.querySelector('#mi .fx-rayos');
-  if (!svg || document.hidden || !$('sMapa').classList.contains('on')) return;
-  const V = (CFG.fx_relampagos != null && String(CFG.fx_relampagos).trim() !== '') ? CFG.fx_relampagos : FX_DEF.relampagos;
-  const Z = fxLista(V, 2); if (!Z.length) return;
-  const [zx, zy] = Z[Math.floor(Math.random() * Z.length)];
-  let x = +zx / 100 * MW, y = +zy / 100 * MH;
-  const ang = Math.random() * Math.PI * 2, largo = 130 + Math.random() * 190, pasos = 7 + Math.floor(Math.random() * 5);
-  const pts = [[x, y]]; let ramas = '';
-  for (let k = 1; k <= pasos; k++) {
-    const t = k / pasos, jit = (Math.random() - .5) * 46;
-    const px = x + Math.cos(ang) * largo * t + Math.cos(ang + Math.PI / 2) * jit, py = y + Math.sin(ang) * largo * t + Math.sin(ang + Math.PI / 2) * jit;
-    pts.push([px, py]);
-    if (k > 1 && k < pasos && Math.random() < .35) {   // ramita
-      const a2 = ang + (Math.random() < .5 ? -1 : 1) * (.5 + Math.random() * .6), l2 = 25 + Math.random() * 45;
-      ramas += `<polyline points="${px},${py} ${px + Math.cos(a2) * l2 * .5 + (Math.random() - .5) * 14},${py + Math.sin(a2) * l2 * .5 + (Math.random() - .5) * 14} ${px + Math.cos(a2) * l2},${py + Math.sin(a2) * l2}"/>`;
+// ════════════════ v276 · MOTOR DE EFECTOS DEL MAPA (canvas) ════════════════
+// Relámpagos con forma real: el trazo es un polígono que se adelgaza hasta terminar EN PUNTA (antes eran líneas con
+// remate redondo). Cada rayo: guía que avanza → golpe → parpadeo → re-golpe con una forma ligeramente distinta →
+// se apaga dejando brillo; ramas que también terminan en punta, chispas en la punta, destello del cielo y, a veces,
+// un arco de energía entre dos zonas. Además: partículas que cada vórtice se traga en espiral, motas de energía
+// que suben y bruma al pie de las cascadas. Coordenadas en el espacio del mapa (1600×1000).
+// Todo se detiene fuera del mapa, en submapas o con la pestaña oculta.
+const FXE = { cv: null, ctx: null, raf: 0, ult: 0, k: 1, rayos: [], chispas: [], vort: [], motas: [], bruma: [], cas: [], spr: {}, movil: false };
+const FX_RAYO_COL = ['#d29bff', '#8af0ff', '#b98cff', '#9fd8ff'];
+function fxSprite(col) {        // brillo redondo pre-dibujado (mucho más barato que shadowBlur en cada partícula)
+  if (FXE.spr[col]) return FXE.spr[col];
+  const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'), r = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  r.addColorStop(0, '#fff'); r.addColorStop(.18, col); r.addColorStop(.5, col + '55'); r.addColorStop(1, col + '00');
+  g.fillStyle = r; g.fillRect(0, 0, 64, 64); return (FXE.spr[col] = c);
+}
+const fxHex = c => /^#[0-9a-f]{6}$/i.test(c || '') ? c : (/^#[0-9a-f]{3}$/i.test(c || '') ? '#' + c.slice(1).split('').map(x => x + x).join('') : '#c86bff');
+// Línea quebrada por desplazamiento de punto medio (detalle fino cerca de la punta, como un rayo real)
+function fxQuiebre(x0, y0, x1, y1, dispIni, niveles) {
+  let P = [[x0, y0], [x1, y1]], disp = dispIni;
+  for (let n = 0; n < niveles; n++) {
+    const Q = [P[0]];
+    for (let i = 1; i < P.length; i++) {
+      const a = P[i - 1], b = P[i], mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2, dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy) || 1, o = (Math.random() - .5) * disp;
+      Q.push([mx - dy / L * o, my + dx / L * o], b);
     }
+    P = Q; disp *= .54;
   }
-  const col = Math.random() < .55 ? '#d29bff' : '#8af0ff';
-  const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-  g.setAttribute('class', 'fx-rayo'); g.style.setProperty('--c', col);
-  g.innerHTML = `<circle class="f" cx="${x}" cy="${y}" r="50"/><polyline class="h" points="${pts.map(p => p.join(',')).join(' ')}"/>${ramas.replace(/<polyline /g, '<polyline class="r" ')}<polyline class="n" points="${pts.map(p => p.join(',')).join(' ')}"/>`;
-  svg.appendChild(g);
-  setTimeout(() => g.remove(), 900);
+  return P;
+}
+// Ancho a lo largo del trazo: t = 0 (inicio) → 1 (punta). arco = ambos extremos en punta
+const fxAncho = (t, w0, arco) => arco ? w0 * Math.pow(Math.sin(Math.PI * t), .55) : w0 * Math.pow(1 - t, .75) * (t < .04 ? .55 + t / .04 * .45 : 1);
+function fxRama(P, w0, arco) {            // trazo = puntos + ancho por punto (el último ancho es 0: punta)
+  const n = P.length - 1; let tot = 0; const acc = [0];
+  for (let i = 1; i <= n; i++) { tot += Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]); acc.push(tot); }
+  return P.map((p, i) => [p[0], p[1], i === n ? 0 : fxAncho(acc[i] / (tot || 1), w0, arco)]);
+}
+function fxNuevoRayo(x, y, opt) {
+  opt = opt || {};
+  const fuerte = !!opt.fuerte, arco = !!opt.hasta;
+  let x1, y1, len;
+  if (arco) { [x1, y1] = opt.hasta; len = Math.hypot(x1 - x, y1 - y); }
+  else { const ang = opt.ang != null ? opt.ang : Math.random() * Math.PI * 2; len = (fuerte ? 260 : 150) + Math.random() * (fuerte ? 220 : 170); x1 = x + Math.cos(ang) * len; y1 = y + Math.sin(ang) * len; }
+  const w0 = (fuerte ? 7.5 : 5) * (arco ? .7 : 1) * (.85 + Math.random() * .3);
+  const forma = () => {
+    const P = fxQuiebre(x, y, x1, y1, len * (arco ? .22 : .32), 6), main = fxRama(P, w0, arco), ramas = [];
+    const nr = (fuerte ? 4 : 2) + Math.floor(Math.random() * 3);
+    for (let r = 0; r < nr; r++) {         // ramas: nacen del trazo principal y terminan en punta
+      const i = Math.floor(P.length * (.15 + Math.random() * .6)), a = main[i], b = main[Math.min(main.length - 1, i + 2)];
+      const base = Math.atan2(b[1] - a[1], b[0] - a[0]) + (Math.random() < .5 ? -1 : 1) * (.35 + Math.random() * .75), l = len * (.18 + Math.random() * .32);
+      const Q = fxQuiebre(a[0], a[1], a[0] + Math.cos(base) * l, a[1] + Math.sin(base) * l, l * .4, 4), R = fxRama(Q, Math.max(1.2, a[2] * .62), false);
+      ramas.push(R);
+      if (Math.random() < .4) {           // sub-rama
+        const j = Math.floor(Q.length * (.3 + Math.random() * .4)), c = R[j], b2 = base + (Math.random() < .5 ? -1 : 1) * (.4 + Math.random() * .5), l2 = l * (.3 + Math.random() * .3);
+        ramas.push(fxRama(fxQuiebre(c[0], c[1], c[0] + Math.cos(b2) * l2, c[1] + Math.sin(b2) * l2, l2 * .4, 3), Math.max(.9, c[2] * .6), false));
+      }
+    }
+    return [main].concat(ramas);
+  };
+  const col = opt.col || FX_RAYO_COL[Math.floor(Math.random() * FX_RAYO_COL.length)];
+  const R = { x, y, x1, y1, col, arco, fuerte, t0: performance.now(), vida: fuerte ? 1050 : 820, guia: arco ? 70 : 95, formas: [forma(), forma()], chisp: false };
+  FXE.rayos.push(R);
+  fxCielo(x, y, col, fuerte);
+  return R;
+}
+// Polígono que se adelgaza: lado izquierdo de ida, lado derecho de regreso. Con ancho 0 al final → punta afilada.
+function fxTrazo(g, T, k, hasta) {
+  const n = hasta == null ? T.length : Math.max(2, Math.min(T.length, hasta));
+  if (n < 2) return;
+  const L = [], Rr = [];
+  for (let i = 0; i < n; i++) {
+    const a = T[Math.max(0, i - 1)], b = T[Math.min(n - 1, i + 1)], dx = b[0] - a[0], dy = b[1] - a[1], m = Math.hypot(dx, dy) || 1;
+    const w = (i === n - 1 ? 0 : T[i][2] * (hasta != null && hasta < T.length ? Math.min(1, (n - 1 - i) / 6) : 1)) * k / 2;   // la guía también avanza en punta
+    L.push([T[i][0] - dy / m * w, T[i][1] + dx / m * w]); Rr.push([T[i][0] + dy / m * w, T[i][1] - dx / m * w]);
+  }
+  g.beginPath(); g.moveTo(L[0][0], L[0][1]);
+  for (let i = 1; i < n; i++) g.lineTo(L[i][0], L[i][1]);
+  for (let i = n - 1; i >= 0; i--) g.lineTo(Rr[i][0], Rr[i][1]);
+  g.closePath(); g.fill();
+}
+// Intensidad en el tiempo: guía → golpe → parpadeo → re-golpe → se apaga
+function fxIntensidad(u, R) {
+  const ms = u * R.vida, gu = R.guia;
+  if (ms < gu) return .55;
+  if (ms < gu + 55) return 1;
+  if (ms < gu + 120) return .22;
+  if (ms < gu + 185) return 1;
+  const r = (ms - gu - 185) / (R.vida - gu - 185); return Math.max(0, Math.pow(1 - r, 2.2)) * .95;
+}
+function fxCielo(x, y, col, fuerte) {
+  const c = FXE.cv && FXE.cv.parentNode && FXE.cv.parentNode.querySelector('.fx-cielo'); if (!c || !c.animate) return;
+  c.style.setProperty('--x', (x / MW * 100).toFixed(1) + '%'); c.style.setProperty('--y', (y / MH * 100).toFixed(1) + '%'); c.style.setProperty('--c', col);
+  const p = fuerte ? .75 : .42;
+  c.animate([{ opacity: 0 }, { opacity: p * .5, offset: .08 }, { opacity: p, offset: .14 }, { opacity: p * .2, offset: .22 }, { opacity: p * .9, offset: .3 }, { opacity: 0 }], { duration: fuerte ? 1100 : 850, easing: 'ease-out' });
+}
+function fxPintarRayo(g, R, ahora) {
+  const u = (ahora - R.t0) / R.vida; if (u >= 1) return false;
+  const ms = ahora - R.t0, I = fxIntensidad(u, R), F = R.formas[ms > R.guia + 120 ? 1 : 0], col = R.col;
+  const avance = ms < R.guia ? Math.pow(ms / R.guia, .8) : 1;
+  // Brillo en el origen (y en ambos extremos si es un arco)
+  const s = fxSprite(col), rg = (R.fuerte ? 150 : 100) * (.6 + I * .5);
+  g.globalAlpha = .55 * I; g.drawImage(s, R.x - rg / 2, R.y - rg / 2, rg, rg);
+  if (R.arco && avance >= 1) g.drawImage(s, R.x1 - rg / 2, R.y1 - rg / 2, rg, rg);
+  F.forEach((T, idx) => {
+    const hasta = avance < 1 ? Math.ceil(T.length * (idx ? Math.max(0, (avance - .35) / .65) : avance)) : null;
+    if (hasta != null && hasta < 2) return;
+    const fade = idx ? .85 : 1;
+    g.globalAlpha = .16 * I * fade; g.fillStyle = col; fxTrazo(g, T, 7, hasta);      // resplandor amplio
+    g.globalAlpha = .34 * I * fade; fxTrazo(g, T, 3, hasta);                          // resplandor medio
+    g.globalAlpha = .95 * I * fade; fxTrazo(g, T, 1.25, hasta);                       // cuerpo de color
+    g.globalAlpha = Math.min(1, I * 1.15) * fade; g.fillStyle = '#ffffff'; fxTrazo(g, T, .5, hasta);   // núcleo blanco
+  });
+  if (!R.chisp && ms > R.guia && !R.arco) {          // chispas que salen de la punta al golpear
+    R.chisp = true; const n = R.fuerte ? 12 : 7;
+    for (let i = 0; i < n; i++) { const a = Math.random() * Math.PI * 2, v = .08 + Math.random() * .22;
+      FXE.chispas.push({ x: R.x1, y: R.y1, vx: Math.cos(a) * v, vy: Math.sin(a) * v - .03, t0: ahora, vida: 280 + Math.random() * 380, col }); }
+  }
+  return true;
+}
+// Partículas: vórtices (espiral hacia el centro), motas de energía que suben, bruma de cascadas
+function fxSembrar() {
+  const V = k => (CFG['fx_' + k] != null && String(CFG['fx_' + k]).trim() !== '') ? CFG['fx_' + k] : FX_DEF[k];
+  const m = FXE.movil, firma = V('remolinos') + '|' + V('cascadas') + '|' + m;
+  if (FXE._firma === firma) return; FXE._firma = firma;
+  FXE.vort = fxLista(V('remolinos'), 3).map(([x, y, t, c], i) => {
+    const R = +t / 100 * MW * .5, col = fxHex(c), N = m ? 12 : 22, ps = [];
+    for (let k = 0; k < N; k++) ps.push({ a: Math.random() * 6.283, r: .15 + Math.random() * .85, v: .7 + Math.random() * .6, px: null, py: null });
+    return { x: +x / 100 * MW, y: +y / 100 * MH, R, col, dir: i % 2 ? -1 : 1, ps };
+  });
+  FXE.motas = []; const NM = m ? 22 : 40;
+  for (let k = 0; k < NM; k++) FXE.motas.push(fxMota({}, true));
+  FXE.cas = fxLista(V('cascadas'), 3).filter(c => +c[2] < 98).map(([x, y1, y2, w]) => ({ x: +x / 100 * MW, y: +y2 / 100 * MH, w: (+w || 1) / 100 * MW, sig: 0 }));
+  FXE.bruma = [];
+}
+function fxMota(o, ini) {
+  o.x = Math.random() * MW; o.y = ini ? Math.random() * MH : MH * (.55 + Math.random() * .5); o.vy = -(.006 + Math.random() * .014); o.fase = Math.random() * 6.283;
+  o.tam = 5 + Math.random() * 11; o.col = ['#9fe8ff', '#e6a8ff', '#ffd36a', '#7ff0ff'][Math.floor(Math.random() * 4)]; o.vida = 0; o.max = 7000 + Math.random() * 9000; return o;
+}
+function fxMotor() {
+  const cv = document.querySelector('#mi .fx-cv');
+  FXE.cv = cv; FXE.ctx = cv ? cv.getContext('2d') : null;
+  if (!cv) return;
+  FXE.movil = document.documentElement.classList.contains('movil') || Math.min(innerWidth, innerHeight) < 560 || (navigator.hardwareConcurrency || 4) <= 4;
+  fxSembrar(); fxTam();
+  if (!FXE.raf) FXE.raf = requestAnimationFrame(fxCuadro);
+}
+function fxTam() {
+  const cv = FXE.cv; if (!cv) return;
+  const w = cv.clientWidth || MW, dpr = Math.min(devicePixelRatio || 1, FXE.movil ? 1.25 : 1.5);
+  const W = Math.round(Math.min(FXE.movil ? 1700 : 2400, w * dpr)), H = Math.round(W * MH / MW);
+  if (cv.width !== W) { cv.width = W; cv.height = H; }
+  FXE.k = W / MW;
+}
+addEventListener('resize', () => { if (FXE.cv) fxTam(); });
+function fxCuadro(ts) {
+  FXE.raf = 0;
+  const cv = FXE.cv; if (!cv || !cv.isConnected) return;     // el mapa se volvió a dibujar sin efectos (submapa)
+  FXE.raf = requestAnimationFrame(fxCuadro);
+  if (!$('sMapa').classList.contains('on') || document.hidden) { FXE.ult = 0; return; }
+  const paso = FXE.movil ? 30 : 15;
+  if (FXE.ult && ts - FXE.ult < paso) return;
+  const dt = FXE.ult ? Math.min(80, ts - FXE.ult) : 16; FXE.ult = ts;
+  if (Math.abs(cv.width - Math.round(Math.min(FXE.movil ? 1700 : 2400, (cv.clientWidth || MW) * Math.min(devicePixelRatio || 1, FXE.movil ? 1.25 : 1.5)))) > 40) fxTam();
+  const g = FXE.ctx, ahora = performance.now();
+  g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1; g.globalCompositeOperation = 'source-over'; g.clearRect(0, 0, cv.width, cv.height);
+  g.setTransform(FXE.k, 0, 0, FXE.k, 0, 0); g.globalCompositeOperation = 'lighter';
+  // Bruma al pie de las cascadas
+  FXE.cas.forEach(c => { c.sig -= dt; if (c.sig <= 0) { c.sig = 260 + Math.random() * 260; FXE.bruma.push({ x: c.x + (Math.random() - .5) * c.w * 1.6, y: c.y + (Math.random() - .3) * 8, r0: c.w * .9 + 6, t0: ahora, vida: 1500 + Math.random() * 900, vx: (Math.random() - .5) * .02 }); } });
+  const sb = fxSprite('#bfe9ff');
+  FXE.bruma = FXE.bruma.filter(b => { const u = (ahora - b.t0) / b.vida; if (u >= 1) return false;
+    const r = b.r0 * (1 + u * 2.4); g.globalAlpha = .22 * Math.sin(Math.PI * u); g.drawImage(sb, b.x + b.vx * (ahora - b.t0) - r, b.y - u * 22 - r * .6, r * 2, r * 1.2); return true; });
+  // Vórtices: las partículas giran y se hunden hacia el núcleo, más rápido cuanto más cerca (estela en punta)
+  FXE.vort.forEach(V => {
+    const s = fxSprite(V.col);
+    V.ps.forEach(p => {
+      p.a += V.dir * dt * .0011 * p.v / (p.r + .18); p.r -= dt * .00007 * p.v * (1.4 - p.r);
+      if (p.r < .1) { p.r = .85 + Math.random() * .15; p.a = Math.random() * 6.283; p.px = null; }
+      const x = V.x + Math.cos(p.a) * p.r * V.R, y = V.y + Math.sin(p.a) * p.r * V.R * .82;
+      const al = Math.sin(Math.PI * Math.min(1, (1 - p.r) / .9)) * .9;
+      if (p.px != null && al > .02) {
+        const dx = x - p.px, dy = y - p.py, L = Math.hypot(dx, dy) || 1, w = 2.2 + (1 - p.r) * 2.4, cola = Math.min(6, 2.6 + 14 / (L + 2));
+        g.globalAlpha = Math.min(1, al * 1.05); g.fillStyle = V.col;
+        g.beginPath(); g.moveTo(p.px - dx * cola, p.py - dy * cola); g.lineTo(x - dy / L * w, y + dx / L * w); g.lineTo(x + dx / L * w * .6, y + dy / L * w * .6); g.lineTo(x + dy / L * w, y - dx / L * w); g.closePath(); g.fill();
+        const r = 9 + (1 - p.r) * 11; g.globalAlpha = al * .85; g.drawImage(s, x - r, y - r, r * 2, r * 2);
+      }
+      p.px = x; p.py = y;
+    });
+  });
+  // Motas de energía: suben despacio, ondulan y titilan
+  FXE.motas.forEach(o => {
+    o.vida += dt; o.y += o.vy * dt; o.x += Math.sin(o.fase + o.vida * .0012) * .05 * dt * .3;
+    if (o.vida > o.max || o.y < -20) fxMota(o, false);
+    const u = o.vida / o.max, tw = .55 + .45 * Math.sin(o.fase * 3 + o.vida * .006);
+    g.globalAlpha = Math.sin(Math.PI * u) * .75 * tw; const r = o.tam * (.8 + tw * .3);
+    g.drawImage(fxSprite(o.col), o.x - r, o.y - r, r * 2, r * 2);
+  });
+  // Relámpagos y sus chispas
+  FXE.rayos = FXE.rayos.filter(R => fxPintarRayo(g, R, ahora));
+  FXE.chispas = FXE.chispas.filter(c => { const e = ahora - c.t0, u = e / c.vida; if (u >= 1) return false;
+    const x = c.x + c.vx * e, y = c.y + c.vy * e + .00018 * e * e, L = Math.hypot(c.vx, c.vy) || 1, cola = 26 * (1 - u) + 4, w = 1.6 * (1 - u) + .4;
+    g.globalAlpha = 1 - u; g.fillStyle = '#fff';
+    g.beginPath(); g.moveTo(x - c.vx / L * cola, y - c.vy / L * cola); g.lineTo(x - c.vy / L * w, y + c.vx / L * w); g.lineTo(x + c.vx / L * w, y + c.vy / L * w); g.lineTo(x + c.vy / L * w, y - c.vx / L * w); g.closePath(); g.fill();
+    g.globalAlpha = (1 - u) * .8; g.drawImage(fxSprite(c.col), x - 7, y - 7, 14, 14); return true; });
+  g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+}
+// Relámpagos al azar (zonas de fx_relampagos). A veces un golpe fuerte, un doble golpe o un arco entre dos zonas.
+function fxRayo() {
+  if (!FXE.cv || !FXE.cv.isConnected || document.hidden || !$('sMapa').classList.contains('on')) return;
+  const V = (CFG.fx_relampagos != null && String(CFG.fx_relampagos).trim() !== '') ? CFG.fx_relampagos : FX_DEF.relampagos;
+  const Z = fxLista(V, 2).map(([a, b]) => [+a / 100 * MW, +b / 100 * MH]); if (!Z.length) return;
+  const [x, y] = Z[Math.floor(Math.random() * Z.length)], dado = Math.random();
+  if (dado < .22 && Z.length > 1) {
+    const cerca = Z.filter(z => { const d = Math.hypot(z[0] - x, z[1] - y); return d > 120 && d < 560; });
+    if (cerca.length) { fxNuevoRayo(x, y, { hasta: cerca[Math.floor(Math.random() * cerca.length)] }); return; }
+  }
+  const fuerte = dado > .86;
+  fxNuevoRayo(x, y, { fuerte });
+  if (fuerte || Math.random() < .3) setTimeout(() => { if (FXE.cv && FXE.cv.isConnected) fxNuevoRayo(x + (Math.random() - .5) * 40, y + (Math.random() - .5) * 30, { col: undefined }); }, 160 + Math.random() * 120);
 }
 let _fxRayoT = null;
 function fxRayos() {
   clearTimeout(_fxRayoT);
-  const sig = () => { _fxRayoT = setTimeout(() => { try { if (fxActivo()) { fxRayo(); if (Math.random() < .3) setTimeout(fxRayo, 140); } } catch (e) {} sig(); }, 1600 + Math.random() * 3800); };
+  const sig = () => { _fxRayoT = setTimeout(() => { try { if (fxActivo()) fxRayo(); } catch (e) { console.warn(e); } sig(); }, 1400 + Math.random() * 3200); };
   sig();
 }
 
@@ -1866,6 +2148,7 @@ function pintarMapa() {
   const dlab = (VISTA ? [] : DLC_BLOQ).map(d => { const et = String(d.etiqueta || '').split(',').map(Number), lx = isFinite(et[0]) && et.length === 2 ? et[0] : d._x, ly = isFinite(et[1]) && et.length === 2 ? et[1] : d._y - d._r * .55;
     return `<button class="dlab dlc" data-dlc="${esc(d.id)}" style="left:${lx}%;top:${ly}%;--dc:${esc(d.color || '#7dffb2')}">✦ ${esc(d.nombre || d.id)}<small>CONTENIDO PREMIUM</small></button>`; }).join('');
   mi.innerHTML = fondo + etq + dlab + portales + pts;
+  try { fxMotor(); } catch (e) { console.warn('[nexotlan] fx', e); }
   mi.querySelectorAll('.nx-portal').forEach(b => { b.onclick = () => { if (b._movido) { b._movido = false; return; } entrarSub(b.dataset.sub); }; });
   mi.querySelectorAll('.dlab.dlc').forEach(b => { b.onclick = () => { if (b._movido) { b._movido = false; return; } verDLC(b.dataset.dlc); }; });
   precargar();
@@ -3106,7 +3389,33 @@ function pintarHoy() {
 }
 $('hHoy').onclick = () => { pintarHoy(); const b = $('hoyPanel'); b.classList.toggle('on'); if (b.classList.contains('on')) try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar(b.querySelector('.hy')), 60); } catch (e) {} };
 $('hAdv').onclick = () => { $('hoyPanel').classList.remove('on'); guardar(); abrirAdversarios('sMapa'); };
-function irPortada() { guardar(); musicaPortada(); irA('sTitulo'); pintarTitulo(); }
+function irPortada() { guardar(); musicaPortada(); irA('sTitulo'); pintarTitulo(); faseTitulo('partidas', true); }
+// v276 · La portada tiene dos fases: TÍTULO (logo + COMENZAR + ©) y PARTIDAS (las 3 ranuras).
+//        Al entrar al modo se ve el título; desde el menú de la aventura se regresa directo a las partidas.
+function faseTitulo(f, anim) {
+  const t = $('sTitulo'); if (!t) return;
+  t.classList.toggle('fase-portada', f === 'portada'); t.classList.toggle('fase-partidas', f === 'partidas');
+  if (anim) {
+    const c = f === 'partidas' ? 'entra-partidas' : 'entra-portada';
+    t.classList.remove('entra-partidas', 'entra-portada'); void t.offsetWidth; t.classList.add(c);
+    clearTimeout(faseTitulo._t); faseTitulo._t = setTimeout(() => t.classList.remove(c), 1300);
+  }
+  if (f === 'portada' && anim) { const A = $('tLogoAnim'); if (A && !A.hidden && A.burst) setTimeout(() => { try { if (t.classList.contains('fase-portada')) A.burst(); } catch (e) {} }, 160); }
+  try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar(f === 'portada' ? $('tComenzar') : ($('tSlots').querySelector('.sl.act [data-jugar]') || $('tSlots').querySelector('[data-jugar],[data-nueva]'))), 90); } catch (e) {}
+}
+$('tAnio').textContent = Math.max(2026, new Date().getFullYear());
+$('tComenzar').onclick = () => {
+  const b = $('tComenzar'); if (b.disabled || b.classList.contains('dispara')) return;
+  b.classList.add('dispara');
+  const fl = document.querySelector('#tPortal .tp-flash'); if (fl && fl.animate) fl.animate([{ opacity: 0 }, { opacity: .55, offset: .25 }, { opacity: 0 }], { duration: 750, easing: 'ease-out' });
+  try { if (window.GP) GP.vibrar(60, .4); } catch (e) {}
+  setTimeout(() => { b.classList.remove('dispara'); faseTitulo('partidas', true); }, 360);
+};
+$('tAtras').onclick = () => faseTitulo('portada', true);
+addEventListener('keydown', e => {
+  if ((e.key === 'Enter' || e.key === ' ') && $('sTitulo').classList.contains('on') && $('sTitulo').classList.contains('fase-portada') && !document.querySelector('.modal.on') && document.activeElement !== $('tComenzar')) { e.preventDefault(); $('tComenzar').click(); }
+  else if (e.key === 'Escape' && $('sTitulo').classList.contains('on') && $('sTitulo').classList.contains('fase-partidas') && !document.querySelector('.modal.on')) faseTitulo('portada', true);
+});
 // Música de la portada: [config] musica_titulo (vacía = sin música). Suena al mostrarse la portada;
 // si el navegador la bloquea (aún no tocas la pantalla), arranca con el primer toque o tecla.
 function musicaPortada() { musica(CFG.musica_titulo || null); }
@@ -3345,7 +3654,10 @@ function portalPortada(fondo) {
   // Llegada (al abrir el modo y cada vez que regresas a la portada)
   const llegar = () => { if (quieto) return; if (typeof cargaVisible === 'function' && cargaVisible()) { clearTimeout(llegar._w); llegar._w = setTimeout(llegar, 150); return; } [P, t].forEach(e => { e.classList.remove('llega'); void e.offsetWidth; e.classList.add('llega'); });
     clearTimeout(llegar._t); llegar._t = setTimeout(() => [P, t].forEach(e => e.classList.remove('llega')), 3400); };
-  llegar(); new MutationObserver(() => { if (t.classList.contains('on') && !llegar._on) llegar(); llegar._on = t.classList.contains('on'); }).observe(t, { attributes: true, attributeFilter: ['class'] });
+  // v276 · La llegada con zoom solo se ve al abrir el modo. Al regresar (del menú o del mapa) la portada aparece con un
+  //        fundido suave: el zoom de llegada repetido se veía como si las líneas de velocidad aceleraran.
+  const regresar = () => { if (quieto) return; t.classList.remove('vuelve'); void t.offsetWidth; t.classList.add('vuelve'); clearTimeout(regresar._t); regresar._t = setTimeout(() => t.classList.remove('vuelve'), 600); };
+  llegar(); new MutationObserver(() => { if (t.classList.contains('on') && !llegar._on) regresar(); llegar._on = t.classList.contains('on'); }).observe(t, { attributes: true, attributeFilter: ['class'] });
   llegar._on = t.classList.contains('on');
   if (quieto) return;
   // Estrellas de velocidad: nacen cerca del centro del portal y se alargan al acercarse
@@ -3360,17 +3672,22 @@ function portalPortada(fondo) {
   // v246 · Un solo ciclo de animación aunque la portada se arme de nuevo.
   // v270 · Velocidad SIEMPRE constante: al regresar a la portada las estrellas siguen donde iban, sin arrancar
   //        desde cero (ese arranque se veía como si aceleraran) y sin saltos (el paso de tiempo se limita a 34 ms)
+  // v276 · Velocidad constante EN TIEMPO REAL. Antes el paso se limitaba a 34 ms: al volver del mapa el equipo
+  //        va lento unos segundos (cuadros de 50-100 ms), las estrellas se veían en cámara lenta y luego
+  //        "aceleraban" hasta su velocidad normal. Ahora avanzan según el tiempo real (tope 90 ms solo para
+  //        evitar saltos tras una pausa larga) y el giro usa el mismo reloj, que se detiene fuera de la portada.
   const yo = (window.__nxPortal = (window.__nxPortal || 0) + 1);
+  let reloj = 0;
   const paso = ts => {
     if (window.__nxPortal !== yo || !P.isConnected) return;
     requestAnimationFrame(paso);
-    if (!t.classList.contains('on') || document.hidden) { ult = 0; return; }   // al volver no recupera el tiempo perdido
-    if (ts - ult < 32) return;                       // ~30 cuadros por segundo: suficiente y deja libre al equipo
-    const dt = Math.min(34, ts - (ult || ts)); ult = ts; if (!W) tam();
+    if (!t.classList.contains('on') || document.hidden) { ult = 0; return; }   // fuera de la portada el reloj se detiene
+    if (ult && ts - ult < 30) return;                // ~30 cuadros por segundo
+    const dt = ult ? Math.min(90, ts - ult) : 16; ult = ts; reloj += dt; if (!W) tam();
     cx.setTransform(dpr, 0, 0, dpr, 0, 0); cx.clearRect(0, 0, W, H);
-    const ox = W * WARP.cx, oy = H * WARP.cy, R = Math.hypot(W, H) * .62, gira = ts / 9000;
+    const ox = W * WARP.cx, oy = H * WARP.cy, R = Math.hypot(W, H) * .62, gira = reloj / 9000;
     for (const s of est) {
-      const z0 = s.z; s.z += s.v * (1 + s.z * 1.6) * dt / 16; if (s.z > 1.05) { nueva(s); continue; }
+      s.z += s.v * (1 + s.z * 1.6) * dt / 16; if (s.z > 1.05) { nueva(s); continue; }
       const a = s.a + gira * (1 - s.z), r0 = Math.pow(Math.max(0, s.z - .05 - s.z * .12), 2.2) * R, r1 = Math.pow(s.z, 2.2) * R;
       const x0 = ox + Math.cos(a) * r0, y0 = oy + Math.sin(a) * r0 * .82, x1 = ox + Math.cos(a) * r1, y1 = oy + Math.sin(a) * r1 * .82;
       cx.strokeStyle = `rgba(${s.c},${Math.min(1, s.z * 1.4).toFixed(3)})`; cx.lineWidth = .5 + s.z * 2.6; cx.lineCap = 'round';
@@ -3528,7 +3845,7 @@ document.addEventListener('keydown', e => {
 window.GP_CFG = {
   principalTxt: 'Entrar / Avanzar',
   sinAnillo: el => !!(el && el.closest && el.closest('#sMenu .mn-izq, #carga')),   // el menú resalta sus propias opciones
-  principal: () => cargaVisible() ? $('carga') : $('sMenu').classList.contains('on') && !$('mCaja').classList.contains('on') && !$('mDiario').classList.contains('on') && !$('mMsg').classList.contains('on') ? $('mnAventura') : DLG ? ($('dOps').querySelector('button') || $('dCaja')) : ($('ficha').classList.contains('on') ? ($('fRetar') && !$('fRetar').disabled ? $('fRetar') : $('fHablar')) : null),
+  principal: () => cargaVisible() ? $('carga') : $('sTitulo').classList.contains('on') && $('sTitulo').classList.contains('fase-portada') && !$('mMsg').classList.contains('on') ? $('tComenzar') : $('sMenu').classList.contains('on') && !$('mCaja').classList.contains('on') && !$('mDiario').classList.contains('on') && !$('mMsg').classList.contains('on') ? $('mnAventura') : DLG ? ($('dOps').querySelector('button') || $('dCaja')) : ($('ficha').classList.contains('on') ? ($('fRetar') && !$('fRetar').disabled ? $('fRetar') : $('fHablar')) : null),
   atras: () => {
     if (cargaVisible()) { saltarCarga(); return true; }
     if (DLG) {   // v215 · B avanza el texto; con opciones ya no elige por ti (machacar B saltaba el Choque de la 2ª forma)
@@ -3550,6 +3867,7 @@ window.GP_CFG = {
     if ($('hoyPanel').classList.contains('on')) { $('hoyPanel').classList.remove('on'); return true; }
     if (mapaLibre()) { if (VISTA) salirSub(); else $('hSalir').click(); return true; }   // B en el mapa: sube del submapa o va al menú
     if ($('sMenu').classList.contains('on')) { irPortada(); return true; }   // B en el menú: a la portada
+    if ($('sTitulo').classList.contains('on') && $('sTitulo').classList.contains('fase-partidas')) { faseTitulo('portada', true); return true; }   // v276 · B en las partidas: al título
     return false;
   },
   clicables: '#dCaja, #sbPkg',
@@ -3590,6 +3908,7 @@ $('dCaja').addEventListener('click', e => { if (!e.target.closest('.d-ops')) { e
   const yo = sesionJug();
   if (!lista.includes('*') && !(yo && lista.includes(String(yo.id).toUpperCase()))) {
     document.querySelector('#sTitulo .t-btns').style.display = 'none';
+    $('tIni').hidden = true;
     $('tSub').textContent = '🔒 En pruebas · Próximamente';
     $('tInfo').innerHTML = yo ? 'Tu ID <b>' + yo.id + '</b> no tiene acceso a la versión de prueba.' : 'Inicia sesión en <a href="perfil.html" style="color:inherit">Mi Perfil</a> con una ID de prueba para entrar.';
     window.GP_CFG = { principal: '.esq' };
@@ -3608,6 +3927,7 @@ $('dCaja').addEventListener('click', e => { if (!e.target.closest('.d-ops')) { e
   S = normalizar(cargarLocal());
   setTimeout(dlcRevisar, 900);                   // DLC comprados en la Tienda (compras.js)
   pintarTitulo(); portadaPersonal(); if ($('sTitulo').classList.contains('on')) musicaPortada();
+  $('tComenzar').disabled = false;
   if (!(S && S.baraja && S.pendiente)) quitarCarga();
   const avisosMapa = revisarMapa();
   if (S && S.baraja && S.pendiente) {               // venimos de un Choque (terminado, abandonado o sin empezar)

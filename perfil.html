@@ -741,18 +741,20 @@ async function iniciarSesion() {
         btn.disabled=false; btn.style.display='block';
       }
     } else {
-      const j = await buscarJugador(id);
+      // v273 · Seguridad: primero el PIN; los datos del jugador llegan del servidor solo después,
+      // y solo los suyos (la hoja de registro ya no se descarga completa)
+      if (!window.CHH_AUTH) throw new Error('sin núcleo');
+      if (!/^CHH-[0-9A-Z]+$/.test(id)) { err.textContent='ID no válido. Debe verse como CHH-00000.'; err.classList.add('visible'); btn.disabled=false; btn.style.display='block'; return; }
+      load.style.display='none';
+      const tk = await CHH_AUTH.entrar(id);
+      if (!tk || (!tk.token && !tk.omitido)) {
+        err.textContent='Necesitas tu PIN para entrar. Si aún no tienes, se crea con el código que llega a tu correo.';
+        err.classList.add('visible'); btn.disabled=false; btn.style.display='block'; return;
+      }
+      load.style.display='block';
+      const j = await obtenerJugador(id, tk.token);
       if (j) {
-        // v189 · Seguridad: el ID solo no basta; se pide el PIN (o se crea con el código del correo)
-        if (window.CHH_AUTH) {
-          load.style.display='none';
-          const tk = await CHH_AUTH.entrar(j.id);
-          if (!tk) {
-            err.textContent='Necesitas tu PIN para entrar. Si aún no tienes, se crea con el código que llega a tu correo.';
-            err.classList.add('visible'); btn.disabled=false; btn.style.display='block'; return;
-          }
-          if (tk.token) { j.token = tk.token; j.tokenExp = tk.exp; }
-        }
+        if (tk.token) { j.token = tk.token; j.tokenExp = tk.exp; }
         jugador = j;
         localStorage.setItem('nhSesion', JSON.stringify(j));
         mostrarPerfil();
@@ -769,7 +771,28 @@ async function iniciarSesion() {
   } finally { load.style.display='none'; }
 }
 
-async function buscarJugador(idBuscado) {
+// v273 · Datos del jugador desde Apps Script (action=mi_perfil, con su llave).
+// Respaldo de transición: si el servidor aún no tiene mi_perfil, se usa la hoja pública como antes.
+// En cuanto la hoja de registro sea privada, el respaldo deja de funcionar (y eso es lo correcto).
+let _perfilSrv = null;
+async function perfilServidor(id, token) {
+  if (_perfilSrv && _perfilSrv.id === id) return _perfilSrv;
+  let r = await CHH_AUTH.miPerfil(id, token);
+  if (r && r.auth && !token) {   // llave vencida o de antes del servidor nuevo: se confirma el PIN una vez
+    const k = await CHH_AUTH.asegurar('Por seguridad, confirma tu PIN para ver tu perfil.');
+    if (k && k.token) r = await CHH_AUTH.miPerfil(id, k.token);
+  }
+  if (r && r.status === 'ok' && r.perfil) { _perfilSrv = r.perfil; return r.perfil; }
+  if (r && /no reconocida/i.test(r.message || '')) return 'sin_accion';
+  return null;
+}
+async function obtenerJugador(id, token) {
+  const p = await perfilServidor(id, token);
+  if (p && p !== 'sin_accion') return { id: p.id, fecha: p.fecha || '', nombre: p.nombre || '', nick: p.nick || '', correo: p.correo || '' };
+  if (p === 'sin_accion') return buscarJugador(id);
+  return null;
+}
+async function buscarJugador(idBuscado) {   // respaldo de transición (hoja pública)
   const res = await fetch(SHEET_URL);
   const txt = await res.text();
   const json = JSON.parse(txt.slice(txt.indexOf('({')+1, txt.lastIndexOf(')')));
@@ -777,7 +800,7 @@ async function buscarJugador(idBuscado) {
     const c = row.c;
     const idCell = c[0]?.v;
     if (idCell && idCell.toString().trim().toUpperCase() === idBuscado)
-      return { id:c[0]?.v||'', fecha:c[1]?.v||'', nombre:c[2]?.v||'', nick:c[3]?.v||'', correo:c[4]?.v||'' };
+      return { id:c[0]?.v||'', fecha:c[1]?.v||'', nombre:c[2]?.v||'', nick:c[3]?.v||'', correo:c[4]?.v||'', _fila:c };
   }
   return null;
 }
@@ -1475,33 +1498,21 @@ async function cargarBadges(historial, totalPts, posGlobal) {
   // Badges automáticos
   const autoGanados = calcularBadgesAuto(historial, totalPts, posGlobal, datosHP);
 
-  // Badges manuales — Sheet de jugadores columna 6
+  // Badges manuales (columna F) y admin de Academia (columna I) — v273: desde Apps Script (mi_perfil)
   let manualesGanados = new Set();
   try {
-    const ctrl = new AbortController();
-    const tid  = setTimeout(() => ctrl.abort(), 5000);
-    const res  = await fetch(SHEET_URL, { signal: ctrl.signal });
-    clearTimeout(tid);
-    const txt  = await res.text();
-    const json = JSON.parse(txt.slice(txt.indexOf('({')+1, txt.lastIndexOf(')')));
     const miId = (jugador?.id || '').trim().toUpperCase();
-    if (miId) {
-      for (const row of json.table.rows) {
-        const c = row.c;
-        const rowId = (c[0]?.v || '').toString().trim().toUpperCase();
-        if (rowId === miId) {
-          const badgesRaw = (c[5]?.v || '').toString().trim();
-          if (badgesRaw) badgesRaw.split(',').forEach(b => { const bid=b.trim().toLowerCase(); if(bid) manualesGanados.add(bid); });
-          // Detectar si es admin de Academia Heroica (columna I = índice 8)
-          const esAdminAca = String(c[8]?.v || '').trim();
-          if (esAdminAca === '1' || esAdminAca.toLowerCase() === 'true') {
-            localStorage.setItem('nhAdminAcademia_' + miId, '1');
-          } else {
-            localStorage.removeItem('nhAdminAcademia_' + miId);
-          }
-          break;
-        }
-      }
+    let badgesRaw = '', esAdminAca = '';
+    const p = miId ? await perfilServidor(miId) : null;
+    if (p && p !== 'sin_accion') { badgesRaw = String(p.badges || ''); esAdminAca = String(p.adminAcademia || ''); }
+    else if (p === 'sin_accion') {   // respaldo de transición
+      const j = await buscarJugador(miId), c = j && j._fila;
+      if (c) { badgesRaw = (c[5]?.v || '').toString().trim(); esAdminAca = String(c[8]?.v || '').trim(); }
+    }
+    if (p) {
+      badgesRaw.split(',').forEach(b => { const bid=b.trim().toLowerCase(); if(bid) manualesGanados.add(bid); });
+      if (esAdminAca === '1' || esAdminAca.toLowerCase() === 'true') localStorage.setItem('nhAdminAcademia_' + miId, '1');
+      else localStorage.removeItem('nhAdminAcademia_' + miId);
     }
   } catch(e) {
     console.warn('[badges] manuales no disponibles:', e.message);
@@ -2200,6 +2211,8 @@ function elegirAvatar(avId) {
 // ── CERRAR SESIÓN ──
 function cerrarSesion() {
   localStorage.removeItem('nhSesion');
+  _perfilSrv = null;
+  try { window.CHH_NUBE && CHH_NUBE.salir && CHH_NUBE.salir(); } catch (e) {}   // v273 · suelta la sesión de Firebase ligada al ID
   jugador = null;
   document.getElementById('profile-panel').style.display='none';
   document.getElementById('tienda-panel').style.display='none';

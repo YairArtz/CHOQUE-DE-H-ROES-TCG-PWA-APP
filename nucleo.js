@@ -212,10 +212,9 @@ html.gp-on #nxPin .gp{display:block}
         if (o.modo === 'cambiar') { irA('nuevo'); return; }
         estado = await api('auth_estado', id);
         if (cerrado) return;
-        // Servidor de Hero Pesos anterior a v3.9 (sin cuentas con PIN): se entra como antes
-        if (estado.status !== 'ok' && /no reconocida/i.test(estado.message || '')) return fin({ omitido: true, sinPin: true });
+        // v273 · Seguridad: ya no existe la entrada "sin PIN" si el servidor no reconoce la acción
         if (estado.status !== 'ok') { paso = 'pin'; val = ''; pintar(estado.message || 'No se pudo revisar tu cuenta.'); return; }
-        if (!estado.obligatorio && !estado.tienePin && !estado.temporal) o.omitir = true;
+        if (CFG.pinObligatorio === false && !estado.obligatorio && !estado.tienePin && !estado.temporal) o.omitir = true;
         correo = estado.correo || '';
         if (estado.tienePin || estado.temporal) irA('pin');
         else if (estado.puedeCorreo) await pedirCodigo(false);
@@ -232,7 +231,14 @@ html.gp-on #nxPin .gp{display:block}
     asegurar,
     cambiarPin: () => { const s = sesion(); return s ? ventana(s.id, { modo: 'cambiar', token: tokenVigente(s) }) : Promise.resolve(null); },
     tieneLlave: () => !!tokenVigente(),
-    sesion
+    sesion,
+    // v273 · Datos privados del propio jugador (nombre, nick, correo, badges manuales). Requiere su llave.
+    //        → { status:'ok', perfil:{...} } · { status:'error', auth:true } si falta o venció la llave
+    miPerfil: (id, token) => { id = String(id || (sesion() || {}).id || '').toUpperCase(); const tk = token || tokenVigente();
+      return tk ? api('mi_perfil', id, { token: tk }) : Promise.resolve({ status: 'error', auth: true, message: 'Falta tu PIN.' }); },
+    // v273 · Llave de Firebase ligada al ID (nube.js). Nunca abre la ventana de PIN: sin llave devuelve null.
+    firebaseToken: async () => { const s = sesion(), tk = tokenVigente(s); if (!tk) return null;
+      const r = await api('firebase_token', s.id, { token: tk }); return r && r.status === 'ok' && r.ct ? r.ct : null; }
   };
 
   // ═══════════════ 4. HUB DEL JUGADOR (misiones y avisos) ═══════════════

@@ -372,7 +372,7 @@ if (location.hash && SECCIONES.some(s => '#' + s.id === location.hash)) abrirSec
       const URL_HP = ((window.CHH_CONFIG||{}).heroPesos||'https://script.google.com/macros/s/AKfycbwSrBH7yJiyTlPabzJ_WiXQDWPe7RpATmuTTWAe3uVRy6wuGh15QpuOMzSiZVixJK_S/exec');
       setTimeout(() => {
         const ctrl = new AbortController(); setTimeout(() => ctrl.abort(), 15000);
-        fetch(URL_HP + '?action=saldo&playerid=' + encodeURIComponent(s.id), { signal: ctrl.signal }).then(r => r.json()).then(d => {
+        fetch(URL_HP + '?action=saldo&playerid=' + encodeURIComponent(s.id) + '&nx_silencio=1', { signal: ctrl.signal }).then(r => r.json()).then(d => {
           if (d && d.status === 'ok') { $('hpVal').textContent = d.saldo; hp.classList.add('on'); try { localStorage.setItem('chh_hp_cache', String(d.saldo)); } catch (e) {} }
         }).catch(() => {});
       }, 2500);

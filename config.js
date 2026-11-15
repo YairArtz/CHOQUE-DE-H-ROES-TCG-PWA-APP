@@ -15,7 +15,8 @@
   mapaTiendas:  'https://script.google.com/macros/s/AKfycbxHm7PJh6st5eKZQuNB3dW49GuGphr2KLG_SJlST52w6CQFq871_hINdH0Wto0GztgoVQ/exec', // Mapa de tiendas
 
   // ── Hojas de cálculo (ID = la parte larga de la dirección de la hoja) ──
-  hojaJugadores:  '1A3pMANjIop9IES2zseTrKImAkHPu2K56_iJJoiQzbxc',   // Registro de jugadores
+  hojaJugadores:  '1A3pMANjIop9IES2zseTrKImAkHPu2K56_iJJoiQzbxc',   // Registro de jugadores (PRIVADA: se lee solo desde Apps Script → action=mi_perfil)
+  pinObligatorio: true,   // v273 · todo jugador entra con PIN (false = vuelve a permitir "Ahora no" a quien no tiene PIN)
   hojaTiendas:    '1ZtJhnXtTbttIf57gqfx81UtrG28hkWHjVaom218479o',   // Tiendas oficiales (pestaña "ID TIENDA")
   hojaResultados: '1cZ_cf7-y0ugtoI5Obr2lCxUrYwVLHGE8QKiInMSVwTA',   // Resultados de torneos (pestaña "Resultados")
 

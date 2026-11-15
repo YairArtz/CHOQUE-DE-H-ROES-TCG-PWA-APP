@@ -6819,7 +6819,7 @@ function renderDeckSelect(){
 }
 function mostrarErrorBaraja(b){
   const box=document.getElementById('dsListBox');
-  box.innerHTML='<button class="ds-close" onclick="document.getElementById(\'dsList\').classList.remove(\'show\')">✕</button><h3>'+b.nombre+'</h3>'+
+  box.innerHTML='<button class="ds-close" onclick="document.getElementById(\'dsList\').classList.remove(\'show\')">✕</button><h3>'+String(b.nombre==null?'':b.nombre).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))+'</h3>'+
     '<p style="font-size:12px;color:var(--gold2);line-height:1.5">Esta baraja todavía no se puede jugar en la simulación.</p>'+
     (b._faltan&&b._faltan.length?'<h4>CARTAS AÚN NO DISPONIBLES</h4><ul>'+b._faltan.map(x=>'<li>'+x+'</li>').join('')+'</ul>':'<p style="font-size:11px">'+b._error+'</p>');
   document.getElementById('dsList').classList.add('show');
@@ -6831,7 +6831,7 @@ function showDeckList(id){
   const sec=(tit,l,f)=>{const h=grp(l,f);return h?'<h4>'+tit+'</h4><ul>'+h+'</ul>':'';};
   const t=b._tipos||{};
   document.getElementById('dsListBox').innerHTML='<button class="ds-close" onclick="document.getElementById(\'dsList\').classList.remove(\'show\')">✕</button>'+
-    '<h3>'+b.nombre+'</h3>'+
+    '<h3>'+String(b.nombre==null?'':b.nombre).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))+'</h3>'+
     sec('PERSONAJES ('+(t.pj||0)+')',b.bp,c=>c.type==='pj')+
     sec('APOYO ('+(t.apoyo||0)+')',b.bp,c=>c.type==='apoyo')+
     sec('SECTOR ('+(t.sector||0)+')',b.bp,c=>c.type==='sector')+

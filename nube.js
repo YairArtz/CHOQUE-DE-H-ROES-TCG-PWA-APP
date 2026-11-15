@@ -48,7 +48,7 @@
   function cargar(src) {
     return new Promise((ok, mal) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = () => mal(new Error('sin red')); document.head.appendChild(s); });
   }
-  async function db() {
+  async function db(publico) {
     if (window.CHH_NUBE_MOCK) return window.CHH_NUBE_MOCK;      // pruebas
     if (_db) return _db;
     if (!navigator.onLine) throw new Error('sin conexión');
@@ -59,7 +59,6 @@
         if (!firebase.database) await cargar(FB_SDK + 'firebase-database-compat.js');
       }
       const app = firebase.apps.length ? firebase.app() : firebase.initializeApp(FB_CFG);
-      if (!firebase.auth().currentUser) await firebase.auth().signInAnonymously();
       const d = app.database();
       return {
         leer: async p => (await d.ref(p).once('value')).val(),
@@ -67,7 +66,28 @@
         actualizar: (p, v) => d.ref(p).update(v)
       };
     })();
-    try { return await conTiempo(_db); } catch (e) { _db = null; throw e; }
+    let D;
+    try { D = await conTiempo(_db); } catch (e) { _db = null; throw e; }
+    try { await conTiempo(vincular()); }
+    catch (e) { if (!publico) throw e; if (!firebase.auth().currentUser) await conTiempo(firebase.auth().signInAnonymously()); }   // datos públicos (perfil de otros): basta sesión anónima
+    return D;
+  }
+  // v273 · Seguridad: la sesión de Firebase queda ligada al ID (uid = CHH-XXXXX) con una llave que da
+  // el servidor de Hero Pesos después del PIN. Las reglas de Firebase solo dejan leer/escribir
+  // jugadores/<ID> a ese mismo uid; una sesión anónima ya no puede tocar los datos de nadie.
+  let _vinc = null, _vincFallo = 0;
+  function vincular() {
+    const id = sesionId(), u = firebase.auth().currentUser;
+    if (!id) return u ? Promise.resolve() : firebase.auth().signInAnonymously();
+    if (u && u.uid === id) return Promise.resolve();
+    if (_vinc) return _vinc;
+    if (Date.now() - _vincFallo < 120000) return Promise.reject(new Error('Entra con tu PIN para sincronizar'));
+    _vinc = (async () => {
+      const ct = window.CHH_AUTH && CHH_AUTH.firebaseToken ? await CHH_AUTH.firebaseToken().catch(() => null) : null;
+      if (!ct) { _vincFallo = Date.now(); throw new Error('Entra con tu PIN para sincronizar'); }
+      await firebase.auth().signInWithCustomToken(ct);
+    })().finally(() => { _vinc = null; });
+    return _vinc;
   }
 
   // ════════════════════ BARAJAS ════════════════════
@@ -261,7 +281,7 @@
   async function perfiles(ids) {
     const out = {}, L = [...new Set((ids || []).map(x => String(x || '').trim().toUpperCase()).filter(x => /^CHH-[0-9A-Z]+$/.test(x)))];
     if (!L.length) return out;
-    const D = await db();
+    const D = await db(true);
     await Promise.all(L.map(async id => {
       try { const r = await conTiempo(D.leer('jugadores/' + id + '/perfil'), 8000); if (r && r.j) out[id] = JSON.parse(r.j); } catch (e) {}
     }));
@@ -274,6 +294,7 @@
     publicarPerfil, perfiles,
     sesionId, estado: () => estado, alCambiar: f => subs.push(f),
     sincronizarBarajas, marcarBorrada, nuevoUid, barajasLocales,
-    sincronizarFisicas, marcarFisicasCambio, diferir, sincronizarDoc
+    sincronizarFisicas, marcarFisicasCambio, diferir, sincronizarDoc,
+    salir: () => { try { if (window.firebase && firebase.auth) return firebase.auth().signOut(); } catch (e) {} return Promise.resolve(); }
   };
 })();

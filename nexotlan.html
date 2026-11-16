@@ -2329,6 +2329,7 @@ async function abrirTramo(id) {
   // lo que ya se animó (rival que se aparta / barrera que se apaga) no se repite la próxima vez
   json.npcs.forEach(n => { if (n.vencido) e.vis[n.id] = 1; }); json.barreras.forEach(b => { if (b.apagada) e.vis['b~' + b.id] = 1; }); guardar();
   window.NX_TRAMO_JSON = JSON.stringify(json);
+  try { window.nxPaso('__pre'); } catch (e) {}
   TRAMO = { id, def, listo: false };
   cerrarFicha(); mostrarCarga(1200);
   const fr = $('trFrame'); fr.src = 'tramo/index.html?t=' + encodeURIComponent(id) + '&v=' + (CFG.tramo_version || '1');
@@ -4139,6 +4140,29 @@ $('hMute').onclick = () => { MUTE = !MUTE; try { localStorage.setItem('chh_nexot
 try { MUTE = localStorage.getItem('chh_nexotlan_mute') === '1'; } catch (e) {}
 // Sonido de monedas: [config] sonido_monedas = ruta del archivo; sin archivo se usa un tintineo sintetizado
 let _ctxM = null, _sonM = null;
+// v289 · Pasos del jugador en los tramos 3D (los pide Godot): [config] sonido_pasos = no para quitarlos
+//        Archivos: assets/nexotlan/sonidos/paso_piedra_1..4.mp3 y paso_madera_1..4.mp3 (se pueden reemplazar)
+const _pasos = {}; let _pasoUlt = '';
+window.nxPaso = function (sup) {
+  if (MUTE || /^(no|0|false)$/i.test(String(CFG.sonido_pasos || 'si').trim())) return;
+  if (sup === '__pre') { window.nxPaso('piedra'); window.nxPaso('madera'); return; }
+  sup = sup === 'madera' ? 'madera' : 'piedra';
+  try {
+    const c = _ctxM = _ctxM || new (window.AudioContext || window.webkitAudioContext)(); if (c.state === 'suspended') c.resume();
+    if (!_pasos[sup]) {
+      _pasos[sup] = [];
+      for (let i = 1; i <= 4; i++) fetch(DIR + 'sonidos/paso_' + sup + '_' + i + '.mp3').then(r => r.ok ? r.arrayBuffer() : Promise.reject())
+        .then(b => c.decodeAudioData(b)).then(buf => _pasos[sup].push(buf)).catch(() => {});
+      return;
+    }
+    const L = _pasos[sup]; if (!L.length) return;
+    let k = Math.floor(Math.random() * L.length); if (L.length > 1 && sup + k === _pasoUlt) k = (k + 1) % L.length; _pasoUlt = sup + k;
+    const src = c.createBufferSource(), g = c.createGain();
+    src.buffer = L[k]; src.playbackRate.value = 0.92 + Math.random() * 0.16;
+    g.gain.value = (sup === 'madera' ? 0.42 : 0.36) * (0.85 + Math.random() * 0.3) * (+CFG.volumen_pasos || 1);
+    src.connect(g).connect(c.destination); src.start();
+  } catch (e) {}
+};
 function sonMonedas() {
   if (MUTE) return;
   const f = String(CFG.sonido_monedas || '').trim();

@@ -10262,7 +10262,7 @@ try{const _md=marcaDestruida;marcaDestruida=function(o,cid,how){try{if(o==='play
 try{const _egM=endGame;endGame=function(won,reason){const ya=!G||G.over;const r=_egM.apply(this,arguments);
   try{if(!ya&&G&&G.over&&!G.tuto&&window.CHH_MISIONES&&!/abandon/i.test(String(reason||''))&&(+G.turn||0)>=3){
     const modo=/online\.html/i.test(location.pathname)?'online':(typeof ARCADE!=='undefined'&&ARCADE)?(/nexotlan/i.test(String(ARCADE.volver||''))?'nexotlan':'arcade'):'sim';
-    CHH_MISIONES.choque(modo,!!won);}}catch(e){}
+    CHH_MISIONES.choque(modo,!!won,{turnos:+G.turn||0,hp:Math.max(0,+(G.player&&G.player.hp)||0),jefe:(typeof ARCADE!=='undefined'&&ARCADE&&ARCADE.jefe)?1:0,nivel:String(G.cpuNivel||'')});}}catch(e){}   // v278 · datos para misiones semanales
   return r;};}catch(e){}
 // Fin del Choque
 try{const _eg=endGame;endGame=function(won){const ya=!G||G.over;const r=_eg.apply(this,arguments);

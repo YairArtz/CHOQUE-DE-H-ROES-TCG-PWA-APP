@@ -605,6 +605,86 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 :root.q620 .mc-box{flex-direction:column;align-items:center}
 :root.q620 .mc-box>img{width:min(220px,calc(60 * var(--uw)))}
 
+/* ═══ v278 · COMERCIANTE y CARPETERO en tres columnas (como la Tienda Digital en PC): menú · contenido · personaje ═══ */
+.tdx{background:radial-gradient(ellipse at 70% 20%,rgba(54,214,255,.08),transparent 60%),var(--bg)}
+.tdx-cuerpo{flex:1;min-height:0;display:grid;grid-template-columns:clamp(160px,19%,250px) minmax(0,1fr) clamp(170px,25%,340px);gap:clamp(8px,1.2vw,16px);padding:clamp(8px,calc(1.6 * var(--uh)),16px)}
+.tdx-rail{display:flex;flex-direction:column;gap:8px;min-height:0;overflow-y:auto;scrollbar-width:none}
+.tdx-rail::-webkit-scrollbar{display:none}
+.tdx-bolsa{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:1px solid rgba(245,166,35,.35);background:linear-gradient(135deg,rgba(245,166,35,.12),rgba(10,20,48,.85));flex-shrink:0}
+.tdx-bolsa .mn{width:26px;height:26px}
+.tdx-bolsa span{display:flex;flex-direction:column;line-height:1.05;min-width:0}
+.tdx-bolsa b{font-family:'Orbitron',monospace;font-weight:900;font-size:18px;color:#ffd166}
+.tdx-bolsa small{font-family:'Orbitron',monospace;font-size:8.5px;letter-spacing:2px;color:var(--muted)}
+.tdx .td-tabs{display:flex;flex-direction:column;gap:7px;border:0}
+.tdx .td-tabs button{flex:none;display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:12px;border:1px solid var(--line);background:rgba(10,20,48,.82);
+  text-align:left;color:#dfe8ff;font-size:10.5px;letter-spacing:1.2px;transition:transform .15s,background .15s,border-color .15s}
+.tdx .td-tabs button em{font-style:normal;font-size:20px;width:26px;text-align:center;flex-shrink:0}
+.tdx .td-tabs button span{display:flex;flex-direction:column;gap:2px;min-width:0}
+.tdx .td-tabs button small{font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;letter-spacing:0;color:var(--muted)}
+.tdx .td-tabs button:is(:hover,:focus-visible,.gp-foco){outline:0;border-color:var(--gold);transform:translateX(3px)}
+.tdx .td-tabs button.on{background:linear-gradient(135deg,#ffd166,#f5a623);border-color:#ffd166;color:#1a0f00;box-shadow:0 0 18px rgba(245,166,35,.35)}
+.tdx .td-tabs button.on small{color:#5a3400}
+.tdx-panel{min-width:0;min-height:0;display:flex;flex-direction:column;border-radius:14px;border:1px solid rgba(245,166,35,.22);background:linear-gradient(180deg,rgba(8,14,34,.92),rgba(5,10,28,.96));
+  box-shadow:inset 0 0 40px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);overflow:hidden}
+.tdx-tit{flex-shrink:0;padding:11px 16px;font-family:'Orbitron',monospace;font-size:11px;font-weight:900;letter-spacing:2.5px;color:#ffd166;border-bottom:1px solid var(--line);background:rgba(245,166,35,.05)}
+.tdx .td-body{padding:12px 14px 28px}
+.tdx .td-nota{font-size:13.5px}
+/* Personaje a la derecha: paisaje del distrito de fondo, cuerpo completo y globo de texto abajo */
+.tdx-pj{position:relative;min-height:0;border-radius:14px;overflow:hidden;border:1px solid rgba(54,214,255,.3);background:#0b1a44 center/cover no-repeat;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.tdx-pj::before{content:'';position:absolute;inset:0;z-index:0;background:linear-gradient(180deg,rgba(5,10,28,.15),rgba(5,10,28,.35) 55%,rgba(5,10,28,.92));pointer-events:none}
+.tdx-pj>svg{position:absolute;inset:0;width:100%;height:100%;z-index:0}
+.tdx-pj .pj{position:absolute;left:50%;bottom:0;height:94%;max-width:118%;transform:translateX(-50%);object-fit:contain;object-position:bottom;z-index:1;
+  filter:drop-shadow(0 0 14px rgba(54,214,255,.45)) drop-shadow(0 10px 18px rgba(0,0,0,.7));animation:tdxRespira 5s ease-in-out infinite}
+.tdx-pj .pj.carta{height:auto;width:76%;bottom:auto;top:10%;border-radius:10px;border:2px solid var(--gold);animation:none}
+@keyframes tdxRespira{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-1.2%)}}
+.tdx-pj .td-bur{position:absolute;left:8px;right:8px;bottom:8px;top:auto;transform:none;z-index:2;border-radius:12px;padding:9px 12px;font-size:clamp(16px,calc(2.6 * var(--uh)),21px);
+  background:rgba(6,12,32,.9);color:#eaf2ff;border:1px solid rgba(54,214,255,.45);box-shadow:0 6px 18px rgba(0,0,0,.5);backdrop-filter:blur(4px);animation:tdxGlobo .5s cubic-bezier(.2,.9,.2,1) both}
+.tdx-pj .td-bur b{color:#5ff0ff}
+@keyframes tdxGlobo{from{opacity:0;transform:translateY(10px)}}
+/* Sobres: imagen completa a la izquierda (nunca se corta) e información a la derecha */
+.tdx .td-sobres{grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px}
+.tdx .td-s{flex-direction:row;align-items:stretch;gap:12px;text-align:left;padding:12px;border-color:rgba(245,166,35,.22);background:linear-gradient(135deg,rgba(14,26,62,.85),rgba(8,14,34,.9))}
+.tdx .td-s .pk{width:auto;height:clamp(150px,calc(46 * var(--uh)),290px);aspect-ratio:5/7;flex-shrink:0;align-self:flex-start;box-shadow:0 8px 20px rgba(0,0,0,.5)}
+.tdx .td-s .pk img{object-fit:contain}
+.tdx .td-s .inf{flex:1;min-width:0;display:flex;flex-direction:column;gap:7px}
+.tdx .td-s .inf>b{font-size:12.5px;color:#fff}
+.tdx .td-s .inf .bt{width:100%}
+.tdx .mz-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}
+.tdx .mz-c{transition:transform .15s,box-shadow .15s}
+.tdx .mz-c:is(:hover,:focus-visible,.gp-foco){outline:0;transform:translateY(-3px);box-shadow:0 0 0 2px var(--gold),0 8px 18px rgba(0,0,0,.5)}
+/* Carpetero: la mesa (tus 3 cartas, probabilidades y GIRAR) va en la columna izquierda */
+.tdx .cp-mesa{flex-direction:column;align-items:stretch;flex-wrap:nowrap;gap:10px;padding:12px;border:1px solid rgba(204,85,255,.35);border-radius:14px;background:linear-gradient(180deg,rgba(40,16,70,.55),rgba(8,14,34,.9))}
+.tdx .cp-mesa .cp-h{font-family:'Orbitron',monospace;font-size:9.5px;font-weight:900;letter-spacing:2px;color:#e6a8ff;text-align:center}
+.tdx .cp-slots{display:grid;grid-template-columns:repeat(var(--n,3),1fr);gap:6px}
+.tdx .cp-slot{width:auto;border-color:#5a3a88;transition:transform .15s}
+.tdx .cp-slot img{object-fit:contain;background:#050a1c}
+.tdx button.cp-slot:hover{transform:translateY(-2px)}
+.tdx .cp-prob{min-width:0;display:flex;flex-direction:column;gap:5px;font-size:12.5px}
+.tdx .cp-prob .pr{display:flex;justify-content:space-between;align-items:center;padding:5px 8px;border-radius:8px;background:rgba(2,6,20,.55);font-family:'Orbitron',monospace;font-size:9.5px;font-weight:900;letter-spacing:1px}
+.tdx .cp-prob .pr i{font-style:normal}
+.tdx #cpGirar{width:100%;padding:13px 10px;font-size:12px}
+.tdx #cpGirar:not(:disabled){animation:cpLatido 1.6s ease-in-out infinite}
+@keyframes cpLatido{0%,100%{box-shadow:0 0 10px rgba(245,166,35,.35)}50%{box-shadow:0 0 26px rgba(245,166,35,.85)}}
+/* Pantallas bajas (celular horizontal) y angostas */
+:root.h520 .tdx-cuerpo{grid-template-columns:clamp(150px,21%,220px) minmax(0,1fr) clamp(150px,23%,260px);gap:8px;padding:8px}
+:root.h520 .tdx .td-tabs button{padding:8px 10px;gap:8px}
+:root.h520 .tdx .td-tabs button small{display:none}
+:root.h520 .tdx .td-tabs button em{font-size:17px}
+:root.h520 .tdx-bolsa{padding:7px 10px}:root.h520 .tdx-bolsa b{font-size:15px}
+:root.h520 .tdx-tit{padding:8px 12px;font-size:10px}
+:root.h520 .tdx .td-nota{font-size:12px;line-height:1.25;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+:root.h520 .tdx .td-sobres{grid-template-columns:repeat(auto-fill,minmax(270px,1fr))}
+:root.h520 .tdx .td-s{padding:9px;gap:9px}
+:root.h520 .tdx .td-s .pk{height:clamp(118px,calc(40 * var(--uh)),220px)}
+:root.h520 .tdx .td-s small{font-size:12px}
+:root.h520 .tdx .mz-grid{grid-template-columns:repeat(auto-fill,minmax(86px,1fr));gap:7px}
+:root.h520 .tdx-pj .td-bur{font-size:14px;line-height:1;padding:6px 8px;left:5px;right:5px;bottom:5px}
+:root.h520 .tdx-pj .td-bur b{font-size:8px;letter-spacing:1.2px}
+:root.h520 .tdx .cp-mesa{padding:9px;gap:7px}
+:root.q760 .tdx-cuerpo{grid-template-columns:clamp(140px,26%,200px) minmax(0,1fr)}
+:root.q760 .tdx-pj{display:none}
+@media (prefers-reduced-motion:reduce){.tdx-pj .pj,.tdx #cpGirar{animation:none!important}}
+
 /* ═══ COMERCIANTE ═══ */
 #sTienda{background:var(--bg)}
 .td-banda{position:relative;height:150px;flex-shrink:0;overflow:hidden;background:#0b1a44 center/cover no-repeat;border-bottom:2px solid var(--gold)}
@@ -1206,16 +1286,26 @@ window.nxTip = function () {
 <div class="modal" id="mCarta"><div class="mbox mc-box" id="mcBox"></div></div>
 
 <!-- ══════ COMERCIANTE ══════ -->
-<section class="scr" id="sTienda">
+<section class="scr tdx" id="sTienda">
   <div class="hud">
     <button class="nx-back" id="tdSalir" aria-label="Volver" title="Volver"></button>
     <div class="nx-tit">COMERCIANTE</div>
     <div class="h-sp"></div>
     <div class="mon" id="tdMon"><i class="mn"></i> 0</div>
   </div>
-  <div class="td-banda" id="tdBanda"></div>
-  <div class="td-tabs" id="tdTabs"><button class="on" data-t="sobres">📦 SOBRES</button><button data-t="cartas">🃏 CARTAS DEL DÍA</button><button data-t="vender">💰 VENDER</button></div>
-  <div class="td-body" id="tdBody"></div>
+  <!-- v278 · Tres columnas (PC y móvil): menú a la izquierda, contenido al centro y el Comerciante a la derecha -->
+  <div class="tdx-cuerpo">
+    <aside class="tdx-rail">
+      <div class="tdx-bolsa"><i class="mn"></i><span><b id="tdMon2">0</b><small>MONEDAS</small></span></div>
+      <div class="td-tabs" id="tdTabs">
+        <button class="on" data-t="sobres"><em>📦</em><span>SOBRES<small>Cajas y Joyas</small></span></button>
+        <button data-t="cartas"><em>🃏</em><span>CARTAS DEL DÍA<small>Cambian cada día</small></span></button>
+        <button data-t="vender"><em>💰</em><span>VENDER<small>Tus repetidas</small></span></button>
+      </div>
+    </aside>
+    <main class="tdx-panel"><div class="tdx-tit" id="tdTit"></div><div class="td-body" id="tdBody"></div></main>
+    <aside class="tdx-pj" id="tdBanda"></aside>
+  </div>
 </section>
 <!-- ══════ CARPETERO (ruleta de cambio de cartas) ══════ -->
 <!-- ══════ v227 · CARTAS BOSS (recompensas físicas) ══════ -->
@@ -1236,16 +1326,18 @@ window.nxTip = function () {
   <div class="du-pj" id="duPj"></div>
   <div class="du-info" id="duInfo"></div>
 </section>
-<section class="scr" id="sCarpeta">
+<section class="scr tdx" id="sCarpeta">
   <div class="hud">
     <button class="nx-back" id="cpSalir" aria-label="Volver" title="Volver"></button>
     <div class="nx-tit">CARPETERO</div>
     <div class="h-sp"></div>
     <div class="mon" id="cpGiros"></div>
   </div>
-  <div class="td-banda" id="cpBanda"></div>
-  <div class="cp-mesa" id="cpMesa"></div>
-  <div class="td-body" id="cpBody"></div>
+  <div class="tdx-cuerpo">
+    <aside class="tdx-rail"><div class="cp-mesa" id="cpMesa"></div></aside>
+    <main class="tdx-panel"><div class="tdx-tit">🎴 TUS CARTAS PARA CAMBIAR</div><div class="td-body" id="cpBody"></div></main>
+    <aside class="tdx-pj" id="cpBanda"></aside>
+  </div>
 </section>
 <div class="sob" id="mRuleta"><div class="hint" id="rlHint">🎰 GIRANDO…</div><div class="rl-win" id="rlWin"><div class="rl-tira" id="rlTira"></div><div class="rl-marca"></div></div><div id="rlRes"></div><button class="bt gold" id="rlOk" style="display:none">✔ CONTINUAR</button></div>
 <div class="sob" id="mSobre"><div class="pkg" id="sbPkg"></div><div class="hint" id="sbHint">TOCA EL SOBRE PARA ABRIRLO</div><div id="sbRes"></div><button class="bt gold" id="sbOk" hidden>✔ CONTINUAR</button></div>
@@ -2783,11 +2875,18 @@ async function abrirTienda(p) {
   const ret = await retrato(p), pai = await paisajeUrl(p), hayPai = !!pai, d = distDe(p);
   const sal = String(COM.cfg.saludo || '').split('|').map(x => x.trim()).filter(Boolean); if (!sal.length) sal.push('¡Bienvenido!');
   $('tdBanda').style.backgroundImage = hayPai ? `url('${pai}')` : '';
-  const bus = await bustoBanda(ret);
+  const bus = await panelPj(ret);
   $('tdBanda').innerHTML = (hayPai ? '' : skyline(d)) + bus +
     `<div class="td-bur"><b>${esc((p.nombre || '').toUpperCase())}</b>${esc(sal[Math.floor(Math.random() * sal.length)])}</div>`;
   irA('sTienda'); pintarTienda();
   try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('tdBody').querySelector('button:not([disabled])') || $('tdSalir')), 60); } catch (e) {}
+}
+// v278 · Panel del personaje (columna derecha del Comerciante / Carpetero): cuerpo completo sobre el paisaje del distrito
+async function panelPj(ret) {
+  if (!ret) return '';
+  if (ret.carta) return `<img class="pj carta" src="${esc(ret.src)}" alt="">`;
+  let src = ret.src; try { const r = await recortePj(ret.src); if (r && r.src) src = r.src; } catch (e) {}
+  return `<img class="pj" src="${esc(src)}" alt="">`;
 }
 // v247 · En la banda del Comerciante / Carpetero se ve solo el busto (cabeza a hombros), no el cuerpo completo
 async function bustoBanda(ret) {
@@ -2806,15 +2905,17 @@ function imgSobre(sb) {
 }
 function pintarTienda() {
   $('tdMon').innerHTML = '<i class="mn"></i> ' + S.monedas;
+  if ($('tdMon2')) $('tdMon2').textContent = S.monedas;
+  if ($('tdTit')) $('tdTit').textContent = { sobres: '📦 SOBRES A LA VENTA', cartas: '🃏 CARTAS DEL DÍA · DÍA ' + (S.dia + 1), vender: '💰 VENDE TUS CARTAS' }[TD.tab] || '';
   $('tdTabs').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.t === TD.tab));
   const B = $('tdBody'); let h = '';
   if (TD.tab === 'sobres') {
     const SB = COM.sobres.filter(sb => tieneDLC(String(sb.dlc || '').trim().toLowerCase())), L = SB.filter(sobreDisponible), faltan = SB.length - L.length;
     h = `<div class="td-nota">Las cartas van a tu <b style="color:var(--text)">🎁 cofre</b>. Cada sobre sale de una <b style="color:var(--text)">📦 caja</b> con un número fijo de cartas: lo que ya salió no se repite hasta rellenarla, así que cada sobre te acerca a sus <b style="color:#ffd166">★ Joyas</b>.${faltan ? ` · ${faltan} sobre(s) más al avanzar en Nexotlan.` : ''}</div>`;
     h += L.length ? `<div class="td-sobres">${L.map(sb => { const pr = parseInt(sb.precio, 10) || 100, ok = S.monedas >= pr;
-      return `<div class="td-s"><div class="pk">${imgSobre(sb)}</div><b>${esc(sb.nombre || sb.id)}</b><small>${esc(sb.descripcion || '')}</small>${pintarCajaSobre(sb)}
+      return `<div class="td-s"><div class="pk">${imgSobre(sb)}</div><div class="inf"><b>${esc(sb.nombre || sb.id)}</b><small>${esc(sb.descripcion || '')}</small>${pintarCajaSobre(sb)}
         <button class="bt sec caja" data-caja="${esc(sb.id)}">📦 VER CAJA</button>
-        <button class="bt ${ok ? 'gold' : 'sec'}" data-sobre="${esc(sb.id)}" ${ok ? '' : 'disabled'}><i class="mn"></i> ${pr} · ${ok ? 'COMPRAR' : 'FALTAN ' + (pr - S.monedas)}</button></div>`; }).join('')}</div>` : '<div class="mz-vacio">Todavía no hay sobres a la venta.</div>';
+        <button class="bt ${ok ? 'gold' : 'sec'}" data-sobre="${esc(sb.id)}" ${ok ? '' : 'disabled'}><i class="mn"></i> ${pr} · ${ok ? 'COMPRAR' : 'FALTAN ' + (pr - S.monedas)}</button></div></div>`; }).join('')}</div>` : '<div class="mz-vacio">Todavía no hay sobres a la venta.</div>';
   } else if (TD.tab === 'cartas') {
     const T = stockHoy();
     h = `<div class="td-nota">Ofertas del <b style="color:var(--text)">día ${S.dia + 1}</b>: cambian (y sus precios también) cada vez que avanza el día. ${T.stock.some(x => x.joya) ? 'Las <b style="color:#ffd166">JOYAS</b> son cartas fuertes y muy caras.' : ''}</div><div class="mz-grid">`;
@@ -2986,7 +3087,7 @@ async function abrirCarpeta(p) {
   const [ret, pai] = await Promise.all([retrato(p), paisajeUrl(p)]), d = distDe(p);
   const sal = String((COM.carp || {}).saludo || '').split('|').map(x => x.trim()).filter(Boolean); if (!sal.length) sal.push('¿Cambiamos cartas? Dame algunas y gira la ruleta.');
   $('cpBanda').style.backgroundImage = pai ? `url('${pai}')` : '';
-  const bus = await bustoBanda(ret);
+  const bus = await panelPj(ret);
   $('cpBanda').innerHTML = (pai ? '' : skyline(d)) + bus +
     `<div class="td-bur"><b>${esc((p.nombre || '').toUpperCase())}</b>${esc(sal[Math.floor(Math.random() * sal.length)])}</div>`;
   irA('sCarpeta'); pintarCarpeta();
@@ -2996,9 +3097,10 @@ function pintarCarpeta() {
   const c = cpCfg(), quedan = c.giros - cpUsados(), lleno = CP.sel.length >= c.entrega;
   $('cpGiros').textContent = '🎰 ' + Math.max(0, quedan) + '/' + c.giros + ' hoy';
   let slots = ''; for (let i = 0; i < c.entrega; i++) { const id = CP.sel[i]; slots += id ? `<button class="cp-slot" data-quita="${i}" aria-label="Quitar ${esc(nomC(id))}"><img src="${esc(cartaImg(id))}" alt=""></button>` : '<div class="cp-slot">?</div>'; }
-  $('cpMesa').innerHTML = `<div class="cp-slots">${slots}</div>
-    <div class="cp-prob">Dame <b style="color:var(--text)">${c.entrega} cartas</b> y gira: <b style="color:#7ad7ff">COMÚN ${c.pc} %</b> · <b style="color:#cc55ff">RARA ${c.pr} %</b> · <b style="color:#ffd166">✨ JOYA ${c.pj} %</b><br>${quedan > 0 ? 'Te quedan ' + quedan + ' giro(s) hoy.' : 'Ya no hay giros hoy: vuelve otro día.'}</div>
-    <button class="bt ${lleno && quedan > 0 ? 'gold' : 'sec'}" id="cpGirar" ${lleno && quedan > 0 ? '' : 'disabled'}>🎰 GIRAR</button>`;
+  $('cpMesa').innerHTML = `<div class="cp-h">🎴 TU ENTREGA · ${CP.sel.length}/${c.entrega}</div><div class="cp-slots" style="--n:${Math.min(4, c.entrega)}">${slots}</div>
+    <div class="cp-prob"><div class="pr" style="color:#7ad7ff"><i>COMÚN</i>${c.pc} %</div><div class="pr" style="color:#cc55ff"><i>RARA</i>${c.pr} %</div><div class="pr" style="color:#ffd166"><i>✨ JOYA</i>${c.pj} %</div>
+    <span>${quedan > 0 ? 'Te quedan <b style="color:var(--text)">' + quedan + '</b> giro(s) hoy.' : 'Ya no hay giros hoy: vuelve otro día.'}</span></div>
+    <button class="bt ${lleno && quedan > 0 ? 'gold' : 'sec'}" id="cpGirar" ${lleno && quedan > 0 ? '' : 'disabled'}>🎰 ${lleno ? 'GIRAR' : 'ELIGE ' + (c.entrega - CP.sel.length) + ' MÁS'}</button>`;
   const ids = Object.keys(S.col).filter(id => cpLibres(id) > 0).sort(ordenCarta);
   $('cpBody').innerHTML = `<div class="td-nota">Toca las cartas que quieres darle. Solo aparecen las copias que <b style="color:var(--text)">no están en tu baraja</b>. Las cartas que le das no regresan.</div>` +
     (ids.length ? `<div class="mz-grid">${ids.map(id => `<button class="mz-c" data-da="${esc(id)}" aria-label="${esc(nomC(id))}" ${lleno ? 'style="opacity:.45"' : ''}><img src="${esc(cartaImg(id))}" alt="" loading="lazy"><span class="qq">×${cpLibres(id)}</span></button>`).join('')}</div>` : '<div class="mz-vacio">No tienes cartas fuera de tu baraja para cambiar.</div>');
@@ -3992,8 +4094,8 @@ window.CHH_TEMAS_UI_CFG = {
   pal: [
     { rgb: [54, 214, 255], hex: '#36d6ff', to: 'var(--tm)' },
     { rgb: [122, 77, 255], hex: '#7a4dff', to: 'var(--tm-d)' },
-    { rgb: [245, 166, 35], hex: '#f5a623', to: 'var(--tm)', solo: '#sMenu|\\.mn-|#carga|\\.cg-|\\.t-comenzar|\\.du-av|\\.hoy|@kf (tc|mn)' },
-    { rgb: [255, 209, 102], hex: '#ffd166', to: 'var(--tm-l)', solo: '#sMenu|\\.mn-(ic|op|g|xp)|#carga|\\.cg-|\\.t-comenzar|@kf (tc|mn)' }
+    { rgb: [245, 166, 35], hex: '#f5a623', to: 'var(--tm)', solo: '#sMenu|\\.mn-|#carga|\\.cg-|\\.t-comenzar|\\.du-av|\\.hoy|\\.tdx \\.td-tabs|\\.tdx-panel|\\.tdx-tit|\\.tdx \\.td-s\\b|\\.tdx #cpGirar|@kf (tc|mn|cpL)' },
+    { rgb: [255, 209, 102], hex: '#ffd166', to: 'var(--tm-l)', solo: '#sMenu|\\.mn-(ic|op|g|xp)|#carga|\\.cg-|\\.t-comenzar|\\.tdx \\.td-tabs|\\.tdx-tit|@kf (tc|mn)' }
   ],
   omitir: '\\.pt\\b|\\.dlab|\\.nx-portal|\\.fx-|\\.mfx|\\.premio|#nxFinal|\\.mz-c\\b|\\.td-|\\.rl-|\\.du-cal|\\.du-tipo|\\.jq|\\.f-tipo|\\.mn-lin|@kf (fx|tp)'
 };

@@ -1,6 +1,6 @@
 // ════════════════════════════════════════════════════════════════════
 //  HUB DEL JUGADOR · misiones y bandeja de avisos (lo carga nucleo.js en todas las páginas)
-//  · CHH_MISIONES.choque(modo, gano)   modo: arcade | sim | nexotlan | online
+//  · CHH_MISIONES.choque(modo, gano, {turnos, hp, jefe, nivel})   modo: arcade | sim | nexotlan | online
 //    CHH_MISIONES.evento('torneo_inscripcion' | 'academia_publicar')
 //    CHH_MISIONES.estado(forzar) → misiones del día/semana · CHH_MISIONES.cobrar(id)
 //    Los eventos se guardan en una cola y se envían cuando hay sesión con PIN (sin interrumpir el juego).
@@ -40,7 +40,7 @@
         const e = c[0];
         if (e.pid !== s.id) { c.shift(); continue; }
         let d = null;
-        try { d = await getJSON(hpUrl(Object.assign({ action: 'mision_evento', playerid: s.id }, e.evento === 'choque' ? { evento: 'choque', modo: e.modo, gano: e.gano } : { evento: e.evento }), true)); } catch (er) { break; }
+        try { d = await getJSON(hpUrl(Object.assign({ action: 'mision_evento', playerid: s.id }, e.evento === 'choque' ? Object.assign({ evento: 'choque', modo: e.modo, gano: e.gano }, e.x || {}) : { evento: e.evento }), true)); } catch (er) { break; }
         if (d && d.auth) break;                       // sin llave válida: se queda en la cola
         c.shift(); ls.set(K_COLA, c);
         if (d && d.completadas && d.completadas.length) {
@@ -73,7 +73,8 @@
     return d || { status: 'error', message: 'No se pudo cobrar.' };
   }
   window.CHH_MISIONES = {
-    choque: (modo, gano) => encolar({ evento: 'choque', modo, gano: gano ? 1 : 0 }),
+    // v278 · x = datos del choque para las misiones semanales: { turnos, hp (corazones que te quedaron), jefe (1/0), nivel }
+    choque: (modo, gano, x) => encolar({ evento: 'choque', modo, gano: gano ? 1 : 0, x: x && typeof x === 'object' ? { turnos: +x.turnos || 0, hp: Math.max(0, +x.hp || 0), jefe: x.jefe ? 1 : 0, nivel: String(x.nivel || '').slice(0, 20) } : null }),
     evento: nombre => encolar({ evento: nombre }),
     estado, cobrar, enviarCola, pendientes: () => ls.get(K_COLA, []).length
   };

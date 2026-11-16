@@ -146,6 +146,9 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 .t-comenzar:is(:hover,:focus-visible,.gp-foco){outline:0;transform:scale(1.05);filter:drop-shadow(0 0 22px rgba(54,214,255,.95)) drop-shadow(0 0 40px rgba(204,85,255,.5))}
 .t-comenzar:active{transform:scale(.97);transition-duration:.06s}
 .t-comenzar:disabled{opacity:.4;animation:none;cursor:default}
+/* v277 · con un tema de la Tienda (temas-ui.js define --tm) el botón y el dorado del menú toman su color */
+.t-comenzar{background:linear-gradient(100deg,#0a1a46,color-mix(in srgb,var(--tm,#1b2f78) 38%,#0a1a46) 48%,color-mix(in srgb,var(--tm,#3a1a6e) 22%,#1d0f45))}
+#sMenu{--gold:var(--tm,#f5a623)}
 .t-comenzar:disabled::after,.t-comenzar:disabled span::before,.t-comenzar:disabled span::after{animation:none;opacity:0}
 .t-comenzar.dispara{animation:tcDispara .5s cubic-bezier(.2,.9,.2,1) forwards}
 @keyframes tcDispara{0%{transform:scale(1)}30%{transform:scale(1.12);filter:brightness(2.2) drop-shadow(0 0 40px #fff)}100%{transform:scale(1.3);opacity:0;filter:brightness(3) blur(6px)}}
@@ -1121,6 +1124,7 @@ window.nxTip = function () {
   var A=document.getElementById('tLogoAnim'),t=document.getElementById('sTitulo'),visto=false,on=false;
   function go(){
     if(!A||A.hidden)return;
+    if(window.__nxSinLogo||!t.classList.contains('on'))return;   // v277 · al regresar de un Choque no se anima (ni suena) el logo
     var g=document.getElementById('carga');
     if(g&&!g.hidden&&!g.classList.contains('fuera')){clearTimeout(go._w);go._w=setTimeout(go,150);return;}   // espera a que se quite la pantalla de carga
     A.setAttribute('mode',visto?'title':'boot');
@@ -3287,7 +3291,7 @@ addEventListener('keydown', e => {
   if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') saltarCarga();
   e.preventDefault(); e.stopPropagation();                           // nada de lo de abajo reacciona mientras se lee
 }, true);
-function irA(id) { quitarCarga(); if (id === 'sTitulo') limpiarVentanas(); document.querySelectorAll('.scr').forEach(s => s.classList.toggle('on', s.id === id)); }
+function irA(id) { quitarCarga(); if (id === 'sTitulo') { limpiarVentanas(); window.__nxSinLogo = false; } document.querySelectorAll('.scr').forEach(s => s.classList.toggle('on', s.id === id)); }
 function toast(t) { const el = $('toast'); el.innerHTML = esc(t).split(esc('<i class="mn"></i>')).join('<i class="mn"></i>'); el.classList.add('on'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('on'), 2600); }
 function mensaje(t, html, ops) {
   quitarCarga();
@@ -3926,7 +3930,11 @@ $('dCaja').addEventListener('click', e => { if (!e.target.closest('.d-ops')) { e
   // (si la nube tarda o falla, el modo sigue funcionando con la copia local).
   S = normalizar(cargarLocal());
   setTimeout(dlcRevisar, 900);                   // DLC comprados en la Tienda (compras.js)
-  pintarTitulo(); portadaPersonal(); if ($('sTitulo').classList.contains('on')) musicaPortada();
+  // v277 · Regreso de un Choque: la portada solo queda de fondo mientras se procesa el resultado, así que no
+  //        suena el "stomp" del logo animado ni la música de la portada.
+  const deChoque = !!(S && S.baraja && S.pendiente);
+  if (deChoque) { window.__nxSinLogo = true; const A = $('tLogoAnim'); if (A) A.setAttribute('mode', 'wait'); }
+  pintarTitulo(); portadaPersonal(); if ($('sTitulo').classList.contains('on') && !deChoque) musicaPortada();
   $('tComenzar').disabled = false;
   if (!(S && S.baraja && S.pendiente)) quitarCarga();
   const avisosMapa = revisarMapa();
@@ -3976,6 +3984,21 @@ async function nubeFondo(aplicar) {
   $('tInfo').textContent = ok ? '☁ Partidas guardadas y ligadas a tu ID ' + N.sesionId() : '💾 Guardadas en este dispositivo (la nube no respondió; se reintenta al guardar).';
 }
 </script>
+<script>
+// v277 · Temas de color de la Tienda en la interfaz del Modo Aventura (temas-ui.js).
+//        El cian de la interfaz toma el color del tema y, en el menú, la pantalla de carga y COMENZAR, también el dorado.
+//        No cambian: el mapa y sus efectos, los pines (rival/héroe/guardián), rarezas, precios, monedas ni cartas BOSS.
+window.CHH_TEMAS_UI_CFG = {
+  pal: [
+    { rgb: [54, 214, 255], hex: '#36d6ff', to: 'var(--tm)' },
+    { rgb: [122, 77, 255], hex: '#7a4dff', to: 'var(--tm-d)' },
+    { rgb: [245, 166, 35], hex: '#f5a623', to: 'var(--tm)', solo: '#sMenu|\\.mn-|#carga|\\.cg-|\\.t-comenzar|\\.du-av|\\.hoy|@kf (tc|mn)' },
+    { rgb: [255, 209, 102], hex: '#ffd166', to: 'var(--tm-l)', solo: '#sMenu|\\.mn-(ic|op|g|xp)|#carga|\\.cg-|\\.t-comenzar|@kf (tc|mn)' }
+  ],
+  omitir: '\\.pt\\b|\\.dlab|\\.nx-portal|\\.fx-|\\.mfx|\\.premio|#nxFinal|\\.mz-c\\b|\\.td-|\\.rl-|\\.du-cal|\\.du-tipo|\\.jq|\\.f-tipo|\\.mn-lin|@kf (fx|tp)'
+};
+</script>
+<script src="temas-ui.js"></script>
 <script src="gamepad.js"></script>
 </body>
 </html>

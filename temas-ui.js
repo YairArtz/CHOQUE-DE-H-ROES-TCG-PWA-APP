@@ -26,6 +26,12 @@
     { rgb: [255, 243, 196], hex: '#fff3c4', to: 'var(--tm-xl)' }   // brillo casi blanco
   ];
 
+  // v277 · Una página puede definir antes de cargar este archivo:
+  //   window.CHH_TEMAS_UI_CFG = { pal: [{ rgb, hex, to, solo: 'regex de selectores' }], omitir: 'regex de selectores' }
+  //   pal reemplaza la paleta de arriba; "solo" limita ese color a ciertas reglas; "omitir" deja intactas otras (p. ej. pines del mapa).
+  var CFG = window.CHH_TEMAS_UI_CFG || null;
+  if (CFG && CFG.pal) PAL = CFG.pal.map(function (c) { return { rgb: c.rgb, hex: c.hex, to: c.to, solo: c.solo ? new RegExp(c.solo) : null }; });
+  var OMITIR = CFG && CFG.omitir ? new RegExp(CFG.omitir) : null;
   function hexRgb(h) { h = h.replace('#', ''); if (h.length === 3) h = h.replace(/./g, '$&$&'); var n = parseInt(h, 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
   function lum(c) { return (0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]) / 255; }
 
@@ -46,27 +52,29 @@
   try { var R = st.sheet.cssRules; for (var k = R.length - 1; k >= 0; k--) if (R[k].type === 1 && !/^(html)?:root$/.test(R[k].selectorText)) st.sheet.deleteRule(k); } catch (e) {}
 
   function mix(to, a) { var p = Math.round(parseFloat(a) * 100); return p >= 100 ? to : 'color-mix(in srgb,' + to + ' ' + p + '%,transparent)'; }
-  function swap(v) {
+  function swap(v, sel) {
     if (!v || (v.indexOf('rgb') < 0 && v.indexOf('#') < 0)) return v;
     var out = v;
     PAL.forEach(function (c) {
+      if (c.solo && !c.solo.test(sel)) return;
       var re = new RegExp('rgba?\\(\\s*' + c.rgb[0] + '\\s*,\\s*' + c.rgb[1] + '\\s*,\\s*' + c.rgb[2] + '\\s*(?:,\\s*([\\d.]+)\\s*)?\\)', 'g');
       out = out.replace(re, function (m, a) { return a == null ? c.to : mix(c.to, a); });
       out = out.replace(new RegExp(c.hex + '(?![0-9a-f])', 'gi'), c.to);
     });
     return out;
   }
-  function decl(s) {
+  function decl(s, sel) {
     for (var i = 0; i < s.length; i++) {
-      var p = s[i], v = s.getPropertyValue(p), n = swap(v);
+      var p = s[i], v = s.getPropertyValue(p), n = swap(v, sel);
       if (n !== v) { try { s.setProperty(p, n, s.getPropertyPriority(p)); } catch (e) {} }
     }
   }
-  function walk(rules) {
+  function walk(rules, kf) {
     for (var i = 0; i < rules.length; i++) {
-      var r = rules[i];
-      if (r.style) decl(r.style);
-      if (r.cssRules) walk(r.cssRules);          // @media, @supports, @keyframes
+      var r = rules[i], sel = r.selectorText || (kf ? '@kf ' + kf : '');
+      if (r.type === 7) { walk(r.cssRules, r.name); continue; }   // @keyframes: se identifica por su nombre
+      if (r.style && !(OMITIR && OMITIR.test(sel))) decl(r.style, sel);
+      if (r.cssRules) walk(r.cssRules, kf);      // @media, @supports
     }
   }
   function aplicar() {

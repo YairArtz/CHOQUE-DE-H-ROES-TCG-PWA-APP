@@ -2291,7 +2291,11 @@ async function abrirTramo(id) {
   const def = await cargarTramo(id); if (!def) { toast('⚠ No se pudo leer el tramo ' + id); return; }
   const e = estTramo(id), h = def.head;
   const colores = {}; Object.keys(h).filter(k => /^color_/.test(k)).forEach(k => colores[k.slice(6)] = h[k]);
-  const json = { id, nombre: h.nombre || def.t.nombre || id, colores, inicio: (h.inicio || '0,0').split(',').map(Number), pos: e.pos || null,
+  // v282 · Texturas: textura_<rol> = archivo (en assets/nexotlan/tramos/texturas/ o con carpeta desde la raíz) · escala_<rol> = metros por repetición · brillo_<rol>
+  const texturas = {}, escalas = {}, brillos = {};
+  Object.keys(h).forEach(k => { const m = k.match(/^(textura|escala|brillo)_(.+)$/); if (!m || !String(h[k]).trim()) return; const v = String(h[k]).trim();
+    if (m[1] === 'textura') texturas[m[2]] = /\//.test(v) ? v.replace(/^\.?\//, '') : DIR + 'tramos/texturas/' + v; else (m[1] === 'escala' ? escalas : brillos)[m[2]] = num(v, 1); });
+  const json = { id, nombre: h.nombre || def.t.nombre || id, colores, texturas, escalas, brillos, inicio: (h.inicio || '0,0').split(',').map(Number), pos: e.pos || null,
     camino: def.camino, plataformas: def.plataformas, decorado: def.decorado,
     cartas: def.cartas.map(c => ({ id: c.id, x: c.x, z: c.z, recogida: !!e.c[c.id] })),
     objetos: def.objetos.map(o => ({ id: o.id, x: o.x, z: o.z, recogido: !!e.o[o.id] })),

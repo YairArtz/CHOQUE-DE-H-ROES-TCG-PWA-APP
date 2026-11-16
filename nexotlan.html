@@ -2254,7 +2254,19 @@ function fxRayos() {
 //   NPCs del tramo: se retan como cualquier rival (id "tr~TRAMO~NPC"); al terminar el Choque se regresa al tramo.
 let TRAMOS = [], _tramoCache = {}, TRAMO = null, OBJ = {};
 const tramoDe = id => TRAMOS.find(t => t.id === id) || null;
-const tramoVisible = t => !!t && !VISTA && !!DIST.find(d => d.id === t.desde && distritoAbierto(d)) && tieneDLC(String(t.dlc || '').trim().toLowerCase());
+// v293 · Un tramo solo se abre al vencer al GUARDIÁN del distrito "desde" (o lo que diga requiere = id, id… en su bloque)
+function reqTramo(t) {
+  const r = String(t.requiere || '').split(',').map(x => x.trim()).filter(Boolean);
+  if (r.length) return r;
+  return PTS.filter(p => p.tipo === 'guardian' && p.distrito === t.desde).map(p => p.id);
+}
+function tramoAbierto(t) {
+  if (!t) return false; if (EDITOR) return true;
+  const r = reqTramo(t);
+  if (r.length) return r.every(id => vencido(id));
+  const h = DIST.find(d => d.id === t.hasta); return !!(h && distritoAbierto(h));
+}
+const tramoVisible = t => !!t && !VISTA && !!DIST.find(d => d.id === t.desde && distritoAbierto(d)) && tieneDLC(String(t.dlc || '').trim().toLowerCase()) && tramoAbierto(t);
 function tramoPos(t) {
   const a = DIST.find(d => d.id === t.desde), b = DIST.find(d => d.id === t.hasta);
   return { x: num(t.x, a && b ? (a._x + b._x) / 2 : (a || { _x: 50 })._x), y: num(t.y, a && b ? (a._y + b._y) / 2 : (a || { _y: 50 })._y) };
@@ -2304,6 +2316,7 @@ window.reiniciarTramo = function (id) {
 function cartasTramo(def) { const e = estTramo(def.id); return { tot: def.cartas.length, ya: def.cartas.filter(c => e.c[c.id]).length }; }
 function imgUrl(f, sub) { const c = candidatos(f, sub)[0] || ''; return c; }
 async function abrirTramo(id) {
+  if (!tramoAbierto(tramoDe(id))) { toast('🔒 Aún no puedes entrar a este sendero'); return; }
   const def = await cargarTramo(id); if (!def) { toast('⚠ No se pudo leer el tramo ' + id); return; }
   const e = estTramo(id), h = def.head;
   const colores = {}; Object.keys(h).filter(k => /^color_/.test(k)).forEach(k => colores[k.slice(6)] = h[k]);

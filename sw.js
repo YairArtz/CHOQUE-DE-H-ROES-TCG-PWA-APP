@@ -61,7 +61,7 @@
 //  v8:   shell cache-first + revalidación, JSON red-primero, fallbacks por tipo.
 // ================================================================
 try { importScripts('./config.js'); } catch (e) {}   // direcciones de los servidores (config.js)
-const CACHE_NAME    = 'chh-tcg-v285';
+const CACHE_NAME    = 'chh-tcg-v286';
 const CACHE_DYNAMIC = 'chh-paginas-v1';    // estable: páginas/JSON/JS visitados (NO subir; lo precargado se renueva solo)
 const CACHE_IMG     = 'chh-img-v1';      // estable: imágenes, fuentes y PDFs. Subir SOLO si reemplazas imágenes con el mismo nombre
 const CACHE_AUDIO   = 'chh-audio-v1';    // estable: pistas de bgm.js. Subir SOLO si reemplazas un .mp3 con el mismo nombre
@@ -185,7 +185,7 @@ self.addEventListener('activate', event => {
     // para que ninguna pantalla se quede con la versión anterior. Si una falla (sin red), se conserva la copia que había.
     try {
       const dyn = await caches.open(CACHE_DYNAMIC);
-      const rqs = (await dyn.keys()).filter(rq => new URL(rq.url).origin === self.location.origin && /\.(html|js|json|txt)$|\/$/.test(new URL(rq.url).pathname));
+      const rqs = (await dyn.keys()).filter(rq => new URL(rq.url).origin === self.location.origin && /\.(html|js|json|txt|pck|glb)$|\/$/.test(new URL(rq.url).pathname));   // v285b · también el .pck de los tramos y los modelos .glb
       let i = 0, hechos = 0;
       const uno = async () => { while (i < rqs.length) { const rq = rqs[i++];
         try { const r = await fetchTimeout(new Request(rq.url, { cache: 'no-cache' }), 12000); if (r && r.ok) await dyn.put(rq, r); } catch (e) {}

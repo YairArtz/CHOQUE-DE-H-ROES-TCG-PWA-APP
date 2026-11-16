@@ -61,7 +61,7 @@
 //  v8:   shell cache-first + revalidación, JSON red-primero, fallbacks por tipo.
 // ================================================================
 try { importScripts('./config.js'); } catch (e) {}   // direcciones de los servidores (config.js)
-const CACHE_NAME    = 'chh-tcg-v280';
+const CACHE_NAME    = 'chh-tcg-v281';
 const CACHE_DYNAMIC = 'chh-paginas-v1';    // estable: páginas/JSON/JS visitados (NO subir; lo precargado se renueva solo)
 const CACHE_IMG     = 'chh-img-v1';      // estable: imágenes, fuentes y PDFs. Subir SOLO si reemplazas imágenes con el mismo nombre
 const CACHE_AUDIO   = 'chh-audio-v1';    // estable: pistas de bgm.js. Subir SOLO si reemplazas un .mp3 con el mismo nombre
@@ -250,6 +250,9 @@ self.addEventListener('fetch', event => {
     event.respondWith(medioPrimero(req, url));
     return;
   }
+
+  // v281 · Motor 3D de los tramos de Nexotlan (Godot): se guarda al bajarlo la primera vez y se revalida en segundo plano
+  if (/\/tramo\/[^/]+\.(wasm|pck|p\d)$/i.test(path)) { event.respondWith(cacheFirstRevalidate(req)); return; }
 
   if (/\.json$/i.test(path)) {
     event.respondWith(CATALOG_JSON.test(path) ? cacheFirstRevalidate(req) : networkFirstTimeout(req, 'json', NET_TIMEOUT));

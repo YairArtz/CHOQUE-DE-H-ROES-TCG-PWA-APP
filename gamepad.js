@@ -27,6 +27,7 @@
   const B = { A: 0, B: 1, X: 2, Y: 3, LB: 4, RB: 5, LT: 6, RT: 7, VIEW: 8, START: 9, LS: 10, RS: 11, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 };
   const DZ = 0.5, DZ_R = 0.22, REP0 = 330, REP = 110;
 
+  let _pausado = false;
   let activo = false, foco = null, prev = [], repT = {}, modoPuntero = false, px = 0, py = 0, raf = 0, ultimaTecla = 0;
 
   // ── Estilos y elementos visuales ──
@@ -546,6 +547,8 @@
   // ── Lectura del control ──
   function pulsado(g, i) { const b = g.buttons[i]; return !!b && (b.pressed || b.value > .5); }
   function bucle() {
+    // v281 · window.GP_PAUSA(): la página puede ceder el control a otra cosa (p. ej. el tramo 3D de Nexotlan dentro de un iframe)
+    try { if (window.GP_PAUSA && window.GP_PAUSA()) { _pausado = true; requestAnimationFrame(bucle); return; } } catch (e) {}
     const pads = navigator.getGamepads ? [...navigator.getGamepads()].filter(Boolean) : [];
     const g = pads[0];
     if (g) {
@@ -556,6 +559,7 @@
         left: pulsado(g, B.LEFT) || ax < -DZ, right: pulsado(g, B.RIGHT) || ax > DZ
       };
       for (let i = 0; i < g.buttons.length; i++) est['b' + i] = pulsado(g, i);
+      if (_pausado) { _pausado = false; prev = est; requestAnimationFrame(bucle); return; }   // al recuperar el control, lo que ya estaba presionado no cuenta
       const algo = Object.values(est).some(Boolean) || Math.hypot(rx, ry) > DZ_R;
       if (algo && !activo) { activar(); prev = est; ultimaTecla = now; requestAnimationFrame(bucle); return; }   // la primera pulsación solo despierta
 

@@ -432,6 +432,22 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 .dlab small{display:block;text-align:center;font-size:8px;letter-spacing:1px;opacity:.85;margin-top:2px}
 .zoom{position:absolute;right:12px;bottom:14px;display:flex;flex-direction:column;gap:6px;z-index:15}
 /* v274 · SUBMAPAS: portal en el mapa principal y barra para volver */
+/* v281 · Tramos de exploración 3D */
+#sTramo{background:#0a0e24}
+#trFrame{flex:1;width:100%;height:100%;border:0;display:block;background:#0a0e24}
+.nx-tramo{position:absolute;transform:translate(-50%,-50%);z-index:4;border:0;background:none;padding:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;color:#ffd23a}
+.nx-tramo i{width:30px;height:30px;transform:rotate(45deg);border:3px solid #ffd23a;border-radius:6px;background:rgba(30,20,0,.75);box-shadow:0 0 14px rgba(255,210,58,.8);animation:nxTramo 1.8s ease-in-out infinite}
+.nx-tramo span{font-family:'Orbitron',monospace;font-weight:900;font-size:9.5px;letter-spacing:1.5px;background:rgba(20,12,0,.85);border:1px solid #ffd23a;border-radius:7px;padding:3px 8px;white-space:nowrap;text-shadow:0 0 8px rgba(255,210,58,.7)}
+.nx-tramo small{margin-left:6px;color:#fff3c4;font-size:9px}
+.nx-tramo:hover i,.nx-tramo:focus-visible i{transform:rotate(45deg) scale(1.15)}
+@keyframes nxTramo{0%,100%{transform:rotate(45deg) translateY(0)}50%{transform:rotate(45deg) translate(-3px,-3px)}}
+.mo-l{display:flex;flex-direction:column;gap:8px}
+.mo-i{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:rgba(10,20,48,.7)}
+.mo-i .ic{font-size:34px;width:44px;text-align:center}
+.mo-i .tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;text-align:left}
+.mo-i b{font-family:'Orbitron',monospace;font-size:12px;letter-spacing:1px}.mo-i b em{font-style:normal;color:#ffd166}
+.mo-i small{font-size:13px;color:var(--muted);line-height:1.3}
+.mo-i .bt{padding:10px 14px;font-size:10px}
 .nx-portal{position:absolute;transform:translate(-50%,-50%);z-index:4;border:0;background:none;padding:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--dc)}
 .nx-portal i{width:46px;height:46px;border-radius:50%;border:2px solid var(--dc);box-shadow:0 0 18px var(--dc),inset 0 0 18px var(--dc);
   background:radial-gradient(circle,#000 30%,color-mix(in srgb,var(--dc) 35%,transparent) 70%,transparent 72%);animation:nxPortal 2.4s linear infinite}
@@ -1260,6 +1276,7 @@ window.nxTip = function () {
     <button class="hb" id="hDescansar" title="Descansar (avanza un día)">🌙<span class="t">DESCANSAR</span></button>
     <button class="hb" id="hDiario" title="Diario">📖<span class="t">DIARIO</span></button>
     <button class="hb" id="hBaraja" title="Baraja y cofre">🃏<span class="t">BARAJA</span><span class="bdg" id="hNuevas" hidden></span></button>
+    <button class="hb" id="hMochila" title="Mochila">🎒<span class="t">MOCHILA</span></button>
     <button class="hb" id="hMute" title="Música">🔊</button>
   </div>
   <div class="mapa" id="mapa"><div class="mi" id="mi"></div></div>
@@ -1267,6 +1284,8 @@ window.nxTip = function () {
   <div class="hoy" id="hoyPanel" aria-label="Rivales de hoy"></div>
   <div class="zoom"><button class="hb" id="zMas" aria-label="Acercar">＋</button><button class="hb" id="zMenos" aria-label="Alejar">－</button></div>
 </section>
+<!-- ══════ v281 · TRAMO DE EXPLORACIÓN 3D (Godot, carpeta tramo/) ══════ -->
+<section class="scr" id="sTramo"><iframe id="trFrame" title="Tramo de exploración" allow="gamepad; autoplay; fullscreen" src="about:blank"></iframe></section>
 
 <!-- ══════ BARAJA Y COFRE ══════ -->
 <section class="scr" id="sMazo">
@@ -1517,6 +1536,7 @@ function construirModelo(secs) {
   todosD.forEach(d => { if (d.dlc) dlcDe[d.id] = d.dlc; });
   DIST = todosD.filter(d => !fuera.has(d.id));
   _dlcFirma = (window.CHH_COMPRAS ? CHH_COMPRAS.lista() : []).join(',');
+  TRAMOS = secs.filter(s => s._sec === 'tramo').map(s => Object.assign(s, { id: s._id, desde: String(s.desde || '').trim(), hasta: String(s.hasta || '').trim() }));   // v281
   PTS = secs.filter(s => s._sec === 'punto' && !fuera.has(s.distrito) && tieneDLC(String(s.dlc || '').trim().toLowerCase())).map(s => Object.assign(s, { _dlc: String(s.dlc || '').trim().toLowerCase() || dlcDe[s.distrito] || '',
     id: s._id, tipo: ({ personaje: 'heroe', 'héroe': 'heroe', heroe: 'heroe', guardian: 'guardian', 'guardián': 'guardian' }[(s.tipo || 'rival').toLowerCase()] || 'rival'), _x: num(s.x, 50), _y: num(s.y, 50),
     _dias: lista(s.dias).map(d => NK(d).slice(0, 3)), _req: lista(s.requiere), _mon: parseInt(s.monedas, 10) || 0
@@ -2226,6 +2246,140 @@ function fxRayos() {
   sig();
 }
 
+// ════════════════ v281 · TRAMOS DE EXPLORACIÓN 3D (Godot) ════════════════
+// Zonas intermedias entre distritos que se recorren caminando (no reemplazan al distrito).
+// mapa.txt:  [tramo:ID]  nombre, desde, hasta, archivo (assets/nexotlan/tramos/…txt), x, y (marcador; si no, entre los dos distritos)
+// El escenario lo arma tramo/ (Godot exportado a web) con los datos del .txt; esta página guarda todo:
+//   S.tramos[ID] = { c: {carta:1}, o: {objeto:1}, pos: [x,z] }   ·   S.objetos = { idObjeto: cantidad }
+//   NPCs del tramo: se retan como cualquier rival (id "tr~TRAMO~NPC"); al terminar el Choque se regresa al tramo.
+let TRAMOS = [], _tramoCache = {}, TRAMO = null, OBJ = {};
+const tramoDe = id => TRAMOS.find(t => t.id === id) || null;
+const tramoVisible = t => !!t && !VISTA && !!DIST.find(d => d.id === t.desde && distritoAbierto(d)) && tieneDLC(String(t.dlc || '').trim().toLowerCase());
+function tramoPos(t) {
+  const a = DIST.find(d => d.id === t.desde), b = DIST.find(d => d.id === t.hasta);
+  return { x: num(t.x, a && b ? (a._x + b._x) / 2 : (a || { _x: 50 })._x), y: num(t.y, a && b ? (a._y + b._y) / 2 : (a || { _y: 50 })._y) };
+}
+async function cargarTramo(id) {
+  if (_tramoCache[id]) return _tramoCache[id];
+  const t = tramoDe(id); if (!t) return null;
+  const f = String(t.archivo || ('tramos/' + id + '.txt')).replace(/^assets\/nexotlan\//, '');
+  const txt = await fetch(DIR + f, { cache: 'no-cache' }).then(r => r.ok ? r.text() : '').catch(() => '');
+  const secs = parseTxt(txt); if (!secs.length) return null;
+  const head = secs.find(s => s._sec === 'tramo') || {};
+  const L = v => String(v || '').split('|').map(x => x.split(',').map(y => y.trim())).filter(a => a.length >= 2 && a.slice(0, 2).every(y => y !== '' && isFinite(+y))).map(a => a.map((y, i) => i < 3 && isFinite(+y) ? +y : y));
+  const def = { id, t, secs, head,
+    camino: secs.filter(s => s._sec === 'camino').map(s => ({ puntos: L(s.puntos), ancho: num(s.ancho, 4), tipo: s.tipo || 'piedra' })),
+    plataformas: secs.filter(s => s._sec === 'plataforma').map(s => ({ x: num(s.x, 0), z: num(s.z, 0), ancho: num(s.ancho, 8), largo: num(s.largo, num(s.ancho, 8)), forma: s.forma || 'oval', piso: s.piso || '' })),
+    decorado: {}, cartas: [], objetos: [], npcs: [], salidas: [] };
+  secs.filter(s => s._sec === 'decorado').forEach(s => ['rocas', 'columnas', 'arcos', 'cristales', 'arbustos'].forEach(k => { if (s[k]) def.decorado[k] = (def.decorado[k] || []).concat(L(s[k])); }));
+  def.cartas = secs.filter(s => s._sec === 'carta').map(s => ({ id: s._id, x: num(s.x, 0), z: num(s.z, 0), carta: resolverCarta(s.carta) })).filter(c => c.carta);
+  def.objetos = secs.filter(s => s._sec === 'objeto').map(s => ({ id: s._id, x: num(s.x, 0), z: num(s.z, 0), objeto: String(s.objeto || '').trim() }));
+  def.npcs = secs.filter(s => s._sec === 'npc').map(s => Object.assign({}, s, { id: 'tr~' + id + '~' + s._id, _nid: s._id, tipo: 'rival', distrito: t.desde, _tramo: id,
+    _req: [], _dias: [], _mon: parseInt(s.monedas, 10) || 0 }));
+  def.salidas = secs.filter(s => s._sec === 'salida').map(s => ({ id: s._id, x: num(s.x, 0), z: num(s.z, 0), a: String(s.a || '').trim(), texto: s.texto || s.a || 'Salida' }));
+  const p = tramoPos(t); def.npcs.forEach(n => { n._x = p.x; n._y = p.y; });
+  return (_tramoCache[id] = def);
+}
+async function npcTramo(pid) {
+  const m = String(pid || '').match(/^tr~([^~]+)~(.+)$/); if (!m) return null;
+  const def = await cargarTramo(m[1]); return def ? def.npcs.find(n => n.id === pid) || null : null;
+}
+function estTramo(id) { S.tramos = S.tramos || {}; return (S.tramos[id] = S.tramos[id] || { c: {}, o: {} }); }
+function cartasTramo(def) { const e = estTramo(def.id); return { tot: def.cartas.length, ya: def.cartas.filter(c => e.c[c.id]).length }; }
+function imgUrl(f, sub) { const c = candidatos(f, sub)[0] || ''; return c; }
+async function abrirTramo(id) {
+  const def = await cargarTramo(id); if (!def) { toast('⚠ No se pudo leer el tramo ' + id); return; }
+  const e = estTramo(id), h = def.head;
+  const colores = {}; Object.keys(h).filter(k => /^color_/.test(k)).forEach(k => colores[k.slice(6)] = h[k]);
+  const json = { id, nombre: h.nombre || def.t.nombre || id, colores, inicio: (h.inicio || '0,0').split(',').map(Number), pos: e.pos || null,
+    camino: def.camino, plataformas: def.plataformas, decorado: def.decorado,
+    cartas: def.cartas.map(c => ({ id: c.id, x: c.x, z: c.z, recogida: !!e.c[c.id] })),
+    objetos: def.objetos.map(o => ({ id: o.id, x: o.x, z: o.z, recogido: !!e.o[o.id] })),
+    npcs: def.npcs.map(n => ({ id: n._nid, x: num(n.x, 0), z: num(n.z, 0), nombre: n.nombre || '', radio: num(n.radio, 2), color: n.color || '#ff5a7a', img: n.imagen ? imgUrl(n.imagen, 'personajes') : '', vencido: vencido(n.id) })),
+    salidas: def.salidas };
+  window.NX_TRAMO_JSON = JSON.stringify(json);
+  TRAMO = { id, def, listo: false };
+  cerrarFicha(); mostrarCarga(1200);
+  const fr = $('trFrame'); fr.src = 'tramo/index.html?t=' + encodeURIComponent(id) + '&v=' + (CFG.tramo_version || '1');
+  irA('sTramo'); mostrarCarga(1200);
+  musica(h.musica || def.t.musica || musicaVista());
+  clearTimeout(abrirTramo._t); abrirTramo._t = setTimeout(() => { if (TRAMO && !TRAMO.listo) { quitarCarga(true); toast('⏳ El tramo tarda en cargar (la primera vez descarga el motor 3D)…'); } }, 20000);
+}
+function tramoPausa(on) {
+  const fr = $('trFrame'); try { fr.contentWindow.nxGodot && fr.contentWindow.nxGodot(JSON.stringify({ tipo: 'pausa', on: !!on })); } catch (e) {}
+  if (on) { try { document.activeElement && document.activeElement.blur && document.activeElement.blur(); window.focus(); } catch (e) {} }
+  else setTimeout(() => { try { fr.focus(); fr.contentWindow.focus(); } catch (e) {} }, 60);
+}
+function tramoAviso(m) { try { $('trFrame').contentWindow.nxGodot(JSON.stringify(m)); } catch (e) {} }
+function cerrarTramo(dist) {
+  TRAMO = null; const fr = $('trFrame'); fr.src = 'about:blank';
+  guardar(); mostrarMapa();
+  const d = dist && DIST.find(x => x.id === dist); if (d) centrarEn(d._x, d._y, true);
+}
+window.nxTramoEvento = async function (s) {
+  let ev; try { ev = JSON.parse(s); } catch (e) { return; }
+  if (!TRAMO) return;
+  const def = TRAMO.def, e = estTramo(TRAMO.id);
+  if (ev.pos) e.pos = ev.pos;
+  switch (ev.tipo) {
+    case 'listo': TRAMO.listo = true; quitarCarga(); tramoPausa(false); break;
+    case 'volver': guardar(); cerrarTramo(); break;
+    case 'salida': e.pos = null; guardar(); cerrarTramo(ev.a); break;
+    case 'carta': {
+      const c = def.cartas.find(x => x.id === ev.id); if (!c || e.c[c.id]) return;
+      e.c[c.id] = 1; const res = entregar([c.carta]); guardar(); pintarHud();
+      tramoPausa(true); await mostrarPremio(res); tramoPausa(false); break;
+    }
+    case 'objeto': {
+      const o = def.objetos.find(x => x.id === ev.id); if (!o || e.o[o.id]) return;
+      e.o[o.id] = 1; S.objetos = S.objetos || {}; S.objetos[o.objeto] = (S.objetos[o.objeto] || 0) + 1; guardar();
+      const ob = OBJ[o.objeto] || { nombre: o.objeto, icono: '🎁' };
+      tramoPausa(true);
+      await mensaje('🎒 ¡ENCONTRASTE ALGO!', `<div style="font-size:54px;line-height:1">${esc(ob.icono || '🎁')}</div><b style="font-size:18px">${esc(ob.nombre || o.objeto)}</b><br><span style="color:var(--muted)">${esc(ob.descripcion || '')}</span><br><br>Lo guardaste en tu <b>🎒 MOCHILA</b>.`);
+      tramoPausa(false); break;
+    }
+    case 'npc': {
+      const p = def.npcs.find(n => n._nid === ev.id); if (!p) return;
+      tramoPausa(true);
+      const r = await dialogo(p, vencido(p.id) && p.revancha ? p.revancha : (p.entrada || '¿Un Choque?'), [['⚔ ¡CHOQUE!', 'gold'], ['AHORA NO', 'sec']]);
+      if (r === 0) { guardar(true); iniciarChoque(p); } else tramoPausa(false);
+      break;
+    }
+  }
+};
+// Al regresar de un Choque contra un NPC del tramo: tras los diálogos y premios se vuelve a entrar al tramo
+async function trasChoqueTramo(p) { if (p && p._tramo) { await new Promise(r => setTimeout(r, 300)); abrirTramo(p._tramo); } }
+
+// ── OBJETOS y MOCHILA (assets/nexotlan/objetos.txt) ──
+async function cargarObjetos() {
+  const txt = await fetch(DIR + 'objetos.txt', { cache: 'no-cache' }).then(r => r.ok ? r.text() : '').catch(() => '');
+  OBJ = {}; parseTxt(txt).filter(s => s._sec === 'objeto').forEach(s => OBJ[s._id] = { id: s._id, nombre: s.nombre || s._id, icono: s.icono || '🎁', descripcion: s.descripcion || '', precio: parseInt(s.precio, 10) || 0, uso: String(s.uso || 'ninguno').trim() });
+}
+const precioObjeto = id => r5((OBJ[id] ? OBJ[id].precio : 0) * 1);
+function abrirMochila() {
+  const L = Object.keys(S.objetos || {}).filter(k => S.objetos[k] > 0);
+  $('cjT').textContent = '🎒 MOCHILA';
+  $('cjBody').innerHTML = L.length ? `<div class="mo-l">${L.map(k => { const o = OBJ[k] || { nombre: k, icono: '🎁', descripcion: '', uso: 'ninguno' }, usa = o.uso && !/^ninguno$/i.test(o.uso);
+    return `<div class="mo-i"><span class="ic">${esc(o.icono)}</span><span class="tx"><b>${esc(o.nombre)} <em>×${S.objetos[k]}</em></b><small>${esc(o.descripcion)}${o.precio ? ' · El Comerciante paga <i class="mn"></i> ' + o.precio : ''}</small></span>${usa ? `<button class="bt gold" data-usar="${esc(k)}">USAR</button>` : ''}</div>`; }).join('')}</div>`
+    : '<div class="mz-vacio">Tu mochila está vacía. Explora los tramos entre distritos: hay cofres y cartas tiradas.</div>';
+  $('cjBody').querySelectorAll('[data-usar]').forEach(b => b.onclick = () => usarObjeto(b.dataset.usar));
+  $('mCaja').classList.add('on');
+  try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('cjBody').querySelector('button') || $('mCaja').querySelector('.f-x')), 60); } catch (e) {}
+}
+async function usarObjeto(id) {
+  const o = OBJ[id]; if (!o || !(S.objetos[id] > 0)) return;
+  const [tipo, arg] = String(o.uso).split(':').map(x => x.trim());
+  if (tipo === 'monedas') { S.objetos[id]--; const n = parseInt(arg, 10) || 0; S.monedas += n; sonMonedas(); guardar(); pintarHud(); toast('<i class="mn"></i> +' + n + ' monedas'); abrirMochila(); return; }
+  if (tipo === 'carta') {
+    const pool = poolDe(arg || 'todo', ['bp', 'ba']).filter(premiable); if (!pool.length) return toast('Este objeto no tiene cartas');
+    S.objetos[id]--; const res = entregar([sorteoPeso(pool)]); guardar(); cerrarModal('mCaja'); await mostrarPremio(res); return;
+  }
+  if (tipo === 'sobre') {
+    const sb = COM.sobres.find(x => x.id === arg); if (!sb) return toast('Ese sobre no existe');
+    S.objetos[id]--; const pr = parseInt(sb.precio, 10) || 0; S.monedas += pr; guardar(); cerrarModal('mCaja'); comprarSobre(sb); return;   // se "regala" el precio y se abre como compra normal
+  }
+}
+
 // ════════════════ PINTAR MAPA ════════════════
 function pintarMapa() {
   const mi = $('mi');
@@ -2248,7 +2402,11 @@ function pintarMapa() {
   }).join('');
   const dlab = (VISTA ? [] : DLC_BLOQ).map(d => { const et = String(d.etiqueta || '').split(',').map(Number), lx = isFinite(et[0]) && et.length === 2 ? et[0] : d._x, ly = isFinite(et[1]) && et.length === 2 ? et[1] : d._y - d._r * .55;
     return `<button class="dlab dlc" data-dlc="${esc(d.id)}" style="left:${lx}%;top:${ly}%;--dc:${esc(d.color || '#7dffb2')}">✦ ${esc(d.nombre || d.id)}<small>CONTENIDO PREMIUM</small></button>`; }).join('');
-  mi.innerHTML = fondo + etq + dlab + portales + pts;
+  // v281 · Tramos de exploración: marcador entre los dos distritos
+  const tramos = TRAMOS.filter(tramoVisible).map(t => { const q = tramoPos(t), c0 = _tramoCache[t.id], pr = c0 ? cartasTramo(c0) : null;
+    return `<button class="nx-tramo" data-tramo="${esc(t.id)}" style="left:${q.x}%;top:${q.y}%" aria-label="Explorar ${esc(t.nombre || t.id)}"><i></i><span>🥾 ${esc(t.nombre || t.id)}${pr && pr.tot ? `<small>🃏 ${pr.ya}/${pr.tot}</small>` : ''}</span></button>`; }).join('');
+  mi.innerHTML = fondo + etq + dlab + portales + tramos + pts;
+  mi.querySelectorAll('.nx-tramo').forEach(b => { b.onclick = () => { if (b._movido) { b._movido = false; return; } abrirTramo(b.dataset.tramo); }; });
   try { fxMotor(); } catch (e) { console.warn('[nexotlan] fx', e); }
   mi.querySelectorAll('.nx-portal').forEach(b => { b.onclick = () => { if (b._movido) { b._movido = false; return; } entrarSub(b.dataset.sub); }; });
   mi.querySelectorAll('.dlab.dlc').forEach(b => { b.onclick = () => { if (b._movido) { b._movido = false; return; } verDLC(b.dataset.dlc); }; });
@@ -2497,7 +2655,7 @@ async function procesarResultado() {
   const q = new URLSearchParams(location.search).get('r');
   if (q) history.replaceState(null, '', location.pathname + (EDITOR ? '?editor=1' : ''));
   if (!res || res.id !== S.pendiente.id) return false;
-  const p0 = PTS.find(x => x.id === S.pendiente.punto), fase = S.pendiente.fase || 1;
+  const p0 = PTS.find(x => x.id === S.pendiente.punto) || await npcTramo(S.pendiente.punto), fase = S.pendiente.fase || 1;   // v281 · NPC de un tramo
   S.pendiente = null;
   try { localStorage.removeItem('chh_arcade_result'); } catch (e) {}
   if (!p0) { guardar(); return false; }
@@ -2547,6 +2705,7 @@ async function procesarResultado() {
   if (campeon) { S.campeon = Date.now(); guardar(); }
   if (esFinal) await pantallaFinal(p0, !antes);                // jefe final (final = si): pantalla de victoria épica con su audio
   else if (campeon) await mensaje('👑 ¡CAMPEÓN DE NEXOTLAN!', `Venciste a todos los guardianes en ${S.dia} días. Puedes seguir explorando y retando a todos para completar tu diario.`);
+  if (p0._tramo) await trasChoqueTramo(p0);      // v281 · se vuelve a entrar al tramo donde estabas
   return true;
 }
 // ── Transformación del jefe entre su 1ª y 2ª forma: temblor, energía, destello y aparece su forma verdadera ──
@@ -2971,6 +3130,8 @@ function pintarTienda() {
   } else {
     const ids = Object.keys(S.col).filter(id => S.col[id] - enMazo(S.mazo, id) > 0 && precioBase(id) > 0).sort(ordenCarta);
     h = `<div class="td-nota">Te compra al <b style="color:var(--text)">${num(COM.cfg.compra, 20)} %</b> del precio del día. Solo aparecen las copias que <b style="color:var(--text)">no están en tu baraja</b>.</div>`;
+    const objs = Object.keys(S.objetos || {}).filter(k => S.objetos[k] > 0 && OBJ[k] && OBJ[k].precio > 0);   // v281 · objetos de los tramos
+    if (objs.length) h += `<div class="mz-g"><span>🎒 OBJETOS</span></div><div class="mo-l" style="margin-bottom:14px">${objs.map(k => `<div class="mo-i"><span class="ic">${esc(OBJ[k].icono)}</span><span class="tx"><b>${esc(OBJ[k].nombre)} <em>×${S.objetos[k]}</em></b><small>Te paga <i class="mn"></i> ${OBJ[k].precio}</small></span><button class="bt gold" data-vobj="${esc(k)}">💰 VENDER 1</button></div>`).join('')}</div><div class="mz-g"><span>🃏 CARTAS</span></div>`;
     h += ids.length ? `<div class="mz-grid">${ids.map(id => `<button class="mz-c" data-vd="${esc(id)}" aria-label="${esc(nomC(id))}"><img src="${esc(cartaImg(id))}" alt="" loading="lazy"><span class="qq">×${S.col[id] - enMazo(S.mazo, id)}</span><span class="pr">+${precioCompra(id)}</span></button>`).join('')}</div>` : '<div class="mz-vacio">No tienes cartas fuera de tu baraja para vender.</div>';
   }
   B.innerHTML = h;
@@ -2978,6 +3139,7 @@ function pintarTienda() {
   B.querySelectorAll('[data-caja]').forEach(b => b.onclick = () => verCaja(COM.sobres.find(x => x.id === b.dataset.caja)));
   B.querySelectorAll('[data-of]').forEach(b => b.onclick = () => fichaTienda(+b.dataset.of));
   B.querySelectorAll('[data-vd]').forEach(b => b.onclick = () => fichaVenta(b.dataset.vd));
+  B.querySelectorAll('[data-vobj]').forEach(b => b.onclick = () => { const k = b.dataset.vobj; if (!(S.objetos[k] > 0)) return; S.objetos[k]--; S.monedas += OBJ[k].precio; sonMonedas(); guardar(); pintarTienda(); toast('💰 +' + OBJ[k].precio + ' monedas'); });
 }
 function fichaBase(id, extra, btns) {
   const c = CARD[id] || {}, st = (c.tipo === 'pj' || c.tipo === 'amalgama') ? ` · FUE ${c.fue ?? 0} · RES ${c.res ?? 0}` : '';
@@ -3921,6 +4083,7 @@ $('subVolver').onclick = () => salirSub();   // v274
 $('hDescansar').onclick = descansar;
 $('hDiario').onclick = abrirDiario;
 $('hBaraja').onclick = abrirMazo;
+$('hMochila').onclick = abrirMochila;   // v281
 $('zMas').onclick = () => ajustarZoom(ZOOM * 1.3);
 $('zMenos').onclick = () => ajustarZoom(ZOOM / 1.3);
 $('hMute').onclick = () => { MUTE = !MUTE; try { localStorage.setItem('chh_nexotlan_mute', MUTE ? '1' : '0'); } catch (e) {} pintarHud(); if (MUTE) $('aud').pause(); else if ($('aud').src) $('aud').play().catch(() => {}); };
@@ -3994,6 +4157,8 @@ document.addEventListener('keydown', e => {
   else if (k === '+' || k === '=') ajustarZoom(ZOOM * 1.2);
   else if (k === '-' || k === '_') ajustarZoom(ZOOM / 1.2);
 });
+// v281 · Mientras se explora un tramo 3D, el control lo maneja Godot (salvo cuando hay un diálogo o mensaje de esta página)
+window.GP_PAUSA = () => $('sTramo').classList.contains('on') && !DLG && !document.querySelector('.modal.on, .sob.on') && !cargaVisible();
 window.GP_CFG = {
   principalTxt: 'Entrar / Avanzar',
   sinAnillo: el => !!(el && el.closest && el.closest('#sMenu .mn-izq, #carga')),   // el menú resalta sus propias opciones
@@ -4069,6 +4234,7 @@ $('dCaja').addEventListener('click', e => { if (!e.target.closest('.d-ops')) { e
   TESTER_DLC = !!(yo && lista.includes(String(yo.id).toUpperCase()));   // v275 · DLC gratis para los testers con ID en la lista
   const [txt, data, gal, lim, com] = await Promise.allSettled([leer(DIR + 'mapa.txt'), leer('data/cartas_simulacion.json', true), leer('cartas.json', true), leer('cartas-limitadas.json', true), leer(DIR + 'comerciante.txt')]);
   if (com.status === 'fulfilled') COM = parseCom(com.value);
+  try { await cargarObjetos(); } catch (e) {}   // v281 · objetos de los tramos (mochila)
   if (lim.status === 'fulfilled') (lim.value || []).forEach(x => { if (x && x.nombre) LIM[NK(x.nombre)] = x.estado; });
   construirModelo(parseTxt(txt.status === 'fulfilled' ? txt.value : ''));
   if (data.status === 'fulfilled') { DATA = data.value || DATA; (DATA.cartas || []).forEach(c => { if (c && c.id) CARD[c.id] = c; }); }

@@ -2296,6 +2296,8 @@ async function cargarTramo(id) {
     destino: String(s.destino || '').trim(), rival: String(s.rival || '').trim(), llegada: String(s.llegada || '').split(',').map(Number).filter(isFinite) }));
   // v299 · [piramide] x, z (borde del frente), ancho, niveles, alto (de cada nivel), escalera (ancho)
   def.piramides = secs.filter(s => s._sec === 'piramide').map(s => ({ x: num(s.x, 0), z: num(s.z, 0), ancho: num(s.ancho, 30), niveles: num(s.niveles, 6), alto: num(s.alto, 2.6), escalera: num(s.escalera, 6), color: s.color || '', tierra: s.tierra || '' }));
+  // v304 · [guia] Nextor, Guía de Nexotlan: x, z y texto (páginas separadas con |)
+  def.guia = (g => g ? { x: num(g.x, 0), z: num(g.z, 0), paginas: String(g.texto || '').split('|').map(x => x.trim()).filter(Boolean) } : null)(secs.find(s => s._sec === 'guia'));
   def.salidas = secs.filter(s => s._sec === 'salida').map(s => ({ id: s._id, x: num(s.x, 0), z: num(s.z, 0), a: String(s.a || '').trim(), texto: s.texto || s.a || 'Salida' }));
   const p = tramoPos(t); def.npcs.forEach(n => { n._x = p.x; n._y = p.y; });
   return (_tramoCache[id] = def);
@@ -2318,6 +2320,8 @@ window.reiniciarTramo = function (id) {
 };
 function cartasTramo(def) { const e = estTramo(def.id); return { tot: def.cartas.length, ya: def.cartas.filter(c => e.c[c.id]).length }; }
 function imgUrl(f, sub) { const c = candidatos(f, sub)[0] || ''; return c; }
+// v304 · lo que Nextor explica la primera vez que entras a una ruta (se cambia en mapa.txt con tramo_guia_intro = pág | pág | …)
+const GUIA_INTRO = '¡Bienvenido, viajero! Soy Nextor, guía de Nexotlan. Estás en una RUTA: un camino que une dos distritos a través del vacío del multiverso. | En las rutas hay cartas tiradas y cofres. Las cartas van a tu colección y los cofres guardan objetos para tu mochila. Arriba a la derecha llevas la cuenta. | Las Ánimas que encuentres te retarán a un Choque. Algunas te cierran el paso o resguardan barreras: véncelas para seguir avanzando. | Puedes ajustar tu baraja cuando quieras con el botón BARAJA. Y si tienes dudas, búscame al inicio de cada ruta.';
 async function abrirTramo(id) {
   if (!tramoAbierto(tramoDe(id))) { toast('🔒 Aún no puedes entrar a este sendero'); return; }
   const def = await cargarTramo(id); if (!def) { toast('⚠ No se pudo leer el tramo ' + id); return; }
@@ -2349,6 +2353,13 @@ async function abrirTramo(id) {
     exhibir: { cartas: String(h.exhibir_cartas || '').split('|').map(x => x.trim()).filter(Boolean), micas: String(h.exhibir_micas || '').split('|').map(x => x.trim()).filter(Boolean),
       playmats: String(h.exhibir_playmats || '').split('|').map(x => x.trim()).filter(Boolean) },
     post: e.post || null,
+    guia: def.guia ? (() => {      // v304 · la primera vez en una ruta Nextor habla solo; la primera ruta de todas, además explica qué son las rutas
+      const intro = String(CFG.tramo_guia_intro || GUIA_INTRO).split('|').map(x => x.trim()).filter(Boolean);
+      const auto = !e.guia, pags = (auto && !(S.guiaIntro) ? intro : []).concat(def.guia.paginas);
+      return { x: def.guia.x, z: def.guia.z, auto, paginas: pags, ruta: def.guia.paginas.length ? def.guia.paginas : intro,
+        nombre: 'Nextor · Guía de Nexotlan', escala: +(CFG.tramo_guia_escala || 2.2),
+        modelo: (m => m.includes('/') ? m : 'assets/nexotlan/personajes/' + m)(String(CFG.tramo_guia_modelo || 'nextor.glb').trim()) };
+    })() : null,
     piramides: def.piramides || [],
     vista_final: String(h.vista_final || '').split(',').map(Number).filter(isFinite).length >= 3 ? String(h.vista_final).split(',').map(Number) : null,
     relampagos: String(h.relampagos || '').trim(),
@@ -2410,6 +2421,9 @@ window.nxTramoEvento = async function (s) {
       tramoPausa(true);
       await mensaje('🎒 ¡ENCONTRASTE ALGO!', `<div style="font-size:54px;line-height:1">${esc(ob.icono || '🎁')}</div><b style="font-size:18px">${esc(ob.nombre || o.objeto)}</b><br><span style="color:var(--muted)">${esc(ob.descripcion || '')}</span><br><br>Lo guardaste en tu <b>🎒 MOCHILA</b>.`);
       tramoPausa(false); break;
+    }
+    case 'guia_visto': {      // v304 · ya escuchó a Nextor en esta ruta
+      e.guia = 1; S.guiaIntro = 1; guardar(); break;
     }
     case 'baraja': {      // v294 · editar la baraja sin salir del tramo
       tramoPausa(true); window._volverTramo = VOLVER; VOLVER = 'sTramo'; abrirMazo(); break;

@@ -2271,7 +2271,7 @@ async function cargarTramo(id) {
     camino: secs.filter(s => s._sec === 'camino').map(s => ({ puntos: L(s.puntos), ancho: num(s.ancho, 4), tipo: s.tipo || 'piedra' })),
     plataformas: secs.filter(s => s._sec === 'plataforma').map(s => ({ x: num(s.x, 0), z: num(s.z, 0), ancho: num(s.ancho, 8), largo: num(s.largo, num(s.ancho, 8)), forma: s.forma || 'oval', piso: s.piso || '' })),
     decorado: {}, cartas: [], objetos: [], npcs: [], salidas: [] };
-  secs.filter(s => s._sec === 'decorado').forEach(s => ['rocas', 'columnas', 'arcos', 'cristales', 'arbustos'].forEach(k => { if (s[k]) def.decorado[k] = (def.decorado[k] || []).concat(L(s[k])); }));
+  secs.filter(s => s._sec === 'decorado').forEach(s => ['rocas', 'columnas', 'arcos', 'cristales', 'arbustos', 'braseros', 'runas', 'pasto'].forEach(k => { if (s[k]) def.decorado[k] = (def.decorado[k] || []).concat(L(s[k])); }));
   def.cartas = secs.filter(s => s._sec === 'carta').map(s => ({ id: s._id, x: num(s.x, 0), z: num(s.z, 0), carta: resolverCarta(s.carta) })).filter(c => c.carta);
   def.objetos = secs.filter(s => s._sec === 'objeto').map(s => ({ id: s._id, x: num(s.x, 0), z: num(s.z, 0), objeto: String(s.objeto || '').trim() }));
   def.npcs = secs.filter(s => s._sec === 'npc').map(s => Object.assign({}, s, { id: 'tr~' + id + '~' + s._id, _nid: s._id, tipo: 'rival', distrito: t.desde, _tramo: id,
@@ -2295,7 +2295,7 @@ async function abrirTramo(id) {
   const texturas = {}, escalas = {}, brillos = {};
   Object.keys(h).forEach(k => { const m = k.match(/^(textura|escala|brillo)_(.+)$/); if (!m || !String(h[k]).trim()) return; const v = String(h[k]).trim();
     if (m[1] === 'textura') texturas[m[2]] = /\//.test(v) ? v.replace(/^\.?\//, '') : DIR + 'tramos/texturas/' + v; else (m[1] === 'escala' ? escalas : brillos)[m[2]] = num(v, 1); });
-  const json = { id, nombre: h.nombre || def.t.nombre || id, colores, texturas, escalas, brillos, inicio: (h.inicio || '0,0').split(',').map(Number), pos: e.pos || null,
+  const json = { id, nombre: h.nombre || def.t.nombre || id, jugador: { nombre: S.nombre || 'Jugador', avatar: avatarPerfil() || '', monedas: S.monedas || 0, dia: (S.dia || 0) + 1, dia_nombre: diaNombre(S.dia) }, colores, texturas, escalas, brillos, inicio: (h.inicio || '0,0').split(',').map(Number), pos: e.pos || null,
     camino: def.camino, plataformas: def.plataformas, decorado: def.decorado,
     cartas: def.cartas.map(c => ({ id: c.id, x: c.x, z: c.z, recogida: !!e.c[c.id] })),
     objetos: def.objetos.map(o => ({ id: o.id, x: o.x, z: o.z, recogido: !!e.o[o.id] })),

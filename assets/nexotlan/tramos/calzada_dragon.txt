@@ -1,0 +1,333 @@
+# ═════════════════════════════════════════════════════════════════
+#  NEXOTLAN · TRAMO DE EXPLORACIÓN — Calzada del Dragón (Archivos → Santuario del Dragón Multiversal)
+#  Edítalo con el Bloc de notas (UTF-8).  campo = valor
+#  Mismo formato que los otros tramos. Bloques nuevos de este tramo:
+#   [decorado] columnas_rotas = x,z,alto · muros = x1,z1,x2,z2,alto (muro roto de piedra, a la orilla)
+#              estelas = x,z,giro · estatuas = x,z,giro (guardianes de piedra) · fogatas = x,z,tamaño (fuego naranja)
+#              arboles = x,z,tamaño,#color
+#   [piramide] x, z (borde del frente), ancho, niveles, alto (de cada nivel), escalera (ancho). Es fondo: no se camina.
+#   vista_final = x,z,radio en [tramo]: al entrar a ese radio la cámara se abre y se ve la pirámide.
+#   relampagos = si en [tramo]: relámpagos y truenos a lo lejos (en la zona 2 si hay cambio_z).
+# ═════════════════════════════════════════════════════════════════
+
+[tramo]
+nombre = Calzada del Dragón
+inicio = 0,26
+cambio_z = -40
+bruma_bordes = si
+fondo = libros
+fondo2 = ruinas
+relampagos = si
+vista_final = 0,-87,8.5
+brillo_sol = 0.85
+color_luz = #d4ccff
+# Zona 1 · últimos pasillos de los Archivos (morado)
+color_suelo = #4a4368
+color_borde = #241f36
+color_camino = #6e6690
+color_puente = #8a5a3c
+color_piedra = #8a8098
+color_roca = #4a4468
+color_planta = #3f8a6a
+color_madera = #8a5a3c
+color_librero = #5a2e1c
+color_abismo = #0b0518
+color_niebla = #34164a
+color_ambiente = #8068a8
+color_contraluz = #d24fc0
+color_tinte_abismo = #b48ae0
+# Zona 2 · ruinas y Santuario (tormenta violeta con brillo turquesa)
+color_abismo2 = #080a22
+color_niebla2 = #2a2a66
+color_ambiente2 = #8a8cc8
+color_contraluz2 = #9a5cff
+color_tinte_abismo2 = #a8b0ff
+
+textura_suelo = piso_textura.jpg
+textura_suelo_archivos = piso_archivos_textura.jpg
+textura_suelo_santuario = piso_mercado_textura.jpg
+textura_borde = roca_textura.jpg
+textura_camino = tabiques_textura.jpg
+textura_camino_archivos = madera_pulida_textura.jpg
+textura_puente = madera_textura.jpg
+textura_madera = madera_textura.jpg
+textura_librero = madera_pulida_textura.jpg
+textura_libros = libros_textura.jpg
+textura_pergamino = pergamino_textura.jpg
+textura_roca = roca_textura.jpg
+textura_piedra = tabiques_textura.jpg
+textura_abismo = nubes_textura.jpg
+escala_suelo = 3
+escala_suelo_archivos = 3.2
+escala_suelo_santuario = 3
+escala_borde = 3
+escala_camino = 2.4
+escala_camino_archivos = 2
+escala_puente = 1.6
+escala_madera = 1.2
+escala_librero = 1.5
+escala_roca = 1.6
+escala_piedra = 1.4
+escala_abismo = 40
+brillo_abismo = 0.5
+
+# ───────────── ZONA 1 · PASILLOS DE LOS ARCHIVOS ─────────────
+[plataforma:vestibulo]
+x = 0
+z = 22
+ancho = 12
+largo = 16
+forma = rect
+zona = archivos
+
+[camino:pasillo]
+puntos = 0,14 | -3,6 | -3,-2
+ancho = 4.5
+tipo = piedra
+zona = archivos
+
+[plataforma:sala_lectura]
+x = -2
+z = -8
+ancho = 13
+largo = 10
+zona = archivos
+
+# ───────────── RUINAS ─────────────
+[camino:puente_ruinas]
+puntos = -2,-13 | -1,-21
+ancho = 2.6
+tipo = puente
+
+[plataforma:plaza_ruinas]
+x = 0
+z = -27
+ancho = 14
+largo = 11
+
+[camino:puente_islote]
+puntos = 6.5,-27 | 12,-27.5
+ancho = 2.2
+tipo = puente
+
+[plataforma:islote_ruinas]
+x = 15
+z = -28
+ancho = 6
+largo = 5.5
+
+[camino:calzada_rota]
+puntos = -1,-32.5 | -5,-40 | -3,-48
+ancho = 4.4
+tipo = piedra
+
+[plataforma:patio_estelas]
+x = -2
+z = -55
+ancho = 15
+largo = 12
+
+[camino:puente_oeste]
+puntos = -9.5,-54 | -15,-54.5
+ancho = 2.2
+tipo = puente
+
+[plataforma:islote_oeste]
+x = -18
+z = -55
+ancho = 6
+largo = 5.5
+
+# ───────────── SANTUARIO DEL DRAGÓN ─────────────
+[camino:calzada_santuario]
+puntos = -2,-61 | 1,-68 | 0,-76
+ancho = 5
+tipo = piedra
+zona = santuario
+
+[plataforma:explanada]
+x = 0
+z = -86
+ancho = 22
+largo = 18
+forma = rect
+zona = santuario
+
+[piramide:santuario]
+x = 0
+z = -96
+ancho = 30
+niveles = 6
+alto = 2.6
+escalera = 6
+
+[decorado]
+# archivos
+libreros = -5.2,24,90,4,3 | -5.2,19.2,90,4,3 | 5.2,24,90,4,3 | 5.2,19.2,90,4,3 | -7.6,-6.5,90,3,2.6 | 3.6,-5.8,60,2.6,2.4
+atriles = 2.6,16.2,0 | -5.4,-5.2,30
+velas = -4.8,15 | 4.8,15 | 1.8,-11.6 | -4.6,28.6 | 4.6,28.6
+pilas_libros = -5.5,15.8 | 5.6,28.5 | -6.6,-9 | 2.8,-3.6
+papeles = 1,20 | -2,17 | -1,-6 | 1.5,-9.5 | -4,-11.5
+rayos = 0,21,2.2 | -2,-8,2.6
+libros = -1.5,23,2.2 | 2,18,2.6 | -3.5,-6,2.4 | 1,-10.5,2.1
+# ruinas
+columnas_rotas = -4.5,-24,2.2 | 4.8,-24.5,1.6 | -5.2,-30,2.8 | 16.8,-26.6,1.8 | -6.8,-51,2.4 | 3.8,-50.6,1.4 | -19.6,-53.8,1.6
+muros = -6.6,-25.5,-6.2,-29.8,1.8 | 5.8,-30,3.4,-32.1,1.4 | -8.6,-57,-7,-60.2,1.6 | 4.2,-58.6,2.2,-60.6,1.2 | -7,-41,-6.6,-44.6,1.2
+estelas = -7.6,-53,70 | -7.2,-57.6,110 | 3.6,-53.4,-70 | 3.2,-57.8,-110 | -9,-79.6,0 | 9,-79.6,0 | -9.4,-84.2,90 | 9.4,-84.2,-90
+arbustos = 5.2,-28.6,0.8 | -3.8,-47.4,0.7 | 4.2,-55,0.8 | -17,-53.6,0.7
+pasto = -2,-23 | 3,-31 | -4.4,-36 | -0.8,-45 | -6,-58 | 2,-60 | 15.6,-29.6 | -18.6,-56.4 | -8,-78 | 8,-78 | -10,-90 | 10,-90
+rocas = 2.6,-34.6,0.9 | -6.2,-46,0.8 | 13.4,-29.6,0.7
+glifos = 0,21.5,2.6,#cc55ff | 0,-27,2.8,#cc55ff | -2,-55,3,#7fd7ff
+luciernagas = 0,-27,3,#9dff7a | -2,-55,3,#9dff7a | 0,-86,6,#ffd27a | 15,-28,2,#7ff0ff
+# santuario (al pie de la pirámide)
+columnas = -6,-78.4,3.2 | 6,-78.4,3.2
+fogatas = -7,-90.5,1.1 | 7,-90.5,1.1
+estatuas = -4.3,-92.6,0 | 4.3,-92.6,0
+arboles = -10,-83.6,1.1,#3f8a5a | 10.2,-83,1,#c26a9a | -10.2,-92.2,0.9,#c26a9a | 10,-92.6,1.1,#3f8a5a | 14,-26.2,0.7,#3f8a5a
+
+[carta:codice]
+x = -3.6
+z = 16
+carta = Códice de Quetzalcoatl
+
+[carta:vigia]
+x = 2.6
+z = -10.6
+carta = Dragón Vigía de Cristal
+
+[carta:rugido]
+x = 3.6
+z = -27.6
+carta = Rugido Dragón
+
+[carta:xiuhcoatl]
+x = -5.6
+z = -41.2
+carta = Xiuhcoatl, La Serpiente de Fuego
+
+[carta:sacerdotisa]
+x = 2.6
+z = -56.2
+carta = Sacerdotisa de Quetzalcoatl
+
+[carta:expada]
+x = -17.4
+z = -56.4
+carta = EX-Pada Reencarnada, Dragón
+
+[carta:templo]
+x = -5.5
+z = -82
+carta = Templo Celestia
+
+[carta:ofrenda]
+x = 5.5
+z = -84.5
+carta = Ofrenda a Quetzalcoatl
+
+[objeto:cofre_lectura]
+x = -6
+z = -10.6
+giro = 90
+objeto = carta_misteriosa
+
+[objeto:cofre_ruinas]
+x = 15.6
+z = -28.2
+giro = -90
+objeto = fragmento_obsidiana
+
+[objeto:cofre_oeste]
+x = -18.4
+z = -54
+giro = 90
+objeto = bolsa_monedas
+
+[objeto:cofre_santuario]
+x = 9.4
+z = -88.2
+giro = -90
+objeto = sobre_perdido
+
+[npc:escriba]
+nombre = Escriba Errante
+titulo = Rival de la calzada
+x = 0
+z = -7.5
+radio = 1.6
+color = #ffd27a
+baraja = nxr_naddezhda
+dificultad = auto
+monedas = 40
+entrada = Copio cada Choque que veo en estas páginas… ¿escribimos el tuyo?
+victoria = Anotado: ganaste tú. Qué buena página.
+derrota = Lo dejaré escrito con tinta indeleble.
+revancha = ¿Una segunda edición?
+
+[npc:saqueador]
+nombre = Saqueador de Ruinas
+titulo = Rival de la calzada
+# Tapa el puente hacia las ruinas; al vencerlo se hace a un lado
+x = -1.5
+z = -17
+bloquea = si
+aparta = 3.2,-24.6
+radio = 1
+color = #e0643a
+baraja = nxr_drake
+dificultad = auto
+monedas = 45
+entrada = Todo lo que hay en esas ruinas es mío. Si quieres pasar, gánatelo.
+victoria = Bah… llévate lo que quieras. Yo buscaré otro tesoro.
+derrota = Otro botín para mi colección.
+revancha = ¿Vienes por tu revancha… o por mi botín?
+
+[npc:centinela]
+nombre = Centinela de Piedra
+titulo = Rival de la calzada
+x = -1
+z = -27.6
+radio = 1.2
+color = #7ff0ff
+baraja = nxr_kitsune
+dificultad = auto
+monedas = 50
+entrada = Estas ruinas fueron un templo. Sigo vigilándolas… aunque ya nadie venga.
+victoria = Por fin alguien digno de llegar al Santuario.
+derrota = Vuelve cuando estés listo.
+revancha = Las piedras recuerdan tu último intento.
+
+[npc:sacerdote]
+nombre = Sacerdote del Dragón
+titulo = Guardián de la calzada
+x = -3
+z = -55.6
+radio = 1.2
+color = #ff4fa3
+baraja = nxr_khalet
+dificultad = auto
+monedas = 60
+entrada = Más allá está el Santuario del Dragón Multiversal. Solo pasa quien me vence.
+victoria = El Dragón te espera. La barrera se abre.
+derrota = El fuego del Santuario no arde para ti… todavía.
+revancha = ¿Regresas a probar tu valor ante el Dragón?
+
+[barrera:santuario]
+x = -1.13
+z = -63.02
+ancho = 5.8
+giro = -23.2
+rival = sacerdote
+color = #ff9a2e
+
+[salida:sur]
+x = 0
+z = 29
+a = archivos
+texto = Archivos de Nexotlan
+
+[salida:norte]
+x = 0
+z = -93.4
+a = santuario
+texto = Santuario del Dragón Multiversal

@@ -2297,6 +2297,8 @@ async function abrirTramo(id) {
     if (m[1] === 'textura') texturas[m[2]] = /\//.test(v) ? v.replace(/^\.?\//, '') : DIR + 'tramos/texturas/' + v; else (m[1] === 'escala' ? escalas : brillos)[m[2]] = num(v, 1); });
   const json = { id, nombre: h.nombre || def.t.nombre || id, jugador: { nombre: S.nombre || 'Jugador', avatar: avatarPerfil() || '', monedas: S.monedas || 0, dia: (S.dia || 0) + 1, dia_nombre: diaNombre(S.dia) }, colores, texturas, escalas, brillos,
     reverso: String(h.reverso || CFG.tramo_reverso || 'img/simulacion/reverso.jpg').trim(),
+    jugador_modelo: (m => m ? (m.includes('/') ? m : 'assets/nexotlan/personajes/' + m) : '')(String(h.modelo || CFG.tramo_modelo || '').trim()),
+    jugador_escala: +(h.modelo_escala || CFG.tramo_modelo_escala || 1.6),
     jugador_img: String(h.jugador || CFG.tramo_jugador || '').trim() ? imgUrl(String(h.jugador || CFG.tramo_jugador).trim(), 'personajes') : '',
     inicio: (h.inicio || '0,0').split(',').map(Number), pos: e.pos || null,
     camino: def.camino, plataformas: def.plataformas, decorado: def.decorado,

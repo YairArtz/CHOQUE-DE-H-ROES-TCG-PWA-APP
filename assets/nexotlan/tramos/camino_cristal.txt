@@ -1,0 +1,484 @@
+# ═════════════════════════════════════════════════════════════════
+#  NEXOTLAN · TRAMO DE EXPLORACIÓN — Camino de Cristal (Santuario del Dragón Multiversal → Fortaleza de Cristal Multiversal)
+#  Edítalo con el Bloc de notas (UTF-8).  campo = valor
+#  Mismo formato que los otros tramos. La Fortaleza está al otro extremo del mapa: el portal magenta del Santuario
+#  lleva al portal cian de la Fortaleza (zona 2, a partir de x = 40).
+#  Bloques nuevos de este tramo (en [decorado]):
+#   cumulos = x,z,tamaño,#color          conjunto de cristales (uno alto al centro y varios más chicos alrededor)
+#   cristales = x,z,tamaño,#color        un cristal suelto, inclinado
+#   pilares = x,z,alto,#color            pilar de piedra con musgo y cristales arriba
+#   nidos = x,z,huevos                   nido con huevos de dragón (1 a 4)
+#   grietas = x,z,largo,giro,#color      grietas que brillan en el piso
+#   cristales_vacio = x,z,tamaño,#color  cristales gigantes que salen del vacío (fondo, no se caminan)
+#   fondo2 = cristales                   rocas flotantes con cristales a lo lejos (zona 2)
+# ═════════════════════════════════════════════════════════════════
+
+[tramo]
+nombre = Camino de Cristal
+inicio = 0,26
+cambio_x = 40
+bruma_bordes = si
+fondo = ruinas
+fondo2 = cristales
+relampagos = si
+brillo_sol = 0.9
+color_luz = #d8e6ff
+color_cristal = #6fe3ff
+# Zona 1 · salida del Santuario (tormenta violeta, selva y ruinas)
+color_suelo = #4a4368
+color_borde = #241f36
+color_camino = #6e6690
+color_puente = #8a5a3c
+color_piedra = #8a8098
+color_roca = #4a4468
+color_planta = #3f8a6a
+color_madera = #8a5a3c
+color_abismo = #080a22
+color_niebla = #2a2a66
+color_ambiente = #8a8cc8
+color_contraluz = #9a5cff
+color_tinte_abismo = #a8b0ff
+# Zona 2 · salas de cristal de la Fortaleza (turquesa helado)
+color_abismo2 = #031420
+color_niebla2 = #0e3a52
+color_ambiente2 = #86c8e6
+color_contraluz2 = #3fd8ff
+color_tinte_abismo2 = #8fe6ff
+
+textura_suelo = piso_textura.jpg
+textura_suelo_santuario = piso_mercado_textura.jpg
+textura_suelo_fortaleza = tabiques_textura.jpg
+brillo_suelo_fortaleza = 1.25
+textura_borde = roca_textura.jpg
+textura_camino = tabiques_textura.jpg
+textura_puente = madera_textura.jpg
+textura_madera = madera_textura.jpg
+textura_roca = roca_textura.jpg
+textura_piedra = tabiques_textura.jpg
+textura_abismo = nubes_textura.jpg
+textura_tierra = tabiques_santuario_textura.jpg
+textura_borde_tierra = roca_verde_textura.jpg
+textura_cesped = pasto_textura.jpg
+textura_follaje = piso_verde_textura.jpg
+escala_tierra = 2.6
+escala_borde_tierra = 2.5
+escala_cesped = 3.6
+escala_follaje = 1.1
+escala_suelo = 3
+escala_suelo_santuario = 3
+escala_suelo_fortaleza = 3.2
+escala_borde = 3
+escala_camino = 2.4
+escala_puente = 1.6
+escala_madera = 1.2
+escala_roca = 1.6
+escala_piedra = 1.4
+escala_abismo = 40
+brillo_abismo = 0.5
+
+# ───────────── ZONA 1 · SALIDA DEL SANTUARIO ─────────────
+[plataforma:explanada_salida]
+x = 0
+z = 22
+ancho = 14
+largo = 14
+forma = rect
+tierra = #efdcc6
+
+[camino:sendero_selva]
+puntos = 0,15 | -4,7 | -4,-1
+ancho = 4.5
+tipo = piedra
+zona = santuario
+
+[plataforma:claro]
+x = -3
+z = -8
+ancho = 14
+largo = 11
+zona = santuario
+
+[camino:puente_claro]
+puntos = -3,-13 | -2,-21
+ancho = 2.6
+tipo = puente
+
+[plataforma:templete]
+x = 0
+z = -27
+ancho = 14
+largo = 11
+zona = santuario
+
+[camino:puente_este]
+puntos = 6.5,-27 | 12,-27.5
+ancho = 2.2
+tipo = puente
+
+[plataforma:islote_este]
+x = 15
+z = -28
+ancho = 6
+largo = 5.5
+zona = santuario
+
+[camino:calzada_portal]
+puntos = -1,-32.5 | 3,-40 | 1,-48
+ancho = 4.4
+tipo = piedra
+zona = santuario
+
+[plataforma:umbral]
+x = 1
+z = -55
+ancho = 15
+largo = 12
+zona = santuario
+
+[camino:puente_oeste]
+puntos = -5.6,-55 | -11.6,-55.5
+ancho = 2.2
+tipo = puente
+
+[plataforma:islote_oeste]
+x = -15
+z = -56
+ancho = 6
+largo = 5.5
+zona = santuario
+
+[portal:magenta]
+x = 1
+z = -59.4
+giro = 0
+color = #ff4fd8
+ancho = 2.8
+destino = cian
+rival = custodia
+llegada = 1,-56.2
+
+# ───────────── ZONA 2 · SALAS DE CRISTAL DE LA FORTALEZA ─────────────
+[portal:cian]
+x = 70
+z = 26.4
+giro = 0
+color = #36d6ff
+ancho = 2.8
+destino = magenta
+llegada = 70,22.6
+
+[plataforma:atrio]
+x = 70
+z = 21
+ancho = 13
+largo = 12
+forma = rect
+zona = fortaleza
+
+[camino:nave]
+puntos = 70,15 | 74,7 | 74,-1
+ancho = 4.6
+tipo = piedra
+zona = fortaleza
+
+[plataforma:sala_cristales]
+x = 73
+z = -8
+ancho = 15
+largo = 12
+zona = fortaleza
+
+[camino:puente_nido]
+puntos = 65.6,-8 | 60.6,-8.3
+ancho = 2.2
+tipo = puente
+
+[plataforma:islote_nido]
+x = 57.5
+z = -8.5
+ancho = 6
+largo = 5.5
+zona = fortaleza
+
+[camino:puente_nave]
+puntos = 72,-13.5 | 70,-22
+ancho = 2.6
+tipo = puente
+
+[plataforma:nave_central]
+x = 70
+z = -30
+ancho = 15
+largo = 14
+forma = rect
+zona = fortaleza
+
+[camino:puente_galeria]
+puntos = 70,-37 | 69,-45
+ancho = 2.6
+tipo = puente
+
+[camino:galeria]
+puntos = 69,-44.6 | 67.6,-52.4
+ancho = 4.4
+tipo = piedra
+zona = fortaleza
+
+[plataforma:camara_huevos]
+x = 68
+z = -58
+ancho = 16
+largo = 13
+zona = fortaleza
+
+[camino:puente_este2]
+puntos = 75.8,-58 | 81.6,-58.5
+ancho = 2.2
+tipo = puente
+
+[plataforma:islote_este2]
+x = 85
+z = -59
+ancho = 6
+largo = 5.5
+zona = fortaleza
+
+[camino:camino_fortaleza]
+puntos = 68,-64.4 | 70,-72 | 70,-80.5
+ancho = 5
+tipo = piedra
+zona = fortaleza
+
+[plataforma:puerta_fortaleza]
+x = 70
+z = -89
+ancho = 20
+largo = 18
+forma = rect
+zona = fortaleza
+
+[decorado]
+# salida del Santuario (selva y ruinas)
+manchones = -4.4,25.4,1.8,#4f7a3a | 4.6,18.6,2,#5f8a42 | -4.8,17.6,1.6,#3f6a34 | 5,26.2,1.4,#6a9448 | -7,-6,1.8,#4f7a3a | 1.2,-10.4,1.5,#5f8a42 | -4.8,-11,1.3,#3f6a34 | 4.6,-24.6,1.4,#4f7a3a | -4.4,-30,1.6,#5f8a42 | 14.6,-29.4,1.2,#4f7a3a
+matas = -5.8,27.4,0.8,#3f6a34 | 6,28,0.7,#b8608e | -6,16.2,0.7,#4f7a3a | 6.2,16,0.8,#3f6a34 | -8.6,-9.6,0.8,#3f6a34 | -16.6,-54.6,0.6,#3f6a34
+arboles = -5.6,21.4,1,#c26a9a | 5.8,22.6,1.1,#3f8a5a | 13.4,-26.4,0.7,#3f8a5a
+estelas = -5.4,28,0 | 5.4,28,0 | -6,-26,80 | 5.8,-27.8,-80
+fogatas = -4.2,16.4,1 | 4.2,16.4,1
+columnas_rotas = -4.6,-24,2.2 | 4.6,-30.6,1.8 | 2.8,-51,2
+muros = -6.6,-28.6,-6.2,-31.6,1.4 | 5.6,-23,3.6,-22.2,1.2
+pasto = -1,20 | -3.6,3 | -6,-9 | 0,-6.6 | -1.6,-25 | 3,-56 | -14.4,-57
+rocas = 16.4,-26.8,0.6
+cristales = -3.8,-51,0.7,#ff6fe0 | 5.8,-58.6,0.7,#ff6fe0
+cumulos = 6.4,-52.4,0.8,#ff6fe0 | -14.4,-57.8,0.6,#c58bff
+glifos = 0,22,2.6,#00ff9d | 1,-55,3.2,#ff4fd8
+luciernagas = 0,22,4,#ffd27a | -3,-8,3,#9dff7a | 0,-27,3,#9dff7a | 1,-55,3,#ff9df0
+cristales_vacio = 22,-50,3.2,#c58bff | -20,-40,2.6,#ff6fe0 | 18,-70,3.6,#c58bff
+
+[decorado]
+# salas de cristal de la Fortaleza
+pilares = 64.6,25.4,4.2 | 75.4,25.4,4.2 | 64.6,16.8,4.2 | 75.4,16.8,4.2 | 63.6,-24.8,5 | 76.4,-24.8,5 | 63.6,-31,5 | 76.4,-31,5 | 63.8,-36,4.6 | 76.2,-36,4.6 | 61.6,-82.6,5.4 | 78.4,-82.6,5.4 | 61.6,-92.6,5.4 | 78.4,-92.6,5.4
+cumulos = 66.8,24.6,1,#6fe3ff | 73.4,15.8,0.8,#9fefff | 79.2,-6.6,1.5,#6fe3ff | 77.6,-12,0.9,#9fefff | 55.6,-10,0.8,#6fe3ff | 66.2,-27.6,0.8,#9fefff | 73.8,-27.4,0.7,#6fe3ff | 61.8,-55.8,1.3,#6fe3ff | 63.4,-61.6,0.7,#6fe3ff | 86.4,-60.6,0.8,#6fe3ff | 64.2,-86.6,1.8,#6fe3ff | 75.8,-87.6,1.9,#6fe3ff | 64.6,-95,1.4,#9fefff | 75.4,-95.2,1.5,#9fefff
+cristales = 71.6,9.4,0.6,#9fefff
+nidos = 70.4,-4,3 | 59,-7.2,2 | 56.4,-9.8,1 | 67,-35.4,2 | 64,-55,3 | 72.6,-62.6,2 | 70.8,-53.2,1 | 85.8,-57.6,2
+grietas = 70,20,3.4,100 | 73,-7,3,60 | 70,-29,4.2,90 | 70,-33,3,-60 | 68,-58.4,3.6,110 | 70,-87,4,90 | 70,-91,3,-70
+rayos = 70,21,2.4 | 73,-8,2.6 | 70,-29,2.8 | 68,-58,2.6 | 70,-89,3.2
+luciernagas = 70,21,3,#9fefff | 73,-8,4,#9fefff | 70,-30,4,#7ff0ff | 68,-58,4,#9fefff | 70,-89,6,#bff6ff
+glifos = 70,21,2.8,#36d6ff | 70,-89,3.4,#7ad7ff
+arcos = 70,-94.4,0
+columnas_rotas = 56.4,-7.4,1.4
+cristales_vacio = 52,0,3.4,#6fe3ff | 88,-20,4,#9fefff | 50,-40,3,#6fe3ff | 92,-45,3.6,#6fe3ff | 48,-72,4.2,#9fefff | 94,-80,4.4,#6fe3ff | 56,-108,4,#6fe3ff | 84,-110,4.6,#9fefff
+
+[decorado]
+# (generado: a la orilla de islas y caminos, sin tapar el paso)
+cumulos = 66.5,15.9,0.9,#6fe3ff | 75.5,19,0.9,#6fe3ff | 75.5,21,1.1,#7ad7ff | 75.5,23,1.3,#9fefff | 66.5,26.1,1.1,#9fefff | 64.5,22,0.7,#6fe3ff | 64.5,20,0.9,#7ad7ff | 79.1,-8,0.7,#6fe3ff | 75.7,-3.8,0.7,#9fefff | 67.8,-5.5,1.1,#9fefff | 75.7,-12.2,0.9,#9fefff | 65.5,-36,1.6,#6fe3ff | 73.5,-36,0.7,#6fe3ff | 76.5,-33,0.7,#9fefff | 76.5,-27,1.1,#9fefff | 63.5,-34,1.1,#7ad7ff | 61.4,-58,1.6,#6fe3ff | 61.8,-59.8,1.3,#7ad7ff | 71.3,-62.5,0.7,#9fefff | 61,-97,1.6,#6fe3ff | 63,-97,1.1,#6fe3ff | 65,-97,0.9,#9fefff | 67,-97,1.3,#6fe3ff | 73,-97,1.6,#6fe3ff | 79,-95,1.6,#7ad7ff | 79,-91,0.9,#9fefff | 79,-89,1.3,#7ad7ff | 79,-87,1.3,#6fe3ff | 79,-81,0.9,#9fefff | 75,-81,1.6,#6fe3ff | 73,-81,1.3,#6fe3ff | 67,-81,1.6,#6fe3ff | 65,-81,0.9,#6fe3ff | 61,-81,0.9,#6fe3ff | 61,-85,1.6,#9fefff | 61,-91,0.9,#7ad7ff
+cristales = 77.5,-4.8,0.5,#6fe3ff | 76.5,-29,0.7,#7ad7ff | 73.5,-23.9,1.0,#9fefff | 63.5,-28,0.8,#9fefff | 64.7,-53.5,0.4,#7ad7ff | 73,-61.3,0.7,#9fefff | 75,-97,0.8,#7ad7ff | 77,-97,0.5,#7ad7ff | 79,-97,0.4,#6fe3ff | 77,-81,0.4,#6fe3ff | 63,-81,1.0,#6fe3ff | 61,-87,0.5,#6fe3ff | 61,-89,0.5,#6fe3ff | 61,-95,0.5,#9fefff
+arboles = 2.1,-6.3,0.99,#c26a9a | -8.5,-7.1,1.07,#3f8a5a | 2.1,-9.7,0.92,#3f8a5a | 3.8,-23.9,0.98,#3f8a5a
+matas = 2.6,-8,0.8,#3f6a34 | 0.8,-4.9,0.7,#b8608e | -7.6,-5.5,0.8,#b8608e | -5.8,-11.7,0.8,#b8608e | 0.8,-11.1,0.9,#4f7a3a | -4.6,-29.5,0.9,#4f7a3a | 1.7,-31,0.7,#b8608e | -2.7,-58.7,0.8,#3f6a34 | 6.7,-56.7,0.7,#4f7a3a
+pasto = -5.8,-4.3 | -7.6,-10.5 | 1.7,-23 | -5.5,-27.9 | 7.1,-55
+
+# ───────────── CARTAS (comunes y raras, de la Fortaleza de Cristal) ─────────────
+[carta:cria]
+x = -1.2
+z = -5.4
+carta = Cría de Cristal
+
+[carta:terrestre]
+x = 3.6
+z = -29.4
+carta = Dragón Terrestre de Cristal
+
+[carta:espada]
+x = 5.6
+z = -53
+carta = Espada de Cristal
+
+[carta:hannia]
+x = 73.6
+z = 19.4
+carta = Hannia, Amazona Dragón de Cristal
+
+[carta:excavacion]
+x = 69
+z = -11
+carta = Excavación de Cristales
+
+[carta:efeitor]
+x = 66.6
+z = -24.6
+carta = Cristales Efeitor
+
+[carta:zafiro]
+x = 73.8
+z = -33.6
+carta = Dragón de Cristal Zafiro
+
+[carta:muralla]
+x = 72.4
+z = -55
+carta = La Gran Muralla de Cristal
+
+[carta:massos]
+x = 64
+z = -84
+carta = Massos, Dragón Terrestre de Cristal
+
+[carta:legado]
+x = 76
+z = -91
+carta = Legado de Cristal
+
+# ───────────── COFRES ─────────────
+[objeto:cofre_este]
+x = 15.6
+z = -28.2
+giro = -90
+objeto = bolsa_monedas
+
+[objeto:cofre_oeste]
+x = -15.8
+z = -56
+giro = 90
+objeto = carta_cristal
+
+[objeto:cofre_nido]
+x = 57.2
+z = -8.6
+giro = 90
+objeto = fragmento_cristal
+
+[objeto:cofre_este2]
+x = 85.8
+z = -59.4
+giro = -90
+objeto = sobre_perdido
+
+[objeto:cofre_puerta]
+x = 77.4
+z = -85.6
+giro = -90
+objeto = fragmento_cristal
+
+# ───────────── ÁNIMAS ─────────────
+[npc:vigia]
+nombre = Vigía de la Selva
+titulo = Rival del camino
+x = -6.2
+z = -9
+radio = 1.6
+color = #9dff7a
+baraja = nxr_xolot
+dificultad = auto
+monedas = 45
+entrada = Desde aquí veo a todos los que salen del Santuario. ¿Me enseñas de qué estás hecho?
+victoria = Buen paso, viajero. El portal está más adelante.
+derrota = La selva no perdona a los distraídos.
+revancha = ¿Regresas por otra ronda bajo los árboles?
+
+[npc:custodia]
+nombre = Custodia del Umbral
+titulo = Guardiana del portal magenta
+x = -2.8
+z = -53.4
+radio = 1
+color = #ff4fd8
+baraja = nxr_cosmika
+dificultad = auto
+monedas = 50
+entrada = Este portal cruza todo Nexotlan hasta la Fortaleza de Cristal. Solo se enciende si me vences.
+victoria = El umbral te reconoce. Crúzalo: del otro lado brillan los cristales.
+derrota = El portal sigue dormido.
+revancha = ¿Vienes a probarte otra vez ante el umbral?
+
+[npc:cazador]
+nombre = Cazador de Gemas
+titulo = Rival de las salas de cristal
+x = 77
+z = -9.4
+radio = 1.4
+color = #6fe3ff
+baraja = nxr_khaleydoh
+dificultad = auto
+monedas = 55
+entrada = Cada cristal de esta sala guarda el reflejo de otra dimensión… y yo los quiero todos. ¿Apostamos?
+victoria = Te ganaste el brillo de esta sala.
+derrota = Otro reflejo para mi colección.
+revancha = ¿Vuelves a buscar tu reflejo?
+
+[npc:caballero]
+nombre = Caballero de Cuarzo
+titulo = Rival de las salas de cristal
+# Tapa el puente hacia la galería; al vencerlo se hace a un lado
+x = 69.6
+z = -41
+bloquea = si
+aparta = 73.4,-26.4
+radio = 1
+color = #b98cff
+baraja = nxr_ixchell
+dificultad = auto
+monedas = 60
+entrada = Soy la primera muralla de la Fortaleza. Nadie cruza este puente sin vencerme.
+victoria = Mi armadura se agrieta… adelante, pasa.
+derrota = El cuarzo no se rompe tan fácil.
+revancha = ¿Otra vez contra mi armadura?
+
+[npc:centinela]
+nombre = Centinela de Cristal
+titulo = Guardián del camino
+x = 64.6
+z = -61
+radio = 1.2
+color = #7ad7ff
+baraja = nxr_grandor
+dificultad = auto
+monedas = 70
+entrada = Detrás de esta barrera está la Fortaleza de Vulcar. Demuestra que mereces ver sus muros.
+victoria = La barrera cede. La Fortaleza te espera.
+derrota = Los cristales no reflejan a los que se rinden.
+revancha = ¿Regresas a probar tu reflejo?
+
+[barrera:fortaleza]
+x = 68.64
+z = -66.9
+ancho = 6
+giro = -14.9
+rival = centinela
+color = #36d6ff
+
+# v304 · Nextor, Guía de Nexotlan: se para al inicio de la ruta y habla solo la primera vez (texto: páginas separadas con |)
+[guia]
+x = 2.6
+z = 24
+texto = El Camino de Cristal une el Santuario del Dragón con la Fortaleza de Cristal, al otro extremo de Nexotlan. | Para llegar tendrás que cruzar el portal magenta. La Custodia del Umbral lo mantiene dormido hasta que la vences. | Del otro lado están las salas de cristal: el Caballero de Cuarzo cierra el puente y el Centinela de Cristal custodia la última barrera.
+
+[salida:sur]
+x = 0
+z = 28.6
+a = santuario
+texto = Santuario del Dragón Multiversal
+
+[salida:norte]
+x = 70
+z = -96.8
+a = fortaleza
+texto = Fortaleza de Cristal Multiversal

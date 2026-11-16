@@ -2281,9 +2281,9 @@ async function cargarTramo(id) {
   const L = v => String(v || '').split('|').map(x => x.split(',').map(y => y.trim())).filter(a => a.length >= 2 && a.slice(0, 2).every(y => y !== '' && isFinite(+y))).map(a => a.map((y, i) => i < 3 && isFinite(+y) ? +y : y));
   const def = { id, t, secs, head,
     camino: secs.filter(s => s._sec === 'camino').map(s => ({ puntos: L(s.puntos), ancho: num(s.ancho, 4), tipo: s.tipo || 'piedra', zona: String(s.zona || '').trim(), franja: String(s.franja || 'si').trim() })),
-    plataformas: secs.filter(s => s._sec === 'plataforma').map(s => ({ x: num(s.x, 0), z: num(s.z, 0), ancho: num(s.ancho, 8), largo: num(s.largo, num(s.ancho, 8)), forma: s.forma || 'oval', piso: s.piso || '', zona: String(s.zona || '').trim() })),
+    plataformas: secs.filter(s => s._sec === 'plataforma').map(s => ({ x: num(s.x, 0), z: num(s.z, 0), ancho: num(s.ancho, 8), largo: num(s.largo, num(s.ancho, 8)), forma: s.forma || 'oval', piso: s.piso || '', zona: String(s.zona || '').trim(), tierra: String(s.tierra || '').trim() })),
     decorado: {}, cartas: [], objetos: [], npcs: [], salidas: [] };
-  secs.filter(s => s._sec === 'decorado').forEach(s => ['rocas', 'columnas', 'arcos', 'cristales', 'arbustos', 'braseros', 'runas', 'pasto', 'puestos', 'cajas', 'costales', 'faroles', 'libreros', 'atriles', 'libros', 'velas', 'papel_picado', 'rayos', 'luciernagas', 'glifos', 'pilas_libros', 'papeles', 'columnas_rotas', 'muros', 'estelas', 'estatuas', 'fogatas', 'arboles'].forEach(k => { if (s[k]) def.decorado[k] = (def.decorado[k] || []).concat(L(s[k])); }));
+  secs.filter(s => s._sec === 'decorado').forEach(s => ['rocas', 'columnas', 'arcos', 'cristales', 'arbustos', 'braseros', 'runas', 'pasto', 'puestos', 'cajas', 'costales', 'faroles', 'libreros', 'atriles', 'libros', 'velas', 'papel_picado', 'rayos', 'luciernagas', 'glifos', 'pilas_libros', 'papeles', 'columnas_rotas', 'muros', 'estelas', 'estatuas', 'fogatas', 'arboles', 'manchones', 'matas', 'calzadas'].forEach(k => { if (s[k]) def.decorado[k] = (def.decorado[k] || []).concat(L(s[k])); }));
   def.cartas = secs.filter(s => s._sec === 'carta').map(s => ({ id: s._id, x: num(s.x, 0), z: num(s.z, 0), carta: resolverCarta(s.carta) })).filter(c => c.carta);
   def.objetos = secs.filter(s => s._sec === 'objeto').map(s => ({ id: s._id, x: num(s.x, 0), z: num(s.z, 0), objeto: String(s.objeto || '').trim() }));
   // v295 · Las Ánimas usan su propio retrato (no el arte de otros personajes): [config] tramo_rival_retrato o imagen = … en el [npc:...]
@@ -2295,7 +2295,7 @@ async function cargarTramo(id) {
   def.portales = secs.filter(s => s._sec === 'portal').map(s => ({ id: s._id, x: num(s.x, 0), z: num(s.z, 0), giro: num(s.giro, 0), color: s.color || '#36d6ff', ancho: num(s.ancho, 2.8),
     destino: String(s.destino || '').trim(), rival: String(s.rival || '').trim(), llegada: String(s.llegada || '').split(',').map(Number).filter(isFinite) }));
   // v299 · [piramide] x, z (borde del frente), ancho, niveles, alto (de cada nivel), escalera (ancho)
-  def.piramides = secs.filter(s => s._sec === 'piramide').map(s => ({ x: num(s.x, 0), z: num(s.z, 0), ancho: num(s.ancho, 30), niveles: num(s.niveles, 6), alto: num(s.alto, 2.6), escalera: num(s.escalera, 6) }));
+  def.piramides = secs.filter(s => s._sec === 'piramide').map(s => ({ x: num(s.x, 0), z: num(s.z, 0), ancho: num(s.ancho, 30), niveles: num(s.niveles, 6), alto: num(s.alto, 2.6), escalera: num(s.escalera, 6), color: s.color || '', tierra: s.tierra || '' }));
   def.salidas = secs.filter(s => s._sec === 'salida').map(s => ({ id: s._id, x: num(s.x, 0), z: num(s.z, 0), a: String(s.a || '').trim(), texto: s.texto || s.a || 'Salida' }));
   const p = tramoPos(t); def.npcs.forEach(n => { n._x = p.x; n._y = p.y; });
   return (_tramoCache[id] = def);
@@ -4200,7 +4200,7 @@ window.nxPaso = function (sup) {
       const t0 = c.currentTime, n = c.sampleRate * 2.4, b = c.createBuffer(1, n, c.sampleRate), d = b.getChannelData(0); let u = 0;
       for (let i = 0; i < n; i++) { u = (u + 0.02 * (Math.random() * 2 - 1)) / 1.02; d[i] = u * 3.5 * Math.exp(-i / (c.sampleRate * 0.7)) * (1 + 0.6 * Math.sin(i / 2300)); }
       const src = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
-      src.buffer = b; f.type = 'lowpass'; f.frequency.value = 220; g.gain.value = 0.55 * (+CFG.volumen_pasos || 1);
+      src.buffer = b; f.type = 'lowpass'; f.frequency.value = 220; g.gain.value = 1.0 * (+CFG.volumen_pasos || 1);
       src.connect(f).connect(g).connect(c.destination); src.start(t0);
     } catch (e) {} return;
   }

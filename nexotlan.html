@@ -2324,7 +2324,7 @@ async function abrirTramo(id) {
     barreras: (def.barreras || []).map(b => { const r = def.npcs.find(n => n._nid === b.rival), ap = !!(r && vencido(r.id));
       return { id: b.id, x: b.x, z: b.z, ancho: b.ancho, giro: b.giro, color: b.color, apagada: ap, animar: ap && !e.vis['b~' + b.id] }; }),
     rival_modelo: (m => m ? (m.includes('/') ? m : 'assets/nexotlan/personajes/' + m) : '')(String(h.rival_modelo || CFG.tramo_rival_modelo || '').trim()),
-    rival_escala: +(h.rival_escala || CFG.tramo_rival_escala || 1.65),
+    rival_escala: +(h.rival_escala || CFG.tramo_rival_escala || 2.0),
     salidas: def.salidas };
   // lo que ya se animó (rival que se aparta / barrera que se apaga) no se repite la próxima vez
   json.npcs.forEach(n => { if (n.vencido) e.vis[n.id] = 1; }); json.barreras.forEach(b => { if (b.apagada) e.vis['b~' + b.id] = 1; }); guardar();

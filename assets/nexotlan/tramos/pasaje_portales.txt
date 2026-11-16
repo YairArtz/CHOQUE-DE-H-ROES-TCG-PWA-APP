@@ -1,0 +1,334 @@
+# ═════════════════════════════════════════════════════════════════
+#  NEXOTLAN · TRAMO DE EXPLORACIÓN — Pasaje de los Portales (Mercado → Archivos)
+#  Edítalo con el Bloc de notas (UTF-8).  campo = valor
+#
+#  Mismo formato que tramos/sendero_obsidiana.txt (ahí está la explicación de cada bloque), más:
+#   zona = mercado | archivos   en [camino] y [plataforma]: usa textura_suelo_<zona> / textura_camino_<zona> si existen
+#   franja = no                 en [camino]: sin la franja central
+#   [decorado]  puestos = x,z,giro,#color | …      (puesto del bazar con toldo del color indicado)
+#               cajas = x,z,tamaño | …   costales = x,z,tamaño | …   faroles = x,z,#color | …
+#               libreros = x,z,giro,largo,alto | … (giro 0 = de izquierda a derecha · 90 = a lo largo del camino)
+#               atriles = x,z,giro | …   libros = x,z,altura | … (flotan)   velas = x,z,tamaño | …
+#   [portal:ID] x, z, giro, color, ancho, destino = ID del otro portal (al entrar apareces en él),
+#               llegada = x,z (dónde apareces al llegar por ESTE portal; si no, 2 m frente a él),
+#               rival = ID de un [npc:...] (el portal está apagado hasta vencerlo)
+#   cambio_x / cambio_z en [tramo]: dónde empieza la zona 2 · color_abismo2, color_niebla2, color_ambiente2,
+#               color_contraluz2, color_tinte_abismo2 = colores del ambiente en la zona 2
+#
+#  El tramo tiene DOS zonas que no se tocan: el Bazar (x ≈ 0) y los Archivos (x ≈ 70).
+#  Se pasa de una a otra por los portales (azul → magenta).
+# ═════════════════════════════════════════════════════════════════
+
+[tramo]
+nombre = Pasaje de los Portales
+inicio = 0,23
+cambio_x = 35
+# Zona 1 · Bazar (tonos cálidos de atardecer)
+color_suelo = #6a5444
+color_borde = #3a2a2a
+color_camino = #8a7460
+color_puente = #8a5a3c
+color_piedra = #8a7a6a
+color_roca = #4a3a3a
+color_planta = #3f8a6a
+color_abismo = #160c1e
+color_niebla = #6b3f4a
+color_ambiente = #b89aa0
+color_contraluz = #ffb36b
+color_energia = #36d6ff
+color_madera = #8a5a3c
+color_librero = #5a2e1c
+# Zona 2 · Archivos (morado y magenta)
+color_abismo2 = #12081f
+color_niebla2 = #4a1f5e
+color_ambiente2 = #a07cc8
+color_contraluz2 = #ff5fd2
+color_tinte_abismo2 = #d9a8ff
+
+# Texturas (assets/nexotlan/tramos/texturas/)
+textura_suelo = piso_mercado_textura.jpg
+textura_suelo_mercado = piso_mercado_textura.jpg
+textura_suelo_archivos = piso_archivos_textura.jpg
+textura_borde = roca_textura.jpg
+textura_camino = tabiques_textura.jpg
+textura_camino_archivos = madera_pulida_textura.jpg
+textura_puente = madera_textura.jpg
+textura_madera = madera_textura.jpg
+textura_librero = madera_pulida_textura.jpg
+textura_libros = libros_textura.jpg
+textura_toldo = toldo_textura.jpg
+textura_pergamino = pergamino_textura.jpg
+textura_roca = roca_textura.jpg
+textura_piedra = tabiques_textura.jpg
+textura_abismo = nubes_textura.jpg
+escala_suelo = 3
+escala_suelo_mercado = 3
+escala_suelo_archivos = 3.2
+escala_borde = 3
+escala_camino = 2.4
+escala_camino_archivos = 2
+escala_puente = 1.6
+escala_madera = 1.2
+escala_librero = 1.5
+escala_roca = 1.6
+escala_piedra = 1.4
+escala_abismo = 40
+brillo_abismo = 0.6
+
+# ───────────────────── ZONA 1 · BAZAR DIMENSIONAL ─────────────────────
+[plataforma:bazar]
+x = 0
+z = 20
+ancho = 17
+largo = 14
+forma = rect
+zona = mercado
+
+[camino:callejon]
+puntos = 0,13 | 3,7 | 3,1
+ancho = 4.5
+tipo = piedra
+zona = mercado
+
+[plataforma:coleccionistas]
+x = 3
+z = -5
+ancho = 13
+largo = 10
+zona = mercado
+
+[camino:puente_islote]
+puntos = 9,-5 | 14,-5.5
+ancho = 2.2
+tipo = puente
+
+[plataforma:islote_bazar]
+x = 16.5
+z = -5.5
+ancho = 6
+largo = 5.5
+zona = mercado
+
+[camino:puente_portal]
+puntos = 2,-10 | 1,-18
+ancho = 2.6
+tipo = puente
+
+[plataforma:plaza_portal]
+x = 1
+z = -24
+ancho = 13
+largo = 11
+zona = mercado
+piso = losas
+
+[decorado]
+puestos = -6.8,23,90,#d9534f | -6.8,17.5,90,#f5a623 | 6.8,23,-90,#2fa4d9 | 6.8,17.5,-90,#8e44ad | 7,-5.5,-90,#f5a623 | -1.4,-6.8,45,#2fa4d9
+cajas = -7.4,14.2,1 | -6.2,14.7,0.8 | 7.4,14.4,1.1 | 7.4,-2.2,1 | 18.2,-4,0.8 | 15.4,-7.2,0.7
+costales = -3.5,26.2 | -2.8,26.7,0.8 | 4.6,26 | 0.5,-1.4 | 18.4,-6.9,0.8
+faroles = -4.2,14.2,#ffb347 | 4.2,14.2,#ffb347 | -7.8,26.3,#ffb347 | 7.8,26.3,#ffb347 | -2.6,-1.6,#ffb347 | 8.2,-8,#ffb347 | -4.6,-21.5,#7fd7ff | 6.6,-21.5,#7fd7ff
+rocas = 12,-1.5,0.9 | -4.5,-27,1 | 6.4,-27.2,0.8
+arbustos = -3.6,-7.8,0.8 | 15,-3.6,0.7
+pasto = -5.5,-26 | 5.8,-25.8 | 5.6,0.4
+
+[carta:bazar]
+x = 4.4
+z = 20.3
+carta = Rayah, La Genio
+
+[carta:coleccionistas]
+x = 3.6
+z = -8.6
+carta = Acecho del Cazarecompensas
+
+[objeto:cofre_bazar]
+x = 17.3
+z = -5.6
+giro = -90
+objeto = bolsa_monedas
+
+[npc:mercader]
+nombre = Mercader Errante
+titulo = Rival del pasaje
+x = -2
+z = 18.5
+radio = 2
+color = #f5a623
+imagen = assets/arcade/personajes/rival_06.png
+baraja = nxr_meteorix
+dificultad = auto
+monedas = 30
+entrada = ¡Pasa, pasa! Todo está a la venta… hasta un Choque. ¿Cuánto apuestas?
+victoria = Buena compra, sí señor. Vuelve cuando quieras.
+derrota = Sin devoluciones, amigo.
+revancha = ¿Regresas por otra oferta?
+
+[npc:custodio]
+nombre = Custodio del Portal
+titulo = Guardián del portal azul
+x = -2.6
+z = -25.4
+radio = 1
+color = #36d6ff
+imagen = assets/arcade/personajes/rival_08.png
+baraja = nxr_grace
+dificultad = auto
+monedas = 40
+entrada = El portal azul solo se enciende para quien vence a su custodio.
+victoria = El portal te reconoce. Crúzalo: del otro lado esperan los Archivos.
+derrota = El portal sigue dormido.
+revancha = ¿Vienes a probarte otra vez ante el portal?
+
+[portal:azul]
+x = 1
+z = -28.3
+giro = 0
+color = #36d6ff
+ancho = 2.8
+destino = magenta
+rival = custodio
+llegada = 1,-25.6
+
+# ───────────────────── ZONA 2 · ARCHIVOS DE NEXOTLAN ─────────────────────
+[portal:magenta]
+x = 70
+z = 26
+giro = 0
+color = #ff4fd8
+ancho = 2.8
+destino = azul
+llegada = 70,22.2
+
+[plataforma:vestibulo]
+x = 70
+z = 22
+ancho = 12
+largo = 10
+zona = archivos
+piso = losas
+
+[plataforma:sala_libreros]
+x = 70
+z = 5
+ancho = 10
+largo = 22
+forma = rect
+zona = archivos
+
+[camino:puente_archivos]
+puntos = 70,-6 | 70,-13
+ancho = 2.6
+tipo = puente
+
+[plataforma:sala_pergamino]
+x = 69
+z = -19
+ancho = 14
+largo = 11
+zona = archivos
+
+[camino:puente_alcoba]
+puntos = 75.5,-19 | 80.5,-19.5
+ancho = 2.2
+tipo = puente
+
+[plataforma:alcoba]
+x = 83
+z = -19.5
+ancho = 6
+largo = 5.5
+zona = archivos
+
+[camino:subida_final]
+puntos = 68,-24.5 | 64,-31 | 66,-38
+ancho = 4.5
+tipo = piedra
+zona = archivos
+
+[plataforma:portico]
+x = 66
+z = -44
+ancho = 12
+largo = 10
+zona = archivos
+piso = losas
+
+[decorado]
+libreros = 66,12.5,90,4.2,3 | 66,7.5,90,4.2,3 | 66,2.5,90,4.2,3 | 66,-2.5,90,4.2,3 | 74,12.5,90,4.2,3 | 74,7.5,90,4.2,3 | 74,2.5,90,4.2,3 | 74,-2.5,90,4.2,3 | 67.5,0,0,2.6,2.4 | 72.5,5,0,2.6,2.4 | 63.5,-19,90,4,3 | 74.8,-18,90,3.4,3 | 85.2,-19.5,90,2.4,2.2 | 61.8,-45.5,90,3,3 | 70.2,-45.5,90,3,3
+atriles = 68.4,15.2,0 | 66.2,-19.5,30 | 72.4,-21.4,-30
+libros = 69,12,2.2 | 71.5,6.5,2.6 | 68.6,-1,2 | 70.8,-4,2.4 | 65.5,-16.5,2.3 | 73,-23,2 | 69,-21.5,2.8 | 82,-18,2 | 64,-43,2.4 | 68,-42,2.8 | 70.5,20,2.5 | 67.5,24,2.1
+velas = 65.6,15.4 | 74.4,15.4 | 67.5,-22.8 | 71,-14.6 | 84.2,-21.4 | 62.6,-41.8 | 69.4,-41.8 | 66.2,19 | 73.8,19
+columnas = 61.5,-41.2,3.2 | 70.5,-41.2,3.2
+arcos = 66,-48.9,0
+rocas = 64.8,25.2,0.8 | 76,-23.5,0.9
+
+[carta:lector]
+x = 72.9
+z = 3
+carta = Alma de Lector
+
+[carta:portico]
+x = 66
+z = -45.6
+carta = Madatzin, Oráculo de Nexotlan
+
+[objeto:cofre_alcoba]
+x = 83.5
+z = -19.5
+giro = -90
+objeto = sobre_perdido
+
+[npc:bibliotecaria]
+nombre = Bibliotecaria Sombría
+titulo = Rival del pasaje
+# Tapa el puente de la sala de libreros; al vencerla se hace a un lado
+x = 70
+z = -9.4
+bloquea = si
+aparta = 66.6,-15.8
+radio = 1
+color = #8e44ad
+imagen = assets/arcade/personajes/rival_09.png
+baraja = nxr_naddezhda
+dificultad = auto
+monedas = 45
+entrada = Shhh… aquí se pide silencio. Y quien quiera pasar, paga con un Choque.
+victoria = Está bien… puedes consultar la siguiente sala.
+derrota = Tu préstamo ha sido rechazado.
+revancha = ¿Otra vez haciendo ruido?
+
+[npc:archivista]
+nombre = Archivista del Olvido
+titulo = Guardián de la sala del pergamino
+x = 70.5
+z = -18
+radio = 1.5
+color = #cc55ff
+imagen = assets/arcade/personajes/rival_10.png
+baraja = nxr_infernity
+dificultad = auto
+monedas = 55
+entrada = Cada carta que se pierde en el multiverso termina escrita aquí. La tuya también, si pierdes.
+victoria = Tu nombre queda en los Archivos… como vencedor. La barrera se abre.
+derrota = Otra página para el olvido.
+revancha = ¿Quieres reescribir tu historia?
+
+[barrera:portico]
+x = 66.95
+z = -26.2
+ancho = 5.4
+giro = 31.6
+rival = archivista
+color = #ff5fd2
+
+[salida:sur]
+x = 0
+z = 26
+a = mercado
+texto = Mercado Dimensional
+
+[salida:norte]
+x = 66
+z = -48.3
+a = archivos
+texto = Archivos de Nexotlan

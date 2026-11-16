@@ -2268,16 +2268,19 @@ async function cargarTramo(id) {
   const head = secs.find(s => s._sec === 'tramo') || {};
   const L = v => String(v || '').split('|').map(x => x.split(',').map(y => y.trim())).filter(a => a.length >= 2 && a.slice(0, 2).every(y => y !== '' && isFinite(+y))).map(a => a.map((y, i) => i < 3 && isFinite(+y) ? +y : y));
   const def = { id, t, secs, head,
-    camino: secs.filter(s => s._sec === 'camino').map(s => ({ puntos: L(s.puntos), ancho: num(s.ancho, 4), tipo: s.tipo || 'piedra' })),
-    plataformas: secs.filter(s => s._sec === 'plataforma').map(s => ({ x: num(s.x, 0), z: num(s.z, 0), ancho: num(s.ancho, 8), largo: num(s.largo, num(s.ancho, 8)), forma: s.forma || 'oval', piso: s.piso || '' })),
+    camino: secs.filter(s => s._sec === 'camino').map(s => ({ puntos: L(s.puntos), ancho: num(s.ancho, 4), tipo: s.tipo || 'piedra', zona: String(s.zona || '').trim(), franja: String(s.franja || 'si').trim() })),
+    plataformas: secs.filter(s => s._sec === 'plataforma').map(s => ({ x: num(s.x, 0), z: num(s.z, 0), ancho: num(s.ancho, 8), largo: num(s.largo, num(s.ancho, 8)), forma: s.forma || 'oval', piso: s.piso || '', zona: String(s.zona || '').trim() })),
     decorado: {}, cartas: [], objetos: [], npcs: [], salidas: [] };
-  secs.filter(s => s._sec === 'decorado').forEach(s => ['rocas', 'columnas', 'arcos', 'cristales', 'arbustos', 'braseros', 'runas', 'pasto'].forEach(k => { if (s[k]) def.decorado[k] = (def.decorado[k] || []).concat(L(s[k])); }));
+  secs.filter(s => s._sec === 'decorado').forEach(s => ['rocas', 'columnas', 'arcos', 'cristales', 'arbustos', 'braseros', 'runas', 'pasto', 'puestos', 'cajas', 'costales', 'faroles', 'libreros', 'atriles', 'libros', 'velas'].forEach(k => { if (s[k]) def.decorado[k] = (def.decorado[k] || []).concat(L(s[k])); }));
   def.cartas = secs.filter(s => s._sec === 'carta').map(s => ({ id: s._id, x: num(s.x, 0), z: num(s.z, 0), carta: resolverCarta(s.carta) })).filter(c => c.carta);
   def.objetos = secs.filter(s => s._sec === 'objeto').map(s => ({ id: s._id, x: num(s.x, 0), z: num(s.z, 0), objeto: String(s.objeto || '').trim() }));
   def.npcs = secs.filter(s => s._sec === 'npc').map(s => Object.assign({}, s, { id: 'tr~' + id + '~' + s._id, _nid: s._id, tipo: 'rival', distrito: t.desde, _tramo: id,
     _req: [], _dias: [], _mon: parseInt(s.monedas, 10) || 0 }));
   // v288 · [barrera:id] x, z, ancho, giro, rival (id del [npc:...] que la apaga al vencerlo), color
   def.barreras = secs.filter(s => s._sec === 'barrera').map(s => ({ id: s._id, x: num(s.x, 0), z: num(s.z, 0), ancho: num(s.ancho, 4.5), giro: num(s.giro, 0), rival: String(s.rival || '').trim(), color: s.color || '' }));
+  // v292 · [portal:id] x, z, giro, color, ancho, destino = id del otro portal, rival = id del [npc:...] que lo activa, llegada = x,z
+  def.portales = secs.filter(s => s._sec === 'portal').map(s => ({ id: s._id, x: num(s.x, 0), z: num(s.z, 0), giro: num(s.giro, 0), color: s.color || '#36d6ff', ancho: num(s.ancho, 2.8),
+    destino: String(s.destino || '').trim(), rival: String(s.rival || '').trim(), llegada: String(s.llegada || '').split(',').map(Number).filter(isFinite) }));
   def.salidas = secs.filter(s => s._sec === 'salida').map(s => ({ id: s._id, x: num(s.x, 0), z: num(s.z, 0), a: String(s.a || '').trim(), texto: s.texto || s.a || 'Salida' }));
   const p = tramoPos(t); def.npcs.forEach(n => { n._x = p.x; n._y = p.y; });
   return (_tramoCache[id] = def);
@@ -2323,11 +2326,16 @@ async function abrirTramo(id) {
         aparta: ap.length >= 2 && ap.every(isFinite) ? ap : null, animar: v && !e.vis[n._nid] }; }),
     barreras: (def.barreras || []).map(b => { const r = def.npcs.find(n => n._nid === b.rival), ap = !!(r && vencido(r.id));
       return { id: b.id, x: b.x, z: b.z, ancho: b.ancho, giro: b.giro, color: b.color, apagada: ap, animar: ap && !e.vis['b~' + b.id] }; }),
+    portales: (def.portales || []).map(q => { const r = q.rival && def.npcs.find(n => n._nid === q.rival), act = !q.rival || !!(r && vencido(r.id));
+      return { id: q.id, x: q.x, z: q.z, giro: q.giro, color: q.color, ancho: q.ancho, destino: q.destino, llegada: q.llegada.length >= 2 ? q.llegada : null,
+        activo: act, animar: !!q.rival && act && !e.vis['p~' + q.id] }; }),
+    cambio_x: h.cambio_x !== undefined && String(h.cambio_x).trim() !== '' ? num(h.cambio_x, 0) : undefined,
+    cambio_z: h.cambio_z !== undefined && String(h.cambio_z).trim() !== '' ? num(h.cambio_z, 0) : undefined,
     rival_modelo: (m => m ? (m.includes('/') ? m : 'assets/nexotlan/personajes/' + m) : '')(String(h.rival_modelo || CFG.tramo_rival_modelo || '').trim()),
     rival_escala: +(h.rival_escala || CFG.tramo_rival_escala || 2.0),
     salidas: def.salidas };
   // lo que ya se animó (rival que se aparta / barrera que se apaga) no se repite la próxima vez
-  json.npcs.forEach(n => { if (n.vencido) e.vis[n.id] = 1; }); json.barreras.forEach(b => { if (b.apagada) e.vis['b~' + b.id] = 1; }); guardar();
+  json.npcs.forEach(n => { if (n.vencido) e.vis[n.id] = 1; }); json.barreras.forEach(b => { if (b.apagada) e.vis['b~' + b.id] = 1; }); json.portales.forEach(q => { if (q.animar) e.vis['p~' + q.id] = 1; }); guardar();
   window.NX_TRAMO_JSON = JSON.stringify(json);
   try { window.nxPaso('__pre'); } catch (e) {}
   TRAMO = { id, def, listo: false };
@@ -4146,6 +4154,16 @@ const _pasos = {}; let _pasoUlt = '';
 window.nxPaso = function (sup) {
   if (MUTE || /^(no|0|false)$/i.test(String(CFG.sonido_pasos || 'si').trim())) return;
   if (sup === '__pre') { window.nxPaso('piedra'); window.nxPaso('madera'); return; }
+  if (sup === 'portal') {   // zumbido del portal (sintetizado)
+    try { const c = _ctxM = _ctxM || new (window.AudioContext || window.webkitAudioContext)(); if (c.state === 'suspended') c.resume();
+      const t0 = c.currentTime, n = c.sampleRate * 0.9, b = c.createBuffer(1, n, c.sampleRate), d = b.getChannelData(0);
+      for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.sin(Math.PI * i / n);
+      const src = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(), o = c.createOscillator(), og = c.createGain();
+      src.buffer = b; f.type = 'bandpass'; f.Q.value = 4; f.frequency.setValueAtTime(300, t0); f.frequency.exponentialRampToValueAtTime(2400, t0 + 0.45); f.frequency.exponentialRampToValueAtTime(400, t0 + 0.9);
+      g.gain.value = 0.5; o.type = 'sine'; o.frequency.setValueAtTime(140, t0); o.frequency.exponentialRampToValueAtTime(620, t0 + 0.5); og.gain.setValueAtTime(0.0001, t0); og.gain.exponentialRampToValueAtTime(0.18, t0 + 0.2); og.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.85);
+      src.connect(f).connect(g).connect(c.destination); o.connect(og).connect(c.destination); src.start(t0); o.start(t0); o.stop(t0 + 0.9);
+    } catch (e) {} return;
+  }
   sup = sup === 'madera' ? 'madera' : 'piedra';
   try {
     const c = _ctxM = _ctxM || new (window.AudioContext || window.webkitAudioContext)(); if (c.state === 'suspended') c.resume();

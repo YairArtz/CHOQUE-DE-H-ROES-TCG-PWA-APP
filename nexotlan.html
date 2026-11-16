@@ -1152,7 +1152,7 @@ window.NX_TIPS_BASE = [
   ['Guardianes', 'Cada distrito tiene un Guardián. La primera vez que lo vences te da 2 cartas y una Amalgama de su propia baraja.'],
   ['Distritos', 'Los distritos se abren al vencer a ciertos rivales o al hablar con ciertos héroes. Revisa en el Diario qué te falta para el siguiente.'],
   ['Revanchas', 'Puedes volver a retar a un rival que ya venciste. Con suerte, te llevas otra carta de su baraja.'],
-  ['Cartas repetidas', 'Si ganas una carta que ya tienes completa, el premio se convierte en monedas.'],
+  ['Copias extra', 'Puedes guardar más de 3 copias de una carta en tu cofre (el límite de 3 es para tu baraja). Véndele las extra al Comerciante a su precio.'],
   ['Comerciante', 'En su tienda hay sobres, cartas del día que cambian a diario y puedes venderle las cartas que no uses.'],
   ['Cajas y Joyas', 'Cada sobre sale de una caja con cartas contadas. Cuando saques la Joya que buscabas, puedes reiniciar la caja.'],
   ['Carpetero', 'Dale tus cartas repetidas al Carpetero y gira su ruleta para cambiarlas por otras.'],
@@ -1760,7 +1760,7 @@ function sortear(p, n, zonas) {
   }
   return out;
 }
-// Reparte el premio de un Choque ganado: devuelve [{id, repetida}] y suma monedas por las repetidas
+// Reparte el premio de un Choque ganado: devuelve [{id, extra}]
 function darPremio(p, primera) {
   asegurarColeccion();
   const G = p.tipo === 'guardian';
@@ -1770,21 +1770,26 @@ function darPremio(p, primera) {
   // en las revanchas sus Amalgamas también entran al sorteo.
   return entregar(fijos.concat(sortear(p, n, G && !primera ? ['bp', 'ba', 'bs'] : ['bp', 'ba']), G && primera ? sortear(p, 1, ['bs']) : []));
 }
-// Mete cartas al cofre; las que ya tienes completas se cambian por monedas. Devuelve [{id, repetida}]
+// Mete cartas al cofre. Devuelve [{id, extra}]
+// v279 · Las copias de más YA NO se cambian por 5 monedas: se guardan en el cofre (el límite de 3 es solo para la
+//        baraja) y se pueden vender al Comerciante a su precio. extra = lo que te paga hoy por esa copia.
+//        (moneda_repetida de mapa.txt ya no se usa.)
+const MAX_COFRE = 99;
 function entregar(ids) {
   asegurarColeccion();
-  const vale = parseInt(CFG.moneda_repetida, 10) || 5, out = [];
+  const out = [];
   ids.forEach(id => {
-    if (tieneNombre(id) >= topeDe(id)) { S.monedas += vale; out.push({ id, repetida: vale }); }
-    else { S.col[id] = (S.col[id] || 0) + 1; S.nuevas[id] = 1; out.push({ id }); }
+    const extra = tieneNombre(id) >= topeDe(id);
+    if ((S.col[id] || 0) < MAX_COFRE) S.col[id] = (S.col[id] || 0) + 1;
+    S.nuevas[id] = 1; out.push(extra ? { id, extra: precioCompra(id) } : { id });
   });
   return out;
 }
+const txtExtra = x => `Copia extra · véndela en 💰 VENDER${x.extra ? ' (+' + x.extra + ' <i class="mn"></i>)' : ''}`;
 async function mostrarPremio(lst) {
   if (!lst.length) return;
-  if (lst.some(x => x.repetida)) setTimeout(sonMonedas, 350);
-  const h = `<div class="premio">${lst.map(x => `<figure><img src="${esc(cartaImg(x.id, true))}" alt=""><figcaption>${esc(nomC(x.id))}${x.repetida ? `<br><span style="color:#5cc8ff">Ya la tienes completa · +${x.repetida} <i class="mn"></i></span>` : ''}</figcaption></figure>`).join('')}</div>
-    <div style="font-size:14px;color:var(--muted)">${lst.some(x => !x.repetida) ? 'Ya está en tu cofre. Agrégala a tu baraja en <b style="color:var(--text)">🃏 BARAJA</b>.' : ''}</div>`;
+  const h = `<div class="premio">${lst.map(x => `<figure><img src="${esc(cartaImg(x.id, true))}" alt=""><figcaption>${esc(nomC(x.id))}${x.extra != null ? `<br><span style="color:#ffd166">${txtExtra(x)}</span>` : ''}</figcaption></figure>`).join('')}</div>
+    <div style="font-size:14px;color:var(--muted)">${lst.some(x => x.extra == null) ? 'Ya está en tu cofre. Agrégala a tu baraja en <b style="color:var(--text)">🃏 BARAJA</b>.' : 'Ya está en tu cofre.'}</div>`;
   await mensaje(lst.length > 1 ? '🎁 ¡CARTAS PARA TU COFRE!' : '🎁 ¡CARTA PARA TU COFRE!', h);
 }
 function pintarNuevas() { const n = Object.keys((S && S.nuevas) || {}).length, b = $('hNuevas'); if (!b) return; b.hidden = !n; b.textContent = n; }
@@ -2825,6 +2830,48 @@ function joyaExtra(id) {
 }
 const esJoya = id => esNexo(id) || joyaExtra(id);
 const NEXO_PROB = 0.3;   // en los premios de un Choque, una carta Nexotlan sorteada solo se queda el 30 % de las veces
+// v279 · Precio según la UTILIDAD real de la carta (antes un Personaje solo valía 30 + 12 por coste y todo Apoyo,
+//        Sector o Arena 70, sin importar su habilidad). Se suman puntos por lo que hace la carta y se convierte en precio:
+//        Personaje 30 + 12×coste + 110×puntos (+6 por cada punto de FUE+RES arriba de 10) · Amalgama 600 + 10×(FUE+RES) + 140×puntos
+//        Alma 40 + 100×puntos · Apoyo / Sector / Arena 70 + 120×puntos · tope 1400.
+//        La rareza sale del precio: < 100 Común · 100-449 Rara · 450+ Joya (las Amalgamas siempre cuentan como Joya).
+//        Siguen mandando: [precios] de comerciante.txt (p. ej. Cataclismo), limitadas, semi-limitadas, Joyas y arquetipo Nexotlan.
+// v279 · Con los precios por utilidad, los cortes de rareza suben: Común < 200 · Rara 200-599 · Joya 600+
+const RZ_RARA = 200, RZ_JOYA = 600;
+const UTIL_REGLAS = [
+  [/(llama|llamar)\w* (a )?(este|esta)( personaje)? de forma especial|llam\w+ de forma especial (a )?(este|esta) personaje|llam(arla|arlo|ala|alo) de forma especial/, 1.5],   // se llama sola (no cuenta en Amalgamas: es su condición)
+  [/anade\w* (a tu mano|un |una )|anadela/, 1.2],                                                  // busca cartas
+  [/llama\w* de forma especial (a tu lado del campo )?(a )?(un|una|hasta|otro|el|la|\d)\b/, 1.2],   // llama a otras
+  [/destruye/, 1.0], [/confina/, 0.8], [/toma el control/, 1.3],
+  [/retorna\w* .{0,40}(a la mano|a su ba|a su bp|al fondo)/, 0.6],
+  [/todos los personajes|todas las cartas|todos tus personajes|todos sus personajes/, 1.4],   // efectos masivos
+  [/nieg|negad/, 1.3],                                                                       // negación
+  [/\broba\b|robar \d|roba una|roba 2/, 0.6],
+  [/no puede ser destruid|no pueden ser destruid|no es afectad|no son afectad/, 0.8],
+  [/una vez por turno/, 0.4], [/cuando (es|este personaje es) destruid|deja el campo|cuando es confinad/, 0.4],
+  [/no podra|no puede activar|no pueden activar|no puede robar|bloquead/, 0.6],
+  [/gana\w* \+?\d+ (puntos? )?(mas )?de fuerza|\+\d de fuerza|incrementa la fuerza/, 0.4],
+  [/pierde (un|\d) corazon|suma sus corazones|ganan? un corazon/, 0.5],
+  [/solo puede ser llamad/, -0.6], [/tira un dado/, -0.4]
+];
+const _util = {};
+const sinAcento = x => String(x || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+function utilidad(c) {
+  if (c.id in _util) return _util[c.id];
+  const t = sinAcento(c.texto);
+  let p = 0; UTIL_REGLAS.forEach(([rx, v], k) => { if (k === 0 && c.tipo === 'amalgama') return; if (rx.test(t)) p += v; });
+  if (c.tipo === 'alma') { if (/continua/.test(t)) p += 0.3; const m = t.match(/valor (\d)/); if (m) p += Math.max(0, +m[1] - 1) * 0.2; }
+  if ((c.habilidades || []).some(h => /heroismo|bastion/.test(sinAcento(h)))) p += 1;
+  return (_util[c.id] = Math.max(0, p));
+}
+function precioUtil(c) {
+  const u = utilidad(c), fr = (c.fue || 0) + (c.res || 0); let p;
+  if (c.tipo === 'pj') p = 30 + 12 * (c.coste || 0) + 110 * u + Math.max(0, fr - 10) * 6;
+  else if (c.tipo === 'amalgama') p = 600 + 10 * fr + 140 * u;
+  else if (c.tipo === 'alma') p = 40 + 100 * u;
+  else p = 70 + 120 * u;
+  return Math.min(1400, p);
+}
 function precioBase(id) {
   const c = CARD[id]; if (!c || !premiable(id)) return 0;
   const k = NK(c.nombre); if (k in COM.precios) return COM.precios[k]; if (NK(id) in COM.precios) return COM.precios[NK(id)];
@@ -2832,7 +2879,7 @@ function precioBase(id) {
   if (esNexo(id)) p = c.tipo === 'pj' ? 700 + 100 * (c.coste || 0) : c.tipo === 'alma' ? 500 : 900;   // arquetipo Nexotlan: caras y raras
   else if (joyaExtra(id)) p = Math.max(c.tipo === 'pj' ? 600 + 80 * (c.coste || 0) : c.tipo === 'amalgama' ? 1000 : c.tipo === 'alma' ? 500 : 800, e === 'limitada' ? 1500 : 0);   // joyas de comerciante.txt
   else if (e === 'limitada') p = 1500; else if (FUERTES.includes(k)) p = 1200; else if (e === 'semi-limitada') p = 800;
-  else p = ({ pj: 30 + 12 * (c.coste || 0), amalgama: 450 + 8 * ((c.fue || 0) + (c.res || 0)), alma: 40 })[c.tipo] || 70;
+  else p = precioUtil(c);
   return r5(p * num(COM.cfg.precio_cartas, 100) / 100);
 }
 function precioHoy(id) {
@@ -2859,7 +2906,7 @@ function stockHoy() {
   const R = rnd(hashS('stock') + S.dia * 104729 + (S.inicio || 0) % 99991);
   // Solo cartas de las barajas de los distritos ya abiertos: las fuertes aparecen al avanzar
   const todo = [...new Set(poolDe(abiertos.join(','), ['bp', 'ba']).concat(poolDe(abiertos.join(','), ['bs'])))];
-  const normal = todo.filter(id => precioBase(id) < 450), joyas = todo.filter(id => precioBase(id) >= 450);
+  const normal = todo.filter(id => precioBase(id) < RZ_JOYA), joyas = todo.filter(id => precioBase(id) >= RZ_JOYA);
   const toma = (L, n) => { L = L.slice(); const o = []; while (o.length < n && L.length) o.push(L.splice(Math.floor(R() * L.length), 1)[0]); return o; };
   const nj = Math.min(parseInt(COM.cfg.joyas_dia, 10) || 0, joyas.length), nt = parseInt(COM.cfg.cartas_dia, 10) || 8;
   let stock = toma(joyas, nj).map(id => ({ id, joya: 1 })).concat(toma(normal, nt - nj).map(id => ({ id })));
@@ -2937,7 +2984,7 @@ function fichaBase(id, extra, btns) {
   $('mcBox').innerHTML = `<button class="f-x" id="mcX" aria-label="Cerrar">✕</button><img src="${esc(cartaImg(id, true))}" alt="">
     <div class="mc-inf"><span class="f-tipo" style="--fc:var(--gold)">${esc((TIPO_C[c.tipo] || c.tipo || '').toUpperCase())}</span><div class="f-n">${esc(nomC(id))}</div>
     <div class="f-t">${c.tipo !== 'alma' && c.tipo !== 'amalgama' ? 'Coste ' + (c.coste ?? 0) : ''}${st}</div>
-    <div class="f-chips"><span class="chip">🎁 Tienes ${tieneNombre(id)}/${topeDe(id)}</span><span class="chip">🃏 En baraja ${enMazo(S.mazo, id)}</span>${extra || ''}</div>
+    <div class="f-chips"><span class="chip">🎁 Tienes ${tieneNombre(id)} · máx. ${topeDe(id)} en baraja</span><span class="chip">🃏 En baraja ${enMazo(S.mazo, id)}</span>${extra || ''}</div>
     ${c.texto ? `<p>${esc(c.texto)}</p>` : ''}<div class="f-btns">${btns}</div></div>`;
   $('mCarta').classList.add('on'); $('mcX').onclick = () => cerrarModal('mCarta');
 }
@@ -2976,7 +3023,7 @@ async function comprarSobre(sb) {
   $('sbPkg').classList.add('abre'); $('sbHint').hidden = true;
   await new Promise(r => setTimeout(r, 520));
   $('sbPkg').style.display = 'none';
-  $('sbRes').innerHTML = `<div class="premio">${res.map(x => `<figure${RAREZA(x.id) === 3 && window.Revelacion ? ' class="por-revelar" style="visibility:hidden"' : ''}><img src="${esc(cartaImg(x.id, true))}" alt=""><figcaption>${esc(nomC(x.id))}${x.repetida ? `<br><span style="color:#5cc8ff">Completa · +${x.repetida} <i class="mn"></i></span>` : (CARD[x.id] || {}).tipo === 'amalgama' ? '<br><span style="color:#ffd166">✨ AMALGAMA</span>' : `<br><span class="rz" style="color:${RZ[RAREZA(x.id)][1]}">${RAREZA(x.id) === 3 ? '★ ' : ''}${RZ[RAREZA(x.id)][0]}</span>`}</figcaption></figure>`).join('')}</div>`;
+  $('sbRes').innerHTML = `<div class="premio">${res.map(x => `<figure${RAREZA(x.id) === 3 && window.Revelacion ? ' class="por-revelar" style="visibility:hidden"' : ''}><img src="${esc(cartaImg(x.id, true))}" alt=""><figcaption>${esc(nomC(x.id))}${x.extra != null ? `<br><span style="color:#ffd166">Extra · +${x.extra} <i class="mn"></i> al venderla</span>` : (CARD[x.id] || {}).tipo === 'amalgama' ? '<br><span style="color:#ffd166">✨ AMALGAMA</span>' : `<br><span class="rz" style="color:${RZ[RAREZA(x.id)][1]}">${RAREZA(x.id) === 3 ? '★ ' : ''}${RZ[RAREZA(x.id)][0]}</span>`}</figcaption></figure>`).join('')}</div>`;
   // v250 · Cada Joya se revela con la animación épica (revelacion.js): sale al centro, suspenso, volteo, «¡JOYA!» y regresa
   const porRev = [...$('sbRes').querySelectorAll('figure.por-revelar')];
   if (porRev.length) {
@@ -2999,7 +3046,7 @@ $('tdSalir').onclick = salirTienda;
 // Al abrir sobres la caja se va vaciando (lo que ya salió no vuelve a salir); cuando se vacía se rellena sola.
 // Se puede REINICIAR en cualquier momento (p. ej. cuando ya sacaste la Joya que buscabas).
 // Rareza por precio (igual que la ruleta del carpetero): Común < 100 · Rara 100-449 · Joya 450+, Amalgamas y las cartas de "joyas" en comerciante.txt.
-const RAREZA = id => ((CARD[id] || {}).tipo === 'amalgama' || esJoya(id) || precioBase(id) >= 450) ? 3 : precioBase(id) >= 100 ? 2 : 1;
+const RAREZA = id => ((CARD[id] || {}).tipo === 'amalgama' || esJoya(id) || precioBase(id) >= RZ_JOYA) ? 3 : precioBase(id) >= RZ_RARA ? 2 : 1;
 const RZ = { 1: ['COMÚN', '#7ad7ff'], 2: ['RARA', '#cc55ff'], 3: ['JOYA', '#ffd166'] };
 function cajaDef(sb) {
   const v = (k, d) => { const x = parseInt(sb['caja_' + k] ?? COM.cfg['caja_' + k], 10); return isFinite(x) && x >= 0 ? x : d; };
@@ -3075,7 +3122,7 @@ function verCaja(sb) {
 const esCarpetero = p => p && p.tipo === 'heroe' && COM.carp && COM.carp.punto && p.id === COM.carp.punto;
 let CP = { sel: [] };
 const cpCfg = () => { const c = COM.carp || {}; return { entrega: Math.max(1, num(c.entrega, 3)), giros: Math.max(1, num(c.giros_dia, 2)), pc: num(c.comun, 78), pr: num(c.rara, 19), pj: num(c.joya, 3) }; };
-const cpTier = id => { const p = precioBase(id); return p >= 450 ? 3 : p >= 100 ? 2 : 1; };
+const cpTier = id => { const p = precioBase(id); return p >= RZ_JOYA ? 3 : p >= RZ_RARA ? 2 : 1; };
 const cpUsados = () => (S.carp && S.carp.dia === S.dia) ? S.carp.n : 0;
 function cpPool() {
   const abiertos = DIST.filter(distritoAbierto).map(d => d.id).join(',');
@@ -3135,8 +3182,7 @@ async function girarRuleta() {
   await new Promise(r => setTimeout(r, 4800));
   $('rlHint').hidden = true;
   const TT = { 1: ['COMÚN', '#7ad7ff'], 2: ['RARA', '#cc55ff'], 3: ['✨ ¡JOYA!', '#ffd166'] }[t];
-  $('rlRes').innerHTML = `<div class="premio"><figure><img src="${esc(cartaImg(gana, true))}" alt=""><figcaption>${esc(nomC(gana))}<div class="rl-tier" style="color:${TT[1]}">${TT[0]}</div>${res.repetida ? `<span style="color:#5cc8ff">Ya la tienes completa · +${res.repetida} <i class="mn"></i></span>` : ''}</figcaption></figure></div>`;
-  if (res.repetida) sonMonedas();
+  $('rlRes').innerHTML = `<div class="premio"><figure><img src="${esc(cartaImg(gana, true))}" alt=""><figcaption>${esc(nomC(gana))}<div class="rl-tier" style="color:${TT[1]}">${TT[0]}</div>${res.extra != null ? `<span style="color:#ffd166">${txtExtra(res)}</span>` : ''}</figcaption></figure></div>`;
   $('rlOk').style.display = '';
   try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('rlOk')), 60); } catch (e) {}
   await new Promise(r => { $('rlOk').onclick = r; });

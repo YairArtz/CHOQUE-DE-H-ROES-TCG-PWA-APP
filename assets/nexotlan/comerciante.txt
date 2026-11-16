@@ -41,15 +41,20 @@
 #
 #  ── CAJAS DE SOBRES ──
 #   Cada sobre sale de una CAJA con un número fijo de copias de cada carta de su pool:
-#   Común (precio < 100) 4 copias · Rara (100-449) 2 · Joya (450+) 1 · Amalgama 1.
+#   Común (precio < 200) 4 copias · Rara (200-599) 2 · Joya (600+) 1 · Amalgama 1.
 #   Lo que ya salió no vuelve a salir hasta que la caja se rellena: cuantos más sobres abres,
 #   más cerca están las Joyas, y al vaciar la caja salieron TODAS. Cuando se vacía se rellena sola.
 #   El jugador puede REINICIARLA gratis en "📦 VER CAJA" (p. ej. cuando ya sacó la Joya que buscaba).
 #   En la tienda se ve cuántos sobres y Joyas quedan, y cuántas cartas del sobre tiene ya en su cofre.
 #   Si cambias el pool o las copias de un sobre, su caja empieza de nuevo para todos.
 #
-#  ── Precios automáticos de cartas sueltas ──
-#   Personaje 30 + 12 por coste · Apoyo/Sector/Arena 70 · Alma 40 · Amalgama 450+
+#  ── Precios automáticos de cartas sueltas (v279 · según la UTILIDAD de la carta) ──
+#   Se suman puntos por lo que hace la carta: se llama sola (1.5), busca cartas (1.2), llama a otras (1.2),
+#   destruye (1), confina (0.8), toma el control (1.3), niega (1.3), efectos a todos (1.4), roba (0.6),
+#   protección (0.8), HEROÍSMO/BASTIÓN (1), bloquea al rival (0.6), +fuerza (0.4), corazones (0.5),
+#   "una vez por turno" (0.4), efecto al ser destruido (0.4) · "solo puede ser llamado" (−0.6), dado (−0.4).
+#   Personaje 30 + 12 por coste + 110 por punto (+6 por punto de FUE+RES arriba de 10) · Apoyo/Sector/Arena 70 + 120 por punto
+#   Alma 40 + 100 por punto (más valor y continua = más cara) · Amalgama 600 + 10 por FUE+RES + 140 por punto · tope 1400
 #   Semi-limitada 800 · Limitada 1500 · Trazador/Acecho/Niña Piñata/Explosión Abismal 1200
 #   Arquetipo Nexotlan (llevan "Nexotlan" en el nombre): Personaje 700 + 100 por coste · Alma 500 · otras 900.
 #   Son "joyas" en la tienda y salen poco en sobres y premios de Choque.
@@ -209,5 +214,7 @@ Acecho del Cazarecompensas = 2200
 Niña Piñata = 1800
 Cataclismo = 350
 # Staples del juego: igual o más caras que Cataclismo (Desterrador y Resurrección, por ser limitadas, ya cuestan 1500)
-# (Devastación es JOYA: 450 o más la mantiene como Joya también en las ofertas del día)
-Devastación = 450
+# (Devastación es JOYA: 600 o más la mantiene como Joya también en las ofertas del día)
+Devastación = 600
+# v279 · Ajuste manual: su habilidad depende de un dado, el cálculo automático la sobrevalora
+SIX Shootah = 300

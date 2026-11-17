@@ -61,7 +61,7 @@
 //  v8:   shell cache-first + revalidación, JSON red-primero, fallbacks por tipo.
 // ================================================================
 try { importScripts('./config.js'); } catch (e) {}   // direcciones de los servidores (config.js)
-const CACHE_NAME    = 'chh-tcg-v328';
+const CACHE_NAME    = 'chh-tcg-v329';
 const CACHE_DYNAMIC = 'chh-paginas-v1';    // estable: páginas/JSON/JS visitados (NO subir; lo precargado se renueva solo)
 const CACHE_IMG     = 'chh-img-v1';      // estable: imágenes, fuentes y PDFs. Subir SOLO si reemplazas imágenes con el mismo nombre
 const CACHE_AUDIO   = 'chh-audio-v1';    // estable: pistas de bgm.js. Subir SOLO si reemplazas un .mp3 con el mismo nombre
@@ -74,7 +74,7 @@ const CARTAS_REVISAR = 7 * 24 * 3600 * 1000;   // las cartas se revisan con la r
 
 const NET_TIMEOUT   = 2500;   // ms para datos .json antes de servir copia
 const REVALIDATE_EVERY = 120000;  // ms mínimos entre revalidaciones de un mismo archivo
-const DYNAMIC_MAX   = 200;    // máx. entradas en caché dinámica (html/json/js)
+const DYNAMIC_MAX   = 400;    // máx. entradas en caché dinámica (html/json/js)
 const IMG_MAX       = 800;    // máx. entradas en caché de imágenes (480+ cartas + sobres + banners)
 
 // JSON de catálogo: cambian poco y pesan mucho → caché al instante + revalidación
@@ -84,7 +84,7 @@ const CACHE_CORE = [
   './', './boot.html', './index.html', './actualizar.js', './revelacion.js', './assets/simulacion/corazon.png', './calculadora.html',
   './perfil.html', './calendario.html', './constructor.html',
   './torneo-director.html', './noticias.html', './tienda.html', './tienda-fisica.html',
-  './ajustes.html', './intro.html', './intro_config.json',
+  './ajustes.html', './intro.html', './intro_config.json', './testers.txt', './cartas_tester.json', './cartas-limitadas.json',
   './manifest.json', './icon-192.png', './icon-512.png',
   './logo-hd.png', './footer-logo.png',
   './cdh-logo.js', './assets/logo/rock.webp', './assets/logo/rock_empty.webp', './assets/logo/elec.webp', './assets/logo/w_choque.webp',

@@ -44,24 +44,33 @@
   const _prob = {};
   function probar(u) {
     if (!u) return Promise.resolve(false);
-    if (!_prob[u]) _prob[u] = new Promise(res => { const im = new Image(); im.onload = () => res(true); im.onerror = () => res(false); im.src = u; });
+    // con datos lentos no se espera más de 3.5 s por imagen: si aún no responde, se da por buena (ya se ve al llegar)
+    if (!_prob[u]) _prob[u] = new Promise(res => { const im = new Image(), t = setTimeout(() => res(true), 3500); im.onload = () => { clearTimeout(t); res(true); }; im.onerror = () => { clearTimeout(t); res(false); }; im.src = u; });
     return _prob[u];
   }
 
   // ── Catálogo de recompensas (data/cosmeticos.json) ──
   let _cat = null;
-  async function catalogo() {
-    if (_cat) return _cat;
-    try {
-      const r = await fetch('data/cosmeticos.json', { cache: 'no-cache' });
-      const j = r.ok ? await r.json() : {};
+  function _armar(j) {
       const L = [];
       (j.micas || []).forEach(x => x && x.id && L.push(Object.assign({ tipo: 'mica' }, x)));
       (j.playmats || []).forEach(x => x && x.id && L.push(Object.assign({ tipo: 'playmat' }, x)));
       L.forEach(x => { x.img = ruta(x.tipo, x.img); x.origen = x.logro ? 'logro' : 'gratis'; });
-      _cat = L;
-    } catch (e) { _cat = []; }
-    return _cat;
+      return L;
+  }
+  // v2 · el catálogo se guarda en el teléfono: se usa al instante y se actualiza en segundo plano
+  let _catRed = null;
+  function _bajarCat() {
+    if (!_catRed) _catRed = fetch('data/cosmeticos.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : null)
+      .then(j => { if (j) { ls.set('chh_cosm_catalogo', j); _cat = _armar(j); } return _cat || []; }).catch(() => _cat || []);
+    return _catRed;
+  }
+  async function catalogo() {
+    if (_cat) return _cat;
+    const g = ls.get('chh_cosm_catalogo', null);
+    if (g) { _cat = _armar(g); _bajarCat(); return _cat; }
+    const L = await Promise.race([_bajarCat(), new Promise(r => setTimeout(() => r(null), 6000))]);
+    return L || (_cat = []);
   }
 
   // ── Lo comprado / logros del servidor (caché local) ──
@@ -120,10 +129,13 @@
   function equipado(tipo) { return ls.get(K_EQUIP + tipo, CLASICO[tipo] ? CLASICO[tipo].id : null); }
   function equipar(tipo, id) { ls.set(K_EQUIP + tipo, id); }
   // Imagen del equipado (si ya no está disponible, vuelve al clásico)
+  // v2 · solo se revisa la imagen equipada (antes se probaban todas las del catálogo y con datos lentos tardaba mucho)
   async function imagenEquipada(tipo) {
-    const id = equipado(tipo), L = await disponibles(tipo);
-    const x = L.find(y => y.id === id) || L[0];
-    return x ? x.img : CLASICO[tipo].img;
+    const id = equipado(tipo);
+    if (!id || (CLASICO[tipo] && id === CLASICO[tipo].id)) return CLASICO[tipo].img;
+    const x = (await todos(tipo)).find(y => y.id === id && y.tuyo);
+    if (x && x.img && await probar(x.img)) return x.img;
+    return CLASICO[tipo].img;
   }
   // Recompensas que da un logro (para mostrarlas en el Arcade)
   async function recompensasDe(logroId) {

@@ -92,6 +92,19 @@ html,body{
 :root.rot .aj2-body{padding:0 12px}:root.rot .aj2-row{padding:7px 0}:root.rot .aj2-row.col{flex-direction:row;align-items:center}
 :root.rot .aj2-lbl b{font-size:9.5px}:root.rot .aj2-lbl span{font-size:11px;line-height:1.25}
 :root.rot .aj2-seg{width:56%;flex-shrink:0}:root.rot .aj2-seg button{min-height:34px;font-size:8.5px;padding:4px}:root.rot .aj2-rng{width:52%}:root.rot .aj2-sw{width:50px;height:28px}:root.rot .aj2-sw::after{width:20px;height:20px}:root.rot .aj2-sw.on::after{left:25px}:root.rot .aj2-bt{min-height:34px;font-size:8.5px}
+
+.aj2-sub,.aj2 h4{display:flex;align-items:baseline;gap:8px;margin:14px 0 8px;font:700 11px 'Orbitron',sans-serif;letter-spacing:1.5px;color:var(--gold2)}
+.aj2-sub small{font:600 12px sans-serif;letter-spacing:0;color:var(--muted)}
+.aj2 .ap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px}
+.aj2 .ap-opt{border-radius:11px}
+.aj2 .ap-opt.on{border-color:var(--gold2)!important;box-shadow:0 0 0 2px rgba(245,166,35,.55),0 0 14px rgba(245,166,35,.35)!important}
+.aj2 .ap-note{margin:6px 0;font-size:12px;line-height:1.35;color:var(--muted)}
+.aj2 .ds-chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 6px}
+.aj2 .ds-chips .ds-chip{flex:1;min-height:38px;padding:6px 10px;border-radius:9px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.35);color:var(--muted);font:700 9.5px 'Orbitron',sans-serif;letter-spacing:.5px}
+.aj2 .ds-chips .ds-chip.on{color:#1a1000;border-color:var(--gold2);background:linear-gradient(135deg,#ffd166,#f5a623)}
+.aj2-carga{display:flex;align-items:center;gap:10px;padding:10px 0;color:var(--muted);font-size:12px}
+.aj2-carga::before{content:'';width:16px;height:16px;border-radius:50%;border:2px solid rgba(245,166,35,.25);border-top-color:var(--gold2);animation:aj2gira .8s linear infinite}
+@keyframes aj2gira{to{transform:rotate(360deg)}}
 </style>
 <style>
 /* ── PATRÓN SVG AZTECA ── */
@@ -1587,7 +1600,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v96';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v97';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -9608,7 +9621,7 @@ function ajAbrir(tab){
   const seg=(id,ops,act)=>'<div class="aj2-seg" id="'+id+'">'+ops.map(([v,t])=>'<button type="button" class="'+(act===v?'on':'')+'" data-v="'+v+'">'+t+'</button>').join('')+'</div>';
   const sw=(id,on)=>'<button type="button" class="aj2-sw'+(on?' on':'')+'" id="'+id+'" aria-pressed="'+(on?'true':'false')+'"></button>';
   const rng=(id,v,txt)=>'<div class="aj2-rng" id="'+id+'"><button type="button" class="m" data-d="-1">−</button><div class="bar"><i style="width:'+(v*100)+'%"></i><s style="left:'+(v*100)+'%"></s></div><button type="button" class="m" data-d="1">+</button><em>'+txt+'</em></div>';
-  const TABS=[['sonido','🔊','SONIDO'],['partida','⚔','PARTIDA'],['pantalla','🖥','PANTALLA']];
+  const TABS=[['sonido','🔊','SONIDO'],['partida','⚔','PARTIDA'],['pantalla','🖥','PANTALLA'],['apariencia','🎨','APARIENCIA']];
   let cuerpo='';
   if(AJ_TAB==='sonido') cuerpo=
     fila('MÚSICA','Volumen de la música durante el Choque.',rng('ajMus',AJ.mus,pct(AJ.mus)))+
@@ -9621,12 +9634,12 @@ function ajAbrir(tab){
   else cuerpo=
     fila('VISTA DEL TABLERO','Inclinada en 3D o plana desde arriba.',seg('ajVista',[['3d','⬒ 3D'],['plana','▭ PLANA']],AJ.vista==='plana'?'plana':'3d'),1)+
     fila('INCLINACIÓN','Solo en la vista 3D.',seg('ajIncl',[['suave','SUAVE'],['normal','NORMAL'],['fuerte','FUERTE']],INCL[AJ.incl]?AJ.incl:'normal'),1)+
-    fila('EFECTOS VISUALES','Chispas al llamar, atacar, destruir y recibir daño. Apágalos para ahorrar batería.',sw('ajFx',fxModo()==='on'))+
-    fila('APARIENCIA','Fondo de la mesa, mica, playmat, sonidos y descargas para jugar sin internet.','<button type="button" class="aj2-bt" id="ajAp">🎨 ABRIR</button>');
+    fila('EFECTOS VISUALES','Chispas al llamar, atacar, destruir y recibir daño. Apágalos para ahorrar batería.',sw('ajFx',fxModo()==='on'));
+  if(AJ_TAB==='apariencia') cuerpo='<div class="aj2-sub">MESA <small>el fondo detrás del tablero</small></div><div class="ap-grid aj2-grid" id="apMesas"></div><div id="apCosm"></div><div id="apMedios"></div>';
   box.className='ds-list-box aj2';
   box.innerHTML='<div class="aj2-top"><b>⚙ AJUSTES</b><div class="aj2-tabs">'+TABS.map(([k,ic,t])=>'<button type="button" class="'+(AJ_TAB===k?'on':'')+'" data-tab="'+k+'"><i>'+ic+'</i><span>'+t+'</span></button>').join('')+'</div>'+
     '<button type="button" class="aj2-x" id="ajX">✕</button></div>'+
-    '<div class="aj2-body">'+cuerpo+fila('RESTAURAR','Regresa estos ajustes a como venían.','<button type="button" class="aj2-bt pel" id="ajReset">↺ VALORES POR DEFECTO</button>')+'</div>';
+    '<div class="aj2-body">'+cuerpo+(AJ_TAB==='apariencia'?'':fila('RESTAURAR','Regresa estos ajustes a como venían.','<button type="button" class="aj2-bt pel" id="ajReset">↺ VALORES POR DEFECTO</button>'))+'</div>';
   const $=id=>document.getElementById(id);
   const cerrar=()=>{L.classList.remove('show');box.className='ds-list-box';};
   $('ajX').onclick=cerrar;
@@ -9654,32 +9667,21 @@ function ajAbrir(tab){
   inter('ajVib',on=>{AJ.vib=on;ajGuardar();if(on){let ok=false;try{ok=!!(navigator.vibrate&&navigator.vibrate(120));}catch(e){}rumble(150,.6);
     if(!ok&&!(window.GP&&GP.activo&&GP.activo())&&/Android|iPhone|iPad|iPod|Mobi/i.test(navigator.userAgent))
       lg('📳 Este navegador no permite que la página vibre el celular'+(/iPhone|iPad|iPod/i.test(navigator.userAgent)?' (Safari en iPhone/iPad no lo soporta)':' (revisa que la vibración del sistema esté encendida y que no esté en ahorro de batería)')+'. El control sí vibra.','var(--orange)');}});
-  if($('ajAp')) $('ajAp').onclick=()=>{box.className='ds-list-box';apAbrir();};
-  $('ajReset').onclick=()=>{AJ=Object.assign({},AJ_DEF);ajGuardar();try{vistaAplicar();}catch(e){}MUTED=false;try{localStorage.setItem('cdh_sim_mute','0');localStorage.setItem('cdh_sim_fases','todos');localStorage.setItem('cdh_sim_fx','on');}catch(e){}
+  if(AJ_TAB==='apariencia'){apMesasPanel();cosmPanel();mediosPanel();}
+  if($('ajReset')) $('ajReset').onclick=()=>{AJ=Object.assign({},AJ_DEF);ajGuardar();try{vistaAplicar();}catch(e){}MUTED=false;try{localStorage.setItem('cdh_sim_mute','0');localStorage.setItem('cdh_sim_fases','todos');localStorage.setItem('cdh_sim_fx','on');}catch(e){}
     fxAplicar();mpVol();const b=$('btnMute');if(b)b.textContent='🔊';ajAbrir();};
   L.classList.add('show');
   try{if(window.GP&&GP.activo&&GP.activo())setTimeout(()=>GP.enfocar(box.querySelector('.aj2-tabs .on')),60);}catch(e){}
 }
-function apAbrir(){
+function apAbrir(){ajAbrir('apariencia');}
+function apMesasPanel(){
+  const g=document.getElementById('apMesas'); if(!g) return;
   const act=apMesaGuardada();
-  const box=document.getElementById('dsListBox');
-  box.innerHTML='<button class="ds-close" onclick="document.getElementById(\'dsList\').classList.remove(\'show\')">✕</button>'+
-    '<h3>🎨 APARIENCIA</h3><h4>FONDO DE MESA (detrás del tablero)</h4><div class="ap-grid">'+
-    MESAS.map(m=>{const dis=m.id==='imagen'&&!AP.mesaImg;const pv=m.id==='imagen'?(AP.mesaImg?'url("'+AP.mesaImg+'") center/cover':'repeating-linear-gradient(45deg,#111,#111 6px,#1a1a1a 6px,#1a1a1a 12px)'):m.prev;
-      return '<button class="ap-opt'+(m.id===act&&!dis?' on':'')+'" data-mesa="'+m.id+'"'+(dis?' disabled':'')+'><span class="ap-prev" style="background:'+pv.replace(/"/g,'&quot;')+'"></span><b>'+m.nom+'</b><small>'+(dis?'No se encontró la imagen':m.desc)+'</small></button>';}).join('')+
-    '</div><div id="apCosm"></div><div id="apMedios"></div><h4>EFECTOS VISUALES</h4><div class="ds-chips" id="apFx">'+
-    [['on','✨ Completos'],['off','🔋 Reducidos']].map(([v,t])=>'<button class="ds-chip'+(fxModo()===v?' on':'')+'" data-fx="'+v+'">'+t+'</button>').join('')+
-    '</div><h4>AVISOS DE FASE</h4><div class="ds-chips" id="apFases">'+
-    [['todos','📣 Todos'],['propios','🙋 Solo mis fases'],['off','🔕 Apagados']].map(([v,t])=>'<button class="ds-chip'+(avisosFase()===v?' on':'')+'" data-f="'+v+'">'+t+'</button>').join('')+
-    '</div><div class="ap-note">Personaliza desde el repositorio subiendo a <code>assets/simulacion/</code>: <code>inicio_fondo.jpg</code> (fondo de esta pantalla), <code>inicio_logo.png</code> (logo) y <code>mesa_fondo.jpg</code> (opción "Imagen"). Si no existen, se usan los de siempre. Para más mesas: pon las imágenes en <code>assets/simulacion/mesas/</code> y anótalas en <code>mesas.txt</code>.</div>';
-  box.querySelectorAll('#apFases .ds-chip').forEach(b=>b.onclick=()=>{try{localStorage.setItem('cdh_sim_fases',b.dataset.f);}catch(e){}
-    box.querySelectorAll('#apFases .ds-chip').forEach(x=>x.classList.toggle('on',x===b));});
-  box.querySelectorAll('#apFx .ds-chip').forEach(b=>b.onclick=()=>{try{localStorage.setItem('cdh_sim_fx',b.dataset.fx);}catch(e){}fxAplicar();
-    box.querySelectorAll('#apFx .ds-chip').forEach(x=>x.classList.toggle('on',x===b));});
-  box.querySelectorAll('.ap-opt').forEach(b=>b.onclick=()=>{try{localStorage.setItem('cdh_sim_mesa',b.dataset.mesa);}catch(e){}apAplicarMesa(b.dataset.mesa);
-    box.querySelectorAll('.ap-opt').forEach(x=>x.classList.toggle('on',x===b));});
-  document.getElementById('dsList').classList.add('show');
-  cosmPanel();mediosPanel();
+  g.innerHTML=MESAS.map(m=>{const dis=m.id==='imagen'&&!AP.mesaImg;if(dis)return '';
+    const pv=m.id==='imagen'?'url("'+AP.mesaImg+'") center/cover':m.prev;
+    return '<button type="button" class="ap-opt'+(m.id===act?' on':'')+'" data-mesa="'+m.id+'"><span class="ap-prev" style="background:'+String(pv).replace(/"/g,'&quot;')+'"></span><b>'+m.nom+'</b><small>'+m.desc+'</small></button>';}).join('');
+  g.querySelectorAll('.ap-opt').forEach(b=>b.onclick=()=>{try{localStorage.setItem('cdh_sim_mesa',b.dataset.mesa);}catch(e){}apAplicarMesa(b.dataset.mesa);
+    g.querySelectorAll('.ap-opt').forEach(x=>x.classList.toggle('on',x===b));});
 }
 // ── v58 · CONTENIDO SIN CONEXIÓN (medios.js): sonidos, música, micas y playmats ──
 const DESC={estado:'',ocupado:false};
@@ -9688,7 +9690,7 @@ async function descListas(){
   try{const cfg=JSON.parse(localStorage.getItem('cdh_sim_sfx_cfg')||'null');const m=(cfg&&cfg.sonidos)||{};
     SFX.evts.forEach(ev=>[].concat(m[ev]||(ev+'.mp3')).forEach(f=>sfx.push(/[\/]/.test(f)?f:SFX_DIR+f)));}catch(e){}
   let cosm=[];
-  if(window.CHH_COSM){try{const [a,b]=await Promise.all([CHH_COSM.disponibles('mica'),CHH_COSM.disponibles('playmat')]);
+  if(window.CHH_COSM){try{const [a,b]=(await Promise.all([CHH_COSM.todos('mica'),CHH_COSM.todos('playmat')])).map(L=>L.filter(x=>x.tuyo));
     cosm=a.concat(b).filter(x=>x.origen!=='clasico').map(x=>x.img);}catch(e){}}
   const mus=(MP.tracks||[]).filter(t=>t.libre).map(mpRuta);
   if(ARCADE&&ARCADE.musica) mus.unshift(ARCADE.musica);
@@ -9724,7 +9726,7 @@ async function mediosPanel(){
     document.getElementById('apAuto').onclick=()=>{CHH_MEDIOS.setAuto(!CHH_MEDIOS.puedeAuto());pinta();};
     document.getElementById('apBorra').onclick=async()=>{if(!await ventanaConfirmar('¿BORRAR DESCARGAS?','Se borrarán la música, sonidos, micas y playmats descargados. Se volverán a descargar cuando haya internet.','🗑 SÍ, BORRAR','↩ CANCELAR','🗑'))return;await CHH_MEDIOS.borrar();pinta();};
   };
-  box.innerHTML='<h4>SONIDO Y DESCARGAS</h4><div class="ap-note">Cargando…</div>';
+  box.innerHTML='<h4>SONIDO Y DESCARGAS</h4><div class="aj2-carga">Revisando descargas…</div>';
   if(!window.CHH_MEDIOS){box.innerHTML='';return;}
   await pinta();
 }
@@ -9749,22 +9751,27 @@ async function cosmPanel(){
   const esc=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const nomLogro=id=>{try{const m={arc_primera_victoria:'Primer Crédito',arc_campeon:'Campeón Arcade',arc_fenix:'Fénix',arc_un_credito:'Un Solo Crédito',arc_forjador:'Forjador de Amalgamas',arc_centurion:'Centurión',arc_mitad:'Media Ruta',arc_jefe_intacto:'Verdugo del Jefe',arc_maestro_barajas:'Maestro de Barajas',arc_destructor:'Destructor',arc_gran_maestro:'Señor de las Barajas'};return m[id]||id;}catch(e){return id;}};
   const seccion=async(tipo,titulo)=>{
-    const disp=await CHH_COSM.disponibles(tipo), todos=await CHH_COSM.todos(tipo), eq=CHH_COSM.equipado(tipo);
+    const todos=await CHH_COSM.todos(tipo), disp=todos.filter(x=>x.tuyo), eq=CHH_COSM.equipado(tipo);   // v97 · se muestran al instante; las que no tengan imagen se quitan después
     if(tipo==='playmat') disp.unshift({id:SIN_PM,nombre:'Sin playmat',img:'',origen:'ninguno'});
     const okIds=new Set(disp.map(x=>x.id));
-    const bloq=[];for(const x of todos){if(!x.tuyo&&x.logro){const ok=await new Promise(r=>{const i=new Image();i.onload=()=>r(1);i.onerror=()=>r(0);i.src=x.img;});if(ok)bloq.push(x);}}
+    const bloq=todos.filter(x=>!x.tuyo&&x.logro);
     const act=okIds.has(eq)?eq:CHH_COSM.CLASICO[tipo].id;
     return '<h4>'+titulo+'</h4><div class="ap-grid">'+
       disp.map(x=>'<button class="ap-opt'+(tipo==='mica'?' mica':'')+(x.origen==='ninguno'?' sinpm':'')+(x.id===act?' on':'')+'" data-cosm="'+tipo+'" data-id="'+esc(x.id)+'"><span class="ap-prev" style="background-image:url(&quot;'+esc(x.img)+'&quot;)"></span><b>'+esc(x.nombre)+'</b><small>'+(x.origen==='ninguno'?'Se ve la mesa':x.origen==='tienda'?'Tienda':x.origen==='logro'?'Logro':'Incluida')+'</small></button>').join('')+
       bloq.map(x=>'<button class="ap-opt lock'+(tipo==='mica'?' mica':'')+'" disabled><span class="ap-prev" style="background-image:url(&quot;'+esc(x.img)+'&quot;);filter:grayscale(1) brightness(.5)"></span><b>🔒 '+esc(x.nombre)+'</b><small>Logro: '+esc(nomLogro(x.logro))+'</small></button>').join('')+'</div>';
   };
   const pinta=async()=>{
-    box.innerHTML=(await seccion('mica','MICA (reverso de tus cartas)'))+(await seccion('playmat','PLAYMAT (tablero)'))+
+    const [sm,sp]=await Promise.all([seccion('mica','MICA (reverso de tus cartas)'),seccion('playmat','PLAYMAT (tablero)')]);
+    box.innerHTML=sm+sp+
       '<div class="ap-note">Consigue más micas y playmats en la <b>Tienda</b> con Hero Pesos o con los <b>logros del Arcade</b>.</div>';
     box.querySelectorAll('[data-cosm]').forEach(b=>b.onclick=()=>{CHH_COSM.equipar(b.dataset.cosm,b.dataset.id);
       box.querySelectorAll('[data-cosm="'+b.dataset.cosm+'"]').forEach(x=>x.classList.toggle('on',x===b));cosmAplicar();});
+    // las opciones cuya imagen no existe se quitan en cuanto se sabe (sin detener el panel)
+    box.querySelectorAll('.ap-opt').forEach(b=>{const m=(b.querySelector('.ap-prev').style.backgroundImage||'').match(/url\("?(.+?)"?\)/);if(!m)return;
+      if(b.classList.contains('lock')){b.style.display='none';const im=new Image();im.onload=()=>{b.style.display='';};im.src=m[1];return;}   // bloqueadas: solo si ya tienen arte
+      CHH_COSM.probar(m[1]).then(ok=>{if(!ok&&!b.classList.contains('on'))b.remove();});});
   };
-  box.innerHTML='<h4>MICA Y PLAYMAT</h4><div class="ap-note">Cargando…</div>';
+  box.innerHTML='<h4>MICA Y PLAYMAT</h4><div class="aj2-carga">Buscando tus micas y playmats…</div>';
   await pinta();
   CHH_COSM.sincronizar(8000).then(()=>{if(document.getElementById('apCosm'))pinta();cosmAplicar();});
 }
@@ -9791,8 +9798,9 @@ function apVS(){
 {const _rds=renderDeckSelect;renderDeckSelect=function(){_rds.apply(this,arguments);try{apVS();}catch(e){}};}
 (async function apInit(){
   apAplicarMesa(apMesaGuardada());
-  document.getElementById('bootCfg').onclick=ajAbrir;
+  document.getElementById('bootCfg').onclick=()=>ajAbrir();
   apBrasas();
+  const _cat=mesasCatalogo().catch(()=>{});      // primero el catálogo de mesas (sin esperar a las demás imágenes)
   const [fondo,logo,mesa]=await Promise.all([apProbar(AP_FILES.fondo.map(f=>AP_DIR+f)),apProbar(AP_FILES.logo.map(f=>AP_DIR+f)),apProbar(AP_FILES.mesa.map(f=>AP_DIR+f))]);
   let fzI=null;try{fzI=ARCADE&&ARCADE.fondoInicio;}catch(e){}       // v73 · un modo puede traer su propio fondo de inicio
   if(fondo&&!fzI){const b=document.getElementById('bootBg');b.style.backgroundImage='url("'+fondo+'")';b.classList.add('img');}
@@ -9803,13 +9811,11 @@ function apVS(){
   if(m3){AP.mesa3d=m3;if(!AP.mesaImg)AP.mesaImg=m3;apAplicarMesa(apMesaGuardada());}
   if(hz) document.documentElement.style.setProperty('--cielo','linear-gradient(rgba(0,0,0,.15),rgba(0,0,0,.55)),url("'+hz+'")');
   try{mesa3dSync();}catch(e){}
-  try{await mesasCatalogo();}catch(e){}
+  try{await _cat;}catch(e){}
 })();
 // v89 · CATÁLOGO DE MESAS: assets/simulacion/mesas/mesas.txt
 //   id | Nombre | archivo | descripción | barajas que la usan con "Según tu baraja" (opcional, separadas por coma)
-async function mesasCatalogo(){
-  let txt='';
-  try{const r=await fetch(AP_DIR+'mesas/mesas.txt',{cache:'no-cache'});if(!r.ok)return;txt=await r.text();}catch(e){return;}
+function mesasLeer(txt){
   const nuevas=[];
   txt.split(/\r?\n/).forEach(l=>{
     l=l.trim(); if(!l||l.startsWith('#')) return;
@@ -9823,6 +9829,13 @@ async function mesasCatalogo(){
   if(!nuevas.length) return;
   const i=MESAS.findIndex(x=>x.id==='imagen'); MESAS.splice(i<0?MESAS.length:i,0,...nuevas);
   apAplicarMesa(apMesaGuardada());
+}
+// v96 · el catálogo se guarda en el teléfono: la mesa elegida se ve al instante aunque la red esté lenta
+async function mesasCatalogo(){
+  let g='';try{g=localStorage.getItem('cdh_sim_mesas_txt')||'';}catch(e){}
+  if(g) mesasLeer(g);
+  try{const r=await fetch(AP_DIR+'mesas/mesas.txt',{cache:'no-cache'});if(!r.ok)return;const txt=await r.text();
+    if(txt!==g){try{localStorage.setItem('cdh_sim_mesas_txt',txt);}catch(e){}mesasLeer(txt);}}catch(e){}
 }
 
 // ════════════════════════════════════

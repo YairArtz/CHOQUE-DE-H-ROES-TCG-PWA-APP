@@ -2458,7 +2458,7 @@ function cerrarTramo(dist) {
 }
 window.nxTramoEvento = async function (s) {
   let ev; try { ev = JSON.parse(s); } catch (e) { return; }
-  if (MODV.abierto) { if (ev.tipo === 'listo') { MODV.listo = true; $('mdCarga').style.display = 'none'; modVista(); } return; }
+  if (MODV.abierto) { if (ev.tipo === 'listo') { MODV.listo = true; $('mdCarga').style.display = 'none'; $('mdFrame').style.opacity = '1'; modVista(); } return; }
   if (!TRAMO) return;
   const def = TRAMO.def, e = estTramo(TRAMO.id);
   if (ev.pos) e.pos = ev.pos;
@@ -3381,14 +3381,14 @@ async function comprarSobre(sb) {
 $('tdSalir').onclick = salirTienda;
 
 // ════════════════ v317 · LA MODISTA (assets/nexotlan/modista.txt) ════════════════
-// Colores para capa, chamarra, pantalón, zapatos y ojos + estampados (pecho, espalda de la capa y hombro).
+// Colores para capa, chamarra, pantalón, zapatos y ojos + estampados (pecho, espalda de la capa y frente de la capucha).
 // En el vestidor todo se puede PROBAR sobre el modelo 3D; solo se cobra al confirmar lo que no se tenía.
 // Partida: S.ropa = { tiene: { id: 1 }, puesto: { capa, pecho, pant, zap, ojos, e_pecho, e_espalda, e_hombro } }  ('' = original)
 let MOD = { cfg: {}, modelo: {}, items: [] };
 const MODV = { abierto: false, listo: false, prueba: {}, tab: 'capa' };
 const MOD_ZONA = { capa: 'capa', pecho: 'pecho', chamarra: 'pecho', pantalon: 'pant', 'pantalón': 'pant', pant: 'pant', zapatos: 'zap', zap: 'zap', ojos: 'ojos' };
-const MOD_TABS = [['capa', '🧥', 'CAPA', 'Y capucha'], ['pecho', '👕', 'CHAMARRA', 'Color del pecho'], ['pant', '👖', 'PANTALÓN', 'Color'], ['zap', '👟', 'ZAPATOS', 'Color'], ['ojos', '👁', 'OJOS', 'Color'], ['est', '✨', 'ESTAMPADOS', 'Pecho, capa y hombro']];
-const MOD_EST = [['e_pecho', 'PECHO'], ['e_espalda', 'ESPALDA DE LA CAPA'], ['e_hombro', 'HOMBRO']];
+const MOD_TABS = [['capa', '🧥', 'CAPA', 'Y capucha'], ['pecho', '👕', 'CHAMARRA', 'Color del pecho'], ['pant', '👖', 'PANTALÓN', 'Color'], ['zap', '👟', 'ZAPATOS', 'Color'], ['ojos', '👁', 'OJOS', 'Color'], ['est', '✨', 'ESTAMPADOS', 'Pecho, capa y capucha']];
+const MOD_EST = [['e_pecho', 'PECHO'], ['e_espalda', 'ESPALDA DE LA CAPA'], ['e_hombro', 'FRENTE DE LA CAPUCHA']];   // v318 · la ranura 'hombro' ahora es la capucha (se conserva la clave interna)
 function parseMod(txt) {
   const out = { cfg: {}, modelo: {}, items: [] }; let cur = null;
   String(txt || '').replace(/\r/g, '').split('\n').forEach(l => {
@@ -3401,7 +3401,7 @@ function parseMod(txt) {
     cur[t.slice(0, i).trim().toLowerCase()] = t.slice(i + 1).trim();
   });
   out.items.forEach(x => { const z = String(x.zona || '').toLowerCase();
-    x.slot = x.tipo === 'color' ? (MOD_ZONA[z] || '') : (['pecho', 'espalda', 'hombro'].includes(z) ? 'e_' + z : '');
+    x.slot = x.tipo === 'color' ? (MOD_ZONA[z] || '') : (z === 'capucha' ? 'e_hombro' : ['pecho', 'espalda'].includes(z) ? 'e_' + z : '');
     x.precio = Math.max(0, parseInt(x.precio, 10) || 0);
     if (x.tipo === 'estampado') x.url = x.imagen ? (/\//.test(x.imagen) ? x.imagen.replace(/^\.?\//, '') : DIR + 'personajes/ropa/estampados/' + x.imagen) : ''; });
   out.items = out.items.filter(x => x.slot && (x.tipo === 'color' ? /^#[0-9a-f]{6}$/i.test(x.color || '') : x.url));
@@ -3457,7 +3457,7 @@ function abrirModista(p) {
     plataformas: [{ id: 'pedestal', x: 0, z: 0, ancho: 5.4, largo: 5.4, forma: 'oval', alto: 0, estilo: 'torre', adorno: 'columna' }],
     jugador_modelo: (m => m ? (m.includes('/') ? m : 'assets/nexotlan/personajes/' + m) : '')(String(CFG.tramo_modelo || '').trim()), jugador_escala: +(CFG.tramo_modelo_escala || 1.6),
     ropa: ropaJSON(MODV.prueba) });
-  $('mdCarga').style.display = ''; $('mdFrame').src = 'tramo/index.html?t=vestidor&v=' + (CFG.tramo_version || '1');
+  $('mdCarga').style.display = ''; $('mdFrame').style.transition = 'opacity .35s'; $('mdFrame').style.opacity = '0'; $('mdFrame').src = 'tramo/index.html?t=vestidor&v=' + (CFG.tramo_version || '1');
   irA('sModista'); pintarModista();
   try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('mdBody').querySelector('button') || $('mdSalir')), 60); } catch (e) {}
 }

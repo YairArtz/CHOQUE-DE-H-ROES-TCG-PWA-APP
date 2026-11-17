@@ -2354,6 +2354,8 @@ async function cargarTramo(id) {
   def.guia = (g => g ? { x: num(g.x, 0), z: num(g.z, 0), paginas: String(g.texto || '').split('|').map(x => x.trim()).filter(Boolean) } : null)(secs.find(s => s._sec === 'guia'));
   // v321 · [koatl] x, z, saludo (pág | pág), consejos (uno al azar cada vez | …), regalo (id de objetos.txt que te da la primera vez en esta ruta)
   const pp = t => String(t || '').split('|').map(x => x.trim()).filter(Boolean);
+  // v323 · [sitho] x, z, saludo (uno al azar cada vez | …): el Doctor Sitho (espíritu) abre su tienda sin salir de la ruta
+  def.sitho = (g => g ? { x: num(g.x, 0), z: num(g.z, 0), saludo: pp(g.saludo) } : null)(secs.find(s => s._sec === 'sitho'));
   def.koatl = (g => g ? { x: num(g.x, 0), z: num(g.z, 0), saludo: pp(g.saludo), consejos: pp(g.consejos), regalo: String(g.regalo || '').trim() } : null)(secs.find(s => s._sec === 'koatl'));
   // v307 · [coliseo] x, z (centro), radio_x, radio_z, niveles, alto (de cada piso), arcos (por piso), puerta (ángulo de la puerta grande), neon = #c1,#c2,#c3
   def.coliseo = (c => c ? { x: num(c.x, 0), z: num(c.z, 0), radio_x: num(c.radio_x, 40), radio_z: num(c.radio_z, 32), niveles: num(c.niveles, 3), alto: num(c.alto, 6.5),
@@ -2439,6 +2441,13 @@ async function abrirTramo(id) {
       playmats: String(h.exhibir_playmats || '').split('|').map(x => x.trim()).filter(Boolean) },
     post: e.post || null,
     koatl: def.koatl ? koatlJSON(def, e) : null,
+    sitho: def.sitho ? (() => {
+      const sal = def.sitho.saludo.length ? def.sitho.saludo : ['Ah, viajero… Aun en el camino, el Mercado viaja conmigo. ¿Qué te llevas hoy?'];
+      const pg = [sal[Math.floor(Math.random() * sal.length)]];
+      return { id: 'sitho', x: def.sitho.x, z: def.sitho.z, auto: false, paginas: pg, ruta: pg, tienda: true, espiritu: true, aura: '#2ef0d0',
+        nombre: 'Doctor Sitho · Mercader de recuerdos', txt: 'Hablar con el Doctor Sitho', color: '#5ff5df', escala: +(CFG.tramo_sitho_escala || 2.2),
+        modelo: (m => m.includes('/') ? m : 'assets/nexotlan/personajes/' + m)(String(CFG.tramo_sitho_modelo || 'sitho.glb').trim()) };
+    })() : null,
     guia: def.guia ? (() => {      // v304 · la primera vez en una ruta Nextor habla solo; la primera ruta de todas, además explica qué son las rutas
       const intro = String(CFG.tramo_guia_intro || GUIA_INTRO).split('|').map(x => x.trim()).filter(Boolean);
       const auto = !e.guia, pags = (auto && !(S.guiaIntro) ? intro : []).concat(def.guia.paginas);
@@ -2521,6 +2530,10 @@ window.nxTramoEvento = async function (s) {
       e.guia = 1; S.guiaIntro = 1; guardar(); break;
     }
     case 'guia_fin': {      // v321 · terminaste de hablar con Koatl: la primera vez en la ruta te da su regalo; luego, unas monedas una vez por día
+      if (ev.id === 'sitho') {      // v323 · la tienda del Comerciante, y al salir regresas a la ruta
+        const com = PTS.find(esComerciante); if (!com) break;
+        tramoPausa(true); window._volverTramo = VOLVER; VOLVER = 'sTramo'; mostrarCarga(300); abrirTienda(com); break;
+      }
       if (ev.id !== 'koatl' || !def.koatl) break;
       if (!e.koatl) {
         e.koatl = 1; S.koatlDia = S.dia;
@@ -3969,7 +3982,7 @@ async function entrarMapa(primeraVez) {
 //          musica_menu = música del menú (si no: la del mapa)
 let VOLVER = 'sMapa';
 function volver() {
-  if (VOLVER === 'sTramo') { VOLVER = window._volverTramo || 'sMapa'; if (TRAMO) { irA('sTramo'); pintarHud(); tramoPausa(false); return; } }
+  if (VOLVER === 'sTramo') { VOLVER = window._volverTramo || 'sMapa'; if (TRAMO) { irA('sTramo'); pintarHud(); tramoAviso({ tipo: 'hud', monedas: S.monedas || 0 }); tramoPausa(false); return; } }
   if (VOLVER === 'sMenu') { abrirMenu(); return; }
   irA('sMapa'); pintarHud(); ajustarZoom(ZOOM);
 }

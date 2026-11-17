@@ -2920,6 +2920,13 @@ async function procesarResultado() {
     estTramo(p0._tramo).post = { id: p0._nid, gano: ok, txt: res.abandono ? 'Te fuiste a media partida… eso cuenta como derrota.' : String((res.won ? p.victoria : p.derrota) || (res.won ? '¡Bien jugado!' : 'Suerte para la próxima.')), extra };
     if (premio) sonMonedas();
     if (ok) { const cartas = darPremio(p, !antes); guardar(); pintarHud(); if (cartas && cartas.length) await mostrarPremio(cartas); }
+    // v328 · el Ánima puede soltar un objeto (p. ej. un sobre del distrito anterior) la primera vez que la vences
+    const obA = String(p0.objeto || '').trim();
+    if (ok && !antes && obA && OBJ[obA]) {
+      S.objetos = S.objetos || {}; S.objetos[obA] = (S.objetos[obA] || 0) + 1; guardar();
+      const ob = OBJ[obA], esSobre = /^sobre:/i.test(ob.uso || '');
+      await mensaje('🎒 ¡TE DEJÓ ALGO!', `<div style="font-size:54px;line-height:1">${esc(ob.icono || '🎁')}</div><b style="font-size:18px">${esc(ob.nombre)}</b><br><span style="color:var(--muted)">${esc(ob.descripcion || '')}</span><br><br>Lo guardaste en tu mochila.${esSobre ? ' Ábrelo cuando quieras desde la <b>🎒 MOCHILA</b>.' : ''}`);
+    }
     guardar(); await revisarAperturas(true);
     await trasChoqueTramo(p0);
     return true;

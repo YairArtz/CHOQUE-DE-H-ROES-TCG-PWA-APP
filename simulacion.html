@@ -1587,7 +1587,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v95';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v96';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -10259,9 +10259,11 @@ function arcadeYaJugado(){
     cosmAplicar(); if(window.CHH_COSM) CHH_COSM.sincronizar(8000).then(cosmAplicar);
     sfxCargar().catch(()=>{});
     setTimeout(()=>{if(window.CHH_MEDIOS&&navigator.onLine)descargarTodo(CHH_MEDIOS.puedeAuto()).catch(()=>{});},6000);
-    let _ok=false;
-    await precargarMiniaturas((n,t,ya)=>{_ok=ya;st.textContent=ya?'Imágenes guardadas en el dispositivo':'Guardando imágenes en el dispositivo '+n+'/'+t+'…';});
-    st.textContent=Object.keys(C).length+' cartas listas · elige tus barajas'+(_ok?' · 📲 sin red OK':'');
+    // v96 · las miniaturas que falten se guardan en segundo plano: con datos lentos ya no detienen la entrada al Choque
+    const listo=Object.keys(C).length+' cartas listas · elige tus barajas';
+    st.textContent=listo;
+    precargarMiniaturas((n,t,ya)=>{if(st.classList.contains('err'))return;st.textContent=ya?listo+' · 📲 sin red OK':listo+' · guardando imágenes '+n+'/'+t;})
+      .then(()=>{if(!st.classList.contains('err')&&/guardando/.test(st.textContent))st.textContent=listo+' · 📲 sin red OK';}).catch(()=>{});
     initDeckSelect();
     btn.disabled=false;
     if(window.CHHCarga) CHHCarga.listo();      // v208 · ya cargó: la pantalla de consejos se quita al terminar de leer

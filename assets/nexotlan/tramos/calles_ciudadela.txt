@@ -1,0 +1,556 @@
+# ═════════════════════════════════════════════════════════════════
+#  NEXOTLAN · TRAMO DE EXPLORACIÓN — Calles de la Ciudadela (Pirámide Dimensional → Ciudadela del Regente)
+#  Edítalo con el Bloc de notas (UTF-8).  campo = valor
+#  Mismo formato que los otros tramos. Sales de la Pirámide por el portal cian del vórtice y llegas por el portal
+#  violeta a las calles de la Ciudadela (zona 2, a partir de x = 40).
+#  Bloques nuevos de este tramo (en [decorado]):
+#   casas = x,z,giro,modelo,tamaño,estira_ancho,estira_alto,#tinte
+#           modelo 1 = casa con escalinata y braseros (su fuego se anima) · modelo 2 = casa chica con greca
+#           giro: hacia dónde mira la puerta (0 = hacia ti, 90 = a la derecha, -90 = a la izquierda, 180 = al fondo)
+#           Los modelos están en assets/nexotlan/tramos/modelos/casa_1.glb y casa_2.glb
+#   antorchas = x,z[,azul]                 poste de piedra con fuego (cálido, o azul)
+#   cascadas = x,z,giro,ancho              cascada que cae de la orilla al vacío (giro = hacia dónde cae)
+#  [torre] x, z (frente), ancho, alto, escalera, color, oro: la Torre del Regente al final (fondo, no se camina).
+# ═════════════════════════════════════════════════════════════════
+
+[tramo]
+nombre = Calles de la Ciudadela
+inicio = 0,26
+cambio_x = 40
+bruma_bordes = si
+fondo = ruinas
+fondo2 = ruinas
+relampagos = si
+vista_final = 70,-92,12,11,22,15,24,66
+brillo_sol = 0.9
+color_luz = #f0deff
+color_templo = #b79ac0
+color_greca = #7a3a8a
+color_jade = #36d6ff
+# Zona 1 · salida de la Pirámide Dimensional (vórtice azul)
+color_suelo = #3d4a78
+color_borde = #1c2040
+color_camino = #6e7aa8
+color_puente = #8a5a3c
+color_piedra = #8a90b8
+color_roca = #44486a
+color_madera = #8a5a3c
+color_abismo = #1a1a5c
+color_niebla = #343890
+color_ambiente = #a8bcf0
+color_contraluz = #5fd8ff
+color_tinte_abismo = #8a9cff
+# Zona 2 · calles de la Ciudadela (noche violeta con antorchas)
+color_abismo2 = #1c0a36
+color_niebla2 = #4a2a7c
+color_ambiente2 = #b8a0d8
+color_contraluz2 = #ff9a58
+color_tinte_abismo2 = #c89aff
+
+textura_suelo = piso_textura.jpg
+textura_suelo_vortice = tabiques_textura.jpg
+textura_suelo_ciudadela = piso_archivos_textura.jpg
+textura_camino = tabiques_textura.jpg
+textura_camino_ciudadela = tabiques_textura.jpg
+textura_borde = roca_textura.jpg
+textura_puente = madera_textura.jpg
+textura_madera = madera_textura.jpg
+textura_roca = roca_textura.jpg
+textura_piedra = tabiques_textura.jpg
+textura_ruina = piedra_ruina_textura.jpg
+textura_templo = tabiques_textura.jpg
+textura_piramide = tabiques_textura.jpg
+textura_calzada = tabiques_textura.jpg
+textura_cesped = pasto_textura.jpg
+textura_follaje = piso_verde_textura.jpg
+textura_abismo = nubes_textura.jpg
+brillo_suelo_ciudadela = 0.72
+brillo_camino_ciudadela = 0.8
+escala_suelo = 3
+escala_suelo_vortice = 3
+escala_suelo_ciudadela = 3.6
+escala_camino_ciudadela = 2.6
+escala_calzada = 2.6
+escala_templo = 2.2
+escala_piramide = 3
+escala_cesped = 3.6
+escala_follaje = 1.1
+escala_borde = 3
+escala_camino = 2.4
+escala_puente = 1.6
+escala_madera = 1.2
+escala_roca = 1.6
+escala_piedra = 1.4
+escala_ruina = 1.6
+escala_abismo = 40
+brillo_abismo = 0.5
+
+# ───────────── ZONA 1 · SALIDA DE LA PIRÁMIDE (VÓRTICE) ─────────────
+[plataforma:mirador_salida]
+x = 0
+z = 22
+ancho = 16
+largo = 14
+forma = rect
+zona = vortice
+
+[camino:descenso]
+puntos = 0,15 | 3,7 | 3,-1
+ancho = 6
+tipo = piedra
+zona = vortice
+
+[plataforma:terraza]
+x = 2
+z = -9
+ancho = 18
+largo = 14
+zona = vortice
+
+[camino:puente_oeste]
+puntos = -6.6,-9 | -12.4,-9.4
+ancho = 2.4
+tipo = puente
+
+[plataforma:islote_oeste]
+x = -16
+z = -9.6
+ancho = 6.5
+largo = 6
+zona = vortice
+
+[camino:paso_vortice]
+puntos = 2,-15.6 | 0,-24 | 0,-31
+ancho = 6
+tipo = piedra
+zona = vortice
+
+[plataforma:umbral]
+x = 0
+z = -38
+ancho = 18
+largo = 14
+zona = vortice
+
+[portal:cian]
+x = 0
+z = -42.8
+giro = 0
+color = #36d6ff
+ancho = 3
+destino = violeta
+rival = vigia
+llegada = 0,-39.4
+
+# ───────────── ZONA 2 · CALLES DE LA CIUDADELA ─────────────
+[portal:violeta]
+x = 70
+z = 27.4
+giro = 0
+color = #b06bff
+ancho = 3
+destino = cian
+llegada = 70,23.6
+
+[plataforma:atrio]
+x = 70
+z = 22
+ancho = 18
+largo = 12
+forma = rect
+zona = ciudadela
+
+# Calle de los Artesanos (casas a los dos lados)
+[plataforma:calle_artesanos]
+x = 70
+z = 1.5
+ancho = 26
+largo = 33
+forma = rect
+zona = ciudadela
+
+# Plaza de las Fogatas
+[plataforma:plaza_fogatas]
+x = 70
+z = -24
+ancho = 26
+largo = 22
+forma = rect
+zona = ciudadela
+
+# Barrio Alto (al este)
+[camino:calzada_este]
+puntos = 82.6,-24 | 97,-24
+ancho = 8
+tipo = piedra
+zona = ciudadela
+
+[plataforma:barrio_alto]
+x = 106
+z = -24
+ancho = 20
+largo = 24
+forma = rect
+zona = ciudadela
+
+# islote al oeste de la plaza
+[camino:puente_oeste2]
+puntos = 57.4,-24 | 51.4,-24.4
+ancho = 2.4
+tipo = puente
+
+[plataforma:islote_oeste2]
+x = 48
+z = -24.6
+ancho = 6.5
+largo = 6
+zona = ciudadela
+
+# Calle de los Guerreros
+[plataforma:calle_guerreros]
+x = 70
+z = -49
+ancho = 26
+largo = 33
+forma = rect
+zona = ciudadela
+
+# Gran puente de piedra con cascadas
+[camino:gran_puente]
+puntos = 70,-64 | 70,-79.6
+ancho = 9
+tipo = piedra
+zona = ciudadela
+
+# Plaza del Regente (al pie de la Torre)
+[plataforma:plaza_regente]
+x = 70
+z = -90
+ancho = 34
+largo = 25
+forma = rect
+zona = ciudadela
+
+[torre]
+x = 70
+z = -106
+ancho = 44
+alto = 64
+escalera = 11
+color = #9a86b4
+oro = #ffc94a
+
+[decorado]
+# salida de la Pirámide
+columnas = -6.6,27 | 6.6,27 | -6.6,17 | 6.6,17
+serpientes = -3.6,15.6,180,1 | 3.6,15.6,180,1
+braseros = -4.6,-5.6,1.1 | 8.4,-6.4,1.1 | -6.4,-34.6,1.1 | 6.4,-34.6,1.1
+estelas = -3.4,-12.8,40 | 7.4,-12.4,-40 | -7.4,-40,60 | 7.4,-40,-60
+escombros = 8.4,-12.6,0.8 | -17.4,-8.4,0.6
+glifos = 0,22,3,#36d6ff | 2,-9,3.4,#5fd8ff | 0,-38,3.6,#36d6ff
+luciernagas = 0,22,4,#9fefff | 2,-9,5,#9fefff | 0,-38,5,#bff6ff
+cristales_vacio = -22,4,3,#6fe3ff | 22,-18,3.4,#9fefff | -20,-44,3.6,#6fe3ff
+
+[decorado]
+# Calle de los Artesanos: casas grandes al oeste, casas chicas al este
+casas = 62.6,11,90,1,6.4,1,1,#ffffff | 62.6,2.4,90,2,6,1.15,1,#e8d8ff | 62.6,-6,90,1,6,1.1,1.2,#ffe0d0 | 77.4,11.2,-90,2,6.2,1,1.25,#d8e4ff | 77.4,3,-90,1,6,1,0.95,#f0d8f0 | 77.4,-6,-90,2,6.4,1.25,1,#ffe8c8
+antorchas = 66.4,15 | 73.6,15 | 66.4,6.6 | 73.6,6.6 | 66.4,-2 | 73.6,-2 | 66.4,-11 | 73.6,-11
+# Plaza de las Fogatas
+fogatas = 64,-21,1.2 | 76,-27,1.2
+
+[decorado]
+casas = 60.6,-31,35,2,5.4,1,1,#e0d0ff | 79.6,-17.4,-140,2,5.4,1,1.1,#ffd8e0
+columnas_bloque = 59,-16.4,3.2 | 81,-31.6,3.2
+estatuas = 66.6,-32,0 | 73.4,-32,0
+glifos = 70,-24,4,#ff9a58
+luciernagas = 70,1,6,#ffd27a | 70,-24,6,#ffb0e0
+# Barrio Alto: casas estiradas (torres) alrededor de un patio
+
+[decorado]
+casas = 99.8,-15.4,90,1,6,1,1.5,#d8d0ff | 112.2,-15.4,-90,2,6,1,1.6,#ffe0c8 | 106,-32.6,180,1,6.6,1.3,1,#f0e0ff | 112.4,-27,-90,2,5,1,1.2,#d0e8ff
+antorchas = 101.4,-22,azul | 110.6,-22,azul | 88,-27.4 | 92,-20.6
+glifos = 106,-23,3,#36d6ff
+# islote
+escombros = 47,-23,0.7
+# Calle de los Guerreros: más cerrada, casas altas y oscuras
+
+[decorado]
+casas = 62.6,-39,90,2,6.4,1.2,1.35,#c8b8e8 | 62.6,-48,90,1,6.2,1,1.3,#d8c0d8 | 62.6,-57.4,90,2,6,1.1,1.5,#b8c0f0 | 77.4,-39.4,-90,1,6.4,1.05,1.1,#e8c8d0 | 77.4,-48.6,-90,2,6.2,1.3,1.4,#c0b0e0 | 77.4,-57.6,-90,1,6,1,1.35,#d0c8ff
+antorchas = 66.4,-36,azul | 73.6,-36,azul | 66.4,-44.4 | 73.6,-44.4 | 66.4,-53 | 73.6,-53 | 66.4,-61.6,azul | 73.6,-61.6,azul
+luciernagas = 70,-49,6,#b0a0ff
+# Gran puente
+
+[decorado]
+antorchas = 66.4,-66 | 73.6,-66 | 66.4,-71 | 73.6,-71 | 66.4,-76 | 73.6,-76
+cascadas = 65.5,-70,-90,5 | 74.5,-72,90,5 | 57,-8,-90,4 | 83,6,90,4 | 57,-44,-90,4 | 116,-24,90,5 | 53,-90,-90,5 | 87,-90,90,5
+# Plaza del Regente
+casas = 57.6,-84,90,1,6.4,1,1.2,#e8d8ff | 82.4,-84,-90,1,6.4,1,1.2,#ffe0d8 | 57.6,-95,90,2,6,1.2,1.3,#d0c8f0 | 82.4,-95,-90,2,6,1.2,1.3,#f0d0e8
+fogatas = 63,-98,1.3 | 77,-98,1.3
+
+[decorado]
+antorchas = 64.6,-80.4,azul | 75.4,-80.4,azul | 62.4,-90 | 77.6,-90
+estatuas = 65.6,-100.6,0 | 74.4,-100.6,0
+glifos = 70,-90,5,#ffc94a
+luciernagas = 70,-90,8,#ffd27a
+rayos = 70,-90,3.4
+pasto = 63,18 | 77,25 | 64.4,-28 | 75,-20 | 104,-20 | 108,-28 | 60,-88 | 80,-92
+
+# ───────────── CARTAS (comunes y raras, de la Ciudadela del Regente) ─────────────
+[carta:vigilante]
+x = 5.4
+z = -6
+carta = Vigilante Águila
+
+[carta:tenochtitlan]
+x = -2.6
+z = -12.6
+carta = La Gran Tenochtitlán
+
+[carta:cuauh]
+x = 4.6
+z = -36
+carta = Cuauh-Tzin, Vigilante Ancestral del Tiempo
+
+[carta:ixchell]
+x = 66
+z = 20
+carta = Ixchell, Defensora Águila
+
+[carta:guardian]
+x = 72.6
+z = 9
+carta = Guardián Jaguar
+
+[carta:ritual]
+x = 67.4
+z = -7.4
+carta = Ritual Pixqui
+
+[carta:citlali]
+x = 75
+z = -21
+carta = Citlali, Defensora Arcano
+
+[carta:tigre]
+x = 62
+z = -26.4
+carta = EX-Pada Reencarnada, Tigre
+
+[carta:elena]
+x = 104
+z = -17
+carta = Elena Belmondo
+
+[carta:resurreccion]
+x = 108.6
+z = -30
+carta = Resurrección de Ex-Padaz
+
+[carta:colonizacion]
+x = 72.8
+z = -41.6
+carta = Colonización
+
+[carta:leon]
+x = 67.2
+z = -52.6
+carta = EX-Pada Reencarnada, León
+
+[carta:idolos]
+x = 71.4
+z = -69
+carta = Destrucción de Ídolos
+
+[carta:reencarnacion]
+x = 63.6
+z = -87
+carta = Ritual de Reencarnación
+
+[carta:micte]
+x = 76.4
+z = -87
+carta = Micté, Guía del Mictlán
+
+[carta:koatl]
+x = 70
+z = -96.4
+carta = Koatl, El Defensor
+
+# ───────────── COFRES ─────────────
+[objeto:cofre_oeste]
+x = -16.6
+z = -9.8
+giro = 90
+objeto = carta_piramide
+
+[objeto:cofre_umbral]
+x = 7
+z = -40.6
+giro = -90
+objeto = idolo_jade
+
+[objeto:cofre_atrio]
+x = 77
+z = 24.6
+giro = -90
+objeto = bolsa_monedas
+
+[objeto:cofre_islote]
+x = 47.6
+z = -25
+giro = 90
+objeto = sello_regente
+
+[objeto:cofre_barrio]
+x = 106
+z = -27.6
+giro = 180
+objeto = carta_ciudadela
+
+[objeto:cofre_guerreros]
+x = 76
+z = -62.6
+giro = -90
+objeto = bolsa_monedas
+
+[objeto:cofre_plaza]
+x = 84.4
+z = -89.6
+giro = -90
+objeto = sello_regente
+
+# ───────────── ÁNIMAS ─────────────
+[npc:peregrino]
+nombre = Peregrino del Vórtice
+titulo = Rival de las calles
+x = -3.4
+z = -8
+radio = 1.8
+color = #9fefff
+baraja = nxr_aldo
+dificultad = auto
+monedas = 65
+entrada = Pocos salen de la Pirámide con la mirada tranquila. ¿Seguro que estás listo para la Ciudadela?
+victoria = Sí… estás listo.
+derrota = Aún te pesa el vórtice.
+revancha = ¿Otra vuelta al remolino?
+
+[npc:vigia]
+nombre = Vigía del Remolino
+titulo = Guardián del portal cian
+x = -4.4
+z = -36
+radio = 1
+color = #36d6ff
+baraja = nxr_ballerina
+dificultad = auto
+monedas = 70
+entrada = Este portal baja directo a las calles de la Ciudadela. Solo se enciende si me vences.
+victoria = El remolino te deja pasar. Abajo te espera la ciudad del Regente.
+derrota = El portal sigue dormido.
+revancha = ¿Vienes a probarte otra vez ante el remolino?
+
+[npc:artesana]
+nombre = Artesana de Jade
+titulo = Rival de las calles
+x = 66.6
+z = 2.4
+radio = 1.6
+color = #2fe0c0
+baraja = nxr_roboto
+dificultad = auto
+monedas = 70
+entrada = Cada pieza que tallo guarda una jugada. ¿Quieres ver cuál guarda la tuya?
+victoria = Una jugada limpia. Te tallaré un recuerdo.
+derrota = Tu jugada quedó en bruto.
+revancha = ¿Otra pieza por tallar?
+
+[npc:fogonero]
+nombre = Guardián de las Fogatas
+titulo = Rival de las calles
+x = 72.6
+z = -27.6
+radio = 1.8
+color = #ff9a58
+baraja = nxr_infernity
+dificultad = auto
+monedas = 75
+entrada = Las fogatas de esta plaza no se apagan nunca. A ver si tu baraja arde igual.
+victoria = ¡Qué fuego! La plaza es tuya.
+derrota = Te quemaste, viajero.
+revancha = ¿Otra vez al fuego?
+
+[npc:erudita]
+nombre = Erudita del Barrio Alto
+titulo = Rival de las calles
+x = 103.6
+z = -25.6
+radio = 1.6
+color = #b06bff
+baraja = nxr_herman
+dificultad = auto
+monedas = 75
+entrada = Desde aquí arriba se ve toda Nexotlan… y a todos los que suben. ¿Jugamos?
+victoria = Bien visto. Tienes buen ojo.
+derrota = Desde aquí vi venir cada jugada.
+revancha = ¿Subes otra vez?
+
+[npc:capitan]
+nombre = Capitán de la Guardia
+titulo = Rival de las calles
+# Tapa la Calle de los Guerreros; al vencerlo se hace a un lado
+x = 70
+z = -45
+bloquea = si
+ancho_bloqueo = 5.6
+aparta = 66.4,-40.6
+radio = 1
+color = #ff4fa3
+baraja = nxr_grandor
+dificultad = auto
+monedas = 85
+entrada = ¡Alto! Nadie cruza la Calle de los Guerreros sin el permiso de la Guardia. Gánatelo.
+victoria = Paso libre. La Guardia te saluda.
+derrota = Orden de la Guardia: regresa por donde viniste.
+revancha = ¿Otra vez ante la Guardia?
+
+[npc:heraldo]
+nombre = Heraldo del Regente
+titulo = Guardián de las calles
+x = 65.6
+z = -59
+radio = 1.2
+color = #ffc94a
+baraja = nxr_yao
+dificultad = auto
+monedas = 100
+entrada = Más allá del gran puente está la Torre del Regente. Solo cruza quien vence a su heraldo.
+victoria = La barrera cae. Koatl, el Defensor, te espera al pie de la Torre.
+derrota = El Regente no recibe a los vencidos.
+revancha = ¿Vienes a anunciarte otra vez?
+
+[barrera:puente]
+x = 70
+z = -65.4
+ancho = 9.6
+giro = 0
+rival = heraldo
+color = #ffc94a
+
+# v304 · Nextor, Guía de Nexotlan: se para al inicio de la ruta y habla solo la primera vez (texto: páginas separadas con |)
+[guia]
+x = 3
+z = 24
+texto = Estas son las Calles de la Ciudadela: el camino de la Pirámide Dimensional a la Ciudadela del Regente, en el corazón de Nexotlan. | Baja por el portal cian del vórtice; el Vigía del Remolino lo mantiene dormido hasta que lo vences. | En la ciudad, el Capitán de la Guardia cierra la Calle de los Guerreros y el Heraldo del Regente custodia el gran puente. Explora también el Barrio Alto, al este de la plaza.
+
+[salida:sur]
+x = 0
+z = 28
+a = piramide
+texto = Pirámide Dimensional
+
+[salida:norte]
+x = 70
+z = -101
+a = ciudadela
+texto = Ciudadela del Regente

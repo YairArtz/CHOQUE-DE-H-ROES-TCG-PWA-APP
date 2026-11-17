@@ -2352,6 +2352,9 @@ async function cargarTramo(id) {
   def.piramides = secs.filter(s => s._sec === 'piramide').map(s => ({ x: num(s.x, 0), z: num(s.z, 0), ancho: num(s.ancho, 30), niveles: num(s.niveles, 6), alto: num(s.alto, 2.6), escalera: num(s.escalera, 6), color: s.color || '', tierra: s.tierra || '' }));
   // v304 · [guia] Nextor, Guía de Nexotlan: x, z y texto (páginas separadas con |)
   def.guia = (g => g ? { x: num(g.x, 0), z: num(g.z, 0), paginas: String(g.texto || '').split('|').map(x => x.trim()).filter(Boolean) } : null)(secs.find(s => s._sec === 'guia'));
+  // v321 · [koatl] x, z, saludo (pág | pág), consejos (uno al azar cada vez | …), regalo (id de objetos.txt que te da la primera vez en esta ruta)
+  const pp = t => String(t || '').split('|').map(x => x.trim()).filter(Boolean);
+  def.koatl = (g => g ? { x: num(g.x, 0), z: num(g.z, 0), saludo: pp(g.saludo), consejos: pp(g.consejos), regalo: String(g.regalo || '').trim() } : null)(secs.find(s => s._sec === 'koatl'));
   // v307 · [coliseo] x, z (centro), radio_x, radio_z, niveles, alto (de cada piso), arcos (por piso), puerta (ángulo de la puerta grande), neon = #c1,#c2,#c3
   def.coliseo = (c => c ? { x: num(c.x, 0), z: num(c.z, 0), radio_x: num(c.radio_x, 40), radio_z: num(c.radio_z, 32), niveles: num(c.niveles, 3), alto: num(c.alto, 6.5),
     arcos: num(c.arcos, 56), puerta: num(c.puerta, 90), neon: String(c.neon || '#ff4fd8,#36d6ff,#ffb347'), color: String(c.color || '#d9d0c2').trim(), zona: String(c.zona || '').trim() } : null)(secs.find(s => s._sec === 'coliseo'));
@@ -2385,6 +2388,22 @@ window.reiniciarTramo = function (id) {
 };
 function cartasTramo(def) { const e = estTramo(def.id); return { tot: def.cartas.length, ya: def.cartas.filter(c => e.c[c.id]).length }; }
 function imgUrl(f, sub) { const c = candidatos(f, sub)[0] || ''; return c; }
+// v321 · KOATL: lo conociste en la Fortaleza de Cristal; desde las rutas del Coliseo aparece a mitad del camino.
+//        La primera vez en cada ruta te saluda solo al verte y te da el regalo de la ruta; las demás, un consejo
+//        y (una vez por día de juego) unas monedas. Siempre te marca las cartas y cofres que faltan.
+const KOATL_SALUDO = ['¡Eh, eres tú! Desde la Fortaleza de Cristal no nos veíamos.', 'Te estuve siguiendo el rastro. Toma esto, te va a servir.'];
+function koatlPags(def, e) {
+  const k = def.koatl, c = k.consejos.length ? k.consejos[Math.floor(Math.random() * k.consejos.length)] : 'Sigue adelante, yo cuido tu espalda.';
+  const hoy = S.koatlDia !== S.dia ? ' Y hoy traigo algo para ti.' : '';
+  return [c + hoy, 'Marqué con energía las cartas y cofres que te faltan en esta ruta.'];
+}
+function koatlJSON(def, e) {
+  const k = def.koatl, primera = !e.koatl, ob = OBJ[k.regalo];
+  const pags = primera ? (k.saludo.length ? k.saludo : KOATL_SALUDO).concat(ob ? ['Te traje esto: ' + (ob.nombre || k.regalo) + '.'] : [], ['Marqué con energía las cartas y cofres que te faltan en esta ruta.']) : koatlPags(def, e);
+  return { id: 'koatl', x: k.x, z: k.z, auto: primera, al_acercar: primera, senala: true, paginas: pags, ruta: koatlPags(def, e),
+    nombre: 'Koatl · El Defensor', txt: 'Hablar con Koatl', color: '#8fe3a0', escala: +(CFG.tramo_koatl_escala || 2.3),
+    modelo: (m => m.includes('/') ? m : 'assets/nexotlan/personajes/' + m)(String(CFG.tramo_koatl_modelo || 'koatl_chibi.glb').trim()) };
+}
 // v304 · lo que Nextor explica la primera vez que entras a una ruta (se cambia en mapa.txt con tramo_guia_intro = pág | pág | …)
 const GUIA_INTRO = '¡Bienvenido, viajero! Soy Nextor, guía de Nexotlan. Estás en una RUTA: un camino que une dos distritos a través del vacío del multiverso. | En las rutas hay cartas tiradas y cofres. Las cartas van a tu colección y los cofres guardan objetos para tu mochila. Arriba a la derecha llevas la cuenta. | Las Ánimas que encuentres te retarán a un Choque. Algunas te cierran el paso o resguardan barreras: véncelas para seguir avanzando. | Puedes ajustar tu baraja cuando quieras con el botón BARAJA. Y si tienes dudas, búscame al inicio de cada ruta.';
 async function abrirTramo(id) {
@@ -2419,6 +2438,7 @@ async function abrirTramo(id) {
     exhibir: { cartas: String(h.exhibir_cartas || '').split('|').map(x => x.trim()).filter(Boolean), micas: String(h.exhibir_micas || '').split('|').map(x => x.trim()).filter(Boolean),
       playmats: String(h.exhibir_playmats || '').split('|').map(x => x.trim()).filter(Boolean) },
     post: e.post || null,
+    koatl: def.koatl ? koatlJSON(def, e) : null,
     guia: def.guia ? (() => {      // v304 · la primera vez en una ruta Nextor habla solo; la primera ruta de todas, además explica qué son las rutas
       const intro = String(CFG.tramo_guia_intro || GUIA_INTRO).split('|').map(x => x.trim()).filter(Boolean);
       const auto = !e.guia, pags = (auto && !(S.guiaIntro) ? intro : []).concat(def.guia.paginas);
@@ -2497,7 +2517,27 @@ window.nxTramoEvento = async function (s) {
       tramoPausa(false); break;
     }
     case 'guia_visto': {      // v304 · ya escuchó a Nextor en esta ruta
+      if (ev.id === 'koatl') break;
       e.guia = 1; S.guiaIntro = 1; guardar(); break;
+    }
+    case 'guia_fin': {      // v321 · terminaste de hablar con Koatl: la primera vez en la ruta te da su regalo; luego, unas monedas una vez por día
+      if (ev.id !== 'koatl' || !def.koatl) break;
+      if (!e.koatl) {
+        e.koatl = 1; S.koatlDia = S.dia;
+        const ob = OBJ[def.koatl.regalo];
+        if (ob) {
+          S.objetos = S.objetos || {}; S.objetos[def.koatl.regalo] = (S.objetos[def.koatl.regalo] || 0) + 1; guardar();
+          tramoPausa(true);
+          await mensaje('🎁 REGALO DE KOATL', `<div style="font-size:54px;line-height:1">${esc(ob.icono || '🎁')}</div><b style="font-size:18px">${esc(ob.nombre || def.koatl.regalo)}</b><br><span style="color:var(--muted)">${esc(ob.descripcion || '')}</span><br><br>Lo guardaste en tu mochila.`);
+          tramoPausa(false);
+        } else guardar();
+      } else if (S.koatlDia !== S.dia) {
+        const n = 20 + Math.floor(Math.random() * 21);
+        S.koatlDia = S.dia; S.monedas = (S.monedas || 0) + n; guardar(); pintarHud();
+        tramoAviso({ tipo: 'hud', monedas: S.monedas }); tramoAviso({ tipo: 'toast', txt: '🪙 Koatl te dio ' + n + ' monedas' });
+      }
+      tramoAviso({ tipo: 'guia_pags', id: 'koatl', pags: koatlPags(def, e) });
+      break;
     }
     case 'baraja': {      // v294 · editar la baraja sin salir del tramo
       tramoPausa(true); window._volverTramo = VOLVER; VOLVER = 'sTramo'; abrirMazo(); break;

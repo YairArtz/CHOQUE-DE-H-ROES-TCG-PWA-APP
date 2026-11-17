@@ -3484,7 +3484,8 @@ function ropaJSON(puesto) {
   return { mascaras: /^assets\//.test(dirM) ? dirM : DIR + dirM, lum: String(m.tono || '').split(',').map(x => +x.trim()).filter(x => isFinite(x) && x > 0),
     interior: num(m.interior, 0.45), capa: col('capa'), pecho: col('pecho'), pant: col('pant'), zap: col('zap'), ojos: col('ojos'),
     est_pecho: est('e_pecho'), est_espalda: est('e_espalda'), est_hombro: est('e_hombro'),
-    est_capa: est('e_capa'), capa_rep: (it => it ? it.repetir : 1)(modItem(pu.e_capa)) };
+    est_capa: est('e_capa'), capa_rep: (it => it ? it.repetir : 1)(modItem(pu.e_capa)),
+    capa_capucha: (it => !it || !/^(no|0|false)$/i.test(String(it.capucha || 'si').trim()))(modItem(pu.e_capa)) };
 }
 function modVista() { if (!MODV.listo) return; try { $('mdFrame').contentWindow.nxGodot(JSON.stringify({ tipo: 'ropa', ropa: ropaJSON(MODV.prueba) })); } catch (e) {} }
 function modPendientes() { const r = ropaEst(); return Object.keys(MODV.prueba).map(k => modItem(MODV.prueba[k])).filter(it => it && !r.tiene[it.id] && it.precio > 0); }

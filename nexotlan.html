@@ -4249,10 +4249,13 @@ window.nxPaso = function (sup) {
   }
   if (sup === 'trueno') {   // v299 · trueno lejano (sintetizado)
     try { const c = _ctxM = _ctxM || new (window.AudioContext || window.webkitAudioContext)(); if (c.state === 'suspended') c.resume();
-      const t0 = c.currentTime, n = c.sampleRate * 2.4, b = c.createBuffer(1, n, c.sampleRate), d = b.getChannelData(0); let u = 0;
-      for (let i = 0; i < n; i++) { u = (u + 0.02 * (Math.random() * 2 - 1)) / 1.02; d[i] = u * 3.5 * Math.exp(-i / (c.sampleRate * 0.7)) * (1 + 0.6 * Math.sin(i / 2300)); }
+      const t0 = c.currentTime;
+      if (!window._nxTruenos) { window._nxTruenos = [];      // v314 · los truenos se generan una sola vez (antes se calculaban en cada relámpago)
+        for (let k = 0; k < 3; k++) { const n = Math.floor(c.sampleRate * 2.4), b = c.createBuffer(1, n, c.sampleRate), d = b.getChannelData(0); let u = 0;
+          for (let i = 0; i < n; i++) { u = (u + 0.02 * (Math.random() * 2 - 1)) / 1.02; d[i] = u * 3.5 * Math.exp(-i / (c.sampleRate * 0.7)) * (1 + 0.6 * Math.sin(i / (2000 + k * 300))); }
+          window._nxTruenos.push(b); } }
       const src = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
-      src.buffer = b; f.type = 'lowpass'; f.frequency.value = 220; g.gain.value = 1.0 * (+CFG.volumen_pasos || 1);
+      src.buffer = window._nxTruenos[Math.floor(Math.random() * 3)]; src.playbackRate.value = 0.85 + Math.random() * 0.3; f.type = 'lowpass'; f.frequency.value = 220; g.gain.value = 1.0 * (+CFG.volumen_pasos || 1);
       src.connect(f).connect(g).connect(c.destination); src.start(t0);
     } catch (e) {} return;
   }

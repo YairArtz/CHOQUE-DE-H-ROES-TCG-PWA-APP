@@ -624,6 +624,28 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 /* ═══ v278 · COMERCIANTE y CARPETERO en tres columnas (como la Tienda Digital en PC): menú · contenido · personaje ═══ */
 .tdx{background:radial-gradient(ellipse at 70% 20%,rgba(54,214,255,.08),transparent 60%),var(--bg)}
 .tdx-cuerpo{flex:1;min-height:0;display:grid;grid-template-columns:clamp(160px,19%,250px) minmax(0,1fr) clamp(170px,25%,340px);gap:clamp(8px,1.2vw,16px);padding:clamp(8px,calc(1.6 * var(--uh)),16px)}
+.mdx .tdx-cuerpo{grid-template-columns:clamp(140px,17%,220px) minmax(0,1fr) clamp(230px,38%,560px)}
+.mdx-vista{display:flex;flex-direction:column;background:#090d24}
+.mdx-vista::before{display:none}
+.mdx-vista iframe{flex:1;min-height:0;width:100%;border:0;display:block;background:#090d24}
+.mdx-carga{position:absolute;left:0;right:0;top:40%;text-align:center;font-family:'Orbitron',monospace;font-size:11px;letter-spacing:2px;color:#8fe3ff;pointer-events:none}
+.mdx-pie{flex-shrink:0;padding:8px 10px;border-top:1px solid var(--line);background:rgba(5,10,28,.96)}
+.mdx-res{font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:600;color:var(--muted);min-height:20px;margin-bottom:6px}
+.mdx-res b{color:#ffd166}
+.mdx-bts{display:flex;gap:8px}.mdx-bts .bt{flex:1;padding:10px 6px;font-size:11px}
+.mdx-grupo{font-family:'Orbitron',monospace;font-size:10px;font-weight:900;letter-spacing:2px;color:#cc55ff;margin:12px 4px 6px}
+.mdx-ops{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px}
+.mdx-op{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 6px 8px;border-radius:12px;border:1px solid var(--line);background:rgba(10,20,48,.82);color:#fff;cursor:pointer;font-family:'Rajdhani',sans-serif}
+.mdx-op:is(:hover,:focus-visible,.gp-foco){outline:0;border-color:var(--gold)}
+.mdx-op.on{border-color:#ffd166;box-shadow:0 0 14px rgba(245,166,35,.4);background:rgba(245,166,35,.12)}
+.mdx-op i{width:46px;height:46px;border-radius:50%;border:2px solid rgba(255,255,255,.75);background:var(--c,#555) center/72% no-repeat;display:block}
+.mdx-op i.est{border-radius:10px;background-color:#39394a}
+.mdx-op i.orig{background:repeating-linear-gradient(45deg,#3a3a48 0 6px,#50505e 6px 12px)}
+.mdx-op b{font-size:14px;font-weight:700;line-height:1.05;text-align:center}
+.mdx-op small{font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:#8fe3ff}
+.mdx-op small.tuyo{color:#7dffb2}
+.mdx-op u{position:absolute;top:5px;right:6px;text-decoration:none;font-size:9px;font-family:'Orbitron',monospace;color:#1a0f00;background:#ffd166;border-radius:6px;padding:1px 5px}
+:root.h520 .mdx .tdx-cuerpo{grid-template-columns:clamp(130px,18%,190px) minmax(0,1fr) clamp(200px,36%,420px)}
 .tdx-rail{display:flex;flex-direction:column;gap:8px;min-height:0;overflow-y:auto;scrollbar-width:none}
 .tdx-rail::-webkit-scrollbar{display:none}
 .tdx-bolsa{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:1px solid rgba(245,166,35,.35);background:linear-gradient(135deg,rgba(245,166,35,.12),rgba(10,20,48,.85));flex-shrink:0}
@@ -1324,6 +1346,28 @@ window.nxTip = function () {
     </aside>
     <main class="tdx-panel"><div class="tdx-tit" id="tdTit"></div><div class="td-body" id="tdBody"></div></main>
     <aside class="tdx-pj" id="tdBanda"></aside>
+  </div>
+</section>
+<!-- ══════ v317 · LA MODISTA (vestidor con vista previa 3D) ══════ -->
+<section class="scr tdx mdx" id="sModista">
+  <div class="hud">
+    <button class="nx-back" id="mdSalir" aria-label="Volver" title="Volver"></button>
+    <div class="nx-tit">VESTIDOR</div>
+    <div class="h-sp"></div>
+    <div class="mon" id="mdMon"><i class="mn"></i> 0</div>
+  </div>
+  <div class="tdx-cuerpo">
+    <aside class="tdx-rail">
+      <div class="tdx-bolsa"><i class="mn"></i><span><b id="mdMon2">0</b><small>MONEDAS</small></span></div>
+      <div class="td-tabs" id="mdTabs"></div>
+    </aside>
+    <main class="tdx-panel"><div class="tdx-tit" id="mdTit"></div><div class="td-body" id="mdBody"></div></main>
+    <aside class="tdx-pj mdx-vista">
+      <iframe id="mdFrame" title="Vista previa" allow="autoplay" src="about:blank"></iframe>
+      <div class="mdx-carga" id="mdCarga">Preparando el vestidor…</div>
+      <div class="mdx-pie"><div class="mdx-res" id="mdRes"></div>
+        <div class="mdx-bts"><button class="bt sec" id="mdQuitar">↺ QUITAR CAMBIOS</button><button class="bt gold" id="mdOk">PONERME ESTO</button></div></div>
+    </aside>
   </div>
 </section>
 <!-- ══════ CARPETERO (ruleta de cambio de cartas) ══════ -->
@@ -2346,6 +2390,7 @@ async function abrirTramo(id) {
     reverso: String(h.reverso || CFG.tramo_reverso || 'img/simulacion/reverso.jpg').trim(),
     jugador_modelo: (m => m ? (m.includes('/') ? m : 'assets/nexotlan/personajes/' + m) : '')(String(h.modelo || CFG.tramo_modelo || '').trim()),
     jugador_escala: +(h.modelo_escala || CFG.tramo_modelo_escala || 1.6),
+    ropa: ropaJSON(),
     jugador_img: String(h.jugador || CFG.tramo_jugador || '').trim() ? imgUrl(String(h.jugador || CFG.tramo_jugador).trim(), 'personajes') : '',
     inicio: (h.inicio || '0,0').split(',').map(Number), pos: e.pos || null,
     camino: def.camino, plataformas: def.plataformas, decorado: def.decorado,
@@ -2413,6 +2458,7 @@ function cerrarTramo(dist) {
 }
 window.nxTramoEvento = async function (s) {
   let ev; try { ev = JSON.parse(s); } catch (e) { return; }
+  if (MODV.abierto) { if (ev.tipo === 'listo') { MODV.listo = true; $('mdCarga').style.display = 'none'; modVista(); } return; }
   if (!TRAMO) return;
   const def = TRAMO.def, e = estTramo(TRAMO.id);
   if (ev.pos) e.pos = ev.pos;
@@ -2585,6 +2631,7 @@ async function abrirFicha(id) {
   if (bloq) chips.push(`<span class="chip no">🔒 Antes vence a: ${esc(nombresReq(p._req.filter(r => !vencido(r))))}</span>`);
   let btns = '';
   if (esComerciante(p)) btns = `<button class="bt gold" id="fTienda">🛒 TIENDA</button><button class="bt sec" id="fHablar">💬 HABLAR</button>`;
+  else if (esModista(p)) btns = `<button class="bt gold" id="fVestir">👗 VESTIDOR</button><button class="bt sec" id="fHablar">💬 HABLAR</button>`;
   else if (esCarpetero(p)) btns = `<button class="bt gold" id="fRuleta">🎰 RULETA</button><button class="bt sec" id="fHablar">💬 HABLAR</button>`;
   else if (p.tipo === 'heroe') btns = `<button class="bt" id="fHablar">💬 HABLAR</button>`;
   else btns = `<button class="bt ${p.tipo === 'guardian' ? 'red' : 'gold'}" id="fRetar" ${bloq ? 'disabled' : ''}>${tieneFase2(p) && enFase2(p) && !reiniciaFase2(p) ? '☠ ' + esc((p.fase2_etiqueta || '2ª forma').toUpperCase()) : '⚔ ' + (v ? 'REVANCHA' : 'RETAR')}</button><button class="bt sec" id="fHablar">💬 HABLAR</button>`;
@@ -2599,7 +2646,8 @@ async function abrirFicha(id) {
   if (r) r.onclick = () => retar(p);
   if ($('fTienda')) $('fTienda').onclick = () => abrirTienda(p);
   if ($('fRuleta')) $('fRuleta').onclick = () => abrirCarpeta(p);
-  try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('fTienda') || $('fRuleta') || (r && !r.disabled ? r : h)), 60); } catch (e) {}
+  if ($('fVestir')) $('fVestir').onclick = () => abrirModista(p);
+  try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('fTienda') || $('fVestir') || $('fRuleta') || (r && !r.disabled ? r : h)), 60); } catch (e) {}
 }
 function cerrarFicha() { $('ficha').classList.remove('on'); SEL = null; document.querySelectorAll('.pt.sel').forEach(b => b.classList.remove('sel')); }
 $('fX').onclick = cerrarFicha;
@@ -3331,6 +3379,99 @@ async function comprarSobre(sb) {
   $('mSobre').classList.remove('on'); pintarTienda();
 }
 $('tdSalir').onclick = salirTienda;
+
+// ════════════════ v317 · LA MODISTA (assets/nexotlan/modista.txt) ════════════════
+// Colores para capa, chamarra, pantalón, zapatos y ojos + estampados (pecho, espalda de la capa y hombro).
+// En el vestidor todo se puede PROBAR sobre el modelo 3D; solo se cobra al confirmar lo que no se tenía.
+// Partida: S.ropa = { tiene: { id: 1 }, puesto: { capa, pecho, pant, zap, ojos, e_pecho, e_espalda, e_hombro } }  ('' = original)
+let MOD = { cfg: {}, modelo: {}, items: [] };
+const MODV = { abierto: false, listo: false, prueba: {}, tab: 'capa' };
+const MOD_ZONA = { capa: 'capa', pecho: 'pecho', chamarra: 'pecho', pantalon: 'pant', 'pantalón': 'pant', pant: 'pant', zapatos: 'zap', zap: 'zap', ojos: 'ojos' };
+const MOD_TABS = [['capa', '🧥', 'CAPA', 'Y capucha'], ['pecho', '👕', 'CHAMARRA', 'Color del pecho'], ['pant', '👖', 'PANTALÓN', 'Color'], ['zap', '👟', 'ZAPATOS', 'Color'], ['ojos', '👁', 'OJOS', 'Color'], ['est', '✨', 'ESTAMPADOS', 'Pecho, capa y hombro']];
+const MOD_EST = [['e_pecho', 'PECHO'], ['e_espalda', 'ESPALDA DE LA CAPA'], ['e_hombro', 'HOMBRO']];
+function parseMod(txt) {
+  const out = { cfg: {}, modelo: {}, items: [] }; let cur = null;
+  String(txt || '').replace(/\r/g, '').split('\n').forEach(l => {
+    const t = l.trim(); if (!t || t.startsWith('#') || t.startsWith(';')) return;
+    const h = t.match(/^\[(.+)\]$/);
+    if (h) { const [a, id] = h[1].split(':').map(x => x.trim()), tipo = a.toLowerCase();
+      cur = tipo === 'modista' ? out.cfg : tipo === 'modelo' ? out.modelo : (tipo === 'color' || tipo === 'estampado') && id ? { id, tipo } : null;
+      if (cur && cur.tipo) out.items.push(cur); return; }
+    const i = t.indexOf('='); if (i < 0 || !cur) return;
+    cur[t.slice(0, i).trim().toLowerCase()] = t.slice(i + 1).trim();
+  });
+  out.items.forEach(x => { const z = String(x.zona || '').toLowerCase();
+    x.slot = x.tipo === 'color' ? (MOD_ZONA[z] || '') : (['pecho', 'espalda', 'hombro'].includes(z) ? 'e_' + z : '');
+    x.precio = Math.max(0, parseInt(x.precio, 10) || 0);
+    if (x.tipo === 'estampado') x.url = x.imagen ? (/\//.test(x.imagen) ? x.imagen.replace(/^\.?\//, '') : DIR + 'personajes/ropa/estampados/' + x.imagen) : ''; });
+  out.items = out.items.filter(x => x.slot && (x.tipo === 'color' ? /^#[0-9a-f]{6}$/i.test(x.color || '') : x.url));
+  return out;
+}
+const esModista = p => p && p.tipo === 'heroe' && MOD.cfg.punto && p.id === MOD.cfg.punto;
+function ropaEst() { S.ropa = S.ropa || {}; S.ropa.tiene = S.ropa.tiene || {}; S.ropa.puesto = S.ropa.puesto || {}; return S.ropa; }
+const modItem = id => MOD.items.find(x => x.id === id);
+// Lo que se le manda al motor 3D: colores por zona, estampados y las máscaras del modelo
+function ropaJSON(puesto) {
+  if (!MOD.items.length) return null;
+  const pu = puesto || (S && S.ropa && S.ropa.puesto) || {}, m = MOD.modelo;
+  const col = k => { const it = modItem(pu[k]); return it && it.tipo === 'color' ? it.color : ''; };
+  const est = k => { const it = modItem(pu[k]); return it && it.tipo === 'estampado' ? it.url : ''; };
+  const dirM = String(m.mascaras || 'personajes/ropa/').replace(/^\.?\//, '');
+  return { mascaras: /^assets\//.test(dirM) ? dirM : DIR + dirM, lum: String(m.tono || '').split(',').map(x => +x.trim()).filter(x => isFinite(x) && x > 0),
+    interior: num(m.interior, 0.45), capa: col('capa'), pecho: col('pecho'), pant: col('pant'), zap: col('zap'), ojos: col('ojos'),
+    est_pecho: est('e_pecho'), est_espalda: est('e_espalda'), est_hombro: est('e_hombro') };
+}
+function modVista() { if (!MODV.listo) return; try { $('mdFrame').contentWindow.nxGodot(JSON.stringify({ tipo: 'ropa', ropa: ropaJSON(MODV.prueba) })); } catch (e) {} }
+function modPendientes() { const r = ropaEst(); return Object.keys(MODV.prueba).map(k => modItem(MODV.prueba[k])).filter(it => it && !r.tiene[it.id] && it.precio > 0); }
+function modCambio() { const pu = ropaEst().puesto; return ['capa', 'pecho', 'pant', 'zap', 'ojos', 'e_pecho', 'e_espalda', 'e_hombro'].some(k => (MODV.prueba[k] || '') !== (pu[k] || '')); }
+function pintarModista() {
+  const r = ropaEst(), t = MODV.tab;
+  $('mdMon').innerHTML = '<i class="mn"></i> ' + (S.monedas || 0); $('mdMon2').textContent = S.monedas || 0;
+  $('mdTabs').innerHTML = MOD_TABS.map(x => `<button class="${x[0] === t ? 'on' : ''}" data-t="${x[0]}"><em>${x[1]}</em><span>${x[2]}<small>${x[3]}</small></span></button>`).join('');
+  $('mdTabs').querySelectorAll('button').forEach(b => b.onclick = () => { MODV.tab = b.dataset.t; pintarModista(); });
+  const grupo = (slot, tit) => {
+    const ops = MOD.items.filter(x => x.slot === slot), sel = MODV.prueba[slot] || '';
+    const op = it => { const tuyo = !it || r.tiene[it.id] || !it.precio, pu = (r.puesto[slot] || '') === (it ? it.id : '');
+      const ico = !it ? '<i class="orig"></i>' : it.tipo === 'color' ? `<i style="--c:${esc(it.color)}"></i>` : `<i class="est" style="background-image:url('${esc(it.url)}')"></i>`;
+      return `<button class="mdx-op ${sel === (it ? it.id : '') ? 'on' : ''}" data-s="${slot}" data-id="${it ? esc(it.id) : ''}">${pu ? '<u>PUESTO</u>' : ''}${ico}<b>${esc(it ? it.nombre || it.id : 'Original')}</b>${tuyo ? '<small class="tuyo">' + (it ? 'TUYO' : 'SIEMPRE') + '</small>' : '<small>🪙 ' + it.precio + '</small>'}</button>`; };
+    return (tit ? `<div class="mdx-grupo">${tit}</div>` : '') + `<div class="mdx-ops">${op(null)}${ops.map(op).join('')}</div>`;
+  };
+  $('mdTit').textContent = (MOD_TABS.find(x => x[0] === t) || [])[2] || '';
+  $('mdBody').innerHTML = t === 'est' ? MOD_EST.map(e => grupo(e[0], e[1])).join('') : grupo(t, '');
+  $('mdBody').querySelectorAll('.mdx-op').forEach(b => b.onclick = () => { MODV.prueba[b.dataset.s] = b.dataset.id; modVista(); pintarModista(); });
+  const pend = modPendientes(), total = pend.reduce((a, x) => a + x.precio, 0), cambio = modCambio();
+  $('mdRes').innerHTML = !cambio ? 'Toca una opción para probártela.' : pend.length ? `Por pagar: <b>🪙 ${total}</b> · ${pend.map(x => esc(x.nombre || x.id)).join(', ')}` : 'Ya es tuyo: póntelo sin pagar.';
+  $('mdOk').textContent = pend.length ? 'COMPRAR · 🪙 ' + total : 'PONERME ESTO'; $('mdOk').disabled = !cambio || total > (S.monedas || 0);
+  if (pend.length && total > (S.monedas || 0)) $('mdRes').innerHTML += ' <span style="color:#ff6b6b">Te faltan monedas.</span>';
+  $('mdQuitar').disabled = !cambio;
+}
+function abrirModista(p) {
+  cerrarFicha(); if (!MOD.items.length) { toast('⚠ No se pudo leer modista.txt'); return; }
+  if (p) { S.encontrados = S.encontrados || {}; S.encontrados[p.id] = 1; }
+  const r = ropaEst(); MODV.prueba = Object.assign({}, r.puesto); MODV.abierto = true; MODV.listo = false; MODV.tab = 'capa';
+  const T = DIR + 'tramos/texturas/';
+  window.NX_TRAMO_JSON = JSON.stringify({ id: 'vestidor', modo: 'vestidor', nombre: 'Vestidor', jugador: { nombre: S.nombre || 'Jugador', avatar: '', monedas: S.monedas || 0 },
+    colores: { abismo: '#090d24', niebla: '#1a1440', ambiente: '#9a94d8', luz: '#fff0e0', contraluz: '#cc55ff', suelo: '#6a6680', borde: '#3a3850', piedra: '#7a7690', energia: '#cc55ff', cristal: '#cc55ff', tinte_abismo: '#2a1a60' },
+    texturas: { suelo: T + 'piso_archivos_textura.jpg', borde: T + 'roca_textura.jpg', piedra: T + 'tabiques_textura.jpg' }, escalas: { suelo: 3, borde: 3, piedra: 1.6 }, brillos: {},
+    brillo_sol: 0.62, bruma_bordes: 'no', inicio: [0, 0], camino: [], decorado: {},
+    plataformas: [{ id: 'pedestal', x: 0, z: 0, ancho: 5.4, largo: 5.4, forma: 'oval', alto: 0, estilo: 'torre', adorno: 'columna' }],
+    jugador_modelo: (m => m ? (m.includes('/') ? m : 'assets/nexotlan/personajes/' + m) : '')(String(CFG.tramo_modelo || '').trim()), jugador_escala: +(CFG.tramo_modelo_escala || 1.6),
+    ropa: ropaJSON(MODV.prueba) });
+  $('mdCarga').style.display = ''; $('mdFrame').src = 'tramo/index.html?t=vestidor&v=' + (CFG.tramo_version || '1');
+  irA('sModista'); pintarModista();
+  try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('mdBody').querySelector('button') || $('mdSalir')), 60); } catch (e) {}
+}
+function salirModista() { MODV.abierto = false; MODV.listo = false; $('mdFrame').src = 'about:blank'; guardar(); volver(); }
+$('mdSalir').onclick = salirModista;
+$('mdQuitar').onclick = () => { MODV.prueba = Object.assign({}, ropaEst().puesto); modVista(); pintarModista(); };
+$('mdOk').onclick = async () => {
+  const r = ropaEst(), pend = modPendientes(), total = pend.reduce((a, x) => a + x.precio, 0);
+  if (total > (S.monedas || 0)) return;
+  if (pend.length && await mensaje('👗 ¿LLEVARLO?', `Vas a comprar <b>${pend.map(x => esc(x.nombre || x.id)).join(', ')}</b> por <b>🪙 ${total}</b>.<br>Queda en tu guardarropa para siempre.`, [['COMPRAR', 'gold'], ['CANCELAR', 'sec']]) !== 0) return;
+  if (pend.length) { S.monedas -= total; try { sonMonedas(); } catch (e) {} pend.forEach(x => r.tiene[x.id] = 1); }
+  ['capa', 'pecho', 'pant', 'zap', 'ojos', 'e_pecho', 'e_espalda', 'e_hombro'].forEach(k => { if (MODV.prueba[k]) r.puesto[k] = MODV.prueba[k]; else delete r.puesto[k]; });
+  guardar(); pintarModista(); toast(pend.length ? '👗 ¡Estrenas ropa!' : '👗 Listo, ya lo traes puesto');
+};
 
 // ════════════════ CAJAS DE SOBRES (v195 · cajas de sobres) ════════════════
 // Cada sobre sale de una CAJA con un número fijo de copias de cada carta: Común, Rara y Joya (1 copia).
@@ -4434,6 +4575,7 @@ $('dCaja').addEventListener('click', e => { if (!e.target.closest('.d-ops')) { e
   TESTER_DLC = !!(yo && lista.includes(String(yo.id).toUpperCase()));   // v275 · DLC gratis para los testers con ID en la lista
   const [txt, data, gal, lim, com] = await Promise.allSettled([leer(DIR + 'mapa.txt'), leer('data/cartas_simulacion.json', true), leer('cartas.json', true), leer('cartas-limitadas.json', true), leer(DIR + 'comerciante.txt')]);
   if (com.status === 'fulfilled') COM = parseCom(com.value);
+  try { MOD = parseMod(await leer(DIR + 'modista.txt')); } catch (e) {}   // v317 · catálogo de la modista
   try { await cargarObjetos(); } catch (e) {}   // v281 · objetos de los tramos (mochila)
   if (lim.status === 'fulfilled') (lim.value || []).forEach(x => { if (x && x.nombre) LIM[NK(x.nombre)] = x.estado; });
   construirModelo(parseTxt(txt.status === 'fulfilled' ? txt.value : ''));

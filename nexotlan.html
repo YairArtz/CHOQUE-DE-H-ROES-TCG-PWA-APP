@@ -2445,7 +2445,7 @@ async function abrirTramo(id) {
       const sal = def.sitho.saludo.length ? def.sitho.saludo : ['Ah, viajero… Aun en el camino, el Mercado viaja conmigo. ¿Qué te llevas hoy?'];
       const pg = [sal[Math.floor(Math.random() * sal.length)]];
       return { id: 'sitho', x: def.sitho.x, z: def.sitho.z, auto: false, paginas: pg, ruta: pg, tienda: true, espiritu: true, aura: '#2ef0d0',
-        nombre: 'Doctor Sitho · Mercader de recuerdos', txt: 'Hablar con el Doctor Sitho', color: '#5ff5df', escala: +(CFG.tramo_sitho_escala || 2.2),
+        nombre: 'Doctor Sitho · Mercader de recuerdos', txt: 'Hablar con el Doctor Sitho', color: '#5ff5df', escala: +(CFG.tramo_sitho_escala || 1.75),
         modelo: (m => m.includes('/') ? m : 'assets/nexotlan/personajes/' + m)(String(CFG.tramo_sitho_modelo || 'sitho.glb').trim()) };
     })() : null,
     guia: def.guia ? (() => {      // v304 · la primera vez en una ruta Nextor habla solo; la primera ruta de todas, además explica qué son las rutas
@@ -3446,12 +3446,12 @@ $('tdSalir').onclick = salirTienda;
 // ════════════════ v317 · LA MODISTA (assets/nexotlan/modista.txt) ════════════════
 // Colores para capa, chamarra, pantalón, zapatos y ojos + estampados (pecho, espalda de la capa y frente de la capucha).
 // En el vestidor todo se puede PROBAR sobre el modelo 3D; solo se cobra al confirmar lo que no se tenía.
-// Partida: S.ropa = { tiene: { id: 1 }, puesto: { capa, pecho, pant, zap, ojos, e_pecho, e_espalda, e_hombro } }  ('' = original)
+// Partida: S.ropa = { tiene: { id: 1 }, puesto: { capa, pecho, pant, zap, ojos, e_capa, e_pecho, e_espalda, e_hombro } }  ('' = original)
 let MOD = { cfg: {}, modelo: {}, items: [] };
 const MODV = { abierto: false, listo: false, prueba: {}, tab: 'capa' };
 const MOD_ZONA = { capa: 'capa', pecho: 'pecho', chamarra: 'pecho', pantalon: 'pant', 'pantalón': 'pant', pant: 'pant', zapatos: 'zap', zap: 'zap', ojos: 'ojos' };
 const MOD_TABS = [['capa', '🧥', 'CAPA', 'Y capucha'], ['pecho', '👕', 'CHAMARRA', 'Color del pecho'], ['pant', '👖', 'PANTALÓN', 'Color'], ['zap', '👟', 'ZAPATOS', 'Color'], ['ojos', '👁', 'OJOS', 'Color'], ['est', '✨', 'ESTAMPADOS', 'Pecho, capa y capucha']];
-const MOD_EST = [['e_pecho', 'PECHO'], ['e_espalda', 'ESPALDA DE LA CAPA'], ['e_hombro', 'FRENTE DE LA CAPUCHA']];   // v318 · la ranura 'hombro' ahora es la capucha (se conserva la clave interna)
+const MOD_EST = [['e_capa', 'CAPA COMPLETA'], ['e_pecho', 'PECHO'], ['e_espalda', 'ESPALDA DE LA CAPA'], ['e_hombro', 'FRENTE DE LA CAPUCHA']];   // v318 · la ranura 'hombro' ahora es la capucha (se conserva la clave interna)
 function parseMod(txt) {
   const out = { cfg: {}, modelo: {}, items: [] }; let cur = null;
   String(txt || '').replace(/\r/g, '').split('\n').forEach(l => {
@@ -3464,7 +3464,8 @@ function parseMod(txt) {
     cur[t.slice(0, i).trim().toLowerCase()] = t.slice(i + 1).trim();
   });
   out.items.forEach(x => { const z = String(x.zona || '').toLowerCase();
-    x.slot = x.tipo === 'color' ? (MOD_ZONA[z] || '') : (z === 'capucha' ? 'e_hombro' : ['pecho', 'espalda'].includes(z) ? 'e_' + z : '');
+    x.slot = x.tipo === 'color' ? (MOD_ZONA[z] || '') : (z === 'capucha' ? 'e_hombro' : ['capa_completa', 'patron', 'patrón'].includes(z) ? 'e_capa' : ['pecho', 'espalda'].includes(z) ? 'e_' + z : '');
+    x.repetir = Math.max(1, num(x.repetir, ['patron', 'patrón'].includes(z) ? 4 : 1));
     x.precio = Math.max(0, parseInt(x.precio, 10) || 0);
     if (x.tipo === 'estampado') x.url = x.imagen ? (/\//.test(x.imagen) ? x.imagen.replace(/^\.?\//, '') : DIR + 'personajes/ropa/estampados/' + x.imagen) : ''; });
   out.items = out.items.filter(x => x.slot && (x.tipo === 'color' ? /^#[0-9a-f]{6}$/i.test(x.color || '') : x.url));
@@ -3482,11 +3483,12 @@ function ropaJSON(puesto) {
   const dirM = String(m.mascaras || 'personajes/ropa/').replace(/^\.?\//, '');
   return { mascaras: /^assets\//.test(dirM) ? dirM : DIR + dirM, lum: String(m.tono || '').split(',').map(x => +x.trim()).filter(x => isFinite(x) && x > 0),
     interior: num(m.interior, 0.45), capa: col('capa'), pecho: col('pecho'), pant: col('pant'), zap: col('zap'), ojos: col('ojos'),
-    est_pecho: est('e_pecho'), est_espalda: est('e_espalda'), est_hombro: est('e_hombro') };
+    est_pecho: est('e_pecho'), est_espalda: est('e_espalda'), est_hombro: est('e_hombro'),
+    est_capa: est('e_capa'), capa_rep: (it => it ? it.repetir : 1)(modItem(pu.e_capa)) };
 }
 function modVista() { if (!MODV.listo) return; try { $('mdFrame').contentWindow.nxGodot(JSON.stringify({ tipo: 'ropa', ropa: ropaJSON(MODV.prueba) })); } catch (e) {} }
 function modPendientes() { const r = ropaEst(); return Object.keys(MODV.prueba).map(k => modItem(MODV.prueba[k])).filter(it => it && !r.tiene[it.id] && it.precio > 0); }
-function modCambio() { const pu = ropaEst().puesto; return ['capa', 'pecho', 'pant', 'zap', 'ojos', 'e_pecho', 'e_espalda', 'e_hombro'].some(k => (MODV.prueba[k] || '') !== (pu[k] || '')); }
+function modCambio() { const pu = ropaEst().puesto; return ['capa', 'pecho', 'pant', 'zap', 'ojos', 'e_capa', 'e_pecho', 'e_espalda', 'e_hombro'].some(k => (MODV.prueba[k] || '') !== (pu[k] || '')); }
 function pintarModista() {
   const r = ropaEst(), t = MODV.tab;
   $('mdMon').innerHTML = '<i class="mn"></i> ' + (S.monedas || 0); $('mdMon2').textContent = S.monedas || 0;
@@ -3532,7 +3534,7 @@ $('mdOk').onclick = async () => {
   if (total > (S.monedas || 0)) return;
   if (pend.length && await mensaje('👗 ¿LLEVARLO?', `Vas a comprar <b>${pend.map(x => esc(x.nombre || x.id)).join(', ')}</b> por <b>🪙 ${total}</b>.<br>Queda en tu guardarropa para siempre.`, [['COMPRAR', 'gold'], ['CANCELAR', 'sec']]) !== 0) return;
   if (pend.length) { S.monedas -= total; try { sonMonedas(); } catch (e) {} pend.forEach(x => r.tiene[x.id] = 1); }
-  ['capa', 'pecho', 'pant', 'zap', 'ojos', 'e_pecho', 'e_espalda', 'e_hombro'].forEach(k => { if (MODV.prueba[k]) r.puesto[k] = MODV.prueba[k]; else delete r.puesto[k]; });
+  ['capa', 'pecho', 'pant', 'zap', 'ojos', 'e_capa', 'e_pecho', 'e_espalda', 'e_hombro'].forEach(k => { if (MODV.prueba[k]) r.puesto[k] = MODV.prueba[k]; else delete r.puesto[k]; });
   guardar(); pintarModista(); toast(pend.length ? '👗 ¡Estrenas ropa!' : '👗 Listo, ya lo traes puesto');
 };
 

@@ -4218,9 +4218,32 @@ let _ctxM = null, _sonM = null;
 // v289 · Pasos del jugador en los tramos 3D (los pide Godot): [config] sonido_pasos = no para quitarlos
 //        Archivos: assets/nexotlan/sonidos/paso_piedra_1..4.mp3 y paso_madera_1..4.mp3 (se pueden reemplazar)
 const _pasos = {}; let _pasoUlt = '';
+// v312 · cada efecto = capas [tipo de onda o 'ruido', frecuencia inicial, final, duración, volumen, retraso]. Volumen general: [config] volumen_sfx
+const NX_SFX = {
+  carta: [['triangle', 988, 1319, .16, .2, 0], ['triangle', 1319, 1976, .22, .18, .08], ['sine', 2637, 2637, .3, .07, .16]],
+  cofre: [['ruido', 500, 120, .22, .5, 0], ['square', 160, 90, .14, .1, 0], ['sine', 1568, 1568, .25, .12, .18], ['sine', 2093, 2093, .3, .12, .28], ['sine', 2637, 2637, .4, .1, .38]],
+  barrera: [['sawtooth', 620, 70, .8, .14, 0], ['ruido', 3000, 300, .9, .3, 0], ['sine', 1200, 300, .5, .1, .1]],
+  portal_on: [['sine', 180, 880, .6, .2, 0], ['triangle', 360, 1760, .6, .1, .05], ['ruido', 400, 3000, .7, .2, 0], ['sine', 1760, 1760, .5, .08, .55]],
+  hablar: [['square', 520, 600, .06, .05, 0], ['square', 640, 560, .06, .04, .07]],
+  pagina: [['square', 700, 760, .05, .045, 0]],
+  atril: [['ruido', 2500, 5000, .18, .22, 0], ['ruido', 4000, 2000, .14, .16, .12]],
+  aparta: [['ruido', 300, 1200, .35, .3, 0], ['sine', 330, 440, .25, .08, .1]],
+  salida: [['sine', 660, 660, .18, .14, 0], ['sine', 880, 880, .2, .14, .12], ['sine', 1320, 1320, .35, .12, .26]]
+};
 window.nxPaso = function (sup) {
   if (MUTE || /^(no|0|false)$/i.test(String(CFG.sonido_pasos || 'si').trim())) return;
   if (sup === '__pre') { window.nxPaso('piedra'); window.nxPaso('madera'); return; }
+  if (NX_SFX[sup]) {        // v312 · efectos de las rutas (sintetizados): carta, cofre, barrera, portal_on, hablar, pagina, atril, aparta, salida
+    try { const c = _ctxM = _ctxM || new (window.AudioContext || window.webkitAudioContext)(); if (c.state === 'suspended') c.resume();
+      const vol = (+CFG.volumen_sfx || 1), t0 = c.currentTime;
+      NX_SFX[sup].forEach(([tipo, f0, f1, dur, gan, ret]) => { const t = t0 + (ret || 0), g = c.createGain();
+        g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(gan * vol, t + Math.min(0.02, dur * 0.2)); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+        if (tipo === 'ruido') { const n = Math.ceil(c.sampleRate * dur), b = c.createBuffer(1, n, c.sampleRate), d = b.getChannelData(0); for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+          const src = c.createBufferSource(), f = c.createBiquadFilter(); src.buffer = b; f.type = 'bandpass'; f.Q.value = 1.2; f.frequency.setValueAtTime(f0, t); f.frequency.exponentialRampToValueAtTime(f1, t + dur);
+          src.connect(f).connect(g).connect(c.destination); src.start(t);
+        } else { const o = c.createOscillator(); o.type = tipo; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur); o.connect(g).connect(c.destination); o.start(t); o.stop(t + dur + 0.02); } });
+    } catch (e) {} return;
+  }
   if (sup === 'trueno') {   // v299 · trueno lejano (sintetizado)
     try { const c = _ctxM = _ctxM || new (window.AudioContext || window.webkitAudioContext)(); if (c.state === 'suspended') c.resume();
       const t0 = c.currentTime, n = c.sampleRate * 2.4, b = c.createBuffer(1, n, c.sampleRate), d = b.getChannelData(0); let u = 0;

@@ -2283,7 +2283,7 @@ async function cargarTramo(id) {
     camino: secs.filter(s => s._sec === 'camino').map(s => ({ puntos: L(s.puntos), ancho: num(s.ancho, 4), tipo: s.tipo || 'piedra', zona: String(s.zona || '').trim(), franja: String(s.franja || 'si').trim() })),
     plataformas: secs.filter(s => s._sec === 'plataforma').map(s => ({ x: num(s.x, 0), z: num(s.z, 0), ancho: num(s.ancho, 8), largo: num(s.largo, num(s.ancho, 8)), forma: s.forma || 'oval', piso: s.piso || '', zona: String(s.zona || '').trim(), tierra: String(s.tierra || '').trim() })),
     decorado: {}, cartas: [], objetos: [], npcs: [], salidas: [] };
-  secs.filter(s => s._sec === 'decorado').forEach(s => ['rocas', 'columnas', 'arcos', 'cristales', 'arbustos', 'braseros', 'runas', 'pasto', 'puestos', 'cajas', 'costales', 'faroles', 'libreros', 'atriles', 'libros', 'velas', 'papel_picado', 'rayos', 'luciernagas', 'glifos', 'pilas_libros', 'papeles', 'columnas_rotas', 'muros', 'estelas', 'estatuas', 'fogatas', 'arboles', 'manchones', 'matas', 'calzadas', 'cumulos', 'pilares', 'nidos', 'grietas', 'cristales_vacio', 'muros_rotos', 'arcos_curvos', 'arcos_cuadrados', 'columnas_bloque', 'escombros', 'portales_adorno'].forEach(k => { if (s[k]) def.decorado[k] = (def.decorado[k] || []).concat(L(s[k])); }));
+  secs.filter(s => s._sec === 'decorado').forEach(s => ['rocas', 'columnas', 'arcos', 'cristales', 'arbustos', 'braseros', 'runas', 'pasto', 'puestos', 'cajas', 'costales', 'faroles', 'libreros', 'atriles', 'libros', 'velas', 'papel_picado', 'rayos', 'luciernagas', 'glifos', 'pilas_libros', 'papeles', 'columnas_rotas', 'muros', 'estelas', 'estatuas', 'fogatas', 'arboles', 'manchones', 'matas', 'calzadas', 'cumulos', 'pilares', 'nidos', 'grietas', 'cristales_vacio', 'muros_rotos', 'arcos_curvos', 'arcos_cuadrados', 'columnas_bloque', 'escombros', 'portales_adorno', 'pasillos', 'serpientes'].forEach(k => { if (s[k]) def.decorado[k] = (def.decorado[k] || []).concat(L(s[k])); }));
   def.cartas = secs.filter(s => s._sec === 'carta').map(s => ({ id: s._id, x: num(s.x, 0), z: num(s.z, 0), carta: resolverCarta(s.carta) })).filter(c => c.carta);
   def.objetos = secs.filter(s => s._sec === 'objeto').map(s => ({ id: s._id, x: num(s.x, 0), z: num(s.z, 0), objeto: String(s.objeto || '').trim() }));
   // v295 · Las Ánimas usan su propio retrato (no el arte de otros personajes): [config] tramo_rival_retrato o imagen = … en el [npc:...]
@@ -2301,6 +2301,9 @@ async function cargarTramo(id) {
   // v307 · [coliseo] x, z (centro), radio_x, radio_z, niveles, alto (de cada piso), arcos (por piso), puerta (ángulo de la puerta grande), neon = #c1,#c2,#c3
   def.coliseo = (c => c ? { x: num(c.x, 0), z: num(c.z, 0), radio_x: num(c.radio_x, 40), radio_z: num(c.radio_z, 32), niveles: num(c.niveles, 3), alto: num(c.alto, 6.5),
     arcos: num(c.arcos, 56), puerta: num(c.puerta, 90), neon: String(c.neon || '#ff4fd8,#36d6ff,#ffb347'), color: String(c.color || '#d9d0c2').trim(), zona: String(c.zona || '').trim() } : null)(secs.find(s => s._sec === 'coliseo'));
+  // v310 · [piramide_invertida] x, z (centro), y (altura de la cara de arriba), ancho, niveles, alto, escalera, color, vortice (color), radio_vortice, giro
+  def.piramides_inv = secs.filter(s => s._sec === 'piramide_invertida').map(s => ({ x: num(s.x, 0), z: num(s.z, 0), y: num(s.y, 20), ancho: num(s.ancho, 46), niveles: num(s.niveles, 7),
+    alto: num(s.alto, 3.6), escalera: num(s.escalera, 8), color: s.color || '#9cc4e6', vortice: s.vortice || '#36d6ff', radio_vortice: num(s.radio_vortice, 0) || undefined, giro: num(s.giro, 0) }));
   def.salidas = secs.filter(s => s._sec === 'salida').map(s => ({ id: s._id, x: num(s.x, 0), z: num(s.z, 0), a: String(s.a || '').trim(), texto: s.texto || s.a || 'Salida' }));
   const p = tramoPos(t); def.npcs.forEach(n => { n._x = p.x; n._y = p.y; });
   return (_tramoCache[id] = def);
@@ -2364,6 +2367,8 @@ async function abrirTramo(id) {
         modelo: (m => m.includes('/') ? m : 'assets/nexotlan/personajes/' + m)(String(CFG.tramo_guia_modelo || 'nextor.glb').trim()) };
     })() : null,
     piramides: def.piramides || [],
+    piramides_inv: def.piramides_inv || [],
+    cambio3_z: h.cambio3_z !== undefined && String(h.cambio3_z).trim() !== '' ? num(h.cambio3_z, 0) : undefined,
     coliseo: def.coliseo || null,
     vista_final: String(h.vista_final || '').split(',').map(Number).filter(isFinite).length >= 3 ? String(h.vista_final).split(',').map(Number) : null,
     relampagos: String(h.relampagos || '').trim(),

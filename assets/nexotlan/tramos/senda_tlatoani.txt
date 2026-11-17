@@ -1,0 +1,570 @@
+# ═════════════════════════════════════════════════════════════════
+#  NEXOTLAN · TRAMO DE EXPLORACIÓN — Senda del Tlatoani (Coliseo de Héroes → Pirámide Dimensional)
+#  Edítalo con el Bloc de notas (UTF-8).  campo = valor
+#  Mismo formato que los otros tramos. La Pirámide está al otro extremo del mapa: el portal dorado del Coliseo
+#  lleva al portal turquesa de la Pirámide (zona 2, a partir de x = 40).
+#  Bloques nuevos de este tramo (en [decorado]):
+#   pasillos = x1,z1,x2,z2,ancho,alto     interior prehispánico: paredes con talud, tablero, grecas y antorchas a los lados,
+#                                         dinteles en las entradas y sombra de techo en el piso (va encima de un [camino] recto
+#                                         del mismo ancho; el paso libre queda de ancho - 1.4)
+#   serpientes = x,z,giro,tamaño          cabeza de serpiente emplumada de piedra
+#  Colores del templo en [tramo]: color_templo (piedra), color_greca (banda roja), color_jade (detalles).
+#  [piramide_invertida] x, z (centro), y (altura de la cara de arriba), ancho, niveles, alto (de cada nivel), escalera, color,
+#            vortice (color del remolino de atrás), radio_vortice, giro (vueltas lentas). Flota en el vacío: no se camina.
+#  cambio3_z = z: zona 3 de colores (color_...3) a partir de esa z dentro de la zona 2 (el cielo azul del vórtice)
+# ═════════════════════════════════════════════════════════════════
+
+[tramo]
+nombre = Senda del Tlatoani
+inicio = 0,26
+cambio_x = 40
+bruma_bordes = si
+fondo = ruinas
+fondo2 = ruinas
+relampagos = si
+vista_final = 70,-114,10,13,24,12,24,64
+cambio3_z = -86
+brillo_sol = 1.0
+color_luz = #fff0dc
+color_ruina = #c9c3b4
+color_templo = #d6ae6a
+color_greca = #b0442a
+color_jade = #2fb39a
+# Zona 1 · ruinas del Coliseo (atardecer morado)
+color_suelo = #4a4368
+color_borde = #241f36
+color_camino = #6e6690
+color_puente = #8a5a3c
+color_piedra = #8a8098
+color_roca = #4a4468
+color_madera = #8a5a3c
+color_abismo = #140a26
+color_niebla = #3a1d4f
+color_ambiente = #b4a8b4
+color_contraluz = #ffa070
+color_tinte_abismo = #ffb0e0
+# Zona 2 · Pirámide Dimensional (sol dorado)
+color_abismo2 = #2a1206
+color_niebla2 = #4a2a1a
+color_ambiente2 = #b8a890
+color_contraluz2 = #ff9a50
+color_tinte_abismo2 = #e0a890
+# Zona 3 · el vórtice de la Pirámide (azul)
+color_abismo3 = #1a1a5c
+color_niebla3 = #343890
+color_ambiente3 = #a8bcf0
+color_contraluz3 = #5fd8ff
+color_tinte_abismo3 = #8a9cff
+
+textura_suelo = piso_textura.jpg
+textura_suelo_coliseo = piso_archivos_textura.jpg
+textura_suelo_piramide = tabiques_santuario_textura.jpg
+textura_camino = tabiques_textura.jpg
+textura_camino_coliseo = piso_archivos_textura.jpg
+textura_camino_piramide = tabiques_santuario_textura.jpg
+textura_borde = roca_textura.jpg
+textura_puente = madera_textura.jpg
+textura_madera = madera_textura.jpg
+textura_roca = roca_textura.jpg
+textura_piedra = tabiques_textura.jpg
+textura_ruina = piedra_ruina_textura.jpg
+textura_templo = tabiques_santuario_textura.jpg
+textura_piramide = tabiques_textura.jpg
+textura_tierra = tabiques_santuario_textura.jpg
+textura_borde_tierra = roca_verde_textura.jpg
+textura_cesped = pasto_textura.jpg
+textura_follaje = piso_verde_textura.jpg
+textura_abismo = nubes_textura.jpg
+textura_suelo_vortice = tabiques_textura.jpg
+escala_suelo_vortice = 3
+textura_calzada = tabiques_textura.jpg
+escala_calzada = 2.4
+brillo_suelo_coliseo = 0.95
+brillo_camino_coliseo = 0.95
+brillo_suelo_piramide = 0.75
+brillo_camino_piramide = 0.75
+escala_suelo = 3
+escala_suelo_coliseo = 3.4
+escala_suelo_piramide = 3
+escala_camino_coliseo = 2.6
+escala_camino_piramide = 2.6
+escala_templo = 2.2
+escala_piramide = 2.8
+escala_tierra = 2.6
+escala_borde_tierra = 2.5
+escala_cesped = 3.6
+escala_follaje = 1.1
+escala_borde = 3
+escala_camino = 2.4
+escala_puente = 1.6
+escala_madera = 1.2
+escala_roca = 1.6
+escala_piedra = 1.4
+escala_ruina = 1.6
+escala_abismo = 40
+brillo_abismo = 0.5
+
+# ───────────── ZONA 1 · SALIDA DEL COLISEO ─────────────
+[plataforma:explanada_salida]
+x = 0
+z = 22
+ancho = 14
+largo = 14
+forma = rect
+zona = coliseo
+
+[camino:via_arena]
+puntos = 0,15 | -4,7 | -4,-1
+ancho = 4.5
+tipo = piedra
+zona = coliseo
+
+[plataforma:foro_viejo]
+x = -3
+z = -8
+ancho = 15
+largo = 12
+zona = coliseo
+
+[camino:puente_este]
+puntos = 4.2,-8 | 9.6,-8.3
+ancho = 2.2
+tipo = puente
+
+[plataforma:islote_este]
+x = 13
+z = -8.5
+ancho = 6
+largo = 5.5
+zona = coliseo
+
+[camino:puente_foro]
+puntos = -2,-13.5 | 0,-22
+ancho = 2.6
+tipo = puente
+
+[plataforma:graderio]
+x = 0
+z = -30
+ancho = 15
+largo = 14
+forma = rect
+zona = coliseo
+
+[camino:rampa]
+puntos = 0,-37 | 3,-45 | 1,-53.4
+ancho = 4.4
+tipo = piedra
+zona = coliseo
+
+[plataforma:umbral_solar]
+x = 1
+z = -60
+ancho = 16
+largo = 13
+zona = coliseo
+
+[camino:puente_oeste]
+puntos = -5.8,-60 | -11.6,-60.5
+ancho = 2.2
+tipo = puente
+
+[plataforma:islote_oeste]
+x = -15
+z = -61
+ancho = 6
+largo = 5.5
+zona = coliseo
+
+[portal:dorado]
+x = 1
+z = -64.6
+giro = 0
+color = #ffc040
+ancho = 2.8
+destino = turquesa
+rival = guardiana
+llegada = 1,-61.2
+
+# ───────────── ZONA 2 · CAMINO A LA PIRÁMIDE DIMENSIONAL ─────────────
+[portal:turquesa]
+x = 70
+z = 26.4
+giro = 0
+color = #2fe0c0
+ancho = 2.8
+destino = dorado
+llegada = 70,22.6
+
+[plataforma:atrio]
+x = 70
+z = 21
+ancho = 14
+largo = 12
+forma = rect
+zona = piramide
+
+# interior 1: corredor de los ancestros
+[camino:corredor_ancestros]
+puntos = 70,15.2 | 70,-1.4
+ancho = 5.6
+tipo = piedra
+zona = piramide
+
+[plataforma:sala_ofrendas]
+x = 70
+z = -8
+ancho = 16
+largo = 13
+zona = piramide
+
+[camino:puente_oeste2]
+puntos = 61.8,-8 | 56.4,-8.4
+ancho = 2.2
+tipo = puente
+
+[plataforma:islote_oeste2]
+x = 53.2
+z = -8.6
+ancho = 6
+largo = 5.5
+zona = piramide
+
+# interior 2: corredor de los jaguares
+[camino:corredor_jaguares]
+puntos = 70,-13.6 | 70,-30.2
+ancho = 5.6
+tipo = piedra
+zona = piramide
+
+[plataforma:patio_sol]
+x = 70
+z = -38
+ancho = 18
+largo = 16
+forma = rect
+zona = piramide
+
+[camino:puente_este2]
+puntos = 79,-38 | 84.6,-38.4
+ancho = 2.2
+tipo = puente
+
+[plataforma:islote_este2]
+x = 88
+z = -38.6
+ancho = 6
+largo = 5.5
+zona = piramide
+
+[camino:puente_patio]
+puntos = 70,-46 | 69,-53.8
+ancho = 2.6
+tipo = puente
+
+# interior 3: corredor de la serpiente
+[camino:corredor_serpiente]
+puntos = 69,-53.6 | 69,-70.6
+ancho = 5.6
+tipo = piedra
+zona = piramide
+
+[plataforma:camara_serpiente]
+x = 69
+z = -77
+ancho = 16
+largo = 13
+zona = piramide
+
+[camino:puente_oeste3]
+puntos = 60.8,-77 | 55.4,-77.4
+ancho = 2.2
+tipo = puente
+
+[plataforma:islote_oeste3]
+x = 52.2
+z = -77.6
+ancho = 6
+largo = 5.5
+zona = piramide
+
+[camino:calzada_final]
+puntos = 69,-83.4 | 70,-91 | 70,-101.4
+ancho = 5
+tipo = piedra
+zona = piramide
+
+[plataforma:mirador_vortice]
+x = 70
+z = -112
+ancho = 24
+largo = 21
+forma = rect
+zona = vortice
+
+[piramide_invertida:dimensional]
+x = 70
+z = -158
+y = 24
+ancho = 46
+niveles = 7
+alto = 3.8
+escalera = 8
+color = #a8c8e8
+vortice = #36d6ff
+radio_vortice = 78
+giro = 0.03
+
+[decorado]
+# salida del Coliseo (ruinas)
+arcos_curvos = 0,15.6,0,3.4,2.8 | 1.8,-52,-14,3.4,3
+arcos_cuadrados = -9.2,-6,70,2.6,2.4 | 6.4,-34.8,90,2.6,2.4
+muros_rotos = -5.8,26.4,-5.8,20.6,2.2 | 5.8,26.4,5.8,20.6,2 | -6.6,-24.4,-6.6,-28.6,2 | 6.6,-27,6.6,-24,1.6
+columnas_bloque = -5,17,2.8 | 5,17,2.2 | -6.6,-35.4,3 | 6,-56,2.6 | 14.2,-7.2,1.8
+escombros = 4.2,24.8,0.9 | -8.4,-11,0.8 | 4.6,-31,0.9 | -15.6,-59.6,0.7
+pasto = -2,20 | -5,3 | -1,-8 | 2,-27 | -3,-32 | 3,-44 | 4,-62 | -14,-62.4
+portales_adorno = -9,-26,90,#ff4fd8,3.2 | 9,-62,-60,#9fefff,3.2
+luciernagas = 0,21,3,#ffb0e0 | -3,-8,4,#ffd27a | 0,-30,4,#ffb0e0 | 1,-60,4,#ffd27a
+glifos = 0,21,2.8,#ff9a00 | 1,-60,3.2,#ffc040
+
+[decorado]
+# camino a la Pirámide (interiores prehispánicos)
+pasillos = 70,15,70,-1.2,5.6,3.4 | 70,-13.8,70,-30,5.6,3.6 | 69,-53.8,69,-70.4,5.6,3.8
+serpientes = 65.6,25.4,180,0.9 | 74.4,25.4,180,0.9 | 64.4,-31.6,180,1 | 75.6,-31.6,180,1 | 64.6,-104.6,0,1.2 | 75.4,-104.6,0,1.2
+estelas = 64.2,18,90 | 75.8,18,-90 | 64.6,-5.4,70 | 75.4,-5.4,-70 | 63.8,-79.8,60 | 74.2,-80.2,-60
+estatuas = 63,-41.6,90 | 77,-41.6,-90 | 66.2,-118,0 | 73.8,-118,0
+braseros = 64.8,-35.2,1 | 75.2,-35.2,1 | 63.4,-75,1 | 74.6,-75,1 | 60.6,-104,1.2 | 79.4,-104,1.2 | 60.6,-120,1.2 | 79.4,-120,1.2
+columnas = 64.8,-44.4,3.6 | 75.2,-44.4,3.6 | 61.4,-108,3.6 | 78.6,-108,3.6
+glifos = 70,21,2.8,#2fe0c0 | 70,-8,3,#ffc040 | 70,-38,4,#ff9a00 | 69,-77,3.2,#2fe0c0 | 70,-112,4.4,#36d6ff
+luciernagas = 70,-8,4,#ffd27a | 70,-38,5,#ffd27a | 69,-77,4,#ffb347 | 70,-112,7,#9fefff
+rayos = 70,-38,3 | 69,-77,2.6
+arboles = 54.4,-9.8,0.7,#3f8a5a | 87,-37,0.7,#c26a9a
+pasto = 73,-6 | 66,-11 | 64,-36 | 76,-40 | 66,-78 | 72,-80 | 52,-79 | 89,-40 | 54,-7
+
+# ───────────── CARTAS (comunes y raras, de la Pirámide Dimensional) ─────────────
+[carta:copal]
+x = -1
+z = -5.4
+carta = Copal Envokatetl
+
+[carta:tamoanchan]
+x = 3.6
+z = -28
+carta = Tamoanchan
+
+[carta:envokateotl]
+x = 4.8
+z = -58
+carta = Envokateotl Tlamacaz
+
+[carta:ofrenda]
+x = 66.6
+z = 18.6
+carta = Ofrenda a Quetzalcoatl
+
+[carta:sacerdotisa]
+x = 70.6
+z = 6
+carta = Sacerdotisa de Quetzalcoatl
+
+[carta:xolo]
+x = 74.6
+z = -10.6
+carta = Xolo, Explorador del Mictlán
+
+[carta:micte]
+x = 69.4
+z = -22
+carta = Micté, Emisaria del Mictlán
+
+[carta:sacerdote]
+x = 66
+z = -40
+carta = Sacerdote de Quetzalcoatl
+
+[carta:toca]
+x = 74.6
+z = -35
+carta = Toca, Agresor del Mictlán
+
+[carta:tzina]
+x = 68.6
+z = -62
+carta = Tzina, Centinela del Mictlán
+
+[carta:teco]
+x = 64.6
+z = -79.4
+carta = Teco, Cuidador del Mictlán
+
+[carta:alta]
+x = 73.6
+z = -79
+carta = Alta Sacerdotisa de Quetzalcoatl
+
+[carta:ofrenda_dioses]
+x = 64
+z = -112
+carta = Ofrenda a los Dioses
+
+[carta:sacerdote_oscuro]
+x = 76
+z = -112
+carta = El Sacerdote Oscuro
+
+# ───────────── COFRES ─────────────
+[objeto:cofre_este]
+x = 13.6
+z = -8.6
+giro = -90
+objeto = carta_coliseo
+
+[objeto:cofre_oeste]
+x = -15.6
+z = -61.2
+giro = 90
+objeto = medalla_campeon
+
+[objeto:cofre_oeste2]
+x = 52.8
+z = -8.8
+giro = 90
+objeto = carta_piramide
+
+[objeto:cofre_este2]
+x = 88.6
+z = -39
+giro = -90
+objeto = idolo_jade
+
+[objeto:cofre_oeste3]
+x = 51.8
+z = -77.8
+giro = 90
+objeto = bolsa_monedas
+
+[objeto:cofre_piramide]
+x = 79.4
+z = -109
+giro = -90
+objeto = idolo_jade
+
+# ───────────── ÁNIMAS ─────────────
+[npc:heraldo]
+nombre = Heraldo de la Arena
+titulo = Rival de la senda
+x = -6.6
+z = -8.6
+radio = 1.6
+color = #ff9a00
+baraja = nxr_tezca
+dificultad = auto
+monedas = 60
+entrada = El Coliseo ya te vio pelear. Ahora quiero verte yo… ¿un Choque antes de partir?
+victoria = Hasta el sol aplaudiría eso.
+derrota = La arena te espera para la revancha.
+revancha = ¿Regresas a la arena?
+
+[npc:guardiana]
+nombre = Guardiana del Sol Poniente
+titulo = Guardiana del portal dorado
+x = -3
+z = -58.4
+radio = 1
+color = #ffc040
+baraja = nxr_micte
+dificultad = auto
+monedas = 60
+entrada = Este portal lleva hasta la Pirámide Dimensional. Solo se enciende para quien me vence.
+victoria = El sol te abre el camino. Crúzalo.
+derrota = El portal sigue apagado.
+revancha = ¿Otra vez ante el sol poniente?
+
+[npc:ofrendero]
+nombre = Sacerdote de las Ofrendas
+titulo = Rival de la senda
+x = 74.8
+z = -6.8
+radio = 1.4
+color = #e6b552
+baraja = nxr_quetzalcoatl
+dificultad = auto
+monedas = 65
+entrada = Toda ofrenda se gana. ¿Qué me ofreces tú, viajero? Una buena partida bastará.
+victoria = Ofrenda aceptada. Que los dioses te guíen.
+derrota = Tu ofrenda no fue suficiente.
+revancha = ¿Traes una nueva ofrenda?
+
+[npc:jaguar]
+nombre = Guerrero Jaguar
+titulo = Rival de la senda
+# Tapa el corredor de los jaguares; al vencerlo se hace a un lado
+x = 70
+z = -18.6
+bloquea = si
+aparta = 73.6,-11
+radio = 1
+color = #ffb347
+baraja = nxr_setl
+dificultad = auto
+monedas = 70
+entrada = Ningún extranjero cruza el corredor de los jaguares sin probar su garra.
+victoria = Tienes el corazón de un jaguar. Pasa.
+derrota = Vuelve cuando tus garras estén afiladas.
+revancha = ¿Regresas por otra cacería?
+
+[npc:obsidiana]
+nombre = Centinela de Obsidiana
+titulo = Rival de la senda
+x = 74.8
+z = -40.6
+radio = 1.4
+color = #b06bff
+baraja = nxr_mictlantecuhtli
+dificultad = auto
+monedas = 70
+entrada = Mi espejo de obsidiana refleja tus jugadas antes de que las hagas. Intenta sorprenderme.
+victoria = No vi venir esa jugada…
+derrota = Te lo dije: lo vi todo en el espejo.
+revancha = ¿Otra mirada al espejo?
+
+[npc:tlamacazqui]
+nombre = Tlamacazqui del Sol
+titulo = Guardián de la senda
+x = 64.6
+z = -81
+radio = 1.2
+color = #2fe0c0
+baraja = nxr_primigenios
+dificultad = auto
+monedas = 85
+entrada = Detrás de mí se alza la Pirámide Dimensional. Solo los dignos suben a ver al Tlatoani.
+victoria = La barrera se abre. El Tlatoani te espera.
+derrota = El sol no brilla aún para ti.
+revancha = ¿Vienes a probar tu valor otra vez?
+
+[barrera:piramide]
+x = 69.48
+z = -87.2
+ancho = 6
+giro = -7.5
+rival = tlamacazqui
+color = #ffc040
+
+# v304 · Nextor, Guía de Nexotlan: se para al inicio de la ruta y habla solo la primera vez (texto: páginas separadas con |)
+[guia]
+x = 2.6
+z = 24
+texto = La Senda del Tlatoani va del Coliseo de Héroes a la Pirámide Dimensional, al otro lado de Nexotlan. | Cruza el portal dorado: la Guardiana del Sol Poniente lo mantiene apagado hasta que la vences. | Del otro lado recorrerás los corredores del templo. El Guerrero Jaguar cierra el segundo corredor y el Tlamacazqui del Sol custodia la barrera. Al final verás la Pirámide Dimensional, de cabeza dentro de su vórtice: ahí te espera el Tlatoani.
+
+[salida:sur]
+x = 0
+z = 28.6
+a = coliseo
+texto = Coliseo de Héroes
+
+[salida:norte]
+x = 70
+z = -121.2
+a = piramide
+texto = Pirámide Dimensional

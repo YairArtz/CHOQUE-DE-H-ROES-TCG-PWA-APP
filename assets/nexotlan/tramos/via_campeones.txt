@@ -1,0 +1,515 @@
+# ═════════════════════════════════════════════════════════════════
+#  NEXOTLAN · TRAMO DE EXPLORACIÓN — Vía de los Campeones (Fortaleza de Cristal Multiversal → Coliseo de Héroes)
+#  Edítalo con el Bloc de notas (UTF-8).  campo = valor
+#  Mismo formato que los otros tramos. El Coliseo está al otro extremo del mapa: el portal cian de la Fortaleza
+#  lleva al portal morado del Coliseo (zona 2, a partir de x = 40).
+#  Bloques nuevos de este tramo (en [decorado]):
+#   muros_rotos = x1,z1,x2,z2,alto            muro de bloques de piedra con el borde roto (para esquinas: dos muros que se tocan)
+#   arcos_curvos = x,z,giro,ancho,alto        arco de dovelas sobre dos pilares de bloques (ancho = hueco para pasar)
+#   arcos_cuadrados = x,z,giro,ancho,alto     dos pilares de bloques y un dintel
+#   columnas_bloque = x,z,alto                columna de bloques apilados
+#   escombros = x,z,tamaño                    bloques caídos
+#   portales_adorno = x,z,giro,#color,ancho   portal de adorno (no se cruza)
+#  [coliseo] x, z (centro), radio_x, radio_z, niveles, alto (de cada piso), arcos (por piso), puerta (ángulo: 90 = mira al jugador),
+#            neon = #color1,#color2,#color3 (un color por piso). Es fondo: no se camina.
+#  vista_final = x,z,radio,alto_cámara,distancia,altura_mira,mira_adelante,campo_visión (al acercarte, la cámara se abre para ver el Coliseo)
+# ═════════════════════════════════════════════════════════════════
+
+[tramo]
+nombre = Vía de los Campeones
+inicio = 0,26
+cambio_x = 40
+bruma_bordes = si
+fondo = cristales
+fondo2 = ruinas
+relampagos = si
+vista_final = 70,-99,12,10,17,6.2,30,62
+brillo_sol = 0.95
+color_luz = #e6e0ff
+color_cristal = #6fe3ff
+color_ruina = #c9c3b4
+# Zona 1 · salida de la Fortaleza de Cristal (turquesa helado)
+color_suelo = #3d5468
+color_borde = #1c2a3a
+color_camino = #6e8aa0
+color_puente = #8a5a3c
+color_piedra = #8a96a8
+color_roca = #44546a
+color_madera = #8a5a3c
+color_abismo = #031420
+color_niebla = #0e3a52
+color_ambiente = #86c8e6
+color_contraluz = #3fd8ff
+color_tinte_abismo = #8fe6ff
+# Zona 2 · ruinas del Coliseo de Héroes (atardecer dimensional con neón)
+color_abismo2 = #140a26
+color_niebla2 = #3a1d4f
+color_ambiente2 = #b4a8b4
+color_contraluz2 = #ffa070
+color_tinte_abismo2 = #ffb0e0
+
+textura_suelo = piso_textura.jpg
+textura_suelo_fortaleza = tabiques_textura.jpg
+textura_suelo_coliseo = piso_archivos_textura.jpg
+textura_borde = roca_textura.jpg
+textura_camino = tabiques_textura.jpg
+textura_camino_coliseo = piso_archivos_textura.jpg
+textura_puente = madera_textura.jpg
+textura_madera = madera_textura.jpg
+textura_roca = roca_textura.jpg
+textura_piedra = tabiques_textura.jpg
+textura_ruina = piedra_ruina_textura.jpg
+textura_coliseo = tabiques_textura.jpg
+escala_coliseo = 2.2
+brillo_coliseo = 1.15
+textura_abismo = nubes_textura.jpg
+brillo_suelo_fortaleza = 1.25
+brillo_suelo_coliseo = 0.95
+brillo_camino_coliseo = 0.95
+escala_suelo = 3
+escala_suelo_fortaleza = 3.2
+escala_suelo_coliseo = 3.4
+escala_camino_coliseo = 2.6
+escala_borde = 3
+escala_camino = 2.4
+escala_puente = 1.6
+escala_madera = 1.2
+escala_roca = 1.6
+escala_piedra = 1.4
+escala_ruina = 1.6
+escala_abismo = 40
+brillo_abismo = 0.5
+
+# ───────────── ZONA 1 · SALIDA DE LA FORTALEZA ─────────────
+[plataforma:explanada_salida]
+x = 0
+z = 22
+ancho = 14
+largo = 14
+forma = rect
+zona = fortaleza
+
+[camino:sendero_hielo]
+puntos = 0,15 | 4,7 | 4,-1
+ancho = 4.5
+tipo = piedra
+zona = fortaleza
+
+[plataforma:sala_hielo]
+x = 3
+z = -8
+ancho = 15
+largo = 12
+zona = fortaleza
+
+[camino:puente_oeste]
+puntos = -4.4,-8 | -9.6,-8.3
+ancho = 2.2
+tipo = puente
+
+[plataforma:islote_oeste]
+x = -13
+z = -8.5
+ancho = 6
+largo = 5.5
+zona = fortaleza
+
+[camino:puente_sala]
+puntos = 2,-13.5 | 0,-22
+ancho = 2.6
+tipo = puente
+
+[plataforma:mirador]
+x = 0
+z = -30
+ancho = 15
+largo = 14
+forma = rect
+zona = fortaleza
+
+[camino:rampa]
+puntos = 0,-37 | -3,-45 | -1,-53.4
+ancho = 4.4
+tipo = piedra
+zona = fortaleza
+
+[plataforma:vortice]
+x = -1
+z = -60
+ancho = 16
+largo = 13
+zona = fortaleza
+
+[camino:puente_este]
+puntos = 6.6,-60 | 12.4,-60.5
+ancho = 2.2
+tipo = puente
+
+[plataforma:islote_este]
+x = 15.8
+z = -61
+ancho = 6
+largo = 5.5
+zona = fortaleza
+
+[portal:cian]
+x = -1
+z = -64.6
+giro = 0
+color = #36d6ff
+ancho = 2.8
+destino = morado
+rival = custodio
+llegada = -1,-61.2
+
+# ───────────── ZONA 2 · RUINAS DEL COLISEO DE HÉROES ─────────────
+[portal:morado]
+x = 70
+z = 26.4
+giro = 0
+color = #b06bff
+ancho = 2.8
+destino = cian
+llegada = 70,22.6
+
+[plataforma:atrio_ruinas]
+x = 70
+z = 21
+ancho = 14
+largo = 12
+forma = rect
+zona = coliseo
+
+[camino:via]
+puntos = 70,15 | 66,7 | 66,-1.6
+ancho = 4.6
+tipo = piedra
+zona = coliseo
+
+[plataforma:plaza_arcos]
+x = 67
+z = -8
+ancho = 16
+largo = 13
+zona = coliseo
+
+[camino:puente_oeste2]
+puntos = 59.2,-8 | 53.6,-8.4
+ancho = 2.2
+tipo = puente
+
+[plataforma:islote_oeste2]
+x = 50.4
+z = -8.6
+ancho = 6
+largo = 5.5
+zona = coliseo
+
+[camino:puente_plaza]
+puntos = 68,-14.2 | 70,-22.6
+ancho = 2.6
+tipo = puente
+
+[plataforma:foro]
+x = 70
+z = -31
+ancho = 18
+largo = 16
+forma = rect
+zona = coliseo
+
+[camino:puente_este2]
+puntos = 79,-31 | 84.6,-31.4
+ancho = 2.2
+tipo = puente
+
+[plataforma:islote_este2]
+x = 88
+z = -31.6
+ancho = 6
+largo = 5.5
+zona = coliseo
+
+[camino:calzada_campeones]
+puntos = 70,-39 | 73,-47 | 71,-55.6
+ancho = 4.6
+tipo = piedra
+zona = coliseo
+
+[plataforma:antesala]
+x = 71
+z = -62
+ancho = 16
+largo = 13
+zona = coliseo
+
+[camino:camino_final]
+puntos = 71,-68 | 70,-76 | 70,-84.4
+ancho = 5
+tipo = piedra
+zona = coliseo
+
+[plataforma:explanada_coliseo]
+x = 70
+z = -96
+ancho = 26
+largo = 24
+forma = rect
+zona = coliseo
+
+[coliseo]
+x = 70
+z = -145
+radio_x = 42
+radio_z = 31
+niveles = 3
+alto = 7
+arcos = 56
+puerta = 90
+# neon = no para quitar las líneas de neón
+neon = #ff4fd8,#36d6ff,#ffb347
+# tono de la piedra (se tiñe la textura de tabiques)
+color = #ddd3c4
+zona = coliseo
+
+[decorado]
+# salida de la Fortaleza (cristales)
+pilares = -5.4,26,4.2 | 5.4,26,4.2 | -5.4,17.6,4.2 | 5.4,17.6,4.2 | -6,-25,4.6 | 6,-25,4.6 | -6,-35,4.6 | 6,-35,4.6
+nidos = 7.4,-5 | -14.4,-7.6,2 | 5.6,-32,2
+grietas = 0,21,3.4,100 | 3,-7,3.2,70 | 0,-30,4,90 | -1,-58,3.2,110
+rayos = 0,21,2.4 | 3,-8,2.6 | 0,-30,2.8
+luciernagas = 0,21,3,#9fefff | 3,-8,4,#9fefff | 0,-30,4,#7ff0ff | -1,-60,4,#9fefff
+glifos = 0,21,2.8,#7ad7ff | -1,-60,3.2,#36d6ff
+cristales_vacio = 20,0,3.4,#6fe3ff | -22,-20,3,#9fefff | 22,-40,3.8,#6fe3ff | -20,-60,3.4,#9fefff | 24,-78,4,#6fe3ff
+
+[decorado]
+# ruinas del Coliseo
+arcos_curvos = 70,15.4,0,3.4,2.8 | 71.6,-51,14,3.4,3 | 70,-82.6,0,3.8,3.2 | 61.8,-26,90,3,2.6 | 78.2,-36.4,90,3,2.6
+arcos_cuadrados = 61.6,-4,60,2.6,2.4 | 64,-60,70,2.6,2.4 | 78.4,-90,90,2.8,2.6 | 61.6,-90,90,2.8,2.6
+muros_rotos = 64.2,26.4,64.2,20,2.4 | 64.2,26.4,67.6,26.4,2.2 | 75.8,26.4,72.4,26.4,2.2 | 75.8,26.4,75.8,20.6,2.6 | 60.4,-10,62.4,-13.2,1.8 | 61.6,-36.4,61.6,-32,2.4 | 61.6,-36.4,65,-38.4,1.8 | 78.4,-24.2,78.4,-27.6,2 | 74.6,-24.2,78.4,-24.2,1.6 | 76.4,-58,78,-62,2 | 58,-86,58,-92,2.4 | 82,-86,82,-92,2.4 | 58,-102,62,-106.6,1.8 | 82,-102,78,-106.6,1.8
+columnas_bloque = 64.6,15.6,3 | 75.4,15.6,3 | 73.4,-9.6,2.6 | 63.6,-24.6,3.4 | 76.4,-24.6,1.8 | 63.6,-37,2.4 | 76.4,-37,3.2 | 66,-58.4,2.6 | 76.6,-65,3 | 60,-96,3.4 | 80,-96,3.4 | 63.4,-104,3 | 76.6,-104,3
+escombros = 73.6,24.8,1 | 66,-12.6,0.9 | 49.2,-7.4,0.7 | 75.4,-29.6,1 | 64.8,-30,0.8 | 88.8,-30.4,0.7 | 75.6,-57.6,0.9 | 61.6,-100,1.1 | 78.4,-100,1.1
+pasto = 68,18 | 72,24 | 63,-6 | 70,-11 | 66,-28 | 74,-34 | 69,-60 | 74,-64 | 62,-94 | 78,-94
+arbustos = 66.2,24.6,0.7 | 74.6,18.8,0.6 | 51.6,-10.2,0.6 | 65.4,-33.6,0.7 | 86.4,-33,0.6 | 74.2,-66.4,0.7
+luciernagas = 70,21,3,#ffd27a | 67,-8,4,#ffb0e0 | 70,-31,5,#ffd27a | 71,-62,4,#ffb0e0 | 70,-96,7,#ffd27a
+glifos = 70,21,2.8,#b06bff | 70,-31,3.2,#ff9a00 | 70,-96,4,#ff4fd8
+rayos = 70,-31,3
+portales_adorno = 59.4,-99.6,40,#ffd166,4 | 80.6,-99.6,-40,#4dff8a,4 | 40,-122,55,#ff8a2e,5 | 100,-122,-55,#ff3b5c,5 | 27,-142,80,#b06bff,6 | 113,-142,-80,#9fefff,6
+
+# ───────────── CARTAS (comunes y raras, del Coliseo de Héroes) ─────────────
+[carta:centella]
+x = 6.4
+z = -10.4
+carta = Centella Azul
+
+[carta:espada]
+x = -3.6
+z = -27.4
+carta = Espada Divina
+
+[carta:celes]
+x = 4.4
+z = -58
+carta = Celestia "Celes" Meldés
+
+[carta:coliseo]
+x = 66.4
+z = 19
+carta = Coliseo de Héroes
+
+[carta:ataque]
+x = 63.6
+z = -10.6
+carta = Ataque Combinado
+
+[carta:bessa]
+x = 71.4
+z = -4.6
+carta = Bessa, El Hipogrifo
+
+[carta:taiyo]
+x = 66
+z = -34.6
+carta = Taiyō
+
+[carta:warr]
+x = 74.4
+z = -27
+carta = Warr, El Tigre Albino
+
+[carta:rome]
+x = 69.8
+z = -47.6
+carta = Rome Magellan
+
+[carta:jaguar]
+x = 74.6
+z = -64.2
+carta = Defensor Jaguar
+
+[carta:tenochtitlan]
+x = 63.6
+z = -92
+carta = La Gran Tenochtitlán, Tierra de Campeones
+
+[carta:xiuhcoatl]
+x = 76.4
+z = -92
+carta = Xiuhcoatl Divino de Huitzilopochtli
+
+# ───────────── COFRES ─────────────
+[objeto:cofre_oeste]
+x = -13.6
+z = -8.6
+giro = 90
+objeto = carta_cristal
+
+[objeto:cofre_este]
+x = 16.4
+z = -61.2
+giro = -90
+objeto = bolsa_monedas
+
+[objeto:cofre_oeste2]
+x = 50
+z = -8.8
+giro = 90
+objeto = carta_coliseo
+
+[objeto:cofre_foro]
+x = 76.6
+z = -32.6
+giro = -90
+objeto = bolsa_monedas
+
+[objeto:cofre_este2]
+x = 88.6
+z = -32
+giro = -90
+objeto = medalla_campeon
+
+[objeto:cofre_coliseo]
+x = 79.4
+z = -105
+giro = -90
+objeto = medalla_campeon
+
+# ───────────── ÁNIMAS ─────────────
+[npc:glacial]
+nombre = Guardia Glacial
+titulo = Rival de la vía
+x = -0.6
+z = -6.4
+radio = 1.4
+color = #9fefff
+baraja = nxr_stephanie
+dificultad = auto
+monedas = 55
+entrada = El hielo de la Fortaleza conserva cada Choque que ve. ¿Dejamos el nuestro congelado aquí?
+victoria = Bien jugado. Sigue: el vórtice está más adelante.
+derrota = Te quedaste congelado.
+revancha = ¿Vienes a romper el hielo otra vez?
+
+[npc:custodio]
+nombre = Custodio del Vórtice
+titulo = Guardián del portal cian
+x = -5
+z = -58.4
+radio = 1
+color = #36d6ff
+baraja = nxr_vika
+dificultad = auto
+monedas = 55
+entrada = Este vórtice cruza Nexotlan hasta el Coliseo de Héroes. Solo se enciende si me vences.
+victoria = El vórtice te reconoce. Del otro lado te esperan los campeones.
+derrota = El vórtice sigue dormido.
+revancha = ¿Vienes a probarte otra vez ante el vórtice?
+
+[npc:gladiador]
+nombre = Gladiador Errante
+titulo = Rival de las ruinas
+x = 70.6
+z = -8.6
+radio = 1.6
+color = #ff9a00
+baraja = nxr_gladiador
+dificultad = auto
+monedas = 60
+entrada = Estas ruinas fueron arenas antes que el Coliseo. Aquí todavía se pelea… ¿listo?
+victoria = ¡Ja! Tienes madera de campeón.
+derrota = La arena no perdona.
+revancha = ¿Otra ronda, retador?
+
+[npc:domador]
+nombre = Domador de Bestias
+titulo = Rival de las ruinas
+# Tapa el puente hacia el foro; al vencerlo se hace a un lado
+x = 69
+z = -18.4
+bloquea = si
+aparta = 72.6,-10.6
+radio = 1
+color = #ff3b5c
+baraja = nxr_jaguar
+dificultad = auto
+monedas = 65
+entrada = Mis bestias guardan este puente. Si quieres pasar, enfréntalas conmigo.
+victoria = Tranquilas, tranquilas… este retador se ganó el paso.
+derrota = Las bestias tienen hambre de victorias.
+revancha = ¿Vuelves con las bestias?
+
+[npc:lanista]
+nombre = Lanista del Foro
+titulo = Rival de las ruinas
+x = 73.6
+z = -36.6
+radio = 1.4
+color = #b06bff
+baraja = nxr_xolot
+dificultad = auto
+monedas = 65
+entrada = Yo entreno a los que sueñan con el Coliseo. Muéstrame tu mejor baraja.
+victoria = Tienes lo necesario. Te verán en la arena.
+derrota = Te falta entrenamiento.
+revancha = ¿Listo para otra lección?
+
+[npc:campeon]
+nombre = Campeón de la Arena
+titulo = Guardián de la vía
+x = 66
+z = -62.6
+radio = 1.2
+color = #ffd166
+baraja = nxr_koatl_campeon
+dificultad = auto
+monedas = 80
+entrada = Detrás de mí está el Coliseo de Héroes. Solo los campeones cruzan esta barrera.
+victoria = La barrera cae. Huitzilopochtli te verá pelear.
+derrota = Aún no eres un campeón.
+revancha = ¿Vienes por el título?
+
+[barrera:coliseo]
+x = 70.74
+z = -70.5
+ancho = 6
+giro = 7.3
+rival = campeon
+color = #ff9a00
+
+# v304 · Nextor, Guía de Nexotlan: se para al inicio de la ruta y habla solo la primera vez (texto: páginas separadas con |)
+[guia]
+x = 2.6
+z = 24
+texto = La Vía de los Campeones va de la Fortaleza de Cristal al Coliseo de Héroes, al otro lado de Nexotlan. | Cruza el vórtice cian: el Custodio del Vórtice lo mantiene dormido hasta que lo vences. | Del otro lado están las ruinas de las viejas arenas. El Domador de Bestias cierra el puente al foro y el Campeón de la Arena custodia la última barrera antes del Coliseo.
+
+[salida:sur]
+x = 0
+z = 28.6
+a = fortaleza
+texto = Fortaleza de Cristal Multiversal
+
+[salida:norte]
+x = 70
+z = -105.4
+a = coliseo
+texto = Coliseo de Héroes

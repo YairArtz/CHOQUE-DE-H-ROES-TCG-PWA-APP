@@ -2528,6 +2528,7 @@ async function abrirTramo(id) {
     atril_tips: String(h.atril_tips || '').split('|').map(x => x.trim()).filter(Boolean),
     bruma_bordes: String(h.bruma_bordes || '').trim(), fondo: String(h.fondo || '').trim(), fondo2: String(h.fondo2 || '').trim(), brillo_sol: h.brillo_sol !== undefined ? num(h.brillo_sol, 1.15) : undefined,
     cambio_x: h.cambio_x !== undefined && String(h.cambio_x).trim() !== '' ? num(h.cambio_x, 0) : undefined,
+    giro_camara: num(h.giro_camara, 0),      // v339 · cámara girada (grados): 180 = la cámara mira desde el norte (rutas que bajan hacia el sur)
     cambio_z: h.cambio_z !== undefined && String(h.cambio_z).trim() !== '' ? num(h.cambio_z, 0) : undefined,
     rival_modelo: (m => m ? (m.includes('/') ? m : 'assets/nexotlan/personajes/' + m) : '')(String(h.rival_modelo || CFG.tramo_rival_modelo || '').trim()),
     rival_escala: +(h.rival_escala || CFG.tramo_rival_escala || 2.0),

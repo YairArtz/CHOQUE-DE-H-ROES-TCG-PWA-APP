@@ -2350,8 +2350,8 @@ async function cargarTramo(id) {
   const head = secs.find(s => s._sec === 'tramo') || {};
   const L = v => String(v || '').split('|').map(x => x.split(',').map(y => y.trim())).filter(a => a.length >= 2 && a.slice(0, 2).every(y => y !== '' && isFinite(+y))).map(a => a.map((y, i) => i < 3 && isFinite(+y) ? +y : y));
   const def = { id, t, secs, head,
-    camino: secs.filter(s => s._sec === 'camino').map(s => ({ puntos: L(s.puntos), ancho: num(s.ancho, 4), tipo: s.tipo || 'piedra', zona: String(s.zona || '').trim(), franja: String(s.franja || 'si').trim(), alto_ini: num(s.alto_ini, 0), alto_fin: num(s.alto_fin, 0) })),
-    plataformas: secs.filter(s => s._sec === 'plataforma').map(s => ({ x: num(s.x, 0), z: num(s.z, 0), ancho: num(s.ancho, 8), largo: num(s.largo, num(s.ancho, 8)), forma: s.forma || 'oval', piso: s.piso || '', zona: String(s.zona || '').trim(), tierra: String(s.tierra || '').trim(), alto: num(s.alto, 0), estilo: String(s.estilo || '').trim(), adorno: String(s.adorno || '').trim(), puntos: L(s.puntos) })),
+    camino: secs.filter(s => s._sec === 'camino').map(s => ({ puntos: L(s.puntos), ancho: num(s.ancho, 4), tipo: s.tipo || 'piedra', zona: String(s.zona || '').trim(), franja: String(s.franja || 'si').trim(), alto_ini: num(s.alto_ini, 0), alto_fin: num(s.alto_fin, 0), extra: num(s.extra, 0.7) })),
+    plataformas: secs.filter(s => s._sec === 'plataforma').map(s => ({ x: num(s.x, 0), z: num(s.z, 0), ancho: num(s.ancho, 8), largo: num(s.largo, num(s.ancho, 8)), forma: s.forma || 'oval', piso: s.piso || '', zona: String(s.zona || '').trim(), tierra: String(s.tierra || '').trim(), alto: num(s.alto, 0), estilo: String(s.estilo || '').trim(), adorno: String(s.adorno || '').trim(), puntos: L(s.puntos), capa: num(s.capa, 0) })),
     decorado: {}, cartas: [], objetos: [], npcs: [], salidas: [] };
   secs.filter(s => s._sec === 'decorado').forEach(s => ['rocas', 'columnas', 'arcos', 'cristales', 'arbustos', 'braseros', 'runas', 'pasto', 'puestos', 'cajas', 'costales', 'faroles', 'libreros', 'atriles', 'libros', 'velas', 'papel_picado', 'rayos', 'luciernagas', 'glifos', 'pilas_libros', 'papeles', 'columnas_rotas', 'muros', 'estelas', 'estatuas', 'fogatas', 'arboles', 'manchones', 'matas', 'calzadas', 'cumulos', 'pilares', 'nidos', 'grietas', 'cristales_vacio', 'muros_rotos', 'arcos_curvos', 'arcos_cuadrados', 'columnas_bloque', 'escombros', 'portales_adorno', 'pasillos', 'serpientes', 'casas', 'antorchas', 'cascadas', 'muros_ciudad', 'estanques', 'copas', 'tumbas', 'cruces', 'veladoras', 'cempasuchil', 'arboles_secos', 'mausoleos'].forEach(k => { if (s[k]) def.decorado[k] = (def.decorado[k] || []).concat(L(s[k])); }));
   def.cartas = secs.filter(s => s._sec === 'carta').map(s => ({ id: s._id, x: num(s.x, 0), z: num(s.z, 0), carta: resolverCarta(s.carta) })).filter(c => c.carta);
@@ -2524,7 +2524,7 @@ async function abrirTramo(id) {
     torre: def.torre || null,
     interior_torre: def.interior_torre || null, puerta_final: def.puerta_final || null,
     vista_final: String(h.vista_final || '').split(',').map(Number).filter(isFinite).length >= 3 ? String(h.vista_final).split(',').map(Number) : null,
-    relampagos: String(h.relampagos || '').trim(),
+    relampagos: String(h.relampagos || '').trim(), lluvia: String(h.lluvia || '').trim(), calzada_redonda: String(h.calzada_redonda || '').trim(),      // v339 · lluvia = si
     atril_tips: String(h.atril_tips || '').split('|').map(x => x.trim()).filter(Boolean),
     bruma_bordes: String(h.bruma_bordes || '').trim(), fondo: String(h.fondo || '').trim(), fondo2: String(h.fondo2 || '').trim(), brillo_sol: h.brillo_sol !== undefined ? num(h.brillo_sol, 1.15) : undefined,
     cambio_x: h.cambio_x !== undefined && String(h.cambio_x).trim() !== '' ? num(h.cambio_x, 0) : undefined,

@@ -2319,13 +2319,16 @@ function reqTramo(t) {
   if (r.length) return r;
   return PTS.filter(p => p.tipo === 'guardian' && p.distrito === t.desde).map(p => p.id);
 }
+const pruebaDLC = t => !!t && TESTER_DLC && !!String(t.dlc || '').trim() && /^(si|sí|1|true)$/i.test(String(CFG.tramos_dlc_testers || '').trim());
 function tramoAbierto(t) {
   if (!t) return false; if (EDITOR) return true;
+  // v339 · pruebas: con  tramos_dlc_testers = si  en [config] de mapa.txt, los testers ven y entran a los tramos de DLC sin vencer al guardián
+  if (pruebaDLC(t)) return true;
   const r = reqTramo(t);
   if (r.length) return r.every(id => vencido(id));
   const h = DIST.find(d => d.id === t.hasta); return !!(h && distritoAbierto(h));
 }
-const tramoVisible = t => !!t && !!DIST.find(d => d.id === t.desde && distritoAbierto(d) && enVista(d)) && tieneDLC(String(t.dlc || '').trim().toLowerCase()) && tramoAbierto(t);
+const tramoVisible = t => !!t && !!DIST.find(d => d.id === t.desde && (distritoAbierto(d) || pruebaDLC(t)) && enVista(d)) && tieneDLC(String(t.dlc || '').trim().toLowerCase()) && tramoAbierto(t);
 function tramoPos(t) {
   const a = DIST.find(d => d.id === t.desde), b = DIST.find(d => d.id === t.hasta);
   return { x: num(t.x, a && b ? (a._x + b._x) / 2 : (a || { _x: 50 })._x), y: num(t.y, a && b ? (a._y + b._y) / 2 : (a || { _y: 50 })._y) };

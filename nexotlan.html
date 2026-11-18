@@ -2445,6 +2445,14 @@ async function cargarTramo(id) {
   def.interior_torre = (c => c ? { x: num(c.x, 0), z: num(c.z, 0), radio: num(c.radio, 80), fondo: num(c.fondo, -23), techo: num(c.techo, 130), energia: c.energia || '#2f8cff', color: c.color || '#4a4a66', luz_abajo: num(c.luz_abajo, 0.7), fuerza: num(c.fuerza, 0.55) } : null)(secs.find(s => s._sec === 'interior_torre'));
   def.puerta_final = (c => c ? { x: num(c.x, 0), z: num(c.z, 0), alto: num(c.alto, 0), ancho: num(c.ancho, 18), energia: c.energia || '#6fd8ff', oro: c.oro || '#ffc94a', color: c.color || '#6a6680' } : null)(secs.find(s => s._sec === 'puerta_final'));
   def.salidas = secs.filter(s => s._sec === 'salida').map(s => ({ id: s._id, x: num(s.x, 0), z: num(s.z, 0), a: String(s.a || '').trim(), texto: s.texto || s.a || 'Salida' }));
+  // v343 · [monedas] hilera = x1,z1,x2,z2,cuántas | … · sueltas = x,z | … (azules, +1) · rojas = x,z | … (+10, escondidas). Solo se toman una vez.
+  def.monedas = [];
+  secs.filter(s => s._sec === 'monedas').forEach((s, k) => {
+    L(s.hilera).forEach((q, i) => { const n = Math.max(1, parseInt(q[4], 10) || 5); for (let j = 0; j < n; j++) { const t = n === 1 ? 0 : j / (n - 1);
+      def.monedas.push({ id: `h${k}_${i}_${j}`, x: +q[0] + (+q[2] - +q[0]) * t, z: +q[1] + (+q[3] - +q[1]) * t, v: 1 }); } });
+    L(s.sueltas).forEach((q, i) => def.monedas.push({ id: `s${k}_${i}`, x: +q[0], z: +q[1], v: 1 }));
+    L(s.rojas).forEach((q, i) => def.monedas.push({ id: `r${k}_${i}`, x: +q[0], z: +q[1], v: 10, roja: true }));
+  });
   const p = tramoPos(t); def.npcs.forEach(n => { n._x = p.x; n._y = p.y; });
   return (_tramoCache[id] = def);
 }
@@ -2590,6 +2598,7 @@ async function abrirTramo(id) {
     cambio_z: h.cambio_z !== undefined && String(h.cambio_z).trim() !== '' ? num(h.cambio_z, 0) : undefined,
     rival_modelo: (m => m ? (m.includes('/') ? m : 'assets/nexotlan/personajes/' + m) : '')(String(h.rival_modelo || CFG.tramo_rival_modelo || '').trim()),
     rival_escala: +(h.rival_escala || CFG.tramo_rival_escala || 2.0),
+    monedas: (def.monedas || []).map(m => Object.assign({}, m, { tomada: !!(e.mon || {})[m.id] })), moneda_img: 'hero_pesos/hp_coin.png',      // v343
     salidas: def.salidas };
   // lo que ya se animó (rival que se aparta / barrera que se apaga) no se repite la próxima vez
   delete e.post;
@@ -2645,6 +2654,16 @@ window.nxTramoEvento = async function (s) {
       tramoPausa(true);
       await mensaje('🎒 ¡ENCONTRASTE ALGO!', `<div style="font-size:54px;line-height:1">${esc(ob.icono || '🎁')}</div><b style="font-size:18px">${esc(ob.nombre || o.objeto)}</b><br><span style="color:var(--muted)">${esc(ob.descripcion || '')}</span><br><br>Lo guardaste en tu <b>🎒 MOCHILA</b>.`);
       tramoPausa(false); break;
+    }
+    case 'moneda': {      // v343 · moneda de la ruta (+1 azul, +10 roja); al juntarlas todas, bono
+      const m = (def.monedas || []).find(x => x.id === ev.id); e.mon = e.mon || {}; if (!m || e.mon[m.id]) return;
+      e.mon[m.id] = 1; S.monedas = (S.monedas || 0) + m.v;
+      if (!MUTE) { try { const a = new Audio('assets/nexotlan/sonidos/' + (m.roja ? 'moneda_roja.mp3' : 'moneda.mp3')); a.volume = .65; a.preservesPitch = false; a.playbackRate = m.roja ? 1 : Math.min(1.6, 1 + 0.06 * (ev.racha || 0)); a.play().catch(() => {}); } catch (x) {} }
+      const tot = def.monedas.length, ya = def.monedas.filter(x => e.mon[x.id]).length, rj = def.monedas.filter(x => x.roja);
+      if (m.roja) tramoAviso({ tipo: 'toast', txt: '🔴 ¡Moneda roja! +10 · ' + rj.filter(x => e.mon[x.id]).length + '/' + rj.length });
+      if (ya === tot && !e.monBono) { e.monBono = 1; const b = num(CFG.monedas_bono, 25); S.monedas += b; tramoAviso({ tipo: 'toast', txt: '🏆 ¡Juntaste todas las monedas de la ruta! +' + b }); }
+      guardar(); pintarHud(); tramoAviso({ tipo: 'hud', monedas: S.monedas });
+      break;
     }
     case 'guia_visto': {      // v304 · ya escuchó a Nextor en esta ruta
       if (ev.id === 'koatl') break;

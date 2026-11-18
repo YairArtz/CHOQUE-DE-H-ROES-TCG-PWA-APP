@@ -2490,7 +2490,7 @@ async function abrirTramo(id) {
   // v308 · cada ruta suena con la canción de su distrito (el de llegada): musica del distrito, si no su musica_choque
   const dRuta = DIST.find(x => x.id === def.t.hasta);
   musica(h.musica || def.t.musica || (dRuta && (dRuta.musica || dRuta.musica_choque)) || musicaVista());
-  clearTimeout(abrirTramo._t); abrirTramo._t = setTimeout(() => { if (TRAMO && !TRAMO.listo) { quitarCarga(true); toast('⏳ El tramo tarda en cargar (la primera vez descarga el motor 3D)…'); } }, 20000);
+  clearTimeout(abrirTramo._t); abrirTramo._t = setTimeout(() => { if (TRAMO && !TRAMO.listo) { quitarCarga(true); toast('⏳ El tramo tarda en cargar (la primera vez descarga el motor 3D)…'); } }, 40000);
 }
 function tramoPausa(on) {
   const fr = $('trFrame'); try { fr.contentWindow.nxGodot && fr.contentWindow.nxGodot(JSON.stringify({ tipo: 'pausa', on: !!on })); } catch (e) {}

@@ -997,6 +997,11 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 .fx-premio p{font-size:15.5px;line-height:1.45;color:#e8ecfa;margin:0}
 .fx-premio b{font-size:15px;line-height:1.3}
 .fx-premio .fx-cod{justify-self:start}
+#mMsg.rayah .mbox{background:radial-gradient(120% 90% at 50% 0%,#7a1420 0%,#3d0812 55%,#1c040a 100%);border:1px solid #ff5a4a;
+  box-shadow:0 0 0 1px rgba(255,120,90,.25),0 0 40px rgba(255,59,47,.45),inset 0 0 60px rgba(255,80,60,.18)}
+#mMsg.rayah .mt{color:#ffb4a0;text-shadow:0 0 14px rgba(255,80,60,.7)}
+#mMsg.rayah #msgB{color:#ffe6df}
+#mMsg.rayah .bt.gold{background:linear-gradient(135deg,#ff6a4d,#c81e3a);color:#fff;border-color:#ff8f75;box-shadow:0 0 14px rgba(255,59,47,.5)}
 #mMsg .mbox:has(.fx-premio){max-width:min(780px,calc(94 * var(--uw)))!important;max-height:calc(94 * var(--uh));overflow:hidden}
 /* En pantallas verticales: la carta arriba, más pequeña */
 /* v230 · Pantalla vertical (la real, no la girada): la carta arriba, más pequeña. En celular girado sigue lado a lado */
@@ -2419,26 +2424,26 @@ async function rayahDeseo(def) {
   const abiertos = DIST.filter(distritoAbierto).map(d => d.id).join(',');
   const pool = [...new Set(poolDe(abiertos, ['bp', 'ba']).concat(poolDe(abiertos, ['bs'])))].filter(id => CARD[id] && precioBase(id) >= RZ_JOYA);
   const nuevas = pool.filter(id => !(S.col && S.col[id]));
-  const opc = (ic, t, d) => `<div style="display:flex;gap:12px;align-items:center;text-align:left;margin:8px 0;padding:10px 12px;border-radius:12px;background:rgba(255,95,168,.08);border:1px solid rgba(255,95,168,.25)"><span style="font-size:30px">${ic}</span><span><b style="color:#ffd166">${t}</b><br><span style="color:var(--muted);font-size:13px">${d}</span></span></div>`;
+  const opc = (ic, t, d) => `<div style="display:flex;gap:12px;align-items:center;text-align:left;margin:8px 0;padding:10px 12px;border-radius:12px;background:rgba(255,80,60,.12);border:1px solid rgba(255,110,90,.35)"><span style="font-size:30px">${ic}</span><span><b style="color:#ffd166">${t}</b><br><span style="color:var(--muted);font-size:13px">${d}</span></span></div>`;
   const i = await mensaje('🧞 ELIGE TU DESEO',
     `<div style="color:var(--muted);margin-bottom:6px">Rayah chasquea los dedos y una nube roja se enciende. Solo puedes elegir <b style="color:var(--text)">uno</b>.</div>` +
     opc('💰', 'Riqueza de la Cima', monedas + ' monedas de golpe.') +
     opc('💎', 'Una carta Joya', pool.length ? 'Una carta Joya de los distritos que ya abriste' + (nuevas.length ? ', de las que aún no tienes.' : '.') : 'Una carta Joya.') +
     opc('📦', 'Tres Sobres de la Cima', '3 sobres sellados, de los más poderosos. Se guardan en tu mochila.'),
-    [['💰 RIQUEZA', 'gold'], ['💎 CARTA JOYA', 'gold'], ['📦 3 SOBRES', 'gold']]);
+    [['💰 RIQUEZA', 'gold'], ['💎 CARTA JOYA', 'gold'], ['📦 3 SOBRES', 'gold']], 'rayah');
   S.deseo = { dia: S.dia, eleccion: ['monedas', 'joya', 'sobres'][i] || 'monedas' };
   if (i === 1 && pool.length) {
     const L = nuevas.length ? nuevas : pool, id = L[Math.floor(Math.random() * L.length)];
     const r = entregar([id]); guardar(); pintarHud(); await mostrarPremio(r);
   } else if (i === 2) {
     S.objetos = S.objetos || {}; S.objetos.sobre_cima = (S.objetos.sobre_cima || 0) + 3; guardar();
-    await mensaje('📦 ¡TRES SOBRES DE LA CIMA!', '<div style="font-size:54px;line-height:1">📦📦📦</div><br>Se guardaron en tu mochila. Ábrelos cuando quieras desde la <b>🎒 MOCHILA</b>.');
+    await mensaje('📦 ¡TRES SOBRES DE LA CIMA!', '<div style="font-size:54px;line-height:1">📦📦📦</div><br>Se guardaron en tu mochila. Ábrelos cuando quieras desde la <b>🎒 MOCHILA</b>.', null, 'rayah');
   } else {
     S.deseo.eleccion = 'monedas'; S.monedas = (S.monedas || 0) + monedas; guardar(); pintarHud();
     tramoAviso({ tipo: 'hud', monedas: S.monedas });
-    await mensaje('💰 ¡RIQUEZA DE LA CIMA!', `<div style="font-size:54px;line-height:1">💰</div><br>Rayah llenó tus bolsillos: <b style="color:#ffd166">+${monedas}</b> monedas.`);
+    await mensaje('💰 ¡RIQUEZA DE LA CIMA!', `<div style="font-size:54px;line-height:1">💰</div><br>Rayah llenó tus bolsillos: <b style="color:#ffd166">+${monedas}</b> monedas.`, null, 'rayah');
   }
-  await mensaje('🧞 RAYAH', '«¡Listo! Salió bien… creo. 😅 Shhh, que sea nuestro secreto.»');
+  await mensaje('🧞 RAYAH', '«¡Listo! Salió bien… creo. 😅 Shhh, que sea nuestro secreto.»', null, 'rayah');
   const pg = def.rayah.despedida.length ? def.rayah.despedida : RAYAH_DESP;
   tramoAviso({ tipo: 'guia_pags', id: 'rayah', pags: pg });
   tramoPausa(false);
@@ -4019,9 +4024,10 @@ addEventListener('keydown', e => {
 }, true);
 function irA(id) { quitarCarga(); if (id === 'sTitulo') { limpiarVentanas(); window.__nxSinLogo = false; } document.querySelectorAll('.scr').forEach(s => s.classList.toggle('on', s.id === id)); }
 function toast(t) { const el = $('toast'); el.innerHTML = esc(t).split(esc('<i class="mn"></i>')).join('<i class="mn"></i>'); el.classList.add('on'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('on'), 2600); }
-function mensaje(t, html, ops) {
+function mensaje(t, html, ops, clase) {
   quitarCarga();
   return esperaCarga().then(() => new Promise(res => {
+    $('mMsg').classList.toggle('rayah', clase === 'rayah');      // v335 · ventana con la nube roja de Rayah
     $('msgT').textContent = t; $('msgB').innerHTML = html;
     ops = ops || [['ENTENDIDO', '']];
     $('msgOps').innerHTML = ops.map((o, i) => `<button class="bt ${o[1] || ''}" data-i="${i}">${o[0]}</button>`).join('');

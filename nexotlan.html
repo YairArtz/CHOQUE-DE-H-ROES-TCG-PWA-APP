@@ -118,6 +118,26 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 .t-est .chipm:focus-visible{outline:2px solid var(--gold2);outline-offset:2px}
 .t-cont .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--purple));transition:width .2s}
 .t-save{font-size:15px;color:#cfe0ff;background:rgba(10,20,48,.7);border:1px solid var(--line);border-radius:10px;padding:10px 14px;position:relative;z-index:1}
+/* ═══ v339 · DEMO ═══ */
+#tDemo{position:relative;z-index:3;display:table;margin:10px auto 0;font:700 11px Orbitron,sans-serif;letter-spacing:.18em;color:#1a0f00;background:linear-gradient(90deg,#f5a623,#ffd27a);padding:6px 14px;border-radius:20px;box-shadow:0 0 14px rgba(245,166,35,.5)}
+#demoFin{position:fixed;inset:0;z-index:9000;display:flex;align-items:center;justify-content:center;padding:16px;background:radial-gradient(ellipse at 50% 30%,rgba(60,20,90,.92),rgba(5,4,14,.97) 70%);animation:dfIn .6s ease both;overflow:auto}
+#demoFin .df-caja{max-width:620px;width:100%;text-align:center;font-family:Orbitron,sans-serif;color:#e9e4ff;margin:auto}
+#demoFin .df-logo{width:min(360px,72vw);height:auto;filter:drop-shadow(0 0 18px rgba(204,85,255,.55));animation:dfLogo 1s cubic-bezier(.2,1.4,.4,1) both}
+#demoFin h2{margin:8px 0 4px;font-size:clamp(24px,6vw,38px);color:#f5a623;text-shadow:0 0 16px rgba(245,166,35,.55);letter-spacing:.04em}
+#demoFin .df-sub{margin:0 0 14px;font-size:13px;line-height:1.5;color:#cdbcf0}
+#demoFin .df-enc{font-size:12px;letter-spacing:.2em;color:#cc55ff;margin:6px 0 8px;text-transform:uppercase}
+#demoFin ul{list-style:none;padding:0;margin:0 0 12px;text-align:left;display:grid;gap:7px}
+#demoFin li{display:flex;gap:10px;align-items:flex-start;background:rgba(204,85,255,.09);border:1px solid rgba(204,85,255,.28);border-radius:10px;padding:8px 11px;font-size:12px;line-height:1.45;animation:dfItem .5s ease both}
+#demoFin li b{color:#f5a623}
+#demoFin .df-ico{font-size:18px;line-height:1}
+#demoFin .df-nota{font-size:12px;color:#9fe8c8;margin:6px 0}
+#demoFin .df-disp{display:inline-block;margin:6px 0 14px;padding:9px 16px;border-radius:10px;font-weight:700;font-size:13px;color:#1a0f00;background:linear-gradient(90deg,#f5a623,#ffd27a);box-shadow:0 0 18px rgba(245,166,35,.45)}
+#demoFin .df-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:16px}
+#demoFin .df-der{font-size:10px;color:#8a80a8;letter-spacing:.06em;border-top:1px solid rgba(204,85,255,.25);padding-top:10px}
+#demoFin .df-der small{display:block;margin-top:3px;font-size:9px}
+@keyframes dfIn{from{opacity:0}to{opacity:1}}
+@keyframes dfLogo{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
+@keyframes dfItem{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:none}}
 /* ═══ v276 · Dos fases en la portada: TÍTULO (logo + COMENZAR + ©) → PARTIDAS ═══ */
 #sTitulo.fase-portada .t-btns,#sTitulo.fase-portada .t-cont,#sTitulo.fase-portada .t-est,#sTitulo.fase-portada .t-save,#sTitulo.fase-portada .t-ph,#sTitulo.fase-portada .t-atras{display:none!important}
 #sTitulo.fase-partidas .t-ini,#sTitulo.fase-partidas .t-copy,#sTitulo.fase-partidas .t-kicker,#sTitulo.fase-partidas .t-sub,
@@ -1559,6 +1579,39 @@ let SUBS = [], VISTA = '';
 // DLC: lo que en mapa.txt / comerciante.txt lleva  dlc = sku  solo existe si el jugador compró ese producto (compras.js)
 // v275 · Los testers con su ID escrita en testers.txt tienen todos los DLC sin pagarlos (el "*" no cuenta: eso abre el modo, no los DLC)
 let TESTER_DLC = false;
+// v339 · DEMO (jugadores sin ID de tester): solo los distritos de demo_distritos; al vencer a demo_fin sale el agradecimiento
+let DEMO = false, DEMO_D = new Set(), DEMO_TXT = null;
+function activarDemo() {
+  DEMO = true; DEMO_D = new Set(String(CFG.demo_distritos || 'puerta, mercado').split(',').map(x => x.trim()).filter(Boolean));
+  DLC_BLOQ = [];      // en la demo no se anuncian los DLC
+  const b = document.createElement('div'); b.id = 'tDemo'; b.textContent = 'DEMO · PRUEBA GRATUITA'; const ts = document.getElementById('tSub'); if (ts) ts.after(b); else document.getElementById('sTitulo').appendChild(b);
+  fetch(DIR + String(CFG.demo_texto || 'demo.txt'), { cache: 'no-cache' }).then(r => r.ok ? r.text() : '').then(t => { DEMO_TXT = (parseTxt(t || '').find(x => x._sec === 'demo')) || {}; }).catch(() => { DEMO_TXT = {}; });
+}
+function revisarDemoFin() {
+  if (!DEMO || !S || S.demoFin || !CFG.demo_fin || !vencido(String(CFG.demo_fin).trim())) return;
+  S.demoFin = Date.now(); guardar(); pantallaDemo();
+}
+function pantallaDemo() {
+  const T = DEMO_TXT || {}, e = x => esc(String(x || ''));
+  const pts = []; for (let i = 1; i <= 12; i++) { const v = String(T['punto' + i] || '').trim(); if (v) pts.push(v.split('|').map(x => x.trim())); }
+  const anio = new Date().getFullYear();
+  const der = String(T.derechos || '© {anio} Yair Artz · Codex Studio | Choque de Héroes · Todos los derechos reservados').replace('{anio}', anio).split('|').map(x => x.trim());
+  let ov = document.getElementById('demoFin'); if (ov) ov.remove();
+  ov = document.createElement('div'); ov.id = 'demoFin';
+  ov.innerHTML = `<div class="df-caja">
+    <img class="df-logo" src="${e(T.logo || 'assets/nexotlan/titulo/logo.png')}" alt="Modo Aventura">
+    <h2>${e(T.titulo || '¡Gracias por jugar!')}</h2>
+    <p class="df-sub">${e(T.subtitulo || '')}</p>
+    ${pts.length ? `<div class="df-enc">${e(T.encabezado || 'En la versión completa:')}</div><ul>${pts.map((p, i) => `<li style="animation-delay:${0.5 + i * 0.22}s"><span class="df-ico">${e(p[0])}</span><span><b>${e(p[1] || '')}</b> ${e(p[2] || '')}</span></li>`).join('')}</ul>` : ''}
+    <p class="df-nota">${e(T.nota || '')}</p>
+    <div class="df-disp">${e(T.disponible || 'Disponible próximamente en la Tienda Digital de la app.')}</div>
+    <div class="df-btns"><button class="bt gold" id="dfSeguir">${e(T.boton_seguir || 'SEGUIR EXPLORANDO')}</button><button class="bt sec" id="dfMenu">${e(T.boton_menu || 'VOLVER AL MENÚ')}</button></div>
+    <div class="df-der">${e(der[0] || '')}${der[1] ? '<small>' + e(der[1]) + '</small>' : ''}</div></div>`;
+  document.body.appendChild(ov);
+  ov.querySelector('#dfSeguir').onclick = () => ov.remove();
+  ov.querySelector('#dfMenu').onclick = () => { ov.remove(); irA('sTitulo'); };
+  try { ov.querySelector('#dfSeguir').focus(); } catch (x) {}
+}
 const tieneDLC = sku => !sku || EDITOR || TESTER_DLC || !!(window.CHH_COMPRAS && CHH_COMPRAS.tiene(sku));
 let DATA = { cartas: [], barajas: [] }, CARD = {}, GALI = {};
 let S = null;                                // partida
@@ -1880,6 +1933,7 @@ function cumple(req) { return req.every(r => vencido(r) || (S.hablados[r] || 0) 
 // Solo cuenta la ruta actual de mapa.txt (requiere); lo abierto con un orden anterior ya no se salta la ruta
 function distritoAbierto(d) {
   if (EDITOR) return true;
+  if (DEMO && !DEMO_D.has(d.id)) return false;      // v339 · demo
   if (d._sub) { const sb = subDe(d._sub); if (!sb || !subAbierto(sb)) return false; }   // v274 · un submapa abre con su distrito de entrada
   return !d._req.length || cumple(d._req);
 }
@@ -2328,7 +2382,7 @@ function tramoAbierto(t) {
   if (r.length) return r.every(id => vencido(id));
   const h = DIST.find(d => d.id === t.hasta); return !!(h && distritoAbierto(h));
 }
-const tramoVisible = t => !!t && !!DIST.find(d => d.id === t.desde && (distritoAbierto(d) || pruebaDLC(t)) && enVista(d)) && tieneDLC(String(t.dlc || '').trim().toLowerCase()) && tramoAbierto(t);
+const tramoVisible = t => !!t && (!DEMO || (DEMO_D.has(t.desde) && DEMO_D.has(t.hasta))) && !!DIST.find(d => d.id === t.desde && (distritoAbierto(d) || pruebaDLC(t)) && enVista(d)) && tieneDLC(String(t.dlc || '').trim().toLowerCase()) && tramoAbierto(t);
 function tramoPos(t) {
   const a = DIST.find(d => d.id === t.desde), b = DIST.find(d => d.id === t.hasta);
   return { x: num(t.x, a && b ? (a._x + b._x) / 2 : (a || { _x: 50 })._x), y: num(t.y, a && b ? (a._y + b._y) / 2 : (a || { _y: 50 })._y) };
@@ -2674,7 +2728,7 @@ function pintarMapa() {
     return `<button class="nx-portal" data-sub="${esc(sb.id)}" style="left:${d._x}%;top:${d._y}%;--dc:${esc(sb.color || d.color)}" aria-label="Entrar a ${esc(sb.nombre || sb.id)}"><i></i><span>⇩ ${esc(sb.boton || 'ENTRAR')}<small>${pr.ven}/${pr.tot}</small></span></button>`; }).join('');
   const etq = DIST.filter(enVista).map(d => { const ab = distritoAbierto(d), sbE = !VISTA && subDeEntrada(d), pr = sbE ? progresoSub(sbE) : progresoDistrito(d);
     const et = String(d.etiqueta || '').split(',').map(Number), lx = isFinite(et[0]) && et.length === 2 ? et[0] : d._x, ly = isFinite(et[1]) && et.length === 2 ? et[1] : d._y - d._r * .55;
-    return `<div class="dlab ${ab ? '' : 'lock'}" style="left:${lx}%;top:${ly}%;--dc:${esc(d.color)}">${ab ? '' : '🔒 '}${esc(d.nombre || d.id)}${ab ? '<small>' + pr.ven + '/' + pr.tot + '</small>' : ''}</div>`; }).join('');
+    return `<div class="dlab ${ab ? '' : 'lock'}" style="left:${lx}%;top:${ly}%;--dc:${esc(d.color)}">${ab ? '' : '🔒 '}${esc(d.nombre || d.id)}${ab ? '<small>' + pr.ven + '/' + pr.tot + '</small>' : (DEMO && !DEMO_D.has(d.id) ? '<small>VERSIÓN COMPLETA</small>' : '')}</div>`; }).join('');
   const pts = PTS.filter(p => enVista(distDe(p)) && visibleHoy(p)).map(p => {
     const v = vencido(p.id), nuevoNpc = p.tipo === 'heroe' && !(S.hablados[p.id] > 0);
     const bloq = p.tipo === 'guardian' && p._req.length && !cumple(p._req) && !EDITOR;
@@ -4049,6 +4103,7 @@ function mostrarMapa() {
   pintarMapa(); ajustarZoom(ZOOM > 1 ? ZOOM : (ANCHO() < 700 ? 1.6 : 1));
   requestAnimationFrame(() => ajustarZoom(ZOOM));          // segunda medida, ya con el layout final
   musica(CFG.musica);
+  setTimeout(revisarDemoFin, 700);      // v339 · fin de la demo
 }
 async function entrarMapa(primeraVez) {
   if (S && S.baraja && !esDelModo(S.baraja) && !EDITOR) {     // partidas viejas: elegir una baraja básica
@@ -4720,14 +4775,16 @@ $('dCaja').addEventListener('click', e => { if (!e.target.closest('.d-ops')) { e
   let lista = [];
   try { lista = (await leer(DIR + 'testers.txt')).split(/\r?\n/).map(l => l.replace(/#.*/, '').trim().toUpperCase()).filter(Boolean); } catch (e) {}
   const yo = sesionJug();
-  if (!lista.includes('*') && !(yo && lista.includes(String(yo.id).toUpperCase()))) {
+  const bloqueoPruebas = () => {
     document.querySelector('#sTitulo .t-btns').style.display = 'none';
     $('tIni').hidden = true;
     $('tSub').textContent = '🔒 En pruebas · Próximamente';
     $('tInfo').innerHTML = yo ? 'Tu ID <b>' + yo.id + '</b> no tiene acceso a la versión de prueba.' : 'Inicia sesión en <a href="perfil.html" style="color:inherit">Mi Perfil</a> con una ID de prueba para entrar.';
     window.GP_CFG = { principal: '.esq' };
-    quitarCarga(); return;
-  }
+    quitarCarga();
+  };
+  // v339 · DEMO: quien no tiene ID de tester juega la demo (si demo = si en [config] de mapa.txt); si no, sigue el candado
+  const demoPend = !lista.includes('*') && !(yo && lista.includes(String(yo.id).toUpperCase()));
   TESTER_DLC = !!(yo && lista.includes(String(yo.id).toUpperCase()));   // v275 · DLC gratis para los testers con ID en la lista
   const [txt, data, gal, lim, com] = await Promise.allSettled([leer(DIR + 'mapa.txt'), leer('data/cartas_simulacion.json', true), leer('cartas.json', true), leer('cartas-limitadas.json', true), leer(DIR + 'comerciante.txt')]);
   if (com.status === 'fulfilled') COM = parseCom(com.value);
@@ -4738,6 +4795,10 @@ $('dCaja').addEventListener('click', e => { if (!e.target.closest('.d-ops')) { e
   if (data.status === 'fulfilled') { DATA = data.value || DATA; (DATA.cartas || []).forEach(c => { if (c && c.id) CARD[c.id] = c; }); }
   if (gal.status === 'fulfilled') (gal.value || []).forEach(x => { if (x && x.id != null) GALI[String(x.id)] = x; });
   if (!DIST.length || !PTS.length) { quitarCarga(); $('tInfo').innerHTML = '⚠ No se pudo leer <b>assets/nexotlan/mapa.txt</b>.'; return; }
+  if (demoPend) {
+    if (!/^(si|sí|1|true)$/i.test(String(CFG.demo || '').trim())) { bloqueoPruebas(); return; }
+    activarDemo();
+  }
   // La partida se guarda sola en este dispositivo en cada cambio; la nube se sincroniza en segundo plano
   // (si la nube tarda o falla, el modo sigue funcionando con la copia local).
   S = normalizar(cargarLocal());

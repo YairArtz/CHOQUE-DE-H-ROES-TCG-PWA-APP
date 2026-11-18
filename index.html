@@ -444,13 +444,17 @@ $('topics').addEventListener('click', () => { location.href = 'noticias.html'; }
 resetAuto();
 
 // ── Nexotlan en pruebas: aparece solo para las IDs de assets/nexotlan/testers.txt ("*" = todos) ──
-fetch('assets/nexotlan/testers.txt', { cache: 'no-cache' }).then(r => r.ok ? r.text() : '').then(t => {
+// v340 · con  demo = si  en [config] de assets/nexotlan/mapa.txt aparece para TODOS (sin ID de tester juegan la demo)
+Promise.all([fetch('assets/nexotlan/testers.txt', { cache: 'no-cache' }).then(r => r.ok ? r.text() : '').catch(() => ''),
+             fetch('assets/nexotlan/mapa.txt', { cache: 'no-cache' }).then(r => r.ok ? r.text() : '').catch(() => '')]).then(([t, mapa]) => {
   const l = t.split(/\r?\n/).map(x => x.replace(/#.*/, '').trim().toUpperCase()).filter(Boolean);
   let id = ''; try { const s = JSON.parse(localStorage.getItem('nhSesion') || 'null'); if (s && s.tipo !== 'tienda' && s.id) id = String(s.id).toUpperCase(); } catch (e) {}
-  if (l.includes('*') || (id && l.includes(id))) {
+  const tester = l.includes('*') || (id && l.includes(id));
+  const demo = /^[ \t]*demo[ \t]*=[ \t]*(si|sí|1|true)[ \t]*$/im.test(mapa || '');
+  if (tester || demo) {
     NX_OK = true;
-    $('pass').href = 'nexotlan.html'; $('passT').textContent = 'AVENTURA: NEXOTLAN';
-    $('passS').textContent = 'Recorre la ciudad entre dimensiones y vence a sus guardianes.';
+    $('pass').href = 'nexotlan.html'; $('passT').textContent = tester ? 'AVENTURA: NEXOTLAN' : 'AVENTURA: NEXOTLAN · DEMO';
+    $('passS').textContent = tester ? 'Recorre la ciudad entre dimensiones y vence a sus guardianes.' : 'Prueba gratis la demo: cruza la Puerta de Obsidiana y llega al Mercado.';
     $('passImg').style.backgroundImage = "url('assets/nexotlan/titulo/titulo.jpg')";
     if (SEC === 'jugar') abrirSeccion('jugar');
   }

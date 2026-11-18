@@ -2658,11 +2658,14 @@ window.nxTramoEvento = async function (s) {
     case 'moneda': {      // v343 · moneda de la ruta (+1 azul, +10 roja); al juntarlas todas, bono
       const m = (def.monedas || []).find(x => x.id === ev.id); e.mon = e.mon || {}; if (!m || e.mon[m.id]) return;
       e.mon[m.id] = 1; S.monedas = (S.monedas || 0) + m.v;
-      if (!MUTE) { try { const a = new Audio('assets/nexotlan/sonidos/' + (m.roja ? 'moneda_roja.mp3' : 'moneda.mp3')); a.volume = .65; a.preservesPitch = false; a.playbackRate = m.roja ? 1 : Math.min(1.6, 1 + 0.06 * (ev.racha || 0)); a.play().catch(() => {}); } catch (x) {} }
+      if (!MUTE) { try { const k = m.roja ? 'moneda_roja' : 'moneda'; window._sonMon = window._sonMon || {};      // v345 · el sonido se carga una vez y se clona
+        if (!_sonMon[k]) { _sonMon[k] = new Audio('assets/nexotlan/sonidos/' + k + '.mp3'); _sonMon[k].preload = 'auto'; }
+        const a = _sonMon[k].cloneNode(); a.volume = .65; a.preservesPitch = false; a.playbackRate = m.roja ? 1 : Math.min(1.6, 1 + 0.06 * (ev.racha || 0)); a.play().catch(() => {}); } catch (x) {} }
       const tot = def.monedas.length, ya = def.monedas.filter(x => e.mon[x.id]).length, rj = def.monedas.filter(x => x.roja);
       if (m.roja) tramoAviso({ tipo: 'toast', txt: '🔴 ¡Moneda roja! +10 · ' + rj.filter(x => e.mon[x.id]).length + '/' + rj.length });
       if (ya === tot && !e.monBono) { e.monBono = 1; const b = num(CFG.monedas_bono, 25); S.monedas += b; tramoAviso({ tipo: 'toast', txt: '🏆 ¡Juntaste todas las monedas de la ruta! +' + b }); }
-      guardar(); pintarHud(); tramoAviso({ tipo: 'hud', monedas: S.monedas });
+      pintarHud(); tramoAviso({ tipo: 'hud', monedas: S.monedas });
+      clearTimeout(window._monGuarda); window._monGuarda = setTimeout(() => guardar(), 2500);      // v345 · se guarda en lote (guardar en cada moneda congelaba un instante)
       break;
     }
     case 'guia_visto': {      // v304 · ya escuchó a Nextor en esta ruta

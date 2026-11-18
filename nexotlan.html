@@ -119,6 +119,8 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 .t-cont .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--purple));transition:width .2s}
 .t-save{font-size:15px;color:#cfe0ff;background:rgba(10,20,48,.7);border:1px solid var(--line);border-radius:10px;padding:10px 14px;position:relative;z-index:1}
 /* ═══ v339 · DEMO ═══ */
+.demo-lock{opacity:.45;filter:grayscale(.7);position:relative}
+.demo-lock::after{content:'🔒';position:absolute;top:-4px;right:-4px;font-size:12px;filter:none}
 #tDemo{position:relative;z-index:3;display:table;margin:10px auto 0;font:700 11px Orbitron,sans-serif;letter-spacing:.18em;color:#1a0f00;background:linear-gradient(90deg,#f5a623,#ffd27a);padding:6px 14px;border-radius:20px;box-shadow:0 0 14px rgba(245,166,35,.5)}
 #demoFin{position:fixed;inset:0;z-index:9000;display:flex;align-items:center;justify-content:center;padding:16px;background:radial-gradient(ellipse at 50% 30%,rgba(60,20,90,.92),rgba(5,4,14,.97) 70%);animation:dfIn .6s ease both;overflow:auto}
 #demoFin .df-caja{max-width:620px;width:100%;text-align:center;font-family:Orbitron,sans-serif;color:#e9e4ff;margin:auto}
@@ -1584,9 +1586,11 @@ let DEMO = false, DEMO_D = new Set(), DEMO_TXT = null;
 function activarDemo() {
   DEMO = true; DEMO_D = new Set(String(CFG.demo_distritos || 'puerta, mercado').split(',').map(x => x.trim()).filter(Boolean));
   DLC_BLOQ = [];      // en la demo no se anuncian los DLC
+  ['hAdv', 'hDiario'].forEach(id => { const b = document.getElementById(id); if (b) b.classList.add('demo-lock'); });      // v341 · Adversarios y Diario: solo versión completa
   const b = document.createElement('div'); b.id = 'tDemo'; b.textContent = 'DEMO · PRUEBA GRATUITA'; const ts = document.getElementById('tSub'); if (ts) ts.after(b); else document.getElementById('sTitulo').appendChild(b);
   fetch(DIR + String(CFG.demo_texto || 'demo.txt'), { cache: 'no-cache' }).then(r => r.ok ? r.text() : '').then(t => { DEMO_TXT = (parseTxt(t || '').find(x => x._sec === 'demo')) || {}; }).catch(() => { DEMO_TXT = {}; });
 }
+function demoBloqueo(que) { toast('🔒 ' + que + ' está disponible en la versión completa'); }
 function revisarDemoFin() {
   if (!DEMO || !S || S.demoFin || !CFG.demo_fin || !vencido(String(CFG.demo_fin).trim())) return;
   S.demoFin = Date.now(); guardar(); pantallaDemo();
@@ -3160,6 +3164,7 @@ async function descansar() {
   if (hoy.length) setTimeout(() => toast('📅 Hoy aparecen: ' + hoy.slice(0, 4).join(', ') + (hoy.length > 4 ? '…' : '')), 600);
 }
 function abrirDiario() {
+  if (DEMO) return demoBloqueo('El Diario');
   const ab = DIST.filter(distritoAbierto).length, tot = PTS.filter(p => p.tipo !== 'heroe'), ven = tot.filter(p => vencido(p.id)).length;
   let h = `<div class="stats"><div class="st"><b>${S.dia + 1}</b><small>DÍA</small></div><div class="st"><b>${ven}/${tot.length}</b><small>VENCIDOS</small></div>
     <div class="st"><b>${S.victorias}-${S.perdidas}</b><small>V-D</small></div><div class="st"><b>${ab}/${DIST.length}</b><small>DISTRITOS</small></div></div>
@@ -4231,6 +4236,7 @@ const DU_TABS = [['rival', 'RIVALES', 'Los rivales que exploran Nexotlan. Vénce
 let DU = { tab: 'rival', id: null, de: 'sMenu' };
 function listaDu(t) { return PTS.filter(p => p.tipo === t && !esTurista(p)); }
 function abrirAdversarios(de) {
+  if (DEMO) return demoBloqueo('Adversarios');
   DU.de = de || 'sMenu'; cerrarFicha();
   if (!DU.id || !PTS.find(p => p.id === DU.id)) { const c = listaDu(DU.tab).find(conocido) || listaDu(DU.tab)[0]; DU.id = c && c.id; }
   irA('sAdv'); duMapaListo(); pintarAdversarios();
@@ -4355,6 +4361,7 @@ function pintarMenu() {
   if ($('mnCarpeta')) $('mnCarpeta').onclick = () => { if (!lr.ok) { toast('🔒 Carpetero: ' + lr.txt); return; } VOLVER = 'sMenu'; abrirCarpeta(car); };
   $('mnDiario').onclick = abrirDiario;
   $('mnAdv').onclick = () => abrirAdversarios('sMenu');
+  if (DEMO) ['mnAdv', 'mnDiario'].forEach(id => { const b = $(id); if (b) b.classList.add('demo-lock'); });
   if ($('mnFisicas')) $('mnFisicas').onclick = abrirFisicas;
 
 }

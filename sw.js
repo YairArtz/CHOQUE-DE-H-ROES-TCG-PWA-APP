@@ -61,7 +61,7 @@
 //  v8:   shell cache-first + revalidación, JSON red-primero, fallbacks por tipo.
 // ================================================================
 try { importScripts('./config.js'); } catch (e) {}   // direcciones de los servidores (config.js)
-const CACHE_NAME    = 'chh-tcg-v331';
+const CACHE_NAME    = 'chh-tcg-v332';
 const CACHE_DYNAMIC = 'chh-paginas-v1';    // estable: páginas/JSON/JS visitados (NO subir; lo precargado se renueva solo)
 const CACHE_IMG     = 'chh-img-v1';      // estable: imágenes, fuentes y PDFs. Subir SOLO si reemplazas imágenes con el mismo nombre
 const CACHE_AUDIO   = 'chh-audio-v1';    // estable: pistas de bgm.js. Subir SOLO si reemplazas un .mp3 con el mismo nombre
@@ -253,6 +253,8 @@ self.addEventListener('fetch', event => {
 
   // v281 · Motor 3D de los tramos de Nexotlan (Godot): se guarda al bajarlo la primera vez y se revalida en segundo plano
   if (/\/tramo\/[^/]+\.(wasm|pck|p\d)$/i.test(path)) { event.respondWith(cacheFirstRevalidate(req)); return; }
+  // v332 · modelos 3D (personajes, casas): la copia guardada al instante; con red se revisa en segundo plano
+  if (/\/assets\/.+\.glb$/i.test(path)) { event.respondWith(cacheFirstRevalidate(req)); return; }
 
   if (/\.json$/i.test(path)) {
     event.respondWith(CATALOG_JSON.test(path) ? cacheFirstRevalidate(req) : networkFirstTimeout(req, 'json', NET_TIMEOUT));
@@ -382,7 +384,10 @@ async function matchAny(req, opts) {
   const d = await dyn.match(req, opts);
   if (d) return d;
   const core = await caches.open(CACHE_NAME);
-  return core.match(req, opts);
+  const k = await core.match(req, opts);
+  if (k) return k;
+  // v332 · lo que bajó el botón de descargas de Nexotlan (rutas 3D, modelos, texturas) también cuenta como copia
+  try { return await (await caches.open(CACHE_MEDIOS)).match(req, opts); } catch (e) { return undefined; }
 }
 
 const _putCounts = {};

@@ -2325,11 +2325,19 @@ function tramoPos(t) {
   const a = DIST.find(d => d.id === t.desde), b = DIST.find(d => d.id === t.hasta);
   return { x: num(t.x, a && b ? (a._x + b._x) / 2 : (a || { _x: 50 })._x), y: num(t.y, a && b ? (a._y + b._y) / 2 : (a || { _y: 50 })._y) };
 }
+// v332 · con datos lentos se espera a la red solo un momento; si no contesta se usa la copia guardada (descargas)
+async function textoPronto(u, ms) {
+  const red = fetch(u, { cache: 'no-cache' }).then(r => r.ok ? r.text() : null).catch(() => null);
+  const t = await Promise.race([red, new Promise(r => setTimeout(() => r(undefined), ms || 3000))]);
+  if (t) return t;
+  try { const c = await caches.match(new URL(u, location.href).href, { ignoreSearch: true }); if (c) return await c.text(); } catch (e) {}
+  return (await red) || '';
+}
 async function cargarTramo(id) {
   if (_tramoCache[id]) return _tramoCache[id];
   const t = tramoDe(id); if (!t) return null;
   const f = String(t.archivo || ('tramos/' + id + '.txt')).replace(/^assets\/nexotlan\//, '');
-  const txt = await fetch(DIR + f, { cache: 'no-cache' }).then(r => r.ok ? r.text() : '').catch(() => '');
+  const txt = await textoPronto(DIR + f, 3000);
   const secs = parseTxt(txt); if (!secs.length) return null;
   const head = secs.find(s => s._sec === 'tramo') || {};
   const L = v => String(v || '').split('|').map(x => x.split(',').map(y => y.trim())).filter(a => a.length >= 2 && a.slice(0, 2).every(y => y !== '' && isFinite(+y))).map(a => a.map((y, i) => i < 3 && isFinite(+y) ? +y : y));
@@ -3723,6 +3731,24 @@ function itemsContenido() {
   (COM.sobres || []).forEach(sb => sb.imagen && add(/\//.test(sb.imagen) ? [sb.imagen] : [DIR + 'sobres/' + sb.imagen, DIR + sb.imagen], 'img'));
   return it;
 }
+// v332 · Rutas 3D: su .txt, las texturas que piden, modelos (casas, Nextor, Koatl, Sitho, jugador, Ánima) y la ropa de la Modista
+async function items3D() {
+  const it = [], ya = new Set();
+  const add = u => { if (!u) return; u = new URL(u, location.href).href; if (ya.has(u)) return; ya.add(u); it.push({ cands: [u], tipo: 'img' }); };
+  const T = DIR + 'tramos/texturas/';
+  for (const t of TRAMOS) {
+    add(DIR + String(t.archivo || ('tramos/' + t.id + '.txt')).replace(/^assets\/nexotlan\//, ''));
+    const def = await cargarTramo(t.id).catch(() => null); if (!def) continue;
+    Object.entries(def.head || {}).forEach(([k, v]) => { v = String(v || '').trim(); if (/^(textura_|glifo_)/.test(k) && v) add(/\//.test(v) ? v.replace(/^\.?\//, '') : T + v); });
+  }
+  ['simbolo_codex.png', 'libro_textura.jpg', 'lomo_libro_textura.jpg', 'roca_textura.jpg', 'tabiques_textura.jpg', 'piso_archivos_textura.jpg', 'nubes_textura.jpg'].forEach(f => add(T + f));
+  ['tramos/modelos/casa_1.glb', 'tramos/modelos/casa_2.glb', 'personajes/nextor.glb', 'personajes/koatl_chibi.glb', 'personajes/sitho.glb', 'personajes/anima_multiversal.glb'].forEach(f => add(DIR + f));
+  [CFG.tramo_modelo, CFG.tramo_koatl_modelo, CFG.tramo_sitho_modelo, CFG.tramo_guia_modelo].forEach(m => { m = String(m || '').trim(); if (m) add(m.includes('/') ? m : DIR + 'personajes/' + m); });
+  const mas = String((MOD.cfg && MOD.cfg.mascaras) || 'personajes/ropa/v2/').replace(/^assets\/nexotlan\//, '');
+  ['jugador_zonas_1.png', 'jugador_zonas_2.png', 'jugador_estampa_1.png', 'jugador_estampa_2.png', 'jugador_capa_uv.png', 'jugador_capucha_uv.png'].forEach(f => add(DIR + mas + f));
+  (MOD.items || []).forEach(x => { if (x.imagen) add(/\//.test(x.imagen) ? x.imagen : DIR + 'personajes/ropa/estampados/' + x.imagen); });
+  return it;
+}
 async function enCache(u) { try { return await caches.match(u, { ignoreSearch: true }); } catch (e) { return null; } }
 const firma = r => r ? (r.headers.get('etag') || '') + '|' + (r.headers.get('last-modified') || '') + '|' + (r.headers.get('content-length') || '') : '';
 async function revisarItem(it, conRed, soloFaltantes) {
@@ -3760,7 +3786,7 @@ async function contenido(op) {          // op: { auto, musica }
   const pinta = (n, t, msg) => { box.hidden = false; bar.style.width = (t ? n / t * 100 : 100) + '%'; txt.textContent = msg; };
   _cont = (async () => {
     if (!('caches' in window)) { pinta(1, 1, 'Este navegador no permite guardar contenido.'); return; }
-    const L = itemsContenido(), red = navigator.onLine, musica = op.musica !== false;
+    const L = itemsContenido().concat(await items3D().catch(() => [])), red = navigator.onLine, musica = op.musica !== false;
     btn.disabled = true;
     let n = 0, bajados = 0, cambios = 0, faltan = 0, sinMusica = 0;
     const noEx = {};   // v232 · archivos que mapa.txt menciona pero no existen en el sitio: no cuentan como faltantes
@@ -3812,7 +3838,7 @@ const mbTxt = b => b >= 1048576 ? (b / 1048576).toFixed(b >= 10485760 ? 0 : 1) +
 let _est = null;
 async function estadoContenido() {
   let noEx = {}; try { noEx = JSON.parse(localStorage.getItem('chh_nx_noexiste') || '{}') || {}; } catch (e) {}
-  const L = itemsContenido().filter(it => !noEx[it.cands[0]]);
+  const L = itemsContenido().concat(await items3D().catch(() => [])).filter(it => !noEx[it.cands[0]]);
   const R = { total: L.length, ok: 0, img: 0, mus: 0, bytes: 0 };
   let i = 0;
   const uno = async () => { while (i < L.length) { const it = L[i++]; let r = null;

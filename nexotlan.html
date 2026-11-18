@@ -2364,6 +2364,8 @@ async function cargarTramo(id) {
   const pp = t => String(t || '').split('|').map(x => x.trim()).filter(Boolean);
   // v323 · [sitho] x, z, saludo (uno al azar cada vez | …): el Doctor Sitho (espíritu) abre su tienda sin salir de la ruta
   def.sitho = (g => g ? { x: num(g.x, 0), z: num(g.z, 0), saludo: pp(g.saludo) } : null)(secs.find(s => s._sec === 'sitho'));
+  // v334 · [rayah] x, z, saludo (pág | pág), despedida (pág | pág): Rayah la Genio concede UN deseo, una sola vez por partida
+  def.rayah = (g => g ? { x: num(g.x, 0), z: num(g.z, 0), saludo: pp(g.saludo), despedida: pp(g.despedida) } : null)(secs.find(s => s._sec === 'rayah'));
   def.koatl = (g => g ? { x: num(g.x, 0), z: num(g.z, 0), saludo: pp(g.saludo), consejos: pp(g.consejos), regalo: String(g.regalo || '').trim() } : null)(secs.find(s => s._sec === 'koatl'));
   // v307 · [coliseo] x, z (centro), radio_x, radio_z, niveles, alto (de cada piso), arcos (por piso), puerta (ángulo de la puerta grande), neon = #c1,#c2,#c3
   def.coliseo = (c => c ? { x: num(c.x, 0), z: num(c.z, 0), radio_x: num(c.radio_x, 40), radio_z: num(c.radio_z, 32), niveles: num(c.niveles, 3), alto: num(c.alto, 6.5),
@@ -2398,6 +2400,49 @@ window.reiniciarTramo = function (id) {
 };
 function cartasTramo(def) { const e = estTramo(def.id); return { tot: def.cartas.length, ya: def.cartas.filter(c => e.c[c.id]).length }; }
 function imgUrl(f, sub) { const c = candidatos(f, sub)[0] || ''; return c; }
+// v334 · RAYAH LA GENIO: al final del Ascenso a la Cima te concede UN deseo (una sola vez por partida)
+const RAYAH_SALUDO = ['¡Ay, mira nada más! Llegaste hasta aquí arriba… Soy Rayah, la Genio.',
+  'Aish, no suelo hacer esto de verdad… En mi universo casi nunca cumplo los deseos correctamente.',
+  'Pero esta es una ocasión especial, ehh. Te concedo UN deseo. Uno, ¿eh? No tres, no cuatro… uno.',
+  'Y no se lo cuentes a nadie, que luego todos quieren el suyo.'];
+const RAYAH_DESP = ['Ya tuviste tu deseo, listillo. Sube, que Vellond te está esperando.', 'Y si te pregunta… tú nunca me viste. ¿Eh?'];
+function rayahJSON(def) {
+  const k = def.rayah, ya = !!S.deseo;
+  const pg = ya ? (k.despedida.length ? k.despedida : RAYAH_DESP) : (k.saludo.length ? k.saludo : RAYAH_SALUDO);
+  return { id: 'rayah', x: k.x, z: k.z, auto: false, paginas: pg, ruta: pg, fin: !ya, humo: '#ff3b2f', nombre: 'Rayah · La Genio', txt: 'Hablar con Rayah',
+    color: '#ff5fa8', escala: +(CFG.tramo_rayah_escala || 3.0),
+    modelo: (m => m.includes('/') ? m : 'assets/nexotlan/personajes/' + m)(String(CFG.tramo_rayah_modelo || 'rayah.glb').trim()) };
+}
+async function rayahDeseo(def) {
+  tramoPausa(true);
+  const monedas = +(CFG.deseo_monedas || 1500);
+  const abiertos = DIST.filter(distritoAbierto).map(d => d.id).join(',');
+  const pool = [...new Set(poolDe(abiertos, ['bp', 'ba']).concat(poolDe(abiertos, ['bs'])))].filter(id => CARD[id] && precioBase(id) >= RZ_JOYA);
+  const nuevas = pool.filter(id => !(S.col && S.col[id]));
+  const opc = (ic, t, d) => `<div style="display:flex;gap:12px;align-items:center;text-align:left;margin:8px 0;padding:10px 12px;border-radius:12px;background:rgba(255,95,168,.08);border:1px solid rgba(255,95,168,.25)"><span style="font-size:30px">${ic}</span><span><b style="color:#ffd166">${t}</b><br><span style="color:var(--muted);font-size:13px">${d}</span></span></div>`;
+  const i = await mensaje('🧞 ELIGE TU DESEO',
+    `<div style="color:var(--muted);margin-bottom:6px">Rayah chasquea los dedos y una nube roja se enciende. Solo puedes elegir <b style="color:var(--text)">uno</b>.</div>` +
+    opc('💰', 'Riqueza de la Cima', monedas + ' monedas de golpe.') +
+    opc('💎', 'Una carta Joya', pool.length ? 'Una carta Joya de los distritos que ya abriste' + (nuevas.length ? ', de las que aún no tienes.' : '.') : 'Una carta Joya.') +
+    opc('📦', 'Tres Sobres de la Cima', '3 sobres sellados, de los más poderosos. Se guardan en tu mochila.'),
+    [['💰 RIQUEZA', 'gold'], ['💎 CARTA JOYA', 'gold'], ['📦 3 SOBRES', 'gold']]);
+  S.deseo = { dia: S.dia, eleccion: ['monedas', 'joya', 'sobres'][i] || 'monedas' };
+  if (i === 1 && pool.length) {
+    const L = nuevas.length ? nuevas : pool, id = L[Math.floor(Math.random() * L.length)];
+    const r = entregar([id]); guardar(); pintarHud(); await mostrarPremio(r);
+  } else if (i === 2) {
+    S.objetos = S.objetos || {}; S.objetos.sobre_cima = (S.objetos.sobre_cima || 0) + 3; guardar();
+    await mensaje('📦 ¡TRES SOBRES DE LA CIMA!', '<div style="font-size:54px;line-height:1">📦📦📦</div><br>Se guardaron en tu mochila. Ábrelos cuando quieras desde la <b>🎒 MOCHILA</b>.');
+  } else {
+    S.deseo.eleccion = 'monedas'; S.monedas = (S.monedas || 0) + monedas; guardar(); pintarHud();
+    tramoAviso({ tipo: 'hud', monedas: S.monedas });
+    await mensaje('💰 ¡RIQUEZA DE LA CIMA!', `<div style="font-size:54px;line-height:1">💰</div><br>Rayah llenó tus bolsillos: <b style="color:#ffd166">+${monedas}</b> monedas.`);
+  }
+  await mensaje('🧞 RAYAH', '«¡Listo! Salió bien… creo. 😅 Shhh, que sea nuestro secreto.»');
+  const pg = def.rayah.despedida.length ? def.rayah.despedida : RAYAH_DESP;
+  tramoAviso({ tipo: 'guia_pags', id: 'rayah', pags: pg });
+  tramoPausa(false);
+}
 // v321 · KOATL: lo conociste en la Fortaleza de Cristal; desde las rutas del Coliseo aparece a mitad del camino.
 //        La primera vez en cada ruta te saluda solo al verte y te da el regalo de la ruta; las demás, un consejo
 //        y (una vez por día de juego) unas monedas. Siempre te marca las cartas y cofres que faltan.
@@ -2449,6 +2494,7 @@ async function abrirTramo(id) {
       playmats: String(h.exhibir_playmats || '').split('|').map(x => x.trim()).filter(Boolean) },
     post: e.post || null,
     koatl: def.koatl ? koatlJSON(def, e) : null,
+    rayah: def.rayah ? rayahJSON(def) : null,
     sitho: def.sitho ? (() => {
       const sal = def.sitho.saludo.length ? def.sitho.saludo : ['Ah, viajero… Aun en el camino, el Mercado viaja conmigo. ¿Qué te llevas hoy?'];
       const pg = [sal[Math.floor(Math.random() * sal.length)]];
@@ -2538,6 +2584,7 @@ window.nxTramoEvento = async function (s) {
       e.guia = 1; S.guiaIntro = 1; guardar(); break;
     }
     case 'guia_fin': {      // v321 · terminaste de hablar con Koatl: la primera vez en la ruta te da su regalo; luego, unas monedas una vez por día
+      if (ev.id === 'rayah') { if (!S.deseo) await rayahDeseo(def); break; }
       if (ev.id === 'sitho') {      // v323 · la tienda del Comerciante, y al salir regresas a la ruta
         const com = PTS.find(esComerciante); if (!com) break;
         tramoPausa(true); window._volverTramo = VOLVER; VOLVER = 'sTramo'; mostrarCarga(300); abrirTienda(com); break;
@@ -3742,7 +3789,7 @@ async function items3D() {
     Object.entries(def.head || {}).forEach(([k, v]) => { v = String(v || '').trim(); if (/^(textura_|glifo_)/.test(k) && v) add(/\//.test(v) ? v.replace(/^\.?\//, '') : T + v); });
   }
   ['simbolo_codex.png', 'libro_textura.jpg', 'lomo_libro_textura.jpg', 'roca_textura.jpg', 'tabiques_textura.jpg', 'piso_archivos_textura.jpg', 'nubes_textura.jpg'].forEach(f => add(T + f));
-  ['tramos/modelos/casa_1.glb', 'tramos/modelos/casa_2.glb', 'personajes/nextor.glb', 'personajes/koatl_chibi.glb', 'personajes/sitho.glb', 'personajes/anima_multiversal.glb'].forEach(f => add(DIR + f));
+  ['tramos/modelos/casa_1.glb', 'tramos/modelos/casa_2.glb', 'personajes/nextor.glb', 'personajes/koatl_chibi.glb', 'personajes/sitho.glb', 'personajes/rayah.glb', 'personajes/anima_multiversal.glb'].forEach(f => add(DIR + f));
   [CFG.tramo_modelo, CFG.tramo_koatl_modelo, CFG.tramo_sitho_modelo, CFG.tramo_guia_modelo].forEach(m => { m = String(m || '').trim(); if (m) add(m.includes('/') ? m : DIR + 'personajes/' + m); });
   const mas = String((MOD.cfg && MOD.cfg.mascaras) || 'personajes/ropa/v2/').replace(/^assets\/nexotlan\//, '');
   ['jugador_zonas_1.png', 'jugador_zonas_2.png', 'jugador_estampa_1.png', 'jugador_estampa_2.png', 'jugador_capa_uv.png', 'jugador_capucha_uv.png'].forEach(f => add(DIR + mas + f));

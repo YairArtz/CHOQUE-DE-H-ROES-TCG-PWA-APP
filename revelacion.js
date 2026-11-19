@@ -178,7 +178,7 @@
     document.addEventListener('keydown', tecla, true);
 
     // Precargar el frente para que no aparezca en blanco al voltear
-    await new Promise(r => { const im = new Image(); im.onload = im.onerror = r; im.src = o.img; });
+    await Promise.race([new Promise(r => { const im = new Image(); im.onload = im.onerror = r; im.src = o.img; }), espera(3500)]);      // con datos lentos no se queda esperando la imagen
 
     // 1) La carta sale de su lugar en la grilla hacia el centro
     let desdeT = 'translate(0,40px) scale(.6)';

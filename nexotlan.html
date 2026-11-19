@@ -1661,6 +1661,21 @@ function construirModelo(secs) {
 
 // ════════════════ CARTAS / BARAJAS / IMÁGENES ════════════════
 const galPath = f => !f ? '' : (/^(https?:|data:|\/|\.\/)/.test(f) ? f : './' + f);
+// v354 · imagen grande que no carga (sin red o red lenta) → la miniatura que el simulador ya guardó en el teléfono
+const _absU = u => { try { const x = new URL(u, location.href); return x.origin + x.pathname; } catch (e) { return ''; } };
+let _G2M = null;
+document.addEventListener('error', e => {
+  const t = e.target; if (!t || t.tagName !== 'IMG' || t.dataset.fbm) return;
+  if (!_G2M) { _G2M = {}; try { Object.values(GALI).forEach(g => { if (g.ampliada && g.miniatura && g.ampliada !== g.miniatura) _G2M[_absU(galPath(g.ampliada))] = galPath(g.miniatura); }); Object.values(CARD).forEach(c => { if (c.img && c.imgMin && c.img !== c.imgMin) _G2M[_absU(galPath(c.img))] = galPath(c.imgMin); }); } catch (er) {} }
+  const m = _G2M[_absU(t.src)]; if (m) { t.dataset.fbm = 1; t.src = m; }
+}, true);
+// La grande solo si ya está guardada en el teléfono; si no, la miniatura (no se queda esperando la red)
+async function cartaImgLista(id) {
+  const g = cartaImg(id, true), m = cartaImg(id);
+  if (!g || g === m || !('caches' in window)) return g || m;
+  try { if (await caches.match(_absU(g))) return g; } catch (e) {}
+  return navigator.onLine === false ? m : (await Promise.race([new Promise(r => { const im = new Image(); im.onload = () => r(g); im.onerror = () => r(m); im.src = g; }), new Promise(r => setTimeout(() => r(m), 2500))]));
+}
 function cartaImg(id, grande) {
   if (!id) return '';
   id = String(id).trim();
@@ -3585,20 +3600,23 @@ async function comprarSobre(sb) {
   try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('sbPkg')), 60); } catch (e) {}
   await new Promise(r => { $('sbPkg').onclick = r; });
   $('sbPkg').classList.add('abre'); $('sbHint').hidden = true;
+  const sbSeguro = setTimeout(() => { $('sbOk').hidden = false; $('sbOk').onclick = () => { document.querySelectorAll('.rv-ov').forEach(o => o.remove()); $('mSobre').classList.remove('on'); pintarTienda(); }; }, 20000);      // v353 · red de seguridad: el botón de aceptar siempre aparece
   await new Promise(r => setTimeout(r, 520));
   $('sbPkg').style.display = 'none';
-  $('sbRes').innerHTML = `<div class="premio">${res.map(x => `<figure${RAREZA(x.id) === 3 && window.Revelacion ? ' class="por-revelar" style="visibility:hidden"' : ''}><img src="${esc(cartaImg(x.id, true))}" alt=""><figcaption>${esc(nomC(x.id))}${x.extra != null ? `<br><span style="color:#ffd166">Extra · +${x.extra} <i class="mn"></i> al venderla</span>` : (CARD[x.id] || {}).tipo === 'amalgama' ? '<br><span style="color:#ffd166">✨ AMALGAMA</span>' : `<br><span class="rz" style="color:${RZ[RAREZA(x.id)][1]}">${RAREZA(x.id) === 3 ? '★ ' : ''}${RZ[RAREZA(x.id)][0]}</span>`}</figcaption></figure>`).join('')}</div>`;
+  $('sbRes').innerHTML = `<div class="premio">${res.map(x => `<figure${RAREZA(x.id) === 3 && window.Revelacion ? ' class="por-revelar" style="visibility:hidden"' : ''}><img src="${esc(cartaImg(x.id))}" alt=""><figcaption>${esc(nomC(x.id))}${x.extra != null ? `<br><span style="color:#ffd166">Extra · +${x.extra} <i class="mn"></i> al venderla</span>` : (CARD[x.id] || {}).tipo === 'amalgama' ? '<br><span style="color:#ffd166">✨ AMALGAMA</span>' : `<br><span class="rz" style="color:${RZ[RAREZA(x.id)][1]}">${RAREZA(x.id) === 3 ? '★ ' : ''}${RZ[RAREZA(x.id)][0]}</span>`}</figcaption></figure>`).join('')}</div>`;
   // v250 · Cada Joya se revela con la animación épica (revelacion.js): sale al centro, suspenso, volteo, «¡JOYA!» y regresa
   const porRev = [...$('sbRes').querySelectorAll('figure.por-revelar')];
   if (porRev.length) {
     await new Promise(r => setTimeout(r, 700));
     for (const fg of porRev) {
       const k = [...fg.parentNode.children].indexOf(fg), x = res[k];
-      try { await Revelacion.mostrar({ img: cartaImg(x.id, true), nombre: nomC(x.id), rareza: 'joya', desde: fg, raiz: $('stage') }); } catch (e) {}
+      // v353 · con datos móviles lentos la revelación nunca se queda colgada: a los 12 s sigue sola
+      try { await Promise.race([Revelacion.mostrar({ img: await cartaImgLista(x.id), nombre: nomC(x.id), rareza: 'joya', desde: fg, raiz: $('stage') }), new Promise(r => setTimeout(r, 12000))]); } catch (e) {}
+      document.querySelectorAll('.rv-ov').forEach(o => o.remove());
       fg.style.visibility = ''; fg.classList.remove('por-revelar');
     }
   }
-  $('sbOk').hidden = false;
+  clearTimeout(sbSeguro); $('sbOk').hidden = false;
   try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('sbOk')), 300); } catch (e) {}
   await new Promise(r => { $('sbOk').onclick = r; });
   $('mSobre').classList.remove('on'); pintarTienda();

@@ -3333,7 +3333,7 @@ function abrirPausa(ev) {
   if (!TRAMO || $('mPausa').classList.contains('on')) return;
   MP = { x: +ev.x || 0, z: +ev.z || 0, rot: +ev.rot || 0, g: ev.g !== undefined ? +ev.g : num(TRAMO.def.head.giro_camara, 0) * Math.PI / 180, tab: MP && MP.tab || 'mapa' };
   $('mpT').textContent = String(TRAMO.def.t.nombre || TRAMO.id).toUpperCase();
-  tramoPausa(true); $('mPausa').classList.add('on'); pintarPausa();
+  tramoPausa(true); $('mPausa').classList.add('on'); pintarPausa(); nxUiSon('abrir');
   try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('mpRe')), 60); } catch (e) {}
 }
 function cerrarPausa() { if (!$('mPausa').classList.contains('on')) return; cerrarModal('mPausa'); if (TRAMO) tramoPausa(false); }
@@ -3462,7 +3462,7 @@ function asegurarSlots() {
 function abrirBarajas(ctx) {
   if (!S) return; asegurarSlots(); BJ.ctx = ctx || BJ.ctx || 'sMapa';
   if (BJ.ctx === 'sTramo' && TRAMO) tramoPausa(true);
-  $('mBarajas').classList.add('on'); pintarBarajasSlots();
+  $('mBarajas').classList.add('on'); pintarBarajasSlots(); nxUiSon('abrir');
   try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('bjSl').querySelector('.bj-c.act .bj-b') || $('bjSl').querySelector('.bj-b')), 60); } catch (e) {}
 }
 function cerrarBarajas() {
@@ -5684,6 +5684,41 @@ window.GP_CFG = {
   sinDestino: (dx, dy, f) => { if (!mapaLibre() || !(f && f.closest && f.closest('#mapa'))) return false; $('mapa').scrollBy({ left: dx * 260, top: dy * 200, behavior: 'smooth' }); return true; },
   zonas: ['#sMenu .mn-top', '#sMenu .mn-izq', '#hud', '#mi', '#ficha', '#sMazo .hud', '#mzTabs', '#mzDeck', '#mzFil', '#mzGrid', '#mcBox', '#sTienda .hud', '#tdTabs', '#tdBody', '#mSobre', '#cjBody']
 };
+// ═══════════ v372 · SONIDOS DE LA INTERFAZ (grabados, no sintetizados) ═══════════
+// assets/nexotlan/sonidos/ui_mover.wav (cambiar de opción con control) · ui_aceptar.wav (tocar / clic) · ui_atras.wav (volver / cerrar) · ui_abrir.wav (abrir pausa o Mis Barajas)
+// En [config] de mapa.txt:  sonidos_ui = si | no · volumen_ui = 0.6 · sonido_ui_mover / sonido_ui_aceptar / sonido_ui_atras / sonido_ui_abrir = otro archivo
+// El volumen también sigue a "Efectos" de Opciones y al botón de silencio.
+const UISON = { ctx: null, buf: {}, t: 0, ult: '' };
+function uiSonUrl(k) { const f = String((CFG && CFG['sonido_ui_' + k]) || '').trim(); return f ? (f.includes('/') ? f : DIR + 'sonidos/' + f) : DIR + 'sonidos/ui_' + k + '.wav'; }
+function uiSonCargar() {
+  if (UISON.ctx) return;
+  try { UISON.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return; }
+  ['mover', 'aceptar', 'atras', 'abrir'].forEach(k => fetch(uiSonUrl(k)).then(r => r.ok ? r.arrayBuffer() : Promise.reject())
+    .then(b => new Promise((ok, no) => UISON.ctx.decodeAudioData(b, ok, no))).then(bf => UISON.buf[k] = bf).catch(() => {}));
+}
+window.nxUiSon = function (k) {
+  if (MUTE || /^(no|0|false)$/i.test(String((CFG && CFG.sonidos_ui) || 'si').trim())) return;
+  const now = performance.now(); if (k !== 'abrir' && now - UISON.t < (k === 'mover' && UISON.ult === 'mover' ? 45 : 80)) return;      // sin dobles (un clic que además cierra algo)
+  uiSonCargar(); const c = UISON.ctx, b = UISON.buf[k]; if (!c || !b) return;
+  try { if (c.state === 'suspended') c.resume();
+    const s = c.createBufferSource(), g = c.createGain(); s.buffer = b; s.playbackRate.value = k === 'mover' ? 0.96 + Math.random() * 0.08 : 1;
+    g.gain.value = Math.max(0, Math.min(1.5, +(CFG && CFG.volumen_ui) || 0.6)); s.connect(g).connect(c.destination); s.start();
+    UISON.t = now; UISON.ult = k; } catch (e) {}
+};
+['pointerdown', 'keydown'].forEach(t => window.addEventListener(t, () => uiSonCargar(), { once: true, capture: true }));      // se preparan con el primer toque (los navegadores lo exigen)
+const UI_ATRAS = /^\s*(✕|×|←|⮌|‹|cancelar|cerrar|atr[aá]s|volver|salir|regresar|ahora no|descartar)/i;
+document.addEventListener('click', ev => {
+  const el = ev.target && ev.target.closest && ev.target.closest('button, .bt, [role="button"], a.esq'); if (!el || el.disabled || el.closest('#trFrame')) return;
+  if (el.matches('.pt, .nx-tramo, .nx-portal')) { nxUiSon('aceptar'); return; }
+  const atras = el.matches('.nx-back, .f-x, .mp-op.vol, #bjX, #mpRe, [data-gp-back], .sec-back, .mn-volver') || UI_ATRAS.test((el.textContent || el.getAttribute('aria-label') || '').trim());
+  nxUiSon(atras ? 'atras' : 'aceptar');
+}, true);
+(() => {      // con el control: sonido al cambiar de opción y al volver con B
+  const C = window.GP_CFG; if (!C) return;
+  const ae = C.alEnfocar, at = C.atras; let ant = null;
+  C.alEnfocar = el => { if (el !== ant) { ant = el; try { if (window.GP && GP.activo()) nxUiSon('mover'); } catch (e) {} } if (ae) return ae(el); };
+  C.atras = () => { const r = at ? at() : false; if (r) nxUiSon('atras'); return r; };
+})();
 $('dCaja').addEventListener('click', e => { if (!e.target.closest('.d-ops')) { e.stopPropagation(); avanzarDialogo(); } });
 
 // ════════════════ ARRANQUE ════════════════

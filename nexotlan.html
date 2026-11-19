@@ -615,13 +615,106 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 #mPausa.on .mp-panel{animation:mpPanel .36s cubic-bezier(.2,.9,.3,1.1) .06s both}
 @keyframes mpEntra{from{opacity:0;translate:-40px 0}to{opacity:1;translate:0 0}}
 @keyframes mpPanel{from{opacity:0;translate:30px 0;scale:.98}to{opacity:1;translate:0 0;scale:1}}
-@media (max-height:520px){.mp-pau{width:36px;height:36px}.mp-pau i{width:4px;height:13px}.mp-placa{padding:4px 38px 4px 6px}.mp-tx small{font-size:8.5px}.mp-chip{height:30px;font-size:11px;padding:0 16px}
-  .mp-ph{padding:8px 14px 0 26px}.mp-cu{padding:8px 18px 14px 18px}.mp-pr{grid-template-columns:minmax(110px,24%) 1fr;gap:8px 14px}.mp-row{padding:5px 22px 6px 18px}.mp-row b{font-size:10.5px}.mp-sa{grid-template-columns:minmax(190px,31%) 1fr}
-  .mp-premio{font-size:12px;padding:7px 14px}.mp-premio small{font-size:8px}.mp-it{grid-template-columns:42px 1fr;padding:9px 12px 9px 10px}.mp-it .ico{width:42px;height:42px;font-size:22px}.mp-it b{font-size:11px}.mp-it small{font-size:11.5px}.mp-mo{grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}.mp-ph em{font-size:9px}
-  .mp-ley{gap:4px;bottom:8px;flex-wrap:nowrap;overflow:hidden}.mp-ley span{font-size:7.5px;padding:3px 9px;white-space:nowrap}.mp-map{inset:4px 10px 34px 10px}}
-@media (max-width:600px) and (orientation:portrait){.mp-sa{grid-template-columns:1fr;grid-template-rows:auto auto 1fr}.mp-top{grid-column:1}
-  .mp-izq{display:grid;grid-template-columns:1fr 1fr;gap:6px}.mp-re{grid-column:1/3;height:58px}.mp-op{width:100%;margin-left:0!important;padding:0 14px 0 18px}.mp-op small{display:none}
-  .mp-pr{grid-template-columns:1fr}.mp-gran{position:static}.mp-sub,.mp-rutas{grid-column:1}}
+:root.h520 .mp-pau{width:36px;height:36px}
+:root.h520 .mp-pau i{width:4px;height:13px}
+:root.h520 .mp-placa{padding:4px 38px 4px 6px}
+:root.h520 .mp-tx small{font-size:8.5px}
+:root.h520 .mp-chip{height:30px;font-size:11px;padding:0 16px}
+:root.h520 .mp-ph{padding:8px 14px 0 26px}
+:root.h520 .mp-cu{padding:8px 18px 14px 18px}
+:root.h520 .mp-pr{grid-template-columns:minmax(110px,24%) 1fr;gap:8px 14px}
+:root.h520 .mp-row{padding:5px 22px 6px 18px}
+:root.h520 .mp-row b{font-size:10.5px}
+:root.h520 .mp-sa{grid-template-columns:minmax(190px,31%) 1fr}
+:root.h520 .mp-premio{font-size:12px;padding:7px 14px}
+:root.h520 .mp-premio small{font-size:8px}
+:root.h520 .mp-it{grid-template-columns:42px 1fr;padding:9px 12px 9px 10px}
+:root.h520 .mp-it .ico{width:42px;height:42px;font-size:22px}
+:root.h520 .mp-it b{font-size:11px}
+:root.h520 .mp-it small{font-size:11.5px}
+:root.h520 .mp-mo{grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}
+:root.h520 .mp-ph em{font-size:9px}
+:root.h520 .mp-ley{gap:4px;bottom:8px;flex-wrap:nowrap;overflow:hidden}
+:root.h520 .mp-ley span{font-size:7.5px;padding:3px 9px;white-space:nowrap}
+:root.h520 .mp-map{inset:4px 10px 34px 10px}
+:root.q620p .mp-sa{grid-template-columns:1fr;grid-template-rows:auto auto 1fr}
+:root.q620p .mp-top{grid-column:1}
+:root.q620p .mp-izq{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+:root.q620p .mp-re{grid-column:1/3;height:58px}
+:root.q620p .mp-op{width:100%;margin-left:0!important;padding:0 14px 0 18px}
+:root.q620p .mp-op small{display:none}
+:root.q620p .mp-pr{grid-template-columns:1fr}
+:root.q620p .mp-gran{position:static}
+:root.q620p .mp-sub,:root.q620p .mp-rutas{grid-column:1}
+/* v368 · MIS BARAJAS: 3 ranuras (slots) con arte, compartir como texto e importar */
+#mBarajas{padding:0;display:none;background:none;backdrop-filter:blur(6px) saturate(.8)}
+#mBarajas.on{display:block}
+.bj-sa{position:absolute;inset:0;display:flex;flex-direction:column;gap:clamp(8px,calc(1.8 * var(--uh)),18px);
+  padding:max(10px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left))}
+.bj-pau{background:radial-gradient(circle at 35% 30%,#1d3270,#0a1636)!important;border-color:#f5a623!important;font-size:22px}
+.bj-sl{flex:1;min-height:0;display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(10px,calc(1.6 * var(--uw)),24px);padding:0 clamp(0px,calc(1 * var(--uw)),18px)}
+.bj-c{--pc:polygon(22px 0,100% 0,100% calc(100% - 22px),calc(100% - 22px) 100%,0 100%,0 22px);--gl:#36d6ff;position:relative;isolation:isolate;min-height:0;display:flex;flex-direction:column;align-items:stretch;
+  padding:clamp(8px,calc(1.6 * var(--uh)),16px) 16px 14px;filter:drop-shadow(0 10px 22px rgba(0,0,0,.55));transition:transform .25s cubic-bezier(.2,.9,.3,1.25)}
+.bj-c::before{content:'';position:absolute;inset:0;z-index:-2;clip-path:var(--pc);background:linear-gradient(160deg,var(--gl),#1d3270 45%,#0b1640 70%,var(--gl))}
+.bj-c::after{content:'';position:absolute;inset:2px;z-index:-1;clip-path:var(--pc);
+  background:radial-gradient(ellipse 70% 45% at 50% 32%,color-mix(in srgb,var(--gl) 30%,transparent),transparent 70%),radial-gradient(rgba(120,170,255,.09) 1px,transparent 1.6px) 0 0/6px 6px,linear-gradient(170deg,#0d1c48,#060d2a)}
+.bj-c.act::before{background:linear-gradient(160deg,#ffd166,#f5a623 30%,#7a4a00 60%,#ffd166)}
+.bj-c.act{transform:translateY(-4px)}
+.bj-hd{display:flex;align-items:center;gap:8px;font-family:'Orbitron',monospace;font-weight:900;font-size:10.5px;letter-spacing:.24em;color:#5cc8ff}
+.bj-hd .sp{flex:1}
+.bj-uso{--pu:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);position:relative;isolation:isolate;padding:4px 16px;color:#1a0f00;letter-spacing:.14em}
+.bj-uso::after{content:'';position:absolute;inset:0;z-index:-1;clip-path:var(--pu);background:radial-gradient(rgba(255,255,255,.3) 1px,transparent 1.6px) 0 0/6px 6px,linear-gradient(90deg,#ffd166,#f5a623 60%,#ff8a1f)}
+.bj-art{flex:1;min-height:60px;display:flex;align-items:center;justify-content:center;position:relative}
+.bj-art img{max-height:100%;max-width:92%;object-fit:contain;animation:bjFlota 5s ease-in-out infinite;filter:drop-shadow(0 14px 18px rgba(0,0,0,.6))}
+.bj-c:nth-child(2) .bj-art img{animation-delay:-1.6s}.bj-c:nth-child(3) .bj-art img{animation-delay:-3.2s}
+@keyframes bjFlota{50%{transform:translateY(-6px) rotate(-1deg)}}
+.bj-art .vac{font-size:clamp(40px,calc(12 * var(--uh)),80px);opacity:.35}
+.bj-nom{font-family:'Orbitron',monospace;font-weight:900;font-size:clamp(13px,calc(3.2 * var(--uh)),19px);color:#fff;text-align:center;transform:skewX(-8deg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  text-shadow:0 2px 0 #0a1636,0 0 12px color-mix(in srgb,var(--gl) 60%,transparent);margin-top:4px}
+.bj-cnt{display:flex;justify-content:center;gap:6px;margin:6px 0 2px;flex-wrap:wrap}
+.bj-cnt span{--pk:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);position:relative;isolation:isolate;padding:3px 11px;font-family:'Orbitron',monospace;font-weight:700;font-size:10px;color:#cfe0ff}
+.bj-cnt span::after{content:'';position:absolute;inset:0;z-index:-1;clip-path:var(--pk);background:#081233;box-shadow:inset 0 0 0 1px #26407e}
+.bj-cnt span.ok{color:#9dffcf}.bj-cnt span.no{color:#ffb3c2}
+.bj-est{text-align:center;font-size:12.5px;font-weight:700;color:#9dffcf;min-height:1.2em}
+.bj-est.no{color:#ffb3c2}
+.bj-artes{display:flex;justify-content:center;gap:7px;margin:8px 0}
+.bj-artes button{width:22px;height:22px;transform:rotate(45deg);border:2px solid #050b22;border-radius:4px;cursor:pointer;box-shadow:0 0 0 1px rgba(255,255,255,.25);transition:transform .15s}
+.bj-artes button.on{box-shadow:0 0 0 2px #fff,0 0 10px currentColor;transform:rotate(45deg) scale(1.15)}
+.bj-artes button:is(:hover,:focus-visible,.gp-foco){outline:0;transform:rotate(45deg) scale(1.25)}
+.bj-acc{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.bj-b{--pb:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);position:relative;isolation:isolate;padding:7px 4px;border:0;background:none;cursor:pointer;color:#dfe6ff;
+  font-family:'Orbitron',monospace;font-weight:700;font-size:clamp(8.5px,calc(2 * var(--uh)),10.5px);letter-spacing:.06em;white-space:nowrap;transition:transform .15s,filter .15s}
+.bj-b::after{content:'';position:absolute;inset:0;z-index:-1;clip-path:var(--pb);background:linear-gradient(90deg,#0f2058,#0b1844);box-shadow:inset 0 0 0 1px #2a3a70}
+.bj-b.gold{grid-column:1/4;padding:10px 4px;font-size:clamp(10px,calc(2.6 * var(--uh)),13px);font-weight:900;color:#1a0f00;letter-spacing:.14em}
+.bj-b.gold::after{background:radial-gradient(rgba(255,255,255,.3) 1px,transparent 1.6px) 0 0/6px 6px,linear-gradient(90deg,#ffd166,#f5a623 60%,#ff8a1f)}
+.bj-b.gold[disabled]{opacity:.55;cursor:default}
+.bj-b.cyan{color:#bff0ff}.bj-b.cyan::after{background:linear-gradient(90deg,#0a3a5c,#082a48);box-shadow:inset 0 0 0 1px #36d6ff}
+.bj-b.red{color:#ffc3cf}.bj-b.red::after{background:linear-gradient(90deg,#3a0c22,#260818);box-shadow:inset 0 0 0 1px #7a2a40}
+.bj-b:is(:hover,:focus-visible,.gp-foco){outline:0;transform:translateY(-2px);filter:drop-shadow(0 0 7px rgba(255,200,80,.85))}
+.bj-b.gold:not([disabled]):is(:hover,:focus-visible,.gp-foco){transform:translateY(-2px) scale(1.03)}
+.bj-pie{display:flex;justify-content:center;gap:clamp(8px,calc(1.4 * var(--uw)),18px);flex-wrap:wrap}
+.bj-pie .mp-op{width:auto;min-width:min(250px,30%);margin:0!important;justify-content:center}
+#mBarajas .mp-op:is(:hover,:focus-visible,.gp-foco){outline:0;transform:translateY(-3px);color:#1a0f00;filter:drop-shadow(0 0 7px rgba(255,200,80,.9)) drop-shadow(0 0 18px rgba(255,140,30,.45))}
+#mBarajas .mp-op:is(:hover,:focus-visible,.gp-foco) .mn-g{opacity:1}
+#mBarajas .mp-op:is(:hover,:focus-visible,.gp-foco)::before{background:#fff}
+#mBarajas .mp-op.vol:is(:hover,:focus-visible,.gp-foco) .mn-g{background:linear-gradient(90deg,#ff8aa6,#ff2f5a 60%,#c4123c)}
+#mBarajas .mp-op.vol:is(:hover,:focus-visible,.gp-foco){color:#fff}
+#mBarajas.on .bj-c{animation:mpPanel .36s cubic-bezier(.2,.9,.3,1.1) both}
+#mBarajas.on .bj-c:nth-child(2){animation-delay:.05s}#mBarajas.on .bj-c:nth-child(3){animation-delay:.1s}
+#mBarajas.on .mp-placa{animation:mpEntra .32s cubic-bezier(.2,.9,.3,1.2) both}
+.bj-txt{width:100%;height:min(46vh,320px);resize:none;background:#050b22;color:#dfe6ff;border:1px solid #26407e;border-radius:8px;padding:10px;font:12px/1.35 ui-monospace,monospace;user-select:text}
+.bj-in{width:100%;padding:10px 12px;background:#050b22;color:#fff;border:1px solid #f5a623;border-radius:8px;font:700 16px 'Rajdhani',sans-serif}
+:root.h520 .bj-c{padding:6px 12px 10px}
+:root.h520 .bj-artes{margin:4px 0}
+:root.h520 .bj-artes button{width:16px;height:16px}
+:root.h520 .bj-b{padding:5px 3px}
+:root.h520 .bj-b.gold{padding:7px 3px}
+:root.h520 .bj-cnt{margin:3px 0 0}
+:root.h520 .bj-cnt span{font-size:8.5px;padding:2px 8px}
+:root.h520 .bj-est{font-size:11px}
+:root.h520 .bj-pie .mp-op{height:30px;min-width:min(200px,30%)}
+:root.q620p .bj-sl{grid-template-columns:1fr;overflow-y:auto;grid-auto-rows:minmax(330px,auto)}
+:root.q620p .bj-pie .mp-op{min-width:44%}
 .nx-tramo:hover i,.nx-tramo:focus-visible i{transform:rotate(45deg) scale(1.15)}
 @keyframes nxTramo{0%,100%{transform:rotate(45deg) translateY(0)}50%{transform:rotate(45deg) translate(-3px,-3px)}}
 .mo-l{display:flex;flex-direction:column;gap:8px}
@@ -1553,6 +1646,11 @@ window.nxTip = function () {
     <button class="mp-op vol" id="mpVo"><i class="mn-g"></i><span class="ic">⮌</span><b>VOLVER AL MAPA</b></button>
   </div>
   <div class="mp-panel"><div class="mp-ph"><span class="mp-tag" id="mpTag">MAPA</span><span class="ln"></span><em id="mpSub"></em></div><div class="mp-cu" id="mpCu"></div></div>
+</div></div>
+<div class="modal" id="mBarajas"><div class="mp-fondo"></div><div class="bj-sa" role="dialog" aria-label="Mis barajas">
+  <div class="mp-top"><div class="mp-placa"><span class="mp-pau bj-pau">🃏</span><div class="mp-tx"><small>CHOQUE DE HÉROES</small><b>MIS BARAJAS</b></div></div><div class="mp-sp"></div><span class="mp-chip" id="bjCol"></span></div>
+  <div class="bj-sl" id="bjSl"></div>
+  <div class="bj-pie"><button class="mp-op" id="bjCons"><i class="mn-g"></i><span class="ic">🧰</span><b>CONSTRUCTOR Y COFRE</b></button><button class="mp-op" id="bjImp"><i class="mn-g"></i><span class="ic">📥</span><b>IMPORTAR TEXTO</b></button><button class="mp-op vol" id="bjX"><i class="mn-g"></i><span class="ic">✕</span><b>CERRAR</b></button></div>
 </div></div>
 <div class="modal" id="mCarta"><div class="mbox mc-box" id="mcBox"></div></div>
 
@@ -3010,7 +3108,7 @@ window.nxTramoEvento = async function (s) {
       break;
     }
     case 'baraja': {      // v294 · editar la baraja sin salir del tramo
-      tramoPausa(true); window._volverTramo = VOLVER; VOLVER = 'sTramo'; abrirMazo(); break;
+      abrirBarajas('sTramo'); break;      // v368 · MIS BARAJAS (3 ranuras)
     }
     case 'npc': {
       const p = def.npcs.find(n => n._nid === ev.id); if (!p) return;
@@ -3137,7 +3235,7 @@ async function pintarRutasPausa() {
 }
 function dibujarMapaRuta() {
   const cv = $('mpCv'); if (!cv || !TRAMO || !MP) return;
-  const def = TRAMO.def, e = estTramo(def.id), r = cv.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+  const def = TRAMO.def, e = estTramo(def.id), r = { width: cv.clientWidth, height: cv.clientHeight }, dpr = Math.min(2, window.devicePixelRatio || 1);
   cv.width = Math.max(10, r.width * dpr); cv.height = Math.max(10, r.height * dpr);
   const cx = cv.getContext('2d'); cx.setTransform(dpr, 0, 0, dpr, 0, 0); cx.clearRect(0, 0, r.width, r.height);
   const cg = Math.cos(MP.g), sg = Math.sin(MP.g), rot = (x, z) => [x * cg - z * sg, x * sg + z * cg];     // arriba en el mapa = hacia donde mira la cámara
@@ -3185,7 +3283,7 @@ function dibujarMapaRuta() {
 }
 $('mpRe').onclick = cerrarPausa;
 document.querySelectorAll('#mPausa [data-mp]').forEach(b => b.onclick = () => { MP.tab = b.dataset.mp; pintarPausa(); });
-$('mpBa').onclick = () => { cerrarModal('mPausa'); window._volverTramo = VOLVER; VOLVER = 'sTramo'; abrirMazo(); };
+$('mpBa').onclick = () => abrirBarajas('sTramo');      // v368 · se abre encima del menú de pausa
 $('mpVo').onclick = async () => {
   const r = await mensaje('⮌ VOLVER AL MAPA', '¿Salir de la ruta? Tu avance y tu posición se guardan.', [['SÍ, VOLVER', 'gold'], ['CANCELAR', 'sec']]);
   if (r !== 0 || !TRAMO) { try { if (window.GP && GP.activo()) GP.enfocar($('mpVo')); } catch (e) {} return; }
@@ -3193,6 +3291,136 @@ $('mpVo').onclick = async () => {
 };
 window.addEventListener('resize', () => { if ($('mPausa').classList.contains('on') && MP && MP.tab === 'mapa') dibujarMapaRuta(); });
 document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && $('mPausa').classList.contains('on') && !document.querySelector('.modal.on:not(#mPausa)')) { ev.preventDefault(); cerrarPausa(); } });
+// ═══════════ v368 · MIS BARAJAS: 3 ranuras, arte por ranura, compartir / importar como texto ═══════════
+// S.mazos = [baraja|null ×3]  (la activa siempre es S.mazo)  ·  S.mazoAct = índice activo  ·  S.mazoArte = [arte ×3]  ·  S.mazosDe = baraja básica de la partida
+const BJ_ARTES = { rojo: '#ff6028', verde: '#46ff78', azul: '#50beff', morado: '#cc55ff', dorado: '#ffbe32', rosa: '#ff50aa' };
+const BJ_BASE = { nx_invitados: 'rojo', nx_koatl: 'verde', nx_vulcar: 'azul' };
+const copiaMazo = m => m ? { nombre: m.nombre || '', bp: copiaLista(m.bp), ba: copiaLista(m.ba), bs: copiaLista(m.bs) } : null;
+let BJ = { ctx: 'sMapa' };
+function asegurarSlots() {
+  if (!S) return; asegurarColeccion();
+  if (!Array.isArray(S.mazos) || S.mazos.length !== 3 || S.mazosDe !== S.baraja) {
+    S.mazos = [copiaMazo(S.mazo), null, null]; S.mazoAct = 0; S.mazosDe = S.baraja; S.mazoArte = null;
+  }
+  if (!Array.isArray(S.mazoArte) || S.mazoArte.length !== 3) S.mazoArte = [BJ_BASE[S.baraja] || 'azul', 'morado', 'dorado'];
+  S.mazoAct = Math.max(0, Math.min(2, S.mazoAct | 0));
+  if (S.mazo) S.mazos[S.mazoAct] = S.mazo;      // la activa manda (el constructor reemplaza S.mazo al guardar)
+}
+function abrirBarajas(ctx) {
+  if (!S) return; asegurarSlots(); BJ.ctx = ctx || BJ.ctx || 'sMapa';
+  if (BJ.ctx === 'sTramo' && TRAMO) tramoPausa(true);
+  $('mBarajas').classList.add('on'); pintarBarajasSlots();
+  try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('bjSl').querySelector('.bj-c.act .bj-b') || $('bjSl').querySelector('.bj-b')), 60); } catch (e) {}
+}
+function cerrarBarajas() {
+  if (!$('mBarajas').classList.contains('on')) return; cerrarModal('mBarajas'); guardar();
+  if (BJ.ctx === 'sTramo' && TRAMO && $('sTramo').classList.contains('on')) tramoPausa(false);      // (con el menú de pausa abierto la ruta sigue en pausa)
+  try { if (BJ.ctx === 'sMenu') abrirMenu(); } catch (e) {}
+}
+function pintarBarajasSlots() {
+  const nB = (DATA.reglas || {}).barajaPrincipal || 40;
+  $('bjCol').innerHTML = '🗃 ' + Object.values(S.col || {}).reduce((a, n) => a + n, 0) + ' cartas en tu cofre';
+  $('bjSl').innerHTML = S.mazos.map((m, i) => {
+    const arte = S.mazoArte[i] || 'azul', act = i === S.mazoAct, col = BJ_ARTES[arte] || '#36d6ff';
+    const artes = `<div class="bj-artes">${Object.keys(BJ_ARTES).map(k => `<button data-arte="${k}" data-i="${i}" class="${k === arte ? 'on' : ''}" style="background:${BJ_ARTES[k]};color:${BJ_ARTES[k]}" aria-label="Arte ${k}"></button>`).join('')}</div>`;
+    if (!m) return `<div class="bj-c" style="--gl:${col}"><div class="bj-hd">SLOT ${i + 1}<span class="sp"></span></div>
+      <div class="bj-art"><span class="vac">＋</span></div><div class="bj-nom">Ranura libre</div><div class="bj-est" style="color:#9fb3dd">Crea otra baraja para probar variaciones</div>${artes}
+      <div class="bj-acc"><button class="bj-b gold" data-a="crear" data-i="${i}">＋ COPIAR LA ACTUAL</button><button class="bj-b" data-a="inicial" data-i="${i}" style="grid-column:span 2">BARAJA INICIAL</button><button class="bj-b cyan" data-a="importar" data-i="${i}">IMPORTAR</button></div></div>`;
+    const v = validarMazo(m);
+    return `<div class="bj-c ${act ? 'act' : ''}" style="--gl:${col}"><div class="bj-hd">SLOT ${i + 1}<span class="sp"></span>${act ? '<span class="bj-uso">EN USO</span>' : ''}</div>
+      <div class="bj-art"><img src="${DIR}barajas/mazo_${arte}.webp" alt=""></div>
+      <div class="bj-nom">${esc(m.nombre || S.barajaNombre || 'Baraja ' + (i + 1))}</div>
+      <div class="bj-cnt"><span class="${v.bp === v.nBP ? 'ok' : 'no'}">BP ${v.bp}/${v.nBP || nB}</span><span class="${v.ba === v.nBA ? 'ok' : 'no'}">BA ${v.ba}/${v.nBA}</span><span>BS ${v.bs}</span></div>
+      <div class="bj-est ${v.ok ? '' : 'no'}">${v.ok ? '✔ Lista para el Choque' : '⚠ ' + esc(v.errores[0])}</div>${artes}
+      <div class="bj-acc"><button class="bj-b gold" data-a="usar" data-i="${i}" ${act ? 'disabled' : ''}>${act ? '✔ EN USO' : '▶ USAR ESTA'}</button>
+        <button class="bj-b" data-a="editar" data-i="${i}">EDITAR</button><button class="bj-b" data-a="renombrar" data-i="${i}">NOMBRE</button><button class="bj-b cyan" data-a="compartir" data-i="${i}">COMPARTIR</button>
+        <button class="bj-b" data-a="duplicar" data-i="${i}">DUPLICAR</button><button class="bj-b" data-a="inicial" data-i="${i}">INICIAL</button><button class="bj-b red" data-a="vaciar" data-i="${i}" ${act ? 'disabled style="opacity:.4"' : ''}>BORRAR</button></div></div>`;
+  }).join('');
+  $('bjSl').querySelectorAll('[data-arte]').forEach(b => b.onclick = () => { S.mazoArte[+b.dataset.i] = b.dataset.arte; guardar(); pintarBarajasSlots(); enfocarBj(`[data-arte="${b.dataset.arte}"][data-i="${b.dataset.i}"]`); });
+  $('bjSl').querySelectorAll('[data-a]').forEach(b => b.onclick = () => accionSlot(b.dataset.a, +b.dataset.i));
+}
+function enfocarBj(sel) { try { if (window.GP && GP.activo()) GP.enfocar($('bjSl').querySelector(sel) || $('bjSl').querySelector('.bj-b')); } catch (e) {} }
+async function accionSlot(a, i) {
+  asegurarSlots(); const m = S.mazos[i], nom = m && (m.nombre || S.barajaNombre || 'Baraja ' + (i + 1));
+  if (a === 'usar') {
+    const v = validarMazo(m);
+    if (!v.ok) { const r = await mensaje('⚠ BARAJA INCOMPLETA', 'No puedes usarla en un Choque todavía:<br><small style="color:#ffb3c2">' + esc(v.errores[0]) + '</small>', [['EDITAR', 'gold'], ['CANCELAR', 'sec']]); if (r === 0) return accionSlot('editar', i); return enfocarBj(`[data-a="usar"][data-i="${i}"]`); }
+    S.mazoAct = i; S.mazo = m; guardar(); pintarBarajasSlots(); toast('🃏 Ahora juegas con ' + nom); return enfocarBj(`[data-a="editar"][data-i="${i}"]`);
+  }
+  if (a === 'editar') { if (i !== S.mazoAct) { BJ.edit = { prev: S.mazoAct }; S.mazoAct = i; S.mazo = m; } abrirConstructorBj(); return; }
+  if (a === 'renombrar') {
+    const r = await mensaje('✎ NOMBRE DE LA BARAJA', `<input class="bj-in" id="bjNom" maxlength="40" value="${esc(nom)}">`, [['GUARDAR', 'gold'], ['CANCELAR', 'sec']]);
+    const t = (($('bjNom') || {}).value || '').trim().slice(0, 40); if (r === 0 && t) { m.nombre = t; guardar(); }
+    pintarBarajasSlots(); return enfocarBj(`[data-a="renombrar"][data-i="${i}"]`);
+  }
+  if (a === 'compartir') return compartirBaraja(m);
+  if (a === 'duplicar') {
+    let d = S.mazos.findIndex(x => !x);
+    if (d < 0) { const ops = [0, 1, 2].filter(k => k !== i); const r = await mensaje('⧉ DUPLICAR', 'No hay ranuras libres. ¿Cuál reemplazas?', ops.map(k => ['SLOT ' + (k + 1) + ' · ' + esc((S.mazos[k] && S.mazos[k].nombre) || ''), k === S.mazoAct ? 'sec' : '']).concat([['CANCELAR', 'sec']]));
+      if (r >= ops.length) return enfocarBj(`[data-a="duplicar"][data-i="${i}"]`); d = ops[r]; }
+    const c = copiaMazo(m); c.nombre = (nom + ' (copia)').slice(0, 40);
+    if (d === S.mazoAct && !validarMazo(c).ok) return toast('⚠ La baraja en uso debe quedar completa');
+    S.mazos[d] = c; if (d === S.mazoAct) S.mazo = c; guardar(); pintarBarajasSlots(); toast('⧉ Copiada al slot ' + (d + 1)); return enfocarBj(`[data-a="editar"][data-i="${d}"]`);
+  }
+  if (a === 'inicial' || a === 'crear') {
+    const b = basica(S.baraja); const c = a === 'crear' ? copiaMazo(S.mazo) : b ? { nombre: b.nombre, bp: copiaLista(b.bp), ba: copiaLista(b.ba), bs: copiaLista(b.bs) } : null; if (!c) return;
+    if (a === 'crear') c.nombre = ((S.mazo.nombre || S.barajaNombre || 'Baraja') + ' (copia)').slice(0, 40);
+    if (m) { const r = await mensaje('↺ BARAJA INICIAL', `¿Reemplazar <b>${esc(nom)}</b> por la baraja inicial? (tus cartas siguen en el cofre)`, [['REEMPLAZAR', 'red'], ['CANCELAR', 'sec']]); if (r !== 0) return enfocarBj(`[data-a="inicial"][data-i="${i}"]`); }
+    S.mazos[i] = c; if (i === S.mazoAct) S.mazo = c; guardar(); pintarBarajasSlots(); return enfocarBj(`[data-a="editar"][data-i="${i}"]`);
+  }
+  if (a === 'vaciar') {
+    if (i === S.mazoAct) return;
+    const r = await mensaje('🗑 BORRAR BARAJA', `¿Borrar <b>${esc(nom)}</b> del slot ${i + 1}? Las cartas siguen en tu cofre.`, [['BORRAR', 'red'], ['CANCELAR', 'sec']]);
+    if (r === 0) { S.mazos[i] = null; guardar(); } pintarBarajasSlots(); return enfocarBj(`[data-i="${i}"]`);
+  }
+  if (a === 'importar') return importarBaraja(i);
+}
+function abrirConstructorBj() {
+  const ctx = BJ.ctx; cerrarModal('mBarajas'); if ($('mPausa').classList.contains('on')) cerrarModal('mPausa');
+  if (ctx === 'sTramo' && TRAMO) { window._volverTramo = VOLVER === 'sTramo' ? (window._volverTramo || 'sMapa') : VOLVER; VOLVER = 'sTramo'; }
+  else VOLVER = ctx === 'sMenu' ? 'sMenu' : 'sMapa';
+  BJ.volver = true; abrirMazo();
+}
+// al salir del constructor: si se abrió desde MIS BARAJAS, se regresa ahí (y si editabas otra ranura, la que juegas vuelve a ser la de antes)
+const _salirMazo0 = salirMazo;
+salirMazo = async function () {
+  await _salirMazo0(); if (MZ) return;      // "seguir editando"
+  if (BJ.edit) { const k = S.mazoAct; S.mazos[k] = S.mazo; S.mazoAct = BJ.edit.prev; S.mazo = S.mazos[BJ.edit.prev]; BJ.edit = null; guardar(); }
+  if (BJ.volver) { BJ.volver = false; setTimeout(() => abrirBarajas(BJ.ctx), 90); }
+};
+$('mzSalir').onclick = salirMazo;
+// ── compartir como texto ──
+const b64e = s => btoa(unescape(encodeURIComponent(s))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const b64d = s => decodeURIComponent(escape(atob(s.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((s.length + 3) % 4))));
+function textoBaraja(m) {
+  const sec = (t, l) => l && l.length ? `— ${t} (${totL(l)}) —\n` + l.map(x => `${x.copias}× ${nomC(x.id)}`).join('\n') + '\n' : '';
+  const cod = b64e(JSON.stringify({ v: 1, n: m.nombre || '', b: S.baraja, p: m.bp.map(x => [x.id, x.copias]), a: m.ba.map(x => [x.id, x.copias]), s: (m.bs || []).map(x => [x.id, x.copias]) }));
+  return `🃏 CHOQUE DE HÉROES · NEXOTLAN\nBaraja: ${m.nombre || S.barajaNombre || ''}\n\n${sec('Principal', m.bp)}\n${sec('Almas', m.ba)}${(m.bs || []).length ? '\n' + sec('Soporte', m.bs) : ''}\nCódigo para importar:\nCHH1-${cod}`;
+}
+async function compartirBaraja(m) {
+  const t = textoBaraja(m), puede = !!navigator.share;
+  const r = await mensaje('📤 COMPARTIR BARAJA', `<textarea class="bj-txt" readonly>${esc(t)}</textarea><small style="color:var(--muted)">Quien lo reciba lo pega en <b>IMPORTAR TEXTO</b>.</small>`, [['📋 COPIAR', 'gold']].concat(puede ? [['📤 COMPARTIR', '']] : []).concat([['CERRAR', 'sec']]));
+  if (r === 0) { try { await navigator.clipboard.writeText(t); toast('📋 Baraja copiada'); } catch (e) { toast('No se pudo copiar: selecciona el texto y cópialo'); } }
+  else if (puede && r === 1) { try { await navigator.share({ title: 'Baraja · ' + (m.nombre || ''), text: t }); } catch (e) {} }
+  enfocarBj('[data-a="compartir"]');
+}
+async function importarBaraja(i) {
+  if (i === undefined) { i = S.mazos.findIndex(x => !x); if (i < 0) { const r = await mensaje('📥 IMPORTAR', '¿En qué ranura la guardas? (se reemplaza)', [0, 1, 2].map(k => ['SLOT ' + (k + 1) + ' · ' + esc((S.mazos[k] && S.mazos[k].nombre) || ''), k === S.mazoAct ? 'sec' : '']).concat([['CANCELAR', 'sec']])); if (r > 2) return; i = r; } }
+  const r = await mensaje('📥 IMPORTAR BARAJA', `<textarea class="bj-txt" id="bjPega" placeholder="Pega aquí el texto que te compartieron (debe incluir el código CHH1-…)"></textarea>`, [['IMPORTAR', 'gold'], ['CANCELAR', 'sec']]);
+  const txt = (($('bjPega') || {}).value || ''); if (r !== 0) return;
+  let d = null; try { const mm = txt.match(/CHH1-([A-Za-z0-9_\-]+)/); d = mm && JSON.parse(b64d(mm[1])); } catch (e) {}
+  if (!d || !Array.isArray(d.p)) return mensaje('⚠ CÓDIGO NO VÁLIDO', 'No encontré un código <b>CHH1-…</b> que funcione en ese texto.');
+  const L = l => (l || []).filter(q => CARD[q[0]]).map(q => ({ id: q[0], copias: Math.max(1, Math.min(3, q[1] | 0)) }));
+  const m = { nombre: String(d.n || 'Baraja importada').slice(0, 40), bp: L(d.p), ba: L(d.a), bs: L(d.s) };
+  const v = validarMazo(m);
+  if (!v.ok && i === S.mazoAct) return mensaje('⚠ NO SE PUEDE EN LA RANURA EN USO', 'Esta baraja no está completa con tus cartas:<br><small style="color:#ffb3c2">' + esc(v.errores[0]) + '</small><br><br>Impórtala en otra ranura y complétala en el constructor.');
+  if (!v.ok) { const q = await mensaje('⚠ TE FALTAN CARTAS', 'La baraja se guardará, pero no podrás usarla hasta completarla:<br><small style="color:#ffb3c2">' + esc(v.errores.slice(0, 3).join(' · ')) + '</small>', [['GUARDAR ASÍ', 'gold'], ['CANCELAR', 'sec']]); if (q !== 0) return; }
+  S.mazos[i] = m; if (i === S.mazoAct) S.mazo = m; guardar(); pintarBarajasSlots(); toast('📥 Importada en el slot ' + (i + 1)); enfocarBj(`[data-a="editar"][data-i="${i}"]`);
+}
+$('bjX').onclick = cerrarBarajas;
+$('bjCons').onclick = () => { asegurarSlots(); abrirConstructorBj(); };
+$('bjImp').onclick = () => importarBaraja();
+document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && $('mBarajas').classList.contains('on') && !document.querySelector('.modal.on:not(#mBarajas):not(#mPausa)')) { ev.preventDefault(); ev.stopImmediatePropagation(); cerrarBarajas(); } }, true);
 // ── OBJETOS y MOCHILA (assets/nexotlan/objetos.txt) ──
 async function cargarObjetos() {
   const txt = await fetch(DIR + 'objetos.txt', { cache: 'no-cache' }).then(r => r.ok ? r.text() : '').catch(() => '');
@@ -4880,7 +5108,7 @@ function pintarMenu() {
     op('mnDiario', '📖', 'DIARIO', `${r.ven}/${r.tot} vencidos · ${S.victorias || 0}-${S.perdidas || 0}`) +
     (Object.keys(S.fisicas || {}).length ? op('mnFisicas', '🏆', 'CARTAS BOSS', Object.keys(S.fisicas).length + ' de ' + fisicasDef().length + ' · recompensas físicas') : '') +
     '';   // v241 · "Cambiar partida" lo hace el botón Volver (arriba a la izquierda)
-  $('mnBaraja').onclick = () => { VOLVER = 'sMenu'; abrirMazo(); };
+  $('mnBaraja').onclick = () => { VOLVER = 'sMenu'; abrirBarajas('sMenu'); };
   if ($('mnTienda')) $('mnTienda').onclick = () => { if (!lc.ok) { toast('🔒 Comerciante: ' + lc.txt); return; } VOLVER = 'sMenu'; abrirTienda(com); };
   if ($('mnCarpeta')) $('mnCarpeta').onclick = () => { if (!lr.ok) { toast('🔒 Carpetero: ' + lr.txt); return; } VOLVER = 'sMenu'; abrirCarpeta(car); };
   $('mnDiario').onclick = abrirDiario;
@@ -5097,7 +5325,7 @@ $('hSalir').onclick = () => { guardar(); abrirMenu(); };
 $('subVolver').onclick = () => salirSub();   // v274
 $('hDescansar').onclick = descansar;
 $('hDiario').onclick = abrirDiario;
-$('hBaraja').onclick = abrirMazo;
+$('hBaraja').onclick = () => abrirBarajas('sMapa');
 $('hMochila').onclick = abrirMochila;   // v281
 $('zMas').onclick = () => ajustarZoom(ZOOM * 1.3);
 $('zMenos').onclick = () => ajustarZoom(ZOOM / 1.3);
@@ -5248,7 +5476,7 @@ document.addEventListener('keydown', e => {
 window.GP_PAUSA = () => $('sTramo').classList.contains('on') && !DLG && !document.querySelector('.modal.on, .sob.on, #mInt') && !cargaVisible();      // v361 · #mInt: elegir carta interactiva con el control
 window.GP_CFG = {
   principalTxt: 'Entrar / Avanzar',
-  start: () => $('mPausa').classList.contains('on') && !document.querySelector('.modal.on:not(#mPausa)') ? $('mpRe') : null,      // v366 · Start cierra el menú de pausa
+  start: () => $('mBarajas').classList.contains('on') && !document.querySelector('.modal.on:not(#mBarajas):not(#mPausa)') ? $('bjX') : $('mPausa').classList.contains('on') && !document.querySelector('.modal.on:not(#mPausa)') ? $('mpRe') : null,      // v366 · Start cierra el menú de pausa
   sinAnillo: el => !!(el && el.closest && el.closest('#sMenu .mn-izq, #mPausa .mp-izq, #carga')),   // el menú resalta sus propias opciones
   principal: () => cargaVisible() ? $('carga') : $('sTitulo').classList.contains('on') && $('sTitulo').classList.contains('fase-portada') && !$('mMsg').classList.contains('on') ? $('tComenzar') : $('sMenu').classList.contains('on') && !$('mCaja').classList.contains('on') && !$('mDiario').classList.contains('on') && !$('mMsg').classList.contains('on') ? $('mnAventura') : DLG ? ($('dOps').querySelector('button') || $('dCaja')) : ($('ficha').classList.contains('on') ? ($('fRetar') && !$('fRetar').disabled ? $('fRetar') : $('fHablar')) : null),
   atras: () => {
@@ -5262,6 +5490,7 @@ window.GP_CFG = {
     if ($('mSobre').classList.contains('on')) { const b = !$('sbOk').hidden ? $('sbOk') : $('sbPkg'); b.click(); return true; }
     if ($('mCarta').classList.contains('on')) { cerrarModal('mCarta'); return true; }
     if ($('mCaja').classList.contains('on')) { cerrarModal('mCaja'); return true; }
+    if ($('mBarajas').classList.contains('on')) { cerrarBarajas(); return true; }      // v368
     if ($('mPausa').classList.contains('on')) { cerrarPausa(); return true; }      // v366
     if ($('sTienda').classList.contains('on')) { salirTienda(); return true; }
     if ($('mDiario').classList.contains('on')) { cerrarModal('mDiario'); return true; }

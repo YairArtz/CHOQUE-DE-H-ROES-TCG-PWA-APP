@@ -1829,6 +1829,15 @@ function asegurarColeccion() {
     if (!S.dadas) { S.dadas = {}; lst.forEach(x => { S.dadas[x.id] = Math.max(S.dadas[x.id] || 0, x.copias || 1); }); }
     lst.forEach(x => { const falta = (x.copias || 1) - (S.dadas[x.id] || 0); if (falta > 0) { S.col[x.id] = (S.col[x.id] || 0) + falta; S.dadas[x.id] = x.copias || 1; } });
   }
+  // v350 · Héroes Invitados no traía 3 almas de valor 2 (reglamento: 3 de valor 1, 3 de valor 2 y 3 de valor 3).
+  //        Quien ya la tenía armada como venía: sus 3 Alma Reencarnación pasan a Alma de Caballero (la Reencarnación se queda en su cofre).
+  if (S.mazo && S.baraja === 'nx_invitados' && !S.fixInv2) {
+    const ba = S.mazo.ba || [], val = id => (CARD[id] || {}).valor;
+    if (!ba.some(x => val(x.id) === 2) && enLista(ba, 'alma_reenc') >= 3 && (S.col.alma_caballero || 0) >= 3) {
+      S.mazo.ba = ba.filter(x => x.id !== 'alma_reenc').concat([{ id: 'alma_caballero', copias: 3 }]);
+    }
+    S.fixInv2 = 1;
+  }
   // Cartas excluidas (Heroísmo/Bastión) fuera de la baraja guardada; si queda incompleta se completa en 🃏 BARAJA
   if (S.mazo) ['bp', 'ba', 'bs'].forEach(z => { S.mazo[z] = (S.mazo[z] || []).filter(x => !excluida(x.id)); });
 }

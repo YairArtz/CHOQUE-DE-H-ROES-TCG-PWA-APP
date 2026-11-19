@@ -787,6 +787,8 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 .pk-gen em{font-style:normal;font-size:30px;filter:drop-shadow(0 0 10px var(--pc))}
 .td-precio{font-family:'Orbitron',monospace;font-weight:900;font-size:12px;color:#ffd166}
 .mz-c .pr{position:absolute;right:4px;bottom:4px;padding:2px 6px;border-radius:6px;background:rgba(2,6,20,.9);font-family:'Orbitron',monospace;font-size:10px;font-weight:900;color:#ffd166}
+.mz-c .int{position:absolute;left:0;right:0;bottom:22px;padding:3px 2px;background:linear-gradient(90deg,#5a1fd1,#cc55ff,#5a1fd1);color:#fff;font-family:'Orbitron',monospace;font-size:7.5px;font-weight:900;letter-spacing:.6px;text-align:center;text-shadow:0 1px 2px #000;box-shadow:0 0 10px #cc55ff99}
+.mz-c.inter{outline:2px solid #cc55ff;box-shadow:0 0 14px #cc55ff66}
 .mz-c .jy{position:absolute;left:4px;top:4px;padding:2px 6px;border-radius:6px;background:linear-gradient(135deg,#ffd166,#ff2f5a);color:#1a0010;font-family:'Orbitron',monospace;font-size:8.5px;font-weight:900;letter-spacing:1px}
 .mz-c.joya{border-color:#ffd166;box-shadow:0 0 14px rgba(255,209,102,.35)}
 .mz-c .vd{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(2,6,20,.72);font-family:'Orbitron',monospace;font-weight:900;font-size:11px;letter-spacing:2px;color:var(--green)}
@@ -2440,12 +2442,17 @@ async function cargarTramo(id) {
   const head = secs.find(s => s._sec === 'tramo') || {};
   const L = v => String(v || '').split('|').map(x => x.split(',').map(y => y.trim())).filter(a => a.length >= 2 && a.slice(0, 2).every(y => y !== '' && isFinite(+y))).map(a => a.map((y, i) => i < 3 && isFinite(+y) ? +y : y));
   const def = { id, t, secs, head,
-    camino: secs.filter(s => s._sec === 'camino').map(s => ({ puntos: L(s.puntos), ancho: num(s.ancho, 4), tipo: s.tipo || 'piedra', zona: String(s.zona || '').trim(), franja: String(s.franja || 'si').trim(), alto_ini: num(s.alto_ini, 0), alto_fin: num(s.alto_fin, 0), extra: num(s.extra, 0.7) })),
-    plataformas: secs.filter(s => s._sec === 'plataforma').map(s => ({ x: num(s.x, 0), z: num(s.z, 0), ancho: num(s.ancho, 8), largo: num(s.largo, num(s.ancho, 8)), forma: s.forma || 'oval', piso: s.piso || '', zona: String(s.zona || '').trim(), tierra: String(s.tierra || '').trim(), alto: num(s.alto, 0), estilo: String(s.estilo || '').trim(), adorno: String(s.adorno || '').trim(), puntos: L(s.puntos), capa: num(s.capa, 0) })),
+    camino: secs.filter(s => s._sec === 'camino').map(s => ({ puntos: L(s.puntos), ancho: num(s.ancho, 4), tipo: s.tipo || 'piedra', zona: String(s.zona || '').trim(), franja: String(s.franja || 'si').trim(), alto_ini: num(s.alto_ini, 0), alto_fin: num(s.alto_fin, 0), extra: num(s.extra, 0.7), oculta: String(s.oculta || '').trim() })),
+    plataformas: secs.filter(s => s._sec === 'plataforma').map(s => ({ x: num(s.x, 0), z: num(s.z, 0), ancho: num(s.ancho, 8), largo: num(s.largo, num(s.ancho, 8)), forma: s.forma || 'oval', piso: s.piso || '', zona: String(s.zona || '').trim(), tierra: String(s.tierra || '').trim(), alto: num(s.alto, 0), estilo: String(s.estilo || '').trim(), adorno: String(s.adorno || '').trim(), puntos: L(s.puntos), capa: num(s.capa, 0), oculta: String(s.oculta || '').trim() })),
     decorado: {}, cartas: [], objetos: [], npcs: [], salidas: [] };
   secs.filter(s => s._sec === 'decorado').forEach(s => ['rocas', 'columnas', 'arcos', 'cristales', 'arbustos', 'braseros', 'runas', 'pasto', 'puestos', 'cajas', 'costales', 'faroles', 'libreros', 'atriles', 'libros', 'velas', 'papel_picado', 'rayos', 'luciernagas', 'glifos', 'pilas_libros', 'papeles', 'columnas_rotas', 'muros', 'estelas', 'estatuas', 'fogatas', 'arboles', 'manchones', 'matas', 'calzadas', 'cumulos', 'pilares', 'nidos', 'grietas', 'cristales_vacio', 'muros_rotos', 'arcos_curvos', 'arcos_cuadrados', 'columnas_bloque', 'escombros', 'portales_adorno', 'pasillos', 'serpientes', 'casas', 'antorchas', 'cascadas', 'muros_ciudad', 'estanques', 'copas', 'tumbas', 'cruces', 'veladoras', 'cempasuchil', 'arboles_secos', 'mausoleos', 'paredes', 'antorchas_pared', 'puertas_tunel'].forEach(k => { if (s[k]) def.decorado[k] = (def.decorado[k] || []).concat(L(s[k])); }));
-  def.cartas = secs.filter(s => s._sec === 'carta').map(s => ({ id: s._id, x: num(s.x, 0), z: num(s.z, 0), carta: resolverCarta(s.carta) })).filter(c => c.carta);
-  def.objetos = secs.filter(s => s._sec === 'objeto').map(s => ({ id: s._id, x: num(s.x, 0), z: num(s.z, 0), objeto: String(s.objeto || '').trim() }));
+  def.cartas = secs.filter(s => s._sec === 'carta').map(s => ({ id: s._id, x: num(s.x, 0), z: num(s.z, 0), carta: resolverCarta(s.carta), oculto: String(s.oculto || '').trim() })).filter(c => c.carta);
+  def.objetos = secs.filter(s => s._sec === 'objeto').map(s => ({ id: s._id, x: num(s.x, 0), z: num(s.z, 0), objeto: String(s.objeto || '').trim(), oculto: String(s.oculto || '').trim() }));
+  // v357 · [sitio:id] lugar donde se activa una CARTA INTERACTIVA (ver CARTAS_INT)
+  def.sitios = secs.filter(s => s._sec === 'sitio').map(s => ({ id: s._id, x: num(s.x, 0), z: num(s.z, 0), radio: num(s.radio, 2.4), efecto: String(s.efecto || 'romper').trim().toLowerCase(),
+    nivel: num(s.nivel, 1), cartas: String(s.cartas || '').split(',').map(x => resolverCarta(x.trim())).filter(Boolean), obstaculo: String(s.obstaculo || 'ninguno').trim().toLowerCase(),
+    ox: s.ox !== undefined ? num(s.ox, 0) : undefined, oz: s.oz !== undefined ? num(s.oz, 0) : undefined, giro: num(s.giro, 0), ancho: num(s.ancho, 3.2),
+    nombre: String(s.nombre || '').trim(), pista: String(s.pista || '').trim(), exito: String(s.exito || '').trim() }));
   // v295 · Las Ánimas usan su propio retrato (no el arte de otros personajes): [config] tramo_rival_retrato o imagen = … en el [npc:...]
   def.npcs = secs.filter(s => s._sec === 'npc').map(s => Object.assign({}, s, { imagen: s.imagen || CFG.tramo_rival_retrato || 'anima_retrato.png', id: 'tr~' + id + '~' + s._id, _nid: s._id, tipo: 'rival', distrito: s.distrito || t.hasta, _tramo: id,
     _req: [], _dias: [], _mon: parseInt(s.monedas, 10) || 0 }));
@@ -2568,6 +2575,49 @@ function koatlJSON(def, e) {
 }
 // v304 · lo que Nextor explica la primera vez que entras a una ruta (se cambia en mapa.txt con tramo_guia_intro = pág | pág | …)
 const GUIA_INTRO = '¡Bienvenido, viajero! Soy Nextor, guía de Nexotlan. Estás en una RUTA: un camino que une dos distritos a través del vacío del multiverso. | En las rutas hay cartas tiradas y cofres. Las cartas van a tu colección y los cofres guardan objetos para tu mochila. Arriba a la derecha llevas la cuenta. | Las Ánimas que encuentres te retarán a un Choque. Algunas te cierran el paso o resguardan barreras: véncelas para seguir avanzando. | Puedes ajustar tu baraja cuando quieras con el botón BARAJA. Y si tienes dudas, búscame al inicio de cada ruta.';
+// ════════════════ v357 · CARTAS INTERACTIVAS ════════════════
+// Cartas de apoyo que también sirven en las rutas: te paras en un [sitio:…], tocas ACTIVAR (X en el control)
+// y GASTAS una copia de tu cofre (nunca una que esté en tu baraja). Lo que abre queda abierto para siempre en esa partida.
+//   efecto: romper (rocas, muros) · invocar (tumbas: aparece un rival) · revelar (algo enterrado u oculto) · purificar (sellos de energía)
+//   nivel: 1 = cualquier carta del efecto · 2 o 3 = solo las más fuertes
+const CARTAS_INT = {
+  cataclismo: ['romper', 1], desde_cenizas: ['romper', 1], p3_vortice_espiritual: ['romper', 1], devastacion: ['romper', 2], p3_inundacion: ['romper', 2], explosion_abismal: ['romper', 3],
+  amuleto_mictlan: ['invocar', 1], p3_huesos_sagrados: ['invocar', 1], p3_choque_heroico: ['invocar', 1], desterrador: ['invocar', 2], resurreccion: ['invocar', 3],
+  mitos_sepultados: ['revelar', 1], excavacion_cristales: ['revelar', 1], colonizacion: ['revelar', 1], ofrenda_quetzal: ['revelar', 2],
+  energia_negativa: ['purificar', 1], p3_anillo_sellador: ['purificar', 2], p3_lazos_anima: ['purificar', 2], p3_ritual_sanacion: ['purificar', 2]
+};
+const EFECTO_INT = { romper: ['💥', 'ROMPER', 'Derriba rocas y muros'], invocar: ['👻', 'INVOCAR', 'Despierta lo que duerme en una tumba'], revelar: ['✨', 'REVELAR', 'Desentierra lo que está oculto'], purificar: ['🔷', 'PURIFICAR', 'Deshace sellos de energía'] };
+const esInteractiva = id => !!CARTAS_INT[id];
+const sitioUsado = (e, id) => !!(e && e.sit && e.sit[id]);
+const libresDe = id => Math.max(0, ((S.col || {})[id] || 0) - enMazo(S.mazo, id));
+function cartasDeSitio(st) {
+  if (st.cartas && st.cartas.length) return st.cartas.filter(id => CARD[id]);
+  return Object.keys(CARTAS_INT).filter(id => CARTAS_INT[id][0] === st.efecto && CARTAS_INT[id][1] >= (st.nivel || 1) && CARD[id])
+    .sort((a, b) => CARTAS_INT[a][1] - CARTAS_INT[b][1] || precioBase(a) - precioBase(b));
+}
+async function usarSitio(def, e, id) {
+  const st = (def.sitios || []).find(x => x.id === id); if (!st || sitioUsado(e, id)) return;
+  const ef = EFECTO_INT[st.efecto] || ['✦', st.efecto.toUpperCase(), ''];
+  const L = cartasDeSitio(st), mias = L.filter(c => libresDe(c) > 0);
+  const lista = `<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:6px 0">` + L.map(c => { const n = libresDe(c), enB = enMazo(S.mazo, c);
+    return `<div style="width:72px;text-align:center;opacity:${n ? 1 : .4}" title="${esc(nomC(c))}"><img src="${esc(cartaImg(c))}" alt="" style="width:62px;border-radius:4px;${n ? 'box-shadow:0 0 10px #cc55ff' : 'filter:grayscale(1)'}">
+      <div style="font-size:9.5px;line-height:1.15;margin-top:2px">${esc(nomC(c))}</div><div style="font-size:9px;color:${n ? '#5cc8ff' : 'var(--muted)'}">${n ? '×' + n : enB ? 'en tu baraja' : 'no tienes'}${CARTAS_INT[c] && CARTAS_INT[c][1] > 1 ? ' ★' : ''}</div></div>`; }).join('') + '</div>';
+  tramoPausa(true);
+  const tit = `${ef[0]} ${st.nombre ? st.nombre.toUpperCase() : 'CARTA INTERACTIVA'}`;
+  const cab = `<div style="color:#c07cff;font-weight:700;letter-spacing:1px">✦ CARTA INTERACTIVA · ${ef[1]}</div><div style="color:var(--muted);margin:2px 0 8px">${esc(st.pista || ef[2])}</div>`;
+  if (!mias.length) {
+    await mensaje(tit, cab + lista + `<br><span style="color:var(--muted)">Consíguelas con el <b style="color:var(--text)">Doctor Sitho</b> o en la tienda (sección ✦ CARTAS INTERACTIVAS). Al usarla se gasta 1 copia.</span>`);
+    tramoPausa(false); return;
+  }
+  const ops = mias.map(c => [`USAR ${esc(nomC(c)).toUpperCase()} (${libresDe(c)})`, 'gold']).concat([['CANCELAR', 'sec']]);
+  const k = await mensaje(tit, cab + lista + `<br><span style="color:var(--muted)">Se gastará <b style="color:var(--text)">1 copia</b> de tu cofre. Lo que abras quedará abierto.</span>`, ops);
+  if (k < 0 || k >= mias.length) { tramoPausa(false); return; }
+  const c = mias[k]; if (libresDe(c) <= 0) { tramoPausa(false); return; }
+  S.col[c]--; if (S.col[c] <= 0) { delete S.col[c]; if (S.nuevas) delete S.nuevas[c]; }
+  e.sit = e.sit || {}; e.sit[id] = c; guardar();
+  tramoPausa(false);
+  setTimeout(() => tramoAviso({ tipo: 'activar', id, img: cartaImg(c).replace(/^\.\//, ''), nombre: nomC(c) }), 120);
+}
 async function abrirTramo(id, bajada) {
   if (!bajada && !tramoAbierto(tramoDe(id))) { toast('🔒 Aún no puedes entrar a este sendero'); return; }
   const def = await cargarTramo(id); if (!def) { toast('⚠ No se pudo leer el tramo ' + id); return; }
@@ -2584,14 +2634,17 @@ async function abrirTramo(id, bajada) {
     ropa: ropaJSON(),
     jugador_img: String(h.jugador || CFG.tramo_jugador || '').trim() ? imgUrl(String(h.jugador || CFG.tramo_jugador).trim(), 'personajes') : '',
     inicio: (h.inicio || '0,0').split(',').map(Number), pos: e.pos || null,
-    camino: def.camino, plataformas: def.plataformas, decorado: def.decorado,
-    cartas: def.cartas.map(c => ({ id: c.id, x: c.x, z: c.z, recogida: !!e.c[c.id] })),
-    objetos: def.objetos.map(o => ({ id: o.id, x: o.x, z: o.z, recogido: !!e.o[o.id] })),
+    camino: def.camino.map(c => Object.assign({}, c, { oculta: c.oculta && !sitioUsado(e, c.oculta) ? c.oculta : '' })),
+    plataformas: def.plataformas.map(c => Object.assign({}, c, { oculta: c.oculta && !sitioUsado(e, c.oculta) ? c.oculta : '' })), decorado: def.decorado,
+    cartas: def.cartas.map(c => ({ id: c.id, x: c.x, z: c.z, recogida: !!e.c[c.id], oculto: c.oculto && !sitioUsado(e, c.oculto) ? c.oculto : '' })),
+    objetos: def.objetos.map(o => ({ id: o.id, x: o.x, z: o.z, recogido: !!e.o[o.id], oculto: o.oculto && !sitioUsado(e, o.oculto) ? o.oculto : '' })),
+    sitios: (def.sitios || []).map(st => Object.assign({}, st, { usado: sitioUsado(e, st.id) })),
     npcs: def.npcs.map(n => { const v = vencido(n.id), ap = String(n.aparta || '').split(',').map(Number);
       return { id: n._nid, x: num(n.x, 0), z: num(n.z, 0), nombre: n.nombre || '', radio: num(n.radio, 2), color: n.color || '#ff5a7a', img: '', vencido: v,
         bloquea: /^(si|sí|1|true)$/i.test(String(n.bloquea || '').trim()), ancho_bloqueo: num(n.ancho_bloqueo, 1.3),
         aparta: ap.length >= 2 && ap.every(isFinite) ? ap : null, animar: v && !e.vis[n._nid],
-        entrada: String(n.entrada || '¿Un Choque?'), revancha: String(n.revancha || '') }; }),
+        entrada: String(n.entrada || '¿Un Choque?'), revancha: String(n.revancha || ''),
+        oculto: (oc => oc && !sitioUsado(e, oc) ? oc : '')(String(n.oculto || '').trim()) }; }),
     barreras: (def.barreras || []).map(b => { const r = def.npcs.find(n => n._nid === b.rival), ap = !!(r && vencido(r.id));
       return { id: b.id, x: b.x, z: b.z, ancho: b.ancho, giro: b.giro, color: b.color, apagada: ap, animar: ap && !e.vis['b~' + b.id] }; }),
     portales: (def.portales || []).map(q => { const r = q.rival && def.npcs.find(n => n._nid === q.rival), act = !q.rival || !!(r && vencido(r.id));
@@ -2680,6 +2733,11 @@ window.nxTramoEvento = async function (s) {
       if (primera && d) { await new Promise(r => setTimeout(r, 450)); await mensaje('🏙 ¡LLEGASTE!', `Recorriste el <b>${esc(def.head.nombre || def.t.nombre || '')}</b> y llegaste a <b>${esc(d.nombre || d.id)}</b>.<br><br>Puedes volver a explorar el sendero cuando quieras desde el rombo amarillo del mapa.`); }
       break;
     }
+    case 'sitio': { await usarSitio(def, e, ev.id); break; }      // v357 · cartas interactivas
+    case 'sitio_listo': {
+      const st = (def.sitios || []).find(x => x.id === ev.id); if (st && st.exito) tramoAviso({ tipo: 'toast', txt: st.exito });
+      break;
+    }
     case 'carta': {
       const c = def.cartas.find(x => x.id === ev.id); if (!c || e.c[c.id]) return;
       e.c[c.id] = 1; const res = entregar([c.carta]); guardar(); pintarHud();
@@ -2714,7 +2772,7 @@ window.nxTramoEvento = async function (s) {
       if (ev.id === 'rayah') { if (!S.deseo) await rayahDeseo(def); break; }
       if (ev.id === 'sitho') {      // v323 · la tienda del Comerciante, y al salir regresas a la ruta
         const com = PTS.find(esComerciante); if (!com) break;
-        tramoPausa(true); window._volverTramo = VOLVER; VOLVER = 'sTramo'; mostrarCarga(300); abrirTienda(com); break;
+        tramoPausa(true); window._volverTramo = VOLVER; VOLVER = 'sTramo'; mostrarCarga(300); abrirTienda(com).then(() => { TD.tab = 'cartas'; pintarTienda(); }); break;      // v357 · abre en cartas (con las interactivas arriba)
       }
       if (ev.id !== 'koatl' || !def.koatl) break;
       if (!e.koatl) {
@@ -3554,7 +3612,14 @@ function pintarTienda() {
         <button class="bt ${ok ? 'gold' : 'sec'}" data-sobre="${esc(sb.id)}" ${ok ? '' : 'disabled'}><i class="mn"></i> ${pr} · ${ok ? 'COMPRAR' : 'FALTAN ' + (pr - S.monedas)}</button></div></div>`; }).join('')}</div>` : '<div class="mz-vacio">Todavía no hay sobres a la venta.</div>';
   } else if (TD.tab === 'cartas') {
     const T = stockHoy();
-    h = `<div class="td-nota">Ofertas del <b style="color:var(--text)">día ${S.dia + 1}</b>: cambian (y sus precios también) cada vez que avanza el día. ${T.stock.some(x => x.joya) ? 'Las <b style="color:#ffd166">JOYAS</b> son cartas fuertes y muy caras.' : ''}</div><div class="mz-grid">`;
+    h = '';
+    if (VOLVER === 'sTramo') {      // v357 · el Doctor Sitho siempre trae CARTAS INTERACTIVAS (precio fijo)
+      const IL = Object.keys(CARTAS_INT).filter(id => CARD[id] && precioBase(id) > 0).sort((a, b) => Object.keys(EFECTO_INT).indexOf(CARTAS_INT[a][0]) - Object.keys(EFECTO_INT).indexOf(CARTAS_INT[b][0]) || precioBase(a) - precioBase(b));
+      h += `<div class="mz-g"><span style="color:#cc55ff">✦ CARTAS INTERACTIVAS</span></div><div class="td-nota">Úsalas en las rutas con <b style="color:var(--text)">ACTIVAR</b> (X en el control) frente a rocas, tumbas, tierra removida o sellos. Al usarla se gasta 1 copia de tu cofre.</div><div class="mz-grid" style="margin-bottom:16px">`;
+      h += IL.map(id => { const ef = EFECTO_INT[CARTAS_INT[id][0]];
+        return `<button class="mz-c inter" data-int="${esc(id)}" aria-label="${esc(nomC(id))}"><img src="${esc(cartaImg(id))}" alt="" loading="lazy"><span class="int">${ef[0]} INTERACTIVA · ${ef[1]}</span><span class="qq">×${S.col[id] || 0}</span><span class="pr"><i class="mn"></i>${precioBase(id)}</span></button>`; }).join('') + '</div>';
+    }
+    h += `<div class="td-nota">Ofertas del <b style="color:var(--text)">día ${S.dia + 1}</b>: cambian (y sus precios también) cada vez que avanza el día. ${T.stock.some(x => x.joya) ? 'Las <b style="color:#ffd166">JOYAS</b> son cartas fuertes y muy caras.' : ''}</div><div class="mz-grid">`;
     h += T.stock.map((x, i) => { const pr = precioHoy(x.id), vd = T.vendidas[i];
       return `<button class="mz-c ${x.joya ? 'joya' : ''}" data-of="${i}" aria-label="${esc(nomC(x.id))}"><img src="${esc(cartaImg(x.id))}" alt="" loading="lazy">${x.joya ? '<span class="jy">JOYA</span>' : x.fija ? '<span class="jy" style="background:linear-gradient(135deg,#36d6ff,#cc55ff)">SIEMPRE</span>' : ''}<span class="qq">${tieneNombre(x.id)}/${topeDe(x.id)}</span><span class="pr"><i class="mn"></i> ${pr}</span>${vd ? '<span class="vd">✔ COMPRADA</span>' : ''}</button>`; }).join('') + '</div>';
   } else {
@@ -3568,6 +3633,7 @@ function pintarTienda() {
   B.querySelectorAll('[data-sobre]').forEach(b => b.onclick = () => comprarSobre(COM.sobres.find(x => x.id === b.dataset.sobre)));
   B.querySelectorAll('[data-caja]').forEach(b => b.onclick = () => verCaja(COM.sobres.find(x => x.id === b.dataset.caja)));
   B.querySelectorAll('[data-of]').forEach(b => b.onclick = () => fichaTienda(+b.dataset.of));
+  B.querySelectorAll('[data-int]').forEach(b => b.onclick = () => fichaInteractiva(b.dataset.int));
   B.querySelectorAll('[data-vd]').forEach(b => b.onclick = () => fichaVenta(b.dataset.vd));
   B.querySelectorAll('[data-vobj]').forEach(b => b.onclick = () => { const k = b.dataset.vobj; if (!(S.objetos[k] > 0)) return; S.objetos[k]--; S.monedas += OBJ[k].precio; sonMonedas(); guardar(); pintarTienda(); toast('💰 +' + OBJ[k].precio + ' monedas'); });
 }
@@ -3587,6 +3653,15 @@ function fichaTienda(i) {
     `<button class="bt sec" id="tdNo">CERRAR</button><button class="bt gold" id="tdSi" ${ok ? '' : 'disabled'}>${vd ? '✔ YA LA COMPRASTE' : lleno ? 'YA LA TIENES COMPLETA' : S.monedas < pr ? 'FALTAN ' + (pr - S.monedas) + ' <i class="mn"></i>' : '<i class="mn"></i> COMPRAR'}</button>`);
   $('tdNo').onclick = () => cerrarModal('mCarta');
   $('tdSi').onclick = () => { if (S.monedas < pr) return; S.monedas -= pr; sonMonedas(); T.vendidas[i] = 1; entregar([x.id]); guardar(); cerrarModal('mCarta'); pintarTienda(); toast('🛒 ' + nomC(x.id) + ' a tu cofre'); };
+  try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar(ok ? $('tdSi') : $('tdNo')), 40); } catch (e) {}
+}
+// v357 · carta interactiva en la tienda del Doctor Sitho: precio fijo, se pueden juntar varias copias (se gastan al usarlas)
+function fichaInteractiva(id) {
+  const pr = precioBase(id), ef = EFECTO_INT[CARTAS_INT[id][0]], lleno = (S.col[id] || 0) >= MAX_COFRE, ok = !lleno && S.monedas >= pr;
+  fichaBase(id, `<span class="chip" style="color:#cc55ff">✦ INTERACTIVA · ${ef[0]} ${ef[1]}${CARTAS_INT[id][1] > 1 ? ' · ★ FUERTE' : ''}</span><span class="chip" style="color:#5cc8ff"><i class="mn"></i> ${pr}</span><span class="chip">En la ruta: ${esc(ef[2])}</span>`,
+    `<button class="bt sec" id="tdNo">CERRAR</button><button class="bt gold" id="tdSi" ${ok ? '' : 'disabled'}>${lleno ? 'COFRE LLENO' : S.monedas < pr ? 'FALTAN ' + (pr - S.monedas) + ' <i class="mn"></i>' : '<i class="mn"></i> COMPRAR'}</button>`);
+  $('tdNo').onclick = () => cerrarModal('mCarta');
+  $('tdSi').onclick = () => { if (S.monedas < pr) return; S.monedas -= pr; sonMonedas(); entregar([id]); guardar(); cerrarModal('mCarta'); pintarTienda(); toast('✦ ' + nomC(id) + ' a tu cofre'); };
   try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar(ok ? $('tdSi') : $('tdNo')), 40); } catch (e) {}
 }
 function fichaVenta(id) {

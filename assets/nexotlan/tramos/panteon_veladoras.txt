@@ -869,3 +869,69 @@ texto = Galerías Profundas
 [monedas]
 # v344 · monedas escondidas en rincones (azules, +1)
 sueltas = -26.4,-132.8 | 40.8,-71.2 | -60.8,-64 | -26.4,-31.2 | 68.8,32 | -18.4,-18.4 | -44.8,-118.4 | -32.8,-0.8 | 73.6,10.4 | 35.2,2.4
+
+# ═══ v357 · CARTAS INTERACTIVAS (si regeneras este archivo con gen.py/txt.py, vuelve a pegar este bloque) ═══
+# Tumba Olvidada: con una carta de INVOCAR (Amuleto del Mictlán, Los Huesos Sagrados…) despierta un rival especial.
+[sitio:tumba_olvidada]
+nombre = Tumba Olvidada
+x = -57
+z = -12.6
+radio = 2.4
+efecto = invocar
+obstaculo = tumba
+ox = -57
+oz = -9.2
+giro = 180
+pista = Una tumba sin nombre… algo duerme aquí. Una carta de INVOCAR podría despertarlo (ACTIVAR)
+exito = ¡Algo despertó en la Tumba Olvidada!
+
+[npc:guardian_tumba]
+nombre = Guardián de la Tumba Olvidada
+titulo = Ánima olvidada
+x = -53.8
+z = -9.6
+radio = 1.3
+color = #7dffb2
+baraja = nxr_mictlantecuhtli
+dificultad = auto
+monedas = 350
+oculto = tumba_olvidada
+entrada = …¿Quién se atreve a llamarme? Mi universo me olvidó, pero mi alma sigue aquí. Demuéstrame que la tuya vale más.
+victoria = Ahora sí… puedo descansar.
+derrota = Tu tumba aparecerá junto a la mía.
+revancha = ¿Vuelves a despertarme?
+
+[carta:tirada_amuleto]
+x = -53.6
+z = -14.6
+carta = amuleto_mictlan
+
+# Tierra removida: con una carta de REVELAR (Mitos Sepultados, Excavación de Cristales…) se desentierra un cofre.
+[sitio:tierra_hondo]
+nombre = Tierra Removida
+x = 17
+z = 66.4
+radio = 2.2
+efecto = revelar
+obstaculo = tierra
+ox = 17
+oz = 68.6
+pista = La tierra está removida… algo está enterrado. Una carta de REVELAR podría sacarlo (ACTIVAR)
+exito = ¡Desenterraste un cofre!
+
+[objeto:cofre_enterrado]
+x = 17
+z = 68.6
+objeto = hueso_sagrado
+oculto = tierra_hondo
+
+[carta:premio_enterrado]
+x = 18.8
+z = 69.4
+carta = p3_huesos_sagrados
+oculto = tierra_hondo
+
+[carta:tirada_mitos]
+x = 14.2
+z = 66.6
+carta = mitos_sepultados

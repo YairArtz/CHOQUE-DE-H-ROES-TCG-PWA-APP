@@ -2636,7 +2636,7 @@ function elegirCartaInt(st, ef, L, mias) {
     ov.querySelector('#mintNo').onclick = () => fin(null);
     const bs = ov.querySelector('#mintSi'); if (bs) bs.onclick = () => fin(sel);
     pinta();
-    try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar(bs || ov.querySelector('#mintNo')), 60); } catch (e) {}
+    try { const hayPad = [...(navigator.getGamepads ? navigator.getGamepads() : [])].some(g => g && g.connected); if (window.GP && (GP.activo() || hayPad)) setTimeout(() => GP.enfocar(bs || ov.querySelector('#mintNo')), 80); } catch (e) {}
   });
 }
 async function usarSitio(def, e, id) {
@@ -4894,7 +4894,7 @@ document.addEventListener('keydown', e => {
   else if (k === '-' || k === '_') ajustarZoom(ZOOM / 1.2);
 });
 // v281 · Mientras se explora un tramo 3D, el control lo maneja Godot (salvo cuando hay un diálogo o mensaje de esta página)
-window.GP_PAUSA = () => $('sTramo').classList.contains('on') && !DLG && !document.querySelector('.modal.on, .sob.on') && !cargaVisible();
+window.GP_PAUSA = () => $('sTramo').classList.contains('on') && !DLG && !document.querySelector('.modal.on, .sob.on, #mInt') && !cargaVisible();      // v361 · #mInt: elegir carta interactiva con el control
 window.GP_CFG = {
   principalTxt: 'Entrar / Avanzar',
   sinAnillo: el => !!(el && el.closest && el.closest('#sMenu .mn-izq, #carga')),   // el menú resalta sus propias opciones

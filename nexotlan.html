@@ -2595,7 +2595,9 @@ function cartasDeSitio(st) {
   return Object.keys(CARTAS_INT).filter(id => CARTAS_INT[id][0] === st.efecto && CARTAS_INT[id][1] >= (st.nivel || 1) && CARD[id])
     .sort((a, b) => CARTAS_INT[a][1] - CARTAS_INT[b][1] || precioBase(a) - precioBase(b));
 }
+function sonActivar() { if (!window._sonAct) { window._sonAct = new Audio('assets/nexotlan/sonidos/activar_carta.mp3'); window._sonAct.preload = 'auto'; } return window._sonAct; }
 async function usarSitio(def, e, id) {
+  try { sonActivar().load(); } catch (x) {}      // se precarga mientras eliges la carta
   const st = (def.sitios || []).find(x => x.id === id); if (!st || sitioUsado(e, id)) return;
   const ef = EFECTO_INT[st.efecto] || ['✦', st.efecto.toUpperCase(), ''];
   const L = cartasDeSitio(st), mias = L.filter(c => libresDe(c) > 0);
@@ -4735,6 +4737,10 @@ const NX_SFX = {
   salida: [['sine', 660, 660, .18, .14, 0], ['sine', 880, 880, .2, .14, .12], ['sine', 1320, 1320, .35, .12, .26]]
 };
 window.nxPaso = function (sup) {
+  if (sup === 'activar_carta') {      // v358 · sonido de la carta interactiva (assets/nexotlan/sonidos/activar_carta.mp3)
+    if (MUTE) return;
+    try { const a = sonActivar().cloneNode(); a.volume = Math.min(1, +(CFG.volumen_activar || 1)); a.play().catch(() => {}); } catch (e) {} return;
+  }
   if (MUTE || /^(no|0|false)$/i.test(String(CFG.sonido_pasos || 'si').trim())) return;
   if (sup === '__pre') { window.nxPaso('piedra'); window.nxPaso('madera'); return; }
   if (NX_SFX[sup]) {        // v312 · efectos de las rutas (sintetizados): carta, cofre, barrera, portal_on, hablar, pagina, atril, aparta, salida

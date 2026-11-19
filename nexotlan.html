@@ -787,6 +787,22 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 .pk-gen em{font-style:normal;font-size:30px;filter:drop-shadow(0 0 10px var(--pc))}
 .td-precio{font-family:'Orbitron',monospace;font-weight:900;font-size:12px;color:#ffd166}
 .mz-c .pr{position:absolute;right:4px;bottom:4px;padding:2px 6px;border-radius:6px;background:rgba(2,6,20,.9);font-family:'Orbitron',monospace;font-size:10px;font-weight:900;color:#ffd166}
+.mint{position:fixed;inset:0;z-index:9500;background:rgba(4,2,12,.82);display:flex;align-items:center;justify-content:center;padding:max(10px,env(safe-area-inset-top)) 10px max(10px,env(safe-area-inset-bottom));backdrop-filter:blur(3px)}
+.mint-p{width:min(780px,100%);max-height:100%;display:flex;flex-direction:column;gap:8px;background:linear-gradient(180deg,#1a0f33,#0b0718);border:2px solid #cc55ff;border-radius:14px;box-shadow:0 0 30px #cc55ff55;padding:12px 12px 10px}
+.mint-h{display:flex;flex-direction:column;gap:2px;text-align:center}
+.mint-h b{font-family:'Orbitron',monospace;font-size:clamp(14px,2.4vw,19px);color:#fff;letter-spacing:.5px}
+.mint-h small{color:var(--muted);font-size:clamp(11px,1.8vw,13px);line-height:1.25}
+.mint-b{align-self:center;font-family:'Orbitron',monospace;font-size:10px;font-weight:900;letter-spacing:1px;color:#fff;padding:3px 10px;border-radius:20px;background:linear-gradient(90deg,#5a1fd1,#cc55ff)}
+.mint-f{display:flex;gap:12px;overflow-x:auto;overflow-y:hidden;padding:12px 6px 10px;scroll-snap-type:x mandatory;justify-content:safe center;-webkit-overflow-scrolling:touch}
+.mint-c{flex:0 0 auto;scroll-snap-align:center;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:0;padding:0;color:#fff;cursor:pointer;width:clamp(96px,calc(min(44vh,260px) * .714),180px)}
+.mint-c img{width:100%;aspect-ratio:300/420;object-fit:cover;border-radius:8px;border:2px solid #4a2c7a;transition:transform .15s,box-shadow .15s}
+.mint-c.sel img{border-color:#f5a623;box-shadow:0 0 0 2px #f5a623,0 0 22px #f5a623aa;transform:translateY(-4px)}
+.mint-c.no{opacity:.4;cursor:default}.mint-c.no img{filter:grayscale(1)}
+.mint-n{font-size:clamp(10px,1.7vw,12px);font-weight:700;text-align:center;line-height:1.15}
+.mint-q{font-family:'Orbitron',monospace;font-size:10px;color:#5cc8ff}.mint-c.no .mint-q{color:var(--muted)}
+.mint-a{display:flex;flex-direction:column;gap:6px;align-items:center}.mint-a small{color:var(--muted);font-size:11px;text-align:center}.mint-a small b{color:#fff}
+.mint-bt{display:flex;gap:10px;width:100%;justify-content:center}.mint-bt .bt{flex:1;max-width:280px;min-height:44px}
+@media (max-height:480px){.mint-p{padding:8px 10px;gap:4px}.mint-h small{display:none}.mint-f{padding:10px 6px 6px}.mint-bt .bt{min-height:38px}}
 .mz-c .int{position:absolute;left:0;right:0;bottom:22px;padding:3px 2px;background:linear-gradient(90deg,#5a1fd1,#cc55ff,#5a1fd1);color:#fff;font-family:'Orbitron',monospace;font-size:7.5px;font-weight:900;letter-spacing:.6px;text-align:center;text-shadow:0 1px 2px #000;box-shadow:0 0 10px #cc55ff99}
 .mz-c.inter{outline:2px solid #cc55ff;box-shadow:0 0 14px #cc55ff66}
 .mz-c .jy{position:absolute;left:4px;top:4px;padding:2px 6px;border-radius:6px;background:linear-gradient(135deg,#ffd166,#ff2f5a);color:#1a0010;font-family:'Orbitron',monospace;font-size:8.5px;font-weight:900;letter-spacing:1px}
@@ -2580,13 +2596,15 @@ const GUIA_INTRO = '¡Bienvenido, viajero! Soy Nextor, guía de Nexotlan. Estás
 // y GASTAS una copia de tu cofre (nunca una que esté en tu baraja). Lo que abre queda abierto para siempre en esa partida.
 //   efecto: romper (rocas, muros) · invocar (tumbas: aparece un rival) · revelar (algo enterrado u oculto) · purificar (sellos de energía)
 //   nivel: 1 = cualquier carta del efecto · 2 o 3 = solo las más fuertes
+//   [efecto, nivel, distrito]: el comerciante normal la vende cuando ese distrito ya está abierto (el Doctor Sitho las trae todas)
 const CARTAS_INT = {
-  cataclismo: ['romper', 1], desde_cenizas: ['romper', 1], p3_vortice_espiritual: ['romper', 1], devastacion: ['romper', 2], p3_inundacion: ['romper', 2], explosion_abismal: ['romper', 3],
-  amuleto_mictlan: ['invocar', 1], p3_huesos_sagrados: ['invocar', 1], p3_choque_heroico: ['invocar', 1], desterrador: ['invocar', 2], resurreccion: ['invocar', 3],
-  mitos_sepultados: ['revelar', 1], excavacion_cristales: ['revelar', 1], colonizacion: ['revelar', 1], ofrenda_quetzal: ['revelar', 2],
-  energia_negativa: ['purificar', 1], p3_anillo_sellador: ['purificar', 2], p3_lazos_anima: ['purificar', 2], p3_ritual_sanacion: ['purificar', 2]
+  cataclismo: ['romper', 1, 'puerta'], desde_cenizas: ['romper', 1, 'puerta'], p3_vortice_espiritual: ['romper', 1, 'mercado'], devastacion: ['romper', 2, 'fortaleza'], p3_inundacion: ['romper', 2, 'fortaleza'], explosion_abismal: ['romper', 3, 'piramide'],
+  amuleto_mictlan: ['invocar', 1, 'coliseo'], p3_huesos_sagrados: ['invocar', 1, 'coliseo'], p3_choque_heroico: ['invocar', 1, 'coliseo'], desterrador: ['invocar', 2, 'ciudadela'], resurreccion: ['invocar', 3, 'ciudadela'],
+  mitos_sepultados: ['revelar', 1, 'puerta'], excavacion_cristales: ['revelar', 1, 'mercado'], colonizacion: ['revelar', 1, 'mercado'], ofrenda_quetzal: ['revelar', 2, 'archivos'],
+  energia_negativa: ['purificar', 1, 'archivos'], p3_anillo_sellador: ['purificar', 2, 'santuario'], p3_lazos_anima: ['purificar', 2, 'santuario'], p3_ritual_sanacion: ['purificar', 2, 'santuario']
 };
-const EFECTO_INT = { romper: ['💥', 'ROMPER', 'Derriba rocas y muros'], invocar: ['👻', 'INVOCAR', 'Despierta lo que duerme en una tumba'], revelar: ['✨', 'REVELAR', 'Desentierra lo que está oculto'], purificar: ['🔷', 'PURIFICAR', 'Deshace sellos de energía'] };
+const intEnVenta = id => VOLVER === 'sTramo' || (() => { try { const d = DIST.find(x => x.id === CARTAS_INT[id][2]); return !d || distritoAbierto(d); } catch (e) { return true; } })();
+const EFECTO_INT = { romper: ['💥', 'ROMPER', 'Derriba rocas y muros'], invocar: ['👻', 'INVOCAR', 'Despierta lo que duerme en una tumba'], revelar: ['✨', 'REVELAR', 'Desentierra lo que está oculto'], purificar: ['🟣', 'PURIFICAR', 'Deshace sellos de energía negativa'] };
 const esInteractiva = id => !!CARTAS_INT[id];
 const sitioUsado = (e, id) => !!(e && e.sit && e.sit[id]);
 const libresDe = id => Math.max(0, ((S.col || {})[id] || 0) - enMazo(S.mazo, id));
@@ -2596,25 +2614,39 @@ function cartasDeSitio(st) {
     .sort((a, b) => CARTAS_INT[a][1] - CARTAS_INT[b][1] || precioBase(a) - precioBase(b));
 }
 function sonActivar() { if (!window._sonAct) { window._sonAct = new Audio('assets/nexotlan/sonidos/activar_carta.mp3'); window._sonAct.preload = 'auto'; } return window._sonAct; }
+// v359 · ventana para elegir la carta interactiva (pensada para celular: fila de cartas grandes que se desliza, botones abajo)
+function elegirCartaInt(st, ef, L, mias) {
+  return new Promise(res => {
+    let sel = mias[0] || null;
+    const ov = document.createElement('div'); ov.id = 'mInt'; ov.className = 'mint';
+    const ord = mias.concat(L.filter(c => !mias.includes(c)));
+    ov.innerHTML = `<div class="mint-p">
+      <div class="mint-h"><span class="mint-b">✦ CARTA INTERACTIVA · ${ef[0]} ${ef[1]}</span><b>${esc(st.nombre || ef[2])}</b><small>${esc(st.pista || ef[2])}</small></div>
+      <div class="mint-f">${ord.map(c => { const n = libresDe(c), enB = enMazo(S.mazo, c), ok = n > 0;
+        return `<${ok ? 'button' : 'div'} class="mint-c${ok ? '' : ' no'}" data-c="${esc(c)}"><img src="${esc(cartaImg(c))}" alt=""><span class="mint-n">${esc(nomC(c))}</span>
+          <span class="mint-q">${ok ? '×' + n : enB ? 'En tu baraja' : 'No la tienes'}${CARTAS_INT[c] && CARTAS_INT[c][1] > 1 ? ' · ★' : ''}</span></${ok ? 'button' : 'div'}>`; }).join('')}</div>
+      <div class="mint-a">${mias.length ? '<small>Se gasta <b>1 copia</b> de tu cofre · lo que abras queda abierto</small>' : '<small>Consíguelas con el <b>Doctor Sitho</b> (✦ CARTAS INTERACTIVAS)</small>'}
+        <div class="mint-bt"><button class="bt sec" data-gp-back id="mintNo">${mias.length ? 'CANCELAR' : 'CERRAR'}</button>${mias.length ? '<button class="bt gold" id="mintSi"></button>' : ''}</div></div></div>`;
+    document.body.appendChild(ov);
+    const pinta = () => { ov.querySelectorAll('.mint-c').forEach(b => b.classList.toggle('sel', b.dataset.c === sel)); const bs = ov.querySelector('#mintSi'); if (bs) bs.textContent = 'USAR ' + nomC(sel).toUpperCase(); };
+    const fin = v => { document.removeEventListener('keydown', esc_); ov.remove(); res(v); };
+    const esc_ = ev => { if (ev.key === 'Escape') fin(null); };
+    document.addEventListener('keydown', esc_);
+    ov.querySelectorAll('button.mint-c').forEach(b => b.onclick = () => { if (sel === b.dataset.c) return fin(sel); sel = b.dataset.c; pinta(); });      // tocar otra vez = usar
+    ov.querySelector('#mintNo').onclick = () => fin(null);
+    const bs = ov.querySelector('#mintSi'); if (bs) bs.onclick = () => fin(sel);
+    pinta();
+    try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar(bs || ov.querySelector('#mintNo')), 60); } catch (e) {}
+  });
+}
 async function usarSitio(def, e, id) {
   try { sonActivar().load(); } catch (x) {}      // se precarga mientras eliges la carta
   const st = (def.sitios || []).find(x => x.id === id); if (!st || sitioUsado(e, id)) return;
   const ef = EFECTO_INT[st.efecto] || ['✦', st.efecto.toUpperCase(), ''];
   const L = cartasDeSitio(st), mias = L.filter(c => libresDe(c) > 0);
-  const lista = `<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:6px 0">` + L.map(c => { const n = libresDe(c), enB = enMazo(S.mazo, c);
-    return `<div style="width:72px;text-align:center;opacity:${n ? 1 : .4}" title="${esc(nomC(c))}"><img src="${esc(cartaImg(c))}" alt="" style="width:62px;border-radius:4px;${n ? 'box-shadow:0 0 10px #cc55ff' : 'filter:grayscale(1)'}">
-      <div style="font-size:9.5px;line-height:1.15;margin-top:2px">${esc(nomC(c))}</div><div style="font-size:9px;color:${n ? '#5cc8ff' : 'var(--muted)'}">${n ? '×' + n : enB ? 'en tu baraja' : 'no tienes'}${CARTAS_INT[c] && CARTAS_INT[c][1] > 1 ? ' ★' : ''}</div></div>`; }).join('') + '</div>';
   tramoPausa(true);
-  const tit = `${ef[0]} ${st.nombre ? st.nombre.toUpperCase() : 'CARTA INTERACTIVA'}`;
-  const cab = `<div style="color:#c07cff;font-weight:700;letter-spacing:1px">✦ CARTA INTERACTIVA · ${ef[1]}</div><div style="color:var(--muted);margin:2px 0 8px">${esc(st.pista || ef[2])}</div>`;
-  if (!mias.length) {
-    await mensaje(tit, cab + lista + `<br><span style="color:var(--muted)">Consíguelas con el <b style="color:var(--text)">Doctor Sitho</b> o en la tienda (sección ✦ CARTAS INTERACTIVAS). Al usarla se gasta 1 copia.</span>`);
-    tramoPausa(false); return;
-  }
-  const ops = mias.map(c => [`USAR ${esc(nomC(c)).toUpperCase()} (${libresDe(c)})`, 'gold']).concat([['CANCELAR', 'sec']]);
-  const k = await mensaje(tit, cab + lista + `<br><span style="color:var(--muted)">Se gastará <b style="color:var(--text)">1 copia</b> de tu cofre. Lo que abras quedará abierto.</span>`, ops);
-  if (k < 0 || k >= mias.length) { tramoPausa(false); return; }
-  const c = mias[k]; if (libresDe(c) <= 0) { tramoPausa(false); return; }
+  const c = await elegirCartaInt(st, ef, L, mias);
+  if (!c || libresDe(c) <= 0) { tramoPausa(false); return; }
   S.col[c]--; if (S.col[c] <= 0) { delete S.col[c]; if (S.nuevas) delete S.nuevas[c]; }
   e.sit = e.sit || {}; e.sit[id] = c; guardar();
   tramoPausa(false);
@@ -3615,9 +3647,10 @@ function pintarTienda() {
   } else if (TD.tab === 'cartas') {
     const T = stockHoy();
     h = '';
-    if (VOLVER === 'sTramo') {      // v357 · el Doctor Sitho siempre trae CARTAS INTERACTIVAS (precio fijo)
-      const IL = Object.keys(CARTAS_INT).filter(id => CARD[id] && precioBase(id) > 0).sort((a, b) => Object.keys(EFECTO_INT).indexOf(CARTAS_INT[a][0]) - Object.keys(EFECTO_INT).indexOf(CARTAS_INT[b][0]) || precioBase(a) - precioBase(b));
-      h += `<div class="mz-g"><span style="color:#cc55ff">✦ CARTAS INTERACTIVAS</span></div><div class="td-nota">Úsalas en las rutas con <b style="color:var(--text)">ACTIVAR</b> (X en el control) frente a rocas, tumbas, tierra removida o sellos. Al usarla se gasta 1 copia de tu cofre.</div><div class="mz-grid" style="margin-bottom:16px">`;
+    const IL0 = Object.keys(CARTAS_INT).filter(id => CARD[id] && precioBase(id) > 0 && intEnVenta(id));
+    if (IL0.length) {      // v357 · CARTAS INTERACTIVAS (precio fijo) · v360 · también con el comerciante normal, según los distritos abiertos
+      const IL = IL0.sort((a, b) => Object.keys(EFECTO_INT).indexOf(CARTAS_INT[a][0]) - Object.keys(EFECTO_INT).indexOf(CARTAS_INT[b][0]) || precioBase(a) - precioBase(b));
+      h += `<div class="mz-g"><span style="color:#cc55ff">✦ CARTAS INTERACTIVAS</span></div><div class="td-nota">Úsalas en las rutas con <b style="color:var(--text)">ACTIVAR</b> (X en el control) frente a rocas, tumbas, tierra removida o sellos. Al usarla se gasta 1 copia de tu cofre.${VOLVER === 'sTramo' ? '' : ' Llegan más conforme abres distritos.'}</div><div class="mz-grid" style="margin-bottom:16px">`;
       h += IL.map(id => { const ef = EFECTO_INT[CARTAS_INT[id][0]];
         return `<button class="mz-c inter" data-int="${esc(id)}" aria-label="${esc(nomC(id))}"><img src="${esc(cartaImg(id))}" alt="" loading="lazy"><span class="int">${ef[0]} INTERACTIVA · ${ef[1]}</span><span class="qq">×${S.col[id] || 0}</span><span class="pr"><i class="mn"></i>${precioBase(id)}</span></button>`; }).join('') + '</div>';
     }

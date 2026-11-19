@@ -2470,7 +2470,11 @@ async function cargarTramo(id) {
     ox: s.ox !== undefined ? num(s.ox, 0) : undefined, oz: s.oz !== undefined ? num(s.oz, 0) : undefined, giro: num(s.giro, 0), ancho: num(s.ancho, 3.2),
     nombre: String(s.nombre || '').trim(), pista: String(s.pista || '').trim(), exito: String(s.exito || '').trim() }));
   // v295 · Las Ánimas usan su propio retrato (no el arte de otros personajes): [config] tramo_rival_retrato o imagen = … en el [npc:...]
-  def.npcs = secs.filter(s => s._sec === 'npc').map(s => Object.assign({}, s, { imagen: s.imagen || CFG.tramo_rival_retrato || 'anima_retrato.png', id: 'tr~' + id + '~' + s._id, _nid: s._id, tipo: 'rival', distrito: s.distrito || t.hasta, _tramo: id,
+  // v364 · en [tramo]: fondo_mesa / playmat / fondo_inicio / musica_choque = lo que usan TODOS los Choques de la ruta (un [npc] puede poner los suyos)
+  const _hd = secs.find(s => s._sec === 'tramo') || {};
+  const _ch = {}; ['fondo_mesa', 'playmat', 'fondo_inicio'].forEach(k => { if (String(_hd[k] || '').trim()) _ch[k] = String(_hd[k]).trim(); });
+  if (String(_hd.musica_choque || '').trim()) _ch.musica = String(_hd.musica_choque).trim();
+  def.npcs = secs.filter(s => s._sec === 'npc').map(s => Object.assign({}, _ch, s, { imagen: s.imagen || CFG.tramo_rival_retrato || 'anima_retrato.png', id: 'tr~' + id + '~' + s._id, _nid: s._id, tipo: 'rival', distrito: s.distrito || t.hasta, _tramo: id,
     _req: [], _dias: [], _mon: parseInt(s.monedas, 10) || 0 }));
   // v288 · [barrera:id] x, z, ancho, giro, rival (id del [npc:...] que la apaga al vencerlo), color
   def.barreras = secs.filter(s => s._sec === 'barrera').map(s => ({ id: s._id, x: num(s.x, 0), z: num(s.z, 0), ancho: num(s.ancho, 4.5), giro: num(s.giro, 0), rival: String(s.rival || '').trim(), color: s.color || '' }));

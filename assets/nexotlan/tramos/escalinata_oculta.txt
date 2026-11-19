@@ -1,0 +1,136 @@
+# ═════════════════════════════════════════════════════════════════
+#  NEXOTLAN · DLC LAS CATACUMBAS · TRAMO — Escalinata Oculta (bajada de Nexotlan a las Catacumbas)
+#  Se recorre SOLO la primera vez que tocas BAJAR en la isla de las Catacumbas (en mapa.txt: al_bajar = bajo_nexotlan).
+#  Túnel cerrado: se entra desde afuera (luz del día en la entrada, puertas_tunel tapada = 2), se baja una escalera larga con descansos y al final hay una sala con 3 puertas.
+#  Bloques nuevos (v355):
+#   camara = alto, distancia            → cámara más baja y pegada al jugador (normal: 10.5, 8.6)
+#   decorado:  paredes = x1,z1,x2,z2,alto,y_ini,y_fin        (pared de piedra; en escaleras baja en escalones)
+#              antorchas_pared = x,z,giro                     (giro = hacia dónde mira: 90 = +x, -90 = -x, 0 = +z)
+#              puertas_tunel = x,z,giro,ancho,alto,tapada     (tapada 1 = rocas grandes · 0 = abierta con resplandor · 2 = salida al exterior con luz)
+#   [aviso:id] x, z, radio, texto        → mensaje al acercarte
+#  Color del fuego de las antorchas: color_llama (azul / morado).
+# ═════════════════════════════════════════════════════════════════
+
+[tramo]
+nombre = Escalinata Oculta
+inicio = 0,1.6
+camara = 6.4, 6.6
+relampagos = no
+bruma_bordes = no
+musica = musica_choque/pista_9.mp3
+brillo_sol = 0.28
+color_luz = #9a8cc8
+color_ambiente = #4a4466
+color_contraluz = #7a5cff
+color_llama = #9a6bff
+color_suelo = #5a5662
+color_borde = #1c1a22
+color_camino = #4e4a58
+color_piedra = #6a6474
+color_pared = #4e4a58
+color_roca = #7a7088
+color_cristal = #9a6bff
+color_energia = #7dffb2
+color_exterior = #ffd9a0
+color_abismo = #000000
+color_niebla = #050308
+color_tinte_abismo = #000000
+textura_suelo = piso_archivos_textura.jpg
+textura_borde = roca_textura.jpg
+textura_piedra = piedra_ruina_textura.jpg
+textura_roca = roca_textura.jpg
+escala_suelo = 3
+escala_piedra = 1.8
+escala_roca = 1.6
+brillo_roca = 1.7
+
+[plataforma:vestibulo]
+x = 0
+z = 0
+forma = rect
+ancho = 8
+largo = 8
+alto = 0
+
+[plataforma:descanso_1]
+x = 0
+z = -26
+forma = rect
+ancho = 8
+largo = 8
+alto = -6
+
+[plataforma:descanso_2]
+x = 0
+z = -52
+forma = rect
+ancho = 8
+largo = 8
+alto = -12
+
+[plataforma:sala_puertas]
+x = 0
+z = -82
+forma = rect
+ancho = 16
+largo = 16
+alto = -18
+
+[camino:escalera_1]
+puntos = 0,-4 | 0,-22
+ancho = 5
+tipo = escalera
+alto_ini = 0
+alto_fin = -6
+
+[camino:escalera_2]
+puntos = 0,-30 | 0,-48
+ancho = 5
+tipo = escalera
+alto_ini = -6
+alto_fin = -12
+
+[camino:escalera_3]
+puntos = 0,-56 | 0,-74
+ancho = 5
+tipo = escalera
+alto_ini = -12
+alto_fin = -18
+
+[decorado]
+# la puerta por la que se entra (arriba de la escalera)
+puertas_tunel = 0,4.45,180,5,4.4,2 | 0,-90.45,0,3.2,3.8,0 | -8.45,-82,90,3.2,3.8,1 | 8.45,-82,-90,3.2,3.8,1
+paredes = -2.95,-4,-2.95,-22,4.6,0,-6 | 2.95,-4,2.95,-22,4.6,0,-6 | -2.95,-30,-2.95,-48,4.6,-6,-12 | 2.95,-30,2.95,-48,4.6,-6,-12 | -2.95,-56,-2.95,-74,4.6,-12,-18 | 2.95,-56,2.95,-74,4.6,-12,-18 | -4.45,4,-4.45,-4,4.6,0,0 | 4.45,4,4.45,-4,4.6,0,0 | -3.3,4.45,-4.9,4.45,4.6,0,0 | 3.3,4.45,4.9,4.45,4.6,0,0 | -2.5,-4.45,-4.9,-4.45,4.6,0,0 | 2.5,-4.45,4.9,-4.45,4.6,0,0 | -4.45,-22,-4.45,-30,4.6,-6,-6 | 4.45,-22,4.45,-30,4.6,-6,-6 | -2.5,-21.55,-4.9,-21.55,4.6,-6,-6 | 2.5,-21.55,4.9,-21.55,4.6,-6,-6 | -2.5,-30.45,-4.9,-30.45,4.6,-6,-6 | 2.5,-30.45,4.9,-30.45,4.6,-6,-6 | -4.45,-48,-4.45,-56,4.6,-12,-12 | 4.45,-48,4.45,-56,4.6,-12,-12 | -2.5,-47.55,-4.9,-47.55,4.6,-12,-12 | 2.5,-47.55,4.9,-47.55,4.6,-12,-12 | -2.5,-56.45,-4.9,-56.45,4.6,-12,-12 | 2.5,-56.45,4.9,-56.45,4.6,-12,-12 | -2.5,-73.55,-8.9,-73.55,4.6,-18,-18 | 2.5,-73.55,8.9,-73.55,4.6,-18,-18 | -8.45,-74,-8.45,-79.7,4.6,-18,-18 | -8.45,-84.3,-8.45,-90,4.6,-18,-18 | 8.45,-74,8.45,-79.7,4.6,-18,-18 | 8.45,-84.3,8.45,-90,4.6,-18,-18 | -8.9,-90.45,-2.3,-90.45,4.6,-18,-18 | 2.3,-90.45,8.9,-90.45,4.6,-18,-18
+antorchas_pared = -2.55,-7.96,90 | 2.55,-13.9,-90 | -2.55,-19.84,90 | 2.55,-33.96,-90 | -2.55,-39.9,90 | 2.55,-45.84,-90 | -2.55,-59.96,90 | 2.55,-65.9,-90 | -2.55,-71.84,90 | -3.95,0,90 | 3.95,0,-90 | -3.95,-26,90 | 3.95,-26,-90 | -3.95,-52,90 | 3.95,-52,-90 | -7.95,-77,90 | -7.95,-87,90 | 7.95,-77,-90 | 7.95,-87,-90 | -4.6,-89.95,0 | 4.6,-89.95,0
+escombros = -2.8,1.8,0.8 | 3,-0.5,0.7 | -3.2,-27.8,0.8 | 3.1,-49.6,0.7 | -6.6,-87.6,1 | 6.8,-76.4,0.9
+veladoras = -3.2,3.2,3,0 | 3.2,3.2,3,0 | -3.1,-23.2,2,0 | 3.1,-54.6,2,0 | -6.6,-75.6,3,0 | 6.6,-75.6,3,0
+
+[guia]
+# Nextor espera justo antes de la puerta de las Catacumbas: la primera vez habla en cuanto te ve (al_acercar = si)
+x = 0
+z = -85.4
+al_acercar = si
+texto = ¿Cómo lograste llegar aquí? Bueno… en fin, este lugar es… difícil de explicar. | Hmm, ya sé. ¿Qué pasa cuando un ser muere en su Universo? Pues va a su Inframundo… | Pero, ¿qué pasa si su espíritu es destruido? Ya no tiene lugar en su Universo… y una tumba aparece aquí. | Ten cuidado, porque aquí rondan las Ánimas Olvidadas del Multiverso.
+
+[aviso:roca_izq]
+x = -6.4
+z = -82
+radio = 2.4
+texto = El paso está bloqueado
+
+[aviso:roca_der]
+x = 6.4
+z = -82
+radio = 2.4
+texto = El paso está bloqueado
+
+[salida:catacumbas]
+x = 0
+z = -88.6
+a = osario
+texto = Hacia las catacumbas
+
+[monedas]
+# azules en cada tramo de escalera y en los descansos · 3 rojas escondidas en rincones
+hilera = 0,-5.5,0,-20.5,7 | 0,-31.5,0,-46.5,7 | 0,-57.5,0,-72.5,7 | -2.5,-26,2.5,-26,3 | -2.5,-52,2.5,-52,3 | -5,-79,5,-79,5
+rojas = 3.3,-29.3 | -3.3,-48.7 | 7.1,-89.1

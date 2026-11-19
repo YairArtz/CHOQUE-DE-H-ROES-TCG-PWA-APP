@@ -1983,6 +1983,12 @@ function cambiarVista(v, centrar) {
   if (centrar !== false) { const d0 = DIST.filter(enVista).find(distritoAbierto) || DIST.find(enVista); if (d0) centrarEn(d0._x, d0._y); }
   return cambio;
 }
+// v355 · la primera vez que bajas a un submapa se recorre su tramo de llegada ([tramo:…] con  al_bajar = id del submapa)
+function bajarSub(id) {
+  const t = TRAMOS.find(x => String(x.al_bajar || '').trim() === id && tieneDLC(String(x.dlc || '').trim().toLowerCase()));
+  if (t && !(S.tramos && S.tramos[t.id] && S.tramos[t.id].fin) && !EDITOR) return abrirTramo(t.id, true);
+  return entrarSub(id);
+}
 async function entrarSub(id) {
   const sb = subDe(id); if (!sb || !subAbierto(sb)) return;
   const m = $('mapa');
@@ -2410,7 +2416,9 @@ function tramoAbierto(t) {
   if (r.length) return r.every(id => vencido(id));
   const h = DIST.find(d => d.id === t.hasta); return !!(h && distritoAbierto(h));
 }
-const tramoVisible = t => !!t && (!DEMO || (DEMO_D.has(t.desde) && DEMO_D.has(t.hasta))) && !!DIST.find(d => d.id === t.desde && (distritoAbierto(d) || pruebaDLC(t)) && enVista(d)) && tieneDLC(String(t.dlc || '').trim().toLowerCase()) && tramoAbierto(t);
+// v356 · el túnel de bajada (al_bajar) aparece como rombo DENTRO de su submapa una vez recorrido
+const tramoBajadaVisible = t => !!t && !!String(t.al_bajar || '').trim() && VISTA === String(t.al_bajar).trim() && !!(S.tramos && S.tramos[t.id] && S.tramos[t.id].fin) && tieneDLC(String(t.dlc || '').trim().toLowerCase());
+const tramoVisible = t => tramoBajadaVisible(t) || !!t && !String(t.al_bajar || '').trim() && !/^(si|sí|1|true)$/i.test(String(t.oculto || '').trim()) && (!DEMO || (DEMO_D.has(t.desde) && DEMO_D.has(t.hasta))) && !!DIST.find(d => d.id === t.desde && (distritoAbierto(d) || pruebaDLC(t)) && enVista(d)) && tieneDLC(String(t.dlc || '').trim().toLowerCase()) && tramoAbierto(t);
 function tramoPos(t) {
   const a = DIST.find(d => d.id === t.desde), b = DIST.find(d => d.id === t.hasta);
   return { x: num(t.x, a && b ? (a._x + b._x) / 2 : (a || { _x: 50 })._x), y: num(t.y, a && b ? (a._y + b._y) / 2 : (a || { _y: 50 })._y) };
@@ -2435,7 +2443,7 @@ async function cargarTramo(id) {
     camino: secs.filter(s => s._sec === 'camino').map(s => ({ puntos: L(s.puntos), ancho: num(s.ancho, 4), tipo: s.tipo || 'piedra', zona: String(s.zona || '').trim(), franja: String(s.franja || 'si').trim(), alto_ini: num(s.alto_ini, 0), alto_fin: num(s.alto_fin, 0), extra: num(s.extra, 0.7) })),
     plataformas: secs.filter(s => s._sec === 'plataforma').map(s => ({ x: num(s.x, 0), z: num(s.z, 0), ancho: num(s.ancho, 8), largo: num(s.largo, num(s.ancho, 8)), forma: s.forma || 'oval', piso: s.piso || '', zona: String(s.zona || '').trim(), tierra: String(s.tierra || '').trim(), alto: num(s.alto, 0), estilo: String(s.estilo || '').trim(), adorno: String(s.adorno || '').trim(), puntos: L(s.puntos), capa: num(s.capa, 0) })),
     decorado: {}, cartas: [], objetos: [], npcs: [], salidas: [] };
-  secs.filter(s => s._sec === 'decorado').forEach(s => ['rocas', 'columnas', 'arcos', 'cristales', 'arbustos', 'braseros', 'runas', 'pasto', 'puestos', 'cajas', 'costales', 'faroles', 'libreros', 'atriles', 'libros', 'velas', 'papel_picado', 'rayos', 'luciernagas', 'glifos', 'pilas_libros', 'papeles', 'columnas_rotas', 'muros', 'estelas', 'estatuas', 'fogatas', 'arboles', 'manchones', 'matas', 'calzadas', 'cumulos', 'pilares', 'nidos', 'grietas', 'cristales_vacio', 'muros_rotos', 'arcos_curvos', 'arcos_cuadrados', 'columnas_bloque', 'escombros', 'portales_adorno', 'pasillos', 'serpientes', 'casas', 'antorchas', 'cascadas', 'muros_ciudad', 'estanques', 'copas', 'tumbas', 'cruces', 'veladoras', 'cempasuchil', 'arboles_secos', 'mausoleos'].forEach(k => { if (s[k]) def.decorado[k] = (def.decorado[k] || []).concat(L(s[k])); }));
+  secs.filter(s => s._sec === 'decorado').forEach(s => ['rocas', 'columnas', 'arcos', 'cristales', 'arbustos', 'braseros', 'runas', 'pasto', 'puestos', 'cajas', 'costales', 'faroles', 'libreros', 'atriles', 'libros', 'velas', 'papel_picado', 'rayos', 'luciernagas', 'glifos', 'pilas_libros', 'papeles', 'columnas_rotas', 'muros', 'estelas', 'estatuas', 'fogatas', 'arboles', 'manchones', 'matas', 'calzadas', 'cumulos', 'pilares', 'nidos', 'grietas', 'cristales_vacio', 'muros_rotos', 'arcos_curvos', 'arcos_cuadrados', 'columnas_bloque', 'escombros', 'portales_adorno', 'pasillos', 'serpientes', 'casas', 'antorchas', 'cascadas', 'muros_ciudad', 'estanques', 'copas', 'tumbas', 'cruces', 'veladoras', 'cempasuchil', 'arboles_secos', 'mausoleos', 'paredes', 'antorchas_pared', 'puertas_tunel'].forEach(k => { if (s[k]) def.decorado[k] = (def.decorado[k] || []).concat(L(s[k])); }));
   def.cartas = secs.filter(s => s._sec === 'carta').map(s => ({ id: s._id, x: num(s.x, 0), z: num(s.z, 0), carta: resolverCarta(s.carta) })).filter(c => c.carta);
   def.objetos = secs.filter(s => s._sec === 'objeto').map(s => ({ id: s._id, x: num(s.x, 0), z: num(s.z, 0), objeto: String(s.objeto || '').trim() }));
   // v295 · Las Ánimas usan su propio retrato (no el arte de otros personajes): [config] tramo_rival_retrato o imagen = … en el [npc:...]
@@ -2449,7 +2457,7 @@ async function cargarTramo(id) {
   // v299 · [piramide] x, z (borde del frente), ancho, niveles, alto (de cada nivel), escalera (ancho)
   def.piramides = secs.filter(s => s._sec === 'piramide').map(s => ({ x: num(s.x, 0), z: num(s.z, 0), ancho: num(s.ancho, 30), niveles: num(s.niveles, 6), alto: num(s.alto, 2.6), escalera: num(s.escalera, 6), color: s.color || '', tierra: s.tierra || '' }));
   // v304 · [guia] Nextor, Guía de Nexotlan: x, z y texto (páginas separadas con |)
-  def.guia = (g => g ? { x: num(g.x, 0), z: num(g.z, 0), paginas: String(g.texto || '').split('|').map(x => x.trim()).filter(Boolean) } : null)(secs.find(s => s._sec === 'guia'));
+  def.guia = (g => g ? { al_acercar: /^(si|sí|1|true)$/i.test(String(g.al_acercar || '').trim()), x: num(g.x, 0), z: num(g.z, 0), paginas: String(g.texto || '').split('|').map(x => x.trim()).filter(Boolean) } : null)(secs.find(s => s._sec === 'guia'));
   // v321 · [koatl] x, z, saludo (pág | pág), consejos (uno al azar cada vez | …), regalo (id de objetos.txt que te da la primera vez en esta ruta)
   const pp = t => String(t || '').split('|').map(x => x.trim()).filter(Boolean);
   // v323 · [sitho] x, z, saludo (uno al azar cada vez | …): el Doctor Sitho (espíritu) abre su tienda sin salir de la ruta
@@ -2468,6 +2476,7 @@ async function cargarTramo(id) {
   // v315 · [interior_torre] x, z, radio, fondo, techo, energia, color, luz_abajo · [puerta_final] x, z, alto, ancho, energia, oro, color
   def.interior_torre = (c => c ? { x: num(c.x, 0), z: num(c.z, 0), radio: num(c.radio, 80), fondo: num(c.fondo, -23), techo: num(c.techo, 130), energia: c.energia || '#2f8cff', color: c.color || '#4a4a66', luz_abajo: num(c.luz_abajo, 0.7), fuerza: num(c.fuerza, 0.55) } : null)(secs.find(s => s._sec === 'interior_torre'));
   def.puerta_final = (c => c ? { x: num(c.x, 0), z: num(c.z, 0), alto: num(c.alto, 0), ancho: num(c.ancho, 18), energia: c.energia || '#6fd8ff', oro: c.oro || '#ffc94a', color: c.color || '#6a6680' } : null)(secs.find(s => s._sec === 'puerta_final'));
+  def.avisos = secs.filter(s => s._sec === 'aviso').map(s => ({ x: num(s.x, 0), z: num(s.z, 0), radio: num(s.radio, 2.5), texto: String(s.texto || '').trim() })).filter(a => a.texto);      // v355 · mensaje al acercarte
   def.salidas = secs.filter(s => s._sec === 'salida').map(s => ({ id: s._id, x: num(s.x, 0), z: num(s.z, 0), a: String(s.a || '').trim(), texto: s.texto || s.a || 'Salida' }));
   // v343 · [monedas] hilera = x1,z1,x2,z2,cuántas | … · sueltas = x,z | … (azules, +1) · rojas = x,z | … (+10, escondidas). Solo se toman una vez.
   def.monedas = [];
@@ -2559,8 +2568,8 @@ function koatlJSON(def, e) {
 }
 // v304 · lo que Nextor explica la primera vez que entras a una ruta (se cambia en mapa.txt con tramo_guia_intro = pág | pág | …)
 const GUIA_INTRO = '¡Bienvenido, viajero! Soy Nextor, guía de Nexotlan. Estás en una RUTA: un camino que une dos distritos a través del vacío del multiverso. | En las rutas hay cartas tiradas y cofres. Las cartas van a tu colección y los cofres guardan objetos para tu mochila. Arriba a la derecha llevas la cuenta. | Las Ánimas que encuentres te retarán a un Choque. Algunas te cierran el paso o resguardan barreras: véncelas para seguir avanzando. | Puedes ajustar tu baraja cuando quieras con el botón BARAJA. Y si tienes dudas, búscame al inicio de cada ruta.';
-async function abrirTramo(id) {
-  if (!tramoAbierto(tramoDe(id))) { toast('🔒 Aún no puedes entrar a este sendero'); return; }
+async function abrirTramo(id, bajada) {
+  if (!bajada && !tramoAbierto(tramoDe(id))) { toast('🔒 Aún no puedes entrar a este sendero'); return; }
   const def = await cargarTramo(id); if (!def) { toast('⚠ No se pudo leer el tramo ' + id); return; }
   const e = estTramo(id), h = def.head;
   const colores = {}; Object.keys(h).filter(k => /^color_/.test(k)).forEach(k => colores[k.slice(6)] = h[k]);
@@ -2603,7 +2612,7 @@ async function abrirTramo(id) {
     guia: def.guia ? (() => {      // v304 · la primera vez en una ruta Nextor habla solo; la primera ruta de todas, además explica qué son las rutas
       const intro = String(CFG.tramo_guia_intro || GUIA_INTRO).split('|').map(x => x.trim()).filter(Boolean);
       const auto = !e.guia, pags = (auto && !(S.guiaIntro) ? intro : []).concat(def.guia.paginas);
-      return { x: def.guia.x, z: def.guia.z, auto, paginas: pags, ruta: def.guia.paginas.length ? def.guia.paginas : intro,
+      return { x: def.guia.x, z: def.guia.z, auto, paginas: pags, al_acercar: auto && def.guia.al_acercar, ruta: def.guia.paginas.length ? def.guia.paginas : intro,
         nombre: 'Nextor · Guía de Nexotlan', escala: +(CFG.tramo_guia_escala || 2.2),
         modelo: (m => m.includes('/') ? m : 'assets/nexotlan/personajes/' + m)(String(CFG.tramo_guia_modelo || 'nextor.glb').trim()) };
     })() : null,
@@ -2624,7 +2633,8 @@ async function abrirTramo(id) {
     rival_modelo: (m => m ? (m.includes('/') ? m : 'assets/nexotlan/personajes/' + m) : '')(String(h.rival_modelo || CFG.tramo_rival_modelo || '').trim()),
     rival_escala: +(h.rival_escala || CFG.tramo_rival_escala || 2.0),
     monedas: (def.monedas || []).map(m => Object.assign({}, m, { tomada: !!(e.mon || {})[m.id] })), moneda_img: 'hero_pesos/hp_coin.png',      // v343
-    salidas: def.salidas };
+    salidas: def.salidas, avisos: def.avisos || [],
+    camara: String(h.camara || '').split(',').map(Number).filter(isFinite) };      // v355 · camara = alto, distancia
   // lo que ya se animó (rival que se aparta / barrera que se apaga) no se repite la próxima vez
   delete e.post;
   json.npcs.forEach(n => { if (n.vencido) e.vis[n.id] = 1; }); json.barreras.forEach(b => { if (b.apagada) e.vis['b~' + b.id] = 1; }); json.portales.forEach(q => { if (q.animar) e.vis['p~' + q.id] = 1; }); guardar();
@@ -2662,7 +2672,10 @@ window.nxTramoEvento = async function (s) {
     case 'salida': {
       // v284 · Salir por el lado del distrito "hasta" completa el tramo: llegas a ese distrito
       const llega = ev.a && ev.a === def.t.hasta, primera = llega && !e.fin;
-      e.pos = null; if (llega) e.fin = e.fin || Date.now(); guardar(); cerrarTramo(ev.a);
+      e.pos = null; if (llega) e.fin = e.fin || Date.now(); guardar();
+      const subB = String(def.t.al_bajar || '').trim();
+      if (subB && llega) { cerrarTramo(); await new Promise(r => setTimeout(r, 300)); await entrarSub(subB); break; }      // v355 · túnel de bajada: llegas al submapa
+      cerrarTramo(ev.a);
       const d = DIST.find(x => x.id === ev.a);
       if (primera && d) { await new Promise(r => setTimeout(r, 450)); await mensaje('🏙 ¡LLEGASTE!', `Recorriste el <b>${esc(def.head.nombre || def.t.nombre || '')}</b> y llegaste a <b>${esc(d.nombre || d.id)}</b>.<br><br>Puedes volver a explorar el sendero cuando quieras desde el rombo amarillo del mapa.`); }
       break;
@@ -2793,9 +2806,9 @@ function pintarMapa() {
   const tramos = TRAMOS.filter(tramoVisible).map(t => { const q = tramoPos(t), c0 = _tramoCache[t.id], pr = c0 ? cartasTramo(c0) : null;
     return `<button class="nx-tramo" data-tramo="${esc(t.id)}" style="left:${q.x}%;top:${q.y}%" aria-label="Explorar ${esc(t.nombre || t.id)}"><i></i><span>🥾 ${esc(t.nombre || t.id)}${S.tramos && S.tramos[t.id] && S.tramos[t.id].fin ? ' ✔' : ''}${pr && pr.tot ? `<small>🃏 ${pr.ya}/${pr.tot}</small>` : ''}</span></button>`; }).join('');
   mi.innerHTML = fondo + etq + dlab + portales + tramos + pts;
-  mi.querySelectorAll('.nx-tramo').forEach(b => { b.onclick = () => { if (b._movido) { b._movido = false; return; } abrirTramo(b.dataset.tramo); }; });
+  mi.querySelectorAll('.nx-tramo').forEach(b => { b.onclick = () => { if (b._movido) { b._movido = false; return; } abrirTramo(b.dataset.tramo, tramoBajadaVisible(tramoDe(b.dataset.tramo))); }; });
   try { fxMotor(); } catch (e) { console.warn('[nexotlan] fx', e); }
-  mi.querySelectorAll('.nx-portal').forEach(b => { b.onclick = () => { if (b._movido) { b._movido = false; return; } entrarSub(b.dataset.sub); }; });
+  mi.querySelectorAll('.nx-portal').forEach(b => { b.onclick = () => { if (b._movido) { b._movido = false; return; } bajarSub(b.dataset.sub); }; });
   mi.querySelectorAll('.dlab.dlc').forEach(b => { b.onclick = () => { if (b._movido) { b._movido = false; return; } verDLC(b.dataset.dlc); }; });
   precargar();
   mi.querySelectorAll('.pt').forEach(b => { b.onclick = e => { if (b._movido) { b._movido = false; return; } abrirFicha(b.dataset.id); }; });

@@ -3022,7 +3022,7 @@ function koatlJSON(def, e) {
   const k = def.koatl, primera = !e.koatl, ob = OBJ[k.regalo];
   const pags = primera ? (k.saludo.length ? k.saludo : KOATL_SALUDO).concat(ob ? ['Te traje esto: ' + (ob.nombre || k.regalo) + '.'] : [], ['Marqué con energía las cartas y cofres que te faltan en esta ruta.']) : koatlPags(def, e);
   return { id: 'koatl', x: k.x, z: k.z, auto: primera, al_acercar: primera, senala: true, paginas: pags, ruta: koatlPags(def, e),
-    nombre: 'Koatl · El Defensor', txt: 'Hablar con Koatl', color: '#8fe3a0', escala: +(CFG.tramo_koatl_escala || 2.3),
+    nombre: 'Koatl · El Defensor', txt: 'Hablar con Koatl', color: '#8fe3a0', escala: +(CFG.tramo_koatl_escala || 2.3), voz: vocesGuia('koatl').length > 0,
     modelo: (m => m.includes('/') ? m : 'assets/nexotlan/personajes/' + m)(String(CFG.tramo_koatl_modelo || 'koatl_chibi.glb').trim()) };
 }
 // v304 · lo que Nextor explica la primera vez que entras a una ruta (se cambia en mapa.txt con tramo_guia_intro = pág | pág | …)
@@ -5511,6 +5511,22 @@ const NX_SFX = {
 // v377 · VOCES DE LAS ÁNIMAS: [tramo] rival_voz = voz1.mp3 | voz2.mp3 (en assets/nexotlan/sonidos/) · [config] volumen_voz = 1
 //        El motor las pide de vez en cuando (más bajo si están lejos) y al hablarles. Se cargan una sola vez por archivo.
 const _voces = {};
+// v379 · VOZ DE KOATL (y de cualquier guía): dice una frase al azar al hablarle, sin repetir la anterior.
+//        [config] tramo_koatl_voz = a.mp3 | b.mp3 (si no se pone: las 4 frases de koatl_voz_*.mp3) · tramo_koatl_voz = no para quitarla
+const VOZ_GUIA_DEF = { koatl: 'koatl_voz_defensor.mp3 | koatl_voz_hola.mp3 | koatl_voz_mision.mp3 | koatl_voz_retirarme.mp3' };
+function vocesGuia(id) { const v = String(CFG['tramo_' + id + '_voz'] || VOZ_GUIA_DEF[id] || '').trim(); return /^(no|0|false)$/i.test(v) ? [] : v.split('|').map(x => x.trim()).filter(Boolean); }
+let _vozGuiaUlt = '';
+window.nxVozGuia = function (id) {
+  const L = vocesGuia(id); if (MUTE || !L.length) return;
+  let f = L[Math.floor(Math.random() * L.length)]; if (L.length > 1 && f === _vozGuiaUlt) f = L[(L.indexOf(f) + 1) % L.length]; _vozGuiaUlt = f;
+  try { const c = _ctxM = _ctxM || new (window.AudioContext || window.webkitAudioContext)(); if (c.state === 'suspended') c.resume();
+    const u = f.includes('/') ? f : DIR + 'sonidos/' + f;
+    const tocar = b => { const src = c.createBufferSource(), g = c.createGain(); src.buffer = b; g.gain.value = Math.max(0, Math.min(1.5, +CFG.volumen_voz || 1)); src.connect(g).connect(c.destination); src.start(); };
+    if (_voces[u] instanceof AudioBuffer) return tocar(_voces[u]);
+    if (_voces[u] === undefined) _voces[u] = fetch(u).then(r => r.ok ? r.arrayBuffer() : Promise.reject()).then(b => new Promise((ok, no) => c.decodeAudioData(b, ok, no)))
+      .then(b => { _voces[u] = b; tocar(b); }).catch(() => { _voces[u] = false; });
+  } catch (e) {}
+};
 window.nxVozAnima = function (vol) {
   const L = window._nxVoces || []; if (MUTE || !L.length) return;
   try { const c = _ctxM = _ctxM || new (window.AudioContext || window.webkitAudioContext)(); if (c.state === 'suspended') c.resume();

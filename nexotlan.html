@@ -3905,7 +3905,9 @@ async function iniciarChoque(p0, fase) {
   try { localStorage.setItem('chh_arcade_match', JSON.stringify(m)); } catch (e) {}
   mostrarCarga(0); $('carga').classList.remove('listo'); clearTimeout(quitarCarga._t); clearTimeout(window.__cargaT);
   try { sessionStorage.setItem('chh_carga_paso', JSON.stringify({ tt: $('cgTT').textContent, x: $('cgX').textContent, fin: window.__cargaMin, tipo: 'nexotlan', ts: Date.now() })); } catch (e) {}
-  setTimeout(() => { location.href = 'simulacion.html?modo=arcade'; }, 380);   // la Simulación sigue con el mismo consejo
+  setTimeout(() => {
+    if (window.CHH_STEAM) { try { const f = $('trFrame'); if (f && f.src !== 'about:blank') f.src = 'about:blank'; } catch (e) {} }   // v386 · PC: se libera el motor 3D antes de cambiar de página
+    location.href = 'simulacion.html?modo=arcade'; }, 380);   // la Simulación sigue con el mismo consejo
 }
 async function procesarResultado() {
   if (!S || !S.pendiente) return false;

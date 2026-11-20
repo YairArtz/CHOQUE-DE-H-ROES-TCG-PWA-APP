@@ -8495,12 +8495,20 @@ async function doSector(handIdx,side,tgtO){
   if(tgtO==='player'&&G.player.sect[side]!==null&&!ambosPropio){lg('⚠ Sector ocupado.','var(--red)');return;}
   const cid=G.player.hand[handIdx];
   if(hasPassive(cid,'pj_extra')){if(G.used.player.sectPJ===turnKey()){lg('⚠ Solo puedes activar "'+C[cid].name+'" una vez por turno.','var(--red)');return;}}
-  if(!await announce('player',cid,'activacion',{z:'mano'})){if(C[cid].costoColocar&&C[cid].costoColocar.descartar){lg('⛓ El SECTOR fue negado, pero su costo se paga igual.','var(--muted)');await PASOS.descartar_mano({o:'player',cid,vars:{},interactive:true},{cantidad:C[cid].costoColocar.descartar});}renderAll();return;}
+  // v380 · el costo de descarte se paga ANTES de anunciar: si cancelas, el Sector se queda en tu mano y no se activa
+  const ccD=C[cid].costoColocar&&C[cid].costoColocar.descartar||0;
+  if(ccD){
+    const hi0=G.player.hand.indexOf(cid); if(hi0<0) return;
+    G.player.hand.splice(hi0,1);      // (el propio Sector no puede usarse como descarte)
+    const pagado=await PASOS.descartar_mano({o:'player',cid,vars:{},interactive:true},{cantidad:ccD});
+    G.player.hand.splice(Math.min(hi0,G.player.hand.length),0,cid);
+    if(!pagado){lg('✋ No se activó <b>'+C[cid].name+'</b>: no pagaste su costo de descarte.','var(--muted)');renderAll();return;}
+  }
+  if(!await announce('player',cid,'activacion',{z:'mano'})){if(ccD)lg('⛓ El SECTOR fue negado, pero su costo se paga igual.','var(--muted)');renderAll();return;}
   const hi=G.player.hand.indexOf(cid);if(hi<0||(tgtO==='player'&&G.player.sect[side]!==null&&!ambosPropio)) return;
   if(hasPassive(cid,'pj_extra')) G.used.player.sectPJ=turnKey();
   G.player.hand.splice(hi,1);
   clearSel(cid);
-  if(C[cid].costoColocar&&C[cid].costoColocar.descartar) await PASOS.descartar_mano({o:'player',cid,vars:{},interactive:true},{cantidad:C[cid].costoColocar.descartar});
   await placeSector('player',cid,tgtO,side);
 }
 

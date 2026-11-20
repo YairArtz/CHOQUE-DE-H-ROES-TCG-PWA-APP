@@ -4307,7 +4307,10 @@ function precioHoy(id) {
   const v = num(COM.cfg.variacion, 20) / 100, R = rnd(hashS(id) + S.dia * 7919 + (S.inicio || 0) % 9973)();
   return r5(b * (1 - v + 2 * v * R));
 }
-const precioCompra = id => r5(precioHoy(id) * num(COM.cfg.compra, 20) / 100);
+// v380 · el Dr. Sitho compra por RAREZA (antes pagaba el 20 % del precio del día y abrir sobres baratos para revenderlos daba ganancia):
+//        común y rara a precio fijo · Joya a un % de su precio del día. Se cambia en comerciante.txt: venta_comun · venta_rara · venta_joya
+const precioCompra = id => { if (!precioBase(id)) return 0; const r = RAREZA(id);
+  return r === 3 ? Math.max(5, r5(precioHoy(id) * num(COM.cfg.venta_joya, 10) / 100)) : num(r === 2 ? COM.cfg.venta_rara : COM.cfg.venta_comun, r === 2 ? 10 : 5); };
 // Cartas de un pool: distritos (sus rivales y guardián), barajas por id, o "todo"
 function poolDe(spec, zonas) {
   let L = lista(spec); if (!L.length || L.includes('todo')) L = DIST.map(d => d.id);
@@ -4398,7 +4401,7 @@ function pintarTienda() {
       return `<button class="mz-c ${x.joya ? 'joya' : ''}" data-of="${i}" aria-label="${esc(nomC(x.id))}"><img src="${esc(cartaImg(x.id))}" alt="" loading="lazy">${x.joya ? '<span class="jy">JOYA</span>' : x.fija ? '<span class="jy" style="background:linear-gradient(135deg,#36d6ff,#cc55ff)">SIEMPRE</span>' : ''}<span class="qq">${tieneNombre(x.id)}/${topeDe(x.id)}</span><span class="pr"><i class="mn"></i> ${pr}</span>${vd ? '<span class="vd">✔ COMPRADA</span>' : ''}</button>`; }).join('') + '</div>';
   } else {
     const ids = Object.keys(S.col).filter(id => S.col[id] - enMazo(S.mazo, id) > 0 && precioBase(id) > 0).sort(ordenCarta);
-    h = `<div class="td-nota">Te compra al <b style="color:var(--text)">${num(COM.cfg.compra, 20)} %</b> del precio del día. Solo aparecen las copias que <b style="color:var(--text)">no están en tu baraja</b>.</div>`;
+    h = `<div class="td-nota">Paga <b style="color:#7ad7ff">${num(COM.cfg.venta_comun, 5)}</b> por cada común, <b style="color:#cc55ff">${num(COM.cfg.venta_rara, 10)}</b> por cada rara y el <b style="color:#ffd166">${num(COM.cfg.venta_joya, 10)} %</b> de su precio del día por cada Joya. Solo aparecen las copias que <b style="color:var(--text)">no están en tu baraja</b>.</div>`;
     const objs = Object.keys(S.objetos || {}).filter(k => S.objetos[k] > 0 && OBJ[k] && OBJ[k].precio > 0);   // v281 · objetos de los tramos
     if (objs.length) h += `<div class="mz-g"><span>🎒 OBJETOS</span></div><div class="mo-l" style="margin-bottom:14px">${objs.map(k => `<div class="mo-i"><span class="ic">${esc(OBJ[k].icono)}</span><span class="tx"><b>${esc(OBJ[k].nombre)} <em>×${S.objetos[k]}</em></b><small>Te paga <i class="mn"></i> ${OBJ[k].precio}</small></span><button class="bt gold" data-vobj="${esc(k)}">💰 VENDER 1</button></div>`).join('')}</div><div class="mz-g"><span>🃏 CARTAS</span></div>`;
     h += ids.length ? `<div class="mz-grid">${ids.map(id => `<button class="mz-c" data-vd="${esc(id)}" aria-label="${esc(nomC(id))}"><img src="${esc(cartaImg(id))}" alt="" loading="lazy"><span class="qq">×${S.col[id] - enMazo(S.mazo, id)}</span><span class="pr">+${precioCompra(id)}</span></button>`).join('')}</div>` : '<div class="mz-vacio">No tienes cartas fuera de tu baraja para vender.</div>';

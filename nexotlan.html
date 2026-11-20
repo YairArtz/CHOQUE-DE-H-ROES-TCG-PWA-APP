@@ -1638,6 +1638,7 @@ body.nx-sismo2{animation:nxSismo2 .09s linear infinite}
 .mint-c img{border-radius:4px}
 </style>
 <script src="nexotlan-logo.js" defer></script>
+<script src="iconos.js"></script>   <!-- íconos propios (assets/iconos/iconos.txt) -->
 </head>
 <body>
 <div id="stage">
@@ -2193,8 +2194,9 @@ function candidatos(f, sub) { f = String(f || '').trim(); if (!f) return []; ret
 // → la red. Las rutas que no existen (404) se recuerdan 1 día para no volver a pedirlas con datos móviles.
 const NO_KEY = 'chh_nx_img404', NO_TTL = 864e5;
 let _no = null;
-function no404() { if (!_no) { try { _no = JSON.parse(localStorage.getItem(NO_KEY) || '{}') || {}; } catch (e) { _no = {}; } const t = Date.now(); for (const k in _no) if (t - _no[k] > NO_TTL) delete _no[k]; } return _no; }
-function marcar404(u) { fetch(u, { method: 'HEAD' }).then(r => { if (r.status === 404) { no404()[u] = Date.now(); try { localStorage.setItem(NO_KEY, JSON.stringify(_no)); } catch (e) {} } }).catch(() => {}); }
+function no404() { if (!_no && window.CHH_STEAM) { _no = {}; try { localStorage.removeItem(NO_KEY); } catch (e) {} }   // v390 · PC: todo es local, no se recuerdan 404 (una ruta marcada por error dejaba el Choque sin su mesa)
+  if (!_no) { try { _no = JSON.parse(localStorage.getItem(NO_KEY) || '{}') || {}; } catch (e) { _no = {}; } const t = Date.now(); for (const k in _no) if (t - _no[k] > NO_TTL) delete _no[k]; } return _no; }
+function marcar404(u) { if (window.CHH_STEAM) return; fetch(u, { method: 'HEAD' }).then(r => { if (r.status === 404) { no404()[u] = Date.now(); try { localStorage.setItem(NO_KEY, JSON.stringify(_no)); } catch (e) {} } }).catch(() => {}); }
 function olvidar404() { _no = {}; try { localStorage.removeItem(NO_KEY); } catch (e) {} for (const k in _imgOk) if (!_imgOk[k]) delete _imgOk[k]; }
 async function primeraImg(L) {
   L = (L || []).filter(Boolean); if (!L.length) return '';
@@ -3203,6 +3205,7 @@ async function abrirTramo(id, bajada) {
     giro_camara: num(h.giro_camara, 0),      // v339 · cámara girada (grados): 180 = la cámara mira desde el norte (rutas que bajan hacia el sur)
     cambio_z: h.cambio_z !== undefined && String(h.cambio_z).trim() !== '' ? num(h.cambio_z, 0) : undefined,
     rival_modelo: (m => m ? (m.includes('/') ? m : 'assets/nexotlan/personajes/' + m) : '')(String(h.rival_modelo || CFG.tramo_rival_modelo || '').trim()),
+    iconos: window.CHH_ICONOS ? CHH_ICONOS.ruta() : {},      // v389 · íconos propios del HUD de la ruta (assets/iconos/iconos.txt → ruta_xxx)
     rival_escala: +(h.rival_escala || CFG.tramo_rival_escala || 2.0),
     rival_voz: (window._nxVoces = String(h.rival_voz || CFG.tramo_rival_voz || '').split('|').map(x => x.trim()).filter(Boolean)).length > 0,      // v377 · voces de las Ánimas
     monedas: (def.monedas || []).map(m => Object.assign({}, m, { tomada: !!(e.mon || {})[m.id] })), moneda_img: 'hero_pesos/hp_coin.png',      // v343
@@ -3635,7 +3638,7 @@ document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && $('mBara
 // ── OBJETOS y MOCHILA (assets/nexotlan/objetos.txt) ──
 async function cargarObjetos() {
   const txt = await fetch(DIR + 'objetos.txt', { cache: 'no-cache' }).then(r => r.ok ? r.text() : '').catch(() => '');
-  OBJ = {}; parseTxt(txt).filter(s => s._sec === 'objeto').forEach(s => OBJ[s._id] = { id: s._id, nombre: s.nombre || s._id, icono: s.icono || '🎁', descripcion: s.descripcion || '', precio: parseInt(s.precio, 10) || 0, uso: String(s.uso || 'ninguno').trim() });
+  OBJ = {}; parseTxt(txt).filter(s => s._sec === 'objeto').forEach(s => OBJ[s._id] = { id: s._id, nombre: s.nombre || s._id, icono: (ic => /\.(png|webp|jpe?g|svg|gif)$/i.test(ic) && window.CHH_ICONOS ? CHH_ICONOS.token(ic) : (ic || '🎁'))(String(s.icono || '').trim()),   /* v389 · icono = archivo.webp (assets/iconos/) */ descripcion: s.descripcion || '', precio: parseInt(s.precio, 10) || 0, uso: String(s.uso || 'ninguno').trim() });
 }
 const precioObjeto = id => r5((OBJ[id] ? OBJ[id].precio : 0) * 1);
 function abrirMochila() {
@@ -3895,11 +3898,19 @@ function retar(p, yaHablo) {
 async function fondosChoque(p, d) {
   const val = k => (p[k] || (d && d[k]) || CFG[k] || '').trim();
   const abs = u => new URL(u, location.href).href;
-  const img = async f => { const u = await primeraImg(candidatos(f, 'simulador').concat(candidatos(f, 'paisajes').slice(0, 1))); return u ? abs(u) : ''; };
+  // v390 · si la búsqueda normal no la encuentra (una falla de red en el celular la dejaba marcada como "no existe"),
+  //        se vuelve a probar en ese momento sin memoria: la mesa y el playmat del Choque ya no se pierden en las rutas
+  const fresco = u => new Promise(r => { const im = new Image(), t = setTimeout(() => r(false), 8000); im.onload = () => { clearTimeout(t); r(true); }; im.onerror = () => { clearTimeout(t); r(false); }; im.src = u; });
+  const img = async f => { const L = candidatos(f, 'simulador').concat(candidatos(f, 'paisajes').slice(0, 1));
+    let u = await primeraImg(L);
+    if (!u) for (const c of L) if (await fresco(c)) { u = c; _imgOk[c] = true; try { const no = no404(); if (no[c]) { delete no[c]; localStorage.setItem(NO_KEY, JSON.stringify(no)); } } catch (e) {} break; }
+    return u ? abs(u) : ''; };
   const out = {};
   const mesa = val('fondo_mesa') || 'nexo', pm = val('playmat'), fi = val('fondo_inicio');
   const [um, up, ufi, pai] = await Promise.all([/^[a-z]+$/.test(mesa) ? '' : img(mesa), pm && !/^(ninguno|no|off|sin|vacio|vacío)$/i.test(pm) ? img(pm) : '', fi ? img(fi) : '', paisajeUrl(p)]);
-  out.mesa = /^[a-z]+$/.test(mesa) ? mesa : (um || 'nexo');
+  let um2 = um;      // v390 · si la imagen de mesa del distrito no existe, se usa la mesa predefinida de [config] (fondo_mesa)
+  if (!um2 && !/^[a-z]+$/.test(mesa) && CFG.fondo_mesa && String(CFG.fondo_mesa).trim() !== mesa) { const c = String(CFG.fondo_mesa).trim(); um2 = /^[a-z]+$/.test(c) ? c : await img(c); }
+  out.mesa = /^[a-z]+$/.test(mesa) ? mesa : (um2 || 'nexo');
   if (/^(ninguno|no|off|sin|vacio|vacío)$/i.test(pm)) out.playmat = 'ninguno';   // sin playmat: el tablero deja ver la mesa
   else if (up) out.playmat = up;
   const u = ufi || (pai ? abs(pai) : '');   // por defecto: el paisaje del distrito

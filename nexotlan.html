@@ -2041,6 +2041,27 @@ function activarDemo() {
   fetch(DIR + String(CFG.demo_texto || 'demo.txt'), { cache: 'no-cache' }).then(r => r.ok ? r.text() : '').then(t => { DEMO_TXT = (parseTxt(t || '').find(x => x._sec === 'demo')) || {}; }).catch(() => { DEMO_TXT = {}; });
 }
 function demoBloqueo(que) { toast('🔒 ' + que + ' está disponible en la versión completa'); }
+// ═══════════ v383 · RECOMPENSA DE EXPLORADOR DE NEXOTLAN (paso del demo a la versión final) ═══════════
+// Las partidas que se jugaron en el demo (o que existían antes de esta versión) quedan marcadas. Cuando se publique la versión final,
+// en [config] de mapa.txt se pone  explorador = si  y, una sola vez por partida:
+//   · TODO su progreso se conserva (distritos, rivales, cartas, barajas, mochila, cosméticos)
+//   · las monedas se convierten: hasta conversion_libre quedan igual; lo que pase de ahí se divide entre conversion_tasa
+//   · recibe la recompensa_explorador  (monedas:N | objeto:id | objeto:id …)
+//   · el Dr. Sitho explica el ajuste
+// Las partidas nuevas de la versión final no ven nada de esto.
+function revisarExplorador() {
+  if (!S) return;
+  if (DEMO && !S.demoJugada) { S.demoJugada = Date.now(); guardar(); }
+  if (DEMO || S.explorador || !/^(si|sí|1|true)$/i.test(String(CFG.explorador || '').trim())) return;
+  if (!S.demoJugada && S.eco === 2) return;      // partida creada ya con la economía nueva y fuera del demo
+  const libre = num(CFG.conversion_libre, 3000), tasa = Math.max(1, num(CFG.conversion_tasa, 10)), antes = S.monedas || 0;
+  const desp = antes > libre ? Math.round(libre + (antes - libre) / tasa) : antes;
+  const r = premioCien({ premio_100: CFG.recompensa_explorador || 'monedas:500 | objeto:insignia_explorador | objeto:sobre_mercado | objeto:sobre_mercado' });
+  S.monedas = desp + r.monedas; S.objetos = S.objetos || {}; r.objetos.forEach(id => S.objetos[id] = (S.objetos[id] || 0) + 1);
+  S.explorador = { t: Date.now(), antes, despues: desp }; S.eco = 2; guardar(); pintarHud();
+  const ajuste = desp < antes ? `<br><br><span style="color:var(--muted)">Con la llegada de mercancía de otras dimensiones cambié mis precios, así que ajusté tus monedas a la nueva economía:</span><br><b>${antes.toLocaleString('es-MX')} → ${desp.toLocaleString('es-MX')}</b> <i class="mn"></i>` : '';
+  mensaje('🧭 RECOMPENSA DE EXPLORADOR DE NEXOTLAN', `<div style="font-size:50px;line-height:1">🧭</div><b style="font-size:16px">¡Bienvenido a la versión completa, ${esc(S.nombre || 'explorador')}!</b><br><span style="color:var(--muted)">Todo tu progreso del demo se conserva: distritos, rivales vencidos, cartas, barajas y mochila.</span>${ajuste}<br><br>Gracias por explorar Nexotlan desde el principio. Esto es para ti:<br><b style="color:#ffd23a">${esc(textoPremio(r))}</b><br><br><small style="color:var(--muted)">— Dr. Sitho</small>`);
+}
 function revisarDemoFin() {
   if (!DEMO || !S || S.demoFin || !CFG.demo_fin || !vencido(String(CFG.demo_fin).trim())) return;
   S.demoFin = Date.now(); guardar(); pantallaDemo();
@@ -2263,7 +2284,7 @@ function avisoPistasNx() {
 }
 setInterval(() => { try { avisoPistasNx(); } catch (e) {} }, 900);
 function nueva(nombre, baraja, barajaNombre) {
-  return { v: 1, nombre, baraja, barajaNombre, dia: 0, monedas: 0, vencidos: {}, derrotas: {}, hablados: {}, abiertos: {}, victorias: 0, perdidas: 0, historial: [], inicio: Date.now(), u: Date.now(), pendiente: null };
+  return { v: 1, eco: 2, nombre, baraja, barajaNombre, dia: 0, monedas: 0, vencidos: {}, derrotas: {}, hablados: {}, abiertos: {}, victorias: 0, perdidas: 0, historial: [], inicio: Date.now(), u: Date.now(), pendiente: null };
 }
 // ════════════════ COFRE Y BARAJA DE AVENTURA ════════════════
 // S.col   = { idCarta: copias }  todo lo que tiene el jugador (baraja básica + cartas ganadas)
@@ -3194,7 +3215,10 @@ window.nxTramoEvento = async function (s) {
   const def = TRAMO.def, e = estTramo(TRAMO.id);
   if (ev.pos) e.pos = ev.pos;
   switch (ev.tipo) {
-    case 'listo': TRAMO.listo = true; quitarCarga(); tramoPausa(false); aplicarOpc(true); revisarCien(def); break;
+    case 'listo': TRAMO.listo = true; quitarCarga(); tramoPausa(false); aplicarOpc(true); revisarCien(def);
+      if ((def.monedas || []).length) { window._sonMon = window._sonMon || {};      // v385 · los sonidos de moneda se cargan al entrar (la primera moneda ya no espera)
+        ['moneda', 'moneda_roja'].forEach(k => { if (!_sonMon[k]) { const a = new Audio('assets/nexotlan/sonidos/' + k + '.mp3'); a.preload = 'auto'; try { a.load(); } catch (x) {} _sonMon[k] = a; } }); }
+      break;
     case 'menu': abrirPausa(ev); break;      // v366 · menú de pausa
     case 'volver': guardar(); cerrarTramo(); break;
     case 'salida': {
@@ -3325,7 +3349,8 @@ function premioCien(t) {
     if (/^monedas?$/i.test(k)) r.monedas += parseInt(v, 10) || 0; else if (/^objeto$/i.test(k) && v) r.objetos.push(v); });
   return r;
 }
-function textoPremio(r) { return [r.monedas ? '🪙 ' + r.monedas + ' monedas' : ''].concat(r.objetos.map(id => (OBJ[id] ? (OBJ[id].icono || '🎁') + ' ' + OBJ[id].nombre : id))).filter(Boolean).join(' + '); }
+function textoPremio(r) { const q = {}; r.objetos.forEach(id => q[id] = (q[id] || 0) + 1);
+  return [r.monedas ? '🪙 ' + r.monedas + ' monedas' : ''].concat(Object.keys(q).map(id => (q[id] > 1 ? q[id] + '× ' : '') + (OBJ[id] ? (OBJ[id].icono || '🎁') + ' ' + OBJ[id].nombre : id))).filter(Boolean).join(' + '); }
 async function revisarCien(def) {      // al llegar al 100 % (una sola vez): premio único y sello dorado en el rombo
   if (!def || !S) return; const e = estTramo(def.id); if (e.cien || progresoTramo(def).pct < 100) return;
   e.cien = Date.now(); const r = premioCien(def.t);
@@ -5024,6 +5049,7 @@ function mostrarMapa() {
   requestAnimationFrame(() => ajustarZoom(ZOOM));          // segunda medida, ya con el layout final
   musica(CFG.musica);
   setTimeout(revisarDemoFin, 700);      // v339 · fin de la demo
+  setTimeout(revisarExplorador, 900);      // v383 · paso del demo a la versión final
 }
 async function entrarMapa(primeraVez) {
   if (S && S.baraja && !esDelModo(S.baraja) && !EDITOR) {     // partidas viejas: elegir una baraja básica
@@ -5778,8 +5804,9 @@ $('dCaja').addEventListener('click', e => { if (!e.target.closest('.d-ops')) { e
     quitarCarga();
   };
   // v339 · DEMO: quien no tiene ID de tester juega la demo (si demo = si en [config] de mapa.txt); si no, sigue el candado
-  const demoPend = !lista.includes('*') && !(yo && lista.includes(String(yo.id).toUpperCase()));
-  TESTER_DLC = !!(yo && lista.includes(String(yo.id).toUpperCase()));   // v275 · DLC gratis para los testers con ID en la lista
+  const STEAM = !!window.CHH_STEAM;      // v384 · versión de escritorio (Steam): juego completo, sin candado de pruebas ni demo
+  const demoPend = !STEAM && !lista.includes('*') && !(yo && lista.includes(String(yo.id).toUpperCase()));
+  TESTER_DLC = STEAM || !!(yo && lista.includes(String(yo.id).toUpperCase()));      // (en Steam los DLC quedan abiertos hasta conectar Steamworks)   // v275 · DLC gratis para los testers con ID en la lista
   const [txt, data, gal, lim, com] = await Promise.allSettled([leer(DIR + 'mapa.txt'), leer('data/cartas_simulacion.json', true), leer('cartas.json', true), leer('cartas-limitadas.json', true), leer(DIR + 'comerciante.txt')]);
   if (com.status === 'fulfilled') COM = parseCom(com.value);
   try { MOD = parseMod(await leer(DIR + 'modista.txt')); } catch (e) {}   // v317 · catálogo de la modista
@@ -5835,6 +5862,7 @@ function revisarMapa() {
 }
 async function nubeFondo(aplicar) {
   const N = window.CHH_NUBE;
+  if (window.CHH_STEAM) { $('tInfo').textContent = '💾 Tu aventura se guarda en este equipo.'; return; }      // v384 · Steam: sin nube propia (Steam Cloud respalda la carpeta)
   if (!N || typeof N.sincronizarDoc !== 'function') { $('tInfo').textContent = '💾 Tu aventura se guarda en este dispositivo.'; return; }
   if (!N.sesionId()) { $('tInfo').textContent = '💾 Se guarda en este dispositivo · inicia sesión en Mi Perfil para guardarla en la nube.'; return; }
   $('tInfo').textContent = '☁ Buscando tus partidas en la nube…';

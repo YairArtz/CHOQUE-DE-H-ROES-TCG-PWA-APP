@@ -1604,6 +1604,12 @@ body.nx-sismo2{animation:nxSismo2 .09s linear infinite}
 .tdx .cp-mesa .cp-h{display:inline-block;align-self:center;padding:4px 18px;color:#1a0f00;clip-path:polygon(7px 0,100% 0,calc(100% - 7px) 100%,0 100%);background:linear-gradient(90deg,#e6a8ff,#cc55ff)}
 .tdx .cp-slot{border-radius:0;clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px)}
 .tdx .cp-prob .pr{border-radius:0;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);padding:5px 14px;background:#0a0820}
+/* v374 · solo en celular: letreros de distritos y rutas más pequeños (tapaban el mapa) */
+:root.movil #sMapa .dlab{transform:translate(-50%,-50%) scale(.6)}
+:root.movil #sMapa .dlab:not(.dlc){padding:3px 12px 3px 10px;letter-spacing:.08em}
+:root.movil #sMapa .nx-tramo{gap:1px}
+:root.movil #sMapa .nx-tramo span{transform:scale(.68);transform-origin:50% 0;margin-bottom:-6px}
+:root.movil #sMapa .nx-tramo i{transform:rotate(45deg) scale(.8)}
 </style>
 <script src="nexotlan-logo.js" defer></script>
 </head>
@@ -3151,6 +3157,7 @@ async function abrirTramo(id, bajada) {
     cambio_z: h.cambio_z !== undefined && String(h.cambio_z).trim() !== '' ? num(h.cambio_z, 0) : undefined,
     rival_modelo: (m => m ? (m.includes('/') ? m : 'assets/nexotlan/personajes/' + m) : '')(String(h.rival_modelo || CFG.tramo_rival_modelo || '').trim()),
     rival_escala: +(h.rival_escala || CFG.tramo_rival_escala || 2.0),
+    rival_voz: (window._nxVoces = String(h.rival_voz || CFG.tramo_rival_voz || '').split('|').map(x => x.trim()).filter(Boolean)).length > 0,      // v377 · voces de las Ánimas
     monedas: (def.monedas || []).map(m => Object.assign({}, m, { tomada: !!(e.mon || {})[m.id] })), moneda_img: 'hero_pesos/hp_coin.png',      // v343
     salidas: def.salidas, avisos: def.avisos || [],
     camara: String(h.camara || '').split(',').map(Number).filter(isFinite) };      // v355 · camara = alto, distancia
@@ -5500,6 +5507,20 @@ const NX_SFX = {
   atril: [['ruido', 2500, 5000, .18, .22, 0], ['ruido', 4000, 2000, .14, .16, .12]],
   aparta: [['ruido', 300, 1200, .35, .3, 0], ['sine', 330, 440, .25, .08, .1]],
   salida: [['sine', 660, 660, .18, .14, 0], ['sine', 880, 880, .2, .14, .12], ['sine', 1320, 1320, .35, .12, .26]]
+};
+// v377 · VOCES DE LAS ÁNIMAS: [tramo] rival_voz = voz1.mp3 | voz2.mp3 (en assets/nexotlan/sonidos/) · [config] volumen_voz = 1
+//        El motor las pide de vez en cuando (más bajo si están lejos) y al hablarles. Se cargan una sola vez por archivo.
+const _voces = {};
+window.nxVozAnima = function (vol) {
+  const L = window._nxVoces || []; if (MUTE || !L.length) return;
+  try { const c = _ctxM = _ctxM || new (window.AudioContext || window.webkitAudioContext)(); if (c.state === 'suspended') c.resume();
+    const f = L[Math.floor(Math.random() * L.length)], u = f.includes('/') ? f : DIR + 'sonidos/' + f;
+    const tocar = b => { const src = c.createBufferSource(), g = c.createGain(); src.buffer = b; src.playbackRate.value = 0.9 + Math.random() * 0.2;
+      g.gain.value = Math.max(0, Math.min(1.5, (+vol || 0) * (+CFG.volumen_voz || 1))); src.connect(g).connect(c.destination); src.start(); };
+    if (_voces[u] instanceof AudioBuffer) return tocar(_voces[u]);
+    if (_voces[u] === undefined) _voces[u] = fetch(u).then(r => r.ok ? r.arrayBuffer() : Promise.reject()).then(b => new Promise((ok, no) => c.decodeAudioData(b, ok, no)))
+      .then(b => { _voces[u] = b; if ((+vol || 0) >= 0.9) tocar(b); }).catch(() => { _voces[u] = false; });
+  } catch (e) {}
 };
 window.nxPaso = function (sup) {
   if (sup === 'activar_carta') {      // v358 · sonido de la carta interactiva (assets/nexotlan/sonidos/activar_carta.mp3)

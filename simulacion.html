@@ -3728,8 +3728,10 @@ const PASOS={
   },
   async enviar_varias_mictlan(ctx,st){
     const list=cands(ctx.o,st.origen||'bp',st.filtro);
+    if(ctx.esCosto&&st.min&&list.length<st.min) return false;      // v382 · como costo: si no alcanza, no se activa
     if(!list.length) return true;
     const pick=await choose(ctx,list,Math.min(st.max||1,list.length),{sub:'Elige '+(st.min?'':'hasta ')+(st.max||1)+' carta(s) que envías al Mictlán',min:Math.min(st.min||0,list.length),score:y=>-SCORE(y.cid)});
+    if(ctx.esCosto&&pick.length<Math.max(1,st.min||0)) return false;      // v382 · cancelaste el costo
     const env=[];pick.sort((a,b)=>b.i-a.i).forEach(x=>{const c=takeFrom(ctx.o,x);if(c){G[ctx.o].mictlan.push(c);env.push(c);}});
     if(st.origen==='bp') sh(G[ctx.o].bp);
     if(pick.length) lg('🗑 <b>'+C[ctx.cid].name+'</b>'+who(ctx.o)+': '+pick.map(x=>'<b>'+C[x.cid].name+'</b>').join(', ')+' van al Mictlán.','var(--muted)');
@@ -4543,9 +4545,7 @@ async function llamarseConCosto(ctx,st,z,arr,from){
   // v75 · Alebrije Iztac: sacrifica 2 HÉROES INVITADOS de tu campo o confina 2 "DRAGÓN" de tu Mictlán
   const aleInv=()=>cands(o,'campo',{invitado:true}), aleDrg=()=>mictlanCerrado()?[]:cands(o,'mictlan',{tipos:['pj','amalgama'],nombreIncluye:'DRAGON'});
   if(st.costo==='alebrije'&&aleInv().length<2&&!(aleDrg().length>=2&&freePJ(o)!==-1)) return false;
-  // v82 · El costo se paga aunque el llamado sea negado (ya se usó para pagar la carta)
-  const neg=!await announce(o,ctx.cid,'llamado',{z},{especial:true});
-  if(neg) lg('⛓ El llamado de <b>'+C[ctx.cid].name+'</b> fue negado, pero su costo se paga igual.','var(--muted)');
+  // v382 · el costo se paga ANTES de anunciar el llamado: si cancelas no pasa nada; si te lo niegan, el costo ya quedó pagado
   if(st.costo==='descartar'){
     const pick=await choose(ctx,otras(),st.n||1,{sub:'Elige qué descartar al Mictlán',score:y=>-SCORE(y.cid)});
     if(pick.length<(st.n||1)) return false;
@@ -4606,7 +4606,8 @@ async function llamarseConCosto(ctx,st,z,arr,from){
     const c=takeFrom(o,x); if(!c) return false; G[o].mictlan.push(c); if(x.z==='bp') sh(G[o].bp);
     lg('🗑 <b>'+C[c].name+'</b>'+who(o)+' va al Mictlán desde '+SRC_NOM[x.z]+'.','var(--muted)');
   }
-  if(neg){renderAll();return false;}
+  const neg=!await announce(o,ctx.cid,'llamado',{z},{especial:true});
+  if(neg){lg('⛓ El llamado de <b>'+C[ctx.cid].name+'</b> fue negado, pero su costo ya se pagó.','var(--muted)');renderAll();return false;}
   const i=arr.lastIndexOf(ctx.cid); if(i<0||freePJ(o)===-1) return false;
   arr.splice(i,1);
   await placeChar(o,ctx.cid,{via:'especial',from,por:ctx.cid,desde:z});
@@ -5458,10 +5459,10 @@ async function runEffect(o,cid,e,idx,src,opt){
     lg('💔 '+(o==='player'?'Pagas':'CPU paga')+' '+e.costo.corazones+' corazón(es) por <b>'+C[cid].name+'</b>.','var(--ar)');
     playSound('damage');
   }
-  const ctx=Object.assign({o,cid,vars:{},interactive:o==='player'},src||{});
+  const ctx=Object.assign({o,cid,vars:(opt.pre&&opt.pre.vars)||{},interactive:o==='player'},src||{});
   if(src&&src.duenio) ctx.interactive=src.duenio==='player';
   if(src&&src.zone==='campo'&&src.slot!=null){const q=G[o].pj[src.slot];if(q&&q.id===cid)q.habT=turnKey();}
-  const pasos=e.pasos||[e];
+  const pasos=(e.pasos||[e]).slice(opt.pre?opt.pre.n:0);      // v382 · costos ya pagados antes de anunciar
   for(const st of pasos){
     if(!G||G.over) return false;
     const fn=PASOS[st.accion];
@@ -5861,7 +5862,7 @@ async function respCampoNegar(r,ev,slot,e,key){
   const p=G[r].pj[slot]; if(!p) return;
   if(e.costoDescartar){
     const ok=await PASOS.descartar_mano({o:r,cid:p.id,vars:{},interactive:r==='player'},{cantidad:e.costoDescartar});
-    if(!ok) return;
+    if(!ok){G.used[r][key]=false;return;}      // v382 · si cancelas el descarte no gastas su uso del turno
   }
   if(e.costoEnviar){
     const list=cands(r,e.costoEnviar.origen,e.costoEnviar.filtro);
@@ -6339,8 +6340,14 @@ async function useAbility(o,cid,e,i,src){
     G.used[o][effKey(cid,i)]=true;
   }
   const accs=accsOf([e]);
-  if(e.sinAnuncio||await announce(o,cid,'habilidad',whereOf(src),{anade:anadeORoba(accs),accs})) await runEffect(o,cid,e,i,src);
-  else await pagarCostosEf(o,cid,e);   // v82 · negada: su costo se paga igual
+  // v382 · el jugador paga los costos (descartar, sacrificar, enviar al Mictlán…) ANTES de anunciar: si se arrepiente no se activa nada
+  let pre=null;
+  if(o==='player'&&!e.sinAnuncio&&costosDe(e).length){
+    pre=await prepagarCostos(o,cid,e,src);
+    if(!pre){if(e.limite==='turno'&&i!=null&&i>=0)G.used[o][effKey(cid,i)]=false;lg('✋ <b>'+C[cid].name+'</b>: no pagaste su costo, la habilidad no se activó.','var(--muted)');renderAll();return;}
+  }
+  if(e.sinAnuncio||await announce(o,cid,'habilidad',whereOf(src),{anade:anadeORoba(accs),accs})) await runEffect(o,cid,e,i,src,pre?{pre}:undefined);
+  else if(!pre) await pagarCostosEf(o,cid,e);   // v82 · negada: su costo se paga igual (si no se pagó ya)
   renderAll();
   if(G&&!G.over&&G._tkKenSale&&G._tkKenSale.length){await tkKenSalidas();renderAll();}
 }
@@ -8384,7 +8391,19 @@ async function activateApoyo(o,handIdx){
   if(C[cid0].subtipo==='equipo') return activateEquipo(o,cid0);
   if(errBloqApoyo(o)){lg('🦅 <b>Errantes de Phorus</b>: '+(o==='player'?'no puedes':'la CPU no puede')+' activar APOYOS durante este turno.','var(--purple)');return;}
   const effs=activarEff(cid0).filter(x=>!x.e.pendiente).map(x=>x.e), accs=accsOf(effs);
-  if(!await announce(o,cid0,'activacion',{z:'mano'},{anade:anadeORoba(accs),accs})){await costosNegados(o,cid0);renderAll();return;}
+  // v382 · el jugador paga los costos ANTES de anunciar el APOYO (el propio apoyo no cuenta como descarte); si cancela, el apoyo se queda en su mano
+  const preAp={};
+  if(o==='player'){
+    const conCosto=activarEff(cid0).filter(({e,i})=>!e.pendiente&&costosDe(e).length&&!effWhy(o,cid0,e,i,{zone:'mano'}));
+    if(conCosto.length){
+      const h0=G[o].hand.indexOf(cid0); if(h0<0) return; G[o].hand.splice(h0,1);
+      let ok=true;
+      for(const {e,i} of conCosto){const p=await prepagarCostos(o,cid0,e,{zone:'mano'});if(!p){ok=false;break;}preAp[i]=p;}
+      G[o].hand.splice(Math.min(h0,G[o].hand.length),0,cid0);
+      if(!ok){lg('✋ <b>'+C[cid0].name+'</b>: no pagaste su costo, no se activó.','var(--muted)');renderAll();return;}
+    }
+  }
+  if(!await announce(o,cid0,'activacion',{z:'mano'},{anade:anadeORoba(accs),accs})){if(!Object.keys(preAp).length)await costosNegados(o,cid0);renderAll();return;}
   const hi=G[o].hand.indexOf(cid0);if(hi<0) return;
   const cid=G[o].hand.splice(hi,1)[0];
   if(o==='player') clearSel(cid);
@@ -8399,8 +8418,8 @@ async function activateApoyo(o,handIdx){
   for(const {e,i} of activarEff(cid)){
     if(e.pendiente) continue;
     const why=effWhy(o,cid,e,i,{zone:'mano'});
-    if(why){lg('⚠ '+C[cid].name+': '+why+'.','var(--red)');continue;}
-    await runEffect(o,cid,e,i,{zone:'mano'});
+    if(why&&!preAp[i]){lg('⚠ '+C[cid].name+': '+why+'.','var(--red)');continue;}
+    await runEffect(o,cid,e,i,{zone:'mano'},preAp[i]?{pre:preAp[i]}:undefined);
   }
   if(slotC<0&&G._quedaApoyo!==cid) G[o].mictlan.push(cid);
   G._quedaApoyo=null;
@@ -8410,6 +8429,20 @@ async function activateApoyo(o,handIdx){
 // v82 · Costos de un APOYO negado: "ya se usaron para pagar la carta"
 const COSTO_ACC=new Set(['descartar_mano','sacrificar_propio','enviar_varias_mictlan','confinar_propio','alma_propia_a_mictlan','tope_bp_mictlan',
   'retornar_propio_fondo','destruir_propio_pj','almas_a_mictlan_mixto','ba_tope_mictlan','tope_ba_o_bp_mictlan','pagar_alma','pagar_corazones']);
+// v382 · costos que van al inicio de un efecto (mismos que se pagan si lo niegan)
+function costosDe(e){const pasos=e.pasos||[e],c=[];if(pasos.length>1)for(const st of pasos){if(COSTO_ACC.has(st.accion))c.push(st);else break;}return c;}
+// los paga antes de anunciar · devuelve {n, vars} o null si el jugador canceló (o no pudo pagarlos)
+async function prepagarCostos(o,cid,e,src){
+  const costos=costosDe(e); if(!costos.length) return {n:0,vars:{}};
+  const ctx=Object.assign({o,cid,vars:{},interactive:o==='player',esCosto:true},src||{});
+  for(const st of costos){
+    const fn=PASOS[st.accion]; if(!fn) continue;
+    let r; try{r=await fn(ctx,st);}catch(x){r=false;}
+    renderAll(); await procConfQ(); await procDestrQ();
+    if(!G||G.over||checkEnd()||r===false) return null;
+  }
+  return {n:costos.length,vars:ctx.vars};
+}
 async function costosNegados(o,cid){
   if(!G||G.over) return;
   for(const {e} of activarEff(cid)){if(!e.pendiente) await pagarCostosEf(o,cid,e);if(!G||G.over)return;}
@@ -10804,6 +10837,79 @@ function salirPartida(ev,a){
 @keyframes egCae{0%{opacity:0;transform:translateY(-60px) scale(1.3)}60%{opacity:1;transform:translateY(6px)}100%{transform:none}}
 @keyframes egSacude{0%,100%{transform:none}20%{transform:translateX(-8px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
 @media (prefers-reduced-motion:reduce){.endgame-overlay.v198 .endgame-icon,.endgame-overlay.v198 .endgame-title,.endgame-overlay.v198.derrota .endgame-box{animation:none!important}}
+/* ═══ v387 · Letrero y ventana de VICTORIA / DERROTA en la línea de diseño del menú (placas sesgadas, oro + azul marino, trama de puntos) ═══ */
+#endgameModal{--egb:linear-gradient(160deg,#f5a623,#7a4a00 40%,#1d3270 70%,#36d6ff);--egs:#b85a00;--egt:linear-gradient(90deg,#ffd166,#f5a623 60%,#ff8a1f);--egtc:#1a0f00}
+:is(#endgameModal.derrota,#endgameModal:has(.endgame-title.lose)){--egb:linear-gradient(160deg,#ff2f5a,#5a0a1c 40%,#1d3270 70%,#ff6b81);--egs:#8a0f22;--egt:linear-gradient(90deg,#ff8aa6,#ff2f5a 60%,#c4123c);--egtc:#fff}
+#endgameModal .endgame-box{--pp:polygon(26px 0,100% 0,100% calc(100% - 26px),calc(100% - 26px) 100%,0 100%,0 26px);clip-path:var(--pp);
+  max-width:min(480px,94vw)!important;padding:0 24px 20px!important;border-radius:0!important;border:2px solid transparent!important;box-shadow:none!important;
+  background:radial-gradient(rgba(120,170,255,.09) 1px,transparent 1.6px) 0 0/6px 6px padding-box,linear-gradient(170deg,#0d1c48 0%,#081233 45%,#050b22 100%) padding-box,var(--egb) border-box!important;
+  scrollbar-width:thin;scrollbar-color:#f5a623 transparent}
+#endgameBox::before{content:'RESULTADO DEL CHOQUE';display:table;margin:0 auto 8px;padding:7px 30px 6px;clip-path:polygon(12px 0,100% 0,calc(100% - 12px) 100%,0 100%);
+  font:900 11px 'Orbitron',sans-serif;letter-spacing:.26em;color:var(--egtc);background:radial-gradient(rgba(255,255,255,.3) 1px,transparent 1.6px) 0 0/6px 6px,var(--egt)}
+#endgameModal .endgame-icon{font-size:clamp(46px,8vw,72px)!important;margin:2px 0 0!important;filter:drop-shadow(0 6px 0 rgba(0,0,0,.35)) drop-shadow(0 0 16px rgba(255,190,60,.45))}
+:is(#endgameModal.derrota,#endgameModal:has(.endgame-title.lose)) .endgame-icon{filter:drop-shadow(0 6px 0 rgba(0,0,0,.35)) drop-shadow(0 0 16px rgba(255,47,90,.5))}
+#endgameModal .endgame-title{background:none!important;-webkit-text-fill-color:#fff!important;color:#fff;font-family:'Orbitron',sans-serif;font-weight:900;
+  font-size:clamp(30px,5.8vw,48px)!important;letter-spacing:.06em!important;line-height:1.05;margin:4px 0 4px;transform:skewX(-8deg);
+  text-shadow:0 3px 0 var(--egs),2px 0 0 var(--egs),-2px 0 0 var(--egs),0 -2px 0 var(--egs),3px 3px 0 var(--egs),-3px 3px 0 var(--egs),0 8px 18px rgba(0,0,0,.5)}
+#endgameModal.v198 .endgame-title{animation:egTitIn .6s cubic-bezier(.2,1.3,.4,1) .15s both!important}
+@keyframes egTitIn{0%{opacity:0;letter-spacing:.6em;filter:blur(8px)}100%{opacity:1;letter-spacing:.06em;filter:none}}
+#endgameModal .endgame-reason{font-family:'Rajdhani',sans-serif;font-weight:600;font-size:15px!important;color:#c9d4e4!important;margin-bottom:12px!important;display:flex;align-items:center;gap:10px}
+#endgameModal .endgame-reason::before,#endgameModal .endgame-reason::after{content:'';flex:1;height:2px;background:linear-gradient(90deg,transparent,rgba(245,166,35,.7))}
+#endgameModal .endgame-reason::after{background:linear-gradient(90deg,rgba(54,214,255,.7),transparent)}
+:is(#endgameModal.derrota,#endgameModal:has(.endgame-title.lose)) .endgame-reason::before{background:linear-gradient(90deg,transparent,rgba(255,47,90,.7))}
+/* calificación */
+#endgameModal .eg-calif{--pr:polygon(14px 0,100% 0,calc(100% - 14px) 100%,0 100%);clip-path:var(--pr);border:0;border-radius:0;gap:14px;padding:10px 26px 10px 20px;margin:4px 0 8px;
+  background:linear-gradient(90deg,#0f2058,#0b1844 70%,#0a1538)}
+#endgameModal .eg-letra{width:74px;height:62px;border:0;border-radius:0;clip-path:polygon(12px 0,100% 0,calc(100% - 12px) 100%,0 100%);box-shadow:none;font-size:40px;color:#fff;
+  background:radial-gradient(rgba(255,255,255,.3) 1px,transparent 1.6px) 0 0/6px 6px,linear-gradient(135deg,#fff 0%,var(--cc) 38%,color-mix(in srgb,var(--cc) 55%,#000) 100%);
+  text-shadow:0 3px 0 color-mix(in srgb,var(--cc) 35%,#000),2px 0 0 color-mix(in srgb,var(--cc) 35%,#000),-2px 0 0 color-mix(in srgb,var(--cc) 35%,#000),0 -2px 0 color-mix(in srgb,var(--cc) 35%,#000)}
+#endgameModal .eg-desg{font-family:'Rajdhani',sans-serif;font-weight:600;font-size:12.5px;color:#9fb3dd;gap:2px 14px}
+#endgameModal .eg-desg b{font-family:'Orbitron',sans-serif;font-weight:900;font-size:11px;color:#fff}
+#endgameModal .eg-desg .tot{border-top:2px solid rgba(245,166,35,.35);color:#f5a623;font-family:'Orbitron',sans-serif;font-weight:900;font-size:10.5px;letter-spacing:.14em}
+#endgameModal .eg-desg .tot b{color:#ffd166;font-size:15px;letter-spacing:0;transform:skewX(-8deg);display:inline-block}
+#endgameModal .eg-desg .rec{color:#5cc8ff;font-family:'Orbitron',sans-serif;font-size:9.5px;letter-spacing:.1em}
+/* números */
+#endgameModal .eg-stats{gap:8px;margin:2px 0 8px}
+#endgameModal .eg-stat{position:relative;clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%);border:0;border-radius:0;padding:8px 6px 7px;background:linear-gradient(90deg,#0f2058,#0b1844 70%,#0a1538)}
+#endgameModal .eg-stat::before{content:'';position:absolute;left:4px;top:0;bottom:0;width:4px;background:#36d6ff;transform:skewX(-17deg);transform-origin:bottom}
+#endgameModal .eg-stat b{font-weight:900;font-size:19px;color:#fff;transform:skewX(-8deg);text-shadow:0 2px 0 rgba(0,0,0,.5)}
+#endgameModal .eg-stat small{font-family:'Orbitron',sans-serif;font-weight:700;font-size:8.5px;letter-spacing:.14em;color:#9fb3dd}
+/* carta más valiosa */
+#endgameModal .eg-mvp{position:relative;clip-path:polygon(14px 0,100% 0,calc(100% - 14px) 100%,0 100%);border:0;border-radius:0;padding:8px 26px 8px 22px;margin:0 0 8px;gap:12px;
+  background:linear-gradient(90deg,#2a1a00,#3d2800 60%,#1d1400);box-shadow:inset 0 2px 0 rgba(245,166,35,.65),inset 0 -2px 0 rgba(245,166,35,.65)}
+#endgameModal .eg-mvp img{border-radius:3px;box-shadow:0 0 0 2px #f5a623,0 0 12px rgba(245,166,35,.55)}
+#endgameModal .eg-mvp small{font-weight:900;font-size:9px;letter-spacing:.22em;color:#f5a623}
+#endgameModal .eg-mvp b{font-family:'Orbitron',sans-serif;font-weight:900;font-size:14px;color:#fff;letter-spacing:.03em}
+#endgameModal .eg-mvp span.d{font-family:'Rajdhani',sans-serif;font-weight:600;font-size:12px;color:#ffe7b0}
+#endgameStats>div:last-child:not([class]){font-family:'Orbitron',sans-serif!important;font-size:9px!important;letter-spacing:.1em;color:#7d90bb!important;margin-bottom:10px!important}
+/* botones: CONTINUAR / REVANCHA en placa dorada · secundarios en placa azul con barra cian */
+#endgameModal .endgame-btn{--pb:polygon(16px 0,100% 0,calc(100% - 16px) 100%,0 100%);clip-path:var(--pb);border:0!important;border-radius:0!important;box-shadow:none!important;
+  font-family:'Orbitron',sans-serif!important;font-weight:900!important;letter-spacing:.12em!important;transition:transform .22s cubic-bezier(.2,.9,.3,1.3),filter .2s}
+#endgameModal .endgame-btn:not(.alt){padding:15px 20px!important;font-size:15px!important;color:#1a0f00!important;text-shadow:0 1px 0 rgba(255,255,255,.35);animation:none!important;
+  background:radial-gradient(rgba(255,255,255,.3) 1px,transparent 1.6px) 0 0/6px 6px,linear-gradient(90deg,#ffe08a,#ffbf3c 45%,#ff8a1f)!important}
+#endgameModal .endgame-btn.alt{position:relative;padding:12px 20px!important;font-size:12px!important;color:#eef2ff!important;background:linear-gradient(90deg,#0f2058,#0b1844 70%,#0a1538)!important}
+#endgameModal .endgame-btn.alt::before{content:'';position:absolute;left:5px;top:0;bottom:0;width:5px;background:#36d6ff;transform:skewX(-17deg);transform-origin:bottom}
+#endgameModal .endgame-btn:is(:hover,:focus-visible,.gp-foco){outline:0;transform:scale(1.025);filter:brightness(1.1)}
+#endgameModal .endgame-btn.alt:is(:hover,:focus-visible,.gp-foco){color:#1a0f00!important;background:radial-gradient(rgba(255,255,255,.3) 1px,transparent 1.6px) 0 0/6px 6px,linear-gradient(90deg,#ffd166,#f5a623 60%,#ff8a1f)!important}
+#endgameModal .endgame-btn.alt:is(:hover,:focus-visible,.gp-foco)::before{background:#fff}
+#endgameModal .endgame-btn:active{transform:scale(.97);transition-duration:.08s}
+@media (max-height:520px){#endgameModal .endgame-box{padding:0 16px 12px!important}#endgameBox::before{font-size:9px;padding:5px 22px;margin-bottom:4px}
+  #endgameModal .endgame-title{font-size:26px!important}#endgameModal .endgame-btn:not(.alt){padding:11px!important;font-size:13px!important}#endgameModal .eg-letra{width:54px!important;height:46px!important}}
+:root.rot #endgameModal .endgame-box{padding:0 16px 12px!important}:root.rot #endgameBox::before{font-size:9px;padding:5px 22px;margin-bottom:4px}
+:root.rot #endgameModal .endgame-title{font-size:26px!important}:root.rot #endgameModal .endgame-btn:not(.alt){padding:11px!important;font-size:13px!important}:root.rot #endgameModal .eg-letra{width:54px!important;height:46px!important}
+/* letrero animado (antes de la ventana): franja azul marino con filos oro/cian y texto blanco con contorno, como los títulos del menú */
+.fin-cine{--fco:#b85a00}
+.fin-cine.derrota{--fco:#8a0f22}
+.fin-cine .fc-band{background:radial-gradient(rgba(150,190,255,.12) 1px,transparent 1.6px) 0 0/6px 6px,linear-gradient(90deg,transparent,#0f2058 10%,#0b1844 50%,#0f2058 90%,transparent)!important;
+  border-top:3px solid #f5a623!important;border-bottom:3px solid #36d6ff!important;box-shadow:0 0 40px rgba(0,0,0,.6),0 -6px 24px rgba(245,166,35,.35),0 6px 24px rgba(54,214,255,.3)!important}
+.fin-cine.derrota .fc-band{border-top-color:#ff2f5a!important;border-bottom-color:#ff6b81!important;box-shadow:0 0 40px rgba(0,0,0,.6),0 0 30px rgba(255,47,90,.4)!important}
+.fin-cine .fc-band::before{content:'FIN DEL CHOQUE';position:absolute;left:14%;top:9%;font:900 clamp(10px,calc(var(--H) * .022),16px) 'Orbitron',sans-serif;letter-spacing:.36em;color:#5cc8ff}
+.fin-cine.derrota .fc-band::before{color:#ff8aa6}
+.fin-cine .fc-band::after{content:'';position:absolute;right:12%;bottom:12%;width:22%;height:6px;background:repeating-linear-gradient(90deg,#f5a623 0 14px,transparent 14px 22px);opacity:.8}
+.fin-cine.derrota .fc-band::after{background:repeating-linear-gradient(90deg,#ff2f5a 0 14px,transparent 14px 22px)}
+.fin-cine .fc-txt{background:none!important;color:#fff!important;-webkit-text-stroke:0!important;font-style:italic;letter-spacing:.04em;
+  text-shadow:0 5px 0 var(--fco),3px 0 0 var(--fco),-3px 0 0 var(--fco),0 -3px 0 var(--fco),4px 4px 0 var(--fco),-4px 4px 0 var(--fco),0 12px 26px rgba(0,0,0,.6)}
+.fin-cine .fc-txt::after{display:none}
 </style>
 <script>
 // ════════════════════════════════════════════════════════════════════

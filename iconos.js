@@ -46,7 +46,8 @@
     // siempre se reconocen los ⟪ico:archivo⟫ (iconos de objetos.txt), aunque no haya emojis activos
     RE = new RegExp('⟪ico:([^⟫]+)⟫' + (emos.length ? '|' + emos.join('|') : ''), 'gu');
     const st = document.createElement('style');
-    st.textContent = '.chh-ico{display:inline-block;height:1.15em;width:auto;max-width:1.6em;vertical-align:-.22em;object-fit:contain;pointer-events:none;user-select:none}';
+    // con !important y selector reforzado: reglas de la página como ".cb-c img{height:104px!important}" ya no estiran los íconos
+    st.textContent = 'img.chh-ico.chh-ico.chh-ico{display:inline-block!important;height:1.15em!important;width:auto!important;min-width:0!important;min-height:0!important;max-width:1.6em!important;max-height:none!important;aspect-ratio:auto!important;vertical-align:-.22em!important;object-fit:contain!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:none!important;box-shadow:none!important;position:static!important;transform:none!important;pointer-events:none;user-select:none}';
     document.head.appendChild(st);
     const go = () => {
       barrer(document.body);

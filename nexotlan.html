@@ -544,7 +544,7 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 .mp-ley i{font-style:normal;margin-right:5px}
 /* progreso */
 .mp-pr{display:grid;grid-template-columns:minmax(150px,26%) 1fr;gap:14px 22px;align-items:start}
-.mp-gran{display:flex;flex-direction:column;align-items:center;gap:8px;position:sticky;top:0}
+.mp-gran{display:flex;flex-direction:column;align-items:center;gap:8px;position:static}   /* v394 · ya no es sticky: al deslizar se encimaba sobre las secciones de abajo */
 .mp-dial{--p:0;width:clamp(96px,calc(26 * var(--uh)),170px);aspect-ratio:1;border-radius:50%;display:flex;align-items:center;justify-content:center;
   background:radial-gradient(closest-side,#081233 72%,transparent 73%),conic-gradient(#f5a623 calc(var(--p) * 1%),#1b2a5c 0);box-shadow:0 0 0 3px #050b22,0 0 24px rgba(245,166,35,.25)}
 .mp-dial b{font-family:'Orbitron',monospace;font-weight:900;font-size:clamp(22px,calc(6.4 * var(--uh)),42px);color:#fff;transform:skewX(-8deg);text-shadow:0 3px 0 #b85a00,2px 0 0 #b85a00,-2px 0 0 #b85a00}
@@ -3131,7 +3131,7 @@ function elegirCartaInt(st, ef, L, mias) {
           <span class="mint-q">${ok ? '×' + n : enB ? 'En tu baraja' : 'No la tienes'}${CARTAS_INT[c] && CARTAS_INT[c][1] > 1 ? ' · ★' : ''}</span></${ok ? 'button' : 'div'}>`; }).join('')}</div>
       <div class="mint-a">${mias.length ? '<small>Se gasta <b>1 copia</b> de tu cofre · lo que abras queda abierto</small>' : '<small>Consíguelas con el <b>Doctor Sitho</b> (✦ CARTAS INTERACTIVAS)</small>'}
         <div class="mint-bt"><button class="bt sec" data-gp-back id="mintNo">${mias.length ? 'CANCELAR' : 'CERRAR'}</button>${mias.length ? '<button class="bt gold" id="mintSi"></button>' : ''}</div></div></div>`;
-    document.body.appendChild(ov);
+    ($('stage') || document.body).appendChild(ov);      // v394 · dentro del escenario: en celular gira con todo el juego (antes quedaba vertical)
     const pinta = () => { ov.querySelectorAll('.mint-c').forEach(b => b.classList.toggle('sel', b.dataset.c === sel)); const bs = ov.querySelector('#mintSi'); if (bs) bs.textContent = 'USAR ' + nomC(sel).toUpperCase(); };
     const fin = v => { document.removeEventListener('keydown', esc_); ov.remove(); res(v); };
     const esc_ = ev => { if (ev.key === 'Escape') fin(null); };

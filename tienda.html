@@ -1352,16 +1352,20 @@ function prDestacado(lista) {
   const pedido = new URLSearchParams(location.search).get('sku');
   return lista.find(p => pedido && p.sku === pedido) || lista.find(p => p.tipo === 'dlc' && p.activo && !p.tengo) || lista.find(p => p.tipo === 'dlc') || null;
 }
-function pintarHeroPremium(p) {
+// v407 · todos los DLC activos se muestran en grande (el pedido con ?sku= va primero)
+function pintarHeroPremium(lista) {
   const box = document.getElementById('pr-hero'); if (!box) return;
-  if (!p) { box.innerHTML = ''; return; }
+  lista = (Array.isArray(lista) ? lista : [lista]).filter(Boolean);
+  box.innerHTML = lista.map(prHeroHTML).join('');
+}
+function prHeroHTML(p) {
   const { desc, inc } = prPartes(p);
   const precio = prPrecio(p);
   const notaPre = p.proximamente ? `<div class="pr-nota-pre">${p.tengo ? 'Ya es tuyo: queda en tu colección y lo tendrás listo el día del lanzamiento.' : 'Cómpralo antes del lanzamiento y obtén el descuento de preventa. Queda en tu colección y lo tendrás listo el día del lanzamiento.'}</div>` : '';
-  box.innerHTML = `<article class="prh${p.tengo ? ' tengo' : ''}">
+  return `<article class="prh${p.tengo ? ' tengo' : ''}">
     <div class="prh-img" ${p.imagen ? `style="background-image:url('${escAttr(p.imagen)}')"` : ''} role="img" aria-label="${escHtml(p.nombre)}">${prCinta(p)}</div>
     <div class="prh-cuerpo">
-      <div class="prh-tipo">${p.tipo === 'dlc' ? 'EXPANSIÓN DEL MODO AVENTURA' : (PR_TIPOS[p.tipo] || '')}</div>
+      <div class="prh-tipo">${p.proximamente ? 'MODO AVENTURA · PREVENTA' : p.tipo === 'dlc' ? 'EXPANSIÓN DEL MODO AVENTURA' : (PR_TIPOS[p.tipo] || '')}</div>
       <h2>${escHtml(p.nombre)}</h2>
       ${desc ? `<p class="prh-desc">${escHtml(desc)}</p>` : ''}
       ${inc.length ? `<ul class="prh-inc">${inc.map(x => `<li>${escHtml(x)}</li>`).join('')}</ul>` : ''}
@@ -1373,14 +1377,15 @@ function pintarPremium() {
   const grid = document.getElementById('pr-grid'), fil = document.getElementById('pr-filtros');
   const lista = premiumCache || [];
   const dest = prDestacado(lista);
-  pintarHeroPremium(dest);
+  const grandes = dest ? [dest].concat(lista.filter(p => p !== dest && p.tipo === 'dlc' && p.activo)) : [];
+  pintarHeroPremium(prFiltro === 'todo' ? grandes : (dest ? [dest] : []));
   const tipos = [...new Set(lista.map(p => p.tipo))];
   if (prFiltro !== 'todo' && prFiltro !== 'mios' && tipos.indexOf(prFiltro) < 0) prFiltro = 'todo';
   const btns = [['todo', 'TODO']].concat(tipos.map(t => [t, PR_TIPOS[t] || t.toUpperCase()]));
   if (lista.some(p => p.tengo)) btns.push(['mios', 'MI COLECCIÓN']);
   fil.innerHTML = tipos.length > 1 || lista.some(p => p.tengo)
     ? btns.map(([k, n]) => `<button class="${k === prFiltro ? 'on' : ''}" onclick="prFiltro='${k}';pintarPremium()">${n}</button>`).join('') : '';
-  const ver = lista.filter(p => (prFiltro === 'todo' ? p !== dest : (prFiltro === 'mios' ? p.tengo : p.tipo === prFiltro)));
+  const ver = lista.filter(p => (prFiltro === 'todo' ? grandes.indexOf(p) < 0 : (prFiltro === 'mios' ? p.tengo : p.tipo === prFiltro)));
   if (!lista.length) { grid.innerHTML = '<div class="empty-tab">El Doctor está preparando su colección privada. Vuelve pronto.</div>'; return; }
   if (!ver.length) { grid.innerHTML = dest && prFiltro === 'todo' ? '' : '<div class="empty-tab">Nada por aquí todavía.</div>'; return; }
   const nombres = {}; lista.forEach(p => nombres[p.sku] = p.nombre);

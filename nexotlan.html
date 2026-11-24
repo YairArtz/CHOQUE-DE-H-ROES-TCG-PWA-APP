@@ -3169,10 +3169,10 @@ async function abrirTramo(id, bajada) {
   const e = estTramo(id), h = def.head;
   const colores = {}; Object.keys(h).filter(k => /^color_/.test(k)).forEach(k => colores[k.slice(6)] = h[k]);
   // v282 · Texturas: textura_<rol> = archivo (en assets/nexotlan/tramos/texturas/ o con carpeta desde la raíz) · escala_<rol> = metros por repetición · brillo_<rol>
-  const texturas = {}, escalas = {}, brillos = {};
-  Object.keys(h).forEach(k => { const m = k.match(/^(textura|escala|brillo)_(.+)$/); if (!m || !String(h[k]).trim()) return; const v = String(h[k]).trim();
-    if (m[1] === 'textura') texturas[m[2]] = /\//.test(v) ? v.replace(/^\.?\//, '') : DIR + 'tramos/texturas/' + v; else (m[1] === 'escala' ? escalas : brillos)[m[2]] = num(v, 1); });
-  const json = { id, nombre: h.nombre || def.t.nombre || id, jugador: { nombre: S.nombre || 'Jugador', avatar: avatarPerfil() || '', monedas: S.monedas || 0, dia: (S.dia || 0) + 1, dia_nombre: diaNombre(S.dia) }, colores, texturas, escalas, brillos,
+  const texturas = {}, escalas = {}, brillos = {}, relieves = {}, lustres = {};      // v398 · relieve_x (relieve por código) · lustre_x (brillo de la superficie: 0 mate → 1 pulido)
+  Object.keys(h).forEach(k => { const m = k.match(/^(textura|escala|brillo|relieve|lustre)_(.+)$/); if (!m || !String(h[k]).trim()) return; const v = String(h[k]).trim();
+    if (m[1] === 'textura') texturas[m[2]] = /\//.test(v) ? v.replace(/^\.?\//, '') : DIR + 'tramos/texturas/' + v; else ({ escala: escalas, brillo: brillos, relieve: relieves, lustre: lustres })[m[1]][m[2]] = num(v, 1); });
+  const json = { id, nombre: h.nombre || def.t.nombre || id, jugador: { nombre: S.nombre || 'Jugador', avatar: avatarPerfil() || '', monedas: S.monedas || 0, dia: (S.dia || 0) + 1, dia_nombre: diaNombre(S.dia) }, colores, texturas, escalas, brillos, relieves, lustres,
     reverso: String(h.reverso || CFG.tramo_reverso || 'img/simulacion/reverso.jpg').trim(),
     jugador_modelo: (m => m ? (m.includes('/') ? m : 'assets/nexotlan/personajes/' + m) : '')(String(h.modelo || CFG.tramo_modelo || '').trim()),
     jugador_escala: +(h.modelo_escala || CFG.tramo_modelo_escala || 1.6),
@@ -4893,11 +4893,16 @@ function itemsContenido() {
 async function items3D() {
   const it = [], ya = new Set();
   const add = u => { if (!u) return; u = new URL(u, location.href).href; if (ya.has(u)) return; ya.add(u); it.push({ cands: [u], tipo: 'img' }); };
+  const addAud = u => { u = String(u || '').trim(); if (!u) return; u = new URL(u, location.href).href; if (ya.has(u)) return; ya.add(u); it.push({ cands: [u], tipo: 'aud' }); };
   const T = DIR + 'tramos/texturas/';
   for (const t of TRAMOS) {
     add(DIR + String(t.archivo || ('tramos/' + t.id + '.txt')).replace(/^assets\/nexotlan\//, ''));
     const def = await cargarTramo(t.id).catch(() => null); if (!def) continue;
     Object.entries(def.head || {}).forEach(([k, v]) => { v = String(v || '').trim(); if (/^(textura_|glifo_)/.test(k) && v) add(/\//.test(v) ? v.replace(/^\.?\//, '') : T + v); });
+    // v398 · también la música de la ruta y de sus Choques, y los modelos 3D propios de sus rivales (Drake, Poxak, el Alquimista, Vellond…)
+    const H = def.head || {};
+    [H.musica, H.musica_choque].forEach(addAud);
+    (def.npcs || []).forEach(n => { addAud(n.musica); const m = String(n.modelo || '').trim(); if (m) add(m.includes('/') ? m : DIR + 'personajes/' + m); });
   }
   ['simbolo_codex.png', 'libro_textura.jpg', 'lomo_libro_textura.jpg', 'roca_textura.jpg', 'tabiques_textura.jpg', 'piso_archivos_textura.jpg', 'nubes_textura.jpg'].forEach(f => add(T + f));
   ['tramos/modelos/casa_1.glb', 'tramos/modelos/casa_2.glb', 'personajes/nextor.glb', 'personajes/koatl_chibi.glb', 'personajes/sitho.glb', 'personajes/rayah.glb', 'personajes/anima_multiversal.glb'].forEach(f => add(DIR + f));

@@ -2980,7 +2980,7 @@ async function cargarTramo(id) {
   // v396 · [npc:…] con  punto = id  → es ese rival/guardián del mapa (misma baraja, premios, 2ª forma y final), pero vive en la ruta
   const _np = s => { const P0 = PTS.find(x => x.id === String(s.punto || '').trim()); if (!P0) return null;
     return Object.assign({}, P0, { x: s.x, z: s.z, radio: s.radio, color: s.color || P0.color || '#ffd166', modelo: s.modelo, escala: s.escala, alto_rel: s.alto_rel, bloquea: s.bloquea, aparta: s.aparta, ancho_bloqueo: s.ancho_bloqueo,
-      nombre: s.nombre || P0.nombre, _nid: s._id, _tramo: id, _punto: P0.id }); };
+      nombre: s.nombre || P0.nombre, musica: s.musica || P0.musica, _nid: s._id, _tramo: id, _punto: P0.id }); };
   def.npcs = secs.filter(s => s._sec === 'npc').map(s => _np(s) || Object.assign({}, _ch, s, { imagen: s.imagen || CFG.tramo_rival_retrato || 'anima_retrato.png', id: 'tr~' + id + '~' + s._id, _nid: s._id, tipo: 'rival', distrito: s.distrito || t.hasta, _tramo: id,
     _req: [], _dias: [], _mon: parseInt(s.monedas, 10) || 0 }));
   // v288 · [barrera:id] x, z, ancho, giro, rival (id del [npc:...] que la apaga al vencerlo), color
@@ -3188,7 +3188,8 @@ async function abrirTramo(id, bajada) {
       return { id: n._nid, x: num(n.x, 0), z: num(n.z, 0), nombre: n.nombre || '', radio: num(n.radio, 2), color: n.color || '#ff5a7a', img: '', vencido: v,
         bloquea: /^(si|sí|1|true)$/i.test(String(n.bloquea || '').trim()), ancho_bloqueo: num(n.ancho_bloqueo, 1.3),
         aparta: ap.length >= 2 && ap.every(isFinite) ? ap : null, animar: v && !e.vis[n._nid],
-        entrada: n._punto ? '' : String(n.entrada || '¿Un Choque?'), revancha: n._punto ? '' : String(n.revancha || ''),      // v396 · los del mapa hablan con su retrato (sin ventanita)
+        // v397 · los rivales del mapa en la ruta hablan en la ventanita; solo la 2ª forma de Vellond usa la pantalla de diálogo
+        entrada: n._punto && tieneFase2(n) && enFase2(n) ? '' : String(n.entrada || '¿Un Choque?'), revancha: n._punto && tieneFase2(n) && enFase2(n) ? '' : String(n.revancha || ''),
         modelo: (m => m ? (m.includes('/') ? m : 'assets/nexotlan/personajes/' + m) : undefined)(String(n.modelo || '').trim()), escala: n.escala !== undefined && String(n.escala).trim() !== '' ? num(n.escala, 2) : undefined, alto_rel: n.alto_rel ? num(n.alto_rel, 0) : undefined,
         oculto: (oc => oc && !sitioUsado(e, oc) ? oc : '')(String(n.oculto || '').trim()) }; }),
     barreras: (def.barreras || []).map(b => { const r = def.npcs.find(n => n._nid === b.rival), ap = !!(r && vencido(r.id));
@@ -3363,7 +3364,8 @@ window.nxTramoEvento = async function (s) {
     }
     case 'npc': {
       const p = def.npcs.find(n => n._nid === ev.id); if (!p) return;
-      if (p._punto) { await retoPunto(p); break; }      // v396 · Drake, Poxak, el Alquimista y Vellond: diálogo con su retrato, 2ª forma y final
+      if (p._punto && ev.directo) { tramoPausa(true); precargarFase2(p); guardar(true); iniciarChoque(p); break; }   // v397 · aceptó en la ventanita
+      if (p._punto) { await retoPunto(p); break; }      // v396 · la 2ª forma de Vellond: pantalla de diálogo con su retrato
       if (ev.directo) { tramoPausa(true); guardar(true); iniciarChoque(p); break; }   // v294 · ya aceptó en la ventanita del Ánima
       tramoPausa(true);
       const r = await dialogo(p, vencido(p.id) && p.revancha ? p.revancha : (p.entrada || '¿Un Choque?'), [['⚔ ¡CHOQUE!', 'gold'], ['AHORA NO', 'sec']]);
@@ -4066,8 +4068,11 @@ async function procesarResultado() {
     await trasChoqueTramo(p0);
     return true;
   }
+  // v397 · rivales del mapa que viven en una ruta (Drake, Poxak, el Alquimista y la 1ª forma de Vellond): su frase en la ventanita de la ruta
+  const globo = !!(p0._punto && fase === 1);
+  if (globo) estTramo(p0._tramo).post = { id: p0._nid, gano: !!(res.won && !res.abandono), txt: res.abandono ? 'Te fuiste a media partida… eso cuenta como derrota.' : String((res.won ? p.victoria : p.derrota) || (res.won ? '¡Bien jugado!' : 'Suerte para la próxima.')), extra: '' };
   if (p0._punto) await escenaTramo(p0); else { mostrarMapa(); enfocarPunto(p); }
-  await dialogo(p, res.won ? p.victoria : p.derrota);
+  if (!globo) await dialogo(p, res.won ? p.victoria : p.derrota);
   if (res.abandono) await mensaje('🚪 CHOQUE ABANDONADO', 'Saliste del Choque antes de terminarlo: cuenta como <b>derrota</b>.');
   if (premio) { sonMonedas(); toast('<i class="mn"></i> +' + premio + ' monedas' + (bonoCal ? ` · <b>+${bonoCal}</b> por calificación ${cal}` : '') + (mejorCal ? ' · ¡mejor calificación!' : '')); }
   if (res.won && !res.abandono) { const cartas = darPremio(p, !antes); guardar(); pintarHud(); await mostrarPremio(cartas); }

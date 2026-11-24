@@ -3004,7 +3004,10 @@ async function cargarTramo(id) {
   // v404 · [personaje:id] x, z, nombre, modelo, escala, color, saludo (uno al azar cada vez | …), paginas (habla en orden), tienda = modista
   def.personajes = secs.filter(s => s._sec === 'personaje').map(s => ({ id: s._id, x: num(s.x, 0), z: num(s.z, 0), nombre: s.nombre || s._id, modelo: String(s.modelo || s._id + '.glb').trim(),
     escala: num(s.escala, 1.9), color: s.color || '#7fe0a8', saludo: pp(s.saludo), paginas: pp(s.paginas), tienda: String(s.tienda || '').trim().toLowerCase(), aura: s.aura || '', espiritu: /^(si|sí|1|true)$/i.test(String(s.espiritu || '').trim()),
-    saludo_final: pp(s.saludo_final), paginas_final: pp(s.paginas_final), alto_rel: num(s.alto_rel, 0), humo: String(s.humo || '').trim() }));      // v405 · *_final = lo que dicen cuando ya venciste a Vellond
+    saludo_final: pp(s.saludo_final), paginas_final: pp(s.paginas_final), alto_rel: num(s.alto_rel, 0), humo: String(s.humo || '').trim(),
+    aparece: String(s.aparece || '').trim().toLowerCase(), copia: /^(si|sí|1|true)$/i.test(String(s.copia || '').trim()),
+    ropa: { capa: s.capa, pecho: s.pecho, pant: s.pantalon || s.pant, zap: s.zapatos || s.zap, ojos: s.ojos, masc: s.mascara, e_capa: s.estampado_capa, e_pecho: s.estampado_pecho, e_espalda: s.estampado_espalda, e_hombro: s.estampado_capucha } }));
+  // v406 · aparece = final → solo cuando ya venciste a Vellond · aparece = antes → solo antes      // v405 · *_final = lo que dicen cuando ya venciste a Vellond
   // v307 · [coliseo] x, z (centro), radio_x, radio_z, niveles, alto (de cada piso), arcos (por piso), puerta (ángulo de la puerta grande), neon = #c1,#c2,#c3
   def.coliseo = (c => c ? { x: num(c.x, 0), z: num(c.z, 0), radio_x: num(c.radio_x, 40), radio_z: num(c.radio_z, 32), niveles: num(c.niveles, 3), alto: num(c.alto, 6.5),
     arcos: num(c.arcos, 56), puerta: num(c.puerta, 90), neon: String(c.neon || '#ff4fd8,#36d6ff,#ffb347'), color: String(c.color || '#d9d0c2').trim(), zona: String(c.zona || '').trim() } : null)(secs.find(s => s._sec === 'coliseo'));
@@ -3209,10 +3212,11 @@ async function abrirTramo(id, bajada) {
       playmats: String(h.exhibir_playmats || '').split('|').map(x => x.trim()).filter(Boolean) },
     post: e.post || null,
     koatl: def.koatl ? koatlJSON(def, e) : null,
-    guias: (def.personajes || []).map(q => { const fin = juegoTerminado(), P = fin && q.paginas_final.length ? q.paginas_final : fin && q.saludo_final.length ? [] : q.paginas, Sd = fin && q.saludo_final.length ? q.saludo_final : q.saludo;
+    guias: (def.personajes || []).filter(q => !q.aparece || (q.aparece === 'final' ? juegoTerminado() : q.aparece === 'antes' ? !juegoTerminado() : true)).map(q => { const fin = juegoTerminado(), P = fin && q.paginas_final.length ? q.paginas_final : fin && q.saludo_final.length ? [] : q.paginas, Sd = fin && q.saludo_final.length ? q.saludo_final : q.saludo;
       const pg = P.length ? P : Sd.length ? [Sd[Math.floor(Math.random() * Sd.length)]] : ['…'];
       return { id: 'pj_' + q.id, x: q.x, z: q.z, auto: false, paginas: pg, ruta: pg, tienda: !!q.tienda, nombre: q.nombre, txt: 'Hablar con ' + String(q.nombre).split('·')[0].trim(), color: q.color, escala: q.escala,
-        espiritu: q.espiritu, aura: q.aura || q.color, alto_rel: q.alto_rel || undefined, humo: q.humo || undefined, modelo: q.modelo.includes('/') ? q.modelo : 'assets/nexotlan/personajes/' + q.modelo }; }),
+        espiritu: q.espiritu, aura: q.aura || q.color, alto_rel: q.alto_rel || undefined, humo: q.humo || undefined,
+        ...(q.copia ? { modelo: jugModelo(), escala: +(CFG.tramo_modelo_escala || 1.6), ropa: ropaCopia(q.ropa) } : { modelo: q.modelo.includes('/') ? q.modelo : 'assets/nexotlan/personajes/' + q.modelo }) }; }),
     puerta_abierta: !!e.puerta, puerta_texto: String(h.puerta_texto || '').trim() || undefined,      // v404 · la Puerta Ancestral del Atrio
     rayah: def.rayah ? rayahJSON(def) : null,
     sitho: def.sitho ? (() => {
@@ -4659,7 +4663,7 @@ $('tdSalir').onclick = salirTienda;
 let MOD = { cfg: {}, modelo: {}, items: [] };
 const MODV = { abierto: false, listo: false, prueba: {}, tab: 'capa' };
 const MOD_ZONA = { capa: 'capa', pecho: 'pecho', chamarra: 'pecho', pantalon: 'pant', 'pantalón': 'pant', pant: 'pant', zapatos: 'zap', zap: 'zap', ojos: 'ojos' };
-const MOD_TABS = [['capa', '🧥', 'CAPA', 'Y capucha'], ['pecho', '👕', 'CHAMARRA', 'Color del pecho'], ['pant', '👖', 'PANTALÓN', 'Color'], ['zap', '👟', 'ZAPATOS', 'Color'], ['ojos', '👁', 'OJOS', 'Color'], ['est', '✨', 'ESTAMPADOS', 'Pecho, capa y capucha']];
+const MOD_TABS = [['capa', '🧥', 'CAPA', 'Y capucha'], ['pecho', '👕', 'CHAMARRA', 'Color del pecho'], ['pant', '👖', 'PANTALÓN', 'Color'], ['zap', '👟', 'ZAPATOS', 'Color'], ['ojos', '👁', 'OJOS', 'Color'], ['est', '✨', 'ESTAMPADOS', 'Pecho, capa y capucha'], ['masc', '🎭', 'MÁSCARAS', 'Sobre la cara']];
 const MOD_EST = [['e_capa', 'CAPA COMPLETA'], ['e_pecho', 'PECHO'], ['e_espalda', 'ESPALDA DE LA CAPA'], ['e_hombro', 'FRENTE DE LA CAPUCHA']];   // v318 · la ranura 'hombro' ahora es la capucha (se conserva la clave interna)
 function parseMod(txt) {
   const out = { cfg: {}, modelo: {}, items: [] }; let cur = null;
@@ -4667,16 +4671,21 @@ function parseMod(txt) {
     const t = l.trim(); if (!t || t.startsWith('#') || t.startsWith(';')) return;
     const h = t.match(/^\[(.+)\]$/);
     if (h) { const [a, id] = h[1].split(':').map(x => x.trim()), tipo = a.toLowerCase();
-      cur = tipo === 'modista' ? out.cfg : tipo === 'modelo' ? out.modelo : (tipo === 'color' || tipo === 'estampado') && id ? { id, tipo } : null;
+      cur = tipo === 'modista' ? out.cfg : tipo === 'modelo' ? out.modelo : (tipo === 'color' || tipo === 'estampado' || tipo === 'mascara' || tipo === 'máscara') && id ? { id, tipo: tipo.replace('á', 'a') } : null;
       if (cur && cur.tipo) out.items.push(cur); return; }
     const i = t.indexOf('='); if (i < 0 || !cur) return;
     cur[t.slice(0, i).trim().toLowerCase()] = t.slice(i + 1).trim();
   });
   out.items.forEach(x => { const z = String(x.zona || '').toLowerCase();
-    x.slot = x.tipo === 'color' ? (MOD_ZONA[z] || '') : (z === 'capucha' ? 'e_hombro' : ['capa_completa', 'patron', 'patrón'].includes(z) ? 'e_capa' : ['pecho', 'espalda'].includes(z) ? 'e_' + z : '');
+    x.slot = x.tipo === 'mascara' ? 'masc' : x.tipo === 'color' ? (MOD_ZONA[z] || '') : (z === 'capucha' ? 'e_hombro' : ['capa_completa', 'patron', 'patrón'].includes(z) ? 'e_capa' : ['pecho', 'espalda'].includes(z) ? 'e_' + z : '');
     x.repetir = Math.max(1, num(x.repetir, ['patron', 'patrón'].includes(z) ? 4 : 1));
     x.precio = Math.max(0, parseInt(x.precio, 10) || 0);
-    if (x.tipo === 'estampado') x.url = x.imagen ? (/\//.test(x.imagen) ? x.imagen.replace(/^\.?\//, '') : DIR + 'personajes/ropa/estampados/' + x.imagen) : ''; });
+    if (x.tipo === 'estampado') x.url = x.imagen ? (/\//.test(x.imagen) ? x.imagen.replace(/^\.?\//, '') : DIR + 'personajes/ropa/estampados/' + x.imagen) : '';
+    if (x.tipo === 'mascara') {      // v406 · [mascara:id] modelo (.glb en personajes/mascaras/), imagen (miniatura), escala, alto, adelante, giro, inclina
+      const mm = String(x.modelo || x.id + '.glb').trim(); x.url = /\//.test(mm) ? mm.replace(/^\.?\//, '') : DIR + 'personajes/mascaras/' + mm;
+      const im = String(x.imagen || '').trim(); x.mini = im ? (/\//.test(im) ? im.replace(/^\.?\//, '') : DIR + 'personajes/mascaras/' + im) : '';
+      x.aj = { escala: num(x.escala, 0.42), alto: num(x.alto, 0), adelante: num(x.adelante, 0.12), giro: num(x.giro, 0), inclina: num(x.inclina, 10), curva: num(x.curva, 0.55), ancho: num(x.ancho, 1.1), hondo: num(x.hondo, 1) };
+    } });
   out.items = out.items.filter(x => x.slot && (x.tipo === 'color' ? /^#[0-9a-f]{6}$/i.test(x.color || '') : x.url));
   return out;
 }
@@ -4684,6 +4693,13 @@ const esModista = p => p && p.tipo === 'heroe' && MOD.cfg.punto && p.id === MOD.
 function ropaEst() { S.ropa = S.ropa || {}; S.ropa.tiene = S.ropa.tiene || {}; S.ropa.puesto = S.ropa.puesto || {}; return S.ropa; }
 const modItem = id => MOD.items.find(x => x.id === id);
 // Lo que se le manda al motor 3D: colores por zona, estampados y las máscaras del modelo
+// v406 · NPC "copia del jugador": cada zona acepta el id de la Modista o un color #rrggbb directo; mascara = id de una máscara
+const jugModelo = () => (m => m ? (m.includes('/') ? m : 'assets/nexotlan/personajes/' + m) : 'assets/nexotlan/personajes/jugador.glb')(String(CFG.tramo_modelo || '').trim());
+function ropaCopia(o) {
+  const pu = {}, hex = {};
+  Object.keys(o || {}).forEach(k => { const v = String(o[k] || '').trim(); if (!v) return; if (/^#[0-9a-f]{6}$/i.test(v)) hex[k] = v; else pu[k] = v; });
+  const r = ropaJSON(pu) || {}; Object.keys(hex).forEach(k => r[k] = hex[k]); return r;
+}
 function ropaJSON(puesto) {
   if (!MOD.items.length) return null;
   const pu = puesto || (S && S.ropa && S.ropa.puesto) || {}, m = MOD.modelo;
@@ -4694,11 +4710,12 @@ function ropaJSON(puesto) {
     interior: num(m.interior, 0.45), capa: col('capa'), pecho: col('pecho'), pant: col('pant'), zap: col('zap'), ojos: col('ojos'),
     est_pecho: est('e_pecho'), est_espalda: est('e_espalda'), est_hombro: est('e_hombro'),
     est_capa: est('e_capa'), capa_rep: (it => it ? it.repetir : 1)(modItem(pu.e_capa)),
-    capa_capucha: (it => !it || !/^(no|0|false)$/i.test(String(it.capucha || 'si').trim()))(modItem(pu.e_capa)) };
+    capa_capucha: (it => !it || !/^(no|0|false)$/i.test(String(it.capucha || 'si').trim()))(modItem(pu.e_capa)),
+    mascara: (it => it && it.tipo === 'mascara' ? it.url : '')(modItem(pu.masc)), mascara_aj: (it => it && it.tipo === 'mascara' ? it.aj : {})(modItem(pu.masc)) };
 }
 function modVista() { if (!MODV.listo) return; try { $('mdFrame').contentWindow.nxGodot(JSON.stringify({ tipo: 'ropa', ropa: ropaJSON(MODV.prueba) })); } catch (e) {} }
 function modPendientes() { const r = ropaEst(); return Object.keys(MODV.prueba).map(k => modItem(MODV.prueba[k])).filter(it => it && !r.tiene[it.id] && it.precio > 0); }
-function modCambio() { const pu = ropaEst().puesto; return ['capa', 'pecho', 'pant', 'zap', 'ojos', 'e_capa', 'e_pecho', 'e_espalda', 'e_hombro'].some(k => (MODV.prueba[k] || '') !== (pu[k] || '')); }
+function modCambio() { const pu = ropaEst().puesto; return ['capa', 'pecho', 'pant', 'zap', 'ojos', 'e_capa', 'e_pecho', 'e_espalda', 'e_hombro', 'masc'].some(k => (MODV.prueba[k] || '') !== (pu[k] || '')); }
 function pintarModista() {
   const r = ropaEst(), t = MODV.tab;
   $('mdMon').innerHTML = '<i class="mn"></i> ' + (S.monedas || 0); $('mdMon2').textContent = S.monedas || 0;
@@ -4707,7 +4724,7 @@ function pintarModista() {
   const grupo = (slot, tit) => {
     const ops = MOD.items.filter(x => x.slot === slot), sel = MODV.prueba[slot] || '';
     const op = it => { const tuyo = !it || r.tiene[it.id] || !it.precio, pu = (r.puesto[slot] || '') === (it ? it.id : '');
-      const ico = !it ? '<i class="orig"></i>' : it.tipo === 'color' ? `<i style="--c:${esc(it.color)}"></i>` : `<i class="est" style="background-image:url('${esc(it.url)}')"></i>`;
+      const ico = !it ? '<i class="orig"></i>' : it.tipo === 'color' ? `<i style="--c:${esc(it.color)}"></i>` : it.tipo === 'mascara' ? (it.mini ? `<i class="est" style="background-image:url('${esc(it.mini)}')"></i>` : '<i class="orig">🎭</i>') : `<i class="est" style="background-image:url('${esc(it.url)}')"></i>`;
       return `<button class="mdx-op ${sel === (it ? it.id : '') ? 'on' : ''}" data-s="${slot}" data-id="${it ? esc(it.id) : ''}">${pu ? '<u>PUESTO</u>' : ''}${ico}<b>${esc(it ? it.nombre || it.id : 'Original')}</b>${tuyo ? '<small class="tuyo">' + (it ? 'TUYO' : 'SIEMPRE') + '</small>' : '<small>🪙 ' + it.precio + '</small>'}</button>`; };
     return (tit ? `<div class="mdx-grupo">${tit}</div>` : '') + `<div class="mdx-ops">${op(null)}${ops.map(op).join('')}</div>`;
   };
@@ -4746,7 +4763,7 @@ $('mdOk').onclick = async () => {
   if (total > (S.monedas || 0)) return;
   if (pend.length && await mensaje('👗 ¿LLEVARLO?', `Vas a comprar <b>${pend.map(x => esc(x.nombre || x.id)).join(', ')}</b> por <b>🪙 ${total}</b>.<br>Queda en tu guardarropa para siempre.`, [['COMPRAR', 'gold'], ['CANCELAR', 'sec']]) !== 0) return;
   if (pend.length) { S.monedas -= total; try { sonMonedas(); } catch (e) {} pend.forEach(x => r.tiene[x.id] = 1); }
-  ['capa', 'pecho', 'pant', 'zap', 'ojos', 'e_capa', 'e_pecho', 'e_espalda', 'e_hombro'].forEach(k => { if (MODV.prueba[k]) r.puesto[k] = MODV.prueba[k]; else delete r.puesto[k]; });
+  ['capa', 'pecho', 'pant', 'zap', 'ojos', 'e_capa', 'e_pecho', 'e_espalda', 'e_hombro', 'masc'].forEach(k => { if (MODV.prueba[k]) r.puesto[k] = MODV.prueba[k]; else delete r.puesto[k]; });
   guardar(); pintarModista(); toast(pend.length ? '👗 ¡Estrenas ropa!' : '👗 Listo, ya lo traes puesto');
 };
 
@@ -4933,6 +4950,7 @@ async function items3D() {
   const add = u => { if (!u) return; u = new URL(u, location.href).href; if (ya.has(u)) return; ya.add(u); it.push({ cands: [u], tipo: 'img' }); };
   const addAud = u => { u = String(u || '').trim(); if (!u) return; u = new URL(u, location.href).href; if (ya.has(u)) return; ya.add(u); it.push({ cands: [u], tipo: 'aud' }); };
   const T = DIR + 'tramos/texturas/';
+  (MOD.items || []).filter(x => x.tipo === 'mascara').forEach(x => { add(x.url); if (x.mini) add(x.mini); });      // v406 · las máscaras de la Modista
   for (const t of TRAMOS) {
     add(DIR + String(t.archivo || ('tramos/' + t.id + '.txt')).replace(/^assets\/nexotlan\//, ''));
     const def = await cargarTramo(t.id).catch(() => null); if (!def) continue;
@@ -4940,7 +4958,7 @@ async function items3D() {
     // v398 · también la música de la ruta y de sus Choques, y los modelos 3D propios de sus rivales (Drake, Poxak, el Alquimista, Vellond…)
     const H = def.head || {};
     [H.musica, H.musica_choque].forEach(addAud);
-    (def.personajes || []).forEach(q => { const m = String(q.modelo || '').trim(); if (m) add(m.includes('/') ? m : DIR + 'personajes/' + m); });
+    (def.personajes || []).forEach(q => { const m = String(q.modelo || '').trim(); if (m && !q.copia) add(m.includes('/') ? m : DIR + 'personajes/' + m); });
     (def.npcs || []).forEach(n => { addAud(n.musica); vocesNpc(n).forEach(f => addAud(f.includes('/') ? f : DIR + 'sonidos/' + f)); const m = String(n.modelo || '').trim(); if (m) add(m.includes('/') ? m : DIR + 'personajes/' + m); });
   }
   ['simbolo_codex.png', 'libro_textura.jpg', 'lomo_libro_textura.jpg', 'roca_textura.jpg', 'tabiques_textura.jpg', 'piso_archivos_textura.jpg', 'nubes_textura.jpg'].forEach(f => add(T + f));

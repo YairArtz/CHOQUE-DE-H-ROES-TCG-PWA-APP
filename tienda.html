@@ -455,7 +455,7 @@
     .pr-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:16px;}
     .pr-card{position:relative;display:flex;gap:14px;padding:12px;border-radius:10px;background:var(--card);border:1px solid var(--border);overflow:hidden;}
     .pr-card.tengo{border-color:rgba(0,255,157,.35);}
-    .pr-img{flex:0 0 96px;height:120px;border-radius:7px;background:#05080c center/cover no-repeat;border:1px solid rgba(255,255,255,.07);
+    .pr-img{position:relative;flex:0 0 96px;height:120px;border-radius:7px;background:#05080c center/cover no-repeat;border:1px solid rgba(255,255,255,.07);
       display:flex;align-items:center;justify-content:center;font-size:2.2rem;color:var(--esp);}
     .pr-cuerpo{flex:1;min-width:0;display:flex;flex-direction:column;}
     .pr-tipo{align-self:flex-start;font-family:'Orbitron',sans-serif;font-size:.46rem;font-weight:900;letter-spacing:1.4px;padding:3px 7px;border-radius:3px;
@@ -520,6 +520,17 @@
     .prh-cod{font-family:'Orbitron',sans-serif;font-size:.56rem;font-weight:900;letter-spacing:1.4px;padding:11px 14px;border-radius:6px;cursor:pointer;
       border:1px dashed rgba(95,232,208,.55);background:transparent;color:var(--esp);}
     .prh.tengo{border-color:rgba(0,255,157,.4);}
+    /* ══ PREVENTA / PRÓXIMAMENTE ══ */
+    .pr-cinta{position:absolute;z-index:2;left:10px;top:10px;font-family:'Orbitron',sans-serif;font-size:.5rem;font-weight:900;letter-spacing:1.4px;
+      padding:6px 10px;border-radius:5px;background:linear-gradient(135deg,#cc55ff,#8a2be2);color:#fff;border:1px solid rgba(240,200,255,.7);
+      box-shadow:0 0 14px rgba(204,85,255,.55);text-transform:uppercase;}
+    .prh-img .pr-cinta{left:auto;right:10px;}
+    .pr-img .pr-cinta{left:4px;top:4px;right:4px;font-size:.38rem;padding:4px 5px;text-align:center;letter-spacing:.8px;}
+    .pr-precio s{font-size:.62em;color:var(--muted);margin-right:6px;font-weight:700;}
+    .pr-pre{display:inline-block;font-family:'Orbitron',sans-serif;font-size:.5rem;font-weight:900;letter-spacing:1.2px;padding:4px 8px;border-radius:4px;
+      background:var(--gold);color:#2a1400;vertical-align:middle;margin-left:4px;}
+    .pr-btn.pre{background:linear-gradient(135deg,#f5a623,#ffcf6a);color:#2a1400;}
+    .pr-nota-pre{font-size:.82rem;color:#e7c9ff;margin-top:8px;line-height:1.35;}
 
     /* ══ RIEL + ESCENA (solo vista amplia) ══ */
     #td-rail,#td-escena{display:none;}
@@ -1321,8 +1332,18 @@ async function cargarPremium(forzar) {
 }
 // descripcion en la hoja:  "Texto principal | Incluye 1 | Incluye 2 | …"
 function prPartes(p) { const a = String(p.descripcion || '').split('|').map(x => x.trim()).filter(Boolean); return { desc: a[0] || '', inc: a.slice(1) }; }
+// v4.5 · PREVENTA: precio normal tachado, precio con descuento y letrero de "Próximamente"
+function prPrecio(p) {
+  if (p.tengo || !(Number(p.precio_mxn) > 0)) return '';
+  if (p.preventa && Number(p.precio_lista) > Number(p.precio_mxn))
+    return `<div class="pr-precio"><s>${precioMXN(p.precio_lista)}</s>${precioMXN(p.precio_mxn)}<small>MXN</small><span class="pr-pre">PREVENTA -${escHtml(p.preventa_pct)}%</span></div>`;
+  return `<div class="pr-precio">${precioMXN(p.precio_mxn)}<small>MXN</small></div>`;
+}
+function prCinta(p) { return p.proximamente ? `<span class="pr-cinta">${escHtml(p.etiqueta || 'Próximamente')}</span>` : ''; }
 function prBoton(p, grande) {
+  if (p.tengo && p.proximamente) return '<span class="pr-btn ok">✓ PREVENTA ASEGURADA</span>';
   if (p.tengo) return '<span class="pr-btn ok">✓ EN TU COLECCIÓN</span>' + (grande && p.tipo === 'dlc' ? ' <a class="pr-btn" href="nexotlan.html">JUGAR EN NEXOTLAN</a>' : '');
+  if (p.activo && premiumMP && Number(p.precio_mxn) > 0 && p.preventa) return `<button class="pr-btn pre" onclick="mpAbrir('${escHtml(p.sku)}')">${grande ? 'COMPRAR EN PREVENTA' : 'PREVENTA'}</button>`;
   if (p.activo && premiumMP && Number(p.precio_mxn) > 0) return `<button class="pr-btn" onclick="mpAbrir('${escHtml(p.sku)}')">${grande ? 'PAGAR CON MERCADO PAGO' : 'PAGAR'}</button>`;
   if (p.activo && p.link_compra) return `<a class="pr-btn" href="${escHtml(p.link_compra)}" target="_blank" rel="noopener">COMPRAR</a>`;
   return '<span class="pr-btn off">PRÓXIMAMENTE</span>';
@@ -1335,15 +1356,16 @@ function pintarHeroPremium(p) {
   const box = document.getElementById('pr-hero'); if (!box) return;
   if (!p) { box.innerHTML = ''; return; }
   const { desc, inc } = prPartes(p);
-  const precio = !p.tengo && Number(p.precio_mxn) > 0 ? `<div class="pr-precio">${precioMXN(p.precio_mxn)}<small>MXN</small></div>` : '';
+  const precio = prPrecio(p);
+  const notaPre = p.proximamente ? `<div class="pr-nota-pre">${p.tengo ? 'Ya es tuyo: queda en tu colección y lo tendrás listo el día del lanzamiento.' : 'Cómpralo antes del lanzamiento y obtén el descuento de preventa. Queda en tu colección y lo tendrás listo el día del lanzamiento.'}</div>` : '';
   box.innerHTML = `<article class="prh${p.tengo ? ' tengo' : ''}">
-    <div class="prh-img" ${p.imagen ? `style="background-image:url('${escAttr(p.imagen)}')"` : ''} role="img" aria-label="${escHtml(p.nombre)}"></div>
+    <div class="prh-img" ${p.imagen ? `style="background-image:url('${escAttr(p.imagen)}')"` : ''} role="img" aria-label="${escHtml(p.nombre)}">${prCinta(p)}</div>
     <div class="prh-cuerpo">
       <div class="prh-tipo">${p.tipo === 'dlc' ? 'EXPANSIÓN DEL MODO AVENTURA' : (PR_TIPOS[p.tipo] || '')}</div>
       <h2>${escHtml(p.nombre)}</h2>
       ${desc ? `<p class="prh-desc">${escHtml(desc)}</p>` : ''}
       ${inc.length ? `<ul class="prh-inc">${inc.map(x => `<li>${escHtml(x)}</li>`).join('')}</ul>` : ''}
-      <div class="prh-acc">${precio}${prBoton(p, true)}${p.tengo ? '' : `<button class="prh-cod" onclick="abrirSeccion('canjear')">🔑 TENGO UN CÓDIGO</button>`}</div>
+      <div class="prh-acc">${precio}${prBoton(p, true)}${p.tengo ? '' : `<button class="prh-cod" onclick="abrirSeccion('canjear')">🔑 TENGO UN CÓDIGO</button>`}</div>${notaPre}
     </div>
   </article>`;
 }
@@ -1367,9 +1389,9 @@ function pintarPremium() {
     const inc = p.tipo === 'paquete' && p.contenido && p.contenido.length
       ? `<div class="pr-inc">Incluye: ${p.contenido.map(c => escHtml(nombres[c] || c)).join(', ')}</div>` : '';
     const btn = prBoton(p, false), pt = prPartes(p);
-    const precio = !p.tengo && Number(p.precio_mxn) > 0 ? `<div class="pr-precio">${precioMXN(p.precio_mxn)}<small>MXN</small></div>` : '';
+    const precio = prPrecio(p);
     return `<div class="pr-card${p.tengo ? ' tengo' : ''}">
-      <div class="pr-img" ${img}>${p.imagen ? '' : prIcono(p.tipo)}</div>
+      <div class="pr-img" ${img}>${p.imagen ? '' : prIcono(p.tipo)}${prCinta(p)}</div>
       <div class="pr-cuerpo">
         <span class="pr-tipo">${PR_TIPOS[p.tipo] || escHtml(String(p.tipo || '').toUpperCase())}</span>
         <div class="pr-nom">${escHtml(p.nombre)}</div>
@@ -1399,7 +1421,7 @@ function mpAbrir(sku) {
   if (!p) return;
   mpSku = sku;
   document.getElementById('mp-tit').textContent = p.nombre;
-  document.getElementById('mp-monto').innerHTML = `${precioMXN(p.precio_mxn)}<small>MXN</small>`;
+  document.getElementById('mp-monto').innerHTML = (p.preventa && Number(p.precio_lista) > Number(p.precio_mxn) ? `<s style="font-size:.55em;color:var(--muted);margin-right:6px">${precioMXN(p.precio_lista)}</s>` : '') + `${precioMXN(p.precio_mxn)}<small>MXN${p.preventa ? ' · PREVENTA -' + escHtml(p.preventa_pct) + '%' : ''}</small>`;
   document.getElementById('mp-id').textContent = 'SE ACTIVA EN: ' + jugador.id;
   const b = document.getElementById('mp-ir'); b.disabled = false; b.textContent = 'PAGAR ' + precioMXN(p.precio_mxn);
   document.getElementById('mp-fondo').classList.add('on');

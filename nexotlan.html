@@ -2526,6 +2526,7 @@ function enfocarPunto(p, suave) { if (!p) return; const v = vistaPunto(p); if (v
 const distDe = p => DIST.find(d => d.id === p.distrito) || null;
 function visibleHoy(p) {
   if (EDITOR) return true;
+  if (String(p.en_ruta || '').trim()) return false;      // v396 · vive en una ruta (se reta allá, no en el mapa)
   const d = distDe(p); if (d && !distritoAbierto(d)) return false;
   if (p._req.length && !cumple(p._req) && p.tipo !== 'guardian') return false;
   if (p._dias.length && !p._dias.includes(diaClave(S.dia))) return false;
@@ -2974,7 +2975,13 @@ async function cargarTramo(id) {
   const _hd = secs.find(s => s._sec === 'tramo') || {};
   const _ch = {}; ['fondo_mesa', 'playmat', 'fondo_inicio'].forEach(k => { if (String(_hd[k] || '').trim()) _ch[k] = String(_hd[k]).trim(); });
   if (String(_hd.musica_choque || '').trim()) _ch.musica = String(_hd.musica_choque).trim();
-  def.npcs = secs.filter(s => s._sec === 'npc').map(s => Object.assign({}, _ch, s, { imagen: s.imagen || CFG.tramo_rival_retrato || 'anima_retrato.png', id: 'tr~' + id + '~' + s._id, _nid: s._id, tipo: 'rival', distrito: s.distrito || t.hasta, _tramo: id,
+  // v396 · [escena:id] tipo = galeon | cauce | laboratorio | salon, x, z, alto, giro (las islas de la ruta final)
+  def.escenas = secs.filter(s => s._sec === 'escena').map(s => { const o = {}; Object.keys(s).filter(k => !/^_/.test(k)).forEach(k => o[k] = /^-?\d+(\.\d+)?$/.test(String(s[k]).trim()) ? +s[k] : String(s[k]).trim()); o.id = s._id; return o; });
+  // v396 · [npc:…] con  punto = id  → es ese rival/guardián del mapa (misma baraja, premios, 2ª forma y final), pero vive en la ruta
+  const _np = s => { const P0 = PTS.find(x => x.id === String(s.punto || '').trim()); if (!P0) return null;
+    return Object.assign({}, P0, { x: s.x, z: s.z, radio: s.radio, color: s.color || P0.color || '#ffd166', modelo: s.modelo, escala: s.escala, alto_rel: s.alto_rel, bloquea: s.bloquea, aparta: s.aparta, ancho_bloqueo: s.ancho_bloqueo,
+      nombre: s.nombre || P0.nombre, _nid: s._id, _tramo: id, _punto: P0.id }); };
+  def.npcs = secs.filter(s => s._sec === 'npc').map(s => _np(s) || Object.assign({}, _ch, s, { imagen: s.imagen || CFG.tramo_rival_retrato || 'anima_retrato.png', id: 'tr~' + id + '~' + s._id, _nid: s._id, tipo: 'rival', distrito: s.distrito || t.hasta, _tramo: id,
     _req: [], _dias: [], _mon: parseInt(s.monedas, 10) || 0 }));
   // v288 · [barrera:id] x, z, ancho, giro, rival (id del [npc:...] que la apaga al vencerlo), color
   def.barreras = secs.filter(s => s._sec === 'barrera').map(s => ({ id: s._id, x: num(s.x, 0), z: num(s.z, 0), ancho: num(s.ancho, 4.5), giro: num(s.giro, 0), rival: String(s.rival || '').trim(), color: s.color || '' }));
@@ -3181,7 +3188,8 @@ async function abrirTramo(id, bajada) {
       return { id: n._nid, x: num(n.x, 0), z: num(n.z, 0), nombre: n.nombre || '', radio: num(n.radio, 2), color: n.color || '#ff5a7a', img: '', vencido: v,
         bloquea: /^(si|sí|1|true)$/i.test(String(n.bloquea || '').trim()), ancho_bloqueo: num(n.ancho_bloqueo, 1.3),
         aparta: ap.length >= 2 && ap.every(isFinite) ? ap : null, animar: v && !e.vis[n._nid],
-        entrada: String(n.entrada || '¿Un Choque?'), revancha: String(n.revancha || ''),
+        entrada: n._punto ? '' : String(n.entrada || '¿Un Choque?'), revancha: n._punto ? '' : String(n.revancha || ''),      // v396 · los del mapa hablan con su retrato (sin ventanita)
+        modelo: (m => m ? (m.includes('/') ? m : 'assets/nexotlan/personajes/' + m) : undefined)(String(n.modelo || '').trim()), escala: n.escala !== undefined && String(n.escala).trim() !== '' ? num(n.escala, 2) : undefined, alto_rel: n.alto_rel ? num(n.alto_rel, 0) : undefined,
         oculto: (oc => oc && !sitioUsado(e, oc) ? oc : '')(String(n.oculto || '').trim()) }; }),
     barreras: (def.barreras || []).map(b => { const r = def.npcs.find(n => n._nid === b.rival), ap = !!(r && vencido(r.id));
       return { id: b.id, x: b.x, z: b.z, ancho: b.ancho, giro: b.giro, color: b.color, apagada: ap, animar: ap && !e.vis['b~' + b.id] }; }),
@@ -3213,6 +3221,10 @@ async function abrirTramo(id, bajada) {
     coliseo: def.coliseo || null,
     torre: def.torre || null,
     interior_torre: def.interior_torre || null, puerta_final: def.puerta_final || null,
+    escenas: def.escenas || [],      // v396 · islas de la ruta final
+    zonas_z: String(h.zonas_z || '').split('|').map(r => r.split(':').map(Number)).filter(r => r.length >= 2 && r.every(isFinite)),
+    zonas_calma: String(h.zonas_calma || '').split(',').map(Number).filter(x => isFinite(x) && x > 0),
+    final_hecho: def.npcs.some(n => n._punto && /^(si|sí|1|true)$/i.test(String(n.final || '').trim()) && vencido(n.id)),
     vista_final: String(h.vista_final || '').split(',').map(Number).filter(isFinite).length >= 3 ? String(h.vista_final).split(',').map(Number) : null,
     relampagos: String(h.relampagos || '').trim(), lluvia: String(h.lluvia || '').trim(), neblina: String(h.neblina || '').trim(), neblina_fuerza: num(h.neblina_fuerza, 0.32), celda_grupo: num(h.celda_grupo, 24),      // v348 · neblina baja
     calzada_redonda: String(h.calzada_redonda || '').trim(),
@@ -3275,6 +3287,13 @@ window.nxTramoEvento = async function (s) {
       e.pos = null; if (llega) e.fin = e.fin || Date.now(); guardar();
       const subB = String(def.t.al_bajar || '').trim();
       if (subB && llega) { cerrarTramo(); await new Promise(r => setTimeout(r, 300)); await entrarSub(subB); break; }      // v355 · túnel de bajada: llegas al submapa
+      // v396 · siguiente = id de otra ruta: la primera vez que llegas, se sigue directo a esa ruta (Ascenso a la Cima → Islas de la Convergencia)
+      const sigT = String(def.t.siguiente || '').trim(), tS = sigT && TRAMOS.find(x => x.id === sigT);
+      if (primera && tS) {
+        cerrarTramo(ev.a); await new Promise(r => setTimeout(r, 450));
+        await mensaje('🌌 ' + esc((tS.nombre || tS.id).toUpperCase()), String(tS.intro || `Más allá del portón de la Cima comienza <b>${esc(tS.nombre || tS.id)}</b>.`));
+        abrirTramo(sigT, true); break;
+      }
       cerrarTramo(ev.a);
       const d = DIST.find(x => x.id === ev.a);
       if (primera && d) { await new Promise(r => setTimeout(r, 450)); await mensaje('🏙 ¡LLEGASTE!', `Recorriste el <b>${esc(def.head.nombre || def.t.nombre || '')}</b> y llegaste a <b>${esc(d.nombre || d.id)}</b>.<br><br>Puedes volver a explorar el sendero cuando quieras desde el rombo amarillo del mapa.`); }
@@ -3344,6 +3363,7 @@ window.nxTramoEvento = async function (s) {
     }
     case 'npc': {
       const p = def.npcs.find(n => n._nid === ev.id); if (!p) return;
+      if (p._punto) { await retoPunto(p); break; }      // v396 · Drake, Poxak, el Alquimista y Vellond: diálogo con su retrato, 2ª forma y final
       if (ev.directo) { tramoPausa(true); guardar(true); iniciarChoque(p); break; }   // v294 · ya aceptó en la ventanita del Ánima
       tramoPausa(true);
       const r = await dialogo(p, vencido(p.id) && p.revancha ? p.revancha : (p.entrada || '¿Un Choque?'), [['⚔ ¡CHOQUE!', 'gold'], ['AHORA NO', 'sec']]);
@@ -3353,6 +3373,23 @@ window.nxTramoEvento = async function (s) {
   }
 };
 // Al regresar de un Choque contra un NPC del tramo: tras los diálogos y premios se vuelve a entrar al tramo
+// v396 · reto a un rival/guardián del mapa que vive en la ruta (con sus diálogos, su 2ª forma y su final)
+async function retoPunto(p) {
+  tramoPausa(true); precargarFase2(p);
+  if (tieneFase2(p) && enFase2(p) && reiniciaFase2(p)) { delete S.fase2[p.id]; guardar(); }
+  if (tieneFase2(p) && enFase2(p)) await retoFase2(p);
+  else {
+    const r = await dialogo(p, vencido(p.id) && p.revancha ? p.revancha : (p.entrada || '¿Un Choque?'), [['⚔ ¡CHOQUE!', p.tipo === 'guardian' ? 'red' : 'gold'], ['AHORA NO', 'sec']]);
+    if (r === 0) { guardar(true); iniciarChoque(p); }
+  }
+  if (!cargaVisible()) tramoPausa(false);
+}
+// v396 · al volver de su Choque: se abre la ruta y los diálogos, premios, transformación y final salen encima de ella
+async function escenaTramo(p0) {
+  if (p0._forzar || !TRAMO || TRAMO.id !== p0._tramo || !$('sTramo').classList.contains('on')) await abrirTramo(p0._tramo, true);
+  for (let i = 0; i < 160 && !(TRAMO && TRAMO.listo); i++) await new Promise(r => setTimeout(r, 125));
+  await new Promise(r => setTimeout(r, 500)); tramoPausa(true);
+}
 async function trasChoqueTramo(p) { if (p && p._tramo) { await new Promise(r => setTimeout(r, 300)); abrirTramo(p._tramo); } }
 
 // ═══════════ v366 · MENÚ DE PAUSA DE LAS RUTAS (Start / Esc / botón del mapa) ═══════════
@@ -3942,7 +3979,7 @@ async function iniciarChoque(p0, fase) {
   ocupado(true); mostrarCarga(0); $('carga').classList.remove('listo'); clearTimeout(quitarCarga._t); clearTimeout(window.__cargaT);   // v232 · la carga aparece al instante
   const id = 'nx' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   const d = distDe(p), [ret, fch] = await Promise.all([retrato(p), fondosChoque(p, distDe(p))]);
-  S.pendiente = { id, punto: p.id, dia: S.dia, fase }; guardar(true);
+  S.pendiente = { id, punto: p.id, dia: S.dia, fase }; if (p0._punto && p0._tramo) { S.pendiente.tramo = p0._tramo; S.pendiente.nid = p0._nid; } guardar(true);
   // La baraja armada en 🃏 BARAJA viaja al Simulador como "nx_mia"
   asegurarColeccion(); let jug = S.baraja;
   if (S.mazo && !validarMazo(S.mazo).ok) toast('⚠ Tu baraja no está lista: juegas con la básica. Revísala en 🃏 BARAJA');
@@ -3971,7 +4008,8 @@ async function procesarResultado() {
   const q = new URLSearchParams(location.search).get('r');
   if (q) history.replaceState(null, '', location.pathname + (EDITOR ? '?editor=1' : ''));
   if (!res || res.id !== S.pendiente.id) return false;
-  const p0 = PTS.find(x => x.id === S.pendiente.punto) || await npcTramo(S.pendiente.punto), fase = S.pendiente.fase || 1;   // v281 · NPC de un tramo
+  let p0 = PTS.find(x => x.id === S.pendiente.punto) || await npcTramo(S.pendiente.punto), fase = S.pendiente.fase || 1;   // v281 · NPC de un tramo
+  if (p0 && S.pendiente.tramo) { const dT = await cargarTramo(S.pendiente.tramo), q = dT && dT.npcs.find(n => n._nid === S.pendiente.nid); if (q) p0 = q; }   // v396 · rival del mapa que vive en una ruta
   S.pendiente = null;
   try { localStorage.removeItem('chh_arcade_result'); } catch (e) {}
   if (!p0) { guardar(); return false; }
@@ -3981,11 +4019,12 @@ async function procesarResultado() {
     precargarFase2(p0); ocupado(true, '⏳ ' + (p0.fase2_etiqueta || 'Transformación') + '…');
     S.historial.push({ p: p0.id, won: true, dia: S.dia, turnos: res.turnos || 0, ts: Date.now(), fase: 1 });
     S.fase2 = S.fase2 || {}; S.fase2[p0.id] = 1; S.victorias++; S.dia++; guardar();
-    mostrarMapa(); enfocarPunto(p0);
+    if (p0._punto) await escenaTramo(p0); else { mostrarMapa(); enfocarPunto(p0); }
     if (p0.victoria) await dialogo(p0, p0.victoria);          // su reacción al caer la 1ª forma
     await transformacion(p0);                                   // cinemática: temblor, destello y aparece su forma verdadera
     await retoFase2(p0);
     if (!S.pendiente) ocupado(false);                          // si empezó el Choque, la pantalla de carga sigue
+    if (p0._punto && !cargaVisible()) tramoPausa(false);
     return true;
   }
   if (fase === 2) {
@@ -4010,7 +4049,7 @@ async function procesarResultado() {
   S.dia++;                               // cada Choque consume el día
   guardar();
   // v295 · Ánimas de los tramos: sin pantalla de diálogo; su frase sale en la ventanita del tramo al volver
-  if (p0._tramo) {
+  if (p0._tramo && !p0._punto) {
     const ok = res.won && !res.abandono;
     const extra = [premio ? '+' + premio + ' monedas' : '', bonoCal ? '+' + bonoCal + ' por calificación ' + cal : ''].filter(Boolean).join(' · ');
     estTramo(p0._tramo).post = { id: p0._nid, gano: ok, txt: res.abandono ? 'Te fuiste a media partida… eso cuenta como derrota.' : String((res.won ? p.victoria : p.derrota) || (res.won ? '¡Bien jugado!' : 'Suerte para la próxima.')), extra };
@@ -4027,7 +4066,7 @@ async function procesarResultado() {
     await trasChoqueTramo(p0);
     return true;
   }
-  mostrarMapa(); enfocarPunto(p);
+  if (p0._punto) await escenaTramo(p0); else { mostrarMapa(); enfocarPunto(p); }
   await dialogo(p, res.won ? p.victoria : p.derrota);
   if (res.abandono) await mensaje('🚪 CHOQUE ABANDONADO', 'Saliste del Choque antes de terminarlo: cuenta como <b>derrota</b>.');
   if (premio) { sonMonedas(); toast('<i class="mn"></i> +' + premio + ' monedas' + (bonoCal ? ` · <b>+${bonoCal}</b> por calificación ${cal}` : '') + (mejorCal ? ' · ¡mejor calificación!' : '')); }
@@ -4039,7 +4078,8 @@ async function procesarResultado() {
   if (campeon) { S.campeon = Date.now(); guardar(); }
   if (esFinal) await pantallaFinal(p0, !antes);                // jefe final (final = si): pantalla de victoria épica con su audio
   else if (campeon) await mensaje('👑 ¡CAMPEÓN DE NEXOTLAN!', `Venciste a todos los guardianes en ${S.dia} días. Puedes seguir explorando y retando a todos para completar tu diario.`);
-  if (p0._tramo) await trasChoqueTramo(p0);      // v281 · se vuelve a entrar al tramo donde estabas
+  if (p0._punto) { if (esFinal) await escenaTramo(Object.assign({}, p0, { _forzar: 1 })); tramoPausa(false); }      // v396 · sigues en la ruta (tras el final, con el glifo encendido)
+  else if (p0._tramo) await trasChoqueTramo(p0);      // v281 · se vuelve a entrar al tramo donde estabas
   // v284 · Al vencer por PRIMERA vez al guardián de un distrito, se abre el tramo que sale de él (automatico = no para desactivarlo)
   else if (res.won && !res.abandono && !antes && p0.tipo === 'guardian' && !esFinal) {
     const t = TRAMOS.find(t => t.desde === p0.distrito && !/^(no|0|false)$/i.test(String(t.automatico || 'si').trim()) && !estTramo(t.id).fin && tramoVisible(t));

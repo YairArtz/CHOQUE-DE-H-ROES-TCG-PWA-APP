@@ -1,0 +1,316 @@
+# ═════════════════════════════════════════════════════════════════
+#  NEXOTLAN · RUTA FINAL — Islas de la Convergencia (Cima de la Torre Convergente)
+#  Edítalo con el Bloc de notas (UTF-8).  campo = valor
+#  Cuatro islas flotantes unidas por escaleras de piedra, cada una más alta:
+#    1. Galeón Inquisidor ......... Drake        (baraja de Herman)
+#    2. Cauce del Inicio .......... Poxak        (baraja de Aldo)
+#    3. Laboratorio ............... el Alquimista (baraja de Roboto)
+#    4. Gran Salón Convergente .... Vellond      (1ª forma con su modelo 3D; al vencerlo, su transformación como siempre)
+#  Bloques nuevos de esta ruta:
+#   [escena:id]  tipo = galeon | cauce | laboratorio | salon,  x, z (centro), alto, giro
+#                Cada escena arma su piso, su decorado, sus obstáculos y la roca de abajo.
+#   [npc:id] con  punto = id de mapa.txt  → ES ese rival del mapa (misma baraja, premios, 2ª forma y final),
+#                pero se reta aquí. modelo = archivo .glb (en assets/nexotlan/personajes/) · escala = tamaño
+#                alto_rel = 1.9 → mide 1.9 veces la estatura del jugador (si se pone, manda sobre escala)
+#  zonas_z = z_ini:z_fin | …   el cielo cambia de color poco a poco mientras subes cada escalera
+#            (colores: color_x = isla 1, color_x2 = isla 2, color_x3 = isla 3, color_x4 = isla 4)
+#  zonas_calma = 2             zonas sin relámpagos (el atardecer del Cauce)
+# ═════════════════════════════════════════════════════════════════
+
+[tramo]
+nombre = Islas de la Convergencia
+inicio = -24,39
+bruma_bordes = no
+relampagos = si
+zonas_calma = 2
+fondo = cristales
+musica = assets/nexotlan/musica/torre.mp3
+zonas_z = 4:-11 | -37:-53 | -76:-94
+vista_final = 31,-108.5,15,15,22,3,5,48
+camara = 12.5,11
+brillo_sol = 0.9
+premio_100 = monedas:500
+
+# Isla 1 · Galeón Inquisidor (tormenta azul de noche)
+color_luz = #b8c4ff
+color_abismo = #0b0f2e
+color_niebla = #1b2458
+color_ambiente = #8a94d8
+color_contraluz = #6f7dff
+color_tinte_abismo = #5a68c8
+# Isla 2 · Cauce del Inicio (atardecer)
+color_luz2 = #ffc890
+color_abismo2 = #f2a27a
+color_niebla2 = #f0b48a
+color_ambiente2 = #d8a890
+color_contraluz2 = #ff9a5a
+color_tinte_abismo2 = #ffd6b8
+# Isla 3 · Laboratorio (tormenta eléctrica)
+color_luz3 = #d8ecff
+color_abismo3 = #0e2236
+color_niebla3 = #23496e
+color_ambiente3 = #a8c8ec
+color_contraluz3 = #5fd8ff
+color_tinte_abismo3 = #7aa8d8
+# Isla 4 · Gran Salón Convergente (el cosmos)
+color_luz4 = #e6d0ff
+color_abismo4 = #10052a
+color_niebla4 = #2a0f56
+color_ambiente4 = #b89ae6
+color_contraluz4 = #c070ff
+color_tinte_abismo4 = #7a58c8
+
+color_suelo = #6a6680
+color_borde = #3a3850
+color_piedra = #7a7290
+color_roca = #44425a
+color_cristal = #8fa8ff
+color_energia = #8fa8ff
+color_llama = #6f9bff
+color_madera = #7a5236
+
+textura_suelo = tabiques_textura.jpg
+textura_suelo_galeon = madera_textura.jpg
+textura_suelo_cauce = pasto_textura.jpg
+textura_suelo_lab = metal_lab_textura.jpg
+textura_suelo_salon = piso_mercado_textura.jpg
+textura_borde = roca_textura.jpg
+textura_piedra = piedra_ruina_textura.jpg
+textura_roca = roca_textura.jpg
+textura_madera = madera_textura.jpg
+textura_puente = madera_textura.jpg
+textura_abismo = nubes_textura.jpg
+textura_codex = simbolo_codex.png
+textura_cielo = cielo_cosmico.jpg
+escala_suelo = 3
+escala_suelo_galeon = 2.6
+escala_suelo_cauce = 3.5
+escala_suelo_lab = 4
+escala_suelo_salon = 4.5
+escala_borde = 3
+escala_piedra = 1.6
+escala_madera = 1.6
+escala_abismo = 40
+brillo_abismo = 0.45
+brillo_suelo_cauce = 0.62
+brillo_suelo_lab = 0.72
+brillo_suelo_galeon = 0.9
+
+# ─────────── las islas ───────────
+[escena:galeon]
+tipo = galeon
+x = -20
+z = 14
+alto = 0
+vela = #3b2a6b
+glifo = #9a6bff
+
+[escena:cauce]
+tipo = cauce
+x = -6
+z = -24.5
+alto = 9
+
+[escena:laboratorio]
+tipo = laboratorio
+x = 13
+z = -64.5
+alto = 18
+energia = #36d6ff
+
+[escena:salon]
+tipo = salon
+x = 31
+z = -108.5
+alto = 30
+color = #6a5a8a
+zona = 3
+
+# llegada: el saliente de roca donde termina el Ascenso
+[plataforma:llegada]
+x = -24
+z = 39
+ancho = 12
+largo = 10
+alto = -6
+piso = losas
+
+# ─────────── escaleras entre islas ───────────
+[camino:esc_llegada_galeon]
+puntos = -24,34.6 | -24,22.2
+ancho = 4.4
+tipo = escalera
+alto_ini = -6
+alto_fin = 0
+
+[camino:esc_galeon_cauce]
+puntos = -16,5.6 | -16,-13
+ancho = 4.4
+tipo = escalera
+alto_ini = 0
+alto_fin = 9
+
+[camino:esc_cauce_lab]
+puntos = 3,-36 | 3,-54
+ancho = 4.4
+tipo = escalera
+alto_ini = 9
+alto_fin = 18
+
+[camino:esc_lab_salon]
+puntos = 22,-75 | 22,-95
+ancho = 5
+tipo = escalera
+alto_ini = 18
+alto_fin = 30
+
+# ─────────── barreras: cada sala se abre al vencer a su rival ───────────
+[barrera:sello_galeon]
+x = -16
+z = 3.2
+ancho = 5.2
+giro = 0
+rival = drake
+color = #9a6bff
+
+[barrera:sello_cauce]
+x = 3
+z = -38.4
+ancho = 5.2
+giro = 0
+rival = poxak
+color = #7dff9a
+
+[barrera:sello_laboratorio]
+x = 22
+z = -77.4
+ancho = 5.8
+giro = 0
+rival = alquimista
+color = #36d6ff
+
+# ─────────── los rivales finales ───────────
+[npc:drake]
+punto = herman
+x = -21.5
+z = 13
+radio = 2.2
+color = #9a6bff
+modelo = drake_3d.glb
+escala = 2.1
+
+[npc:poxak]
+punto = aldo
+x = -6
+z = -24.5
+radio = 2.2
+color = #7dff9a
+modelo = poxak_3d.glb
+escala = 2.1
+
+[npc:alquimista]
+punto = roboto
+x = 13
+z = -63.5
+radio = 2.2
+color = #36d6ff
+modelo = alquimista_3d.glb
+escala = 2.1
+
+[npc:vellond]
+punto = g_vellond
+x = 31
+z = -108.5
+radio = 3.2
+color = #ffc94a
+modelo = vellond_3d.glb
+escala = 2.6
+alto_rel = 1.9
+
+# ─────────── decorado suelto ───────────
+[decorado]
+braseros = -27.5,36.5,1 | -20.5,41.5,1
+pilares = -28.5,39.5,4.2,#8fa8ff | -22.5,43,4.2,#8fa8ff
+luciernagas = -24,39,5,#9fb3ff
+
+# ─────────── cartas tiradas ───────────
+[carta:c1]
+x = -26.5
+z = 41
+carta = Legión del Mar, Jeanlaff
+
+[carta:c2]
+x = -26
+z = 16
+carta = Legión del Mar, El Mulato
+
+[carta:c3]
+x = -16
+z = 10
+carta = SIX Shootah
+
+[carta:c4]
+x = -13
+z = -32.5
+carta = Évolotl, Camoh
+
+[carta:c5]
+x = 0.5
+z = -15.5
+carta = Évolotl, Yuhll
+
+[carta:c6]
+x = 6
+z = -58.5
+carta = Solid Plasmephis Metalúrgico
+
+[carta:c7]
+x = 17.5
+z = -57.5
+carta = Gaseous Ioniz Metalúrgico
+
+[carta:c8]
+x = 19
+z = -102.5
+carta = Evótophya
+
+[carta:c9]
+x = 43
+z = -102.5
+carta = Koatl, Espíritu del Defensor
+
+# ─────────── cofres ───────────
+[objeto:cofre1]
+x = -21
+z = 20.5
+giro = 0
+objeto = bolsa_monedas
+
+[objeto:cofre2]
+x = -12
+z = -15
+giro = 0
+objeto = carta_cima
+
+[objeto:cofre3]
+x = 3.5
+z = -70.5
+giro = 90
+objeto = sello_regente
+
+[objeto:cofre4]
+x = 18
+z = -115.5
+giro = 90
+objeto = corona_convergente
+
+# ─────────── salida (de regreso a la Cima) ───────────
+[salida:sur]
+x = -24
+z = 43.5
+a = cima
+texto = Cima de la Torre Convergente
+
+[monedas]
+sueltas = -24,32.5 | -24,30.5 | -24,28.4 | -24,26.3 | -24,24.3 | -16,2.5 | -16,-0.6 | -16,-3.7 | -16,-6.8 | -16,-9.9 | 3,-39 | 3,-42 | 3,-45 | 3,-48 | 3,-51 | 22,-78.3 | 22,-81.7 | 22,-85 | 22,-88.3 | 22,-91.7 | -24,18 | -16,18 | -16,9 | -14,-28.5 | 2,-28.5 | 7,-68.5 | 19,-68.5 | 25,-104.5 | 31,-102.5 | 37,-104.5
+rojas = -14,20.5 | -15.5,-15 | 21.6,-72

@@ -246,9 +246,25 @@ nombre = Ascenso a la Cima
 desde = ciudadela
 hasta = cima
 archivo = tramos/ascenso_cima.txt
+# v396 · la primera vez que llegas a la Cima se sigue directo a la ruta final
+siguiente = islas_convergencia
 # posición del rombo en el mapa (en la puerta de la Torre, arriba de la Ciudadela)
 x = 47.4
 y = 41
+
+# v396 · RUTA FINAL: las islas flotantes de la Cima. Aquí se reta a Drake, Poxak, el Alquimista y Vellond
+#   (son los puntos herman, aldo, roboto y g_vellond de abajo: misma baraja, premios, 2ª forma y final)
+[tramo:islas_convergencia]
+nombre = Islas de la Convergencia
+desde = cima
+hasta = cima
+archivo = tramos/islas_convergencia.txt
+requiere = g_koatl_nx
+paisaje = cima.jpg
+fondo_mesa = assets/simulacion/mesas/mesa_dimensional.jpg
+intro = Más allá del portón, la Cima no es un trono: son <b>cuatro islas suspendidas</b> sobre el vacío.<br><br>En cada una te espera un campeón. Al final, en el <b>Gran Salón Convergente</b>, Vellond.
+x = 47.4
+y = 27
 
 # v355 · DLC Las Catacumbas: la PRIMERA vez que tocas ⇩ BAJAR en la isla de las Catacumbas se recorre este túnel
 #   al_bajar = id del [submapa:…] al que lleva · no sale en el mapa principal; ya recorrido, sale como rombo dentro del submapa (x, y)
@@ -1597,60 +1613,65 @@ dialogo2 = (Muestra) Sigo explorando la Cima. ¡Suerte en tus Choques!
 
 [punto:herman]
 tipo = rival
-nombre = Herman
-titulo = Campeón de la Legión del Mar
+nombre = Drake
+titulo = Capitán del Galeón Inquisidor
 distrito = cima
+en_ruta = islas_convergencia
 x = 47.4
 y = 35.8
 musica = assets/nexotlan/musica/torre.mp3
-imagen = arcade/personajes/rival5_13.png
+imagen = assets/nexotlan/personajes/Drake.png
 carta = SERIES_025
 baraja = nxr_herman
 dificultad = auto
 monedas = 120
-entrada = ¡Nosotros custodiamos la sala del Regente! | Piénsalo dos veces, en serio, ¿me vas a desafiar?
-victoria = ¿Osea como?...en fin rival. Te lo ganaste, sigue con tu camino
-derrota = Necesitas mas poder si quieres pasarme… ¡no dejes de entrenar!
+entrada = Bienvenido a bordo del Galeón Inquisidor. | Ningún barco ha navegado tan alto… y ningún intruso ha bajado de él con vida. | ¡Leva anclas, Legión del Mar!
+victoria = Ja… hacía siglos que nadie hundía mi barco. | Sube, rival. El Cauce del Inicio te espera.
+derrota = El mar del Nexo se traga a los que dudan. ¡Vuelve cuando sepas navegar!
+revancha = ¿Otra vez en mi cubierta? Esta vez no habrá piedad.
 
 [punto:roboto]
 tipo = rival
-nombre = Roboto
-titulo = Dios Meka
+nombre = El Alquimista
+titulo = Maestro Metalúrgico
 distrito = cima
+en_ruta = islas_convergencia
 x = 42.9
 y = 28.6
 musica = assets/nexotlan/musica/torre.mp3
-dias = lun, mie, vie, dom
-imagen = arcade/personajes/rival_14.png
+imagen = assets/nexotlan/personajes/alquimista.png
 carta = SERIES_008
 baraja = nxr_roboto
 dificultad = auto
 monedas = 120
-entrada = ANALIZANDO… PROBABILIDAD DE VICTORIA DEL HUMANO: 3%. | METALÚRGICOS LISTOS!
-victoria = ERROR… RECALCULANDO…
-derrota = CÁLCULO CORRECTO.
+entrada = Plomo en oro, polvo en estrellas… y héroes en cenizas. | Mi laboratorio está a un paso del Gran Salón. ¿Serás mi próximo experimento?
+victoria = Interesante… una reacción que no estaba en mis fórmulas. | Adelante. Vellond ya sabe que vienes.
+derrota = Resultado esperado. Anotaré tus errores para la próxima.
+revancha = ¿Vuelves al laboratorio? Ajusté la fórmula.
 
 [punto:aldo]
 tipo = rival
-nombre = Aldo
-titulo = Maestre Evolutivo
+nombre = Poxak
+titulo = Guardián del Cauce del Inicio
 distrito = cima
+en_ruta = islas_convergencia
 x = 51.6
 y = 28.8
 musica = assets/nexotlan/musica/torre.mp3
-dias = mar, jue, sab, dom
-imagen = arcade/personajes/rival_13.png
+imagen = assets/nexotlan/personajes/poxak.png
 carta = SERIES_004
 baraja = nxr_aldo
 dificultad = auto
 monedas = 120
-entrada = Hoy me veo así...Mañana, quién sabe. | Lo único seguro es que vas a perder.
-victoria = Eres toda una anomalía en el Multiverso...tendré que estudiarte más
-derrota = Evoluciona o muere...principiante
+entrada = Aquí nació todo: cada huevo de este cauce guarda una evolución. | Veamos si tú también sabes cambiar… o si te quedas atrás.
+victoria = Evolucionaste frente a mis ojos. | Sigue el cauce hacia arriba: el Laboratorio no perdona.
+derrota = Evoluciona o muere… principiante.
+revancha = ¿Regresas al Cauce? Ya no eres el mismo… yo tampoco.
 
 [punto:g_vellond]
 tipo = guardian
 nombre = Vellond
+en_ruta = islas_convergencia
 retrato = grande
 titulo = Gran Regente de Nexotlan
 distrito = cima

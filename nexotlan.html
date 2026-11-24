@@ -3003,7 +3003,8 @@ async function cargarTramo(id) {
   def.koatl = (g => g ? { x: num(g.x, 0), z: num(g.z, 0), saludo: pp(g.saludo), consejos: pp(g.consejos), regalo: String(g.regalo || '').trim() } : null)(secs.find(s => s._sec === 'koatl'));
   // v404 · [personaje:id] x, z, nombre, modelo, escala, color, saludo (uno al azar cada vez | …), paginas (habla en orden), tienda = modista
   def.personajes = secs.filter(s => s._sec === 'personaje').map(s => ({ id: s._id, x: num(s.x, 0), z: num(s.z, 0), nombre: s.nombre || s._id, modelo: String(s.modelo || s._id + '.glb').trim(),
-    escala: num(s.escala, 1.9), color: s.color || '#7fe0a8', saludo: pp(s.saludo), paginas: pp(s.paginas), tienda: String(s.tienda || '').trim().toLowerCase(), aura: s.aura || '', espiritu: /^(si|sí|1|true)$/i.test(String(s.espiritu || '').trim()) }));
+    escala: num(s.escala, 1.9), color: s.color || '#7fe0a8', saludo: pp(s.saludo), paginas: pp(s.paginas), tienda: String(s.tienda || '').trim().toLowerCase(), aura: s.aura || '', espiritu: /^(si|sí|1|true)$/i.test(String(s.espiritu || '').trim()),
+    saludo_final: pp(s.saludo_final), paginas_final: pp(s.paginas_final), alto_rel: num(s.alto_rel, 0), humo: String(s.humo || '').trim() }));      // v405 · *_final = lo que dicen cuando ya venciste a Vellond
   // v307 · [coliseo] x, z (centro), radio_x, radio_z, niveles, alto (de cada piso), arcos (por piso), puerta (ángulo de la puerta grande), neon = #c1,#c2,#c3
   def.coliseo = (c => c ? { x: num(c.x, 0), z: num(c.z, 0), radio_x: num(c.radio_x, 40), radio_z: num(c.radio_z, 32), niveles: num(c.niveles, 3), alto: num(c.alto, 6.5),
     arcos: num(c.arcos, 56), puerta: num(c.puerta, 90), neon: String(c.neon || '#ff4fd8,#36d6ff,#ffb347'), color: String(c.color || '#d9d0c2').trim(), zona: String(c.zona || '').trim() } : null)(secs.find(s => s._sec === 'coliseo'));
@@ -3208,9 +3209,10 @@ async function abrirTramo(id, bajada) {
       playmats: String(h.exhibir_playmats || '').split('|').map(x => x.trim()).filter(Boolean) },
     post: e.post || null,
     koatl: def.koatl ? koatlJSON(def, e) : null,
-    guias: (def.personajes || []).map(q => { const pg = q.paginas.length ? q.paginas : q.saludo.length ? [q.saludo[Math.floor(Math.random() * q.saludo.length)]] : ['…'];
+    guias: (def.personajes || []).map(q => { const fin = juegoTerminado(), P = fin && q.paginas_final.length ? q.paginas_final : fin && q.saludo_final.length ? [] : q.paginas, Sd = fin && q.saludo_final.length ? q.saludo_final : q.saludo;
+      const pg = P.length ? P : Sd.length ? [Sd[Math.floor(Math.random() * Sd.length)]] : ['…'];
       return { id: 'pj_' + q.id, x: q.x, z: q.z, auto: false, paginas: pg, ruta: pg, tienda: !!q.tienda, nombre: q.nombre, txt: 'Hablar con ' + String(q.nombre).split('·')[0].trim(), color: q.color, escala: q.escala,
-        espiritu: q.espiritu, aura: q.aura || q.color, modelo: q.modelo.includes('/') ? q.modelo : 'assets/nexotlan/personajes/' + q.modelo }; }),
+        espiritu: q.espiritu, aura: q.aura || q.color, alto_rel: q.alto_rel || undefined, humo: q.humo || undefined, modelo: q.modelo.includes('/') ? q.modelo : 'assets/nexotlan/personajes/' + q.modelo }; }),
     puerta_abierta: !!e.puerta, puerta_texto: String(h.puerta_texto || '').trim() || undefined,      // v404 · la Puerta Ancestral del Atrio
     rayah: def.rayah ? rayahJSON(def) : null,
     sitho: def.sitho ? (() => {
@@ -3923,6 +3925,8 @@ document.addEventListener('keydown', e => {
 // ── Jefes de 2 fases (campos fase2_* en mapa.txt): al vencer la 1ª forma se transforma y hay un 2º Choque ──
 const tieneFase2 = p => !!(p && p.fase2_baraja);
 const enFase2 = p => !!(S.fase2 && S.fase2[p.id]);
+// v405 · ¿ya venciste al jefe final (el punto con final = si, incluida su transformación)?
+const juegoTerminado = () => PTS.some(p => /^(si|sí|1|true)$/i.test(String(p.final || '').trim()) && vencido(p.id) && !enFase2(p));
 function forma2(p) {      // el mismo punto con los datos de su transformación
   return Object.assign({}, p, {
     nombre: p.fase2_nombre || p.nombre, titulo: p.fase2_titulo || p.titulo, imagen: p.fase2_imagen || p.imagen, carta: p.fase2_carta || p.carta,

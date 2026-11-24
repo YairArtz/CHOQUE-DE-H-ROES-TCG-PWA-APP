@@ -2980,7 +2980,7 @@ async function cargarTramo(id) {
   // v396 · [npc:…] con  punto = id  → es ese rival/guardián del mapa (misma baraja, premios, 2ª forma y final), pero vive en la ruta
   const _np = s => { const P0 = PTS.find(x => x.id === String(s.punto || '').trim()); if (!P0) return null;
     return Object.assign({}, P0, { x: s.x, z: s.z, radio: s.radio, color: s.color || P0.color || '#ffd166', modelo: s.modelo, escala: s.escala, alto_rel: s.alto_rel, bloquea: s.bloquea, aparta: s.aparta, ancho_bloqueo: s.ancho_bloqueo,
-      nombre: s.nombre || P0.nombre, musica: s.musica || P0.musica, _nid: s._id, _tramo: id, _punto: P0.id }); };
+      nombre: s.nombre || P0.nombre, musica: s.musica || P0.musica, voz: s.voz || '', _nid: s._id, _tramo: id, _punto: P0.id }); };
   def.npcs = secs.filter(s => s._sec === 'npc').map(s => _np(s) || Object.assign({}, _ch, s, { imagen: s.imagen || CFG.tramo_rival_retrato || 'anima_retrato.png', id: 'tr~' + id + '~' + s._id, _nid: s._id, tipo: 'rival', distrito: s.distrito || t.hasta, _tramo: id,
     _req: [], _dias: [], _mon: parseInt(s.monedas, 10) || 0 }));
   // v288 · [barrera:id] x, z, ancho, giro, rival (id del [npc:...] que la apaga al vencerlo), color
@@ -3172,6 +3172,7 @@ async function abrirTramo(id, bajada) {
   const texturas = {}, escalas = {}, brillos = {}, relieves = {}, lustres = {};      // v398 · relieve_x (relieve por código) · lustre_x (brillo de la superficie: 0 mate → 1 pulido)
   Object.keys(h).forEach(k => { const m = k.match(/^(textura|escala|brillo|relieve|lustre)_(.+)$/); if (!m || !String(h[k]).trim()) return; const v = String(h[k]).trim();
     if (m[1] === 'textura') texturas[m[2]] = /\//.test(v) ? v.replace(/^\.?\//, '') : DIR + 'tramos/texturas/' + v; else ({ escala: escalas, brillo: brillos, relieve: relieves, lustre: lustres })[m[1]][m[2]] = num(v, 1); });
+  window._nxVocesNpc = {}; def.npcs.forEach(n => { const L = vocesNpc(n); if (L.length) window._nxVocesNpc[n._nid] = L; });      // v399
   const json = { id, nombre: h.nombre || def.t.nombre || id, jugador: { nombre: S.nombre || 'Jugador', avatar: avatarPerfil() || '', monedas: S.monedas || 0, dia: (S.dia || 0) + 1, dia_nombre: diaNombre(S.dia) }, colores, texturas, escalas, brillos, relieves, lustres,
     reverso: String(h.reverso || CFG.tramo_reverso || 'img/simulacion/reverso.jpg').trim(),
     jugador_modelo: (m => m ? (m.includes('/') ? m : 'assets/nexotlan/personajes/' + m) : '')(String(h.modelo || CFG.tramo_modelo || '').trim()),
@@ -3191,6 +3192,7 @@ async function abrirTramo(id, bajada) {
         // v397 · los rivales del mapa en la ruta hablan en la ventanita; solo la 2ª forma de Vellond usa la pantalla de diálogo
         entrada: n._punto && tieneFase2(n) && enFase2(n) ? '' : String(n.entrada || '¿Un Choque?'), revancha: n._punto && tieneFase2(n) && enFase2(n) ? '' : String(n.revancha || ''),
         modelo: (m => m ? (m.includes('/') ? m : 'assets/nexotlan/personajes/' + m) : undefined)(String(n.modelo || '').trim()), escala: n.escala !== undefined && String(n.escala).trim() !== '' ? num(n.escala, 2) : undefined, alto_rel: n.alto_rel ? num(n.alto_rel, 0) : undefined,
+        voz_propia: vocesNpc(n).length > 0,
         oculto: (oc => oc && !sitioUsado(e, oc) ? oc : '')(String(n.oculto || '').trim()) }; }),
     barreras: (def.barreras || []).map(b => { const r = def.npcs.find(n => n._nid === b.rival), ap = !!(r && vencido(r.id));
       return { id: b.id, x: b.x, z: b.z, ancho: b.ancho, giro: b.giro, color: b.color, apagada: ap, animar: ap && !e.vis['b~' + b.id] }; }),
@@ -4902,7 +4904,7 @@ async function items3D() {
     // v398 · también la música de la ruta y de sus Choques, y los modelos 3D propios de sus rivales (Drake, Poxak, el Alquimista, Vellond…)
     const H = def.head || {};
     [H.musica, H.musica_choque].forEach(addAud);
-    (def.npcs || []).forEach(n => { addAud(n.musica); const m = String(n.modelo || '').trim(); if (m) add(m.includes('/') ? m : DIR + 'personajes/' + m); });
+    (def.npcs || []).forEach(n => { addAud(n.musica); vocesNpc(n).forEach(f => addAud(f.includes('/') ? f : DIR + 'sonidos/' + f)); const m = String(n.modelo || '').trim(); if (m) add(m.includes('/') ? m : DIR + 'personajes/' + m); });
   }
   ['simbolo_codex.png', 'libro_textura.jpg', 'lomo_libro_textura.jpg', 'roca_textura.jpg', 'tabiques_textura.jpg', 'piso_archivos_textura.jpg', 'nubes_textura.jpg'].forEach(f => add(T + f));
   ['tramos/modelos/casa_1.glb', 'tramos/modelos/casa_2.glb', 'personajes/nextor.glb', 'personajes/koatl_chibi.glb', 'personajes/sitho.glb', 'personajes/rayah.glb', 'personajes/anima_multiversal.glb'].forEach(f => add(DIR + f));
@@ -5664,11 +5666,15 @@ window.nxVozGuia = function (id) {
       .then(b => { _voces[u] = b; tocar(b); }).catch(() => { _voces[u] = false; });
   } catch (e) {}
 };
-window.nxVozAnima = function (vol) {
-  const L = window._nxVoces || []; if (MUTE || !L.length) return;
+// v399 · VOZ PROPIA de un rival de ruta: [npc] voz = drake_voz_1.mp3 | drake_voz_2.mp3 (si la tiene, nunca usa las de las Ánimas)
+function vocesNpc(n) { return String((n && n.voz) || '').split('|').map(x => x.trim()).filter(Boolean); }
+window._nxVocesNpc = {};
+window.nxVozAnima = function (vol, nid) {
+  const propia = nid && window._nxVocesNpc[nid];
+  const L = propia || window._nxVoces || []; if (MUTE || !L.length) return;
   try { const c = _ctxM = _ctxM || new (window.AudioContext || window.webkitAudioContext)(); if (c.state === 'suspended') c.resume();
     const f = L[Math.floor(Math.random() * L.length)], u = f.includes('/') ? f : DIR + 'sonidos/' + f;
-    const tocar = b => { const src = c.createBufferSource(), g = c.createGain(); src.buffer = b; src.playbackRate.value = 0.9 + Math.random() * 0.2;
+    const tocar = b => { const src = c.createBufferSource(), g = c.createGain(); src.buffer = b; src.playbackRate.value = propia ? 1 : 0.9 + Math.random() * 0.2;
       g.gain.value = Math.max(0, Math.min(1.5, (+vol || 0) * (+CFG.volumen_voz || 1))); src.connect(g).connect(c.destination); src.start(); };
     if (_voces[u] instanceof AudioBuffer) return tocar(_voces[u]);
     if (_voces[u] === undefined) _voces[u] = fetch(u).then(r => r.ok ? r.arrayBuffer() : Promise.reject()).then(b => new Promise((ok, no) => c.decodeAudioData(b, ok, no)))

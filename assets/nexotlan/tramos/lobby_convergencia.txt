@@ -1,0 +1,171 @@
+# ═════════════════════════════════════════════════════════════════
+#  NEXOTLAN · ATRIO DE LA CONVERGENCIA (antes de las Islas)
+#  Edítalo con el Bloc de notas (UTF-8).  campo = valor
+#  Templo prehispánico futurista en la Cima: una plaza donde descansar y hablar con otros personajes.
+#  Al fondo, la PUERTA ANCESTRAL: se abre al interactuar con ella y detrás está la escalinata que sube a las Islas.
+#  Bloques nuevos:
+#   [escena:lobby]     arma la plaza, las pirámides, las columnas, la Piedra del Sol, las serpientes,
+#                      los portales de adorno y la puerta (puerta_ancho, puerta_alto)
+#   [personaje:id]     alguien con quien hablar: x, z, nombre, modelo (.glb en assets/nexotlan/personajes/),
+#                      escala, color, saludo (uno al azar cada vez | …) o paginas (habla en orden | …),
+#                      tienda = modista → al terminar de hablar abre la Modista.
+#                      Si su modelo aún no está subido, aparece como holograma de su color.
+#   [salida] a = id de otra ruta → pasa directo a esa ruta (con su pantalla de carga)
+#   entrada_<ruta> = x,z      dónde apareces al regresar desde esa ruta
+#  Texturas por código: codigo:roca · roca_morada · roca_arena · roca_oscura · tabique · tabique_gris ·
+#                       tabique_arena · tabique_morado · madera · madera_oscura · pasto · pasto_seco
+# ═════════════════════════════════════════════════════════════════
+
+[tramo]
+nombre = Atrio de la Convergencia
+inicio = 0,30
+bruma_bordes = no
+relampagos = si
+fondo = cristales
+musica = assets/nexotlan/musica/torre.mp3
+camara = 12,11
+brillo_sol = 0.85
+entrada_islas_convergencia = 0,-46
+puerta_texto = Abrir la Puerta Ancestral
+
+color_luz = #ffe6c0
+color_abismo = #0a1030
+color_niebla = #1c2a58
+color_ambiente = #9aa6d8
+color_contraluz = #2ef0d0
+color_tinte_abismo = #4a5aa8
+color_suelo = #8a8478
+color_borde = #4a4650
+color_piedra = #b0a088
+color_roca = #44425a
+color_cristal = #7ff5e6
+color_energia = #2ef0d0
+color_llama = #2ef0d0
+
+textura_suelo = codigo:tabique_gris
+textura_suelo_lobby = codigo:roca
+textura_calzada = codigo:tabique_arena
+textura_piedra = codigo:roca_arena
+textura_borde = codigo:roca_oscura
+textura_puerta = codigo:roca_oscura
+textura_roca = codigo:roca_oscura
+textura_abismo = nubes_textura.jpg
+textura_codex = simbolo_codex.png
+escala_suelo = 3
+escala_suelo_lobby = 6
+escala_calzada = 3
+escala_piedra = 3
+escala_borde = 3
+escala_puerta = 4
+escala_roca = 4
+escala_abismo = 40
+brillo_abismo = 0.45
+brillo_suelo_lobby = 0.9
+relieve_suelo = 1.4
+relieve_suelo_lobby = 1.3
+relieve_calzada = 1.5
+lustre_calzada = 0.3
+relieve_piedra = 1.2
+relieve_borde = 1.1
+relieve_puerta = 1.4
+lustre_puerta = 0.35
+relieve_roca = 1.0
+
+# ─────────── el atrio ───────────
+[escena:lobby]
+tipo = lobby
+x = 0
+z = 0
+alto = 0
+energia = #2ef0d0
+oro = #ffc94a
+puerta_ancho = 8
+puerta_alto = 11
+
+# detrás de la puerta: escalinata que sube a las islas y el descanso de arriba
+[camino:esc_puerta_islas]
+puntos = 0,-22.2 | 0,-44
+ancho = 6
+tipo = escalera
+alto_ini = 0
+alto_fin = 14
+
+[plataforma:descanso]
+x = 0
+z = -48.5
+ancho = 12
+largo = 9
+alto = 14
+piso = losas
+
+# ─────────── personajes ───────────
+[guia]
+x = -4.5
+z = 26
+al_acercar = si
+texto = Este es el Atrio de la Convergencia: el último lugar tranquilo antes de las Islas. | Aquí puedes hablar con quienes llegaron antes que tú, comprar con el Doctor Sitho o cambiar tu atuendo con la Modista. | Cuando estés listo, abre la Puerta Ancestral del fondo. Detrás está la escalinata que sube a las Islas de la Convergencia.
+
+[sitho]
+x = 13
+z = 10
+saludo = Hasta aquí llega mi Mercado, viajero. Arriba no habrá dónde comprar. | Los campeones de las Islas no perdonan. Llévate algo antes de subir. | Hasta los espíritus sienten el temblor de esa puerta. Mira mi mercancía.
+
+[personaje:modista]
+x = -13
+z = 10
+nombre = La Modista · Tejedora de Nexotlan
+modelo = modista.glb
+escala = 1.9
+color = #ff7ac8
+tienda = modista
+saludo = ¿Vas a enfrentar a Vellond con esa capa? Ven, déjame arreglarte. | Cada hilo de mi taller viene de una dimensión distinta. Elige el tuyo. | Un héroe también se presenta con estilo. Pruébate lo que quieras.
+
+[personaje:itzel]
+x = -9
+z = -14
+nombre = Itzel · Cronista de la Torre
+modelo = itzel.glb
+escala = 1.8
+color = #ffd166
+paginas = Escribo todo lo que pasa en la Torre Convergente. Tu nombre ya aparece varias veces. | Dicen que la Puerta Ancestral solo se abre para quien venció a los guardianes de todos los distritos. | Arriba hay cuatro islas. Cada una guarda a un campeón… y la última, a Vellond.
+
+[personaje:tonatiuh]
+x = 9
+z = -14
+nombre = Tonatiuh · Guardián del Atrio
+modelo = tonatiuh.glb
+escala = 2.1
+color = #ff8a3d
+saludo = Nadie cruza esa puerta sin estar preparado. Revisa tu baraja. | Las serpientes de piedra vigilan el Atrio desde antes de que existiera la ciudad. | Si regresas de las Islas, aquí estarás a salvo.
+
+[personaje:yaretzi]
+x = 16
+z = 19
+nombre = Yaretzi · Viajera de las Dimensiones
+modelo = yaretzi.glb
+escala = 1.8
+color = #7fd8ff
+saludo = Crucé esos portales pequeños para llegar aquí. Ninguno lleva al mismo lugar dos veces. | ¿Viste el Galeón flotando allá arriba? Su capitán no es nada amable. | Me dijeron que el Cauce del Inicio es el lugar más bonito de las Islas. Y el más peligroso.
+
+# ─────────── decorado suelto ───────────
+[decorado]
+braseros = -3.6,20,1 | 3.6,20,1 | -3.6,-17,1.2 | 3.6,-17,1.2 | -19.5,4,1 | 19.5,4,1 | -6,-48,1 | 6,-48,1
+matas = -19.5,12,1.3,#3f7a4a | -19.5,15,1.1,#4f8a3a | 19.5,12,1.3,#3f7a4a | -10,-19.5,1.2,#4a8a52 | 12.5,-19.5,1.2,#4a8a52 | -19.5,-1,1.1,#3f7a4a | 19.5,-1,1.1,#4f8a3a
+luciernagas = 0,-48,6,#9ff5e8
+
+# ─────────── salidas ───────────
+[salida:sur]
+x = 0
+z = 33.5
+a = cima
+texto = Cima de la Torre Convergente
+
+[salida:islas]
+x = 0
+z = -51.5
+a = islas_convergencia
+texto = Islas de la Convergencia
+
+[monedas]
+sueltas = 0,16 | 0,12 | -14,18 | 14,18 | -17,-2 | 17,-2 | 0,-25 | 0,-29 | 0,-33 | 0,-37 | 0,-41 | -4,-48 | 4,-48
+rojas = -21,-9 | 21,-9

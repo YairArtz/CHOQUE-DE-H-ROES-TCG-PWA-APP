@@ -247,14 +247,30 @@ desde = ciudadela
 hasta = cima
 archivo = tramos/ascenso_cima.txt
 # v396 · la primera vez que llegas a la Cima se sigue directo a la ruta final
-siguiente = islas_convergencia
+siguiente = lobby_convergencia
 # posición del rombo en el mapa (en la puerta de la Torre, arriba de la Ciudadela)
 x = 47.4
 y = 41
 
 # v396 · RUTA FINAL: las islas flotantes de la Cima. Aquí se reta a Drake, Poxak, el Alquimista y Vellond
 #   (son los puntos herman, aldo, roboto y g_vellond de abajo: misma baraja, premios, 2ª forma y final)
+# v404 · el ATRIO: la plaza-templo antes de las islas (Nextor, Sitho, la Modista y otros personajes).
+#   Su Puerta Ancestral lleva a las Islas. En el mapa: las Islas arriba de la torre (salen cuando ya abriste la puerta:
+#   aparece_tras = lobby_convergencia), el letrero de la Cima al centro y el Atrio debajo.
+[tramo:lobby_convergencia]
+nombre = Atrio de la Convergencia
+desde = cima
+hasta = cima
+archivo = tramos/lobby_convergencia.txt
+requiere = g_koatl_nx
+paisaje = cima.jpg
+fondo_mesa = assets/simulacion/mesas/mesa_dimensional.jpg
+intro = Más allá del portón de la Cima hay un <b>templo antiguo</b> suspendido entre las nubes.<br><br>Descansa, habla con quienes encuentres… y cuando estés listo, abre la <b>Puerta Ancestral</b>.
+x = 47.3
+y = 27
+
 [tramo:islas_convergencia]
+aparece_tras = lobby_convergencia
 nombre = Islas de la Convergencia
 desde = cima
 hasta = cima
@@ -263,8 +279,8 @@ requiere = g_koatl_nx
 paisaje = cima.jpg
 fondo_mesa = assets/simulacion/mesas/mesa_dimensional.jpg
 intro = Más allá del portón, la Cima no es un trono: son <b>cuatro islas suspendidas</b> sobre el vacío.<br><br>En cada una te espera un campeón. Al final, en el <b>Gran Salón Convergente</b>, Vellond.
-x = 47.4
-y = 27
+x = 47.3
+y = 7
 
 # v355 · DLC Las Catacumbas: la PRIMERA vez que tocas ⇩ BAJAR en la isla de las Catacumbas se recorre este túnel
 #   al_bajar = id del [submapa:…] al que lleva · no sale en el mapa principal; ya recorrido, sale como rombo dentro del submapa (x, y)
@@ -422,11 +438,11 @@ musica_choque = assets/nexotlan/musica/torre.mp3
 nombre = Cima de la Torre Convergente
 descripcion = El trono de Vellond, el Gran Regente. Solo llega quien recorrió toda Nexotlan.
 color = #ff2f5a
-x = 47
+x = 47.3
 y = 20
 forma = 41,39 41,16 46,10 49,10 54,16 54,39
 radio = 8
-etiqueta = 60,11
+etiqueta = 47.3,15
 requiere = g_koatl_nx
 paisaje = cima.jpg
 fondo_mesa = assets/simulacion/mesas/mesa_dimensional.jpg
@@ -1562,7 +1578,7 @@ nombre = Explorador Perdido
 titulo = Turista del Multiverso
 distrito = cima
 x = 51
-y = 22.5
+y = 24.5
 dias = lun, mar
 imagen = assets/nexotlan/personajes/turista_2.png
 monedas = 100

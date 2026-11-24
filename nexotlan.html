@@ -2937,7 +2937,9 @@ function tramoAbierto(t) {
 }
 // v356 · el túnel de bajada (al_bajar) aparece como rombo DENTRO de su submapa una vez recorrido
 const tramoBajadaVisible = t => !!t && !!String(t.al_bajar || '').trim() && VISTA === String(t.al_bajar).trim() && !!(S.tramos && S.tramos[t.id] && S.tramos[t.id].fin) && tieneDLC(String(t.dlc || '').trim().toLowerCase());
-const tramoVisible = t => tramoBajadaVisible(t) || !!t && !String(t.al_bajar || '').trim() && !/^(si|sí|1|true)$/i.test(String(t.oculto || '').trim()) && (!DEMO || (DEMO_D.has(t.desde) && DEMO_D.has(t.hasta))) && !!DIST.find(d => d.id === t.desde && (distritoAbierto(d) || pruebaDLC(t)) && enVista(d)) && tieneDLC(String(t.dlc || '').trim().toLowerCase()) && tramoAbierto(t);
+// v404 · aparece_tras = id de ruta: el tramo sale en el mapa cuando ya abriste la Puerta Ancestral de esa ruta
+const tramoVisible = t => tramoBajadaVisible(t) || !!t && !String(t.al_bajar || '').trim() && !/^(si|sí|1|true)$/i.test(String(t.oculto || '').trim()) &&
+  (!String(t.aparece_tras || '').trim() || !!(S.tramos && S.tramos[String(t.aparece_tras).trim()] && S.tramos[String(t.aparece_tras).trim()].puerta)) && (!DEMO || (DEMO_D.has(t.desde) && DEMO_D.has(t.hasta))) && !!DIST.find(d => d.id === t.desde && (distritoAbierto(d) || pruebaDLC(t)) && enVista(d)) && tieneDLC(String(t.dlc || '').trim().toLowerCase()) && tramoAbierto(t);
 function tramoPos(t) {
   const a = DIST.find(d => d.id === t.desde), b = DIST.find(d => d.id === t.hasta);
   return { x: num(t.x, a && b ? (a._x + b._x) / 2 : (a || { _x: 50 })._x), y: num(t.y, a && b ? (a._y + b._y) / 2 : (a || { _y: 50 })._y) };
@@ -2999,6 +3001,9 @@ async function cargarTramo(id) {
   // v334 · [rayah] x, z, saludo (pág | pág), despedida (pág | pág): Rayah la Genio concede UN deseo, una sola vez por partida
   def.rayah = (g => g ? { x: num(g.x, 0), z: num(g.z, 0), saludo: pp(g.saludo), despedida: pp(g.despedida) } : null)(secs.find(s => s._sec === 'rayah'));
   def.koatl = (g => g ? { x: num(g.x, 0), z: num(g.z, 0), saludo: pp(g.saludo), consejos: pp(g.consejos), regalo: String(g.regalo || '').trim() } : null)(secs.find(s => s._sec === 'koatl'));
+  // v404 · [personaje:id] x, z, nombre, modelo, escala, color, saludo (uno al azar cada vez | …), paginas (habla en orden), tienda = modista
+  def.personajes = secs.filter(s => s._sec === 'personaje').map(s => ({ id: s._id, x: num(s.x, 0), z: num(s.z, 0), nombre: s.nombre || s._id, modelo: String(s.modelo || s._id + '.glb').trim(),
+    escala: num(s.escala, 1.9), color: s.color || '#7fe0a8', saludo: pp(s.saludo), paginas: pp(s.paginas), tienda: String(s.tienda || '').trim().toLowerCase(), aura: s.aura || '', espiritu: /^(si|sí|1|true)$/i.test(String(s.espiritu || '').trim()) }));
   // v307 · [coliseo] x, z (centro), radio_x, radio_z, niveles, alto (de cada piso), arcos (por piso), puerta (ángulo de la puerta grande), neon = #c1,#c2,#c3
   def.coliseo = (c => c ? { x: num(c.x, 0), z: num(c.z, 0), radio_x: num(c.radio_x, 40), radio_z: num(c.radio_z, 32), niveles: num(c.niveles, 3), alto: num(c.alto, 6.5),
     arcos: num(c.arcos, 56), puerta: num(c.puerta, 90), neon: String(c.neon || '#ff4fd8,#36d6ff,#ffb347'), color: String(c.color || '#d9d0c2').trim(), zona: String(c.zona || '').trim() } : null)(secs.find(s => s._sec === 'coliseo'));
@@ -3203,6 +3208,10 @@ async function abrirTramo(id, bajada) {
       playmats: String(h.exhibir_playmats || '').split('|').map(x => x.trim()).filter(Boolean) },
     post: e.post || null,
     koatl: def.koatl ? koatlJSON(def, e) : null,
+    guias: (def.personajes || []).map(q => { const pg = q.paginas.length ? q.paginas : q.saludo.length ? [q.saludo[Math.floor(Math.random() * q.saludo.length)]] : ['…'];
+      return { id: 'pj_' + q.id, x: q.x, z: q.z, auto: false, paginas: pg, ruta: pg, tienda: !!q.tienda, nombre: q.nombre, txt: 'Hablar con ' + String(q.nombre).split('·')[0].trim(), color: q.color, escala: q.escala,
+        espiritu: q.espiritu, aura: q.aura || q.color, modelo: q.modelo.includes('/') ? q.modelo : 'assets/nexotlan/personajes/' + q.modelo }; }),
+    puerta_abierta: !!e.puerta, puerta_texto: String(h.puerta_texto || '').trim() || undefined,      // v404 · la Puerta Ancestral del Atrio
     rayah: def.rayah ? rayahJSON(def) : null,
     sitho: def.sitho ? (() => {
       const sal = def.sitho.saludo.length ? def.sitho.saludo : ['Ah, viajero… Aun en el camino, el Mercado viaja conmigo. ¿Qué te llevas hoy?'];
@@ -3292,6 +3301,14 @@ window.nxTramoEvento = async function (s) {
       const subB = String(def.t.al_bajar || '').trim();
       if (subB && llega) { cerrarTramo(); await new Promise(r => setTimeout(r, 300)); await entrarSub(subB); break; }      // v355 · túnel de bajada: llegas al submapa
       // v396 · siguiente = id de otra ruta: la primera vez que llegas, se sigue directo a esa ruta (Ascenso a la Cima → Islas de la Convergencia)
+      // v404 · a = id de otra RUTA: se pasa directo a ella (Atrio → Islas, Islas → Atrio). entrada_<ruta de donde vienes> = x,z en la ruta destino
+      const rA = ev.a && TRAMOS.find(x => x.id === ev.a);
+      if (rA) {
+        const dA = await cargarTramo(rA.id), eA = estTramo(rA.id), ent = dA && String(dA.head['entrada_' + TRAMO.id] || '').split(',').map(Number);
+        eA.pos = ent && ent.length >= 2 && ent.every(isFinite) ? ent : null; guardar();
+        TRAMO = null; $('trFrame').src = 'about:blank'; await new Promise(r => setTimeout(r, 200));
+        abrirTramo(rA.id, true); break;
+      }
       const sigT = String(def.t.siguiente || '').trim(), tS = sigT && TRAMOS.find(x => x.id === sigT);
       if (primera && tS) {
         cerrarTramo(ev.a); await new Promise(r => setTimeout(r, 450));
@@ -3338,7 +3355,12 @@ window.nxTramoEvento = async function (s) {
       if (ev.id === 'koatl') break;
       e.guia = 1; S.guiaIntro = 1; guardar(); break;
     }
+    case 'puerta_anc': { e.puerta = 1; guardar(); break; }      // v404 · la Puerta Ancestral queda abierta
     case 'guia_fin': {      // v321 · terminaste de hablar con Koatl: la primera vez en la ruta te da su regalo; luego, unas monedas una vez por día
+      const pjT = (def.personajes || []).find(q => 'pj_' + q.id === ev.id);
+      if (pjT && pjT.tienda === 'modista') {      // v404 · la Modista: se guarda tu lugar, se cierra la ruta (ahorra memoria) y al salir regresas aquí
+        window._modistaRuta = TRAMO.id; TRAMO = null; $('trFrame').src = 'about:blank'; guardar(); abrirModista(null); break;
+      }
       if (ev.id === 'rayah') { if (!S.deseo) await rayahDeseo(def); break; }
       if (ev.id === 'sitho') {      // v323 · la tienda del Comerciante, y al salir regresas a la ruta
         const com = PTS.find(esComerciante); if (!com) break;
@@ -4710,7 +4732,9 @@ function abrirModista(p) {
   irA('sModista'); pintarModista();
   try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('mdBody').querySelector('button') || $('mdSalir')), 60); } catch (e) {}
 }
-function salirModista() { MODV.abierto = false; MODV.listo = false; $('mdFrame').src = 'about:blank'; guardar(); volver(); }
+function salirModista() { MODV.abierto = false; MODV.listo = false; $('mdFrame').src = 'about:blank'; guardar();
+  if (window._modistaRuta) { const r = window._modistaRuta; window._modistaRuta = null; abrirTramo(r, true); return; }      // v404 · de vuelta al Atrio, donde estabas
+  volver(); }
 $('mdSalir').onclick = salirModista;
 $('mdQuitar').onclick = () => { MODV.prueba = Object.assign({}, ropaEst().puesto); modVista(); pintarModista(); };
 $('mdOk').onclick = async () => {
@@ -4912,6 +4936,7 @@ async function items3D() {
     // v398 · también la música de la ruta y de sus Choques, y los modelos 3D propios de sus rivales (Drake, Poxak, el Alquimista, Vellond…)
     const H = def.head || {};
     [H.musica, H.musica_choque].forEach(addAud);
+    (def.personajes || []).forEach(q => { const m = String(q.modelo || '').trim(); if (m) add(m.includes('/') ? m : DIR + 'personajes/' + m); });
     (def.npcs || []).forEach(n => { addAud(n.musica); vocesNpc(n).forEach(f => addAud(f.includes('/') ? f : DIR + 'sonidos/' + f)); const m = String(n.modelo || '').trim(); if (m) add(m.includes('/') ? m : DIR + 'personajes/' + m); });
   }
   ['simbolo_codex.png', 'libro_textura.jpg', 'lomo_libro_textura.jpg', 'roca_textura.jpg', 'tabiques_textura.jpg', 'piso_archivos_textura.jpg', 'nubes_textura.jpg'].forEach(f => add(T + f));

@@ -2980,7 +2980,7 @@ async function cargarTramo(id) {
   // v396 · [npc:…] con  punto = id  → es ese rival/guardián del mapa (misma baraja, premios, 2ª forma y final), pero vive en la ruta
   const _np = s => { const P0 = PTS.find(x => x.id === String(s.punto || '').trim()); if (!P0) return null;
     return Object.assign({}, P0, { x: s.x, z: s.z, radio: s.radio, color: s.color || P0.color || '#ffd166', modelo: s.modelo, escala: s.escala, alto_rel: s.alto_rel, bloquea: s.bloquea, aparta: s.aparta, ancho_bloqueo: s.ancho_bloqueo,
-      nombre: s.nombre || P0.nombre, musica: s.musica || P0.musica, voz: s.voz || '', _nid: s._id, _tramo: id, _punto: P0.id }); };
+      nombre: s.nombre || P0.nombre, musica: s.musica || P0.musica, voz: s.voz || '', cine: s.cine || '', versus: s.versus || '', _nid: s._id, _tramo: id, _punto: P0.id }); };
   def.npcs = secs.filter(s => s._sec === 'npc').map(s => _np(s) || Object.assign({}, _ch, s, { imagen: s.imagen || CFG.tramo_rival_retrato || 'anima_retrato.png', id: 'tr~' + id + '~' + s._id, _nid: s._id, tipo: 'rival', distrito: s.distrito || t.hasta, _tramo: id,
     _req: [], _dias: [], _mon: parseInt(s.monedas, 10) || 0 }));
   // v288 · [barrera:id] x, z, ancho, giro, rival (id del [npc:...] que la apaga al vencerlo), color
@@ -3192,7 +3192,7 @@ async function abrirTramo(id, bajada) {
         // v397 · los rivales del mapa en la ruta hablan en la ventanita; solo la 2ª forma de Vellond usa la pantalla de diálogo
         entrada: n._punto && tieneFase2(n) && enFase2(n) ? '' : String(n.entrada || '¿Un Choque?'), revancha: n._punto && tieneFase2(n) && enFase2(n) ? '' : String(n.revancha || ''),
         modelo: (m => m ? (m.includes('/') ? m : 'assets/nexotlan/personajes/' + m) : undefined)(String(n.modelo || '').trim()), escala: n.escala !== undefined && String(n.escala).trim() !== '' ? num(n.escala, 2) : undefined, alto_rel: n.alto_rel ? num(n.alto_rel, 0) : undefined,
-        voz_propia: vocesNpc(n).length > 0,
+        voz_propia: vocesNpc(n).length > 0, cine: /^(si|sí|1|true)$/i.test(String(n.cine || '').trim()),
         oculto: (oc => oc && !sitioUsado(e, oc) ? oc : '')(String(n.oculto || '').trim()) }; }),
     barreras: (def.barreras || []).map(b => { const r = def.npcs.find(n => n._nid === b.rival), ap = !!(r && vencido(r.id));
       return { id: b.id, x: b.x, z: b.z, ancho: b.ancho, giro: b.giro, color: b.color, apagada: ap, animar: ap && !e.vis['b~' + b.id] }; }),
@@ -3256,7 +3256,8 @@ async function abrirTramo(id, bajada) {
   irA('sTramo'); mostrarCarga(1200);
   // v308 · cada ruta suena con la canción de su distrito (el de llegada): musica del distrito, si no su musica_choque
   const dRuta = DIST.find(x => x.id === def.t.hasta);
-  musica(h.musica || def.t.musica || (dRuta && (dRuta.musica || dRuta.musica_choque)) || musicaVista());
+  window._nxMusRuta = h.musica || def.t.musica || (dRuta && (dRuta.musica || dRuta.musica_choque)) || musicaVista();      // v403 · para volver a ella al alejarte de un rival
+  musica(window._nxMusRuta);
   clearTimeout(abrirTramo._t); abrirTramo._t = setTimeout(() => { if (TRAMO && !TRAMO.listo) { quitarCarga(true); toast('⏳ El tramo tarda en cargar (la primera vez descarga el motor 3D)…'); } }, 40000);
 }
 function tramoPausa(on) {
@@ -3363,6 +3364,12 @@ window.nxTramoEvento = async function (s) {
     }
     case 'baraja': {      // v294 · editar la baraja sin salir del tramo
       abrirBarajas('sTramo'); break;      // v368 · MIS BARAJAS (3 ranuras)
+    }
+    case 'cine': {      // v403 · te acercas a un rival con cine = si: la cámara se acerca (Godot) y suena la canción de su Choque
+      const p = def.npcs.find(n => n._nid === ev.id); if (!p) return;
+      if (ev.on) { const f = p._punto && tieneFase2(p) && enFase2(p) ? forma2(p) : p; const u = f.musica || p.musica; if (u) musica(u); }
+      else if (window._nxMusRuta) musica(window._nxMusRuta);
+      break;
     }
     case 'npc': {
       const p = def.npcs.find(n => n._nid === ev.id); if (!p) return;
@@ -3991,6 +3998,7 @@ async function iniciarChoque(p0, fase) {
   const m = { id, slot: 0, ronda: 1, total: 1, jefe: p.tipo === 'guardian', jefeTxt: fase === 2 ? (p0.fase2_etiqueta || 'TRANSFORMACIÓN') : 'GUARDIÁN', jugador: jug, cpu: p.baraja, nivel: NIV_SIM[nivelDe(p)] || nivelDe(p),
     corazonesExtra: parseInt(p.corazones, 10) || 0, avatar: avatarPerfil() ? new URL(avatarPerfil(), location.href).href : '', nombre: p.nombre,
     retrato: ret ? new URL(ret.src, location.href).href : '', musica: p.musica ? new URL(p.musica, location.href).href : '',
+    directo: /^no$/i.test(String(p0.versus || '').trim()),      // v403 · versus = no → sin pantalla de VS: entra directo al Choque
     volver: 'nexotlan.html', volverTxt: 'NEXOTLAN', etiqueta: '🗺 NEXOTLAN · ' + (d ? d.nombre : '') + (fase === 2 ? ' · 2ª FASE' : '') };
   // Música del Choque: la del punto (o de su fase), si no la del distrito (musica_choque), si no la de [config] (musica_choque)
   const mc = p.musica || (d && d.musica_choque) || CFG.musica_choque; m.musica = mc ? new URL(mc, location.href).href : '';
@@ -4900,7 +4908,7 @@ async function items3D() {
   for (const t of TRAMOS) {
     add(DIR + String(t.archivo || ('tramos/' + t.id + '.txt')).replace(/^assets\/nexotlan\//, ''));
     const def = await cargarTramo(t.id).catch(() => null); if (!def) continue;
-    Object.entries(def.head || {}).forEach(([k, v]) => { v = String(v || '').trim(); if (/^(textura_|glifo_)/.test(k) && v) add(/\//.test(v) ? v.replace(/^\.?\//, '') : T + v); });
+    Object.entries(def.head || {}).forEach(([k, v]) => { v = String(v || '').trim(); if (/^(textura_|glifo_)/.test(k) && v && !/^codigo:/i.test(v)) add(/\//.test(v) ? v.replace(/^\.?\//, '') : T + v); });
     // v398 · también la música de la ruta y de sus Choques, y los modelos 3D propios de sus rivales (Drake, Poxak, el Alquimista, Vellond…)
     const H = def.head || {};
     [H.musica, H.musica_choque].forEach(addAud);

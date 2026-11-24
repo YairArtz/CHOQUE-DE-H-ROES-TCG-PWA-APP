@@ -10338,6 +10338,15 @@ function arcadeYaJugado(){
     initGame();
     checkOrientation();
   };
+  // v403 · Choque directo (Aventura: versus = no): sin pantalla de VS. El navegador puede no dejar sonar la música sin un toque:
+  //        en ese caso arranca con el primer toque en la mesa.
+  if(ARCADE&&ARCADE.directo&&!btn.disabled){
+    document.getElementById('bootScreen').classList.add('hide');
+    btn.onclick();
+    const reanudar=()=>{try{getAC();if(mpAudio&&mpAudio.src&&mpAudio.paused&&MP.cur)mpAudio.play().then(()=>{MP.on=true;mpUI();}).catch(()=>{});}catch(e){}
+      try{enterLandscape();}catch(e){}};
+    addEventListener('pointerdown',reanudar,{once:true,capture:true});
+  }
 })();
 </script>
 <script>

@@ -4237,7 +4237,7 @@ async function procesarResultado0() {
   else if (campeon) await mensaje('👑 ¡CAMPEÓN DE NEXOTLAN!', `Venciste a todos los guardianes en ${S.dia} días. Puedes seguir explorando y retando a todos para completar tu diario.`);
   // v417 · tras la pantalla final, SEGUIR EXPLORANDO te lleva al Atrio (final_destino = id de la ruta; por defecto lobby_convergencia)
   const destF = esFinal && TRAMOS.find(t => t.id === String(p0.final_destino || 'lobby_convergencia').trim());
-  if (destF) { velo(true); await abrirTramo(destF.id); await veloTramoListo(destF.id); }
+  if (destF) { velo(true); await abrirTramo(destF.id, true); await veloTramoListo(destF.id); }      // v419 · entra aunque el Atrio no figure como abierto (antes se quedaba en las islas)
   else if (p0._punto) { if (esFinal) await escenaTramo(Object.assign({}, p0, { _forzar: 1 })); tramoPausa(false); }      // v396 · sigues en la ruta (tras el final, con el glifo encendido)
   if (conVelo && document.body.classList.contains('nx-velo') && !destF) velo(false);
   else if (p0._tramo) await trasChoqueTramo(p0);      // v281 · se vuelve a entrar al tramo donde estabas

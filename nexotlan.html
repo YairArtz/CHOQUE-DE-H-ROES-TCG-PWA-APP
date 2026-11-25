@@ -1504,7 +1504,12 @@ body.nx-sismo2{animation:nxSismo2 .09s linear infinite}
 #nxFinal .fn-rango small{font-family:'Orbitron',monospace;font-size:clamp(6px,calc(1.6 * var(--uh)),9px);letter-spacing:1px;color:#ffd9a0;text-align:center;line-height:1.2}
 #nxFinal .fn-txt{font-size:clamp(11px,calc(2.6 * var(--uh)),15px);color:var(--text);opacity:0;line-height:1.4}
 #nxFinal.fb .fn-txt{animation:fnAparece .8s 3s forwards}
-#nxFinal .fn-bt{opacity:0;margin-top:auto}
+#nxFinal .fn-bt{opacity:0;margin-top:auto;container-type:inline-size}
+#nxFinal .fn-bt b{font-size:min(clamp(14px,calc(5.4 * var(--uh)),38px),4.3cqw);white-space:nowrap}
+#nxFinal .fn-bt small{font-size:min(clamp(8px,calc(2 * var(--uh)),11px),1.9cqw)}
+/* v418 · velo negro: tapa la ruta (isla con Vellond y el jugador) durante todo el cierre de la pelea contra el jefe de 2 fases */
+#nxVelo{position:fixed;inset:0;z-index:139;background:#000;display:none}
+body.nx-velo #nxVelo{display:block}
 #nxFinal.fb .fn-bt{animation:fnAparece .5s 3.6s forwards}
 #nxFinal .fn-bt:disabled{cursor:default}
 #nxFinal .fn-bt:not(:disabled):is(:hover,:focus-visible,.gp-foco){outline:0;transform:translateX(10px) scale(1.02);filter:drop-shadow(0 0 10px rgba(255,200,80,.95)) drop-shadow(0 0 24px rgba(255,140,30,.5))}
@@ -2036,7 +2041,7 @@ window.nxTip = function () {
 <div class="modal" id="mCaja"><div class="mbox" style="width:min(900px,100%)"><button class="f-x" onclick="cerrarModal('mCaja')" aria-label="Cerrar">✕</button><div class="mt" id="cjT"></div><div id="cjBody"></div></div></div>
 <div class="modal" id="mDiario"><div class="mbox"><button class="f-x" onclick="cerrarModal('mDiario')">✕</button><div class="mt">📖 DIARIO DE AVENTURA</div><div id="diBody"></div></div></div>
 <!-- Mensaje -->
-<div id="nxTrans"></div><div id="nxFinal"></div>
+<div id="nxTrans"></div><div id="nxVelo"></div><div id="nxFinal"></div>
 <div class="modal" id="mMsg"><div class="mbox" style="max-width:420px;text-align:center"><div class="mt" id="msgT" style="padding:0"></div><div id="msgB" style="font-size:16px;line-height:1.45;margin-bottom:14px"></div><div class="f-btns" id="msgOps"></div></div></div>
 
 <div class="noche" id="noche"><b id="nocheT">DÍA 2</b><span id="nocheS">MARTES</span></div>
@@ -4132,7 +4137,16 @@ async function iniciarChoque(p0, fase) {
     if (window.CHH_STEAM) { try { const f = $('trFrame'); if (f && f.src !== 'about:blank') f.src = 'about:blank'; } catch (e) {} }   // v386 · PC: se libera el motor 3D antes de cambiar de página
     location.href = 'simulacion.html?modo=arcade'; }, 380);   // la Simulación sigue con el mismo consejo
 }
+// v418 · velo negro para el cierre de la pelea contra un jefe de 2 fases (Vellond): la ruta carga/espera debajo sin verse
+function velo(on) { document.body.classList.toggle('nx-velo', !!on); }
+async function veloTramoListo(id) {      // quita el velo cuando la ruta pedida ya terminó de dibujarse
+  for (let i = 0; i < 200 && !(TRAMO && TRAMO.listo && (!id || TRAMO.id === id)); i++) await new Promise(r => setTimeout(r, 100));
+  await new Promise(r => setTimeout(r, 350)); velo(false);
+}
 async function procesarResultado() {
+  try { return await procesarResultado0(); } catch (e) { velo(false); throw e; }
+}
+async function procesarResultado0() {
   if (!S || !S.pendiente) return false;
   let res = null; try { res = JSON.parse(localStorage.getItem('chh_arcade_result') || 'null'); } catch (e) {}
   const q = new URLSearchParams(location.search).get('r');
@@ -4144,6 +4158,8 @@ async function procesarResultado() {
   try { localStorage.removeItem('chh_arcade_result'); } catch (e) {}
   if (!p0) { guardar(); return false; }
   const p = fase === 2 ? forma2(p0) : p0;
+  const conVelo = !!(p0._punto && tieneFase2(p0));
+  if (conVelo) velo(true);
   // 1ª forma vencida de un jefe de 2 fases: se transforma (aún no cuenta como vencido)
   if (res.won && !res.abandono && fase === 1 && tieneFase2(p0)) {
     precargarFase2(p0); ocupado(true, '⏳ ' + (p0.fase2_etiqueta || 'Transformación') + '…');
@@ -4160,6 +4176,7 @@ async function procesarResultado() {
     if (p0._punto && !S.pendiente) await escenaTramo(p0);      // dijo "AHORA NO": ahora sí vuelve a la isla
     if (!S.pendiente) ocupado(false);                          // si empezó el Choque, la pantalla de carga sigue
     if (p0._punto && !cargaVisible()) tramoPausa(false);
+    if (!S.pendiente) velo(false);                             // si aceptó el Choque, el velo sigue hasta cambiar de página
     return true;
   }
   if (fase === 2) {
@@ -4204,7 +4221,9 @@ async function procesarResultado() {
   // v397 · rivales del mapa que viven en una ruta (Drake, Poxak, el Alquimista y la 1ª forma de Vellond): su frase en la ventanita de la ruta
   const globo = !!(p0._punto && fase === 1);
   if (globo) estTramo(p0._tramo).post = { id: p0._nid, gano: !!(res.won && !res.abandono), txt: res.abandono ? 'Te fuiste a media partida… eso cuenta como derrota.' : String((res.won ? p.victoria : p.derrota) || (res.won ? '¡Bien jugado!' : 'Suerte para la próxima.')), extra: '' };
-  if (p0._punto) await escenaTramo(p0); else { mostrarMapa(); enfocarPunto(p); }
+  const finalGanado = res.won && !res.abandono && /^(si|sí|1|true)$/i.test(String(p0.final || '').trim());
+  if (p0._punto) { if (!(conVelo && finalGanado)) await escenaTramo(p0); }      // v418 · tras vencer al jefe final no se carga la isla: se va directo al Atrio
+  else { mostrarMapa(); enfocarPunto(p); }
   if (!globo) await dialogo(p, res.won ? p.victoria : p.derrota);
   if (res.abandono) await mensaje('🚪 CHOQUE ABANDONADO', 'Saliste del Choque antes de terminarlo: cuenta como <b>derrota</b>.');
   if (premio) { sonMonedas(); toast('<i class="mn"></i> +' + premio + ' monedas' + (bonoCal ? ` · <b>+${bonoCal}</b> por calificación ${cal}` : '') + (mejorCal ? ' · ¡mejor calificación!' : '')); }
@@ -4218,8 +4237,9 @@ async function procesarResultado() {
   else if (campeon) await mensaje('👑 ¡CAMPEÓN DE NEXOTLAN!', `Venciste a todos los guardianes en ${S.dia} días. Puedes seguir explorando y retando a todos para completar tu diario.`);
   // v417 · tras la pantalla final, SEGUIR EXPLORANDO te lleva al Atrio (final_destino = id de la ruta; por defecto lobby_convergencia)
   const destF = esFinal && TRAMOS.find(t => t.id === String(p0.final_destino || 'lobby_convergencia').trim());
-  if (destF) await abrirTramo(destF.id);
+  if (destF) { velo(true); await abrirTramo(destF.id); await veloTramoListo(destF.id); }
   else if (p0._punto) { if (esFinal) await escenaTramo(Object.assign({}, p0, { _forzar: 1 })); tramoPausa(false); }      // v396 · sigues en la ruta (tras el final, con el glifo encendido)
+  if (conVelo && document.body.classList.contains('nx-velo') && !destF) velo(false);
   else if (p0._tramo) await trasChoqueTramo(p0);      // v281 · se vuelve a entrar al tramo donde estabas
   // v284 · Al vencer por PRIMERA vez al guardián de un distrito, se abre el tramo que sale de él (automatico = no para desactivarlo)
   else if (res.won && !res.abandono && !antes && p0.tipo === 'guardian' && !esFinal) {

@@ -4058,9 +4058,6 @@ async function iniciarChoque(p0, fase) {
   const pn = k => Math.max(0, parseInt(p[k], 10) || 0);
   Object.assign(m, { borrador: pn('borrador'), revivir: pn('revivir'), manoExtra: pn('mano_extra'), almasExtra: pn('almas_extra'), roboExtra: pn('robo_extra') });
   try { m.secretas = [...secretasDe().sec]; } catch (e) {}   // v408 · foil de las Secretas en el Choque (vacío en la demo)
-  // v409 · foil ligero de las JOYAS: solo las de las dos barajas de este Choque (nada en la demo)
-  try { if (!DEMO) { const bj = jug === 'nx_mia' ? S.mazo : basica(S.baraja), bc = basica(p.baraja);
-    m.joyas = [...new Set([bj, bc].flatMap(b => b ? ['bp', 'ba', 'bs'].flatMap(z => (b[z] || []).map(x => x.id)) : []))].filter(id => CARD[id] && RAREZA(id) === 3); } } catch (e) {}
   try { localStorage.setItem('chh_arcade_match', JSON.stringify(m)); } catch (e) {}
   mostrarCarga(0); $('carga').classList.remove('listo'); clearTimeout(quitarCarga._t); clearTimeout(window.__cargaT);
   try { sessionStorage.setItem('chh_carga_paso', JSON.stringify({ tt: $('cgTT').textContent, x: $('cgX').textContent, fin: window.__cargaMin, tipo: 'nexotlan', ts: Date.now() })); } catch (e) {}

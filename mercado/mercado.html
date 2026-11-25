@@ -94,6 +94,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 .row[data-r="alfa"]{--r-color:#f4d03f;}
 .row[data-r="omega"]{--r-color:#ffd700;}
 .row[data-r="codex"]{--r-color:#d4af37;}
+.row[data-r="dorada"]{--r-color:#ffb300;}
 .row[data-r="promo_torneo"]{--r-color:#e74c3c;}
 .row[data-r="promo_evento"]{--r-color:#c39bff;}
 .row[data-r="promo_app"]{--r-color:#00d4a0;}
@@ -242,7 +243,8 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
   <ul>
     <li><b>Común</b> — Cartas estándar de sobres. Base $5 MXN. Pueden tener versión <b>Omega</b> (foil) desde $20.</li>
     <li><b>Alfa</b> — Foil premium, 1 por caja de sobres. Base $60, varía por expansión.</li>
-    <li><b>Omega</b> — Cualquier carta común en versión foil. Desde $20 MXN.</li>
+    <li><b>Omega</b> — Cualquier carta común en versión foil. Desde $20 MXN. Las cartas de Sobre Otakon solo existen en foil.</li>
+    <li><b>Dorada</b> — Rareza especial de Sobre Otakon (convención): muy baja probabilidad por sobre.</li>
     <li><b>Codex</b> — Foil con barniz, sin marco, con emblema de Codex en la parte baja. Desde $50.</li>
     <li><b>Promo Torneo</b> — Foil con barniz, emblema de libro de cómic abierto. Desde $80.</li>
     <li><b>Promo Evento</b> — Exclusivas de ferias del libro, convenciones y eventos del estudio. Desde $150 (mayor si son cartas de campeón).</li>
@@ -323,8 +325,8 @@ function tipoCat(tipo){
   if(t.includes('PERSONAJE')||t.includes('HÉROE INVITADO')||t.includes('HEROE INVITADO'))return 'personaje';
   return '';
 }
-const RAREZAS=[{id:'todas',label:'TODAS'},{id:'comun',label:'COMÚN'},{id:'alfa',label:'ALFA'},{id:'omega',label:'OMEGA'},{id:'codex',label:'CODEX'},{id:'promo_torneo',label:'PROMO TORNEO'},{id:'promo_evento',label:'PROMO EVENTO'},{id:'promo_app',label:'PROMO APP'}];
-const RAREZA_LABEL={comun:'Común',alfa:'Alfa',omega:'Omega',codex:'Codex',promo_torneo:'Promo Torneo',promo_evento:'Promo Evento',promo_app:'Promo App'};
+const RAREZAS=[{id:'todas',label:'TODAS'},{id:'comun',label:'COMÚN'},{id:'alfa',label:'ALFA'},{id:'omega',label:'OMEGA'},{id:'dorada',label:'DORADA'},{id:'codex',label:'CODEX'},{id:'promo_torneo',label:'PROMO TORNEO'},{id:'promo_evento',label:'PROMO EVENTO'},{id:'promo_app',label:'PROMO APP'}];
+const RAREZA_LABEL={comun:'Común',alfa:'Alfa',omega:'Omega',dorada:'Dorada',codex:'Codex',promo_torneo:'Promo Torneo',promo_evento:'Promo Evento',promo_app:'Promo App'};
 const CONDICION_PCT={NM:1,LP:.85,MP:.7,HP:.5,DMG:.3};
 
 async function cargar(){
@@ -345,7 +347,7 @@ function poblarExpansiones(){
 }
 function contarPorRareza(){
   const counts={todas:0};
-  STATE.cartas.forEach(c=>{const p=STATE.precios[c.id];if(!p)return;counts.todas++;counts[p.rareza]=(counts[p.rareza]||0)+1;if(p.rareza==='comun'&&p.precio_omega!=null)counts.omega=(counts.omega||0)+1;});
+  STATE.cartas.forEach(c=>{const p=STATE.precios[c.id];if(!p)return;counts.todas++;counts[p.rareza]=(counts[p.rareza]||0)+1;if((p.rareza==='comun'&&p.precio_omega!=null)||p.rareza==='omega')counts.omega=(counts.omega||0)+1;if(p.precio_dorada!=null)counts.dorada=(counts.dorada||0)+1;});
   return counts;
 }
 function renderTabs(){
@@ -358,7 +360,8 @@ function aplicar(){
   let list=STATE.cartas.filter(c=>{
     const p=STATE.precios[c.id];if(!p)return false;
     if(STATE.ocultas.has(c.id))return false;
-    if(STATE.rareza==='omega'){if(p.rareza!=='comun'||p.precio_omega==null)return false;}
+    if(STATE.rareza==='omega'){if(!((p.rareza==='comun'&&p.precio_omega!=null)||p.rareza==='omega'))return false;}
+    else if(STATE.rareza==='dorada'){if(p.precio_dorada==null)return false;}
     else if(STATE.rareza!=='todas'&&p.rareza!==STATE.rareza)return false;
     if(STATE.expansion&&c.expansion!==STATE.expansion)return false;
     if(STATE.tipo&&tipoCat(c.tipo)!==STATE.tipo)return false;
@@ -383,9 +386,9 @@ function renderList(){
   if(STATE.filtered.length===0){cont.innerHTML=`<div class="state"><div class="state-icon">◇</div>Ninguna carta coincide con los filtros</div>`;return;}
   cont.innerHTML=STATE.filtered.map(c=>{
     const p=STATE.precios[c.id];
-    const mostrarOmega=STATE.rareza==='omega';
-    const precio=mostrarOmega?p.precio_omega:p.precio_nm;
-    const rareza=mostrarOmega?'omega':p.rareza;
+    const mostrarOmega=STATE.rareza==='omega',mostrarDorada=STATE.rareza==='dorada';
+    const precio=mostrarDorada?p.precio_dorada:mostrarOmega?(p.rareza==='omega'?p.precio_nm:p.precio_omega):p.precio_nm;
+    const rareza=mostrarDorada?'dorada':mostrarOmega?'omega':p.rareza;
     const expLabel=c.expansion.replace(/_/g,' ').toUpperCase();
     return `<div class="row" data-r="${rareza}" data-id="${c.id}">
       <div class="row-thumb"><img class="loading" data-src="../${c.miniatura}" alt="${c.nombre}"></div>
@@ -396,7 +399,8 @@ function renderList(){
       </div>
       <div class="row-price">
         <div><span class="row-price-nm">$${precio}</span> <span class="row-price-currency">MXN</span></div>
-        ${(!mostrarOmega&&p.precio_omega!=null)?`<div class="row-price-omega">◆ Omega $${p.precio_omega}</div>`:''}
+        ${(!mostrarOmega&&!mostrarDorada&&p.precio_omega!=null)?`<div class="row-price-omega">◆ Omega $${p.precio_omega}</div>`:''}
+        ${(!mostrarDorada&&p.precio_dorada!=null)?`<div class="row-price-omega">★ Dorada $${p.precio_dorada}</div>`:''}
       </div>
     </div>`;
   }).join('');
@@ -413,9 +417,10 @@ function abrirModal(id){
   img.src='../'+(c.ampliada||c.miniatura);img.alt=c.nombre;
   const body=document.getElementById('modal-body');
   const rareza=p.rareza;
-  const rColor={comun:'#c0c0c0',alfa:'#f4d03f',codex:'#d4af37',promo_torneo:'#e74c3c',promo_evento:'#c39bff',promo_app:'#00d4a0'}[rareza]||'#c0c0c0';
+  const rColor={comun:'#c0c0c0',alfa:'#f4d03f',codex:'#d4af37',promo_torneo:'#e74c3c',promo_evento:'#c39bff',promo_app:'#00d4a0',omega:'#ffd700',dorada:'#ffb300'}[rareza]||'#c0c0c0';
   const preciosHTML=[];
   preciosHTML.push(`<div class="precio-row"><span class="precio-label">Precio NM (Near Mint)</span><span class="precio-value">$${p.precio_nm} MXN</span></div>`);
+  if(p.precio_dorada!=null)preciosHTML.push(`<div class="precio-row"><span class="precio-label">★ Versión Dorada</span><span class="precio-value omega">$${p.precio_dorada} MXN</span></div>`);
   if(p.precio_omega!=null)preciosHTML.push(`<div class="precio-row"><span class="precio-label">◆ Versión Omega (foil)</span><span class="precio-value omega">$${p.precio_omega} MXN</span></div>`);
   if(p.precio_digital!=null){
     preciosHTML.push(`<div class="precio-row"><span class="precio-label">📱 Nexo de Héroes · Sobre Digital</span><span class="precio-value digital">$${p.precio_digital} MXN</span></div>`);

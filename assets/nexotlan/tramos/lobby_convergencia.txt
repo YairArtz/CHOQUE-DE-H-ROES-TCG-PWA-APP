@@ -20,6 +20,13 @@
 #                      Si su modelo aún no está subido, aparece como holograma de su color.
 #   [salida] a = id de otra ruta → pasa directo a esa ruta (con su pantalla de carga)
 #   entrada_<ruta> = x,z      dónde apareces al regresar desde esa ruta
+#   v412 · SALA DE LAS CINCO PUERTAS (lado oeste):
+#   entrada_oeste = z, ancho   (en [escena:lobby]) abre un hueco en el parapeto del atrio
+#   [sitio:id]                 rocas que se rompen con una carta de ROMPER (igual que en la Escalinata)
+#   puertas_ancestrales = x,z,giro,escala   (en [decorado]) la Puerta Ancestral en chico y sellada, para contenido futuro
+#   [mirador:id] x, z, texto = … | … , aviso, nombre, color, alto
+#                al acercarte se presiona A y tu personaje cuenta lo que ve (uno distinto cada vez que lo miras).
+#                Los 4 portales del atrio están en: -18.5,17.5 (azul) · 18.5,17.5 (rosa) · -19,-19 (naranja) · 19,-19 (morado)
 #  Texturas por código: codigo:roca · roca_morada · roca_arena · roca_oscura · tabique · tabique_gris ·
 #                       tabique_arena · tabique_morado · madera · madera_oscura · pasto · pasto_seco
 # ═════════════════════════════════════════════════════════════════
@@ -89,6 +96,8 @@ energia = #2ef0d0
 oro = #ffc94a
 puerta_ancho = 8
 puerta_alto = 11
+# v412 · hueco en el parapeto hacia la Sala de las Cinco Puertas (z, ancho)
+entrada_oeste = 8, 5
 
 # detrás de la puerta: escalinata que sube a las islas y el descanso de arriba
 [camino:esc_puerta_islas]
@@ -97,6 +106,43 @@ ancho = 6
 tipo = escalera
 alto_ini = 0
 alto_fin = 14
+
+# ─────────── v412 · SALA DE LAS CINCO PUERTAS (oeste): aparece al romper las rocas ───────────
+[plataforma:pasillo_sala]
+x = -27
+z = 8
+forma = rect
+ancho = 10
+largo = 5
+alto = 0
+
+[plataforma:sala_puertas]
+x = -42
+z = 8
+forma = rect
+ancho = 20
+largo = 20
+alto = 0
+
+[sitio:rocas_sala]
+nombre = Rocas de la Sala Sellada
+x = -19.6
+z = 8
+radio = 2.4
+efecto = romper
+obstaculo = rocas
+ox = -23.2
+oz = 8
+giro = 90
+ancho = 5
+pista = Algo hay detrás de estas rocas · carta de ROMPER
+exito = ¡Se abrió el paso a una sala antigua!
+
+# una carta de ROMPER tirada en el atrio, por si no traes una
+[carta:tirada_romper]
+x = -16.5
+z = 9.5
+carta = cataclismo
 
 [plataforma:descanso]
 x = 0
@@ -235,8 +281,14 @@ paginas = ¡Woow! De repente estábamos combatiendo… un portal raro apareció 
 
 # ─────────── decorado suelto ───────────
 [decorado]
-braseros = -3.6,20,1 | 3.6,20,1 | -3.6,-17,1.2 | 3.6,-17,1.2 | -19.5,4,1 | 19.5,4,1 | -6,-48,1 | 6,-48,1
-matas = -19.5,12,1.3,#3f7a4a | -19.5,15,1.1,#4f8a3a | 19.5,12,1.3,#3f7a4a | -10,-19.5,1.2,#4a8a52 | 12.5,-19.5,1.2,#4a8a52 | -19.5,-1,1.1,#3f7a4a | 19.5,-1,1.1,#4f8a3a
+braseros = -3.6,20,1 | 3.6,20,1 | -3.6,-17,1.2 | 3.6,-17,1.2 | -19.5,4,1 | 19.5,4,1 | -6,-48,1 | 6,-48,1 | -50.5,16.5,1 | -33.5,16.5,1 | -50.5,-0.5,1
+# v412 · Sala de las Cinco Puertas: muro del fondo (norte y oeste), 5 puertas selladas y antorchas
+paredes = -32,-2,-52,-2,5.2,0,0 | -52,-2,-52,18,5.2,0,0
+puertas_ancestrales = -48,-1.3,0,0.33 | -42,-1.3,0,0.33 | -36,-1.3,0,0.33 | -51.3,3.5,90,0.33 | -51.3,12.5,90,0.33
+antorchas_pared = -51.55,8,90 | -45,-1.55,0 | -39,-1.55,0
+# glifo Codex que gira al centro de la sala (en lugar del círculo de losas)
+glifos = -42,8,4.6,#2ef0d0
+matas = -19.5,12,1.3,#3f7a4a | -19.5,15,1.1,#4f8a3a | 19.5,12,1.3,#3f7a4a | -10,-19.5,1.2,#4a8a52 | 12.5,-19.5,1.2,#4a8a52 | -19.5,-1,1.1,#3f7a4a | 19.5,-1,1.1,#4f8a3a | -33,0,1.2,#3f7a4a | -33,16.5,1.2,#4f8a3a | -42,17,1.1,#3f7a4a
 luciernagas = 0,-48,6,#9ff5e8
 
 # ─────────── salidas ───────────
@@ -251,6 +303,72 @@ x = 0
 z = -51.5
 a = islas_convergencia
 texto = Islas de la Convergencia
+
+# ─────────── v412 · cosas que se pueden MIRAR (A) ───────────
+# los portales del atrio: tu personaje cuenta lo que ve del otro lado (uno distinto cada vez)
+[mirador:portal_azul]
+x = -18.5
+z = 17.5
+color = #5fe0ff
+aviso = Mirar el portal
+texto = ¡Wow, es una batalla enorme! El villano tiene el cuerpo de metal y una túnica verde… y el equipo de héroes que pelea contra él… va perdiendo. | Un tipo con casco negro y una respiración muy ruidosa le acaba de decir a un chico que es su padre… el chico no se lo tomó nada bien. | Un hombre de gabardina negra esquiva balas echándose para atrás… en cámara lenta. ¿Cómo hace eso?
+
+[mirador:portal_rosa]
+x = 18.5
+z = 17.5
+color = #ff5fa8
+aviso = Mirar el portal
+texto = Un guerrero de cabello dorado y erizado grita… y grita… lleva como tres episodios gritando. ¡Y su poder no deja de crecer! | Un chico de gorra le lanza una esfera roja y blanca a una criatura amarilla de mejillas rojas… y la criatura le da un toque eléctrico. A él. | Una chica de coletas larguísimas y uniforme de marinera se transforma entre listones y destellos… y luego regaña a un monstruo en nombre de la luna.
+
+[mirador:portal_naranja]
+x = -19
+z = -19
+color = #ffb347
+aviso = Mirar el portal
+texto = Alguien muy bajito y descalzo camina hacia un volcán con un anillo colgado del cuello… y desde las sombras una criatura flaca no deja de susurrar sobre su tesoro. | Un niño de lentes redondos y una cicatriz en forma de rayo persigue una pelotita dorada con alas… ¡montado en una escoba! | Un vaso de agua tiembla sobre el tablero de un jeep… pum… pum… algo enorme se acerca entre los árboles. ¡Hay que correr!
+
+[mirador:portal_morado]
+x = 19
+z = -19
+color = #b06bff
+aviso = Mirar el portal
+texto = Un titán morado con un guante dorado lleno de gemas… chasquea los dedos. Y la mitad de todo se vuelve polvo. | Tres tipos con el mismo traje rojo y azul de telaraña se señalan entre ellos… ¿cuál será el original? | Una ciudad oscura, una señal con forma de murciélago en las nubes… y un payaso de cabello verde que no deja de reírse.
+
+# las cinco puertas selladas de la sala oeste (contenido futuro)
+[mirador:puerta_1]
+x = -48
+z = 0.8
+color = #2ef0d0
+aviso = Examinar la puerta
+texto = Está sellada… la serpiente de luz de la puerta late despacio. Algo me dice que todavía no es momento. | Si pego la oreja se escucha un viento lejano del otro lado.
+
+[mirador:puerta_2]
+x = -42
+z = 0.8
+color = #2ef0d0
+aviso = Examinar la puerta
+texto = Sellada. El glifo de arriba está apagado, como si esperara algo… o a alguien. | Hay marcas de garras en la piedra. Mejor no pensar en qué las hizo.
+
+[mirador:puerta_3]
+x = -36
+z = 0.8
+color = #2ef0d0
+aviso = Examinar la puerta
+texto = No se mueve ni un milímetro. La rendija de luz se pone tibia cuando me acerco. | Del otro lado huele a mar… ¿en la cima de una torre?
+
+[mirador:puerta_4]
+x = -49.2
+z = 3.5
+color = #2ef0d0
+aviso = Examinar la puerta
+texto = Esta puerta vibra un poco, como si del otro lado hubiera una gran batalla. | Sellada. Tendré que volver más adelante.
+
+[mirador:puerta_5]
+x = -49.2
+z = 12.5
+color = #2ef0d0
+aviso = Examinar la puerta
+texto = La más fría de las cinco… hay escarcha en las orillas de la piedra. | Sellada. Alguien dejó escrito en la piedra: «Próximamente».
 
 [monedas]
 sueltas = 0,16 | 0,12 | -14,18 | 14,18 | -17,-2 | 17,-2 | 0,-25 | 0,-29 | 0,-33 | 0,-37 | 0,-41 | -4,-48 | 4,-48

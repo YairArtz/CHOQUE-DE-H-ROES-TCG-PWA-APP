@@ -1404,8 +1404,10 @@ body.editor .pt{cursor:move}
 #nxBloq .nb-pill{opacity:0;transition:opacity .3s;font-family:'Orbitron',sans-serif;font-weight:700;font-size:14px;letter-spacing:.06em;color:#fff;background:rgba(10,16,40,.92);border:1px solid rgba(54,214,255,.5);border-radius:999px;padding:10px 18px;box-shadow:0 0 18px rgba(54,214,255,.35)}
 #nxBloq.ver .nb-pill{opacity:1}
 #nxTrans{position:fixed;inset:0;z-index:9500;display:none;align-items:center;justify-content:center;flex-direction:column;overflow:hidden;
-  background:radial-gradient(ellipse at center,rgba(60,0,20,.85),#000 75%);opacity:0;transition:opacity .35s}
+  background:radial-gradient(ellipse at center,#3c0014,#000 75%);opacity:0;transition:opacity .35s}
 #nxTrans.on{opacity:1}
+/* v416 · el reto de la 2ª forma justo después de transformarse: sin ver la isla detrás */
+body.nx-reto2 .dlg{background:radial-gradient(ellipse at 50% 38%,rgba(90,0,45,.92),#000 78%)}
 #nxTrans img{position:absolute;max-height:calc(var(--uh)*92);max-width:calc(var(--uw)*80);object-fit:contain;filter:drop-shadow(0 0 30px rgba(255,40,90,.6))}
 #nxTrans img.carta{border-radius:12px}
 #nxTrans .tr-a{animation:trTiembla .12s linear infinite;transition:opacity .25s,filter 2.2s}
@@ -1441,24 +1443,78 @@ body.nx-sismo2{animation:nxSismo2 .09s linear infinite}
 @keyframes nxSismo{0%,100%{transform:translate(0,0)}25%{transform:translate(-3px,2px)}50%{transform:translate(3px,-2px)}75%{transform:translate(-2px,-3px)}}
 @keyframes nxSismo2{0%,100%{transform:translate(0,0)}25%{transform:translate(-9px,6px)}50%{transform:translate(8px,-7px)}75%{transform:translate(-7px,-6px)}}
 /* ═══ Pantalla de victoria final (como la del Arcade) ═══ */
-#nxFinal{position:fixed;inset:0;z-index:9400;display:none;align-items:center;justify-content:center;overflow:hidden;
-  background:radial-gradient(ellipse at 50% 35%,rgba(245,166,35,.22),rgba(5,10,28,0) 65%),#050a1c;opacity:0;transition:opacity .45s}
+/* v416 · PANTALLA FINAL (Vellond Omega): caída del jefe → destello → coronación con rayos, glifo Codex, estadísticas y rango */
+#nxFinal{position:fixed;inset:0;z-index:9400;display:none;align-items:center;justify-content:center;overflow:hidden;background:#000;opacity:0;transition:opacity .45s}
 #nxFinal.on{opacity:1}
-#nxFinal .fn-glow{position:absolute;width:150vmax;height:150vmax;border-radius:50%;opacity:.22;
-  background:repeating-conic-gradient(from 0deg,#f5c842 0 6deg,transparent 6deg 18deg);
-  -webkit-mask-image:radial-gradient(circle,#000 0%,transparent 60%);mask-image:radial-gradient(circle,#000 0%,transparent 60%);animation:trGira 14s linear infinite}
-#nxFinal .fn-ret{position:absolute;right:3%;bottom:0;max-height:78%;max-width:34%;object-fit:contain;opacity:.32;filter:grayscale(.5) drop-shadow(0 0 20px #000)}
-#nxFinal .fn-ret.carta{border-radius:10px;bottom:6%}
-#nxFinal .fn-box{position:relative;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;padding:16px;max-width:620px;width:100%}
-#nxFinal .fn-crown{font-size:64px;filter:drop-shadow(0 0 20px rgba(245,166,35,.8));animation:fnFlota 3s ease-in-out infinite}
-#nxFinal .fn-h1{font-family:'Orbitron',monospace;font-weight:900;font-size:clamp(20px,calc(4.4 * var(--uw)),46px);letter-spacing:3px;color:#ffe9a8;
-  text-shadow:0 0 14px #ffb300,0 0 34px #ff7a00,0 3px 0 #000;animation:fnLatido 2s ease-in-out infinite}
-#nxFinal .fn-sub{font-family:'Orbitron',monospace;font-size:clamp(10px,calc(1.8 * var(--uw)),14px);letter-spacing:3px;color:var(--cyan)}
-#nxFinal .fn-txt{font-size:16px;color:var(--text);opacity:.9;max-width:520px}
-#nxFinal .fn-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;width:min(560px,100%)}
-#nxFinal .fn-stats div{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px}
-#nxFinal .fn-stats b{display:block;font-family:'Orbitron',monospace;font-size:20px;color:#ffd166}
+#nxFinal .fn-esc{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 38%,rgba(245,166,35,.32),rgba(204,85,255,.14) 38%,rgba(5,10,28,0) 70%),#050a1c;opacity:0;transition:opacity 1.2s}
+#nxFinal.fb .fn-esc{opacity:1}
+#nxFinal .fn-rayos{position:absolute;left:50%;top:38%;width:170vmax;height:170vmax;margin:-85vmax 0 0 -85vmax;border-radius:50%;opacity:0;
+  background:repeating-conic-gradient(from 0deg,rgba(255,214,102,.55) 0 4deg,transparent 4deg 13deg,rgba(204,85,255,.35) 13deg 15deg,transparent 15deg 24deg);
+  -webkit-mask-image:radial-gradient(circle,#000 0%,transparent 58%);mask-image:radial-gradient(circle,#000 0%,transparent 58%);animation:trGira 26s linear infinite;transition:opacity 1.6s}
+#nxFinal.fb .fn-rayos{opacity:.3}
+#nxFinal .fn-glifo{position:absolute;left:50%;top:38%;width:min(92vmin,760px);aspect-ratio:1;transform:translate(-50%,-50%);opacity:0;
+  background:center/contain no-repeat;filter:drop-shadow(0 0 18px #ffb300);animation:trGira 60s linear infinite;transition:opacity 2s}
+#nxFinal.fb .fn-glifo{opacity:.13}
+#nxFinal .fn-mota{position:absolute;bottom:-10px;width:4px;height:4px;border-radius:50%;background:#ffe9a8;box-shadow:0 0 8px #ffb300;opacity:0;animation:fnSube linear infinite}
+#nxFinal.fb .fn-mota{opacity:1}
+/* fase A: el jefe cae */
+#nxFinal .fn-jw{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+#nxFinal .fn-jefe{max-height:calc(var(--uh)*82);max-width:calc(var(--uw)*70);object-fit:contain;filter:drop-shadow(0 0 30px #ff2f5a);transition:opacity .5s,filter .5s}
+#nxFinal .fn-jefe.carta{border-radius:12px}
+#nxFinal.fa .fn-jefe{animation:fnCae 1.5s ease-in forwards,trTiembla .1s linear infinite}
+#nxFinal.fb .fn-jw{justify-content:flex-end;align-items:flex-end;padding-right:2%}
+#nxFinal.fb .fn-jefe{animation:none;max-height:72%;max-width:30%;opacity:.22;filter:grayscale(.85) brightness(.55) drop-shadow(0 0 20px #000)}
+#nxFinal .fn-grietas{position:absolute;inset:0;opacity:0;pointer-events:none;
+  background:repeating-linear-gradient(115deg,transparent 0 46px,rgba(255,240,200,.75) 47px 48px,transparent 49px 120px),repeating-linear-gradient(32deg,transparent 0 70px,rgba(255,200,120,.55) 71px 72px,transparent 73px 160px)}
+#nxFinal.fa .fn-grietas{animation:fnGrieta 1.5s ease-in forwards}
+#nxFinal .fn-flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:5}
+#nxFinal.fb .fn-flash{animation:trFlash 1s ease-out forwards}
+/* fase B: la coronación */
+#nxFinal .fn-box{position:relative;z-index:3;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;padding:16px;max-width:680px;width:100%;opacity:0;pointer-events:none}
+#nxFinal.fb .fn-box{opacity:1;pointer-events:auto;transition:opacity .4s .25s}
+#nxFinal .fn-heroe{position:relative;width:96px;height:96px;border-radius:50%;padding:4px;background:conic-gradient(#ffe9a8,#f5a623,#cc55ff,#36d6ff,#ffe9a8);
+  box-shadow:0 0 30px rgba(245,166,35,.7);opacity:0;transform:scale(.3)}
+#nxFinal.fb .fn-heroe{animation:fnPop .7s .5s cubic-bezier(.2,.9,.3,1.4) forwards}
+#nxFinal .fn-heroe img{width:100%;height:100%;border-radius:50%;object-fit:cover;background:#0a1028}
+#nxFinal .fn-heroe i{position:absolute;left:50%;top:-34px;transform:translateX(-50%);font-style:normal;font-size:40px;filter:drop-shadow(0 0 14px rgba(245,166,35,.9));animation:fnFlota 3s ease-in-out infinite}
+#nxFinal .fn-h1{position:relative;font-family:'Orbitron',monospace;font-weight:900;font-size:clamp(20px,calc(4.4 * var(--uw)),46px);letter-spacing:3px;line-height:1.15;
+  filter:drop-shadow(0 0 12px rgba(255,179,0,.65)) drop-shadow(0 3px 0 #000)}
+#nxFinal .fn-h1 .fn-w{font-style:normal;white-space:nowrap;display:inline-block}
+#nxFinal .fn-h1 span{display:inline-block;opacity:0;transform:translateY(-60px) scale(1.8);
+  background:linear-gradient(180deg,#fff7d6 0%,#ffd166 45%,#f5a623 72%,#b9650a 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+#nxFinal.fb .fn-h1 span{animation:fnLetra .55s calc(.9s + var(--i) * 45ms) cubic-bezier(.2,.9,.3,1.3) forwards}
+#nxFinal .fn-cinta{font-family:'Orbitron',monospace;font-weight:900;font-size:clamp(10px,calc(1.7 * var(--uw)),14px);letter-spacing:4px;color:#fff;padding:7px 18px;
+  background:linear-gradient(90deg,transparent,rgba(204,85,255,.85) 15%,rgba(255,47,90,.85) 85%,transparent);opacity:0;transform:scaleX(0)}
+#nxFinal.fb .fn-cinta{animation:fnCinta .6s 1.9s ease-out forwards}
+#nxFinal .fn-sub{font-family:'Orbitron',monospace;font-size:clamp(10px,calc(1.7 * var(--uw)),14px);letter-spacing:3px;color:var(--cyan);opacity:0}
+#nxFinal.fb .fn-sub{animation:fnAparece .6s 2.2s forwards}
+#nxFinal .fn-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;width:min(580px,100%)}
+#nxFinal .fn-stats div{background:linear-gradient(180deg,rgba(255,209,102,.1),rgba(255,255,255,.03));border:1px solid rgba(255,209,102,.28);border-radius:10px;padding:8px 6px;opacity:0;transform:translateY(14px)}
+#nxFinal.fb .fn-stats div{animation:fnSubeStat .5s calc(2.4s + var(--i) * 110ms) ease-out forwards}
+#nxFinal .fn-stats b{display:block;font-family:'Orbitron',monospace;font-size:22px;color:#ffd166;text-shadow:0 0 10px rgba(255,179,0,.5)}
 #nxFinal .fn-stats small{font-size:10px;color:var(--muted);letter-spacing:1px}
+#nxFinal .fn-rango{position:absolute;left:4%;top:50%;width:clamp(84px,calc(14 * var(--uw)),150px);aspect-ratio:1;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:radial-gradient(circle,#2a1600 0 58%,transparent 59%),conic-gradient(#ffe9a8,#f5a623,#ff2f5a,#cc55ff,#36d6ff,#ffe9a8);box-shadow:0 0 40px rgba(245,166,35,.55);
+  opacity:0;transform:translateY(-50%) scale(3) rotate(-25deg);z-index:4}
+#nxFinal.fb .fn-rango{animation:fnSello .5s 3.3s cubic-bezier(.3,1.6,.5,1) forwards}
+#nxFinal .fn-rango b{font-family:'Orbitron',monospace;font-weight:900;font-size:clamp(34px,calc(6 * var(--uw)),64px);line-height:1;color:#ffe9a8;text-shadow:0 0 16px #ffb300}
+#nxFinal .fn-rango small{font-family:'Orbitron',monospace;font-size:clamp(6px,calc(.85 * var(--uw)),9px);letter-spacing:1px;color:#ffd9a0;text-align:center;line-height:1.2;max-width:62%}
+#nxFinal .fn-txt{font-size:16px;color:var(--text);opacity:0;max-width:540px}
+#nxFinal.fb .fn-txt{animation:fnAparece .8s 3.1s forwards}
+#nxFinal .fn-bt{opacity:0}
+#nxFinal.fb .fn-bt{animation:fnAparece .5s 3.7s forwards}
+@media (max-width:700px){#nxFinal .fn-rango{left:auto;right:4%;top:14%;transform:translateY(0) scale(3) rotate(-25deg)}#nxFinal.fb .fn-rango{animation-name:fnSelloM}}
+@keyframes fnCae{0%{filter:drop-shadow(0 0 30px #ff2f5a) brightness(1)}70%{filter:drop-shadow(0 0 60px #fff) brightness(2.2) saturate(.4)}100%{filter:drop-shadow(0 0 90px #fff) brightness(4) saturate(0);opacity:.9}}
+@keyframes fnGrieta{0%{opacity:0}60%{opacity:.55}100%{opacity:1}}
+@keyframes fnSube{from{transform:translateY(0)}to{transform:translateY(calc(var(--uh)*-110))}}
+@keyframes fnPop{to{opacity:1;transform:scale(1)}}
+@keyframes fnLetra{to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes fnCinta{to{opacity:1;transform:scaleX(1)}}
+@keyframes fnAparece{to{opacity:1}}
+@keyframes fnSubeStat{to{opacity:1;transform:translateY(0)}}
+@keyframes fnSello{to{opacity:1;transform:translateY(-50%) scale(1) rotate(-8deg)}}
+@keyframes fnSelloM{to{opacity:1;transform:translateY(0) scale(1) rotate(-8deg)}}
+@media (prefers-reduced-motion:reduce){#nxFinal *{animation-duration:.01s!important;animation-delay:0s!important}}
 .nx-confeti{position:absolute;top:-14px;width:8px;height:12px;z-index:1;pointer-events:none;animation:nxCae linear forwards}
 @keyframes nxCae{to{transform:translateY(calc(var(--uh)*110)) rotate(720deg)}}
 @keyframes fnFlota{50%{transform:translateY(-8px)}}
@@ -4084,8 +4140,9 @@ async function procesarResultado() {
     S.fase2 = S.fase2 || {}; S.fase2[p0.id] = 1; S.victorias++; S.dia++; guardar();
     if (p0._punto) await escenaTramo(p0); else { mostrarMapa(); enfocarPunto(p0); }
     if (p0.victoria) await dialogo(p0, p0.victoria);          // su reacción al caer la 1ª forma
+    document.body.classList.add('nx-reto2');                    // v416 · de aquí al reto, la isla queda oculta
     await transformacion(p0);                                   // cinemática: temblor, destello y aparece su forma verdadera
-    await retoFase2(p0);
+    try { await retoFase2(p0); } finally { document.body.classList.remove('nx-reto2'); }
     if (!S.pendiente) ocupado(false);                          // si empezó el Choque, la pantalla de carga sigue
     if (p0._punto && !cargaVisible()) tramoPausa(false);
     return true;
@@ -4161,6 +4218,7 @@ async function procesarResultado() {
 //    Campos opcionales del punto: fase2_sonido (audio de la transformación), fase2_etiqueta (texto grande)
 async function transformacion(p0) {
   const ov = $('nxTrans'); ov.innerHTML = ''; ov.style.display = 'flex'; ov.style.background = '#000';   // v232 · cubre el mapa desde ya
+  ov.style.transition = 'none'; ov.classList.add('on'); void ov.offsetWidth; ov.style.transition = '';   // v416 · opaco al instante: mientras cargan los retratos ya no se ve la isla
   const q = forma2(p0), [r1, r2] = await conTope(Promise.all([retrato(p0), retrato(q)]), 9000) || [null, null];
   if (r2) await conTope(probar(r2.src), 4000);
   ov.style.background = '';
@@ -4201,26 +4259,52 @@ function truenoSint() {          // retumbo sintetizado si el punto no trae fase
 //    Audio: final_audio en el punto o audio_final en [config] (si no hay, sigue la música)
 async function pantallaFinal(p0, primera) {
   const ov = $('nxFinal'), ret = await retrato(forma2(p0));
+  try { tramoPausa(true); } catch (e) {}      // v416 · la ruta no se mueve detrás (y el control maneja esta pantalla)
   const guard = PTS.filter(x => x.tipo === 'guardian'), gv = guard.filter(x => vencido(x.id)).length;
-  const stats = [[S.dia, 'DÍAS'], [S.victorias || 0, 'VICTORIAS'], [S.perdidas || 0, 'DERROTAS'], [gv + '/' + guard.length, 'GUARDIANES']];
-  const nom = (S.nombre || 'HÉROE').toUpperCase();
-  ov.innerHTML = `<div class="fn-glow"></div>${ret ? `<img class="fn-ret ${ret.carta ? 'carta' : ''}" src="${esc(ret.src)}" alt="">` : ''}<div class="fn-box"><div class="fn-crown">👑</div>` +
-    `<div class="fn-h1">${primera ? '¡CAMPEÓN DE NEXOTLAN!' : '¡VICTORIA!'}</div>` +
-    `<div class="fn-sub">${esc(nom)} VENCIÓ A ${esc((p0.fase2_nombre || p0.nombre || '').toUpperCase())}${p0.titulo ? ', ' + esc(p0.titulo.toUpperCase()) : ''}</div>` +
-    `<div class="fn-stats">${stats.map(([v, t]) => `<div><b>${v}</b><small>${t}</small></div>`).join('')}</div>` +
-    `${p0.final_texto ? `<div class="fn-txt">${esc(p0.final_texto)}</div>` : ''}<button class="bt gold" id="fnOk">🗺 SEGUIR EXPLORANDO</button></div>`;
+  const cofre = Object.values(S.col || {}).reduce((a, n) => a + (n || 0), 0);
+  const secT = [...secretasDe().sec], secY = secT.filter(id => (S.col || {})[id] > 0).length;
+  const V = S.victorias || 0, Dr = S.perdidas || 0, ratio = V / Math.max(1, V + Dr);
+  const rango = Dr <= 3 && ratio >= .9 ? 'S' : ratio >= .8 ? 'A' : ratio >= .65 ? 'B' : 'C';
+  const stats = [[S.dia, 'DÍAS'], [V, 'VICTORIAS'], [Dr, 'DERROTAS'], [gv + '/' + guard.length, 'GUARDIANES'], [cofre, 'CARTAS EN TU COFRE'], [secT.length ? secY + '/' + secT.length : '—', 'SECRETAS']];
+  const nom = (S.nombre || 'HÉROE').toUpperCase(), jefe = (p0.fase2_nombre || forma2(p0).nombre || p0.nombre || '').toUpperCase();
+  const h1 = primera ? '¡CAMPEÓN DE NEXOTLAN!' : '¡VICTORIA!';
+  let kL = 0; const letras = h1.split(' ').map(w => `<em class="fn-w">${[...w].map(c => `<span style="--i:${kL++}">${esc(c)}</span>`).join('')}</em>`).join(' ');      // las palabras no se parten
+  const av = avatarPerfil();
+  const motas = Array.from({ length: 26 }, (_, k) => `<i class="fn-mota" style="left:${(k * 37) % 100}%;animation-duration:${6 + (k % 7)}s;animation-delay:${-(k * .7) % 7}s"></i>`).join('');
+  ov.innerHTML = `<div class="fn-esc"></div><div class="fn-rayos"></div><div class="fn-glifo" style="background-image:url('assets/nexotlan/tramos/texturas/simbolo_codex.png')"></div>${motas}` +
+    `${ret ? `<div class="fn-jw"><img class="fn-jefe ${ret.carta ? 'carta' : ''}" src="${esc(ret.src)}" alt=""></div>` : ''}<div class="fn-grietas"></div>` +
+    `<div class="fn-rango"><b>${rango}</b><small>RANGO<br>DE HÉROE</small></div>` +
+    `<div class="fn-box"><div class="fn-heroe"><i>👑</i>${av ? `<img src="${esc(av)}" alt="">` : ''}</div>` +
+    `<div class="fn-h1">${letras}</div>` +
+    `<div class="fn-cinta">${esc(jefe)} HA CAÍDO</div>` +
+    `<div class="fn-sub">${esc(nom)} VENCIÓ A ${esc(jefe)}${p0.titulo ? ', ' + esc(p0.titulo.toUpperCase()) : ''}</div>` +
+    `<div class="fn-stats">${stats.map(([v, t], k) => `<div style="--i:${k}"><b data-n="${typeof v === 'number' ? v : ''}">${typeof v === 'number' ? 0 : esc(v)}</b><small>${t}</small></div>`).join('')}</div>` +
+    `${p0.final_texto ? `<div class="fn-txt">${esc(p0.final_texto)}</div>` : ''}<button class="bt gold fn-bt" id="fnOk" disabled>🗺 SEGUIR EXPLORANDO</button></div><div class="fn-flash"></div>`;
   const previa = _mus, au = String(p0.final_audio || CFG.audio_final || '').trim();
+  musica(null);
+  ov.style.display = 'flex'; void ov.offsetWidth; ov.classList.add('on', ret ? 'fa' : 'fb');
+  const vib = (ms, f) => { try { if (window.GP && GP.vibrar) GP.vibrar(ms, f); } catch (e) {} };
+  // fase A (1.5 s): el jefe se agrieta y estalla en luz
+  if (ret) { if (!MUTE) truenoSint(); vib(300, .6); setTimeout(() => vib(500, 1), 900); try { navigator.vibrate && navigator.vibrate([200, 80, 300, 60, 500]); } catch (e) {}
+    await new Promise(r => setTimeout(r, 1500)); ov.classList.remove('fa'); ov.classList.add('fb'); }
+  // fase B: coronación
   if (au) musica(au);
-  ov.style.display = 'flex'; void ov.offsetWidth; ov.classList.add('on');
-  for (let k = 0; k < 90; k++) { const c = document.createElement('div'); c.className = 'nx-confeti'; c.style.left = Math.random() * 100 + '%';
-    c.style.background = ['#f5c842', '#ff8c42', '#36d6ff', '#00ff9d', '#cc55ff', '#fff'][k % 6]; c.style.animationDuration = (2.6 + Math.random() * 3) + 's'; c.style.animationDelay = (Math.random() * 2) + 's';
+  for (let k = 0; k < 70; k++) { const c = document.createElement('div'); c.className = 'nx-confeti'; c.style.left = Math.random() * 100 + '%';
+    c.style.background = ['#f5c842', '#ff8c42', '#36d6ff', '#00ff9d', '#cc55ff', '#fff'][k % 6]; c.style.animationDuration = (2.8 + Math.random() * 3) + 's'; c.style.animationDelay = (.8 + Math.random() * 2.5) + 's';
     ov.appendChild(c); }
   try { navigator.vibrate && navigator.vibrate([80, 60, 80, 60, 200]); } catch (e) {}
-  try { if (window.GP && GP.vibrar) { GP.vibrar(120, .6); setTimeout(() => GP.vibrar(120, .8), 200); setTimeout(() => GP.vibrar(400, 1), 400); } } catch (e) {}
-  try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('fnOk')), 60); } catch (e) {}
-  await new Promise(res => { $('fnOk').onclick = res; });
-  ov.classList.remove('on'); await new Promise(r => setTimeout(r, 400)); ov.style.display = 'none'; ov.innerHTML = '';
-  if (au) musica(previa || CFG.musica);
+  vib(120, .6); setTimeout(() => vib(120, .8), 200); setTimeout(() => vib(400, 1), 400);
+  // las estadísticas cuentan hacia arriba
+  setTimeout(() => ov.querySelectorAll('.fn-stats b[data-n]').forEach(b => { const n = +b.dataset.n; if (!(n > 0)) return; const t0 = performance.now(), d = 900;
+    const paso = t => { const k = Math.min(1, (t - t0) / d); b.textContent = Math.round(n * (1 - Math.pow(1 - k, 3))); if (k < 1 && ov.classList.contains('on')) requestAnimationFrame(paso); }; requestAnimationFrame(paso); }), 2500);
+  setTimeout(() => { vib(260, 1); if (!MUTE) { try { const c = _ctxM = _ctxM || new (window.AudioContext || window.webkitAudioContext)(), t = c.currentTime + .01, o = c.createOscillator(), g = c.createGain();
+    o.type = 'triangle'; o.frequency.setValueAtTime(220, t); o.frequency.exponentialRampToValueAtTime(70, t + .35); g.gain.setValueAtTime(.35, t); g.gain.exponentialRampToValueAtTime(.001, t + .45); o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + .5); } catch (e) {} } }, 3350);   // el sello del rango
+  await new Promise(r => setTimeout(r, 3700));
+  const ok = $('fnOk'); if (ok) ok.disabled = false;
+  try { setTimeout(() => { if (window.GP) GP.enfocar(ok); }, 60); } catch (e) {}
+  await new Promise(res => { ok.onclick = res; });
+  ov.classList.remove('on'); await new Promise(r => setTimeout(r, 450)); ov.style.display = 'none'; ov.className = ''; ov.innerHTML = '';
+  musica(previa || CFG.musica);
 }
 async function revisarAperturas(anunciar) {
   for (const d of DIST) {
@@ -5912,13 +5996,14 @@ document.addEventListener('keydown', e => {
   else if (k === '-' || k === '_') ajustarZoom(ZOOM / 1.2);
 });
 // v281 · Mientras se explora un tramo 3D, el control lo maneja Godot (salvo cuando hay un diálogo o mensaje de esta página)
-window.GP_PAUSA = () => $('sTramo').classList.contains('on') && !DLG && !document.querySelector('.modal.on, .sob.on, #mInt') && !cargaVisible();      // v361 · #mInt: elegir carta interactiva con el control
+window.GP_PAUSA = () => $('sTramo').classList.contains('on') && !DLG && !document.querySelector('.modal.on, .sob.on, #mInt, #nxFinal.on') && !cargaVisible();      // v416 · la pantalla final sí se maneja con el control      // v361 · #mInt: elegir carta interactiva con el control
 window.GP_CFG = {
   principalTxt: 'Entrar / Avanzar',
   start: () => $('mBarajas').classList.contains('on') && !document.querySelector('.modal.on:not(#mBarajas):not(#mPausa)') ? $('bjX') : $('mPausa').classList.contains('on') && !document.querySelector('.modal.on:not(#mPausa)') ? $('mpRe') : null,      // v366 · Start cierra el menú de pausa
   sinAnillo: el => !!(el && el.closest && el.closest('#sMenu .mn-izq, #mPausa .mp-izq, #carga')),   // el menú resalta sus propias opciones
-  principal: () => cargaVisible() ? $('carga') : $('sTitulo').classList.contains('on') && $('sTitulo').classList.contains('fase-portada') && !$('mMsg').classList.contains('on') ? $('tComenzar') : $('sMenu').classList.contains('on') && !$('mCaja').classList.contains('on') && !$('mDiario').classList.contains('on') && !$('mMsg').classList.contains('on') ? $('mnAventura') : DLG ? ($('dOps').querySelector('button') || $('dCaja')) : ($('ficha').classList.contains('on') ? ($('fRetar') && !$('fRetar').disabled ? $('fRetar') : $('fHablar')) : null),
+  principal: () => $('nxFinal').classList.contains('on') ? ($('fnOk') && !$('fnOk').disabled ? $('fnOk') : null) : cargaVisible() ? $('carga') : $('sTitulo').classList.contains('on') && $('sTitulo').classList.contains('fase-portada') && !$('mMsg').classList.contains('on') ? $('tComenzar') : $('sMenu').classList.contains('on') && !$('mCaja').classList.contains('on') && !$('mDiario').classList.contains('on') && !$('mMsg').classList.contains('on') ? $('mnAventura') : DLG ? ($('dOps').querySelector('button') || $('dCaja')) : ($('ficha').classList.contains('on') ? ($('fRetar') && !$('fRetar').disabled ? $('fRetar') : $('fHablar')) : null),
   atras: () => {
+    if ($('nxFinal').classList.contains('on')) { const b = $('fnOk'); if (b && !b.disabled) b.click(); return true; }      // v416
     if (cargaVisible()) { saltarCarga(); return true; }
     if (DLG) {   // v215 · B avanza el texto; con opciones ya no elige por ti (machacar B saltaba el Choque de la 2ª forma)
       const bs = $('dOps').querySelectorAll('button');

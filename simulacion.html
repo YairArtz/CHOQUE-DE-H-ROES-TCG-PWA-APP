@@ -730,7 +730,14 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 .sec-foil::after{content:'';position:absolute;top:0;left:0;width:35%;height:100%;background:linear-gradient(115deg,transparent,rgba(255,255,255,.5),transparent);transform:translateX(-120%) skewX(-20deg);animation:secBrillo 2.8s ease-in-out infinite;will-change:transform}
 @keyframes secFoil{from{transform:translateX(-20%)}to{transform:translateX(30%)}}
 @keyframes secBrillo{0%{transform:translateX(-120%) skewX(-20deg)}55%,100%{transform:translateX(400%) skewX(-20deg)}}
-@media (prefers-reduced-motion:reduce){.sec-foil::before,.sec-foil::after{animation:none}}
+/* v409 · estrellas de las SECRETAS (1 capa por lado, solo opacidad) y destello de las JOYAS */
+.sec-foil>i{position:absolute;inset:0;background:radial-gradient(circle at 18% 22%,#fff 0 2px,rgba(255,240,180,.85) 3px,transparent 7px),radial-gradient(circle at 78% 30%,#fff 0 1.6px,rgba(255,180,240,.85) 2.6px,transparent 6px),radial-gradient(circle at 34% 70%,#fff 0 1.6px,rgba(180,240,255,.85) 2.6px,transparent 6px),radial-gradient(circle at 82% 82%,#fff 0 2px,rgba(255,240,180,.85) 3px,transparent 7px),radial-gradient(circle at 55% 45%,#fff 0 1.2px,transparent 4px);animation:secEstrella 2.2s ease-in-out infinite;will-change:opacity}
+.sec-foil>i+i{transform:rotate(180deg);animation-delay:-1.1s}
+@keyframes secEstrella{0%,100%{opacity:0}50%{opacity:1}}
+.joya-foil{position:absolute;inset:0;overflow:hidden;pointer-events:none;border-radius:inherit;z-index:0}
+.joya-foil::after{content:'';position:absolute;top:0;left:0;width:35%;height:100%;background:linear-gradient(115deg,transparent,rgba(255,226,140,.5),transparent);transform:translateX(-120%) skewX(-20deg);animation:joyaBrillo 5s ease-in-out infinite;will-change:transform}
+@keyframes joyaBrillo{0%,70%{transform:translateX(-120%) skewX(-20deg)}100%{transform:translateX(400%) skewX(-20deg)}}
+@media (prefers-reduced-motion:reduce){.sec-foil::before,.sec-foil::after,.sec-foil>i,.joya-foil::after{animation:none}.sec-foil>i{opacity:.7}}
 .hcard-img{width:100%;height:100%;border-radius:5px;border:1.5px solid rgba(255,255,255,.18);
   object-fit:contain;background:#000;display:block;transition:transform .18s,border-color .18s,box-shadow .18s}
 .hcard.sel .hcard-img{transform:translateY(-7px);border-color:var(--green);box-shadow:0 0 12px rgba(0,232,122,.55)}
@@ -2125,14 +2132,15 @@ async function precargarMiniaturas(onProgress){
 
 // <img> con miniatura y respaldo a la imagen completa
 // v408 · Cartas SECRETAS de Nexotlan: llevan el foil holográfico de la tienda (la lista viene en la partida; vacía en la demo)
-let SECRETAS_NX=null;
-function esSecretaNX(cid){
-  if(!SECRETAS_NX){try{const m=JSON.parse(localStorage.getItem('chh_arcade_match')||'null');SECRETAS_NX=new Set((m&&m.id&&/modo=arcade/.test(location.search)&&m.secretas)||[]);}catch(e){SECRETAS_NX=new Set();}}
-  return SECRETAS_NX.has(cid);
-}
+// v409 · y las JOYAS un destello dorado ligero (solo las de las dos barajas del Choque)
+let SECRETAS_NX=null, JOYAS_NX=null;
+function cargaRarezasNX(){try{const m=JSON.parse(localStorage.getItem('chh_arcade_match')||'null'),ok=m&&m.id&&/modo=arcade/.test(location.search);
+  SECRETAS_NX=new Set((ok&&m.secretas)||[]);JOYAS_NX=new Set((ok&&m.joyas)||[]);}catch(e){SECRETAS_NX=new Set();JOYAS_NX=new Set();}}
+function esSecretaNX(cid){if(!SECRETAS_NX)cargaRarezasNX();return SECRETAS_NX.has(cid);}
+function esJoyaNX(cid){if(!JOYAS_NX)cargaRarezasNX();return JOYAS_NX.has(cid);}
 function imgTag(cid,cls){
   const c=C[cid];
-  return '<img class="'+(cls||'')+'" src="'+c.imgMin+'" data-full="'+c.img+'" onerror="if(this.src!==this.dataset.full){this.src=this.dataset.full}" alt="">'+(esSecretaNX(cid)?'<span class="sec-foil"></span>':'');
+  return '<img class="'+(cls||'')+'" src="'+c.imgMin+'" data-full="'+c.img+'" onerror="if(this.src!==this.dataset.full){this.src=this.dataset.full}" alt="">'+(esSecretaNX(cid)?'<span class="sec-foil"><i></i><i></i></span>':esJoyaNX(cid)?'<span class="joya-foil"></span>':'');
 }
 
 function expandDeck(list){
@@ -8982,8 +8990,15 @@ function cpuNecesitaAlma(cid){
   const pjs=P.hand.filter(c=>C[c].type==='pj'&&!puedeNormal('cpu',c));
   const caro=pjs.length?Math.max(...pjs.map(c=>C[c].cost)):0;
   const apoyos=P.hand.filter(c=>C[c].type==='apoyo').length;
+  // v409 · nunca se tapa sola: reserva zonas para los APOYOS que tiene en mano y para los que le quedan en la baraja
+  const apoyosBP=P.bp.filter(c=>C[c].type==='apoyo').length;
+  const reserva=Math.min(2,apoyos+(apoyosBP>=6?2:apoyosBP>0?1:0));   // barajas con muchos APOYOS guardan 2 zonas
+  if(libres<=reserva) return n<1;                      // con todo reservado solo pone su primera alma
+  const maxBaraja=Math.max(0,...P.hand.concat(P.bp).filter(c=>C[c].type==='pj').map(c=>C[c].cost));
+  if(n>=2&&at>=maxBaraja) return false;                // ya paga cualquier personaje de su baraja
   if(n<2) return true;                                 // base mínima
   if(caro>at&&caro<=at+v+1) return true;               // le permite llamar algo de su mano ya
+  if(libres<=reserva+1&&!(caro>at&&caro<=at+v+1)) return false;   // v409 · la última zona fuera de la reserva solo si le deja llamar algo ya
   if(libres<=1&&apoyos>0) return false;                // reserva una zona para jugar APOYOS
   if(libres<=1) return false;                          // nunca llena la última zona sin motivo
   if(caro>at) return true;                             // avanza hacia su personaje más caro

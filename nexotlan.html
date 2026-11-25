@@ -1061,6 +1061,7 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 .mz-c.inter{outline:2px solid #cc55ff;box-shadow:0 0 14px #cc55ff66}
 .mz-c .jy{position:absolute;left:4px;top:4px;padding:2px 6px;border-radius:6px;background:linear-gradient(135deg,#ffd166,#ff2f5a);color:#1a0010;font-family:'Orbitron',monospace;font-size:8.5px;font-weight:900;letter-spacing:1px}
 .mz-c.joya{border-color:#ffd166;box-shadow:0 0 14px rgba(255,209,102,.35)}
+.mz-c.secreta{border-color:#ff6ad5;box-shadow:0 0 16px rgba(255,106,213,.45),0 0 4px rgba(204,85,255,.6) inset}
 .mz-c .vd{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(2,6,20,.72);font-family:'Orbitron',monospace;font-weight:900;font-size:11px;letter-spacing:2px;color:var(--green)}
 /* v207 · Pantalla de carga con TIPS (al entrar, al ir al mapa, antes y después de cada Choque) · [config] fondo_carga · carga_sprite · assets/nexotlan/tips.txt */
 #carga{position:fixed;inset:0;z-index:190;display:flex;align-items:center;justify-content:center;padding:24px;
@@ -4477,7 +4478,7 @@ function precioHoy(id) {
 }
 // v380 · el Dr. Sitho compra por RAREZA (antes pagaba el 20 % del precio del día y abrir sobres baratos para revenderlos daba ganancia):
 //        común y rara a precio fijo · Joya a un % de su precio del día. Se cambia en comerciante.txt: venta_comun · venta_rara · venta_joya
-const precioCompra = id => { if (!precioBase(id)) return 0; const r = RAREZA(id);
+const precioCompra = id => { if (!precioBase(id) || esSecreta(id)) return 0; const r = RAREZA(id);
   return r === 3 ? Math.max(5, r5(precioHoy(id) * num(COM.cfg.venta_joya, 10) / 100)) : num(r === 2 ? COM.cfg.venta_rara : COM.cfg.venta_comun, r === 2 ? 10 : 5); };
 // Cartas de un pool: distritos (sus rivales y guardián), barajas por id, o "todo"
 function poolDe(spec, zonas) {
@@ -4496,7 +4497,7 @@ function stockHoy() {
   const abiertos = DIST.filter(distritoAbierto).map(d => d.id);
   const R = rnd(hashS('stock') + S.dia * 104729 + (S.inicio || 0) % 99991);
   // Solo cartas de las barajas de los distritos ya abiertos: las fuertes aparecen al avanzar
-  const todo = [...new Set(poolDe(abiertos.join(','), ['bp', 'ba']).concat(poolDe(abiertos.join(','), ['bs'])))];
+  const todo = [...new Set(poolDe(abiertos.join(','), ['bp', 'ba']).concat(poolDe(abiertos.join(','), ['bs'])))].filter(id => !esSecreta(id));   // v408 · las Secretas no se venden
   const normal = todo.filter(id => precioBase(id) < RZ_JOYA), joyas = todo.filter(id => precioBase(id) >= RZ_JOYA);
   const toma = (L, n) => { L = L.slice(); const o = []; while (o.length < n && L.length) o.push(L.splice(Math.floor(R() * L.length), 1)[0]); return o; };
   const nj = Math.min(parseInt(COM.cfg.joyas_dia, 10) || 0, joyas.length), nt = parseInt(COM.cfg.cartas_dia, 10) || 8;
@@ -4568,7 +4569,7 @@ function pintarTienda() {
     h += T.stock.map((x, i) => { const pr = precioHoy(x.id), vd = T.vendidas[i];
       return `<button class="mz-c ${x.joya ? 'joya' : ''}" data-of="${i}" aria-label="${esc(nomC(x.id))}"><img src="${esc(cartaImg(x.id))}" alt="" loading="lazy">${x.joya ? '<span class="jy">JOYA</span>' : x.fija ? '<span class="jy" style="background:linear-gradient(135deg,#36d6ff,#cc55ff)">SIEMPRE</span>' : ''}<span class="qq">${tieneNombre(x.id)}/${topeDe(x.id)}</span><span class="pr"><i class="mn"></i> ${pr}</span>${vd ? '<span class="vd">✔ COMPRADA</span>' : ''}</button>`; }).join('') + '</div>';
   } else {
-    const ids = Object.keys(S.col).filter(id => S.col[id] - enMazo(S.mazo, id) > 0 && precioBase(id) > 0).sort(ordenCarta);
+    const ids = Object.keys(S.col).filter(id => S.col[id] - enMazo(S.mazo, id) > 0 && precioBase(id) > 0 && !esSecreta(id)).sort(ordenCarta);
     h = `<div class="td-nota">Paga <b style="color:#7ad7ff">${num(COM.cfg.venta_comun, 5)}</b> por cada común, <b style="color:#cc55ff">${num(COM.cfg.venta_rara, 10)}</b> por cada rara y el <b style="color:#ffd166">${num(COM.cfg.venta_joya, 10)} %</b> de su precio del día por cada Joya. Solo aparecen las copias que <b style="color:var(--text)">no están en tu baraja</b>.</div>`;
     const objs = Object.keys(S.objetos || {}).filter(k => S.objetos[k] > 0 && OBJ[k] && OBJ[k].precio > 0);   // v281 · objetos de los tramos
     if (objs.length) h += `<div class="mz-g"><span>🎒 OBJETOS</span></div><div class="mo-l" style="margin-bottom:14px">${objs.map(k => `<div class="mo-i"><span class="ic">${esc(OBJ[k].icono)}</span><span class="tx"><b>${esc(OBJ[k].nombre)} <em>×${S.objetos[k]}</em></b><small>Te paga <i class="mn"></i> ${OBJ[k].precio}</small></span><button class="bt gold" data-vobj="${esc(k)}">💰 VENDER 1</button></div>`).join('')}</div><div class="mz-g"><span>🃏 CARTAS</span></div>`;
@@ -4636,7 +4637,7 @@ async function comprarSobre(sb) {
   const sbSeguro = setTimeout(() => { $('sbOk').hidden = false; $('sbOk').onclick = () => { document.querySelectorAll('.rv-ov').forEach(o => o.remove()); $('mSobre').classList.remove('on'); pintarTienda(); }; }, 20000);      // v353 · red de seguridad: el botón de aceptar siempre aparece
   await new Promise(r => setTimeout(r, 520));
   $('sbPkg').style.display = 'none';
-  $('sbRes').innerHTML = `<div class="premio">${res.map(x => `<figure${RAREZA(x.id) === 3 && window.Revelacion ? ' class="por-revelar" style="visibility:hidden"' : ''}><img src="${esc(cartaImg(x.id))}" alt=""><figcaption>${esc(nomC(x.id))}${x.extra != null ? `<br><span style="color:#ffd166">Extra · +${x.extra} <i class="mn"></i> al venderla</span>` : (CARD[x.id] || {}).tipo === 'amalgama' ? '<br><span style="color:#ffd166">✨ AMALGAMA</span>' : `<br><span class="rz" style="color:${RZ[RAREZA(x.id)][1]}">${RAREZA(x.id) === 3 ? '★ ' : ''}${RZ[RAREZA(x.id)][0]}</span>`}</figcaption></figure>`).join('')}</div>`;
+  $('sbRes').innerHTML = `<div class="premio">${res.map(x => `<figure${RAREZA(x.id) >= 3 && window.Revelacion ? ' class="por-revelar" style="visibility:hidden"' : ''}><img src="${esc(cartaImg(x.id))}" alt=""><figcaption>${esc(nomC(x.id))}${RAREZA(x.id) === 4 ? '<br><span class="rz" style="color:#ff6ad5">✦ SECRETA</span>' : x.extra != null ? `<br><span style="color:#ffd166">${x.extra ? `Extra · +${x.extra} <i class="mn"></i> al venderla` : 'Copia extra'}</span>` : (CARD[x.id] || {}).tipo === 'amalgama' ? '<br><span style="color:#ffd166">✨ AMALGAMA</span>' : `<br><span class="rz" style="color:${RZ[RAREZA(x.id)][1]}">${RAREZA(x.id) === 3 ? '★ ' : ''}${RZ[RAREZA(x.id)][0]}</span>`}</figcaption></figure>`).join('')}</div>`;
   // v250 · Cada Joya se revela con la animación épica (revelacion.js): sale al centro, suspenso, volteo, «¡JOYA!» y regresa
   const porRev = [...$('sbRes').querySelectorAll('figure.por-revelar')];
   if (porRev.length) {
@@ -4644,7 +4645,7 @@ async function comprarSobre(sb) {
     for (const fg of porRev) {
       const k = [...fg.parentNode.children].indexOf(fg), x = res[k];
       // v353 · con datos móviles lentos la revelación nunca se queda colgada: a los 12 s sigue sola
-      try { await Promise.race([Revelacion.mostrar({ img: await cartaImgLista(x.id), nombre: nomC(x.id), rareza: 'joya', desde: fg, raiz: $('stage') }), new Promise(r => setTimeout(r, 12000))]); } catch (e) {}
+      try { await Promise.race([Revelacion.mostrar({ img: await cartaImgLista(x.id), nombre: nomC(x.id), rareza: RAREZA(x.id) === 4 ? 'secreta' : 'joya', desde: fg, raiz: $('stage') }), new Promise(r => setTimeout(r, 12000))]); } catch (e) {}
       document.querySelectorAll('.rv-ov').forEach(o => o.remove());
       fg.style.visibility = ''; fg.classList.remove('por-revelar');
     }
@@ -4772,13 +4773,34 @@ $('mdOk').onclick = async () => {
 // Al abrir sobres la caja se va vaciando (lo que ya salió no vuelve a salir); cuando se vacía se rellena sola.
 // Se puede REINICIAR en cualquier momento (p. ej. cuando ya sacaste la Joya que buscabas).
 // Rareza por precio (igual que la ruleta del carpetero): Común < 100 · Rara 100-449 · Joya 450+, Amalgamas y las cartas de "joyas" en comerciante.txt.
-const RAREZA = id => ((CARD[id] || {}).tipo === 'amalgama' || esJoya(id) || precioBase(id) >= RZ_JOYA) ? 3 : precioBase(id) >= RZ_RARA ? 2 : 1;
-const RZ = { 1: ['COMÚN', '#7ad7ff'], 2: ['RARA', '#cc55ff'], 3: ['JOYA', '#ffd166'] };
+// v408 · RAREZA SECRETA (4): 1 o 2 cartas elegidas por caja (comerciante.txt · secretas = …). Solo salen de su caja:
+//        no se venden en la tienda, no se compran al Comerciante y no salen en la ruleta del Carpetero.
+//        especiales = …  cartas que normalmente no se dan (p. ej. las exclusivas TESTER de Ateotl) y entran a esa caja como JOYA.
+//        En la DEMO no hay Secretas ni especiales: las cajas quedan como antes.
+// nombres de carta separados por | (muchos nombres llevan coma: «Heredero del Fuego, Aurora»)
+const listaCartas = v => String(v || '').split('|').map(x => x.trim()).filter(Boolean);
+let _secC = null;
+function secretasDe() {
+  if (DEMO) return { sec: new Set(), esp: new Set() };
+  if (_secC && _secC.com === COM) return _secC;
+  const ids = v => listaCartas(v).map(resolverCarta).filter(id => id && CARD[id] && !CARD[id].boss);
+  _secC = { com: COM, sec: new Set(COM.sobres.flatMap(sb => ids(sb.secretas))), esp: new Set(COM.sobres.flatMap(sb => ids(sb.especiales))) };
+  return _secC;
+}
+const esSecreta = id => secretasDe().sec.has(id);
+const esEspecial = id => secretasDe().esp.has(id);
+const RAREZA = id => esSecreta(id) ? 4 : ((CARD[id] || {}).tipo === 'amalgama' || esJoya(id) || esEspecial(id) || precioBase(id) >= RZ_JOYA) ? 3 : precioBase(id) >= RZ_RARA ? 2 : 1;
+const RZ = { 1: ['COMÚN', '#7ad7ff'], 2: ['RARA', '#cc55ff'], 3: ['JOYA', '#ffd166'], 4: ['SECRETA', '#ff6ad5'] };
 function cajaDef(sb) {
   const v = (k, d) => { const x = parseInt(sb['caja_' + k] ?? COM.cfg['caja_' + k], 10); return isFinite(x) && x >= 0 ? x : d; };
-  const cop = { 1: v('comun', 4), 2: v('rara', 2), 3: v('joya', 1) }, am = v('amalgama', 1);
-  const items = poolDe(sb.pool, ['bp', 'ba']).map(id => ({ id, r: RAREZA(id) })).map(x => ({ ...x, c: cop[x.r] })).filter(x => x.c > 0);
-  if ((parseInt(sb.amalgama, 10) || 0) > 0 && am > 0) poolDe(sb.pool, ['bs']).forEach(id => { if (!items.some(x => x.id === id)) items.push({ id, r: 3, c: am, am: 1 }); });
+  const cop = { 1: v('comun', 4), 2: v('rara', 2), 3: v('joya', 1), 4: v('secreta', 1) }, am = v('amalgama', 1);
+  // v408 · Secretas y especiales de ESTE sobre (en la demo no hay)
+  const ids = k => DEMO ? [] : listaCartas(sb[k]).map(resolverCarta).filter(id => id && CARD[id] && !CARD[id].boss);
+  const sec = ids('secretas'), esp = ids('especiales').filter(id => !sec.includes(id));
+  const items = poolDe(sb.pool, ['bp', 'ba']).filter(id => !sec.includes(id)).map(id => ({ id, r: Math.min(3, RAREZA(id)) })).map(x => ({ ...x, c: cop[x.r] })).filter(x => x.c > 0);
+  if ((parseInt(sb.amalgama, 10) || 0) > 0 && am > 0) poolDe(sb.pool, ['bs']).forEach(id => { if (!sec.includes(id) && !items.some(x => x.id === id)) items.push({ id, r: 3, c: am, am: 1 }); });
+  esp.forEach(id => { if (!items.some(x => x.id === id)) items.push(CARD[id].tipo === 'amalgama' ? { id, r: 3, c: am, am: 1 } : { id, r: 3, c: cop[3] }); });
+  if (cop[4] > 0) sec.forEach(id => { if (!items.some(x => x.id === id)) items.push({ id, r: 4, c: cop[4], sec: 1 }); });
   items.sort((a, b) => b.r - a.r || ordenCarta(a.id, b.id));
   const total = items.reduce((t, x) => t + x.c, 0);
   return { items, total, n: Math.max(1, parseInt(sb.cartas, 10) || 5), key: String(hashS(items.map(x => x.id + ':' + x.c).join('|'))) };
@@ -4794,8 +4816,9 @@ function cajaInfo(sb) {
   const def = cajaDef(sb), st = cajaDe(sb, def);
   const quedan = def.items.reduce((t, x) => t + (st.resto[x.id] || 0), 0);
   const jT = def.items.filter(x => x.r === 3).reduce((t, x) => t + x.c, 0), jQ = def.items.filter(x => x.r === 3).reduce((t, x) => t + (st.resto[x.id] || 0), 0);
+  const sT = def.items.filter(x => x.r === 4).reduce((t, x) => t + x.c, 0), sQ = def.items.filter(x => x.r === 4).reduce((t, x) => t + (st.resto[x.id] || 0), 0);
   const tipos = def.items.length, tengo = def.items.filter(x => tieneNombre(x.id) > 0).length;
-  return { def, st, quedan, sobresT: Math.ceil(def.total / def.n), sobresQ: Math.ceil(quedan / def.n), jT, jQ, tipos, tengo };
+  return { def, st, quedan, sobresT: Math.ceil(def.total / def.n), sobresQ: Math.ceil(quedan / def.n), jT, jQ, sT, sQ, tipos, tengo };
 }
 // Saca un sobre de la caja: sin reemplazo, cartas distintas y máximo 1 ALMA por sobre (si se puede)
 function sacarDeCaja(sb) {
@@ -4815,21 +4838,21 @@ function sacarDeCaja(sb) {
 function pintarCajaSobre(sb) {
   const k = cajaInfo(sb), pc = k.sobresT ? k.sobresQ / k.sobresT * 100 : 0, am = k.def.items.filter(x => x.am).length;
   return `<div class="td-caja"><div class="cj-l"><b>📦 Caja ${k.st.num}</b><span>${k.sobresQ}/${k.sobresT} sobres</span></div><div class="cj-bar"><i style="width:${pc}%"></i></div>
-    <div class="cj-l"><span class="jq">★ Joyas ${k.jQ}/${k.jT}</span><span class="${k.tengo === k.tipos ? 'ok' : ''}">🃏 ${k.tengo}/${k.tipos}${k.tengo === k.tipos ? ' ✔' : ''}</span></div>${am ? `<div class="cj-l"><span style="color:#ffd166">✨ ${am} Amalgama${am > 1 ? 's' : ''} en la caja</span></div>` : ''}</div>`;
+    <div class="cj-l"><span class="jq">★ Joyas ${k.jQ}/${k.jT}${k.sT ? ` · <b style="color:#ff6ad5">✦ Secretas ${k.sQ}/${k.sT}</b>` : ''}</span><span class="${k.tengo === k.tipos ? 'ok' : ''}">🃏 ${k.tengo}/${k.tipos}${k.tengo === k.tipos ? ' ✔' : ''}</span></div>${am ? `<div class="cj-l"><span style="color:#ffd166">✨ ${am} Amalgama${am > 1 ? 's' : ''} en la caja</span></div>` : ''}</div>`;
 }
 function verCaja(sb) {
   const k = cajaInfo(sb), usada = k.quedan < k.def.total;   // v196 · se puede reiniciar en cuanto falte cualquier carta
   $('cjT').textContent = '📦 ' + (sb.nombre || sb.id).toUpperCase() + ' · CAJA ' + k.st.num;
   const sec = r => { const L = k.def.items.filter(x => x.r === r); if (!L.length) return '';
     const q = L.reduce((t, x) => t + (k.st.resto[x.id] || 0), 0), tot = L.reduce((t, x) => t + x.c, 0);
-    return `<div class="cj-sec" style="color:${RZ[r][1]}"><span>${r === 3 ? '★ ' : ''}${RZ[r][0]}S · ${L[0].c === L[L.length - 1].c ? L[0].c + ' copia' + (L[0].c > 1 ? 's' : '') + ' c/u' : ''}</span><span>${q}/${tot}</span></div><div class="mz-grid">` +
-      L.map(x => { const q1 = k.st.resto[x.id] || 0; return `<div class="mz-c ${r === 3 ? 'joya' : ''} ${q1 ? '' : 'cero'}" title="${esc(nomC(x.id))}"><img src="${esc(cartaImg(x.id))}" alt="${esc(nomC(x.id))}" loading="lazy">${tieneNombre(x.id) > 0 ? '<span class="tg" title="Ya la tienes">✓</span>' : ''}<span class="qq">${q1}/${x.c}</span></div>`; }).join('') + '</div>'; };
+    return `<div class="cj-sec" style="color:${RZ[r][1]}"><span>${r === 4 ? '✦ ' : r === 3 ? '★ ' : ''}${RZ[r][0]}S · ${L[0].c === L[L.length - 1].c ? L[0].c + ' copia' + (L[0].c > 1 ? 's' : '') + ' c/u' : ''}</span><span>${q}/${tot}</span></div><div class="mz-grid">` +
+      L.map(x => { const q1 = k.st.resto[x.id] || 0; return `<div class="mz-c ${r === 4 ? 'secreta' : r === 3 ? 'joya' : ''} ${q1 ? '' : 'cero'}" title="${esc(nomC(x.id))}"><img src="${esc(cartaImg(x.id))}" alt="${esc(nomC(x.id))}" loading="lazy">${tieneNombre(x.id) > 0 ? '<span class="tg" title="Ya la tienes">✓</span>' : ''}<span class="qq">${q1}/${x.c}</span></div>`; }).join('') + '</div>'; };
   $('cjBody').innerHTML = `<div class="td-nota">Esta caja trae un número fijo de cartas. Lo que ya salió no vuelve a salir hasta que la caja se rellene: cuanto más la abres, más cerca está cada Joya. Cuando se vacía se rellena sola, y puedes <b style="color:var(--text)">reiniciarla</b> cuando quieras (por ejemplo, si ya sacaste la Joya que buscabas).</div>
     <div class="cj-res"><div>Sobres restantes<b>${k.sobresQ} / ${k.sobresT}</b><div class="cj-bar" style="margin-top:6px"><i style="width:${k.sobresT ? k.sobresQ / k.sobresT * 100 : 0}%"></i></div></div>
-    <div>★ Joyas en la caja<b style="color:#ffd166">${k.jQ} / ${k.jT}</b></div><div>Tu colección de este sobre<b style="color:${k.tengo === k.tipos ? 'var(--green)' : 'var(--text)'}">${k.tengo} / ${k.tipos}${k.tengo === k.tipos ? ' ✔' : ''}</b></div></div>
+    <div>★ Joyas en la caja<b style="color:#ffd166">${k.jQ} / ${k.jT}</b></div>${k.sT ? `<div>✦ Secretas en la caja<b style="color:#ff6ad5">${k.sQ} / ${k.sT}</b></div>` : ''}<div>Tu colección de este sobre<b style="color:${k.tengo === k.tipos ? 'var(--green)' : 'var(--text)'}">${k.tengo} / ${k.tipos}${k.tengo === k.tipos ? ' ✔' : ''}</b></div></div>
     <div class="f-btns" style="margin:0 0 4px"><button class="bt sec" id="cjCerrar">CERRAR</button><button class="bt ${usada ? 'gold' : 'sec'}" id="cjReset" ${usada ? '' : 'disabled'}>${usada ? '🔄 REINICIAR CAJA' : '📦 CAJA LLENA'}</button></div>
     ${usada ? '' : '<div class="td-nota" style="margin:6px 0 0">La caja está completa: se puede reiniciar en cuanto saques el primer sobre.</div>'}
-    ${sec(3)}${sec(2)}${sec(1)}`;
+    ${k.sT ? '<div class="td-nota" style="margin:10px 0 0">✦ Las <b style="color:#ff6ad5">SECRETAS</b> solo salen de esta caja: no se venden ni se compran.</div>' : ''}${sec(4)}${sec(3)}${sec(2)}${sec(1)}`;
   $('mCaja').classList.add('on');
   $('cjCerrar').onclick = () => cerrarModal('mCaja');
   $('cjReset').onclick = async () => {
@@ -4852,7 +4875,7 @@ const cpTier = id => { const p = precioBase(id); return p >= RZ_JOYA ? 3 : p >= 
 const cpUsados = () => (S.carp && S.carp.dia === S.dia) ? S.carp.n : 0;
 function cpPool() {
   const abiertos = DIST.filter(distritoAbierto).map(d => d.id).join(',');
-  return [...new Set(poolDe(abiertos, ['bp', 'ba']).concat(poolDe(abiertos, ['bs'])))].filter(id => precioBase(id) > 0);
+  return [...new Set(poolDe(abiertos, ['bp', 'ba']).concat(poolDe(abiertos, ['bs'])))].filter(id => precioBase(id) > 0 && !esSecreta(id));
 }
 const cpLibres = id => (S.col[id] || 0) - enMazo(S.mazo, id) - CP.sel.filter(x => x === id).length;
 async function abrirCarpeta(p) {

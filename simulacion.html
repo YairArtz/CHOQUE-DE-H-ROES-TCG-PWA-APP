@@ -2644,7 +2644,7 @@ const PASOS={
     const list=cands(ctx.o,st.origen,st.filtro);
     if(st.opcional&&list.length&&(ctx.interactive||onlineOn())&&(await preguntaDe(ctx.o,'✨ '+C[ctx.cid].name.toUpperCase()+'<br>¿Añadir una carta a tu mano?',['✅ Sí','✖ No']))!==0) return true;
     if(!list.length){lg('✨ '+C[ctx.cid].name+': no hay cartas válidas en '+[].concat(st.origen||'bp').map(z=>SRC_NOM[z]).join('/')+'.','var(--muted)');return true;}
-    const pick=await choose(ctx,list,st.cantidad||1,{sub:'Elige qué añadir a tu mano'});
+    const pick=await choose(ctx,list,st.cantidad||1,{sub:'Elige qué añadir a tu mano',score:x=>SCORE(x.cid)+cpuBonoMaterial(ctx.o,x.cid)});
     pick.forEach(x=>{const c=takeFrom(ctx.o,x);if(c){G[ctx.o].hand.push(c);if(st.bloqueaHab)bloquearHab(ctx.o,c,2);}});
     [].concat(st.origen||'bp').forEach(z=>{if(z==='bp'||z==='ba')sh(G[ctx.o][z]);});
     lg('✨ <b>'+C[ctx.cid].name+'</b>'+who(ctx.o)+': añade '+(ctx.o==='player'||!['bp','ba'].includes(pick[0]&&pick[0].z)?pick.map(x=>'<b>'+C[x.cid].name+'</b>').join(', '):pick.length+' carta(s)')+' a la mano.','var(--ac)');
@@ -2668,7 +2668,7 @@ const PASOS={
       const side=st.mismoSector&&ctx.slot!=null?sideOfSlot(ctx.o,ctx.slot):null;
       if(side?freeIn(dst,side)===undefined:freePJ(dst)===-1){lg('✨ '+C[ctx.cid].name+': sin zonas de personaje libres.','var(--muted)');break;}
       if(espBloqueado()){lg('🚫 "M": nadie puede llamar de forma especial el resto del turno.','var(--purple)');break;}
-      const [x]=await choose(ctx,list,1,{sub:'Elige a quién llamar de forma especial'+(n>1?' ('+(k+1)+'/'+n+')':''),min:st.hasta&&k>0?0:1});
+      const [x]=await choose(ctx,list,1,{sub:'Elige a quién llamar de forma especial'+(n>1?' ('+(k+1)+'/'+n+')':''),min:st.hasta&&k>0?0:1,score:y=>SCORE(y.cid)+cpuBonoMaterial(ctx.o,y.cid)});
       if(!x) break;
       if(!await announce(ctx.o,x.cid,'llamado',{z:x.z,i:x.i},{especial:true})) continue;
       if(side?freeIn(dst,side)===undefined:freePJ(dst)===-1) break;
@@ -5271,7 +5271,9 @@ function oblivionInicio(o){}
 // ¿Tiene sentido para la CPU usar estos pasos ahora? (niveles ÉPICO y CAÓTICO)
 function pasosTienenSentido(o,pasos,slot){
   const r=opp(o);
+  let libera=false;      // v407 · Evótophya, Yuhll, Metal X: primero dejan una zona libre
   for(const st of pasos){
+    if(['confinar_propio','sacrificar_esta','confinar_esta'].includes(st.accion)) libera=true;
     if(st.accion==='cartas_campo'&&!st.porCada){
       const modo=st.modo||'destruir';
       const L=campoTargets({o,slot,cid:null},modo).filter(x=>(x.own||x.o)===r&&(!st.zonas||st.zonas.some(z=>z===x.z||(z==='alma'&&x.z==='apoyo')||(z==='apoyo'&&x.z==='apoyo'))));
@@ -5280,7 +5282,7 @@ function pasosTienenSentido(o,pasos,slot){
     }
     if((st.accion==='robar'||st.accion==='robar_hasta')&&G[o].hand.length>=6) return false;
     if(st.accion==='buscar'&&G[o].hand.length>=7) return false;
-    if(st.accion==='llamar_especial'&&freePJ(o)===-1) return false;
+    if(st.accion==='llamar_especial'&&freePJ(o)===-1&&!libera) return false;
     if(st.accion==='destruir_todos_campo'){const v=x=>G[x].pj.filter(Boolean).reduce((t,p)=>t+SCORE(p.id),0);if(v(r)<v(o)+40)return false;}
     if(st.accion==='retornar_campo_bp'){const v=x=>G[x].pj.filter(Boolean).reduce((t,p)=>t+SCORE(p.id),0);if(v(r)<v(o)+30)return false;}
     if(st.accion==='inundacion'){const v=x=>G[x].pj.filter(Boolean).map(p=>SCORE(p.id)).sort((a,b)=>b-a);
@@ -6618,12 +6620,13 @@ function spAssign(sel,groups){
 }
 function spSlotOk(o,sel){return freePJ(o)!==-1||sel.some(x=>x.src==='campo');}
 function spValid(o,cid,sel){const sp=C[cid].esp;return !!sp&&!(sp.costoTopeBA&&!G[o].ba.length)&&!(sp.esteTurno&&sel.some(x=>x.src==='campo'&&(!G[o].pj[x.i]||G[o].pj[x.i].turnoLlamado!==turnKey())))&&spAssign(sel,sp.materiales||[])&&spSlotOk(o,sel);}
-function spFind(o,cid){
+function spFind(o,cid,campoPrimero){
   const sp=C[cid].esp;
   if(!sp) return null;
   const ord={mano:0,mictlan:1,campo:2};
   // v79 · la CPU usa como material lo que menos le sirve (no gasta sus mejores cartas de la mano)
-  const peso=x=>SCORE(x.cid)*({mano:.7,mictlan:.3,campo:1}[x.src]||1)+(x.src==='campo'?12:0);
+  // v407 · campoPrimero: con el campo lleno, usa primero un material del campo para dejar zona libre
+  const peso=x=>campoPrimero?(x.src==='campo'?SCORE(x.cid)-1000:SCORE(x.cid)):SCORE(x.cid)*({mano:.7,mictlan:.3,campo:1}[x.src]||1)+(x.src==='campo'?12:0);
   const cs=spCandidates(o,sp).sort(o==='cpu'?(a,b)=>peso(a)-peso(b):(a,b)=>ord[a.src]-ord[b.src]||SCORE(a.cid)-SCORE(b.cid));
   const total=spTotal(sp), pick=[];
   let tries=0;
@@ -6700,12 +6703,14 @@ async function doSpecialCall(o,cid,sel,side){
   if(o==='player') clearSel();
   lg('✨ <b>LLAMADO ESPECIAL'+(o==='cpu'?' (CPU)':'')+'</b>: '+names.map(n=>'<b>'+n+'</b>').join(' + ')+(dest==='conf'?' quedan confinados.':' van al Mictlán.'),'#ffe066');
   showBanner('end','LLAMADO ESPECIAL',card.name.split(',')[0].toUpperCase(),1500);
-  for(const id of leaves) await fireLeave(o,id);
   const matIds=sel.map(x=>x.cid);
   await procConfQ();
   for(const id of matIds){if((C[id].efectos||[]).some(e=>e.cuando==='material'))await runTrigger(o,id,'material',{zone:dest});if(!G||G.over)return false;}
   await placeChar(o,cid,{slot:freeIn(o,side)??bestSlot(o),via:'especial',from:'B.SOP',mats:sel.map(x=>x.cid),desde:'bs'});
   {const q=G[o].pj.find(p=>p&&p.id===cid&&!p.mats);if(q)q.mats=matIds;}
+  // v407 · los materiales que dejaron el campo activan su "al salir" DESPUÉS de que la Amalgama ocupa su zona
+  //        (antes Hidrógeno llamaba a otro Metalúrgico a esa zona y la Amalgama se quedaba sin lugar)
+  for(const id of leaves){if(!G||G.over)return false;await fireLeave(o,id);}
   if(G[o].arena&&hasPassive(G[o].arena,'museo_amalgama')){const c=drawFrom(o,'bp');if(c)lg('🎭 <b>'+C[G[o].arena].name+'</b>'+who(o)+': roba una carta por llamar una Amalgama.','var(--ac)');}
   if(o==='player'){const s=G[o].pj.findIndex(p=>p&&p.id===cid);if(s>=0)showDetail(cid,{live:G[o].pj[s],title:'TUYO'});}
   renderAll();
@@ -9072,6 +9077,42 @@ function cpuMejorAtaque(){
   });
   return mejor;
 }
+// v407 · IA de las Amalgamas: en nivel alto llama las de su arquetipo (la baraja está hecha para ellas)
+//        y las demás si valen más que lo que gasta.
+function cpuAmalgamaArquetipo(cid){const sp=C[cid]&&C[cid].esp;return !!sp&&(sp.materiales||[]).some(g=>g.nombreIncluye||g.id||g.invitado);}
+function cpuAmalgamaConviene(cid,sel){
+  // v407 · una Amalgama genérica no gasta los materiales que la baraja guarda para su Amalgama de arquetipo
+  if(nivelAlto()&&!cpuAmalgamaArquetipo(cid)&&[...new Set(G.cpu.bs)].some(a=>a!==cid&&cpuAmalgamaArquetipo(a)&&sel.some(x=>(C[a].esp.materiales||[]).some(g=>(g.nombreIncluye||g.id)&&matchReq(x.cid,g))))) return false;
+  const costo=sel.reduce((t,x)=>t+(x.src==='campo'?SCORE(x.cid):x.src==='mano'?SCORE(x.cid)*.6:0),0);
+  if(nivelAlto()){
+    const mats=(C[cid].esp&&C[cid].esp.materiales)||[];
+    // nunca cambia por ella algo del campo que ya vale más (p. ej. Capitán Drake para llamar a Grace Omay)
+    if(sel.some(x=>x.src==='campo'&&SCORE(x.cid)>SCORE(cid))) return false;
+    if(mats.some(g=>g.nombreIncluye||g.id||g.invitado)) return true;
+    return costo*.75<=SCORE(cid)+20;
+  }
+  return costo<=SCORE(cid)*(cid==='tx_chaman'&&G.player.pj.some(Boolean)?2:1);
+}
+// v407 · Al buscar o llamar, la CPU (nivel alto) prefiere la carta que le falta para una Amalgama de su BS
+function cpuBonoMaterial(o,cid){
+  if(!G||o!=='cpu'||!nivelAlto()||!isChar(cid)) return 0;
+  let b=0;
+  for(const a of new Set(G[o].bs)){
+    const sp=C[a]&&C[a].esp; if(!sp) continue;
+    const gs=(sp.materiales||[]).filter(g=>g.nombreIncluye||g.id||g.invitado); if(!gs.length||!gs.some(g=>matchReq(cid,g))) continue;
+    const otros=spCandidates(o,sp).filter(x=>K(C[x.cid].name)!==K(C[cid].name)).length;
+    b=Math.max(b,25+12*Math.min(otros,spTotal(sp)-1));
+  }
+  return b;
+}
+// v407 · personaje que al llamarse de forma normal busca, llama o da otro llamado: conviene llamarlo primero
+function cpuExtiende(cid){
+  return (C[cid].efectos||[]).some(e=>e.cuando==='al_llamar'&&(e.pasos||[e]).some(s=>['buscar','llamar_especial','robar','llamado_extra','llamar_desde_mano','equipar_desde_mano','buscar_o_llamar'].includes(s.accion)));
+}
+// v407 · Héroes Invitados que valen por su efecto desde la mano (Amelia, Sonia, Benji…): en nivel alto no se llaman como personaje
+function cpuGuardaEnMano(cid){
+  return (C[cid].efectos||[]).some(e=>e.cuando==='respuesta'||e.cuando==='tras_llamado_especial'||(e.cuando==='mano'&&(e.pasos||[e]).some(s=>s.accion==='descartar_esta')));
+}
 async function cpuTurn(){
   const g=GEN, alive=()=>g===GEN&&G&&!G.over, W=ms=>new Promise(r=>setTimeout(r,ms*velCPU()));
   const step=async ms=>{await W(ms);return alive();};
@@ -9118,16 +9159,23 @@ async function cpuTurn(){
       await callFromHand('cpu',cid,{via:'especial',from:'su mano (VALENTÍA)'});
     }
   }
-  // 3) Amalgamas
-  for(const cid of [...new Set(P.bs)]){
-    if(!alive()) return;
-    const sel=spFind('cpu',cid);
-    if(!sel||cpuFalla(.6)||!llamadoOk('cpu',cid)) continue;
-    // No sacrifica personajes del campo que valen más que la Amalgama
-    if(sel.reduce((t,x)=>t+(x.src==='campo'?SCORE(x.cid):x.src==='mano'?SCORE(x.cid)*.6:0),0)>SCORE(cid)*(cid==='tx_chaman'&&G.player.pj.some(Boolean)?2:1)) continue;
-    const side=['right','left'].find(sd=>freeIn('cpu',sd,freedBy(sel))!==undefined);
-    if(side){if(!await step(500)) return;await doSpecialCall('cpu',cid,sel,side);}
-  }
+  // 3) Amalgamas · v407: la mejor primero; en nivel alto se vuelve a intentar después de llamar, activar apoyos y usar habilidades
+  const amalgamas=async()=>{
+    for(const cid of [...new Set(P.bs)].sort((a,b)=>(nivelAlto()?cpuAmalgamaArquetipo(b)-cpuAmalgamaArquetipo(a):0)||SCORE(b)-SCORE(a))){
+      if(!alive()) return;
+      if(!P.bs.includes(cid)) continue;
+      let sel=spFind('cpu',cid);
+      if(!sel||cpuFalla(.6)||!llamadoOk('cpu',cid)) continue;
+      // v407 · campo lleno: prueba con un material del campo para que quede zona
+      if(nivelAlto()&&freePJ('cpu')===-1&&!sel.some(x=>x.src==='campo')){const s2=spFind('cpu',cid,true);if(s2&&s2.some(x=>x.src==='campo'))sel=s2;}
+      // No sacrifica personajes del campo que valen más que la Amalgama (salvo las de su arquetipo en nivel alto)
+      if(!cpuAmalgamaConviene(cid,sel)) continue;
+      const side=['right','left'].find(sd=>freeIn('cpu',sd,freedBy(sel))!==undefined);
+      if(side){if(!await step(500)) return;await doSpecialCall('cpu',cid,sel,side);}
+    }
+  };
+  await amalgamas();
+  if(!alive()) return;
   // 4) Sectores
   for(const cid of [...P.hand]){
     if(C[cid].type!=='sector'||C[cid].colocar==='rival'||C[cid].colocar==='ambos'||C[cid].soloResp) continue;
@@ -9164,13 +9212,15 @@ async function cpuTurn(){
   }
   // 4b) Arena (si no tiene una activa)
   if(!P.arena){const ai=P.hand.findIndex(c=>C[c].type==='arena'&&!(hasPassive(c,'unica_en_campo')&&G.player.arena===c)&&!(costoActivar(c)&&P.hp<=costoActivar(c)+3));if(ai>=0){if(!await step(450)) return;await doArena('cpu',ai);}}
-  // 5) Llamados normales (los más caros que pueda pagar)
+  // 5) Llamados normales (los más caros que pueda pagar) · v407: en nivel alto primero los que buscan / llaman / dan otro llamado
+  const prioLlamado=c=>C[c].cost+(nivelAlto()&&G.callsLeft>1&&cpuExtiende(c)?6:0);
+  const llamadosNormales=async()=>{
   for(let n=0;n<6&&G.callsLeft>0;n++){
     if(!alive()) return;
     const at=almaT('cpu');
     // Oxkotetl se guarda para revelarlo (salvo que el adversario no tenga personajes)
     const cpuReglas=c=>{const n=reglasSac(c);if(!reglasPuede('cpu',c))return false;if(!n)return true;const L=reglasPropios('cpu').map(y=>SCORE(y.cid)).sort((a,b)=>a-b).slice(0,n);return L.reduce((t,v)=>t+v,0)<SCORE(c);};
-    const best=P.hand.map((c,i)=>({c,i})).filter(x=>C[x.c].type==='pj'&&!hasPassive(x.c,'chanheko_mano')&&(reglasOn()?cpuReglas(x.c):C[x.c].cost<=almaT('cpu',x.c))&&llamadoOk('cpu',x.c)&&!puedeNormal('cpu',x.c)&&!hasPassive(x.c,'tortura')&&!(x.c==='oxkotetl'&&G.player.pj.some(Boolean))).sort((a,b)=>C[b.c].cost-C[a.c].cost)[0];
+    const best=P.hand.map((c,i)=>({c,i})).filter(x=>C[x.c].type==='pj'&&!(nivelAlto()&&cpuGuardaEnMano(x.c))&&!hasPassive(x.c,'chanheko_mano')&&(reglasOn()?cpuReglas(x.c):C[x.c].cost<=almaT('cpu',x.c))&&llamadoOk('cpu',x.c)&&!puedeNormal('cpu',x.c)&&!hasPassive(x.c,'tortura')&&!(x.c==='oxkotetl'&&G.player.pj.some(Boolean))).sort((a,b)=>prioLlamado(b.c)-prioLlamado(a.c))[0];
     if(!best) break;
     const libresZ=matchF(best.c,NINJA)?zonasLibresPJ('cpu'):[];
     const zBono=libresZ.length&&((best.c==='nj_addela'&&libresZ.some(z=>z.z==='sector'))||(['nj_panncho','nj_emmiliano'].includes(best.c)&&libresZ.some(z=>z.z==='apoyo')));
@@ -9179,6 +9229,10 @@ async function cpuTurn(){
     if(zBono||freePJ('cpu')===-1) await ninjaLlamarNormal('cpu',best.c);
     else await callFromHand('cpu',best.c,{via:'normal'});
   }
+  };
+  await llamadosNormales(); if(!alive()) return;
+  // v407 · nivel alto: lo que se buscó o llamó pudo completar una Amalgama
+  if(nivelAlto()){await amalgamas(); if(!alive()) return;}
   // 6) Apoyos
   const pCount=()=>G.player.pj.filter(Boolean).length, cCount=()=>P.pj.filter(Boolean).length;
   const wantApoyo=cid=>{
@@ -9231,6 +9285,8 @@ async function cpuTurn(){
     const i=P.hand.indexOf(cid);if(i<0) continue;
     await activateApoyo('cpu',i);
   }
+  // v407 · nivel alto: lo que robó o llamó con los apoyos (Doblón, Evótophya…) se aprovecha en este turno
+  if(nivelAlto()&&alive()){await llamadosNormales(); if(!alive()) return; await amalgamas(); if(!alive()) return;}
   // 7) Habilidades activables en campo y en mano
   for(let i=0;i<4;i++){
     if(!alive()) return;
@@ -9280,7 +9336,18 @@ async function cpuTurn(){
   // 7a) Habilidad de la ARENA (Tamoanchan)
   if(P.arena&&alive()){
     for(const {e,k} of (C[P.arena].efectos||[]).map((e,k)=>({e,k})).filter(x=>x.e.cuando==='accion'&&!x.e.pendiente)){
-      if(!(e.pasos||[]).some(s=>['destruir_propia','museo_dado','museo_reemplazo','no_ataca_filtro'].includes(s.accion))) continue;
+      const pz=e.pasos||[];
+      if(!pz.some(s=>['destruir_propia','museo_dado','museo_reemplazo','no_ataca_filtro','llamar_especial','conf_a_bp'].includes(s.accion))) continue;
+      // v407 · Galeón Inquisidor: descarta el personaje que menos vale para llamar uno mejor de su BP
+      if(pz.some(s=>s.accion==='llamar_especial')){
+        const ll=pz.find(s=>s.accion==='llamar_especial'), env=pz.find(s=>s.accion==='enviar_a_mictlan');
+        if(freePJ('cpu')===-1) continue;
+        const mejor=Math.max(0,...cands('cpu',ll.origen||'bp',Object.assign({tipos:['pj','amalgama']},ll.filtro)).map(x=>SCORE(x.cid)));
+        const peor=env?Math.min(999,...cands('cpu',env.origen||'mano',env.filtro).map(x=>SCORE(x.cid))):0;
+        if(!mejor||mejor<peor+10) continue;
+      }
+      // v407 · Xochimilko: regresa un ÉVOLOTL confinado y gana corazones cuando ya le hacen falta
+      if(pz.some(s=>s.accion==='conf_a_bp'&&s.ganarVidas)&&P.hp>8) continue;
       if((e.pasos||[]).some(s=>s.accion==='no_ataca_filtro')&&!G.player.pj.some(q=>q&&SCORE(q.id)>=45)&&!sectorArenaTargets().some(t=>t.own==='player')) continue;
       if((e.pasos||[]).some(s=>s.accion==='museo_dado')&&!museoQuiereDado('cpu')) continue;
       if((e.pasos||[]).some(s=>s.accion==='museo_reemplazo')&&!museoPar('cpu')) continue;
@@ -9311,6 +9378,7 @@ async function cpuTurn(){
     }
   }
   if(!alive()) return;
+  if(nivelAlto()){await llamadosNormales(); if(!alive()) return; await amalgamas(); if(!alive()) return;}
 
   // 8) Combate
   if(!await step(700)) return;

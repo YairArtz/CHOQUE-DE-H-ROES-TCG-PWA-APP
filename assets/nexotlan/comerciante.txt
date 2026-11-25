@@ -41,10 +41,17 @@
 #   requiere    ID de punto que hay que vencer para que aparezca a la venta
 #   color       color del sobre dibujado (si no hay imagen)
 #   caja_comun, caja_rara, caja_joya, caja_amalgama   (opcional) copias en la caja solo para este sobre
+#   secretas    (v408) 1 o 2 cartas de RAREZA SECRETA para la caja de este sobre, separadas por  |  (muchos nombres
+#               llevan coma). Ej.  secretas = Huitzilopochtli | Cipacdragón, La Bestia Terrena
+#               Salen con su propia revelación «¡SECRETA!», solo vienen en su caja (caja_secreta copias, 1 por defecto)
+#               y NO se venden en la tienda, NO se compran al Comerciante ni salen en la ruleta del Carpetero.
+#   especiales  (v408) cartas que normalmente no se dan como premio (p. ej. las exclusivas de Ateotl) y que entran
+#               a la caja de este sobre como JOYA (también separadas por  | ).
+#   En la DEMO no hay Secretas ni especiales: las cajas de la demo quedan igual que siempre.
 #
 #  ── CAJAS DE SOBRES ──
 #   Cada sobre sale de una CAJA con un número fijo de copias de cada carta de su pool:
-#   Común (precio < 200) 4 copias · Rara (200-599) 2 · Joya (600+) 1 · Amalgama 1.
+#   Común (precio < 200) 4 copias · Rara (200-599) 2 · Joya (600+) 1 · Amalgama 1 · Secreta 1 (caja_secreta).
 #   Lo que ya salió no vuelve a salir hasta que la caja se rellena: cuantos más sobres abres,
 #   más cerca están las Joyas, y al vaciar la caja salieron TODAS. Cuando se vacía se rellena sola.
 #   El jugador puede REINICIARLA gratis en "📦 VER CAJA" (p. ej. cuando ya sacó la Joya que buscaba).
@@ -73,6 +80,7 @@ caja_comun = 4
 caja_rara = 2
 caja_joya = 1
 caja_amalgama = 1
+caja_secreta = 1
 precio_cartas = 100
 variacion = 20
 venta_comun = 5
@@ -92,6 +100,7 @@ cartas = 5
 pool = puerta
 amalgama = 0
 color = #00cfff
+secretas = Heredero del Fuego, Aurora
 
 [sobre:mercado]
 nombre = Sobre del Mercado
@@ -103,6 +112,7 @@ pool = mercado
 amalgama = 0
 requiere = g_aurora
 color = #f5a623
+secretas = Vulcar, El Caballero de Cristal
 
 [sobre:archivos]
 nombre = Sobre de los Archivos
@@ -114,6 +124,7 @@ pool = archivos
 amalgama = 5
 requiere = g_vulcar
 color = #cc55ff
+secretas = Madatzin, Oráculo de Nexotlan | Koatl, El Defensor Inmaterial
 
 [sobre:santuario]
 nombre = Sobre del Santuario
@@ -125,6 +136,7 @@ pool = santuario
 amalgama = 8
 requiere = g_madatzin
 color = #00ff9d
+secretas = Nikkon Trolas, Dragón de Nexotlan
 
 [sobre:fortaleza]
 nombre = Sobre de la Fortaleza
@@ -136,6 +148,7 @@ pool = fortaleza
 amalgama = 10
 requiere = g_nikkon
 color = #7ad7ff
+secretas = Vulcar, El Caballero De Nexotlan | Dragón de Cristal, Khaleydoh
 
 [sobre:coliseo]
 nombre = Sobre del Coliseo
@@ -147,6 +160,7 @@ pool = coliseo
 amalgama = 12
 requiere = g_vulcar_nx
 color = #ff9a00
+secretas = Huitzilopochtli | Cipacdragón, La Bestia Terrena
 
 [sobre:piramide]
 nombre = Sobre de la Pirámide
@@ -158,6 +172,7 @@ pool = piramide
 amalgama = 15
 requiere = g_huitzi
 color = #36d6ff
+secretas = El Sacerdote Oscuro | D Emperatriz Ornamentum
 
 [sobre:ciudadela]
 nombre = Sobre de la Ciudadela
@@ -169,6 +184,9 @@ pool = ciudadela
 amalgama = 18
 requiere = g_ateotl
 color = #ffd166
+secretas = Chamán del Caos Obsidiana | Alebrije Iztac de Ixtelotin
+# v408 · las cartas exclusivas de Tlatoani Ateotl: se consiguen después de vencerlo, todas como JOYA
+especiales = Chahneko | Fuerza del Reflejo de Obsidiana | Amalgamación | El Coyote de Batalla | Penachos Mágicos | Las Reglas Ancestrales | Tepostlatakatl | Gigante Quina-Metz | Gaia, El Conquistador Feroz
 
 [sobre:cima]
 nombre = Sobre de la Cima
@@ -180,6 +198,7 @@ pool = cima
 amalgama = 25
 requiere = g_koatl_nx
 color = #ff2f5a
+secretas = Vellond, Gran Regente de Nexotlan | Évolotl, Omni Axolotl
 
 # DLC Las Catacumbas de Nexotlan: solo aparece para quien tiene el producto dlc_catacumbas
 # (si falta la imagen sobre_catacumbas.png en assets/nexotlan/sobres/, se dibuja un sobre genérico)
@@ -194,6 +213,7 @@ pool = osario, galerias, trono
 amalgama = 10
 requiere = dlc_g_mictecacihuatl
 color = #7dffb2
+secretas = Mictecacihuatl, la Diosa de la Muerte
 
 # ── [carpetero] · ruleta de cambio de cartas ──
 #   punto       ID del héroe de mapa.txt que hace los cambios (aparece "🎰 RULETA" al tocarlo)

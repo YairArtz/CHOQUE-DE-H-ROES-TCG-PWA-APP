@@ -724,6 +724,13 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 .handrow .hcard:hover,.handrow .hcard.gp-foco{z-index:3}
 .handrow .hcard.sel{z-index:4}
 .hcard{flex-shrink:0;width:var(--cw);height:var(--ch);position:relative;cursor:pointer}
+/* v408 · FOIL de las cartas SECRETAS de Nexotlan (el holográfico de la tienda en versión ligera: solo transform) */
+.sec-foil{position:absolute;inset:0;overflow:hidden;pointer-events:none;border-radius:inherit;z-index:0}
+.sec-foil::before{content:'';position:absolute;top:0;bottom:0;left:-100%;width:300%;background:linear-gradient(115deg,transparent 30%,rgba(255,0,128,.3) 38%,rgba(255,200,0,.34) 44%,rgba(0,255,180,.32) 50%,rgba(0,180,255,.32) 56%,rgba(180,0,255,.28) 62%,transparent 70%);mix-blend-mode:color-dodge;animation:secFoil 3.4s ease-in-out infinite alternate;will-change:transform}
+.sec-foil::after{content:'';position:absolute;top:0;left:0;width:35%;height:100%;background:linear-gradient(115deg,transparent,rgba(255,255,255,.5),transparent);transform:translateX(-120%) skewX(-20deg);animation:secBrillo 2.8s ease-in-out infinite;will-change:transform}
+@keyframes secFoil{from{transform:translateX(-20%)}to{transform:translateX(30%)}}
+@keyframes secBrillo{0%{transform:translateX(-120%) skewX(-20deg)}55%,100%{transform:translateX(400%) skewX(-20deg)}}
+@media (prefers-reduced-motion:reduce){.sec-foil::before,.sec-foil::after{animation:none}}
 .hcard-img{width:100%;height:100%;border-radius:5px;border:1.5px solid rgba(255,255,255,.18);
   object-fit:contain;background:#000;display:block;transition:transform .18s,border-color .18s,box-shadow .18s}
 .hcard.sel .hcard-img{transform:translateY(-7px);border-color:var(--green);box-shadow:0 0 12px rgba(0,232,122,.55)}
@@ -2117,9 +2124,15 @@ async function precargarMiniaturas(onProgress){
 }
 
 // <img> con miniatura y respaldo a la imagen completa
+// v408 · Cartas SECRETAS de Nexotlan: llevan el foil holográfico de la tienda (la lista viene en la partida; vacía en la demo)
+let SECRETAS_NX=null;
+function esSecretaNX(cid){
+  if(!SECRETAS_NX){try{const m=JSON.parse(localStorage.getItem('chh_arcade_match')||'null');SECRETAS_NX=new Set((m&&m.id&&/modo=arcade/.test(location.search)&&m.secretas)||[]);}catch(e){SECRETAS_NX=new Set();}}
+  return SECRETAS_NX.has(cid);
+}
 function imgTag(cid,cls){
   const c=C[cid];
-  return '<img class="'+(cls||'')+'" src="'+c.imgMin+'" data-full="'+c.img+'" onerror="if(this.src!==this.dataset.full){this.src=this.dataset.full}" alt="">';
+  return '<img class="'+(cls||'')+'" src="'+c.imgMin+'" data-full="'+c.img+'" onerror="if(this.src!==this.dataset.full){this.src=this.dataset.full}" alt="">'+(esSecretaNX(cid)?'<span class="sec-foil"></span>':'');
 }
 
 function expandDeck(list){

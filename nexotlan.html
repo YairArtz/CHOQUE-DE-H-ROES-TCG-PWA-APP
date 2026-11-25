@@ -1062,6 +1062,14 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 .mz-c .jy{position:absolute;left:4px;top:4px;padding:2px 6px;border-radius:6px;background:linear-gradient(135deg,#ffd166,#ff2f5a);color:#1a0010;font-family:'Orbitron',monospace;font-size:8.5px;font-weight:900;letter-spacing:1px}
 .mz-c.joya{border-color:#ffd166;box-shadow:0 0 14px rgba(255,209,102,.35)}
 .mz-c.secreta{border-color:#ff6ad5;box-shadow:0 0 16px rgba(255,106,213,.45),0 0 4px rgba(204,85,255,.6) inset}
+.mz-c .jy.sec{background:linear-gradient(135deg,#ff6ad5,#cc55ff 55%,#f5a623);color:#1a0010;z-index:3}
+/* v408 · FOIL de las Secretas: el brillo holográfico de la tienda, en versión ligera (solo mueve capas con transform) */
+.sec-foil{position:absolute;inset:0;overflow:hidden;pointer-events:none;border-radius:inherit;z-index:2}
+.sec-foil::before{content:'';position:absolute;top:0;bottom:0;left:-100%;width:300%;background:linear-gradient(115deg,transparent 30%,rgba(255,0,128,.32) 38%,rgba(255,200,0,.36) 44%,rgba(0,255,180,.34) 50%,rgba(0,180,255,.34) 56%,rgba(180,0,255,.3) 62%,transparent 70%);mix-blend-mode:color-dodge;animation:secFoil 3.4s ease-in-out infinite alternate;will-change:transform}
+.sec-foil::after{content:'';position:absolute;top:0;left:0;width:35%;height:100%;background:linear-gradient(115deg,transparent,rgba(255,255,255,.55),transparent);transform:translateX(-120%) skewX(-20deg);animation:secBrillo 2.8s ease-in-out infinite;will-change:transform}
+@keyframes secFoil{from{transform:translateX(-20%)}to{transform:translateX(30%)}}
+@keyframes secBrillo{0%{transform:translateX(-120%) skewX(-20deg)}55%,100%{transform:translateX(400%) skewX(-20deg)}}
+@media (prefers-reduced-motion:reduce){.sec-foil::before,.sec-foil::after{animation:none}}
 .mz-c .vd{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(2,6,20,.72);font-family:'Orbitron',monospace;font-weight:900;font-size:11px;letter-spacing:2px;color:var(--green)}
 /* v207 · Pantalla de carga con TIPS (al entrar, al ir al mapa, antes y después de cada Choque) · [config] fondo_carga · carga_sprite · assets/nexotlan/tips.txt */
 #carga{position:fixed;inset:0;z-index:190;display:flex;align-items:center;justify-content:center;padding:24px;
@@ -2427,7 +2435,7 @@ function resolverCarta(t) { t = String(t || '').trim(); if (CARD[t]) return t; c
 function almaRegular(id) { const c = CARD[id]; return !!c && c.tipo === 'alma' && !(c.efectos || []).length && !esNexo(id); }
 function sortear(p, n, zonas) {
   const b = (DATA.barajas || []).find(x => x.id === p.baraja); if (!b || n <= 0) return [];
-  const bolsa = []; (zonas || ['bp', 'ba']).flatMap(z => b[z] || []).forEach(x => { if (premiable(x.id) && !almaRegular(x.id)) for (let k = 0; k < (x.copias || 1); k++) bolsa.push(x.id); });
+  const bolsa = []; (zonas || ['bp', 'ba']).flatMap(z => b[z] || []).forEach(x => { if (premiable(x.id) && !almaRegular(x.id) && !esSecreta(x.id)) for (let k = 0; k < (x.copias || 1); k++) bolsa.push(x.id); });
   const out = [];
   for (let i = 0; i < n && bolsa.length; i++) {
     // Preferir cartas que todavía no tienes completas
@@ -4038,6 +4046,7 @@ async function iniciarChoque(p0, fase) {
   // v216 · Poderes de jefe (mismos que el Arcade): borrador, revivir, mano_extra, almas_extra, robo_extra
   const pn = k => Math.max(0, parseInt(p[k], 10) || 0);
   Object.assign(m, { borrador: pn('borrador'), revivir: pn('revivir'), manoExtra: pn('mano_extra'), almasExtra: pn('almas_extra'), roboExtra: pn('robo_extra') });
+  try { m.secretas = [...secretasDe().sec]; } catch (e) {}   // v408 · foil de las Secretas en el Choque (vacío en la demo)
   try { localStorage.setItem('chh_arcade_match', JSON.stringify(m)); } catch (e) {}
   mostrarCarga(0); $('carga').classList.remove('listo'); clearTimeout(quitarCarga._t); clearTimeout(window.__cargaT);
   try { sessionStorage.setItem('chh_carga_paso', JSON.stringify({ tt: $('cgTT').textContent, x: $('cgX').textContent, fin: window.__cargaMin, tipo: 'nexotlan', ts: Date.now() })); } catch (e) {}
@@ -4321,7 +4330,7 @@ function pintarMazo() {
   $('mzCnt').innerHTML = `<span class="${v.bp === v.nBP ? 'ok' : 'no'}">BP ${v.bp}/${v.nBP}</span><span class="${v.ba === v.nBA ? 'ok' : 'no'}">BA ${v.ba}/${v.nBA}</span>${hayAm ? `<span class="${v.bs <= v.nBS ? 'ok' : 'no'}">BS ${v.bs}/${v.nBS}</span>` : ''}`;
   $('mzGuardar').disabled = !v.ok || !MZ.cambios;
   const fila = x => { const c = CARD[x.id] || {}, libre = (S.col[x.id] || 0) - enMazo(m, x.id);
-    return `<div class="mz-row"><img src="${esc(cartaImg(x.id))}" alt="" loading="lazy"><button class="n" data-ver="${esc(x.id)}">${esc(nomC(x.id))}<small>${esc(TIPO_C[c.tipo] || c.tipo || '')}${c.tipo !== 'alma' ? ' · Coste ' + (c.coste ?? 0) : ''}${S.nuevas[x.id] ? ' · <b style="color:#ffd166">NUEVA</b>' : ''}</small></button>
+    return `<div class="mz-row"><img src="${esc(cartaImg(x.id))}" alt="" loading="lazy"><button class="n" data-ver="${esc(x.id)}">${esc(nomC(x.id))}<small>${esc(TIPO_C[c.tipo] || c.tipo || '')}${c.tipo !== 'alma' ? ' · Coste ' + (c.coste ?? 0) : ''}${esSecreta(x.id) ? ' · <b style="color:#ff6ad5">✦ SECRETA</b>' : ''}${S.nuevas[x.id] ? ' · <b style="color:#ffd166">NUEVA</b>' : ''}</small></button>
       <button class="pm" data-menos="${esc(x.id)}" aria-label="Quitar">−</button><span class="q">${x.copias}</span><button class="pm" data-mas="${esc(x.id)}" aria-label="Agregar" ${libre > 0 && porNombre(m, x.id) < maxCopias(x.id) ? '' : 'disabled'}>+</button></div>`; };
   let h = `<div class="mz-nom"><input class="inp" id="mzNombre" maxlength="40" value="${esc(m.nombre)}" aria-label="Nombre de la baraja"><button class="bt sec" id="mzRestaurar" title="Volver a la baraja básica">↺ BÁSICA</button></div>`;
   h += v.ok ? `<div class="mz-av ok">✔ Baraja lista para el Choque${MZ.cambios ? ' · guarda los cambios' : ''}.</div>` : `<div class="mz-av">⚠ ${v.errores.slice(0, 3).map(esc).join('<br>')}</div>`;
@@ -4337,7 +4346,7 @@ function pintarMazo() {
   $('mzDeck').querySelectorAll('[data-ver]').forEach(b => b.onclick = () => verCarta(b.dataset.ver));
 }
 function pintarCofre() {
-  const F = [['todo', 'TODAS'], ['libres', 'FUERA DE LA BARAJA'], ['nuevas', '✨ NUEVAS'], ['pj', 'PERSONAJES'], ['apoyo', 'APOYOS'], ['sector', 'SECTORES'], ['arena', 'ARENAS'], ['alma', 'ALMAS'], ['amalgama', 'AMALGAMAS']];
+  const F = [['todo', 'TODAS'], ['libres', 'FUERA DE LA BARAJA'], ['nuevas', '✨ NUEVAS'], ['pj', 'PERSONAJES'], ['apoyo', 'APOYOS'], ['sector', 'SECTORES'], ['arena', 'ARENAS'], ['alma', 'ALMAS'], ['amalgama', 'AMALGAMAS']].concat(secretasDe().sec.size ? [['secreta', '✦ SECRETAS']] : []);
   if (!$('mzQ')) {
     $('mzFil').innerHTML = `<input class="inp" id="mzQ" placeholder="Buscar en tu cofre…" autocomplete="off">` + F.map(([k, t]) => `<button data-f="${k}">${t}</button>`).join('');
     $('mzQ').oninput = e => { MZ.q = e.target.value; pintarCofre(); };
@@ -4349,12 +4358,13 @@ function pintarCofre() {
   const f = MZ.filtro;
   if (f === 'libres') ids = ids.filter(id => S.col[id] - enMazo(m, id) > 0);
   else if (f === 'nuevas') ids = ids.filter(id => S.nuevas[id]);
+  else if (f === 'secreta') ids = ids.filter(esSecreta);
   else if (f !== 'todo') ids = ids.filter(id => CARD[id].tipo === f);
   if (q) ids = ids.filter(id => NK(nomC(id) + ' ' + (CARD[id].texto || '')).includes(q));
   ids.sort((a, b) => (S.nuevas[b] ? 1 : 0) - (S.nuevas[a] ? 1 : 0) || ordenCarta(a, b));
   const total = Object.values(S.col).reduce((a, n) => a + n, 0);
   $('mzGrid').innerHTML = ids.length ? ids.map(id => { const libre = S.col[id] - enMazo(m, id), im = cartaImg(id);
-    return `<button class="mz-c ${libre > 0 ? '' : 'agot'}" data-id="${esc(id)}" aria-label="${esc(nomC(id))}">${im ? `<img src="${esc(im)}" alt="" loading="lazy">` : `<span class="ph">${esc(nomC(id))}</span>`}
+    return `<button class="mz-c ${libre > 0 ? '' : 'agot'} ${esSecreta(id) ? 'secreta' : ''}" data-id="${esc(id)}" aria-label="${esc(nomC(id))}">${im ? `<img src="${esc(im)}" alt="" loading="lazy">` : `<span class="ph">${esc(nomC(id))}</span>`}${esSecreta(id) ? '<span class="sec-foil"></span><span class="jy sec">✦ SECRETA</span>' : ''}
       <span class="qq">${libre}/${S.col[id]}</span>${S.nuevas[id] ? '<span class="nw">NUEVA</span>' : ''}</button>`; }).join('')
     : `<div class="mz-vacio">${f === 'nuevas' ? 'No tienes cartas nuevas.' : 'Nada por aquí.'}<br><small>Vence rivales en el mapa para ganar cartas de sus barajas (${total} en tu cofre).</small></div>`;
   $('mzGrid').querySelectorAll('.mz-c').forEach(b => b.onclick = () => verCarta(b.dataset.id));
@@ -4796,9 +4806,11 @@ function cajaDef(sb) {
   const cop = { 1: v('comun', 4), 2: v('rara', 2), 3: v('joya', 1), 4: v('secreta', 1) }, am = v('amalgama', 1);
   // v408 · Secretas y especiales de ESTE sobre (en la demo no hay)
   const ids = k => DEMO ? [] : listaCartas(sb[k]).map(resolverCarta).filter(id => id && CARD[id] && !CARD[id].boss);
-  const sec = ids('secretas'), esp = ids('especiales').filter(id => !sec.includes(id));
-  const items = poolDe(sb.pool, ['bp', 'ba']).filter(id => !sec.includes(id)).map(id => ({ id, r: Math.min(3, RAREZA(id)) })).map(x => ({ ...x, c: cop[x.r] })).filter(x => x.c > 0);
-  if ((parseInt(sb.amalgama, 10) || 0) > 0 && am > 0) poolDe(sb.pool, ['bs']).forEach(id => { if (!sec.includes(id) && !items.some(x => x.id === id)) items.push({ id, r: 3, c: am, am: 1 }); });
+  const sec = ids('secretas'), todas = secretasDe().sec;
+  // v408 · una Secreta es Secreta siempre: solo sale de la caja donde está como Secreta, nunca como Joya en otra caja
+  const esp = ids('especiales').filter(id => !todas.has(id));
+  const items = poolDe(sb.pool, ['bp', 'ba']).filter(id => !todas.has(id)).map(id => ({ id, r: Math.min(3, RAREZA(id)) })).map(x => ({ ...x, c: cop[x.r] })).filter(x => x.c > 0);
+  if ((parseInt(sb.amalgama, 10) || 0) > 0 && am > 0) poolDe(sb.pool, ['bs']).forEach(id => { if (!todas.has(id) && !items.some(x => x.id === id)) items.push({ id, r: 3, c: am, am: 1 }); });
   esp.forEach(id => { if (!items.some(x => x.id === id)) items.push(CARD[id].tipo === 'amalgama' ? { id, r: 3, c: am, am: 1 } : { id, r: 3, c: cop[3] }); });
   if (cop[4] > 0) sec.forEach(id => { if (!items.some(x => x.id === id)) items.push({ id, r: 4, c: cop[4], sec: 1 }); });
   items.sort((a, b) => b.r - a.r || ordenCarta(a.id, b.id));
@@ -4846,7 +4858,7 @@ function verCaja(sb) {
   const sec = r => { const L = k.def.items.filter(x => x.r === r); if (!L.length) return '';
     const q = L.reduce((t, x) => t + (k.st.resto[x.id] || 0), 0), tot = L.reduce((t, x) => t + x.c, 0);
     return `<div class="cj-sec" style="color:${RZ[r][1]}"><span>${r === 4 ? '✦ ' : r === 3 ? '★ ' : ''}${RZ[r][0]}S · ${L[0].c === L[L.length - 1].c ? L[0].c + ' copia' + (L[0].c > 1 ? 's' : '') + ' c/u' : ''}</span><span>${q}/${tot}</span></div><div class="mz-grid">` +
-      L.map(x => { const q1 = k.st.resto[x.id] || 0; return `<div class="mz-c ${r === 4 ? 'secreta' : r === 3 ? 'joya' : ''} ${q1 ? '' : 'cero'}" title="${esc(nomC(x.id))}"><img src="${esc(cartaImg(x.id))}" alt="${esc(nomC(x.id))}" loading="lazy">${tieneNombre(x.id) > 0 ? '<span class="tg" title="Ya la tienes">✓</span>' : ''}<span class="qq">${q1}/${x.c}</span></div>`; }).join('') + '</div>'; };
+      L.map(x => { const q1 = k.st.resto[x.id] || 0; return `<div class="mz-c ${r === 4 ? 'secreta' : r === 3 ? 'joya' : ''} ${q1 ? '' : 'cero'}" title="${esc(nomC(x.id))}"><img src="${esc(cartaImg(x.id))}" alt="${esc(nomC(x.id))}" loading="lazy">${r === 4 ? '<span class="sec-foil"></span>' : ''}${tieneNombre(x.id) > 0 ? '<span class="tg" title="Ya la tienes">✓</span>' : ''}<span class="qq">${q1}/${x.c}</span></div>`; }).join('') + '</div>'; };
   $('cjBody').innerHTML = `<div class="td-nota">Esta caja trae un número fijo de cartas. Lo que ya salió no vuelve a salir hasta que la caja se rellene: cuanto más la abres, más cerca está cada Joya. Cuando se vacía se rellena sola, y puedes <b style="color:var(--text)">reiniciarla</b> cuando quieras (por ejemplo, si ya sacaste la Joya que buscabas).</div>
     <div class="cj-res"><div>Sobres restantes<b>${k.sobresQ} / ${k.sobresT}</b><div class="cj-bar" style="margin-top:6px"><i style="width:${k.sobresT ? k.sobresQ / k.sobresT * 100 : 0}%"></i></div></div>
     <div>★ Joyas en la caja<b style="color:#ffd166">${k.jQ} / ${k.jT}</b></div>${k.sT ? `<div>✦ Secretas en la caja<b style="color:#ff6ad5">${k.sQ} / ${k.sT}</b></div>` : ''}<div>Tu colección de este sobre<b style="color:${k.tengo === k.tipos ? 'var(--green)' : 'var(--text)'}">${k.tengo} / ${k.tipos}${k.tengo === k.tipos ? ' ✔' : ''}</b></div></div>

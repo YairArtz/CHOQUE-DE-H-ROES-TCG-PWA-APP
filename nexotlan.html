@@ -1407,7 +1407,7 @@ body.editor .pt{cursor:move}
   background:radial-gradient(ellipse at center,#3c0014,#000 75%);opacity:0;transition:opacity .35s}
 #nxTrans.on{opacity:1}
 /* v416 · el reto de la 2ª forma justo después de transformarse: sin ver la isla detrás */
-body.nx-reto2 .dlg{background:radial-gradient(ellipse at 50% 38%,rgba(90,0,45,.92),#000 78%)}
+body.nx-reto2 .dlg{background:radial-gradient(ellipse at 50% 38%,#3a0020,#000 78%)}
 #nxTrans img{position:absolute;max-height:calc(var(--uh)*92);max-width:calc(var(--uw)*80);object-fit:contain;filter:drop-shadow(0 0 30px rgba(255,40,90,.6))}
 #nxTrans img.carta{border-radius:12px}
 #nxTrans .tr-a{animation:trTiembla .12s linear infinite;transition:opacity .25s,filter 2.2s}
@@ -1469,41 +1469,54 @@ body.nx-sismo2{animation:nxSismo2 .09s linear infinite}
 #nxFinal.fa .fn-grietas{animation:fnGrieta 1.5s ease-in forwards}
 #nxFinal .fn-flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:5}
 #nxFinal.fb .fn-flash{animation:trFlash 1s ease-out forwards}
-/* fase B: la coronación */
-#nxFinal .fn-box{position:relative;z-index:3;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;padding:16px;max-width:680px;width:100%;opacity:0;pointer-events:none}
-#nxFinal.fb .fn-box{opacity:1;pointer-events:auto;transition:opacity .4s .25s}
-#nxFinal .fn-heroe{position:relative;width:96px;height:96px;border-radius:50%;padding:4px;background:conic-gradient(#ffe9a8,#f5a623,#cc55ff,#36d6ff,#ffe9a8);
-  box-shadow:0 0 30px rgba(245,166,35,.7);opacity:0;transform:scale(.3)}
-#nxFinal.fb .fn-heroe{animation:fnPop .7s .5s cubic-bezier(.2,.9,.3,1.4) forwards}
-#nxFinal .fn-heroe img{width:100%;height:100%;border-radius:50%;object-fit:cover;background:#0a1028}
-#nxFinal .fn-heroe i{position:absolute;left:50%;top:-34px;transform:translateX(-50%);font-style:normal;font-size:40px;filter:drop-shadow(0 0 14px rgba(245,166,35,.9));animation:fnFlota 3s ease-in-out infinite}
-#nxFinal .fn-h1{position:relative;font-family:'Orbitron',monospace;font-weight:900;font-size:clamp(20px,calc(4.4 * var(--uw)),46px);letter-spacing:3px;line-height:1.15;
-  filter:drop-shadow(0 0 12px rgba(255,179,0,.65)) drop-shadow(0 3px 0 #000)}
+/* fase B: la coronación · v417 con la línea de diseño del menú de pausa (placa, columna izquierda, barras inclinadas) */
+#nxFinal .fn-capa{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .8s .2s;
+  background:radial-gradient(rgba(150,190,255,.10) 1px,transparent 1.6px) 0 0/6px 6px,linear-gradient(90deg,rgba(4,10,30,.9) 0%,rgba(4,10,30,.62) 42%,rgba(6,14,44,.5) 70%,rgba(4,10,30,.8) 100%)}
+#nxFinal .fn-capa::after{content:'';position:absolute;right:-6%;top:-10%;bottom:-10%;width:58%;transform:skewX(-11deg);
+  background:repeating-linear-gradient(90deg,rgba(54,214,255,.05) 0 2px,transparent 2px 70px);border-left:2px solid rgba(245,166,35,.22)}
+#nxFinal.fb .fn-capa{opacity:1}
+#nxFinal .fn-sa{z-index:3;grid-template-columns:minmax(240px,40%) 1fr;opacity:0;pointer-events:none}
+#nxFinal.fb .fn-sa{opacity:1;pointer-events:auto;transition:opacity .4s .25s}
+#nxFinal .fn-top .mp-placa{max-width:min(760px,96%);opacity:0;transform:translateX(-40px)}
+#nxFinal.fb .fn-top .mp-placa{animation:fnEntra .6s .45s cubic-bezier(.2,.9,.3,1.2) forwards}
+#nxFinal .fn-heroe{position:relative;width:clamp(44px,calc(11 * var(--uh)),64px);height:clamp(44px,calc(11 * var(--uh)),64px);flex-shrink:0;border-radius:50%;padding:3px;
+  background:conic-gradient(#ffe9a8,#f5a623,#cc55ff,#36d6ff,#ffe9a8);box-shadow:0 0 18px rgba(245,166,35,.7)}
+#nxFinal .fn-heroe img{width:100%;height:100%;border-radius:50%;object-fit:cover;background:#0a1028;display:block}
+#nxFinal .fn-heroe i{position:absolute;left:50%;top:-58%;transform:translateX(-50%);font-style:normal;font-size:clamp(18px,calc(5 * var(--uh)),28px);filter:drop-shadow(0 0 10px rgba(245,166,35,.9));animation:fnFlota 3s ease-in-out infinite}
+#nxFinal .fn-h1{font-size:clamp(16px,calc(5.4 * var(--uh)),34px)!important;overflow:visible!important}
 #nxFinal .fn-h1 .fn-w{font-style:normal;white-space:nowrap;display:inline-block}
-#nxFinal .fn-h1 span{display:inline-block;opacity:0;transform:translateY(-60px) scale(1.8);
-  background:linear-gradient(180deg,#fff7d6 0%,#ffd166 45%,#f5a623 72%,#b9650a 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
-#nxFinal.fb .fn-h1 span{animation:fnLetra .55s calc(.9s + var(--i) * 45ms) cubic-bezier(.2,.9,.3,1.3) forwards}
-#nxFinal .fn-cinta{font-family:'Orbitron',monospace;font-weight:900;font-size:clamp(10px,calc(1.7 * var(--uw)),14px);letter-spacing:4px;color:#fff;padding:7px 18px;
-  background:linear-gradient(90deg,transparent,rgba(204,85,255,.85) 15%,rgba(255,47,90,.85) 85%,transparent);opacity:0;transform:scaleX(0)}
-#nxFinal.fb .fn-cinta{animation:fnCinta .6s 1.9s ease-out forwards}
-#nxFinal .fn-sub{font-family:'Orbitron',monospace;font-size:clamp(10px,calc(1.7 * var(--uw)),14px);letter-spacing:3px;color:var(--cyan);opacity:0}
-#nxFinal.fb .fn-sub{animation:fnAparece .6s 2.2s forwards}
-#nxFinal .fn-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;width:min(580px,100%)}
-#nxFinal .fn-stats div{background:linear-gradient(180deg,rgba(255,209,102,.1),rgba(255,255,255,.03));border:1px solid rgba(255,209,102,.28);border-radius:10px;padding:8px 6px;opacity:0;transform:translateY(14px)}
-#nxFinal.fb .fn-stats div{animation:fnSubeStat .5s calc(2.4s + var(--i) * 110ms) ease-out forwards}
-#nxFinal .fn-stats b{display:block;font-family:'Orbitron',monospace;font-size:22px;color:#ffd166;text-shadow:0 0 10px rgba(255,179,0,.5)}
-#nxFinal .fn-stats small{font-size:10px;color:var(--muted);letter-spacing:1px}
-#nxFinal .fn-rango{position:absolute;left:4%;top:50%;width:clamp(84px,calc(14 * var(--uw)),150px);aspect-ratio:1;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  background:radial-gradient(circle,#2a1600 0 58%,transparent 59%),conic-gradient(#ffe9a8,#f5a623,#ff2f5a,#cc55ff,#36d6ff,#ffe9a8);box-shadow:0 0 40px rgba(245,166,35,.55);
-  opacity:0;transform:translateY(-50%) scale(3) rotate(-25deg);z-index:4}
-#nxFinal.fb .fn-rango{animation:fnSello .5s 3.3s cubic-bezier(.3,1.6,.5,1) forwards}
-#nxFinal .fn-rango b{font-family:'Orbitron',monospace;font-weight:900;font-size:clamp(34px,calc(6 * var(--uw)),64px);line-height:1;color:#ffe9a8;text-shadow:0 0 16px #ffb300}
-#nxFinal .fn-rango small{font-family:'Orbitron',monospace;font-size:clamp(6px,calc(.85 * var(--uw)),9px);letter-spacing:1px;color:#ffd9a0;text-align:center;line-height:1.2;max-width:62%}
-#nxFinal .fn-txt{font-size:16px;color:var(--text);opacity:0;max-width:540px}
-#nxFinal.fb .fn-txt{animation:fnAparece .8s 3.1s forwards}
-#nxFinal .fn-bt{opacity:0}
-#nxFinal.fb .fn-bt{animation:fnAparece .5s 3.7s forwards}
-@media (max-width:700px){#nxFinal .fn-rango{left:auto;right:4%;top:14%;transform:translateY(0) scale(3) rotate(-25deg)}#nxFinal.fb .fn-rango{animation-name:fnSelloM}}
+#nxFinal .fn-h1 span{display:inline-block;opacity:0;transform:translateY(-40px) scale(1.6)}
+#nxFinal.fb .fn-h1 span{animation:fnLetra .5s calc(.8s + var(--i) * 40ms) cubic-bezier(.2,.9,.3,1.3) forwards}
+#nxFinal .fn-chip{opacity:0}
+#nxFinal.fb .fn-chip{animation:fnAparece .5s 1.6s forwards}
+#nxFinal .fn-izq{align-items:flex-start;gap:clamp(6px,calc(1.6 * var(--uh)),14px)}
+#nxFinal .fn-cinta{align-self:stretch;font-family:'Orbitron',monospace;font-weight:900;font-size:clamp(10px,calc(2.6 * var(--uh)),15px);letter-spacing:.22em;color:#fff;padding:7px 18px;
+  clip-path:polygon(12px 0,100% 0,calc(100% - 12px) 100%,0 100%);background:linear-gradient(90deg,#cc55ff,#ff2f5a);opacity:0;transform:scaleX(0);transform-origin:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#nxFinal.fb .fn-cinta{animation:fnCinta .5s 1.7s ease-out forwards}
+#nxFinal .fn-sub{font-family:'Orbitron',monospace;font-weight:700;font-size:clamp(9px,calc(2.2 * var(--uh)),13px);letter-spacing:.14em;color:#5cc8ff;opacity:0;line-height:1.35}
+#nxFinal.fb .fn-sub{animation:fnAparece .6s 2s forwards}
+#nxFinal .fn-rowr{display:flex;align-items:center;gap:14px;align-self:stretch}
+#nxFinal .fn-rango{position:relative;flex-shrink:0;width:clamp(64px,calc(19 * var(--uh)),118px);aspect-ratio:1;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:radial-gradient(circle,#2a1600 0 58%,transparent 59%),conic-gradient(#ffe9a8,#f5a623,#ff2f5a,#cc55ff,#36d6ff,#ffe9a8);box-shadow:0 0 30px rgba(245,166,35,.55);
+  opacity:0;transform:scale(3) rotate(-25deg)}
+#nxFinal.fb .fn-rango{animation:fnSello .5s 3.2s cubic-bezier(.3,1.6,.5,1) forwards}
+#nxFinal .fn-rango b{font-family:'Orbitron',monospace;font-weight:900;font-size:clamp(26px,calc(8 * var(--uh)),52px);line-height:1;color:#ffe9a8;text-shadow:0 0 16px #ffb300}
+#nxFinal .fn-rango small{font-family:'Orbitron',monospace;font-size:clamp(6px,calc(1.6 * var(--uh)),9px);letter-spacing:1px;color:#ffd9a0;text-align:center;line-height:1.2}
+#nxFinal .fn-txt{font-size:clamp(11px,calc(2.6 * var(--uh)),15px);color:var(--text);opacity:0;line-height:1.4}
+#nxFinal.fb .fn-txt{animation:fnAparece .8s 3s forwards}
+#nxFinal .fn-bt{opacity:0;margin-top:auto}
+#nxFinal.fb .fn-bt{animation:fnAparece .5s 3.6s forwards}
+#nxFinal .fn-bt:disabled{cursor:default}
+#nxFinal .fn-bt:not(:disabled):is(:hover,:focus-visible,.gp-foco){outline:0;transform:translateX(10px) scale(1.02);filter:drop-shadow(0 0 10px rgba(255,200,80,.95)) drop-shadow(0 0 24px rgba(255,140,30,.5))}
+#nxFinal .fn-der{display:flex;flex-direction:column;justify-content:center;gap:clamp(4px,calc(1.2 * var(--uh)),10px);min-height:0}
+#nxFinal .fn-st{cursor:default;opacity:0;transform:translateX(40px)}
+#nxFinal.fb .fn-st{animation:fnEntraD .45s calc(2.2s + var(--i) * 100ms) cubic-bezier(.2,.9,.3,1.2) forwards}
+#nxFinal .fn-st small{font-size:clamp(14px,calc(4.4 * var(--uh)),26px)!important;font-weight:900!important;color:#ffd166!important;text-shadow:0 0 10px rgba(255,179,0,.5)}
+#nxFinal .fn-st.oro::before{background:#f5a623}
+@media (max-width:640px){#nxFinal .fn-sa{grid-template-columns:1fr;grid-template-rows:auto auto auto;overflow-y:auto;align-content:start}
+  #nxFinal .fn-top{grid-column:1}#nxFinal .fn-bt{margin-top:6px}}
+@keyframes fnEntra{to{opacity:1;transform:translateX(0)}}
+@keyframes fnEntraD{to{opacity:1;transform:translateX(0)}}
 @keyframes fnCae{0%{filter:drop-shadow(0 0 30px #ff2f5a) brightness(1)}70%{filter:drop-shadow(0 0 60px #fff) brightness(2.2) saturate(.4)}100%{filter:drop-shadow(0 0 90px #fff) brightness(4) saturate(0);opacity:.9}}
 @keyframes fnGrieta{0%{opacity:0}60%{opacity:.55}100%{opacity:1}}
 @keyframes fnSube{from{transform:translateY(0)}to{transform:translateY(calc(var(--uh)*-110))}}
@@ -1511,9 +1524,7 @@ body.nx-sismo2{animation:nxSismo2 .09s linear infinite}
 @keyframes fnLetra{to{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes fnCinta{to{opacity:1;transform:scaleX(1)}}
 @keyframes fnAparece{to{opacity:1}}
-@keyframes fnSubeStat{to{opacity:1;transform:translateY(0)}}
-@keyframes fnSello{to{opacity:1;transform:translateY(-50%) scale(1) rotate(-8deg)}}
-@keyframes fnSelloM{to{opacity:1;transform:translateY(0) scale(1) rotate(-8deg)}}
+@keyframes fnSello{to{opacity:1;transform:scale(1) rotate(-8deg)}}
 @media (prefers-reduced-motion:reduce){#nxFinal *{animation-duration:.01s!important;animation-delay:0s!important}}
 .nx-confeti{position:absolute;top:-14px;width:8px;height:12px;z-index:1;pointer-events:none;animation:nxCae linear forwards}
 @keyframes nxCae{to{transform:translateY(calc(var(--uh)*110)) rotate(720deg)}}
@@ -4138,11 +4149,15 @@ async function procesarResultado() {
     precargarFase2(p0); ocupado(true, '⏳ ' + (p0.fase2_etiqueta || 'Transformación') + '…');
     S.historial.push({ p: p0.id, won: true, dia: S.dia, turnos: res.turnos || 0, ts: Date.now(), fase: 1 });
     S.fase2 = S.fase2 || {}; S.fase2[p0.id] = 1; S.victorias++; S.dia++; guardar();
-    if (p0._punto) await escenaTramo(p0); else { mostrarMapa(); enfocarPunto(p0); }
-    if (p0.victoria) await dialogo(p0, p0.victoria);          // su reacción al caer la 1ª forma
-    document.body.classList.add('nx-reto2');                    // v416 · de aquí al reto, la isla queda oculta
-    await transformacion(p0);                                   // cinemática: temblor, destello y aparece su forma verdadera
-    try { await retoFase2(p0); } finally { document.body.classList.remove('nx-reto2'); }
+    // v417 · la isla NO se carga antes de la transformación: su reacción, la cinemática y el reto van sobre fondo oscuro
+    document.body.classList.add('nx-reto2');
+    if (!p0._punto) { mostrarMapa(); enfocarPunto(p0); }
+    try {
+      if (p0.victoria) await dialogo(p0, p0.victoria);          // su reacción al caer la 1ª forma
+      await transformacion(p0);                                 // cinemática: temblor, destello y aparece su forma verdadera
+      await retoFase2(p0);
+    } finally { document.body.classList.remove('nx-reto2'); }
+    if (p0._punto && !S.pendiente) await escenaTramo(p0);      // dijo "AHORA NO": ahora sí vuelve a la isla
     if (!S.pendiente) ocupado(false);                          // si empezó el Choque, la pantalla de carga sigue
     if (p0._punto && !cargaVisible()) tramoPausa(false);
     return true;
@@ -4201,7 +4216,10 @@ async function procesarResultado() {
   if (campeon) { S.campeon = Date.now(); guardar(); }
   if (esFinal) await pantallaFinal(p0, !antes);                // jefe final (final = si): pantalla de victoria épica con su audio
   else if (campeon) await mensaje('👑 ¡CAMPEÓN DE NEXOTLAN!', `Venciste a todos los guardianes en ${S.dia} días. Puedes seguir explorando y retando a todos para completar tu diario.`);
-  if (p0._punto) { if (esFinal) await escenaTramo(Object.assign({}, p0, { _forzar: 1 })); tramoPausa(false); }      // v396 · sigues en la ruta (tras el final, con el glifo encendido)
+  // v417 · tras la pantalla final, SEGUIR EXPLORANDO te lleva al Atrio (final_destino = id de la ruta; por defecto lobby_convergencia)
+  const destF = esFinal && TRAMOS.find(t => t.id === String(p0.final_destino || 'lobby_convergencia').trim());
+  if (destF) await abrirTramo(destF.id);
+  else if (p0._punto) { if (esFinal) await escenaTramo(Object.assign({}, p0, { _forzar: 1 })); tramoPausa(false); }      // v396 · sigues en la ruta (tras el final, con el glifo encendido)
   else if (p0._tramo) await trasChoqueTramo(p0);      // v281 · se vuelve a entrar al tramo donde estabas
   // v284 · Al vencer por PRIMERA vez al guardián de un distrito, se abre el tramo que sale de él (automatico = no para desactivarlo)
   else if (res.won && !res.abandono && !antes && p0.tipo === 'guardian' && !esFinal) {
@@ -4265,21 +4283,27 @@ async function pantallaFinal(p0, primera) {
   const secT = [...secretasDe().sec], secY = secT.filter(id => (S.col || {})[id] > 0).length;
   const V = S.victorias || 0, Dr = S.perdidas || 0, ratio = V / Math.max(1, V + Dr);
   const rango = Dr <= 3 && ratio >= .9 ? 'S' : ratio >= .8 ? 'A' : ratio >= .65 ? 'B' : 'C';
-  const stats = [[S.dia, 'DÍAS'], [V, 'VICTORIAS'], [Dr, 'DERROTAS'], [gv + '/' + guard.length, 'GUARDIANES'], [cofre, 'CARTAS EN TU COFRE'], [secT.length ? secY + '/' + secT.length : '—', 'SECRETAS']];
+  const stats = [['📅', S.dia, 'DÍAS'], ['⚔', V, 'VICTORIAS'], ['✖', Dr, 'DERROTAS'], ['🏛', gv + '/' + guard.length, 'GUARDIANES'], ['🃏', cofre, 'CARTAS EN TU COFRE'], ['✦', secT.length ? secY + '/' + secT.length : '—', 'SECRETAS']];
   const nom = (S.nombre || 'HÉROE').toUpperCase(), jefe = (p0.fase2_nombre || forma2(p0).nombre || p0.nombre || '').toUpperCase();
   const h1 = primera ? '¡CAMPEÓN DE NEXOTLAN!' : '¡VICTORIA!';
   let kL = 0; const letras = h1.split(' ').map(w => `<em class="fn-w">${[...w].map(c => `<span style="--i:${kL++}">${esc(c)}</span>`).join('')}</em>`).join(' ');      // las palabras no se parten
   const av = avatarPerfil();
-  const motas = Array.from({ length: 26 }, (_, k) => `<i class="fn-mota" style="left:${(k * 37) % 100}%;animation-duration:${6 + (k % 7)}s;animation-delay:${-(k * .7) % 7}s"></i>`).join('');
+  const motas = Array.from({ length: 22 }, (_, k) => `<i class="fn-mota" style="left:${(k * 37) % 100}%;animation-duration:${6 + (k % 7)}s;animation-delay:${-(k * .7) % 7}s"></i>`).join('');
+  const destino = TRAMOS.find(t => t.id === String(p0.final_destino || 'lobby_convergencia').trim());
+  // v417 · con la línea del menú de pausa: placa superior, columna izquierda (rango y botón grande) y barras inclinadas a la derecha
   ov.innerHTML = `<div class="fn-esc"></div><div class="fn-rayos"></div><div class="fn-glifo" style="background-image:url('assets/nexotlan/tramos/texturas/simbolo_codex.png')"></div>${motas}` +
-    `${ret ? `<div class="fn-jw"><img class="fn-jefe ${ret.carta ? 'carta' : ''}" src="${esc(ret.src)}" alt=""></div>` : ''}<div class="fn-grietas"></div>` +
-    `<div class="fn-rango"><b>${rango}</b><small>RANGO<br>DE HÉROE</small></div>` +
-    `<div class="fn-box"><div class="fn-heroe"><i>👑</i>${av ? `<img src="${esc(av)}" alt="">` : ''}</div>` +
-    `<div class="fn-h1">${letras}</div>` +
-    `<div class="fn-cinta">${esc(jefe)} HA CAÍDO</div>` +
-    `<div class="fn-sub">${esc(nom)} VENCIÓ A ${esc(jefe)}${p0.titulo ? ', ' + esc(p0.titulo.toUpperCase()) : ''}</div>` +
-    `<div class="fn-stats">${stats.map(([v, t], k) => `<div style="--i:${k}"><b data-n="${typeof v === 'number' ? v : ''}">${typeof v === 'number' ? 0 : esc(v)}</b><small>${t}</small></div>`).join('')}</div>` +
-    `${p0.final_texto ? `<div class="fn-txt">${esc(p0.final_texto)}</div>` : ''}<button class="bt gold fn-bt" id="fnOk" disabled>🗺 SEGUIR EXPLORANDO</button></div><div class="fn-flash"></div>`;
+    `${ret ? `<div class="fn-jw"><img class="fn-jefe ${ret.carta ? 'carta' : ''}" src="${esc(ret.src)}" alt=""></div>` : ''}<div class="fn-grietas"></div><div class="fn-capa"></div>` +
+    `<div class="mp-sa fn-sa">` +
+      `<div class="mp-top fn-top"><div class="mp-placa"><div class="fn-heroe"><i>👑</i>${av ? `<img src="${esc(av)}" alt="">` : ''}</div>` +
+        `<div class="mp-tx"><small>NEXOTLAN · VICTORIA FINAL</small><b class="fn-h1">${letras}</b></div></div><span class="mp-sp"></span>` +
+        `<span class="mp-chip oro fn-chip">📅 DÍA ${S.dia}</span></div>` +
+      `<div class="mp-izq fn-izq"><div class="fn-cinta">${esc(jefe)} HA CAÍDO</div>` +
+        `<div class="fn-rowr"><div class="fn-rango"><b>${rango}</b><small>RANGO<br>DE HÉROE</small></div>` +
+        `<div class="fn-sub">${esc(nom)} VENCIÓ A ${esc(jefe)}${p0.titulo ? ', ' + esc(p0.titulo.toUpperCase()) : ''}</div></div>` +
+        `${p0.final_texto ? `<div class="fn-txt">${esc(p0.final_texto)}</div>` : ''}` +
+        `<button class="mp-re fn-bt" id="fnOk" disabled><b>SEGUIR EXPLORANDO</b><small>${destino ? 'IR AL ' + esc(String(destino.nombre || 'ATRIO').split(/\s+de\s+/i)[0].toUpperCase()) : 'VOLVER A LA RUTA'}</small></button></div>` +
+      `<div class="fn-der">${stats.map(([ic, v, t], k) => `<div class="mp-op fn-st ${k > 3 ? 'oro' : ''}" style="--i:${k}"><span class="ic">${ic}</span><b>${t}</b><small data-n="${typeof v === 'number' ? v : ''}">${typeof v === 'number' ? 0 : esc(v)}</small></div>`).join('')}</div>` +
+    `</div><div class="fn-flash"></div>`;
   const previa = _mus, au = String(p0.final_audio || CFG.audio_final || '').trim();
   musica(null);
   ov.style.display = 'flex'; void ov.offsetWidth; ov.classList.add('on', ret ? 'fa' : 'fb');
@@ -4295,7 +4319,7 @@ async function pantallaFinal(p0, primera) {
   try { navigator.vibrate && navigator.vibrate([80, 60, 80, 60, 200]); } catch (e) {}
   vib(120, .6); setTimeout(() => vib(120, .8), 200); setTimeout(() => vib(400, 1), 400);
   // las estadísticas cuentan hacia arriba
-  setTimeout(() => ov.querySelectorAll('.fn-stats b[data-n]').forEach(b => { const n = +b.dataset.n; if (!(n > 0)) return; const t0 = performance.now(), d = 900;
+  setTimeout(() => ov.querySelectorAll('.fn-st small[data-n]').forEach(b => { const n = +b.dataset.n; if (!(n > 0)) return; const t0 = performance.now(), d = 900;
     const paso = t => { const k = Math.min(1, (t - t0) / d); b.textContent = Math.round(n * (1 - Math.pow(1 - k, 3))); if (k < 1 && ov.classList.contains('on')) requestAnimationFrame(paso); }; requestAnimationFrame(paso); }), 2500);
   setTimeout(() => { vib(260, 1); if (!MUTE) { try { const c = _ctxM = _ctxM || new (window.AudioContext || window.webkitAudioContext)(), t = c.currentTime + .01, o = c.createOscillator(), g = c.createGain();
     o.type = 'triangle'; o.frequency.setValueAtTime(220, t); o.frequency.exponentialRampToValueAtTime(70, t + .35); g.gain.setValueAtTime(.35, t); g.gain.exponentialRampToValueAtTime(.001, t + .45); o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + .5); } catch (e) {} } }, 3350);   // el sello del rango

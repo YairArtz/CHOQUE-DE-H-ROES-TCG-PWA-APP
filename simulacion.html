@@ -1625,7 +1625,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v98';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v99';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -10419,7 +10419,7 @@ const SELLO_SIM=(function(){
     return {amal:(ARS&&ARS.amal)||0,esp:(ARS&&ARS.esp)||0,golpe:(ARS&&ARS.maxGolpe)||0,destC:F.destC||0,apoyos:apo,hp:G?G.player.hp:0,turn:G?G.turn:0};}
   // progreso: se cumple durante el Choque · falla: se pierde durante el Choque
   const PROG={amalgamas:(x,n)=>x.amal>=n,especiales:(x,n)=>x.esp>=n,golpe:(x,n)=>x.golpe>=n,destruir:(x,n)=>x.destC>=n,apoyos:(x,n)=>x.apoyos>=n};
-  const FALLA={intacto:(x)=>x.hp<R.corazones,vida:(x,n)=>x.hp<n,turnos:(x,n)=>x.turn>n,sin_amalgamas:(x)=>x.amal>0};
+  const FALLA={intacto:(x)=>x.hp<R.corazones,vida:(x,n)=>x.hp<n,turnos:(x,n)=>x.turn>=n,sin_amalgamas:(x)=>x.amal>0};
   function vigilar(){const sl=ARCADE&&ARCADE.sellos;if(!sl||!G||G.over)return;const x=st();
     sl.lista.forEach((d,i)=>{
       if(PROG[d.t]&&!avis['p'+i]&&PROG[d.t](x,d.n)){avis['p'+i]=1;noti(ico(sl)+'<div><small>SELLO DE '+String(sl.jefe||'').toUpperCase()+'</small><b>✔ '+d.txt.replace(/ y gana$/,'')+'</b><span>¡Gana el Choque para obtener el sello!</span></div>','cian');}
@@ -10432,7 +10432,7 @@ const SELLO_SIM=(function(){
   function fin(won,res){clearInterval(iv);const sl=ARCADE&&ARCADE.sellos;if(!sl||!won)return;
     const x=st(),ORD={C:1,B:2,A:3,S:4},hoy=String(sl.hoy||'').slice(0,3).toUpperCase();
     const ok=sl.lista.filter(d=>{switch(d.t){case 'victorias':return d.v+1>=d.n;case 'racha':return d.r+1>=d.n;case 'intacto':return x.hp>=R.corazones;case 'vida':return x.hp>=d.n;
-      case 'turnos':return x.turn<=d.n;case 'calif':return !!res.calif&&(ORD[res.calif]||0)>=(ORD[d.n]||3);case 'sin_amalgamas':return x.amal===0;case 'dia':return String(d.n).slice(0,3).toUpperCase()===hoy;
+      case 'turnos':return x.turn<d.n;case 'calif':return !!res.calif&&(ORD[res.calif]||0)>=(ORD[d.n]||3);case 'sin_amalgamas':return x.amal===0;case 'dia':return String(d.n).slice(0,3).toUpperCase()===hoy;
       case 'elite':return !!sl.elite;default:return PROG[d.t]?PROG[d.t](x,d.n):false;}});
     ok.forEach((d,i)=>setTimeout(()=>noti(ico(sl)+'<div><small>🏅 SELLO OBTENIDO · '+(sl.hechos+i+1)+'/'+sl.total+'</small><b>'+d.txt+'</b><span>'+String(sl.jefe||'')+(sl.hechos+i+1===sl.total?' · ¡SELLO COMPLETO! Tu Carta Boss te espera':'')+'</span></div>','oro',5200),900+i*1100));}
   return {inicio,fin};

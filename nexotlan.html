@@ -1288,11 +1288,11 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 .fx-intro b{display:block;font-family:'Orbitron',monospace;font-size:12px;letter-spacing:1.5px;color:var(--gold);margin-bottom:4px}
 .fx-intro p{font-size:15px;color:#d8def0;line-height:1.4}
 /* v422 · CRÉDITOS DEL MODO AVENTURA (assets/nexotlan/creditos.txt) */
-#nxCred{position:fixed;inset:0;z-index:9450;background:#000;display:none;overflow:hidden;opacity:0;transition:opacity 1.2s;font-family:'Rajdhani',sans-serif;color:#fff}
+#nxCred{position:fixed;inset:0;z-index:9450;background:#000;display:none;overflow:hidden;opacity:0;transition:opacity .5s;font-family:'Rajdhani',sans-serif;color:#fff}
 #nxCred.on{display:block}#nxCred.vis{opacity:1}
 #nxCred .cr-fondo{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 120%,rgba(204,85,255,.16),transparent 60%),radial-gradient(ellipse at 50% -20%,rgba(54,214,255,.12),transparent 55%);pointer-events:none}
 #nxCred .cr-fondo::after{content:'';position:absolute;inset:0;background:radial-gradient(rgba(255,255,255,.5) 1px,transparent 1.5px) 0 0/90px 90px,radial-gradient(rgba(245,166,35,.35) 1px,transparent 1.5px) 45px 30px/130px 130px;opacity:.35}
-#nxCred .cr-col{position:absolute;left:50%;top:0;width:min(720px,92vw);transform:translate(-50%,100vh);text-align:center;will-change:transform}
+#nxCred .cr-col{position:absolute;left:50%;top:0;width:min(720px,92vw);transform:translate(-50%,42vh);text-align:center;will-change:transform}
 #nxCred .cr-logo{width:min(300px,56vw);filter:drop-shadow(0 0 24px rgba(245,166,35,.45));margin-bottom:18px}
 #nxCred .cr-tit{font-family:'Orbitron',monospace;font-weight:900;font-size:clamp(13px,2.4vw,20px);letter-spacing:.2em;color:#ffd166;text-shadow:0 0 18px rgba(255,179,0,.5)}
 #nxCred .cr-sub{font-size:clamp(11px,1.8vw,14px);color:#9fb3cc;margin:8px 0 0}
@@ -4323,7 +4323,8 @@ async function procesarResultado0() {
   const destF = esFinal && TRAMOS.find(t => t.id === String(p0.final_destino || 'lobby_convergencia').trim());
   if (destF) { velo(true); await abrirTramo(destF.id, true); await veloTramoListo(destF.id); }      // v419 · entra aunque el Atrio no figure como abierto (antes se quedaba en las islas)
   else if (p0._punto) { if (esFinal) await escenaTramo(Object.assign({}, p0, { _forzar: 1 })); tramoPausa(false); }      // v396 · sigues en la ruta (tras el final, con el glifo encendido)
-  if (conVelo && document.body.classList.contains('nx-velo') && !destF) velo(false);
+  if (destF) { /* v423 · ya está en el Atrio: no se vuelve a abrir la ruta de las islas */ }
+  else if (conVelo && document.body.classList.contains('nx-velo')) velo(false);
   else if (p0._tramo) await trasChoqueTramo(p0);      // v281 · se vuelve a entrar al tramo donde estabas
   // v284 · Al vencer por PRIMERA vez al guardián de un distrito, se abre el tramo que sale de él (automatico = no para desactivarlo)
   else if (res.won && !res.abandono && !antes && p0.tipo === 'guardian' && !esFinal) {
@@ -4405,9 +4406,10 @@ async function pantallaFinal(p0, primera) {
         `<div class="fn-rowr"><div class="fn-rango"><b>${rango}</b><small>RANGO<br>DE HÉROE</small></div>` +
         `<div class="fn-sub">${esc(nom)} VENCIÓ A ${esc(jefe)}${p0.titulo ? ', ' + esc(p0.titulo.toUpperCase()) : ''}</div></div>` +
         `${p0.final_texto ? `<div class="fn-txt">${esc(p0.final_texto)}</div>` : ''}` +
-        `<button class="mp-re fn-bt" id="fnOk" disabled><b>SEGUIR EXPLORANDO</b><small>${destino ? 'IR AL ' + esc(String(destino.nombre || 'ATRIO').split(/\s+de\s+/i)[0].toUpperCase()) : 'VOLVER A LA RUTA'}</small></button></div>` +
+        `<button class="mp-re fn-bt" id="fnOk" disabled><b>CONTINUAR</b></button></div>` +      // v423 · después vienen los créditos
       `<div class="fn-der">${stats.map(([ic, v, t], k) => `<div class="mp-op fn-st ${k > 3 ? 'oro' : ''}" style="--i:${k}"><span class="ic">${ic}</span><b>${t}</b><small data-n="${typeof v === 'number' ? v : ''}">${typeof v === 'number' ? 0 : esc(v)}</small></div>`).join('')}</div>` +
     `</div><div class="fn-flash"></div>`;
+  creditosTxt().then(t => parseTxt(t).forEach(x => String(x.imagenes || x.logo || '').split('|').map(u => u.trim()).filter(Boolean).forEach(u => { const i = new Image(); i.src = u; }))).catch(() => {});   // v423 · los créditos ya cargados al terminar
   const previa = _mus, au = String(p0.final_audio || CFG.audio_final || '').trim();
   musica(null);
   ov.style.display = 'flex'; void ov.offsetWidth; ov.classList.add('on', ret ? 'fa' : 'fb');
@@ -5423,8 +5425,9 @@ function abrirFisicas() {
 }
 // ════════════════ v422 · CRÉDITOS DEL MODO AVENTURA ════════════════
 // Salen tras la pantalla final (jefe con final = si). Texto en assets/nexotlan/creditos.txt. Al final: la frase de [final] (Vellond regresará).
+const creditosTxt = () => creditosTxt.p = creditosTxt.p || fetch(DIR + 'creditos.txt', { cache: 'no-cache' }).then(r => r.ok ? r.text() : '').catch(() => '');
 async function creditosAventura() {
-  let T = []; try { T = parseTxt(await fetch(DIR + 'creditos.txt', { cache: 'no-cache' }).then(r => r.ok ? r.text() : '')); } catch (e) {}
+  let T = []; try { T = parseTxt(await creditosTxt()); } catch (e) {}
   const cfg = T.find(x => x._sec === 'creditos') || {}, fin = T.find(x => x._sec === 'final') || {}, e = x => esc(String(x || ''));
   const parte = v => String(v || '').split('|').map(x => x.trim()).filter(Boolean);
   const anio = new Date().getFullYear();
@@ -5433,7 +5436,7 @@ async function creditosAventura() {
     if (sx._sec === 'seccion') h += `<div class="cr-sec"><small>${e(sx.titulo)}</small>${parte(sx.nombres).map(n => `<b>${e(n)}</b>`).join('')}${sx.nota ? `<em>${e(sx.nota)}</em>` : ''}</div>`;
     else if (sx._sec === 'logos') { const im = parte(sx.imagenes), nm = parte(sx.nombres);
       h += `<div class="cr-sec"><small>${e(sx.titulo || 'HECHO CON')}</small><div class="cr-logos ${/^no$/i.test(sx.gris || '') ? 'color' : ''} ${/^si|sí$/i.test(sx.grande || '') ? 'grande' : ''}">${Array.from({ length: Math.max(im.length, nm.length) }, (_, i) =>
-        `<span>${im[i] ? `<img src="${e(im[i])}" alt="${e(nm[i] || '')}" onerror="this.remove()">` : ''}${nm[i] ? e(nm[i]) : ''}</span>`).join('')}</div></div>`; }
+        `<span>${im[i] ? `<img src="${e(im[i])}" alt="${e(nm[i] || '')}" onerror="if(!this.dataset.r){this.dataset.r=1;this.src=this.src.split('?')[0]+'?r='+Date.now()}else this.remove()">` : ''}${nm[i] ? e(nm[i]) : ''}</span>`).join('')}</div></div>`; }
   });
   h += `<div class="cr-der">${String(fin.derechos || '© {anio} Yair Artz · Codex Studio | Choque de Héroes · Todos los derechos reservados').replace('{anio}', anio).split('|').map(x => e(x.trim())).join('<br>')}</div>`;
   let ov = $('nxCred'); if (!ov) { ov = document.createElement('div'); ov.id = 'nxCred'; document.body.appendChild(ov); }
@@ -5441,12 +5444,13 @@ async function creditosAventura() {
   if (cfg.musica) musica(String(cfg.musica).trim());
   ov.classList.add('on'); void ov.offsetWidth; ov.classList.add('vis');
   const col = ov.querySelector('.cr-col'), vel = Math.max(15, parseFloat(cfg.velocidad) || 46);
-  await new Promise(r => setTimeout(r, 400));
-  const dist = window.innerHeight + col.offsetHeight, dur = dist / vel * 1000;
+  await new Promise(r => requestAnimationFrame(r));
+  const y0 = Math.round(window.innerHeight * .42);       // v423 · arranca con el logo ya en pantalla (antes subía desde abajo y tardaba en verse)
+  const dist = y0 + col.offsetHeight, dur = dist / vel * 1000;
   let saltar; const salto = new Promise(r => saltar = r);
   $('crSkip').onclick = () => saltar();
   try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('crSkip')), 300); } catch (e2) {}
-  const anim = col.animate([{ transform: `translate(-50%,${window.innerHeight}px)` }, { transform: `translate(-50%,${-col.offsetHeight}px)` }], { duration: dur, easing: 'linear', fill: 'forwards' });
+  const anim = col.animate([{ transform: `translate(-50%,${y0}px)` }, { transform: `translate(-50%,${-col.offsetHeight}px)` }], { duration: dur, easing: 'linear', fill: 'forwards' });
   await Promise.race([anim.finished.catch(() => {}), salto]);
   // la frase final (como los avances de Marvel Studios): negro, aparece, se sostiene y se va
   $('crSkip').style.display = 'none';
@@ -5470,7 +5474,7 @@ const SELLO_T = {
   racha: n => ['🔥', `Véncelo ${n} veces seguidas`],
   intacto: () => ['🛡', 'Gana sin perder corazones'],
   vida: n => ['❤', `Gana con ${n} corazones o más`],
-  turnos: n => ['⏱', `Gana en ${n} turnos o menos`],
+  turnos: n => ['⏱', `Gana en menos de ${n} turnos`],
   calif: n => ['🏆', `Gana con calificación ${n}${n === 'S' ? '' : ' o S'}`],
   amalgamas: n => ['🧬', `Invoca ${n} ${n == 1 ? 'Amalgama' : 'Amalgamas'} y gana`],
   sin_amalgamas: () => ['🚫', 'Gana sin invocar Amalgamas'],
@@ -5510,7 +5514,7 @@ function selloCumple(d, res, ctx) {
     case 'racha': return ctx.r >= n;
     case 'intacto': return !!res.intacto;
     case 'vida': return (res.corazones || 0) >= n;
-    case 'turnos': return (res.turnos || 999) <= n;
+    case 'turnos': return (res.turnos || 999) < n;
     case 'calif': return !!res.calif && (ORD[res.calif] || 0) >= (ORD[n] || 3);
     case 'amalgamas': return (st.amal || 0) >= n;
     case 'sin_amalgamas': return (st.amal || 0) === 0;

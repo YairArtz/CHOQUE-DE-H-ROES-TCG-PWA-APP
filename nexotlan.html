@@ -1287,6 +1287,35 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 .fx-intro .ic{font-size:34px;line-height:1}
 .fx-intro b{display:block;font-family:'Orbitron',monospace;font-size:12px;letter-spacing:1.5px;color:var(--gold);margin-bottom:4px}
 .fx-intro p{font-size:15px;color:#d8def0;line-height:1.4}
+/* v422 · CRÉDITOS DEL MODO AVENTURA (assets/nexotlan/creditos.txt) */
+#nxCred{position:fixed;inset:0;z-index:9450;background:#000;display:none;overflow:hidden;opacity:0;transition:opacity 1.2s;font-family:'Rajdhani',sans-serif;color:#fff}
+#nxCred.on{display:block}#nxCred.vis{opacity:1}
+#nxCred .cr-fondo{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 120%,rgba(204,85,255,.16),transparent 60%),radial-gradient(ellipse at 50% -20%,rgba(54,214,255,.12),transparent 55%);pointer-events:none}
+#nxCred .cr-fondo::after{content:'';position:absolute;inset:0;background:radial-gradient(rgba(255,255,255,.5) 1px,transparent 1.5px) 0 0/90px 90px,radial-gradient(rgba(245,166,35,.35) 1px,transparent 1.5px) 45px 30px/130px 130px;opacity:.35}
+#nxCred .cr-col{position:absolute;left:50%;top:0;width:min(720px,92vw);transform:translate(-50%,100vh);text-align:center;will-change:transform}
+#nxCred .cr-logo{width:min(300px,56vw);filter:drop-shadow(0 0 24px rgba(245,166,35,.45));margin-bottom:18px}
+#nxCred .cr-tit{font-family:'Orbitron',monospace;font-weight:900;font-size:clamp(13px,2.4vw,20px);letter-spacing:.2em;color:#ffd166;text-shadow:0 0 18px rgba(255,179,0,.5)}
+#nxCred .cr-sub{font-size:clamp(11px,1.8vw,14px);color:#9fb3cc;margin:8px 0 0}
+#nxCred .cr-sec{margin:clamp(34px,7vh,58px) 0 0}
+#nxCred .cr-sec small{display:block;font-family:'Orbitron',monospace;font-size:clamp(8px,1.2vw,10px);letter-spacing:.3em;color:#5cc8ff;margin-bottom:8px}
+#nxCred .cr-sec b{display:block;font-weight:700;font-size:clamp(14px,2.4vw,20px);letter-spacing:.04em;line-height:1.3}
+#nxCred .cr-sec em{display:block;font-style:normal;color:#8c9ab8;font-size:clamp(10px,1.5vw,12.5px);margin-top:4px}
+#nxCred .cr-logos{display:flex;flex-wrap:wrap;justify-content:center;gap:clamp(22px,5vw,56px);align-items:center;margin-top:8px}
+#nxCred .cr-logos span{display:flex;flex-direction:column;align-items:center;gap:6px;font-family:'Orbitron',monospace;font-size:9.5px;letter-spacing:.12em;color:#8c9ab8;min-width:110px}
+#nxCred .cr-logos{max-width:640px;margin-left:auto;margin-right:auto}
+#nxCred .cr-logos img{max-height:clamp(30px,6vh,46px);max-width:min(150px,30vw);object-fit:contain;filter:grayscale(1) brightness(1.5) contrast(.85);opacity:.8}      /* v423 · logos en versión grisácea */
+#nxCred .cr-logos.color img{filter:none;opacity:1}
+#nxCred .cr-logos img[src*="godot"]{max-height:clamp(56px,11vh,84px)}      /* el logo de Godot es casi cuadrado: se ve chico a la misma altura */
+#nxCred .cr-logos.grande img{max-height:clamp(52px,11vh,84px);max-width:min(220px,40vw)}
+#nxCred .cr-der{margin-top:clamp(60px,12vh,110px);font-size:12px;color:#6c7a98;line-height:1.6;padding-bottom:30vh}
+#nxCred .cr-skip{position:absolute;right:calc(env(safe-area-inset-right,0px) + 16px);bottom:calc(env(safe-area-inset-bottom,0px) + 14px);z-index:2;font-family:'Orbitron',monospace;font-size:11px;letter-spacing:.18em;color:#9fb3cc;background:rgba(10,20,48,.6);border:1px solid rgba(120,150,210,.35);border-radius:8px;padding:8px 14px;cursor:pointer;opacity:.75}
+#nxCred .cr-skip:is(:hover,:focus-visible,.gp-foco){opacity:1;outline:0;color:#fff;border-color:#36d6ff}
+#nxCred .cr-fin{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:#000;opacity:0;pointer-events:none;transition:opacity 1.4s}
+#nxCred .cr-fin.on{opacity:1}
+#nxCred .cr-fin b{font-family:'Orbitron',monospace;font-weight:900;font-size:clamp(18px,4.2vw,40px);letter-spacing:.24em;color:#fff;text-shadow:0 0 30px rgba(255,47,90,.45);transform:scale(.96);opacity:0;transition:opacity 1.6s .5s,transform 5s .5s ease-out;text-align:center;padding:0 4vw}
+#nxCred .cr-fin.on b{opacity:1;transform:scale(1)}
+#nxCred .cr-fin i{display:block;width:min(340px,60vw);height:2px;background:linear-gradient(90deg,transparent,#ff2f5a,transparent);opacity:0;transition:opacity 1.2s 1.4s}
+#nxCred .cr-fin.on i{opacity:1}
 /* v421 · SELLO DEL GUARDIÁN (imagen: assets/nexotlan/sello_boss.png; si aún no existe se ve 🏅) */
 .sl-ico{position:relative;display:inline-grid;place-items:center;width:1.5em;height:1.5em;flex-shrink:0;vertical-align:middle}
 .sl-ico i{font-style:normal;font-size:1.05em;line-height:1}
@@ -4288,7 +4317,7 @@ async function procesarResultado0() {
   const esFinal = res.won && !res.abandono && /^(si|sí|1|true)$/i.test(String(p0.final || '').trim());
   const campeon = res.won && p.tipo === 'guardian' && DIST.filter(d => !d.dlc && !d._sub).every(d => distritoAbierto(d)) && PTS.filter(x => x.tipo === 'guardian' && !x._dlc).every(x => vencido(x.id)) && !S.campeon;
   if (campeon) { S.campeon = Date.now(); guardar(); }
-  if (esFinal) await pantallaFinal(p0, !antes);                // jefe final (final = si): pantalla de victoria épica con su audio
+  if (esFinal) { pantallaFinal.sigue = true; try { await pantallaFinal(p0, !antes); velo(true); await creditosAventura(); } finally { pantallaFinal.sigue = false; } if (!TRAMOS.find(t => t.id === String(p0.final_destino || 'lobby_convergencia').trim())) musica(CFG.musica); }   // jefe final (final = si): pantalla de victoria épica y v422 · créditos del modo aventura
   else if (campeon) await mensaje('👑 ¡CAMPEÓN DE NEXOTLAN!', `Venciste a todos los guardianes en ${S.dia} días. Puedes seguir explorando y retando a todos para completar tu diario.`);
   // v417 · tras la pantalla final, SEGUIR EXPLORANDO te lleva al Atrio (final_destino = id de la ruta; por defecto lobby_convergencia)
   const destF = esFinal && TRAMOS.find(t => t.id === String(p0.final_destino || 'lobby_convergencia').trim());
@@ -4403,7 +4432,7 @@ async function pantallaFinal(p0, primera) {
   try { setTimeout(() => { if (window.GP) GP.enfocar(ok); }, 60); } catch (e) {}
   await new Promise(res => { ok.onclick = res; });
   ov.classList.remove('on'); await new Promise(r => setTimeout(r, 450)); ov.style.display = 'none'; ov.className = ''; ov.innerHTML = '';
-  musica(previa || CFG.musica);
+  if (!pantallaFinal.sigue) musica(previa || CFG.musica);      // v422 · con créditos después, la canción de la victoria sigue sonando
 }
 async function revisarAperturas(anunciar) {
   for (const d of DIST) {
@@ -5392,6 +5421,41 @@ function abrirFisicas() {
   irA('sFisicas');
   try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('fxBody').querySelector('.fx-c')), 80); } catch (e) {}
 }
+// ════════════════ v422 · CRÉDITOS DEL MODO AVENTURA ════════════════
+// Salen tras la pantalla final (jefe con final = si). Texto en assets/nexotlan/creditos.txt. Al final: la frase de [final] (Vellond regresará).
+async function creditosAventura() {
+  let T = []; try { T = parseTxt(await fetch(DIR + 'creditos.txt', { cache: 'no-cache' }).then(r => r.ok ? r.text() : '')); } catch (e) {}
+  const cfg = T.find(x => x._sec === 'creditos') || {}, fin = T.find(x => x._sec === 'final') || {}, e = x => esc(String(x || ''));
+  const parte = v => String(v || '').split('|').map(x => x.trim()).filter(Boolean);
+  const anio = new Date().getFullYear();
+  let h = `${cfg.logo !== '' ? `<img class="cr-logo" src="${e(cfg.logo || 'assets/nexotlan/titulo/logo.png')}" alt="" onerror="this.remove()">` : ''}<div class="cr-tit">${e(cfg.titulo || 'FIN DE LA TRAMA PRINCIPAL')}</div>${cfg.subtitulo ? `<p class="cr-sub">${e(cfg.subtitulo)}</p>` : ''}`;
+  T.forEach(sx => {
+    if (sx._sec === 'seccion') h += `<div class="cr-sec"><small>${e(sx.titulo)}</small>${parte(sx.nombres).map(n => `<b>${e(n)}</b>`).join('')}${sx.nota ? `<em>${e(sx.nota)}</em>` : ''}</div>`;
+    else if (sx._sec === 'logos') { const im = parte(sx.imagenes), nm = parte(sx.nombres);
+      h += `<div class="cr-sec"><small>${e(sx.titulo || 'HECHO CON')}</small><div class="cr-logos ${/^no$/i.test(sx.gris || '') ? 'color' : ''} ${/^si|sí$/i.test(sx.grande || '') ? 'grande' : ''}">${Array.from({ length: Math.max(im.length, nm.length) }, (_, i) =>
+        `<span>${im[i] ? `<img src="${e(im[i])}" alt="${e(nm[i] || '')}" onerror="this.remove()">` : ''}${nm[i] ? e(nm[i]) : ''}</span>`).join('')}</div></div>`; }
+  });
+  h += `<div class="cr-der">${String(fin.derechos || '© {anio} Yair Artz · Codex Studio | Choque de Héroes · Todos los derechos reservados').replace('{anio}', anio).split('|').map(x => e(x.trim())).join('<br>')}</div>`;
+  let ov = $('nxCred'); if (!ov) { ov = document.createElement('div'); ov.id = 'nxCred'; document.body.appendChild(ov); }
+  ov.innerHTML = `<div class="cr-fondo"></div><div class="cr-col">${h}</div><button class="cr-skip" id="crSkip">SALTAR ⏭</button><div class="cr-fin"><b>${e(fin.texto || 'VELLOND REGRESARÁ')}</b><i></i></div>`;
+  if (cfg.musica) musica(String(cfg.musica).trim());
+  ov.classList.add('on'); void ov.offsetWidth; ov.classList.add('vis');
+  const col = ov.querySelector('.cr-col'), vel = Math.max(15, parseFloat(cfg.velocidad) || 46);
+  await new Promise(r => setTimeout(r, 400));
+  const dist = window.innerHeight + col.offsetHeight, dur = dist / vel * 1000;
+  let saltar; const salto = new Promise(r => saltar = r);
+  $('crSkip').onclick = () => saltar();
+  try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('crSkip')), 300); } catch (e2) {}
+  const anim = col.animate([{ transform: `translate(-50%,${window.innerHeight}px)` }, { transform: `translate(-50%,${-col.offsetHeight}px)` }], { duration: dur, easing: 'linear', fill: 'forwards' });
+  await Promise.race([anim.finished.catch(() => {}), salto]);
+  // la frase final (como los avances de Marvel Studios): negro, aparece, se sostiene y se va
+  $('crSkip').style.display = 'none';
+  const f = ov.querySelector('.cr-fin'); f.classList.add('on');
+  await new Promise(r => setTimeout(r, 5200));
+  ov.classList.remove('vis'); await new Promise(r => setTimeout(r, 1300));
+  try { anim.cancel(); } catch (e3) {}
+  ov.classList.remove('on'); ov.innerHTML = '';
+}
 // ════════════════ v421 · SELLO DEL GUARDIÁN ════════════════
 // Cada jefe tiene una barra de sellos (mini logros). Al completarlos TODOS se entrega su CARTA BOSS (recompensa física).
 // En mapa.txt, en el punto del jefe:
@@ -6232,13 +6296,14 @@ document.addEventListener('keydown', e => {
   else if (k === '-' || k === '_') ajustarZoom(ZOOM / 1.2);
 });
 // v281 · Mientras se explora un tramo 3D, el control lo maneja Godot (salvo cuando hay un diálogo o mensaje de esta página)
-window.GP_PAUSA = () => $('sTramo').classList.contains('on') && !DLG && !document.querySelector('.modal.on, .sob.on, #mInt, #nxFinal.on') && !cargaVisible();      // v416 · la pantalla final sí se maneja con el control      // v361 · #mInt: elegir carta interactiva con el control
+window.GP_PAUSA = () => $('sTramo').classList.contains('on') && !DLG && !document.querySelector('.modal.on, .sob.on, #mInt, #nxFinal.on, #nxCred.on') && !cargaVisible();      // v416 · la pantalla final sí se maneja con el control      // v361 · #mInt: elegir carta interactiva con el control
 window.GP_CFG = {
   principalTxt: 'Entrar / Avanzar',
   start: () => $('mBarajas').classList.contains('on') && !document.querySelector('.modal.on:not(#mBarajas):not(#mPausa)') ? $('bjX') : $('mPausa').classList.contains('on') && !document.querySelector('.modal.on:not(#mPausa)') ? $('mpRe') : null,      // v366 · Start cierra el menú de pausa
   sinAnillo: el => !!(el && el.closest && el.closest('#sMenu .mn-izq, #mPausa .mp-izq, #carga')),   // el menú resalta sus propias opciones
-  principal: () => $('nxFinal').classList.contains('on') ? ($('fnOk') && !$('fnOk').disabled ? $('fnOk') : null) : cargaVisible() ? $('carga') : $('sTitulo').classList.contains('on') && $('sTitulo').classList.contains('fase-portada') && !$('mMsg').classList.contains('on') ? $('tComenzar') : $('sMenu').classList.contains('on') && !$('mCaja').classList.contains('on') && !$('mDiario').classList.contains('on') && !$('mMsg').classList.contains('on') ? $('mnAventura') : DLG ? ($('dOps').querySelector('button') || $('dCaja')) : ($('ficha').classList.contains('on') ? ($('fRetar') && !$('fRetar').disabled ? $('fRetar') : $('fHablar')) : null),
+  principal: () => document.querySelector('#nxCred.on') ? ($('crSkip') && $('crSkip').style.display !== 'none' ? $('crSkip') : null) : $('nxFinal').classList.contains('on') ? ($('fnOk') && !$('fnOk').disabled ? $('fnOk') : null) : cargaVisible() ? $('carga') : $('sTitulo').classList.contains('on') && $('sTitulo').classList.contains('fase-portada') && !$('mMsg').classList.contains('on') ? $('tComenzar') : $('sMenu').classList.contains('on') && !$('mCaja').classList.contains('on') && !$('mDiario').classList.contains('on') && !$('mMsg').classList.contains('on') ? $('mnAventura') : DLG ? ($('dOps').querySelector('button') || $('dCaja')) : ($('ficha').classList.contains('on') ? ($('fRetar') && !$('fRetar').disabled ? $('fRetar') : $('fHablar')) : null),
   atras: () => {
+    if (document.querySelector('#nxCred.on')) { const b = $('crSkip'); if (b && b.style.display !== 'none') b.click(); return true; }      // v422 · B salta los créditos
     if ($('nxFinal').classList.contains('on')) { const b = $('fnOk'); if (b && !b.disabled) b.click(); return true; }      // v416
     if (cargaVisible()) { saltarCarga(); return true; }
     if (DLG) {   // v215 · B avanza el texto; con opciones ya no elige por ti (machacar B saltaba el Choque de la 2ª forma)

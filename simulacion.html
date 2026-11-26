@@ -105,6 +105,27 @@ html,body{
 .aj2-carga{display:flex;align-items:center;gap:10px;padding:10px 0;color:var(--muted);font-size:12px}
 .aj2-carga::before{content:'';width:16px;height:16px;border-radius:50%;border:2px solid rgba(245,166,35,.25);border-top-color:var(--gold2);animation:aj2gira .8s linear infinite}
 @keyframes aj2gira{to{transform:rotate(360deg)}}
+
+/* v421 · avisos del SELLO DEL GUARDIÁN */
+#slNoti{position:fixed;right:calc(env(safe-area-inset-right,0px) + 14px);bottom:calc(env(safe-area-inset-bottom,0px) + 14px);z-index:99990;display:flex;flex-direction:column-reverse;gap:8px;align-items:flex-end;pointer-events:none;width:min(360px,46vw)}
+.sln{display:flex;align-items:center;gap:12px;padding:9px 16px 9px 10px;width:100%;color:#fff;font-family:'Rajdhani',sans-serif;
+  background:linear-gradient(90deg,rgba(8,18,48,.96),rgba(14,28,70,.94));border:1px solid rgba(54,214,255,.55);border-left:4px solid #36d6ff;
+  border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.6);opacity:0;transform:translateX(110%);transition:opacity .35s,transform .45s cubic-bezier(.2,.9,.3,1.25)}
+.sln.on{opacity:1;transform:none}
+.sln.oro{border-color:rgba(245,166,35,.8);border-left-color:#f5a623;background:linear-gradient(90deg,rgba(60,32,0,.97),rgba(30,14,50,.95));box-shadow:0 0 26px rgba(245,166,35,.45),0 8px 30px rgba(0,0,0,.6)}
+.sln.gris{border-color:rgba(150,160,190,.4);border-left-color:#8a93ad;opacity:0}
+.sln.gris.on{opacity:.88}
+.sln div{display:flex;flex-direction:column;min-width:0;line-height:1.15}
+.sln small{font-family:'Orbitron',monospace;font-size:9.5px;letter-spacing:1.6px;color:#5cc8ff}
+.sln.oro small{color:#ffd166}
+.sln b{font-family:'Orbitron',monospace;font-size:12px;font-weight:900;letter-spacing:.5px}
+.sln span:not(.sln-ic){font-size:12.5px;color:#c8d4ef}
+@media (max-height:500px){#slNoti{width:min(300px,44vw);gap:6px}.sln{padding:6px 10px 6px 8px;gap:8px}.sln-ic{width:30px;height:30px;font-size:19px}.sln-ic img{inset:-5px;width:40px;height:40px}.sln b{font-size:11px}.sln span:not(.sln-ic){font-size:11.5px}}
+.sln-ic{position:relative;flex-shrink:0;width:38px;height:38px;display:grid;place-items:center;font-size:24px;font-weight:900;color:#aab3cc}
+.sln-ic i{font-style:normal}
+.sln-ic img{position:absolute;inset:-6px;width:50px;height:50px;object-fit:contain;filter:drop-shadow(0 0 6px rgba(255,190,60,.7))}
+.sln.oro .sln-ic{animation:slnGira .9s cubic-bezier(.3,1.6,.5,1)}
+@keyframes slnGira{0%{transform:scale(0) rotate(-180deg)}100%{transform:none}}
 </style>
 <style>
 /* ── PATRÓN SVG AZTECA ── */
@@ -1604,7 +1625,7 @@ html[data-mesa="metal"] .aztec-bg{opacity:1;background:
 // ════════════════════════════════════
 // CONFIGURACIÓN
 // ════════════════════════════════════
-const SIM_VERSION='v97';                              // ← súbelo en cada cambio para verificar qué versión cargó
+const SIM_VERSION='v98';                              // ← súbelo en cada cambio para verificar qué versión cargó
 const SIM_DATA_URL='data/cartas_simulacion.json';   // ← cambia aquí la ruta del JSON
 let MUTED=false;
 try{MUTED=localStorage.getItem('cdh_sim_mute')==='1';}catch(e){}
@@ -10380,6 +10401,47 @@ function arcadeYaJugado(){
   go.onclick=()=>{const u=ARC_VOLVER+'?r='+encodeURIComponent(ARCADE.id);if(window.CHHCarga)CHHCarga.ir(u,ARC_VOLVER==='nexotlan.html'?'nexotlan':'arcade',ARC_VOLVER==='arcade.html'?'assets/arcade/portada.jpg':'');else location.href=u;};
   box.appendChild(go);
 };}
+
+// ════════ v421 · SELLO DEL GUARDIÁN: avisos en vivo durante el Choque (Nexotlan manda ARCADE.sellos) ════════
+// Desafío cumplido → "¡gana para obtener el sello!" · desafío perdido en este Choque → aviso gris · al ganar → 🏅 SELLO OBTENIDO
+const SELLO_SIM=(function(){
+  let box=null,iv=null;const avis={};
+  function caja(){if(box&&box.isConnected)return box;box=document.createElement('div');box.id='slNoti';document.body.appendChild(box);return box;}
+  function ico(sl){return '<span class="sln-ic"><i>🏅</i>'+(sl&&sl.img?'<img src="'+sl.img+'" alt="" onerror="this.remove()">':'')+'</span>';}
+  function chime(oro){if(MUTED||!(AJ.sfx>0))return;try{const ac=getAC(),now=ac.currentTime,dest=sfxBus();
+    (oro?[784,988,1175,1568]:[660,880]).forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.type='triangle';o.frequency.value=f;
+      g.gain.setValueAtTime(0,now+i*.09);g.gain.linearRampToValueAtTime(.22,now+i*.09+.02);g.gain.exponentialRampToValueAtTime(.001,now+i*.09+.5);o.connect(g);g.connect(dest);o.start(now+i*.09);o.stop(now+i*.09+.55);});}catch(e){}}
+  function noti(html,tipo,ms){const b=caja(),d=document.createElement('div');d.className='sln '+(tipo||'');d.innerHTML=html;b.appendChild(d);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>d.classList.add('on')));
+    if(tipo!=='gris')chime(tipo==='oro');try{if(tipo==='oro'&&navigator.vibrate)navigator.vibrate([60,40,120]);}catch(e){}
+    setTimeout(()=>{d.classList.remove('on');setTimeout(()=>d.remove(),500);},ms||4300);}
+  function st(){const F=typeof FXS!=='undefined'?FXS:{};const apo=Object.entries((G&&G.apTurno)||{}).filter(([k])=>k.startsWith('player:')).reduce((t,[,v])=>t+(v||0),0);
+    return {amal:(ARS&&ARS.amal)||0,esp:(ARS&&ARS.esp)||0,golpe:(ARS&&ARS.maxGolpe)||0,destC:F.destC||0,apoyos:apo,hp:G?G.player.hp:0,turn:G?G.turn:0};}
+  // progreso: se cumple durante el Choque · falla: se pierde durante el Choque
+  const PROG={amalgamas:(x,n)=>x.amal>=n,especiales:(x,n)=>x.esp>=n,golpe:(x,n)=>x.golpe>=n,destruir:(x,n)=>x.destC>=n,apoyos:(x,n)=>x.apoyos>=n};
+  const FALLA={intacto:(x)=>x.hp<R.corazones,vida:(x,n)=>x.hp<n,turnos:(x,n)=>x.turn>n,sin_amalgamas:(x)=>x.amal>0};
+  function vigilar(){const sl=ARCADE&&ARCADE.sellos;if(!sl||!G||G.over)return;const x=st();
+    sl.lista.forEach((d,i)=>{
+      if(PROG[d.t]&&!avis['p'+i]&&PROG[d.t](x,d.n)){avis['p'+i]=1;noti(ico(sl)+'<div><small>SELLO DE '+String(sl.jefe||'').toUpperCase()+'</small><b>✔ '+d.txt.replace(/ y gana$/,'')+'</b><span>¡Gana el Choque para obtener el sello!</span></div>','cian');}
+      if(FALLA[d.t]&&!avis['f'+i]&&FALLA[d.t](x,d.n)){avis['f'+i]=1;noti('<span class="sln-ic">✖</span><div><small>SELLO DE '+String(sl.jefe||'').toUpperCase()+'</small><b>'+d.txt+'</b><span>Ya no se puede en este Choque</span></div>','gris',3400);}
+    });}
+  let iniciado=false;
+  function inicio(){const sl=ARCADE&&ARCADE.sellos;if(iniciado||!sl||!sl.lista||!sl.lista.length)return;iniciado=true;
+    clearInterval(iv);iv=setInterval(vigilar,600);
+    setTimeout(()=>noti(ico(sl)+'<div><small>SELLO DE '+String(sl.jefe||'').toUpperCase()+' · '+sl.hechos+'/'+sl.total+'</small><b>'+(sl.elite?'👑 RETO ÉLITE':sl.lista.length+' desafío'+(sl.lista.length>1?'s':'')+' pendiente'+(sl.lista.length>1?'s':''))+'</b><span>'+sl.lista.slice(0,3).map(d=>d.ic+' '+d.txt).join(' · ')+(sl.lista.length>3?' …':'')+'</span></div>','',5200),2600);}
+  function fin(won,res){clearInterval(iv);const sl=ARCADE&&ARCADE.sellos;if(!sl||!won)return;
+    const x=st(),ORD={C:1,B:2,A:3,S:4},hoy=String(sl.hoy||'').slice(0,3).toUpperCase();
+    const ok=sl.lista.filter(d=>{switch(d.t){case 'victorias':return d.v+1>=d.n;case 'racha':return d.r+1>=d.n;case 'intacto':return x.hp>=R.corazones;case 'vida':return x.hp>=d.n;
+      case 'turnos':return x.turn<=d.n;case 'calif':return !!res.calif&&(ORD[res.calif]||0)>=(ORD[d.n]||3);case 'sin_amalgamas':return x.amal===0;case 'dia':return String(d.n).slice(0,3).toUpperCase()===hoy;
+      case 'elite':return !!sl.elite;default:return PROG[d.t]?PROG[d.t](x,d.n):false;}});
+    ok.forEach((d,i)=>setTimeout(()=>noti(ico(sl)+'<div><small>🏅 SELLO OBTENIDO · '+(sl.hechos+i+1)+'/'+sl.total+'</small><b>'+d.txt+'</b><span>'+String(sl.jefe||'')+(sl.hechos+i+1===sl.total?' · ¡SELLO COMPLETO! Tu Carta Boss te espera':'')+'</span></div>','oro',5200),900+i*1100));}
+  return {inicio,fin};
+})();
+if(typeof ARCADE!=='undefined'&&ARCADE){
+  {const _ig2=initGame;initGame=function(){const r=_ig2.apply(this,arguments);try{SELLO_SIM.inicio();}catch(e){}return r;};}
+  {const _eg2=endGame;endGame=function(won,reason){const ya=G&&G.over;const r=_eg2.apply(this,arguments);
+    if(!ya)try{SELLO_SIM.fin(won,{calif:G&&G.calif?G.calif.letra:null});}catch(e){}return r;};}
+}
 
 (async function boot(){
   document.getElementById('simVer').textContent=SIM_VERSION;

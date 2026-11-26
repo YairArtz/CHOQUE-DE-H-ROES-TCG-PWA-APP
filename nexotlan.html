@@ -1287,6 +1287,39 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 .fx-intro .ic{font-size:34px;line-height:1}
 .fx-intro b{display:block;font-family:'Orbitron',monospace;font-size:12px;letter-spacing:1.5px;color:var(--gold);margin-bottom:4px}
 .fx-intro p{font-size:15px;color:#d8def0;line-height:1.4}
+/* v421 · SELLO DEL GUARDIÁN (imagen: assets/nexotlan/sello_boss.png; si aún no existe se ve 🏅) */
+.sl-ico{position:relative;display:inline-grid;place-items:center;width:1.5em;height:1.5em;flex-shrink:0;vertical-align:middle}
+.sl-ico i{font-style:normal;font-size:1.05em;line-height:1}
+.sl-ico img{position:absolute;inset:-12%;width:124%;height:124%;object-fit:contain;filter:drop-shadow(0 0 4px rgba(255,190,60,.6))}
+.sl-ico.grande{width:84px;height:84px;font-size:46px}
+.sl-bar{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.sl-m{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:13px;background:rgba(10,20,48,.85);border:2px solid rgba(120,150,210,.35);filter:grayscale(.7);opacity:.7}
+.sl-m b{font-weight:400}
+.sl-m.elite{border-style:dashed;border-color:rgba(245,166,35,.6)}
+.sl-m.ok{filter:none;opacity:1;border-color:#f5a623;background:radial-gradient(circle,#4a2a00,#140a00);box-shadow:0 0 10px rgba(245,166,35,.55)}
+.sl-m.nuevo{animation:slNuevo .9s .3s cubic-bezier(.3,1.6,.5,1) both}
+@keyframes slNuevo{0%{transform:scale(0) rotate(-90deg);opacity:0}60%{transform:scale(1.5) rotate(10deg);opacity:1}100%{transform:scale(1) rotate(0)}}
+.sl-pop{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
+.sl-pop .sl-bar{justify-content:center}
+.sl-nom{font-family:'Orbitron',monospace;font-weight:900;letter-spacing:2px;color:#ffd166;font-size:15px}
+.sl-nuevos{display:flex;flex-direction:column;gap:6px;width:100%}
+.sl-nuevos div{display:flex;align-items:center;gap:8px;justify-content:center;padding:7px 12px;border-radius:10px;background:linear-gradient(90deg,rgba(245,166,35,.18),rgba(204,85,255,.12));border:1px solid rgba(245,166,35,.4);font-weight:700;animation:fnAparece .5s .6s both}
+.sl-nuevos small{color:#7dffb0;font-family:'Orbitron',monospace;font-size:11px;letter-spacing:.5px}
+.sl-nota{font-size:14px;color:var(--muted);line-height:1.4}
+.sl-lst{display:flex;flex-direction:column;gap:5px;width:100%;text-align:left}
+.sl-row{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:10px;background:rgba(10,20,48,.7);border:1px solid var(--line)}
+.sl-row .ic{width:26px;text-align:center;font-size:16px}
+.sl-row .tx{flex:1;font-size:14.5px}.sl-row .tx em{font-style:normal;color:var(--muted);font-size:12.5px}
+.sl-row .ck{color:#7dffb0;font-weight:900}
+.sl-row.ok{border-color:rgba(245,166,35,.55);background:rgba(60,35,0,.45)}
+.sl-chip{cursor:pointer;color:#ffd166!important;border-color:rgba(245,166,35,.5)!important;display:inline-flex;align-items:center;gap:4px}
+.du-sello{display:flex;align-items:center;gap:10px;margin:6px 0 2px;padding:8px 12px;border-radius:12px;border:1px solid rgba(245,166,35,.45);background:linear-gradient(90deg,rgba(60,35,0,.55),rgba(10,20,48,.6));color:var(--text);cursor:pointer;text-align:left;max-width:100%}
+.du-sello>.sl-ico{font-size:22px}
+.du-sello small{display:block;font-family:'Orbitron',monospace;font-size:10px;letter-spacing:1.5px;color:#ffd166;margin-bottom:4px}
+.du-sello .sl-m{width:22px;height:22px;font-size:11px}
+.du-sello:is(:hover,:focus-visible,.gp-foco){outline:0;box-shadow:0 0 0 2px #f5a623}
+.fx-c .sl-bar{gap:3px}.fx-c .sl-m{width:20px;height:20px;font-size:10px;border-width:1.5px}
+.fx-sello{position:absolute;inset:0;display:grid;place-items:center;background:rgba(4,8,22,.55)}
 .fx-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px}
 .fx-c{position:relative;display:flex;flex-direction:column;gap:10px;padding:12px;border-radius:16px;border:1px solid var(--line);background:rgba(10,20,48,.78);text-align:left;transition:transform .2s,border-color .2s,box-shadow .2s}
 .fx-c .im{position:relative;aspect-ratio:600/840;border-radius:10px;overflow:hidden;background:#060c22}
@@ -3505,12 +3538,21 @@ window.nxTramoEvento = async function (s) {
 };
 // Al regresar de un Choque contra un NPC del tramo: tras los diálogos y premios se vuelve a entrar al tramo
 // v396 · reto a un rival/guardián del mapa que vive en la ruta (con sus diálogos, su 2ª forma y su final)
+// v421 · diálogo de reto de un jefe: si solo le falta el sello ÉLITE aparece 👑 RETO ÉLITE (devuelve 0 si acepta)
+async function dialogoReto(p, texto) {
+  const el = p.tipo === 'guardian' && eliteDisponible(p);
+  const ops = [['⚔ ¡CHOQUE!', p.tipo === 'guardian' ? 'red' : 'gold']]; if (el) ops.push(['👑 RETO ÉLITE', 'gold']); ops.push(['AHORA NO', 'sec']);
+  const r = await dialogo(p, texto, ops);
+  if (el && r === 1) { S.eliteReto = p.id; guardar(true); await dialogo(p, p.elite_entrada || 'Así que vienes por mi sello… Esta vez no me contendré.'); return 0; }
+  if (r === 0) { if (S.eliteReto === p.id) delete S.eliteReto; return 0; }
+  return -1;
+}
 async function retoPunto(p) {
   tramoPausa(true); precargarFase2(p);
   if (tieneFase2(p) && enFase2(p) && reiniciaFase2(p)) { delete S.fase2[p.id]; guardar(); }
   if (tieneFase2(p) && enFase2(p)) await retoFase2(p);
   else {
-    const r = await dialogo(p, vencido(p.id) && p.revancha ? p.revancha : (p.entrada || '¿Un Choque?'), [['⚔ ¡CHOQUE!', p.tipo === 'guardian' ? 'red' : 'gold'], ['AHORA NO', 'sec']]);
+    const r = await dialogoReto(p, vencido(p.id) && p.revancha ? p.revancha : (p.entrada || '¿Un Choque?'));
     if (r === 0) { guardar(true); iniciarChoque(p); }
   }
   if (!cargaVisible()) tramoPausa(false);
@@ -3952,6 +3994,10 @@ async function abrirFicha(id) {
   else if (esCarpetero(p)) btns = `<button class="bt gold" id="fRuleta">🎰 RULETA</button><button class="bt sec" id="fHablar">💬 HABLAR</button>`;
   else if (p.tipo === 'heroe') btns = `<button class="bt" id="fHablar">💬 HABLAR</button>`;
   else btns = `<button class="bt ${p.tipo === 'guardian' ? 'red' : 'gold'}" id="fRetar" ${bloq ? 'disabled' : ''}>${tieneFase2(p) && enFase2(p) && !reiniciaFase2(p) ? '☠ ' + esc((p.fase2_etiqueta || '2ª forma').toUpperCase()) : '⚔ ' + (v ? 'REVANCHA' : 'RETAR')}</button><button class="bt sec" id="fHablar">💬 HABLAR</button>`;
+  if (p.tipo === 'guardian' && sellosDe(p).length && !EDITOR) {      // v421 · sello del guardián
+    chips.push(`<button class="chip sl-chip" id="fSello">${selloIco()} SELLO ${selloHechos(p)}/${sellosDe(p).length}</button>`);
+    if (eliteDisponible(p) && !bloq) btns += `<button class="bt gold" id="fElite">👑 RETO ÉLITE</button>`;
+  }
   $('fBody').innerHTML = `<div class="f-top" style="--fc:${tc}">
       <div class="f-ret" id="fRet"></div>
       <div style="min-width:0"><span class="f-tipo" style="--fc:${tc}">${tt}</span><div class="f-n">${esc(p.nombre)}</div><div class="f-t">${esc(p.titulo || '')}</div></div></div>
@@ -3961,6 +4007,8 @@ async function abrirFicha(id) {
   const h = $('fHablar'), r = $('fRetar');
   if (h) h.onclick = () => hablar(p);
   if (r) r.onclick = () => retar(p);
+  if ($('fSello')) $('fSello').onclick = () => verSello(p);
+  if ($('fElite')) $('fElite').onclick = async () => { S.eliteReto = p.id; guardar(true); await dialogo(p, p.elite_entrada || 'Así que vienes por mi sello… Esta vez no me contendré.'); iniciarChoque(p); };
   if ($('fTienda')) $('fTienda').onclick = () => abrirTienda(p);
   if ($('fRuleta')) $('fRuleta').onclick = () => abrirCarpeta(p);
   if ($('fVestir')) $('fVestir').onclick = () => abrirModista(p);
@@ -4071,10 +4119,11 @@ async function hablar(p) {
   const v = vencido(p.id);
   const bloq = p.tipo === 'guardian' && p._req.length && !cumple(p._req);
   if (bloq) { await dialogo(p, (p.entrada ? paginas(p.entrada)[0] + ' | ' : '') + 'Primero demuestra tu valor contra: ' + nombresReq(p._req.filter(r => !vencido(r))) + '.'); return; }
-  const r = await dialogo(p, v && p.revancha ? p.revancha : p.entrada, [['⚔ ¡CHOQUE!', p.tipo === 'guardian' ? 'red' : 'gold'], ['AHORA NO', 'sec']]);
+  const r = await dialogoReto(p, v && p.revancha ? p.revancha : p.entrada);
   if (r === 0) retar(p, true);
 }
 function retar(p, yaHablo) {
+  if (!yaHablo && S.eliteReto === p.id) delete S.eliteReto;          // v421 · la REVANCHA directa no es el reto élite
   if (!yaHablo && tieneFase2(p) && enFase2(p)) { hablar(p); return; }   // v215 · 2ª forma pendiente: se retoma ahí
   if (!yaHablo && !vencido(p.id)) { hablar(p); return; }
   iniciarChoque(p);
@@ -4112,7 +4161,8 @@ async function iniciarChoque(p0, fase) {
   ocupado(true); mostrarCarga(0); $('carga').classList.remove('listo'); clearTimeout(quitarCarga._t); clearTimeout(window.__cargaT);   // v232 · la carga aparece al instante
   const id = 'nx' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   const d = distDe(p), [ret, fch] = await Promise.all([retrato(p), fondosChoque(p, distDe(p))]);
-  S.pendiente = { id, punto: p.id, dia: S.dia, fase }; if (p0._punto && p0._tramo) { S.pendiente.tramo = p0._tramo; S.pendiente.nid = p0._nid; } guardar(true);
+  const elite = S.eliteReto === p0.id && eliteDisponible(p0);       // v421 · RETO ÉLITE (último sello)
+  S.pendiente = { id, punto: p.id, dia: S.dia, fase, ...(elite ? { elite: 1 } : {}) }; if (p0._punto && p0._tramo) { S.pendiente.tramo = p0._tramo; S.pendiente.nid = p0._nid; } guardar(true);
   // La baraja armada en 🃏 BARAJA viaja al Simulador como "nx_mia"
   asegurarColeccion(); let jug = S.baraja;
   if (S.mazo && !validarMazo(S.mazo).ok) toast('⚠ Tu baraja no está lista: juegas con la básica. Revísala en 🃏 BARAJA');
@@ -4129,6 +4179,8 @@ async function iniciarChoque(p0, fase) {
   // v216 · Poderes de jefe (mismos que el Arcade): borrador, revivir, mano_extra, almas_extra, robo_extra
   const pn = k => Math.max(0, parseInt(p[k], 10) || 0);
   Object.assign(m, { borrador: pn('borrador'), revivir: pn('revivir'), manoExtra: pn('mano_extra'), almasExtra: pn('almas_extra'), roboExtra: pn('robo_extra') });
+  if (elite) { m.manoExtra += 1; m.almasExtra += 1; m.roboExtra += 1; m.corazonesExtra += 2; m.jefeTxt = 'RETO ÉLITE'; m.etiqueta += ' · 👑 ÉLITE'; }
+  if (p0.tipo === 'guardian') { const sl = sellosParaChoque(p0); if (sl) m.sellos = sl; }   // v421 · el Simulador avisa en vivo al cumplir un sello
   try { m.secretas = [...secretasDe().sec]; } catch (e) {}   // v408 · foil de las Secretas en el Choque (vacío en la demo)
   try { localStorage.setItem('chh_arcade_match', JSON.stringify(m)); } catch (e) {}
   mostrarCarga(0); $('carga').classList.remove('listo'); clearTimeout(quitarCarga._t); clearTimeout(window.__cargaT);
@@ -4154,6 +4206,7 @@ async function procesarResultado0() {
   if (!res || res.id !== S.pendiente.id) return false;
   let p0 = PTS.find(x => x.id === S.pendiente.punto) || await npcTramo(S.pendiente.punto), fase = S.pendiente.fase || 1;   // v281 · NPC de un tramo
   if (p0 && S.pendiente.tramo) { const dT = await cargarTramo(S.pendiente.tramo), q = dT && dT.npcs.find(n => n._nid === S.pendiente.nid); if (q) p0 = q; }   // v396 · rival del mapa que vive en una ruta
+  const eliteCh = !!S.pendiente.elite, diaCh = diaClave(S.pendiente.dia != null ? S.pendiente.dia : S.dia);   // v421 · para el Sello
   S.pendiente = null;
   try { localStorage.removeItem('chh_arcade_result'); } catch (e) {}
   if (!p0) { guardar(); return false; }
@@ -4228,7 +4281,9 @@ async function procesarResultado0() {
   if (res.abandono) await mensaje('🚪 CHOQUE ABANDONADO', 'Saliste del Choque antes de terminarlo: cuenta como <b>derrota</b>.');
   if (premio) { sonMonedas(); toast('<i class="mn"></i> +' + premio + ' monedas' + (bonoCal ? ` · <b>+${bonoCal}</b> por calificación ${cal}` : '') + (mejorCal ? ' · ¡mejor calificación!' : '')); }
   if (res.won && !res.abandono) { const cartas = darPremio(p, !antes); guardar(); pintarHud(); await mostrarPremio(cartas); }
-  if (res.won && !res.abandono) await entregarFisica(resolverCarta(fase === 2 ? p0.fase2_carta_fisica : p0.carta_fisica), p0);   // v227 · carta BOSS (1 vez por partida)
+  // v421 · la CARTA BOSS ahora se gana completando el SELLO del jefe (sin sello configurado se entrega como antes, al vencerlo)
+  if (p.tipo === 'guardian' && sellosDe(p0).length) { await procesarSello(p0, res, { dia: diaCh, elite: eliteCh && res.won && !res.abandono }); if (S.eliteReto === p0.id) { delete S.eliteReto; guardar(); } }
+  else if (res.won && !res.abandono) await entregarFisica(resolverCarta(fase === 2 ? p0.fase2_carta_fisica : p0.carta_fisica), p0);   // v227 · carta BOSS (1 vez por partida)
   await revisarAperturas(true);
   const esFinal = res.won && !res.abandono && /^(si|sí|1|true)$/i.test(String(p0.final || '').trim());
   const campeon = res.won && p.tipo === 'guardian' && DIST.filter(d => !d.dlc && !d._sub).every(d => distritoAbierto(d)) && PTS.filter(x => x.tipo === 'guardian' && !x._dlc).every(x => vencido(x.id)) && !S.campeon;
@@ -5281,7 +5336,7 @@ const FISICA_MSG = 'Enviaremos esta carta directo a tu Universo, recíbela físi
 function fisicasDef() {
   const out = [];
   PTS.forEach(p => {
-    [[p.carta_fisica, p.nombre, 1], [p.fase2_carta_fisica, p.fase2_nombre || p.nombre, 2]].forEach(([c, quien, f]) => {
+    [[p.carta_boss, p.nombre, 1], [p.carta_fisica, p.nombre, 1], [p.fase2_carta_fisica, p.fase2_nombre || p.nombre, 2]].forEach(([c, quien, f]) => {
       const id = resolverCarta(c); if (id && CARD[id] && !out.some(x => x.id === id)) out.push({ id, p, quien, fase: f });
     });
   });
@@ -5312,23 +5367,157 @@ async function entregarFisica(id, p) {
 function abrirFisicas() {
   const defs = fisicasDef(), F = S.fisicas || {};
   const j = sesionJug();
-  let h = `<div class="fx-intro"><span class="ic">🏆</span><div><b>RECOMPENSAS FÍSICAS</b><p>Cartas muy especiales que solo se consiguen jugando el Modo Aventura. ${esc(FISICA_MSG)} Presenta el código de cada carta${j ? ' y tu ID <b style="color:var(--text)">' + esc(String(j.id).toUpperCase()) + '</b>' : ''}.</p></div></div><div class="fx-grid">`;
-  h += defs.map(d => {
-    const ok = !!F[d.id], f = F[d.id];
-    return `<button class="fx-c ${ok ? 'ok' : 'lock'}" data-fx="${esc(d.id)}"><span class="im"><img src="${esc(cartaImg(d.id, true))}" alt="" loading="lazy"></span>
-      <span class="tag">${ok ? '✔ OBTENIDA' : 'BLOQUEADA'}</span><b>${ok ? esc(nomC(d.id)) : '???'}</b>
-      <small>${ok ? 'Día ' + ((f.dia || 0) + 1) + ' · vencida a ' + esc(d.quien) : 'Vence a ' + esc(d.quien) + (d.fase === 2 ? ' en su forma verdadera' : '')}</small>${ok ? `<span class="fx-cod">${esc(f.codigo)}</span>` : ''}</button>`;
+  let h = `<div class="fx-intro"><span class="ic">🏆</span><div><b>RECOMPENSAS FÍSICAS · SELLOS DE LOS GUARDIANES</b><p>Cada guardián guarda una <strong style="color:var(--text)">CARTA BOSS</strong>: completa todos los sellos de su barra (victorias, desafíos y su RETO ÉLITE) para ganarla. ${esc(FISICA_MSG)} Presenta el código de cada carta${j ? ' y tu ID <strong style="color:var(--text)">' + esc(String(j.id).toUpperCase()) + '</strong>' : ''}.</p></div></div><div class="fx-grid">`;
+  // v421 · una tarjeta por guardián con sello (y las cartas boss antiguas que no tengan sello)
+  const jefes = jefesSello(), usados = new Set();
+  const items = jefes.map(p => { const id = cartaBossDe(p); if (id) usados.add(id); return { p, id }; });
+  defs.filter(d => !usados.has(d.id)).forEach(d => items.push({ p: d.p, id: d.id, viejo: d }));
+  h += items.map(({ p, id, viejo }, k) => {
+    const ok = !!(id && F[id]), f = ok ? F[id] : null, L = sellosDe(p), hh = selloHechos(p), conocido = vencido(p.id) || hh;
+    const img = id && CARD[id] ? cartaImg(id, true) : p.carta ? cartaImg(p.carta, true) : '';
+    const tag = ok ? '✔ OBTENIDA' : viejo ? 'BLOQUEADA' : selloCompleto(p) ? '🏅 SELLO COMPLETO' : `🏅 SELLO ${hh}/${L.length}`;
+    return `<button class="fx-c ${ok ? 'ok' : 'lock'}" data-k="${k}"><span class="im">${img ? `<img src="${esc(img)}" alt="" loading="lazy">` : ''}${!ok ? `<span class="fx-sello">${selloIco('grande')}</span>` : ''}</span>
+      <span class="tag">${tag}</span><b>${ok ? esc(nomC(id)) : conocido ? esc(p.nombre) : '???'}</b>
+      ${!viejo && L.length ? barraSello(p) : ''}
+      <small>${ok ? 'Día ' + ((f.dia || 0) + 1) + ' · ' + esc(p.nombre) : viejo ? 'Vence a ' + esc(viejo.quien) + (viejo.fase === 2 ? ' en su forma verdadera' : '') : (id && CARD[id] ? 'Carta Boss lista' : 'Carta Boss próximamente') + ' · toca para ver los sellos'}</small>${ok ? `<span class="fx-cod">${esc(f.codigo)}</span>` : ''}</button>`;
   }).join('') + '</div>';
-  if (!defs.length) h += '<div class="md-vacio">Todavía no hay cartas BOSS en esta versión de Nexotlan.</div>';
+  if (!items.length) h += '<div class="md-vacio">Todavía no hay cartas BOSS en esta versión de Nexotlan.</div>';
   $('fxBody').innerHTML = h;
-  $('fxBody').querySelectorAll('[data-fx]').forEach(b => b.onclick = async () => {
-    const id = b.dataset.fx, f = (S.fisicas || {})[id], d = defs.find(x => x.id === id);
-    if (!f) { toast('🔒 Vence a ' + d.quien + (d.fase === 2 ? ' en su forma verdadera' : '') + ' para obtenerla'); return; }
+  $('fxBody').querySelectorAll('[data-k]').forEach(b => b.onclick = async () => {
+    const it = items[+b.dataset.k], id = it.id, f = id ? (S.fisicas || {})[id] : null;
+    if (!f) { if (it.viejo) toast('🔒 Vence a ' + it.viejo.quien + (it.viejo.fase === 2 ? ' en su forma verdadera' : '') + ' para obtenerla'); else await verSello(it.p); return; }
     await mensaje('🏆 ' + nomC(id).toUpperCase(), `<div class="fx-premio"><img src="${esc(cartaImg(id, true))}" alt=""><p>${esc(FISICA_MSG)}</p><div class="fx-cod">${esc(f.codigo)}</div>
       <p style="font-size:13.5px;color:var(--muted)">Obtenida el día ${(f.dia || 0) + 1}. Úsala en tu baraja desde <b style="color:var(--text)">🃏 BARAJA Y COFRE</b>.</p></div>`);
   });
   irA('sFisicas');
   try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('fxBody').querySelector('.fx-c')), 80); } catch (e) {}
+}
+// ════════════════ v421 · SELLO DEL GUARDIÁN ════════════════
+// Cada jefe tiene una barra de sellos (mini logros). Al completarlos TODOS se entrega su CARTA BOSS (recompensa física).
+// En mapa.txt, en el punto del jefe:
+//   sello = victorias:1 | victorias:3 | vida:7 | especiales:2 | golpe:2 | elite      (tipos abajo, separados por |)
+//   sello_premios = monedas:60 | monedas:80 | … (opcional, uno por sello; por defecto monedas según el jefe)
+//   carta_boss = ID      (si aún no existe, al completar el sello queda pendiente y llega sola cuando se agregue)
+//   elite_entrada = frase del jefe al aceptar su RETO ÉLITE (opcional)
+// Todos los sellos (salvo victorias) se consiguen GANANDO el Choque en el que se cumple la condición.
+const SELLO_IMG = DIR + 'sello_boss.png';
+const SELLO_T = {
+  victorias: n => ['⚔', `Véncelo ${n} ${n == 1 ? 'vez' : 'veces'}`],
+  racha: n => ['🔥', `Véncelo ${n} veces seguidas`],
+  intacto: () => ['🛡', 'Gana sin perder corazones'],
+  vida: n => ['❤', `Gana con ${n} corazones o más`],
+  turnos: n => ['⏱', `Gana en ${n} turnos o menos`],
+  calif: n => ['🏆', `Gana con calificación ${n}${n === 'S' ? '' : ' o S'}`],
+  amalgamas: n => ['🧬', `Invoca ${n} ${n == 1 ? 'Amalgama' : 'Amalgamas'} y gana`],
+  sin_amalgamas: () => ['🚫', 'Gana sin invocar Amalgamas'],
+  destruir: n => ['💥', `Destruye ${n} cartas suyas y gana`],
+  golpe: n => ['👊', `Quítale ${n} corazones de un solo ataque y gana`],
+  apoyos: n => ['✨', `Activa ${n} APOYOS y gana`],
+  especiales: n => ['🌀', `Haz ${n} llamados especiales y gana`],
+  dia: d => ['📅', `Gánale en ${diaLargo(d)}`],
+  elite: () => ['👑', 'Vence su RETO ÉLITE'],
+};
+function diaLargo(k) { const K = NK(k).slice(0, 3); return (CFG._dias || []).find(x => NK(x).slice(0, 3) === K) || k; }
+function sellosDe(p) {
+  if (!p || !p.sello) return [];
+  const prem = String(p.sello_premios || '').split('|').map(x => x.trim());
+  return String(p.sello).split('|').map(x => x.trim()).filter(Boolean).map((x, i) => {
+    const [t0, v0] = x.split(':').map(y => (y || '').trim()), t = t0.toLowerCase(), fn = SELLO_T[t];
+    if (!fn) return null;
+    const n = /^\d+$/.test(v0 || '') ? parseInt(v0, 10) : (v0 || (t === 'calif' ? 'A' : 1));
+    const [ic, txt] = fn(t === 'calif' ? String(n).toUpperCase() : n);
+    return { i, t, n: t === 'calif' ? String(n).toUpperCase() : n, ic, txt, premio: prem[i] || '' };
+  }).filter(Boolean);
+}
+const jefesSello = () => PTS.filter(p => p.tipo === 'guardian' && sellosDe(p).length);
+const cartaBossDe = p => resolverCarta(p.carta_boss || p.carta_fisica || p.fase2_carta_fisica || '');
+function selloSt(id) { S.sellos = S.sellos || {}; const s = S.sellos[id] = S.sellos[id] || { ok: {}, r: 0 }; s.ok = s.ok || {}; return s; }
+const selloHechos = p => { const s = (S.sellos || {})[p.id], L = sellosDe(p); return s ? L.filter(d => s.ok[d.i]).length : 0; };
+const selloCompleto = p => { const L = sellosDe(p); return L.length > 0 && selloHechos(p) === L.length; };
+// El RETO ÉLITE se abre cuando solo falta el sello "elite"
+const eliteDisponible = p => { const L = sellosDe(p), s = (S.sellos || {})[p.id] || { ok: {} }; return L.some(d => d.t === 'elite') && L.every(d => d.t === 'elite' || s.ok[d.i]); };
+const selloIco = (cl = '') => `<span class="sl-ico ${cl}"><i>🏅</i><img src="${esc(SELLO_IMG)}" alt="" onerror="this.remove()"></span>`;
+// ¿El resultado de este Choque cumple el sello? (mismas reglas que avisa el Simulador mientras juegas)
+function selloCumple(d, res, ctx) {
+  if (!res.won || res.abandono) return false;
+  const st = res.st || {}, n = d.n, ORD = { C: 1, B: 2, A: 3, S: 4 };
+  switch (d.t) {
+    case 'victorias': return ctx.v >= n;
+    case 'racha': return ctx.r >= n;
+    case 'intacto': return !!res.intacto;
+    case 'vida': return (res.corazones || 0) >= n;
+    case 'turnos': return (res.turnos || 999) <= n;
+    case 'calif': return !!res.calif && (ORD[res.calif] || 0) >= (ORD[n] || 3);
+    case 'amalgamas': return (st.amal || 0) >= n;
+    case 'sin_amalgamas': return (st.amal || 0) === 0;
+    case 'destruir': return (st.destC || 0) >= n;
+    case 'golpe': return (st.maxGolpe || 0) >= n;
+    case 'apoyos': return (st.apoyos || 0) >= n;
+    case 'especiales': return (st.esp || 0) >= n;
+    case 'dia': return NK(ctx.dia || '').slice(0, 3) === NK(String(n)).slice(0, 3);
+    case 'elite': return !!ctx.elite;
+  }
+  return false;
+}
+// Lo que viaja al Simulador para avisar en vivo (solo los sellos pendientes)
+function sellosParaChoque(p0) {
+  const L = sellosDe(p0); if (!L.length) return null;
+  const s = selloSt(p0.id), elite = S.eliteReto === p0.id;
+  return { jefe: p0.nombre, img: new URL(SELLO_IMG, location.href).href, total: L.length, hechos: selloHechos(p0), elite,
+    hoy: diaClave(S.dia), lista: L.filter(d => !s.ok[d.i]).map(d => ({ t: d.t, n: d.n, txt: d.txt, ic: d.ic, v: S.vencidos[p0.id] || 0, r: s.r || 0 })) };
+}
+function premioSello(p, d) {
+  const m = /^monedas:(\d+)$/i.exec(d.premio || ''); const o = /^objeto:(.+)$/i.exec(d.premio || '');
+  if (o && OBJ[o[1].trim()]) { S.objetos = S.objetos || {}; S.objetos[o[1].trim()] = (S.objetos[o[1].trim()] || 0) + 1; return '🎒 ' + OBJ[o[1].trim()].nombre; }
+  const mon = m ? parseInt(m[1], 10) : Math.max(20, Math.round((p._mon || 100) * .4 / 5) * 5);
+  S.monedas += mon; return '+' + mon + ' monedas';
+}
+// Se llama al terminar el Choque decisivo contra el jefe (en jefes de 2 fases, el de su forma verdadera)
+async function procesarSello(p0, res, ctx) {
+  const L = sellosDe(p0); if (!L.length) return;
+  const s = selloSt(p0.id);
+  s.r = res.won && !res.abandono ? (s.r || 0) + 1 : 0;
+  const c = { v: S.vencidos[p0.id] || 0, r: s.r, dia: ctx.dia, elite: ctx.elite };
+  const nuevos = [];
+  L.forEach(d => { if (!s.ok[d.i] && selloCumple(d, res, c)) { s.ok[d.i] = Date.now(); nuevos.push({ d, premio: premioSello(p0, d) }); } });
+  const completo = selloCompleto(p0) && !s.fin;
+  if (completo) s.fin = Date.now();
+  guardar(); pintarHud();
+  if (nuevos.length) await mostrarSellos(p0, nuevos);
+  if (completo) await selloFinal(p0);
+}
+function barraSello(p, nuevos = []) {
+  const L = sellosDe(p), s = (S.sellos || {})[p.id] || { ok: {} }, nv = new Set(nuevos.map(x => x.d.i));
+  return `<div class="sl-bar">${L.map(d => `<span class="sl-m ${s.ok[d.i] ? 'ok' : ''} ${nv.has(d.i) ? 'nuevo' : ''} ${d.t === 'elite' ? 'elite' : ''}" title="${esc(d.txt)}">${s.ok[d.i] ? selloIco() : `<b>${d.ic}</b>`}</span>`).join('')}</div>`;
+}
+function listaSello(p, nuevos = []) {
+  const L = sellosDe(p), s = (S.sellos || {})[p.id] || { ok: {} }, nv = new Set(nuevos.map(x => x.d.i)), el = eliteDisponible(p);
+  return `<div class="sl-lst">${L.map(d => `<div class="sl-row ${s.ok[d.i] ? 'ok' : ''} ${nv.has(d.i) ? 'nuevo' : ''}"><span class="ic">${s.ok[d.i] ? selloIco() : d.ic}</span><span class="tx">${esc(d.txt)}` +
+    `${d.t === 'victorias' && !s.ok[d.i] ? ` <em>(${Math.min(S.vencidos[p.id] || 0, d.n)}/${d.n})</em>` : ''}${d.t === 'racha' && !s.ok[d.i] ? ` <em>(racha ${s.r || 0}/${d.n})</em>` : ''}` +
+    `${d.t === 'elite' && !s.ok[d.i] ? `<em>${el ? ' · ¡ya disponible!' : ' · se abre al completar los demás'}</em>` : ''}</span><span class="ck">${s.ok[d.i] ? '✔' : ''}</span></div>`).join('')}</div>`;
+}
+async function mostrarSellos(p0, nuevos) {
+  const L = sellosDe(p0), h = selloHechos(p0);
+  try { if (!MUTE) sonMonedas(); } catch (e) {}
+  await mensaje('🏅 SELLO DEL GUARDIÁN', `<div class="sl-pop">${selloIco('grande')}<b class="sl-nom">${esc((p0.nombre || '').toUpperCase())} · ${h}/${L.length}</b>${barraSello(p0, nuevos)}
+    <div class="sl-nuevos">${nuevos.map(x => `<div><span>${x.d.ic}</span> ${esc(x.d.txt)} <small>${esc(x.premio)}</small></div>`).join('')}</div>
+    <p class="sl-nota">${h === L.length ? '¡Sello completo!' : eliteDisponible(p0) ? 'Solo falta su <b>RETO ÉLITE</b>: rétalo de nuevo y elige 👑 RETO ÉLITE.' : 'Completa todos los sellos para ganar su <b>CARTA BOSS</b> física.'}</p></div>`);
+}
+async function selloFinal(p0) {
+  const id = cartaBossDe(p0);
+  if (id && CARD[id]) { await entregarFisica(id, p0); return; }
+  await mensaje('🏅 ¡SELLO COMPLETO!', `<div class="sl-pop">${selloIco('grande')}<b class="sl-nom">${esc((p0.nombre || '').toUpperCase())}</b>${barraSello(p0)}
+    <p class="sl-nota">Completaste todos los sellos. Su <b>CARTA BOSS</b> llegará a tu cofre en cuanto esté disponible (recibirás aviso al abrir Nexotlan).</p></div>`);
+}
+// Cartas Boss que se agregaron después de completar el sello: se entregan al cargar la partida
+async function sellosPendientes() {
+  for (const p of jefesSello()) { const id = cartaBossDe(p); if (selloCompleto(p) && id && CARD[id] && !(S.fisicas || {})[id]) await entregarFisica(id, p); }
+}
+async function verSello(p) {
+  const L = sellosDe(p); if (!L.length) return;
+  const id = cartaBossDe(p), f = id ? (S.fisicas || {})[id] : null;
+  await mensaje('🏅 SELLO DE ' + (p.nombre || '').toUpperCase(), `<div class="sl-pop">${barraSello(p)}${listaSello(p)}
+    <p class="sl-nota">${f ? '✔ Carta Boss obtenida · código <b>' + esc(f.codigo) + '</b>' : 'Recompensa: ' + (id && CARD[id] ? '<b>' + esc(nomC(id)) + '</b> (carta física)' : 'su <b>CARTA BOSS</b> física (próximamente)')}. Todos los sellos, salvo las victorias, se consiguen ganando el Choque en el que cumples el desafío.</p></div>`);
 }
 // ════════════════ PANTALLAS / AVISOS ════════════════
 // Al volver al título se cierra todo lo que quedó abierto (ficha de un punto, diálogos, ventanas): así no se puede retar fuera de la partida
@@ -5404,6 +5593,7 @@ async function entrarMapa(primeraVez) {
   if (!S.vistoMapa) { S.vistoMapa = 1; guardar(); }
   VOLVER = 'sMapa';
   ZOOM = 1; mostrarMapa(); ajustarZoom(ANCHO() < 700 ? 1.6 : 1);
+  setTimeout(() => { if (!S.pendiente) sellosPendientes().catch(() => {}); }, 1500);   // v421 · Cartas Boss agregadas después de completar su sello
   try { soundtrackNx(); } catch (e) {}   // partidas que ya iban avanzadas
   const d0 = DIST.filter(enVista).find(distritoAbierto) || DIST.find(enVista) || DIST[0]; if (d0) centrarEn(d0._x, d0._y);
   musica(musicaVista());
@@ -5588,6 +5778,7 @@ async function pintarPerfilDu() {
     <div class="du-cab"><span class="du-tipo">${tt}</span>${d ? `<span class="du-dist">📍 ${esc(d.nombre)}</span>` : ''}</div>
     <div class="du-nom">${esc(k ? p.nombre : '???')}</div>${k && p.titulo ? `<div class="du-ttl">${esc(p.titulo)}</div>` : ''}
     <div class="du-af ${afMax > 6 ? 'mucha' : ''}" title="Afinidad: ${p.tipo === 'heroe' ? 'veces que has hablado con él' : 'veces que lo has vencido'}">${Array.from({ length: afMax }, (_, i) => `<i class="${i < af ? 'on' : ''}"></i>`).join('')}<small>AFINIDAD ${af}/${afMax}</small></div>
+    ${k && p.tipo === 'guardian' && sellosDe(p).length ? `<button class="du-sello" id="duSello">${selloIco()}<span><small>SELLO DEL GUARDIÁN · ${selloHechos(p)}/${sellosDe(p).length}</small>${barraSello(p)}</span></button>` : ''}
     <p class="du-cita">${k ? esc(bio || '…') : lock ? '🔒 Su distrito aún está cerrado.' : 'Aún no lo conoces. Búscalo en ' + esc(d ? d.nombre : 'el mapa') + '.'}</p>
     <div class="du-stats">${st.join('')}</div>
     ${bloqReq && k ? `<div class="du-st"><small>PARA RETARLO</small><b class="no">🔒 Vence antes a: ${esc(nombresReq(p._req.filter(r => !vencido(r))))}</b></div>` : ''}
@@ -5595,6 +5786,7 @@ async function pintarPerfilDu() {
     <div class="du-acc"><button class="du-btn sec" id="duGuia" ${puedeGuia ? '' : 'disabled'}>${S.guia === p.id ? '⭐ ES TU GUÍA' : '☆ ELEGIR GUÍA'}</button>
       <button class="du-btn" id="duIr" ${puedeIr ? '' : 'disabled'}>📍 ${p.tipo === 'heroe' ? 'IR A VERLO' : vencido(p.id) ? 'REVANCHA' : 'RETARLO'}</button></div>`;
   $('duIr').onclick = () => { if (!puedeIr) return; VOLVER = 'sMapa'; entrarMapa().then(() => { setTimeout(() => { enfocarPunto(p, true); setTimeout(() => abrirFicha(p.id), 300); }, 120); }); };
+  if ($('duSello')) $('duSello').onclick = () => verSello(p);
   $('duGuia').onclick = () => { if (!puedeGuia) return; S.guia = S.guia === p.id ? null : p.id; guardar(); toast(S.guia ? '⭐ ' + p.nombre + ' te acompañará en el menú' : 'Guía del menú: al azar'); pintarAdversarios(); };
   duCentrar();
   const ret = k || !lock ? await retrato(p) : null;

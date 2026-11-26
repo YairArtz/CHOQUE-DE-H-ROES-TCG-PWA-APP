@@ -22,8 +22,8 @@
   const HP_URL   = ((window.CHH_CONFIG||{}).heroPesos||'https://script.google.com/macros/s/AKfycbwSrBH7yJiyTlPabzJ_WiXQDWPe7RpATmuTTWAe3uVRy6wuGh15QpuOMzSiZVixJK_S/exec');
   const CARPETA  = { mica: 'assets/cosmeticos/micas/', playmat: 'assets/cosmeticos/playmats/', heroe: 'assets/inicio/heroes/' };
   const CLASICO  = {
-    mica:    { id: 'mica_clasica',    tipo: 'mica',    nombre: 'Clásica', img: 'img/simulacion/reverso.jpg', origen: 'clasico' },
-    playmat: { id: 'playmat_clasico', tipo: 'playmat', nombre: 'Clásico', img: 'img/simulacion/tablero.jpg', origen: 'clasico' }
+    mica:    { id: 'mica_clasica',    tipo: 'mica',    nombre: 'Clásica', img: 'assets/simulacion/reverso.jpg', origen: 'clasico' },
+    playmat: { id: 'playmat_clasico', tipo: 'playmat', nombre: 'Clásico', img: 'assets/simulacion/mesas/mesa_coliseo.jpg', origen: 'clasico' }   // v427 · sin tablero propio: deja ver la mesa (la imagen es solo la vista previa)
   };
   const K_CACHE = 'chh_cosmeticos', K_EQUIP = 'chh_equip_';
 

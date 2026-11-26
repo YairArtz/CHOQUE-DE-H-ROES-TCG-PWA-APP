@@ -122,7 +122,7 @@
   }
   async function dorsoPorDefecto() {
     try { if (window.CHH_COSM && CHH_COSM.imagenEquipada) { const s = await Promise.race([CHH_COSM.imagenEquipada('mica'), espera(800).then(() => null)]); if (s) return s; } } catch (e) {}
-    return 'img/simulacion/reverso.jpg';
+    return 'assets/simulacion/reverso.jpg';
   }
 
   function estallido(x, y, color, raiz) {

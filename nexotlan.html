@@ -5740,8 +5740,13 @@ $('hAdv').onclick = () => { $('hoyPanel').classList.remove('on'); guardar(); abr
 function irPortada() { guardar(); musicaPortada(); irA('sTitulo'); pintarTitulo(); faseTitulo('partidas', true); }
 // v276 · La portada tiene dos fases: TÍTULO (logo + COMENZAR + ©) y PARTIDAS (las 3 ranuras).
 //        Al entrar al modo se ve el título; desde el menú de la aventura se regresa directo a las partidas.
+// v425 · SOLO EN LA VERSIÓN DE PC: el menú principal ("CONTINUAR") abre directo las partidas guardadas (nexotlan.html?partidas=1);
+//        volver desde las partidas regresa al menú principal del juego en lugar de a esta portada. En la web y la app no cambia nada.
+// v426 · PC: aplica siempre (también al regresar de un Choque o desde el menú de la aventura), no solo con ?partidas=1.
+const PC_PARTIDAS = !!window.chhEscritorio;   // v426 · también al volver de un Choque (nexotlan.html?r=…): en PC la portada vieja ya no existe
 function faseTitulo(f, anim) {
   const t = $('sTitulo'); if (!t) return;
+  if (PC_PARTIDAS && f === 'portada') { try { nxUiSon('atras'); } catch (e) {} location.href = 'index.html'; return; }
   t.classList.toggle('fase-portada', f === 'portada'); t.classList.toggle('fase-partidas', f === 'partidas');
   if (anim) {
     const c = f === 'partidas' ? 'entra-partidas' : 'entra-portada';
@@ -5752,6 +5757,7 @@ function faseTitulo(f, anim) {
   try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar(f === 'portada' ? $('tComenzar') : ($('tSlots').querySelector('.sl.act [data-jugar]') || $('tSlots').querySelector('[data-jugar],[data-nueva]'))), 90); } catch (e) {}
 }
 $('tAnio').textContent = Math.max(2026, new Date().getFullYear());
+if (PC_PARTIDAS) faseTitulo('partidas', false);
 $('tComenzar').onclick = () => {
   const b = $('tComenzar'); if (b.disabled || b.classList.contains('dispara')) return;
   b.classList.add('dispara');

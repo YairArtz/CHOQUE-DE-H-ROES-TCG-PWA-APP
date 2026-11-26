@@ -45,25 +45,160 @@ nexotlan-logo{width:min(760px,95%);display:block}
 .izq>*{animation:entra .4s cubic-bezier(.2,.9,.3,1.2) both}
 .izq>*:nth-child(2){animation-delay:.04s}.izq>*:nth-child(3){animation-delay:.08s}.izq>*:nth-child(4){animation-delay:.12s}.izq>*:nth-child(5){animation-delay:.16s}.izq>*:nth-child(6){animation-delay:.2s}.izq>*:nth-child(7){animation-delay:.24s}.izq>*:nth-child(8){animation-delay:.28s}
 @keyframes entra{from{opacity:0;translate:-40px 0}to{opacity:1;translate:0 0}}
+.grupo{font-family:'Orbitron',monospace;font-weight:700;font-size:10px;letter-spacing:.34em;color:#5cc8ff;opacity:.8;margin:clamp(4px,1vh,10px) 0 0 4px}
+.fila{display:flex;gap:10px;width:90%;margin-top:clamp(4px,1.2vh,12px)}
+.op.mini{width:auto;flex:1;margin-left:0!important}
+.op.sal{margin-top:0}
+.re small{max-width:70%;text-align:right}
+@media (max-height:620px){.grupo{display:none}.op{height:clamp(34px,6.4vh,50px)}}
+
+/* ═════ v425 · INTRO DE LA VERSIÓN PC: logos → aviso legal → pantalla de título → menú ═════ */
+body.intro .sa,body.intro .pie,body.intro .trama{opacity:0;pointer-events:none}
+.sa,.pie,.trama{transition:opacity .7s}
+.fondo{background-image:url(assets/nexotlan/titulo/titulo.jpg)}
+#iz{position:fixed;inset:0;z-index:50;display:none}
+body.intro #iz{display:block}
+.ix-fase{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .7s}
+.ix-fase.on{opacity:1}
+.ix-negro{background:#000}
+.ix-slide{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.4vh;opacity:0;transform:scale(.97);transition:opacity .7s,transform 3.2s ease-out}
+.ix-slide.on{opacity:1;transform:none}
+.ix-slide img.mk{max-width:min(40vw,520px);max-height:36vh;object-fit:contain;padding:2vh;overflow:visible}
+.ix-slide img.mk.godot{max-height:26vh;filter:grayscale(1) brightness(1.6) contrast(.9)}
+.ix-slide small{font-family:'Orbitron',monospace;font-size:clamp(9px,1.4vh,12px);letter-spacing:.42em;color:#7d8aa6}
+.ix-logos{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4.4vh 5.4vw;max-width:84vw}
+.ix-logos img{height:clamp(34px,7vh,72px);max-width:20vw;object-fit:contain;filter:grayscale(1) brightness(1.55) contrast(.85);opacity:.82}
+.ix-logos img.godot{height:clamp(52px,11vh,110px)}
+.ix-legal{max-width:min(1100px,84vw);text-align:justify;color:#b9c2d6;font-size:clamp(12px,2.05vh,17px);line-height:1.55}
+.ix-legal h2{font-family:'Orbitron',monospace;font-size:clamp(11px,1.8vh,14px);letter-spacing:.4em;color:#e6ebf7;text-align:center;margin-bottom:2.6vh}
+.ix-legal p{margin-bottom:1.6vh}
+.ix-legal b{color:#fff}
+.ix-salta{position:absolute;right:4vw;bottom:5vh;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:clamp(13px,2.4vh,20px);color:#9aa3b8;opacity:0;transition:opacity .5s}
+.ix-salta.on{opacity:.85}
+/* pantalla de título */
+.ix-titulo{background:radial-gradient(ellipse at 50% 55%,transparent 30%,rgba(2,4,14,.78) 85%)}
+.ix-titulo::before{content:none}
+#ixGal{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:0}
+.ix-titulo.on #ixGal{animation:ixLlega 2.6s cubic-bezier(.15,.7,.2,1) both}
+.ix-titulo nexotlan-logo{width:min(980px,86vw);display:block;margin-top:-10vh}
+.ix-pulsa{margin-top:6vh;font-family:'Orbitron',monospace;font-weight:700;font-size:clamp(15px,3vh,26px);letter-spacing:.22em;color:#fff;text-shadow:0 0 12px rgba(54,214,255,.9),0 2px 6px #000;animation:ixLate 2.2s ease-in-out infinite}
+@keyframes ixLate{0%,100%{opacity:.25}50%{opacity:1}}
+.ix-copy{position:absolute;bottom:3.4vh;left:0;right:0;text-align:center;font-size:clamp(11px,1.9vh,15px);color:#d6dcf0;text-shadow:0 1px 4px #000;line-height:1.5}
+.ix-ver{position:absolute;right:2.6vw;bottom:3.4vh;font-family:'Rajdhani',sans-serif;font-weight:600;font-size:clamp(11px,1.9vh,15px);color:#d6dcf0;text-shadow:0 1px 4px #000}
+.ix-titulo.sale .ix-pulsa{animation:none;opacity:1;transform:scale(1.15);transition:transform .3s,opacity .5s .2s}
+#ixFlash{position:fixed;inset:0;z-index:60;background:#fff;opacity:0;pointer-events:none}
+#ixFlash.on{animation:ixFl .7s ease-out}
+@keyframes ixFl{0%{opacity:.85}100%{opacity:0}}
+.pie .ver{margin-left:14px;color:#5d6f99}
+
+/* v425 · animación de entrada (PC): destello de luz sobre los logos, túnel de estrellas al llegar al título, menú en cascada */
+.ix-slide .brillo{position:relative;display:inline-block;-webkit-mask-image:linear-gradient(100deg,#000 0 40%,rgba(0,0,0,.55) 50%,#000 60%);-webkit-mask-size:300% 100%;animation:ixBrillo 2.4s .5s ease-in-out both}
+@keyframes ixBrillo{from{-webkit-mask-position:120% 0}to{-webkit-mask-position:-20% 0}}
+.ix-slide.on img.mk{animation:ixLogoEntra 1.2s cubic-bezier(.2,.8,.2,1) both}
+@keyframes ixLogoEntra{from{filter:blur(10px) brightness(2);transform:scale(1.06);opacity:0}to{transform:none;opacity:1}}
+.ix-slide.on img.mk:not(.godot){animation:ixLogoEntra 1.2s cubic-bezier(.2,.8,.2,1) both,ixResplandor 3s 1.2s ease-in-out infinite alternate}
+@keyframes ixResplandor{from{filter:drop-shadow(0 0 0 rgba(255,255,255,0))}to{filter:drop-shadow(0 0 18px rgba(255,255,255,.22))}}
+.ix-slide.on .ix-logos img{animation:ixSoft .9s cubic-bezier(.2,.8,.2,1) both}
+.ix-slide.on .ix-logos img:nth-child(2){animation-delay:.12s}.ix-slide.on .ix-logos img:nth-child(3){animation-delay:.24s}.ix-slide.on .ix-logos img:nth-child(4){animation-delay:.36s}.ix-slide.on .ix-logos img:nth-child(5){animation-delay:.48s}.ix-slide.on .ix-logos img:nth-child(6){animation-delay:.6s}
+@keyframes ixSoft{from{opacity:0;transform:translateY(14px);filter:grayscale(1) blur(6px)}to{opacity:.82}}
+#ixWarp{position:absolute;inset:0;z-index:0;pointer-events:none}
+.ix-titulo>nexotlan-logo,.ix-titulo>.ix-pulsa{position:relative;z-index:1}.ix-titulo>.ix-copy,.ix-titulo>.ix-ver{z-index:1}
+.ix-pulsa{padding:.5vh 3vw;background:linear-gradient(90deg,transparent,rgba(4,8,26,.55),transparent)}
+
+@keyframes ixLlega{from{opacity:0;filter:brightness(3) saturate(0) blur(18px)}to{opacity:1;filter:none}}
+.ix-titulo.on nexotlan-logo{animation:ixTitLogo 1.6s .5s cubic-bezier(.2,.9,.25,1.15) both}
+@keyframes ixTitLogo{from{opacity:0;transform:scale(1.6);filter:blur(16px)}to{opacity:1;transform:none;filter:none}}
+.ix-titulo.on .ix-pulsa{animation:ixAparece .8s 2s both,ixLate 2.2s 2.8s ease-in-out infinite}
+.ix-titulo.on .ix-copy,.ix-titulo.on .ix-ver{animation:ixAparece 1s 2.2s both}
+@keyframes ixAparece{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.ix-rayo{position:absolute;left:-30%;top:48%;width:160%;height:2px;background:linear-gradient(90deg,transparent,rgba(120,220,255,.95),#fff,rgba(120,220,255,.95),transparent);box-shadow:0 0 18px 4px rgba(54,214,255,.6);opacity:0;pointer-events:none}
+.ix-titulo.on .ix-rayo{animation:ixRayo 1.4s .9s ease-out both}
+@keyframes ixRayo{0%{opacity:0;transform:scaleX(.1)}30%{opacity:1}100%{opacity:0;transform:scaleX(1.1)}}
+body:not(.intro) .izq>*{animation:entra .55s cubic-bezier(.2,.9,.3,1.2) both}
+body:not(.intro) .der nexotlan-logo{animation:ixDer .9s cubic-bezier(.2,.9,.3,1.1) both}
+@keyframes ixDer{from{opacity:0;transform:translateX(60px) scale(.92)}to{opacity:1;transform:none}}
+
+/* v425 · VIÑETAS del menú (PC): la opción enfocada muestra su imagen y su descripción */
+.der{flex-direction:column;gap:2vh;padding-left:1vw}
+.sa{grid-template-columns:minmax(330px,34%) 1fr!important}
+.der nexotlan-logo{width:min(480px,58%)}
+.vin{--pv:polygon(3% 0,100% 0,97% 100%,0 100%);position:relative;width:min(1180px,100%,calc(66vh * 16 / 8.4));aspect-ratio:16/8.4;clip-path:var(--pv);background:#081230;filter:drop-shadow(0 10px 24px rgba(0,0,0,.55))}
+.vin::after{content:'';position:absolute;inset:0;clip-path:var(--pv);box-shadow:inset 0 0 0 2px rgba(245,166,35,.55);border-top:3px solid #f5a623;pointer-events:none}
+.vin-img{position:absolute;inset:0;opacity:0;transition:opacity .45s}
+.vin-img.on{opacity:1}
+/* PARALLAX: el fondo se mueve lento y poco; el personaje, más y en sentido contrario (también sigue al mouse) */
+.vin-img i{position:absolute;display:block;will-change:transform}
+.vin-img .bg{inset:-6%;background:center/cover no-repeat;animation:vinBg 16s ease-in-out infinite alternate;translate:calc(var(--mx,0) * -10px) calc(var(--my,0) * -6px);transition:translate .6s ease-out}
+.vin-img .fg{right:3%;bottom:-4%;height:108%;aspect-ratio:3/4;background:right bottom/contain no-repeat;animation:vinFg 7s ease-in-out infinite alternate;translate:calc(var(--mx,0) * 24px) calc(var(--my,0) * 12px);transition:translate .4s ease-out;filter:drop-shadow(-10px 6px 18px rgba(0,0,0,.6))}
+.vin-img.on .fg{animation:vinFgEntra .9s cubic-bezier(.2,.9,.3,1.1) both,vinFg 7s .9s ease-in-out infinite alternate}
+@keyframes vinBg{from{transform:scale(1.04) translateX(1.6%)}to{transform:scale(1.1) translateX(-1.6%)}}
+@keyframes vinFg{from{transform:translate(0,0) scale(1)}to{transform:translate(-1.4%,-1.6%) scale(1.015)}}
+@keyframes vinFgEntra{from{opacity:0;transform:translateX(12%)}to{opacity:1;transform:none}}
+.vin-tx{position:absolute;left:0;right:0;bottom:0;padding:4.4vh 5% 2.6vh 6%;background:linear-gradient(0deg,rgba(3,7,22,.95),rgba(3,7,22,.7) 60%,transparent)}
+.vin-tx small{font-family:'Orbitron',monospace;font-size:clamp(9px,1.3vh,11px);letter-spacing:.3em;color:#5cc8ff}
+.vin-tx b{display:block;font-family:'Orbitron',monospace;font-weight:900;font-size:clamp(17px,3.2vh,28px);color:#fff;transform:skewX(-8deg);text-shadow:0 2px 0 #b85a00,0 0 16px rgba(245,166,35,.45);margin:.4vh 0}
+.vin-tx p{font-size:clamp(12px,2vh,16px);color:#c8d4ef;max-width:70%;line-height:1.3}
+.vin-brillo{position:absolute;inset:0;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.18) 50%,transparent 65%);transform:translateX(-100%);pointer-events:none}
+.vin.cambio .vin-brillo{animation:vinBr .8s ease-out}
+@keyframes vinBr{to{transform:translateX(100%)}}
+.vin.cambio .vin-tx>*{animation:vinTx .45s cubic-bezier(.2,.9,.3,1.2) both}.vin.cambio .vin-tx b{animation-delay:.05s}.vin.cambio .vin-tx p{animation-delay:.1s}
+@keyframes vinTx{from{opacity:0;transform:translateX(24px) skewX(-8deg)}to{opacity:1}}
+@media (max-height:620px){.vin{display:none}}
+#mnPolvo{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;opacity:0;transition:opacity 1s}
+body:not(.intro) #mnPolvo{opacity:1}
 </style>
 <script src="iconos.js"></script>   <!-- íconos propios (assets/iconos/iconos.txt) -->
 </head>
-<body>
-<div class="fondo"></div><div class="trama"></div>
+<body class="intro">
+<div class="fondo"></div><canvas id="mnPolvo"></canvas><div class="trama"></div>
+<!-- v425 · intro: logos (negro) → aviso legal → título "pulsa cualquier botón" → menú. Solo la primera vez por sesión. -->
+<div id="iz">
+  <div class="ix-fase ix-negro" id="ixLogos">
+    <div class="ix-slide"><img class="mk" src="assets/nexotlan/creditos/codex_studio.webp" alt="Codex Studio" onerror="this.remove()"><small>PRESENTA</small></div>
+    <div class="ix-slide"><img class="mk" src="assets/nexotlan/creditos/yair_artz.webp" alt="Yair Artz" onerror="this.remove()"><small>UNA OBRA DE YAIR ARTZ</small></div>
+    <div class="ix-slide"><small>CREADO CON</small><img class="mk godot" src="assets/nexotlan/creditos/godot.webp" alt="Godot Engine" onerror="this.remove()"></div>
+    <div class="ix-slide"><div class="ix-legal">
+      <h2>AVISO LEGAL</h2>
+      <p><b>Choque de Héroes</b>, <b>Choque de Héroes: Nexotlan</b> y <b>Koatl el Defensor</b>, así como sus personajes originales, ilustraciones, textos, música, mecánicas de juego y demás elementos distintivos, son obra de Eduardo Yair Pérez Trujillo (Yair Artz) · Codex Studio. Todos los derechos reservados.</p>
+      <p>Los personajes identificados como <b>Héroes Invitados</b>, así como sus nombres, diseños y demás elementos protegidos, pertenecen a sus respectivos autores, estudios y titulares de derechos. Su inclusión no implica afiliación, patrocinio, licencia ni respaldo alguno por parte de dichos titulares.</p>
+      <p>Choque de Héroes es una obra de ficción que se expresa en los géneros de la <b>sátira y la parodia</b>, con fines de comentario, crítica y homenaje, en ejercicio de la libertad de expresión y de creación artística reconocida en los artículos 6o. y 7o. de la Constitución Política de los Estados Unidos Mexicanos, y dentro de las limitaciones y excepciones a los derechos patrimoniales previstas en la Ley Federal del Derecho de Autor y en los tratados internacionales aplicables.</p>
+      <p>Los nombres, personajes, lugares y sucesos aquí representados son producto de la imaginación del autor o se utilizan de manera ficticia. Cualquier semejanza con personas reales, vivas o fallecidas, con personajes de otras obras o con hechos reales es mera coincidencia.</p>
+    </div></div>
+    <div class="ix-salta" id="ixSalta">Pulsa cualquier botón para saltar…</div>
+  </div>
+  <div class="ix-fase ix-titulo" id="ixTitulo">
+    <canvas id="ixGal"></canvas><canvas id="ixWarp"></canvas><div class="ix-rayo"></div>
+    <nexotlan-logo mode="title" id="ixLogo"></nexotlan-logo>
+    <div class="ix-pulsa">PULSA CUALQUIER BOTÓN</div>
+    <div class="ix-copy">© <span class="anio"></span> Yair Artz · Codex Studio<br>Choque de Héroes · Héroes Invitados © sus respectivos autores y estudios</div>
+    <div class="ix-ver" id="ixVer">Ver. 1.0.0</div>
+  </div>
+</div>
+<div id="ixFlash"></div>
+<audio id="ixMus" src="assets/nexotlan/musica/portada.mp3" loop preload="auto"></audio>
 <div class="sa">
   <div class="izq">
     <div class="kick">CHOQUE DE HÉROES</div>
-    <button class="re" data-ir="nexotlan.html" id="opAventura"><b>AVENTURA</b><small>NEXOTLAN</small></button>
-    <button class="op" data-ir="simulacion.html"><i></i><span class="ic">⚔</span><b>CHOQUE LIBRE</b><small>Contra la CPU</small></button>
-    <button class="op" data-ir="arcade.html"><i></i><span class="ic">🕹</span><b>ARCADE</b><small>Rivales en serie</small></button>
-    <button class="op" data-ir="constructor.html"><i></i><span class="ic">🧰</span><b>CONSTRUCTOR</b><small>Arma tus barajas</small></button>
-    <button class="op" data-ir="academia.html"><i></i><span class="ic">🎓</span><b>ACADEMIA</b><small>Aprende a jugar</small></button>
-    <button class="op" data-ir="ajustes.html"><i></i><span class="ic">⚙</span><b>AJUSTES</b></button>
-    <button class="op sal" id="opSalir"><i></i><span class="ic">⏻</span><b>SALIR</b></button>
+    <button class="re" data-ir="nexotlan.html?partidas=1" data-vin="aventura" id="opAventura"><b id="reTit">AVENTURA</b><small id="reSub">NEXOTLAN</small></button>
+    <div class="grupo">JUGAR</div>
+    <button class="op" data-ir="simulacion.html" data-vin="choque"><i></i><span class="ic">⚔</span><b>CHOQUE LIBRE</b><small>Contra la CPU</small></button>
+    <button class="op" data-ir="arcade.html" data-vin="arcade"><i></i><span class="ic">🕹</span><b>ARCADE</b><small>Rivales en serie</small></button>
+    <button class="op" data-ir="constructor.html" data-vin="constructor"><i></i><span class="ic">🧰</span><b>CONSTRUCTOR</b><small>Arma tus barajas</small></button>
+    <div class="grupo">APRENDER</div>
+    <button class="op" data-ir="tutorial.html" data-vin="tutorial"><i></i><span class="ic">🎓</span><b>TUTORIAL</b><small>Partida guiada · 5 min</small></button>
+    <button class="op" data-ir="tutorial-reglas.html" data-vin="reglas"><i></i><span class="ic">📖</span><b>REGLAS</b><small>Paso a paso y reglamento</small></button>
+    <div class="fila">
+      <button class="op mini" data-ir="ajustes.html" data-vin="ajustes"><i></i><span class="ic">⚙</span><b>AJUSTES</b></button>
+      <button class="op mini sal" id="opSalir" data-vin="salir"><i></i><span class="ic">✖</span><b>SALIR</b></button>
+    </div>
   </div>
-  <div class="der"><nexotlan-logo mode="title"></nexotlan-logo></div>
+  <div class="der">
+    <nexotlan-logo mode="title"></nexotlan-logo>
+    <div class="vin" id="vin"><div class="vin-img" id="vinA"><i class="bg"></i><i class="fg"></i></div><div class="vin-img" id="vinB"><i class="bg"></i><i class="fg"></i></div><i class="vin-brillo"></i>
+      <div class="vin-tx"><small id="vinK">MODO AVENTURA</small><b id="vinT">NEXOTLAN</b><p id="vinD"></p></div></div>
+  </div>
 </div>
-<div class="pie">© Codex Studio · Yair Artz · F11 pantalla completa</div>
+<div class="pie">© <span class="anio"></span> Codex Studio · Yair Artz · F11 pantalla completa<span class="ver" id="pieVer"></span></div>
 <script src="nexotlan-logo.js" defer></script>
 <script src="gamepad.js" defer></script>
 <script>
@@ -71,6 +206,234 @@ document.querySelectorAll('[data-ir]').forEach(b => b.onclick = () => { location
 document.getElementById('opSalir').onclick = () => { if (window.chhEscritorio) chhEscritorio.salir(); else window.close(); };
 window.GP_CFG = { principal: () => document.getElementById('opAventura'), principalTxt: 'Aventura' };
 window.addEventListener('load', () => { try { document.getElementById('opAventura').focus({ preventScroll: true }); } catch (e) {} });
+</script>
+<script>
+// v424 · si hay una partida del Modo Aventura, el botón grande dice CONTINUAR con su día y su progreso
+try {
+  const a = JSON.parse(localStorage.getItem('chh_nexotlan_slots') || 'null'), k = +(localStorage.getItem('chh_nexotlan_slot') || 0);
+  const L = (Array.isArray(a) ? a : []).filter(Boolean), S = (Array.isArray(a) && a[k]) || L.sort((x, y) => (y.u || 0) - (x.u || 0))[0];
+  if (S && S.baraja) {
+    document.getElementById('reTit').textContent = 'CONTINUAR';
+    const g = Object.keys(S.vencidos || {}).filter(i => /^(g_|dlc_g_)/.test(i)).length;
+    document.getElementById('reSub').textContent = 'NEXOTLAN · DÍA ' + ((S.dia || 0) + 1) + (g ? ' · ' + g + (g === 1 ? ' GUARDIÁN' : ' GUARDIANES') : '');
+  }
+} catch (e) {}
+</script>
+<script>
+// ═════ v425 · INTRO DE LA VERSIÓN PC ═════
+(function () {
+  const $ = id => document.getElementById(id), VER = 'Ver. 1.0.0';
+  document.querySelectorAll('.anio').forEach(e => e.textContent = new Date().getFullYear());
+  $('ixVer').textContent = VER; $('pieVer').textContent = '· ' + VER;
+  // música del título y del menú (respeta el volumen y el silencio de Ajustes)
+  const mus = $('ixMus');
+  const vol = () => { const v = parseFloat(localStorage.getItem('chh_bgm_vol')); return isNaN(v) ? .4 : Math.max(0, Math.min(1, v)); };
+  function sonar() { try { mus.volume = vol(); mus.muted = localStorage.getItem('bgm_muted') === '1'; const p = mus.play(); if (p) p.catch(() => {}); } catch (e) {} }
+  function fundirMusica(ms) { const v0 = mus.volume, t0 = performance.now(); (function f(t) { const k = Math.min(1, (t - t0) / ms); mus.volume = v0 * (1 - k); if (k < 1) requestAnimationFrame(f); })(t0); }
+  document.querySelectorAll('[data-ir]').forEach(b => b.addEventListener('click', () => fundirMusica(250)));
+  let fase = 'logos', tecla = null; const espera = ms => new Promise(r => setTimeout(r, ms));
+  function alPulsar(fn) { tecla = fn; }
+  function pulsado() { const f = tecla; if (f) { tecla = null; f(); } }
+  addEventListener('keydown', e => { if (e.repeat || e.key === 'F11' || e.key === 'F12') return; if (fase !== 'menu') { e.preventDefault(); e.stopPropagation(); pulsado(); } }, true);
+  addEventListener('pointerdown', e => { if (fase !== 'menu') { e.preventDefault(); pulsado(); } }, true);
+  // cualquier botón del control
+  let prevB = false;
+  (function poll() { if (fase === 'menu') return; let p = false; try { for (const g of navigator.getGamepads ? navigator.getGamepads() : []) if (g && g.buttons.some(b => b.pressed)) p = true; } catch (e) {} if (p && !prevB) pulsado(); prevB = p; requestAnimationFrame(poll); })();
+  function menu(conFlash) {
+    fase = 'menu'; tecla = null;
+    if (conFlash) { $('ixFlash').classList.add('on'); }
+    document.body.classList.remove('intro');
+    sonar(); if (conFlash) son('abrir');
+    try { sessionStorage.setItem('chh_pc_intro', '1'); } catch (e) {}
+    setTimeout(() => { try { $('opAventura').focus({ preventScroll: true }); if (window.GP && GP.activo()) GP.enfocar($('opAventura')); } catch (e) {} }, 80);
+  }
+  async function titulo() {
+    fase = 'titulo'; $('ixLogos').classList.remove('on'); $('ixTitulo').classList.add('on'); sonar();
+    await espera(900);
+    alPulsar(async () => {
+      son('aceptar'); $('ixTitulo').classList.add('sale');
+      try { $('ixLogo').burst && $('ixLogo').burst(); } catch (e) {}
+      await espera(650); $('ixTitulo').classList.remove('on'); menu(true);
+    });
+  }
+  async function logos() {
+    $('ixLogos').classList.add('on');
+    const sl = [...document.querySelectorAll('#ixLogos .ix-slide')], dur = [2600, 2600, 2400, 11000];
+    let saltar = false; setTimeout(() => $('ixSalta').classList.add('on'), 1200);
+    for (let i = 0; i < sl.length && !saltar; i++) {
+      sl[i].classList.add('on');
+      await new Promise(r => { const t = setTimeout(r, dur[i]); setTimeout(() => alPulsar(() => { clearTimeout(t); r(); }), i === sl.length - 1 ? 1500 : 400); });
+      tecla = null; sl[i].classList.remove('on'); await espera(700);
+    }
+    titulo();
+  }
+  // B / Esc en el menú → volver a la pantalla de título
+  const gpPrev = window.GP_CFG || {};
+  window.GP_CFG = Object.assign({}, gpPrev, { alEnfocar: el => { if (fase === 'menu' && el && el.dataset && el.dataset.vin) vineta(el.dataset.vin); }, atras: () => { if (fase === 'menu') { volverTitulo(); return true; } return true; } });
+  addEventListener('keydown', e => { if (fase === 'menu' && e.key === 'Escape') volverTitulo(); });
+  function volverTitulo() { son('atras'); fase = 'titulo'; document.body.classList.add('intro'); $('ixLogos').classList.remove('on'); $('ixTitulo').classList.remove('sale'); $('ixTitulo').classList.add('on'); setTimeout(() => alPulsar(async () => { son('aceptar'); $('ixTitulo').classList.add('sale'); try { $('ixLogo').burst(); } catch (e) {} await espera(650); $('ixTitulo').classList.remove('on'); menu(true); }), 500); (function poll() { if (fase === 'menu') return; let p = false; try { for (const g of navigator.getGamepads()) if (g && g.buttons.some(b => b.pressed)) p = true; } catch (e) {} if (p && !prevB) pulsado(); prevB = p; requestAnimationFrame(poll); })(); }
+
+  // túnel de estrellas: llegas a toda velocidad y frena hasta quedar como polvo estelar flotando
+  function warp() {
+    const cv = $('ixWarp'), cx = cv.getContext('2d'); let W, H, t0 = performance.now(), on0 = false;
+    const st = Array.from({ length: 420 }, () => ({ x: (Math.random() - .5) * 2, y: (Math.random() - .5) * 2, z: Math.random() }));
+    const tam = () => { W = cv.width = innerWidth * devicePixelRatio; H = cv.height = innerHeight * devicePixelRatio; }; tam(); addEventListener('resize', tam);
+    (function f(t) {
+      if (!$('ixTitulo').classList.contains('on')) { on0 = false; requestAnimationFrame(f); return; }
+      if (!on0) { on0 = true; t0 = t; }
+      const k = Math.min(1, (t - t0) / 2600), v = .045 * Math.pow(1 - k, 2.2) + .0012;   // velocidad: muy rápido → lento
+      cx.clearRect(0, 0, W, H);
+      for (const s of st) {
+        const pz = s.z; s.z -= v; if (s.z <= .02) { s.x = (Math.random() - .5) * 2; s.y = (Math.random() - .5) * 2; s.z = 1; continue; }
+        const sx = W / 2 + s.x / s.z * W * .5, sy = H / 2 + s.y / s.z * H * .5, px = W / 2 + s.x / pz * W * .5, py = H / 2 + s.y / pz * H * .5;
+        const a = Math.min(1, (1 - s.z) * 1.4); cx.strokeStyle = `rgba(${190 + 60 * s.z | 0},${225},255,${a})`; cx.lineWidth = (1 - s.z) * 2.6 * devicePixelRatio;
+        cx.beginPath(); cx.moveTo(px, py); cx.lineTo(sx, sy); cx.stroke();
+      }
+      requestAnimationFrame(f);
+    })(t0);
+  }
+  warp();
+
+  // ═ GALAXIA ANIMADA DEL TÍTULO (todo por código, sin imágenes ni video): nebulosas, brazos espirales que giran
+  //   (rotación diferencial: el centro gira más rápido), anillos de luz, núcleo que late y destello horizontal ═
+  (function galaxia() {
+    const cv = $('ixGal'), cx = cv.getContext('2d'); let W, H, R0, t0 = 0, on0 = false;
+    const ESC = .75;     // resolución interna (suavizada por el navegador): ligera para cualquier PC
+    const tam = () => { W = cv.width = Math.round(innerWidth * ESC); H = cv.height = Math.round(innerHeight * ESC); R0 = Math.hypot(W, H) * .5; }; tam(); addEventListener('resize', tam);
+    const rnd = (a, b) => a + Math.random() * (b - a);
+    const N = 5200, P = [];
+    for (let i = 0; i < N; i++) {
+      const r = Math.pow(Math.random(), 1.6), brazo = i % 3, sp = rnd(-.38, .38) * (1 - r * .5);
+      P.push({ r, a: brazo * 2.094 + r * 5.2 + sp, s: rnd(.6, 2.2) * (1.4 - r * .7), tw: rnd(0, 6.28), v: rnd(.9, 1.1) });
+    }
+    const COL = r => r < .12 ? [255, 240, 220] : r < .35 ? [255, 170 + (r * 200 | 0), 230] : r < .65 ? [190, 120, 255] : [110, 210, 255];
+    const NEB = [[.0, .0, .55, '255,120,200'], [.35, .1, .45, '120,80,255'], [-.4, -.15, .5, '40,200,255'], [.15, -.35, .38, '255,180,90'], [-.2, .35, .42, '150,60,220']];
+    (function f(t) {
+      requestAnimationFrame(f);
+      if (!$('ixTitulo').classList.contains('on')) { on0 = false; return; }
+      if (!on0) { on0 = true; t0 = t; }
+      const e = (t - t0) / 1000, k = Math.min(1, e / 2.6), ent = 1 - Math.pow(1 - k, 3);   // entrada: la galaxia se abre
+      const cxm = W * .5, cym = H * .52, esc = R0 * (.25 + .75 * ent), inc = .5, giro = -.26;
+      cx.globalCompositeOperation = 'source-over';
+      const fondo = cx.createRadialGradient(cxm, cym, 0, cxm, cym, R0);
+      fondo.addColorStop(0, '#2a1450'); fondo.addColorStop(.45, '#140a36'); fondo.addColorStop(1, '#03030f');
+      cx.fillStyle = fondo; cx.fillRect(0, 0, W, H);
+      cx.globalCompositeOperation = 'lighter';
+      // nebulosas que orbitan muy despacio
+      NEB.forEach(([x, y, r, c], i) => {
+        const an = e * .025 * (i % 2 ? 1 : -1) + i;
+        const nx = cxm + (x * Math.cos(an) - y * Math.sin(an)) * W * .6, ny = cym + (x * Math.sin(an) + y * Math.cos(an)) * H * .5;
+        const g = cx.createRadialGradient(nx, ny, 0, nx, ny, r * R0 * 1.1); g.addColorStop(0, `rgba(${c},${.12 * ent})`); g.addColorStop(1, `rgba(${c},0)`);
+        cx.fillStyle = g; cx.fillRect(0, 0, W, H);
+      });
+      // brazos espirales con rotación diferencial
+      cx.save(); cx.translate(cxm, cym); cx.rotate(giro);
+      for (const p of P) {
+        const ang = p.a + e * (.09 / (.25 + p.r)) * p.v, rr = p.r * esc * .82;
+        const x = Math.cos(ang) * rr, y = Math.sin(ang) * rr * inc;
+        const c = COL(p.r), al = (.35 + .65 * (.5 + .5 * Math.sin(e * 2 + p.tw))) * (1 - p.r * .55) * ent;
+        cx.fillStyle = `rgba(${c[0]},${c[1]},${c[2]},${al})`; const s = p.s * ESC * 1.6; cx.fillRect(x - s / 2, y - s / 2, s, s);
+      }
+      // anillos de luz (como en la portada): elipses finas que giran y respiran
+      for (let i = 0; i < 3; i++) {
+        const rr = esc * (.28 + i * .17), a0 = e * (.22 - i * .05) + i * 2, lg = 1.6 + .5 * Math.sin(e * .7 + i);
+        cx.lineWidth = (4 - i) * ESC; cx.strokeStyle = ['rgba(120,230,255,.30)', 'rgba(255,140,220,.24)', 'rgba(200,170,255,.2)'][i];
+        cx.beginPath(); cx.ellipse(0, 0, rr, rr * inc, 0, a0, a0 + lg); cx.stroke();
+        cx.lineWidth = (14 - i * 3) * ESC; cx.strokeStyle = cx.strokeStyle.replace(/[\d.]+\)$/, '.06)'); cx.stroke();
+      }
+      cx.restore();
+      // núcleo que late
+      const late = 1 + .08 * Math.sin(e * 1.6), rc = esc * .13 * late;
+      const nu = cx.createRadialGradient(cxm, cym, 0, cxm, cym, rc * 2.4);
+      nu.addColorStop(0, `rgba(255,255,255,${.9 * ent})`); nu.addColorStop(.12, `rgba(255,230,190,${.6 * ent})`); nu.addColorStop(.45, `rgba(255,120,200,${.16 * ent})`); nu.addColorStop(1, 'rgba(120,60,255,0)');
+      cx.fillStyle = nu; cx.fillRect(0, 0, W, H);
+      // destello horizontal (lens flare)
+      const fl = cx.createLinearGradient(0, cym, W, cym); fl.addColorStop(0, 'rgba(255,170,120,0)'); fl.addColorStop(.5, `rgba(255,220,200,${.35 * ent * late})`); fl.addColorStop(1, 'rgba(120,200,255,0)');
+      cx.fillStyle = fl; cx.fillRect(0, cym - 1.5 * ESC, W, 3 * ESC);
+      const fl2 = cx.createRadialGradient(cxm, cym, 0, cxm, cym, W * .5); fl2.addColorStop(0, `rgba(255,200,170,${.10 * ent})`); fl2.addColorStop(1, 'rgba(0,0,0,0)');
+      cx.save(); cx.translate(cxm, cym); cx.scale(1, .05); cx.translate(-cxm, -cym); cx.fillStyle = fl2; cx.fillRect(0, cym - W * .5, W, W); cx.restore();
+      // viñeta para que el logo y el texto se lean
+      cx.globalCompositeOperation = 'source-over';
+      const vi = cx.createRadialGradient(cxm, cym, R0 * .35, cxm, cym, R0 * 1.05); vi.addColorStop(0, 'rgba(2,3,12,0)'); vi.addColorStop(1, 'rgba(2,3,12,.75)');
+      cx.fillStyle = vi; cx.fillRect(0, 0, W, H);
+    })(0);
+  })();
+  // polvo estelar del menú: las mismas partículas, flotando despacio hacia el frente
+  (function polvo() {
+    const cv = $('mnPolvo'), cx = cv.getContext('2d'); let W, H;
+    const st = Array.from({ length: 260 }, () => ({ x: (Math.random() - .5) * 2, y: (Math.random() - .5) * 2, z: Math.random() }));
+    const tam = () => { W = cv.width = innerWidth * devicePixelRatio; H = cv.height = innerHeight * devicePixelRatio; }; tam(); addEventListener('resize', tam);
+    (function f() {
+      if (fase === 'menu') {
+        cx.clearRect(0, 0, W, H);
+        for (const s of st) {
+          const pz = s.z; s.z -= .0011; if (s.z <= .03) { s.x = (Math.random() - .5) * 2; s.y = (Math.random() - .5) * 2; s.z = 1; continue; }
+          const sx = W * .62 + s.x / s.z * W * .5, sy = H / 2 + s.y / s.z * H * .5, px = W * .62 + s.x / pz * W * .5, py = H / 2 + s.y / pz * H * .5;
+          const a = Math.min(.9, (1 - s.z) * 1.3);
+          cx.strokeStyle = `rgba(${200 + 55 * s.z | 0},230,255,${a})`; cx.lineWidth = Math.max(.8, (1 - s.z) * 2.4) * devicePixelRatio; cx.lineCap = 'round';
+          cx.beginPath(); cx.moveTo(px, py); cx.lineTo(sx + .01, sy + .01); cx.stroke();
+        }
+      }
+      requestAnimationFrame(f);
+    })();
+  })();
+
+  // ═ viñetas del menú ═
+  const VIN = {
+    aventura: ['MODO AVENTURA', 'NEXOTLAN', 'Explora la isla, reta a sus rivales y guardianes y llega a la Cima de la Torre.', 'assets/nexotlan/mapa_nexotlan.jpg'],
+    choque: ['CHOQUE LIBRE', 'CONTRA LA CPU', 'Elige tu baraja y la de tu rival y juega un Choque sin reglas de progreso.', 'assets/pc/vin_choque.jpg'],
+    arcade: ['ARCADE', 'RIVALES EN SERIE', 'Enfrenta una ruta de rivales que se vuelven más difíciles hasta el jefe final.', 'assets/arcade/fondos/heroica.jpg', 'assets/arcade/personajes/rival_12.png'],
+    constructor: ['CONSTRUCTOR', 'ARMA TUS BARAJAS', 'Crea tus barajas con todas las cartas y pruébalas en el Simulador.', 'assets/intro/cartas_showcase.jpg'],
+    tutorial: ['APRENDER', 'TUTORIAL', 'El Guardián del Nexo te guía paso a paso en una partida de 5 minutos.', 'assets/intro/fondo_nexo.jpg', 'assets/intro/guardian.png'],
+    reglas: ['APRENDER', 'REGLAS', 'Tipos de carta, tablero, fases y combate, con quiz y reglamento oficial.', 'assets/nexotlan/archivos.jpg'],
+    ajustes: ['OPCIONES', 'AJUSTES', 'Música, efectos, pantalla y controles.', 'assets/nexotlan/titulo/titulo.jpg'],
+    salir: ['', 'SALIR', 'Cerrar Choque de Héroes.', 'assets/nexotlan/titulo/titulo.jpg']
+  };
+  const tieneSave = $('reTit').textContent === 'CONTINUAR';
+  if (tieneSave) VIN.aventura = ['CONTINUAR', $('reSub').textContent, 'Retoma tu aventura en Nexotlan desde tus partidas guardadas.', VIN.aventura[3]];
+  Object.values(VIN).forEach(v => [v[3], v[4]].filter(Boolean).forEach(u => { const i = new Image(); i.src = u; }));
+  let vinAct = '', vinCapa = 0;
+  function vineta(k) {
+    const v = VIN[k]; if (!v || k === vinAct) return; vinAct = k;
+    const A = [$('vinA'), $('vinB')][vinCapa = 1 - vinCapa], B = [$('vinA'), $('vinB')][1 - vinCapa];
+    A.querySelector('.bg').style.backgroundImage = `url(${v[3]})`;
+    const fg = A.querySelector('.fg'); fg.style.backgroundImage = v[4] ? `url(${v[4]})` : 'none'; fg.style.display = v[4] ? '' : 'none';
+    A.classList.remove('on'); void A.offsetWidth; A.classList.add('on'); B.classList.remove('on');
+    $('vinK').textContent = v[0]; $('vinT').textContent = v[1]; $('vinD').textContent = v[2];
+    const w = $('vin'); w.classList.remove('cambio'); void w.offsetWidth; w.classList.add('cambio');
+  }
+  // ═ sonidos de interfaz (los mismos del Modo Aventura: assets/nexotlan/sonidos/ui_*.wav) ═
+  const US = { c: null, b: {}, t: 0 };
+  function usCargar() { if (US.c) return; try { US.c = new AudioContext(); } catch (e) { return; }
+    ['mover', 'aceptar', 'atras', 'abrir'].forEach(k => fetch('assets/nexotlan/sonidos/ui_' + k + '.wav').then(r => r.ok ? r.arrayBuffer() : Promise.reject()).then(b => US.c.decodeAudioData(b)).then(x => US.b[k] = x).catch(() => {})); }
+  function son(k) { usCargar(); const now = performance.now(); if (k === 'mover' && now - US.t < 45) return; const c = US.c, b = US.b[k]; if (!c || !b) return;
+    if (localStorage.getItem('chh_nexotlan_mute') === '1') return;
+    try { if (c.state === 'suspended') c.resume(); const s = c.createBufferSource(), g = c.createGain(); s.buffer = b; s.playbackRate.value = k === 'mover' ? .96 + Math.random() * .08 : 1; g.gain.value = .6; s.connect(g).connect(c.destination); s.start(); US.t = now; } catch (e) {} }
+  usCargar();
+  document.querySelectorAll('[data-vin]').forEach(b => {
+    b.addEventListener('focus', () => { if (fase === 'menu') vineta(b.dataset.vin); });
+    b.addEventListener('mouseenter', () => { if (fase === 'menu') { if (document.activeElement !== b) b.focus({ preventScroll: true }); vineta(b.dataset.vin); } });
+    b.addEventListener('click', () => son(b.id === 'opSalir' ? 'atras' : 'aceptar'));
+  });
+  vineta('aventura');
+  // parallax con el mouse
+  addEventListener('mousemove', e => { const w = $('vin'); if (!w) return; w.style.setProperty('--mx', (e.clientX / innerWidth - .5) * 2); w.style.setProperty('--my', (e.clientY / innerHeight - .5) * 2); });
+  // v425 · el control y las flechas mueven el foco sin "focus" del navegador: se sigue al elemento marcado (gp-foco) o enfocado
+  let ultFoco = null;
+  (function seguirFoco() {
+    if (fase === 'menu') {
+      const gpf = document.querySelector('.sa .gp-foco[data-vin]'), ae = document.activeElement && document.activeElement.dataset && document.activeElement.dataset.vin ? document.activeElement : null;
+      const el = (gpf && (!ae || (window.GP && GP.activo()))) ? gpf : ae;
+      if (el && el !== ultFoco) { if (ultFoco) son('mover'); ultFoco = el; vineta(el.dataset.vin); }
+    }
+    requestAnimationFrame(seguirFoco);
+  })();
+  // fuera del menú: sin marco del control y sin que A "toque" un botón del menú oculto
+  document.addEventListener('click', e => { if (fase !== 'menu' && e.target.closest && e.target.closest('.sa')) { e.stopPropagation(); e.preventDefault(); } }, true);
+  (function sinMarco() { if (fase !== 'menu') { const r = document.getElementById('gpRing'), q = document.getElementById('gpPtr'); if (r) r.style.display = 'none'; if (q) q.style.display = 'none'; if (document.activeElement && document.activeElement.closest && document.activeElement.closest('.sa')) document.activeElement.blur(); } requestAnimationFrame(sinMarco); })();
+  let visto = false; try { visto = sessionStorage.getItem('chh_pc_intro') === '1'; } catch (e) {}
+  if (visto) menu(false); else logos();
+})();
 </script>
 </body>
 </html>

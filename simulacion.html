@@ -10478,7 +10478,9 @@ if(typeof ARCADE!=='undefined'&&ARCADE){
   btn.onclick=async()=>{
     getAC();                       // desbloquea audio con el mismo toque
     try{const st=JSON.parse(localStorage.getItem('cdh_sim_mp')||'{}');
-      if(st.auto&&st.id){const i=MP.tracks.findIndex(t=>t.id===st.id&&t.libre);if(i>=0)mpSelect(i);}}catch(e){}
+      if(st.auto&&st.id){const i=MP.tracks.findIndex(t=>t.id===st.id&&t.libre);if(i>=0)mpSelect(i);}
+      // v426 · Choque libre: si no suena nada, una pista libre al azar (salvo que el jugador haya pausado la música la vez anterior)
+      if(!ARCADE&&MP.idx<0&&!(st.id&&st.auto===false)){const L=MP.tracks.map((t,k)=>t.libre?k:-1).filter(k=>k>=0);if(L.length)mpSelect(L[Math.floor(Math.random()*L.length)]);}}catch(e){}
     await enterLandscape();
     document.getElementById('bootScreen').classList.add('hide');
     initGame();
@@ -11666,5 +11668,115 @@ if(TUTO){(function(){
 })();}
 </script>
 <script src="temas-ui.js"></script>   <!-- v270 · temas de color de la Tienda en la interfaz -->
+<script>
+// v426 · Sonidos de interfaz en la pantalla de entrada / selector de barajas (los mismos del Modo Aventura: assets/nexotlan/sonidos/ui_*.wav).
+//        Respetan el silencio del simulador, su volumen de efectos y el silencio del Modo Aventura. Solo suenan mientras se ve esa pantalla.
+(function(){
+  const boot=document.getElementById('bootScreen'); if(!boot) return;
+  const US={c:null,b:{},t:0,el:null};
+  function cargar(){if(US.c)return;try{US.c=new(window.AudioContext||window.webkitAudioContext)();}catch(e){return;}
+    ['mover','aceptar','atras','abrir'].forEach(k=>fetch('assets/nexotlan/sonidos/ui_'+k+'.wav').then(r=>r.ok?r.arrayBuffer():Promise.reject()).then(b=>new Promise((ok,no)=>US.c.decodeAudioData(b,ok,no))).then(x=>US.b[k]=x).catch(()=>{}));}
+  const visible=()=>!boot.classList.contains('hide')||document.getElementById('dsList').classList.contains('show');
+  function son(k){cargar();const now=performance.now();if(k==='mover'&&now-US.t<45)return;const c=US.c,b=US.b[k];if(!c||!b)return;
+    try{if(typeof MUTED!=='undefined'&&MUTED)return;if(typeof AJ!=='undefined'&&!(AJ.sfx>0))return;if(localStorage.getItem('chh_nexotlan_mute')==='1')return;}catch(e){}
+    try{if(c.state==='suspended')c.resume();const s=c.createBufferSource(),g=c.createGain();s.buffer=b;s.playbackRate.value=k==='mover'?.96+Math.random()*.08:1;
+      g.gain.value=.6*Math.min(1,(typeof AJ!=='undefined'?AJ.sfx:.8)/.8);s.connect(g).connect(c.destination);s.start();US.t=now;}catch(e){}}
+  window.simUiSon=son;
+  cargar();
+  const SEL='.ds-deck,.ds-chip,.ds-info button,.boot-btn,.boot-pill,.ds-close,.ds-empty a';
+  // pasar el cursor o el control por una opción
+  const mover=el=>{if(!el||el===US.el||!visible())return;US.el=el;if(!el.disabled)son('mover');};
+  boot.addEventListener('mouseover',e=>{const el=e.target.closest(SEL);if(el)mover(el);});
+  boot.addEventListener('mouseleave',()=>{US.el=null;});
+  document.addEventListener('focusin',e=>{const el=e.target.closest&&e.target.closest(SEL);if(el&&boot.contains(el))mover(el);});
+  (function foco(){requestAnimationFrame(foco);if(!visible())return;const g=boot.querySelector('.gp-foco');if(g&&g.matches(SEL))mover(g);})();
+  // elegir
+  boot.addEventListener('click',e=>{const el=e.target.closest(SEL);if(!el||el.disabled||!visible())return;
+    if(el.id==='bootBtn')son('abrir');else if(el.id==='bootHome')son('atras');else son('aceptar');},true);
+  document.getElementById('dsList').addEventListener('click',e=>{if(e.target.closest('.ds-close')||e.target.id==='dsList')son('atras');},true);
+  // ← MENÚ: deja sonar el "atrás" antes de salir
+  const h=document.getElementById('bootHome');if(h)h.addEventListener('click',e=>{if(e.defaultPrevented||e.ctrlKey||e.metaKey)return;e.preventDefault();setTimeout(()=>{location.href=h.href;},160);});
+})();
+</script>
+<style id="dsV426">
+/* ═══════════════════════════════════════════════════════
+   v426 · SELECTOR DE BARAJAS con la línea de diseño actual (menú principal de PC / Nexotlan):
+   paneles azul noche en ángulo, barra cian, selección dorada con brillo, Orbitron/Rajdhani.
+   Solo presentación: no cambia la elección de barajas ni ninguna regla.
+═══════════════════════════════════════════════════════ */
+.boot{--dz-cyan:#36d6ff;--dz-gold:#f5a623;background:radial-gradient(ellipse 80% 60% at 70% 20%,#16245e 0%,#0a1236 45%,#03050f 100%)}
+.boot-bg:not(.img){background:radial-gradient(ellipse 60% 40% at 15% 10%,rgba(204,85,255,.16),transparent 60%),radial-gradient(ellipse 60% 40% at 85% 90%,rgba(54,214,255,.14),transparent 60%)!important}
+.boot-bg.img::after{background:linear-gradient(180deg,rgba(8,16,52,.72),rgba(4,8,26,.92))!important}
+.boot-fx{background:radial-gradient(rgba(255,255,255,.55) .6px,transparent 1.2px) 0 0/90px 90px,radial-gradient(rgba(127,233,255,.5) .7px,transparent 1.3px) 45px 30px/130px 130px!important;
+  animation:dzPolvo 60s linear infinite;opacity:.55}
+@keyframes dzPolvo{to{background-position:0 -900px,45px -1270px}}
+/* tarjeta principal: panel en ángulo con filo dorado arriba */
+.boot-card{--pc:polygon(18px 0,100% 0,100% calc(100% - 18px),calc(100% - 18px) 100%,0 100%,0 18px);clip-path:var(--pc);border:0!important;border-radius:0!important;
+  background:linear-gradient(160deg,rgba(15,32,88,.82) 0%,rgba(9,18,52,.9) 55%,rgba(5,10,30,.94) 100%)!important;
+  box-shadow:inset 0 3px 0 var(--dz-gold),inset 0 0 0 1px rgba(54,214,255,.18),inset 0 0 60px rgba(0,0,0,.35)!important}
+.boot-card .hbk{display:none}
+.boot-title{font-family:'Orbitron',sans-serif!important;font-weight:900;letter-spacing:.32em!important}
+.boot-sub{color:var(--dz-cyan)!important}
+.boot-status{font-family:'Rajdhani',sans-serif;font-size:14px;color:#9fb3dd!important}
+/* encabezados de sección (como "JUGAR / APRENDER") */
+.deck-sel .ds-lbl{font:700 10px 'Orbitron',sans-serif;letter-spacing:.34em;color:#5cc8ff!important;opacity:.9;margin-top:4px}
+.deck-sel .ds-lbl::after{background:linear-gradient(90deg,rgba(92,200,255,.5),transparent)!important}
+/* barajas: placas en ángulo; la elegida se enciende en dorado */
+.deck-sel .ds-row{gap:10px;padding:4px 2px 8px}
+.deck-sel .ds-deck{--pd:polygon(12px 0,100% 0,calc(100% - 12px) 100%,0 100%);position:relative;isolation:isolate;flex:0 0 190px;border:0!important;border-radius:0!important;
+  clip-path:var(--pd);padding:8px 16px 8px 18px!important;gap:10px;background:linear-gradient(90deg,#13286a,#0c1a4a 70%,#0a1538)!important;color:#fff;
+  box-shadow:none!important;transition:transform .18s,filter .18s,background .2s!important}
+.deck-sel .ds-deck img{width:44px!important;height:62px!important;border-radius:3px;border:1px solid rgba(255,255,255,.25);box-shadow:0 3px 10px rgba(0,0,0,.6)!important}
+.deck-sel .ds-deck b{font:900 11.5px/1.15 'Orbitron',sans-serif!important;color:#fff!important;letter-spacing:.03em}
+.deck-sel .ds-deck small{font:600 11px/1.2 'Rajdhani',sans-serif!important;color:#9fb3dd!important}
+.deck-sel .ds-deck .ds-n{font:700 9px 'Orbitron',sans-serif!important;color:var(--dz-cyan)!important;letter-spacing:.08em}
+.deck-sel .ds-deck:is(:hover,:focus-visible,.gp-foco){outline:0;transform:translateY(-3px);filter:drop-shadow(0 0 6px rgba(54,214,255,.8)) drop-shadow(0 0 14px rgba(54,214,255,.35))}
+.deck-sel .ds-deck.on{background:radial-gradient(rgba(255,255,255,.28) 1px,transparent 1.6px) 0 0/6px 6px,linear-gradient(90deg,#ffd166,#f5a623 60%,#ff8a1f)!important;
+  filter:drop-shadow(0 0 7px rgba(255,200,80,.9)) drop-shadow(0 0 18px rgba(255,140,30,.45))}
+.deck-sel .ds-deck.on b{color:#1a0f00!important}.deck-sel .ds-deck.on small{color:#4a2600!important}.deck-sel .ds-deck.on .ds-n{color:#5a2d00!important}
+.deck-sel .ds-deck.on img{border-color:#fff3c4;box-shadow:0 0 12px rgba(255,255,255,.6)!important}
+.deck-sel .ds-deck.bad{opacity:.45;filter:grayscale(.6)}
+.deck-sel .ds-empty{font:600 13px 'Rajdhani',sans-serif;color:#9fb3dd}
+.deck-sel .ds-empty a{color:var(--dz-gold)}
+/* ficha de la baraja elegida */
+.deck-sel .ds-info{position:relative;border:0!important;border-radius:0!important;clip-path:polygon(0 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%);
+  background:linear-gradient(90deg,rgba(54,214,255,.10),rgba(8,16,46,.75) 30%)!important;box-shadow:inset 3px 0 0 var(--dz-cyan);padding:9px 12px 10px 14px!important;
+  font:500 13px/1.4 'Rajdhani',sans-serif!important;color:#c9d6f2!important}
+.deck-sel .ds-info .ds-comp{color:var(--dz-cyan)!important;font-size:9px!important;letter-spacing:.12em!important}
+.deck-sel .ds-info button{border:0!important;border-radius:0!important;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);padding:5px 16px!important;
+  background:linear-gradient(90deg,#1b3a8a,#13286a)!important;color:#ffd166!important;font:700 10px 'Orbitron',sans-serif!important;letter-spacing:.08em}
+.deck-sel .ds-info button:is(:hover,:focus-visible,.gp-foco){outline:0;background:linear-gradient(90deg,#ffd166,#f5a623)!important;color:#1a0f00!important}
+/* rivales (CPU): paralelogramos */
+.deck-sel .ds-chips{gap:8px}
+.deck-sel .ds-chip{--pq:polygon(9px 0,100% 0,calc(100% - 9px) 100%,0 100%);clip-path:var(--pq);border:0!important;border-radius:0!important;padding:6px 18px!important;
+  background:linear-gradient(90deg,#13286a,#0b1844)!important;color:#dfe8ff!important;font:700 13px 'Rajdhani',sans-serif!important;letter-spacing:.03em;
+  box-shadow:inset 3px 0 0 rgba(54,214,255,.75)!important;transition:transform .15s,filter .15s,background .2s!important}
+.deck-sel .ds-chip:is(:hover,:focus-visible,.gp-foco){outline:0;transform:translateY(-2px);filter:drop-shadow(0 0 6px rgba(54,214,255,.75))}
+.deck-sel .ds-chip.on{background:linear-gradient(90deg,#ffd166,#f5a623 60%,#ff8a1f)!important;color:#1a0f00!important;box-shadow:inset 3px 0 0 #fff!important;
+  filter:drop-shadow(0 0 6px rgba(255,200,80,.85)) drop-shadow(0 0 14px rgba(255,140,30,.4))}
+/* TÚ vs CPU */
+.boot-vs .vs-side{position:relative;padding:6px 10px;clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%);background:linear-gradient(90deg,rgba(245,166,35,.16),rgba(8,16,46,.4))}
+.boot-vs .vs-side.r{background:linear-gradient(90deg,rgba(54,214,255,.16),rgba(8,16,46,.4))}
+.boot-vs b{font-family:'Orbitron',sans-serif!important;font-weight:900;font-size:13px!important;letter-spacing:.04em}
+.boot-vs .vs-x{font-style:italic;color:#fff!important;text-shadow:0 0 10px rgba(255,47,90,.9),0 0 22px rgba(255,47,90,.5)!important}
+/* botón ENTRAR: placa dorada en ángulo, como AVENTURA en el menú principal */
+.boot-btn{clip-path:polygon(14px 0,100% 0,calc(100% - 14px) 100%,0 100%);border-radius:0!important;
+  background:radial-gradient(rgba(255,255,255,.28) 1.1px,transparent 1.7px) 0 0/7px 7px,linear-gradient(135deg,#ffe08a 0%,#ffbf3c 45%,#ff8a1f 100%)!important;
+  color:#3a1c00!important;font-family:'Orbitron',sans-serif!important;font-weight:900!important;letter-spacing:.28em!important;box-shadow:none!important}
+.boot-btn:not(:disabled):is(:hover,:focus-visible,.gp-foco){outline:0;filter:drop-shadow(0 0 10px rgba(255,209,102,.95)) drop-shadow(0 0 26px rgba(255,140,30,.55))}
+.boot-note{font-family:'Rajdhani',sans-serif;font-size:12px;color:#6f84b5!important}
+/* píldoras de arriba (← MENÚ / ⚙ AJUSTES) */
+.boot-pill{border:0!important;border-radius:0!important;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);padding:0 18px!important;
+  background:linear-gradient(90deg,#13286a,#0b1844)!important;box-shadow:inset 3px 0 0 var(--dz-cyan)!important;color:#dfe8ff!important}
+.boot-pill:is(:hover,:focus-visible,.gp-foco){outline:0;background:linear-gradient(90deg,#ffd166,#f5a623)!important;color:#1a0f00!important;box-shadow:inset 3px 0 0 #fff!important}
+/* PC y pantallas grandes: las barajas en dos filas que se desplazan a lo ancho */
+@media (min-width:1000px) and (min-height:521px){
+  .deck-sel #dsPlayer{display:grid;grid-template-rows:repeat(2,auto);grid-auto-flow:column;grid-auto-columns:minmax(210px,calc((100% - 30px) / 3.3));overflow-x:auto;scrollbar-width:thin;scrollbar-color:rgba(54,214,255,.45) transparent}
+  .deck-sel .ds-deck{flex:none}
+}
+@media (max-height:520px){.boot-status{font-size:11px!important;line-height:1.25}.deck-sel .ds-deck b{font-size:9.5px!important}.deck-sel .ds-deck small{font-size:10px!important}.deck-sel .ds-deck{align-self:flex-start}.deck-sel .ds-info{font-size:11.5px!important;padding:6px 10px 7px 12px!important}
+  .deck-sel .ds-deck{flex-basis:170px;padding:5px 12px 5px 14px!important}.deck-sel .ds-deck img{width:32px!important;height:45px!important}.deck-sel .ds-chip{padding:5px 14px!important;font-size:12.5px!important}}
+@media (prefers-reduced-motion:reduce){.boot-fx{animation:none}}
+</style>
 </body>
 </html>

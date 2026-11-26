@@ -416,6 +416,7 @@ body:not(:has(#sTitle.on)) .t-copy{display:none}
 .apo.on{border-color:var(--gold2);box-shadow:0 0 12px rgba(245,166,35,.45)}
 .apo .pv{height:52px;border-radius:6px;border:1px solid rgba(255,255,255,.08);background-size:cover;background-position:center}
 .apo.mica .pv{height:auto;aspect-ratio:5/7;width:58%;margin:0 auto}
+.apo.sinpm .pv{border:1px dashed rgba(255,255,255,.35);background:repeating-linear-gradient(45deg,rgba(255,255,255,.05) 0 6px,transparent 6px 12px)!important}
 .apo b{font-size:12px;color:var(--gold2);line-height:1.1}
 .apo small{font-size:10px;color:var(--muted);line-height:1.15}
 .apo.lock{opacity:.45;cursor:default}
@@ -2366,12 +2367,13 @@ async function apMesaImg(){if(AP_MESA_IMG!==undefined)return AP_MESA_IMG;
 async function apCosmSeccion(tipo,titulo){
   if(!window.CHH_COSM) return '';
   const disp=await CHH_COSM.disponibles(tipo), todos=await CHH_COSM.todos(tipo), eq=CHH_COSM.equipado(tipo);
-  const okIds=new Set(disp.map(x=>x.id)), act=okIds.has(eq)?eq:CHH_COSM.CLASICO[tipo].id;
+  if(tipo==='playmat') disp.unshift({id:'playmat_ninguno',nombre:'Sin playmat',img:'',origen:'ninguno'});   // v429 · igual que en el Simulador
+  const okIds=new Set(disp.map(x=>x.id)), act=okIds.has(eq)?eq:(tipo==='playmat'?'playmat_ninguno':CHH_COSM.CLASICO[tipo].id);
   const bloq=[];for(const x of todos){if(!x.tuyo&&x.logro&&await probarImg(x.img))bloq.push(x);}
   const nomL=id=>{const b=LOGROS.find(y=>y.id===id);return b?b.nombre:id;};
   const cls='apo'+(tipo==='mica'?' mica':'');
   return '<h4>'+titulo+'</h4><div class="apg">'+
-    disp.map(x=>'<button class="'+cls+(x.id===act?' on':'')+'" data-cosm="'+tipo+'" data-id="'+esc(x.id)+'"><span class="pv" style="background-image:url(&quot;'+esc(x.img)+'&quot;)"></span><b>'+esc(x.nombre)+'</b><small>'+(x.origen==='tienda'?'Tienda':x.origen==='logro'?'Logro':'Incluida')+'</small></button>').join('')+
+    disp.map(x=>'<button class="'+cls+(x.origen==='ninguno'?' sinpm':'')+(x.id===act?' on':'')+'" data-cosm="'+tipo+'" data-id="'+esc(x.id)+'"><span class="pv" style="background-image:url(&quot;'+esc(x.img)+'&quot;)"></span><b>'+esc(x.nombre)+'</b><small>'+(x.origen==='tienda'?'Tienda':x.origen==='logro'?'Logro':x.origen==='ninguno'?'Se ve la mesa':'Incluida')+'</small></button>').join('')+
     bloq.map(x=>'<button class="'+cls+' lock" disabled><span class="pv" style="background-image:url(&quot;'+esc(x.img)+'&quot;)"></span><b>🔒 '+esc(x.nombre)+'</b><small>Logro: '+esc(nomL(x.logro))+'</small></button>').join('')+'</div>';
 }
 async function abrirApariencia(){

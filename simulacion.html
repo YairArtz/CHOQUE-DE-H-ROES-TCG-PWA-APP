@@ -9887,7 +9887,7 @@ async function cosmAplicar(){
     window.MICA_P=esMica?mica:null;
     ['playerBP','playerBA','playerSOP'].forEach(id=>{const im=document.querySelector('#'+id+' img.rev');if(im)im.src=esMica?mica:REV;});
     const b=document.getElementById('board');
-    if(b){const sinPm=CHH_COSM.equipado('playmat')===SIN_PM, esPm=!sinPm&&pm&&pm!==CHH_COSM.CLASICO.playmat.img;
+    if(b){const eqP=CHH_COSM.equipado('playmat'), sinPm=eqP===SIN_PM||eqP===CHH_COSM.CLASICO.playmat.id, esPm=!sinPm&&pm&&pm!==CHH_COSM.CLASICO.playmat.img;
       b.classList.toggle('sin-pm',sinPm);
       b.classList.toggle('pm',!!esPm);
       if(esPm)b.style.setProperty('--pm-img','linear-gradient(rgba(4,8,3,.35),rgba(4,8,3,.35)),url("'+pm+'")');}
@@ -9902,7 +9902,7 @@ async function cosmPanel(){
     if(tipo==='playmat') disp.unshift({id:SIN_PM,nombre:'Sin playmat',img:'',origen:'ninguno'});
     const okIds=new Set(disp.map(x=>x.id));
     const bloq=todos.filter(x=>!x.tuyo&&x.logro);
-    const act=okIds.has(eq)?eq:CHH_COSM.CLASICO[tipo].id;
+    const act=okIds.has(eq)?eq:(tipo==='playmat'?SIN_PM:CHH_COSM.CLASICO[tipo].id);   // v429 · Clásico = Sin playmat
     return '<h4>'+titulo+'</h4><div class="ap-grid">'+
       disp.map(x=>'<button class="ap-opt'+(tipo==='mica'?' mica':'')+(x.origen==='ninguno'?' sinpm':'')+(x.id===act?' on':'')+'" data-cosm="'+tipo+'" data-id="'+esc(x.id)+'"><span class="ap-prev" style="background-image:url(&quot;'+esc(x.img)+'&quot;)"></span><b>'+esc(x.nombre)+'</b><small>'+(x.origen==='ninguno'?'Se ve la mesa':x.origen==='tienda'?'Tienda':x.origen==='logro'?'Logro':'Incluida')+'</small></button>').join('')+
       bloq.map(x=>'<button class="ap-opt lock'+(tipo==='mica'?' mica':'')+'" disabled><span class="ap-prev" style="background-image:url(&quot;'+esc(x.img)+'&quot;);filter:grayscale(1) brightness(.5)"></span><b>🔒 '+esc(x.nombre)+'</b><small>Logro: '+esc(nomLogro(x.logro))+'</small></button>').join('')+'</div>';
@@ -9914,7 +9914,7 @@ async function cosmPanel(){
     box.querySelectorAll('[data-cosm]').forEach(b=>b.onclick=()=>{CHH_COSM.equipar(b.dataset.cosm,b.dataset.id);
       box.querySelectorAll('[data-cosm="'+b.dataset.cosm+'"]').forEach(x=>x.classList.toggle('on',x===b));cosmAplicar();});
     // las opciones cuya imagen no existe se quitan en cuanto se sabe (sin detener el panel)
-    box.querySelectorAll('.ap-opt').forEach(b=>{const m=(b.querySelector('.ap-prev').style.backgroundImage||'').match(/url\("?(.+?)"?\)/);if(!m)return;
+    box.querySelectorAll('.ap-opt').forEach(b=>{const m=(b.querySelector('.ap-prev').style.backgroundImage||'').match(/url\("?(.+?)"?\)/);if(!m||b.classList.contains('sinpm'))return;   // v429 · "Sin playmat" no tiene imagen: antes se borraba aquí
       if(b.classList.contains('lock')){b.style.display='none';const im=new Image();im.onload=()=>{b.style.display='';};im.src=m[1];return;}   // bloqueadas: solo si ya tienen arte
       CHH_COSM.probar(m[1]).then(ok=>{if(!ok&&!b.classList.contains('on'))b.remove();});});
   };

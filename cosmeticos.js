@@ -38,6 +38,7 @@
   function ruta(tipo, img) {
     img = String(img || '').trim();
     if (!img) return '';
+    if (!/\.[a-z0-9]{2,5}$/i.test(img.split('?')[0])) img += '.jpg';      // v429 · nombre sin extensión en la hoja (ej. mica_tienda_1) → .jpg
     return /^(https?:|data:|\.\/|\/)/.test(img) || img.indexOf('/') >= 0 ? img : (CARPETA[tipo] || '') + img;
   }
   // Cada imagen se revisa una sola vez por página (el catálogo tiene muchas opciones aún sin arte)
@@ -115,7 +116,8 @@
   // Todas las opciones de un tipo, marcando cuáles tiene el jugador
   async function todos(tipo) {
     const cat = (await catalogo()).filter(x => x.tipo === tipo), L = logros(), mios = cache().items.filter(x => x.tipo === tipo);
-    const out = [Object.assign({ tuyo: true }, CLASICO[tipo])];
+    // v429 · el playmat "Clásico" ya no tiene tablero propio: en los menús lo representa la opción "Sin playmat"
+    const out = tipo === 'playmat' ? [] : [Object.assign({ tuyo: true }, CLASICO[tipo])];
     cat.forEach(x => out.push(Object.assign({}, x, { tuyo: x.origen === 'gratis' || L.has(x.logro) })));
     mios.forEach(x => { if (!out.some(y => y.id === x.id)) out.push(Object.assign({ tuyo: true }, x)); });
     return out;

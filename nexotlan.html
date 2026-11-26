@@ -2447,7 +2447,7 @@ function guardar(sinNube) {
   if (!sinNube) nubeSlot(SLOT, S);
   try { soundtrackNx(); } catch (e) {}
 }
-// SOUNDTRACK (v205): anota para siempre (por cuenta, en cualquier ranura) los distritos abiertos, los personajes vencidos y si
+// SOUNDTRACK (v205 · v424 + inicio y rutas visitadas): anota para siempre (por cuenta, en cualquier ranura) los distritos abiertos, las rutas visitadas, los personajes vencidos y si
 // ya eres campeón. musica.html desbloquea con eso las pistas del Modo Aventura (musica_config.json → "aventura"). Solo con cuenta.
 function soundtrackNx() {
   const j = sesionJug(); if (!j || !S || EDITOR || !DIST.length) return;
@@ -2457,6 +2457,8 @@ function soundtrackNx() {
   DIST.forEach(d => { if (distritoAbierto(d)) set.add('distrito:' + d.id); });
   Object.keys(S.vencidos || {}).forEach(id => { if (vencido(id)) set.add('punto:' + id); });
   if (S.campeon) set.add('campeon');
+  set.add('inicio');                                                               // v424 · tema principal: al empezar la aventura
+  Object.keys(S.tramos || {}).forEach(id => set.add('tramo:' + id));               // v424 · rutas visitadas (Atrio, Islas, Panteón…)
   if (set.size !== n0) try { localStorage.setItem(K, JSON.stringify([...set])); } catch (e) {}
 }
 // Aviso de pista nueva (v206): cuando el mapa está libre (sin ventanas, diálogos ni sobres) avisa las pistas recién desbloqueadas

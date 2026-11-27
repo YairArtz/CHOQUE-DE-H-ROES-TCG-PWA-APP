@@ -284,6 +284,30 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
   background:radial-gradient(rgba(255,255,255,.28) 1.1px,transparent 1.7px) 0 0/7px 7px,linear-gradient(135deg,#ffe08a 0%,#ffbf3c 45%,#ff8a1f 100%);color:#3a1c00;font:900 clamp(13px,2.2vh,17px) 'Orbitron',monospace;letter-spacing:.22em;transition:transform .2s,filter .2s}
 #sNueva .nb-go:not(:disabled):is(:hover,:focus-visible,.gp-foco){outline:0;transform:translateX(6px);filter:drop-shadow(0 0 10px rgba(255,209,102,.95)) drop-shadow(0 0 26px rgba(255,140,30,.55))}
 #sNueva .nb-go:disabled{filter:grayscale(1) brightness(.5);cursor:default}
+
+/* v430 · ¿Héroe o Heroína? */
+.mdx-pj .mdx-op{min-height:200px}.mdx-op i.est.pj{width:100%;height:150px;background:radial-gradient(ellipse at 50% 70%,rgba(204,85,255,.25),transparent 70%);border-radius:10px;overflow:hidden;display:block}
+.mdx-op i.est.pj img{width:100%;height:100%;object-fit:contain;object-position:bottom}
+.mdx-nota{font:600 13px 'Rajdhani',sans-serif;color:#9fb3dd;margin:10px 2px}
+#sNueva .nb-gen{position:relative;z-index:3;flex:1;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:10px 20px 24px}
+#sNueva.paso-gen .nb-gen{display:flex}#sNueva.paso-gen .nb-cuerpo{display:none}
+#sNueva .ng-ops{display:flex;gap:clamp(16px,4vw,60px);align-items:flex-end}
+#sNueva .ng{--gc:#36d6ff;position:relative;border:0;background:none;cursor:pointer;color:#fff;display:flex;flex-direction:column;align-items:center;transition:transform .25s cubic-bezier(.2,.8,.2,1),filter .25s;filter:saturate(.8) brightness(.85)}
+#sNueva .ng-art{display:block;width:clamp(170px,26vw,300px);height:clamp(250px,58vh,470px);clip-path:polygon(12% 0,100% 0,100% 88%,88% 100%,0 100%,0 12%);
+  background:radial-gradient(ellipse 70% 55% at 50% 60%,color-mix(in srgb,var(--gc) 45%,transparent),transparent 70%),linear-gradient(170deg,#13286a,#060c24);position:relative;overflow:hidden}
+#sNueva .ng-art img{position:absolute;inset:6% 4% 0;width:92%;height:94%;object-fit:contain;object-position:center bottom;filter:drop-shadow(0 10px 18px rgba(0,0,0,.6));transition:transform .4s}
+#sNueva .ng-art::after{content:'';position:absolute;inset:0;box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--gc) 70%,transparent);pointer-events:none}
+#sNueva .ng b{margin-top:12px;font:900 clamp(18px,3.4vh,28px) 'Orbitron',monospace;letter-spacing:.16em;font-style:italic;text-shadow:0 0 16px var(--gc)}
+#sNueva .ng small{font:700 10px 'Orbitron',monospace;letter-spacing:.24em;color:var(--gc);margin-top:4px}
+#sNueva .ng:is(:hover,:focus-visible,.gp-foco){outline:0;transform:translateY(-10px) scale(1.03);filter:drop-shadow(0 0 12px color-mix(in srgb,var(--gc) 80%,transparent)) drop-shadow(0 0 30px color-mix(in srgb,var(--gc) 40%,transparent))}
+#sNueva .ng:is(:hover,:focus-visible,.gp-foco) .ng-art img{transform:scale(1.05)}
+#sNueva .ng-nota{font:600 13px 'Rajdhani',sans-serif;color:#7d90bb}
+#sNueva .nb-genchip{align-self:flex-start;margin-bottom:10px;border:0;cursor:pointer;display:none;align-items:center;gap:8px;padding:6px 16px 6px 12px;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);background:linear-gradient(90deg,#13286a,#0b1844);color:#dfe8ff;font:700 11px 'Orbitron',monospace;letter-spacing:.14em}
+#sNueva .nb-genchip.on{display:inline-flex}
+#sNueva .nb-genchip img{width:26px;height:26px;object-fit:cover;object-position:top;border-radius:50%;background:#0a1430}
+#sNueva .nb-genchip em{font-style:normal;color:#ffd166;font-size:9px;letter-spacing:.1em}
+#sNueva .nb-genchip:is(:hover,:focus-visible,.gp-foco){outline:0;background:linear-gradient(90deg,#ffd166,#f5a623);color:#1a0f00}
+@media (max-width:820px) and (orientation:portrait){#sNueva.paso-gen{overflow-y:auto}#sNueva .ng-art{width:40vw;height:46vh}}
 /* celular vertical: una columna */
 @media (max-width:820px) and (orientation:portrait){
   #sNueva{overflow-y:auto}
@@ -2009,8 +2033,18 @@ window.nxTip = function () {
     <button class="nx-back" id="nVolver" aria-label="Volver" title="Volver"></button>
     <div class="nb-tit"><small id="nSub">MODO AVENTURA · NEXOTLAN</small><b id="nTit">NUEVA AVENTURA</b></div>
   </div>
+  <!-- v430 · primer paso: ¿Héroe o Heroína? -->
+  <div class="nb-gen" id="nGenero">
+    <div class="nb-lbl" style="text-align:center">¿CÓMO QUIERES VIAJAR POR NEXOTLAN?</div>
+    <div class="ng-ops">
+      <button class="ng" data-g="heroe" style="--gc:#36d6ff"><span class="ng-art" data-arte="heroe"></span><b>HÉROE</b><small>Viajero del Multiverso</small></button>
+      <button class="ng" data-g="heroina" style="--gc:#cc55ff"><span class="ng-art" data-arte="heroina"></span><b>HEROÍNA</b><small>Viajera del Multiverso</small></button>
+    </div>
+    <div class="ng-nota">Lo puedes cambiar después con la Modista Heroica.</div>
+  </div>
   <div class="nb-cuerpo">
     <aside class="nb-izq">
+      <button class="nb-genchip" id="nGenChip" title="Cambiar"></button>
       <div id="nNombreBox" class="nb-nombre"><div class="nb-lbl">TU NOMBRE DE JUGADOR</div>
         <div class="nb-inp"><input id="nNombre" maxlength="20" placeholder="Tu nombre" autocomplete="off"><button id="nDado" title="Nombre al azar" aria-label="Nombre al azar">🎲</button></div></div>
       <div class="nb-ficha" id="nFicha"></div>
@@ -2575,8 +2609,8 @@ function avisoPistasNx() {
   toast(nuevas.length === 1 ? '🎵 Nueva pista en el Soundtrack: ' + nuevas[0].titulo : '🎵 ' + nuevas.length + ' pistas nuevas en el Soundtrack');
 }
 setInterval(() => { try { avisoPistasNx(); } catch (e) {} }, 900);
-function nueva(nombre, baraja, barajaNombre) {
-  return { v: 1, eco: 2, nombre, baraja, barajaNombre, dia: 0, monedas: 0, vencidos: {}, derrotas: {}, hablados: {}, abiertos: {}, victorias: 0, perdidas: 0, historial: [], inicio: Date.now(), u: Date.now(), pendiente: null };
+function nueva(nombre, baraja, barajaNombre, genero) {
+  return { v: 1, eco: 2, nombre, baraja, barajaNombre, genero: genero === 'heroina' ? 'heroina' : 'heroe', dia: 0, monedas: 0, vencidos: {}, derrotas: {}, hablados: {}, abiertos: {}, victorias: 0, perdidas: 0, historial: [], inicio: Date.now(), u: Date.now(), pendiente: null };
 }
 // ════════════════ COFRE Y BARAJA DE AVENTURA ════════════════
 // S.col   = { idCarta: copias }  todo lo que tiene el jugador (baraja básica + cartas ganadas)
@@ -3432,8 +3466,8 @@ async function abrirTramo(id, bajada) {
   window._nxVocesNpc = {}; def.npcs.forEach(n => { const L = vocesNpc(n); if (L.length) window._nxVocesNpc[n._nid] = L; });      // v399
   const json = { id, nombre: h.nombre || def.t.nombre || id, jugador: { nombre: S.nombre || 'Jugador', avatar: avatarPerfil() || '', monedas: S.monedas || 0, dia: (S.dia || 0) + 1, dia_nombre: diaNombre(S.dia) }, colores, texturas, escalas, brillos, relieves, lustres,
     reverso: String(h.reverso || CFG.tramo_reverso || 'assets/simulacion/reverso.jpg').trim(),
-    jugador_modelo: (m => m ? (m.includes('/') ? m : 'assets/nexotlan/personajes/' + m) : '')(String(h.modelo || CFG.tramo_modelo || '').trim()),
-    jugador_escala: +(h.modelo_escala || CFG.tramo_modelo_escala || 1.6),
+    jugador_modelo: esHeroina() ? (h.modelo_heroina ? rutaPers(String(h.modelo_heroina).trim()) : modeloJugador()) : rutaPers(String(h.modelo || CFG.tramo_modelo || '').trim()),
+    jugador_escala: esHeroina() ? +(h.modelo_heroina_escala || escalaJugador()) : +(h.modelo_escala || CFG.tramo_modelo_escala || 1.6),
     ropa: ropaJSON(),
     jugador_img: String(h.jugador || CFG.tramo_jugador || '').trim() ? imgUrl(String(h.jugador || CFG.tramo_jugador).trim(), 'personajes') : '',
     inicio: (h.inicio || '0,0').split(',').map(Number), pos: e.pos || null,
@@ -4571,9 +4605,10 @@ function abrirDiario() {
     S = nueva(S.nombre, S.baraja, S.barajaNombre); S.u = Date.now(); guardar(); cerrarModal('mDiario'); musicaPortada(); irA('sTitulo'); pintarTitulo(); toast('🗑 Partida borrada'); };
 }
 function cerrarModal(id) { $(id).classList.remove('on'); }
-let NSEL = null, NMODO = 'nueva';
+let NSEL = null, NMODO = 'nueva', NGEN = null;
 function pantallaBaraja(modo) {
-  NMODO = modo; NSEL = modo === 'cambiar' ? S.baraja : null;
+  NMODO = modo; NSEL = modo === 'cambiar' ? S.baraja : null; NGEN = null;
+  $('sNueva').classList.toggle('paso-gen', modo !== 'cambiar'); pintarGenero();
   $('nTit').textContent = modo === 'cambiar' ? 'CAMBIAR BARAJA' : 'NUEVA AVENTURA';
   $('nLbl').textContent = modo === 'cambiar' ? 'ELIGE TU NUEVA BARAJA' : 'ELIGE TU BARAJA INICIAL';
   $('nNombreBox').style.display = modo === 'cambiar' ? 'none' : '';
@@ -4622,6 +4657,21 @@ function fichaBaraja(b) {
     ${clave.length ? `<div class="nb-lbl" style="margin-top:12px">CARTAS CLAVE</div><div class="nf-clave">${clave.map(id => `<figure><img src="${esc(cartaImg(id))}" alt="" loading="lazy"><figcaption>${esc(nomC(id))}</figcaption></figure>`).join('')}</div>` : ''}
     ${avisoCambio}`;
 }
+// v430 · arte de la elección: assets/nexotlan/personajes/eleccion/heroe.png (y heroina.png) cuando esté el dibujo;
+//        mientras tanto, el retrato del modelo 3D (heroe_modelo.png / heroina_modelo.png)
+function arteGenero(g) { const b = DIR + 'personajes/eleccion/' + g, L = ['.png', '.webp', '.jpg'].map(e => b + e).concat([b + '_modelo.png']);
+  return `<img src="${esc(L[0])}" data-alt="${esc(L.slice(1).join('|'))}" onerror="const a=(this.dataset.alt||'').split('|').filter(Boolean);if(a.length){this.dataset.alt=a.slice(1).join('|');this.src=a[0];}else this.onerror=null" alt="">`; }
+function pintarGenero() {
+  document.querySelectorAll('#nGenero .ng-art').forEach(el => { if (!el.firstChild) el.innerHTML = arteGenero(el.dataset.arte); });
+  const ch = $('nGenChip'); ch.classList.toggle('on', NMODO !== 'cambiar' && !!NGEN);
+  if (NGEN) ch.innerHTML = arteGenero(NGEN) + (NGEN === 'heroina' ? 'HEROÍNA' : 'HÉROE') + ' <em>CAMBIAR</em>';
+}
+document.querySelectorAll('#nGenero .ng').forEach(b => {
+  b.onclick = () => { NGEN = b.dataset.g; try { nxUiSon('aceptar'); } catch (e) {} $('sNueva').classList.remove('paso-gen'); pintarGenero(); pintarBarajas();
+    try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('nDecks').querySelector('.nd')), 60); } catch (e) {} };
+  b.addEventListener('mouseenter', () => { try { nxUiSon('mover'); } catch (e) {} });
+});
+$('nGenChip').onclick = () => { $('sNueva').classList.add('paso-gen'); try { nxUiSon('atras'); } catch (e) {} };
 // v429 · nombre al azar
 const NB_NOMBRES = ['Viajero del Nexo', 'Guardián Errante', 'Xólotl', 'Tonatiuh', 'Itzel', 'Citlali', 'Cuauhtli', 'Ehécatl', 'Yaretzi', 'Nahui', 'Tlaloc', 'Mixtli', 'Coyolxauhqui', 'Ocelotl', 'Iztli', 'Tezca'];
 $('nDado').onclick = () => { const v = $('nNombre').value; let x; do { x = NB_NOMBRES[Math.floor(Math.random() * NB_NOMBRES.length)]; } while (x === v && NB_NOMBRES.length > 1); $('nNombre').value = x; try { nxUiSon('aceptar'); } catch (e) {} };
@@ -4637,10 +4687,11 @@ $('nDado').onclick = () => { const v = $('nNombre').value; let x; do { x = NB_NO
 $('nGo').onclick = () => {
   const b = barajasJugador().find(x => x.id === NSEL); if (!b) return;
   if (NMODO === 'cambiar') { if (S.baraja !== b.id) { S.col = null; S.mazo = null; } S.baraja = b.id; S.barajaNombre = b.nombre; asegurarColeccion(); guardar(); if (VOLVER === 'sMenu') abrirMenu(); else entrarMapa(); toast('🃏 Ahora juegas con ' + b.nombre); return; }
-  S = nueva(($('nNombre').value || '').trim() || 'Jugador', b.id, b.nombre); asegurarColeccion(); guardar();
+  S = nueva(($('nNombre').value || '').trim() || 'Jugador', b.id, b.nombre, NGEN || 'heroe'); asegurarColeccion(); guardar();
   abrirMenu();   // v207: toda partida entra por el menú; la bienvenida sale al entrar por primera vez al mapa
 };
-$('nVolver').onclick = () => { if (NMODO === 'cambiar') { if (VOLVER === 'sMenu') abrirMenu(); else entrarMapa(); } else irA('sTitulo'); };
+$('nVolver').onclick = () => { if (NMODO !== 'cambiar' && !$('sNueva').classList.contains('paso-gen')) { $('sNueva').classList.add('paso-gen'); try { nxUiSon('atras'); } catch (e) {} return; }      // v430 · del paso de baraja se regresa a ¿Héroe o Heroína?
+  if (NMODO === 'cambiar') { if (VOLVER === 'sMenu') abrirMenu(); else entrarMapa(); } else irA('sTitulo'); };
 
 // ════════════════ CONSTRUCTOR DE AVENTURA (🃏 BARAJA) ════════════════
 let MZ = null;          // { m: borrador, cambios, filtro, q }
@@ -5031,18 +5082,18 @@ $('tdSalir').onclick = salirTienda;
 // Colores para capa, chamarra, pantalón, zapatos y ojos + estampados (pecho, espalda de la capa y frente de la capucha).
 // En el vestidor todo se puede PROBAR sobre el modelo 3D; solo se cobra al confirmar lo que no se tenía.
 // Partida: S.ropa = { tiene: { id: 1 }, puesto: { capa, pecho, pant, zap, ojos, e_capa, e_pecho, e_espalda, e_hombro } }  ('' = original)
-let MOD = { cfg: {}, modelo: {}, items: [] };
+let MOD = { cfg: {}, modelo: {}, modeloH: {}, items: [] };
 const MODV = { abierto: false, listo: false, prueba: {}, tab: 'capa' };
 const MOD_ZONA = { capa: 'capa', pecho: 'pecho', chamarra: 'pecho', pantalon: 'pant', 'pantalón': 'pant', pant: 'pant', zapatos: 'zap', zap: 'zap', ojos: 'ojos' };
-const MOD_TABS = [['capa', '🧥', 'CAPA', 'Y capucha'], ['pecho', '👕', 'CHAMARRA', 'Color del pecho'], ['pant', '👖', 'PANTALÓN', 'Color'], ['zap', '👟', 'ZAPATOS', 'Color'], ['ojos', '👁', 'OJOS', 'Color'], ['est', '✨', 'ESTAMPADOS', 'Pecho, capa y capucha'], ['masc', '🎭', 'MÁSCARAS', 'Sobre la cara']];
+const MOD_TABS = [['pj', '👤', 'PERSONAJE', 'Héroe o Heroína'], ['capa', '🧥', 'CAPA', 'Y capucha'], ['pecho', '👕', 'CHAMARRA', 'Color del pecho'], ['pant', '👖', 'PANTALÓN', 'Color'], ['zap', '👟', 'ZAPATOS', 'Color'], ['ojos', '👁', 'OJOS', 'Color'], ['est', '✨', 'ESTAMPADOS', 'Pecho, capa y capucha'], ['masc', '🎭', 'MÁSCARAS', 'Sobre la cara']];
 const MOD_EST = [['e_capa', 'CAPA COMPLETA'], ['e_pecho', 'PECHO'], ['e_espalda', 'ESPALDA DE LA CAPA'], ['e_hombro', 'FRENTE DE LA CAPUCHA']];   // v318 · la ranura 'hombro' ahora es la capucha (se conserva la clave interna)
 function parseMod(txt) {
-  const out = { cfg: {}, modelo: {}, items: [] }; let cur = null;
+  const out = { cfg: {}, modelo: {}, modeloH: {}, items: [] }; let cur = null;
   String(txt || '').replace(/\r/g, '').split('\n').forEach(l => {
     const t = l.trim(); if (!t || t.startsWith('#') || t.startsWith(';')) return;
     const h = t.match(/^\[(.+)\]$/);
     if (h) { const [a, id] = h[1].split(':').map(x => x.trim()), tipo = a.toLowerCase();
-      cur = tipo === 'modista' ? out.cfg : tipo === 'modelo' ? out.modelo : (tipo === 'color' || tipo === 'estampado' || tipo === 'mascara' || tipo === 'máscara') && id ? { id, tipo: tipo.replace('á', 'a') } : null;
+      cur = tipo === 'modista' ? out.cfg : tipo === 'modelo' ? out.modelo : (tipo === 'modelo_heroina' || tipo === 'modelo_heroína') ? out.modeloH : (tipo === 'color' || tipo === 'estampado' || tipo === 'mascara' || tipo === 'máscara') && id ? { id, tipo: tipo.replace('á', 'a') } : null;
       if (cur && cur.tipo) out.items.push(cur); return; }
     const i = t.indexOf('='); if (i < 0 || !cur) return;
     cur[t.slice(0, i).trim().toLowerCase()] = t.slice(i + 1).trim();
@@ -5065,15 +5116,23 @@ function ropaEst() { S.ropa = S.ropa || {}; S.ropa.tiene = S.ropa.tiene || {}; S
 const modItem = id => MOD.items.find(x => x.id === id);
 // Lo que se le manda al motor 3D: colores por zona, estampados y las máscaras del modelo
 // v406 · NPC "copia del jugador": cada zona acepta el id de la Modista o un color #rrggbb directo; mascara = id de una máscara
+// v430 · HÉROE o HEROÍNA: cada uno con su modelo 3D y sus máscaras de ropa (la Modista vende lo mismo a los dos)
+//        mapa.txt [config]: tramo_modelo (héroe) · tramo_modelo_heroina · tramo_modelo_heroina_escala
+//        modista.txt [modelo_heroina]: mascaras, tono, interior, mascara_alto, mascara_adelante, mascara_escala
+const esHeroina = () => !!(S && S.genero === 'heroina');
+const rutaPers = m => m ? (m.includes('/') ? m.replace(/^\.?\//, '') : 'assets/nexotlan/personajes/' + m) : '';
+const modeloJugador = () => esHeroina() ? rutaPers(String(CFG.tramo_modelo_heroina || 'jugadora.glb').trim()) : rutaPers(String(CFG.tramo_modelo || '').trim());
+const escalaJugador = () => +((esHeroina() && CFG.tramo_modelo_heroina_escala) || CFG.tramo_modelo_escala || 1.6);
 const jugModelo = () => (m => m ? (m.includes('/') ? m : 'assets/nexotlan/personajes/' + m) : 'assets/nexotlan/personajes/jugador.glb')(String(CFG.tramo_modelo || '').trim());
 function ropaCopia(o) {
   const pu = {}, hex = {};
   Object.keys(o || {}).forEach(k => { const v = String(o[k] || '').trim(); if (!v) return; if (/^#[0-9a-f]{6}$/i.test(v)) hex[k] = v; else pu[k] = v; });
-  const r = ropaJSON(pu) || {}; Object.keys(hex).forEach(k => r[k] = hex[k]); return r;
+  const r = ropaJSON(pu, false) || {}; Object.keys(hex).forEach(k => r[k] = hex[k]); return r;      // los NPC copia usan el modelo del héroe
 }
-function ropaJSON(puesto) {
+function ropaJSON(puesto, fem = esHeroina()) {
   if (!MOD.items.length) return null;
-  const pu = puesto || (S && S.ropa && S.ropa.puesto) || {}, m = MOD.modelo;
+  const pu = puesto || (S && S.ropa && S.ropa.puesto) || {}, m = fem ? Object.assign({}, MOD.modelo, { mascaras: 'personajes/ropa/heroina/' }, MOD.modeloH) : MOD.modelo;
+  const ajM = aj => !fem ? aj : Object.assign({}, aj, { alto: num(aj.alto, 0) + num(m.mascara_alto, 0), adelante: num(aj.adelante, 0.12) + num(m.mascara_adelante, 0), escala: num(aj.escala, 0.42) * num(m.mascara_escala, 1) });
   const col = k => { const it = modItem(pu[k]); return it && it.tipo === 'color' ? it.color : ''; };
   const est = k => { const it = modItem(pu[k]); return it && it.tipo === 'estampado' ? it.url : ''; };
   const dirM = String(m.mascaras || 'personajes/ropa/').replace(/^\.?\//, '');
@@ -5082,7 +5141,7 @@ function ropaJSON(puesto) {
     est_pecho: est('e_pecho'), est_espalda: est('e_espalda'), est_hombro: est('e_hombro'),
     est_capa: est('e_capa'), capa_rep: (it => it ? it.repetir : 1)(modItem(pu.e_capa)),
     capa_capucha: (it => !it || !/^(no|0|false)$/i.test(String(it.capucha || 'si').trim()))(modItem(pu.e_capa)),
-    mascara: (it => it && it.tipo === 'mascara' ? it.url : '')(modItem(pu.masc)), mascara_aj: (it => it && it.tipo === 'mascara' ? it.aj : {})(modItem(pu.masc)) };
+    mascara: (it => it && it.tipo === 'mascara' ? it.url : '')(modItem(pu.masc)), mascara_aj: (it => it && it.tipo === 'mascara' ? ajM(it.aj) : {})(modItem(pu.masc)) };
 }
 function modVista() { if (!MODV.listo) return; try { $('mdFrame').contentWindow.nxGodot(JSON.stringify({ tipo: 'ropa', ropa: ropaJSON(MODV.prueba) })); } catch (e) {} }
 function modPendientes() { const r = ropaEst(); return Object.keys(MODV.prueba).map(k => modItem(MODV.prueba[k])).filter(it => it && !r.tiene[it.id] && it.precio > 0); }
@@ -5100,27 +5159,33 @@ function pintarModista() {
     return (tit ? `<div class="mdx-grupo">${tit}</div>` : '') + `<div class="mdx-ops">${op(null)}${ops.map(op).join('')}</div>`;
   };
   $('mdTit').textContent = (MOD_TABS.find(x => x[0] === t) || [])[2] || '';
+  if (t === 'pj') {      // v430 · cambiar entre Héroe y Heroína (gratis; la ropa comprada sirve para los dos)
+    const g = esHeroina() ? 'heroina' : 'heroe';
+    $('mdBody').innerHTML = '<div class="mdx-ops mdx-pj">' + [['heroe', 'HÉROE'], ['heroina', 'HEROÍNA']].map(([k, n]) => `<button class="mdx-op ${k === g ? 'on' : ''}" data-g="${k}">${k === g ? '<u>ACTUAL</u>' : ''}<i class="est pj">${arteGenero(k)}</i><b>${n}</b><small class="tuyo">GRATIS</small></button>`).join('') + '</div><p class="mdx-nota">Tu ropa, colores y estampados se conservan: la Modista los ajusta a tu nuevo personaje.</p>';
+    $('mdBody').querySelectorAll('[data-g]').forEach(b => b.onclick = () => { if (b.dataset.g === g) return; S.genero = b.dataset.g; guardar(); try { nxUiSon('aceptar'); } catch (e) {} abrirModista(null, true); toast(S.genero === 'heroina' ? '👤 Ahora viajas como Heroína' : '👤 Ahora viajas como Héroe'); });
+  } else
   $('mdBody').innerHTML = t === 'est' ? MOD_EST.map(e => grupo(e[0], e[1])).join('') : grupo(t, '');
-  $('mdBody').querySelectorAll('.mdx-op').forEach(b => b.onclick = () => { MODV.prueba[b.dataset.s] = b.dataset.id; modVista(); pintarModista(); });
+  $('mdBody').querySelectorAll('.mdx-op[data-s]').forEach(b => b.onclick = () => { MODV.prueba[b.dataset.s] = b.dataset.id; modVista(); pintarModista(); });
   const pend = modPendientes(), total = pend.reduce((a, x) => a + x.precio, 0), cambio = modCambio();
   $('mdRes').innerHTML = !cambio ? 'Toca una opción para probártela.' : pend.length ? `Por pagar: <b>🪙 ${total}</b> · ${pend.map(x => esc(x.nombre || x.id)).join(', ')}` : 'Ya es tuyo: póntelo sin pagar.';
   $('mdOk').textContent = pend.length ? 'COMPRAR · 🪙 ' + total : 'PONERME ESTO'; $('mdOk').disabled = !cambio || total > (S.monedas || 0);
   if (pend.length && total > (S.monedas || 0)) $('mdRes').innerHTML += ' <span style="color:#ff6b6b">Te faltan monedas.</span>';
   $('mdQuitar').disabled = !cambio;
 }
-function abrirModista(p) {
+function abrirModista(p, conservar) {
   cerrarFicha(); if (!MOD.items.length) { toast('⚠ No se pudo leer modista.txt'); return; }
   if (p) { S.encontrados = S.encontrados || {}; S.encontrados[p.id] = 1; }
-  const r = ropaEst(); MODV.prueba = Object.assign({}, r.puesto); MODV.abierto = true; MODV.listo = false; MODV.tab = 'capa';
+  const r = ropaEst(); if (!conservar) { MODV.prueba = Object.assign({}, r.puesto); MODV.tab = 'capa'; } MODV.abierto = true; MODV.listo = false;
   const T = DIR + 'tramos/texturas/';
   window.NX_TRAMO_JSON = JSON.stringify({ id: 'vestidor', modo: 'vestidor', nombre: 'Vestidor', jugador: { nombre: S.nombre || 'Jugador', avatar: '', monedas: S.monedas || 0 },
     colores: { abismo: '#090d24', niebla: '#1a1440', ambiente: '#9a94d8', luz: '#fff0e0', contraluz: '#cc55ff', suelo: '#6a6680', borde: '#3a3850', piedra: '#7a7690', energia: '#cc55ff', cristal: '#cc55ff', tinte_abismo: '#2a1a60' },
     texturas: { suelo: T + 'piso_archivos_textura.jpg', borde: T + 'roca_textura.jpg', piedra: T + 'tabiques_textura.jpg' }, escalas: { suelo: 3, borde: 3, piedra: 1.6 }, brillos: {},
     brillo_sol: 0.62, bruma_bordes: 'no', inicio: [0, 0], camino: [], decorado: {},
     plataformas: [{ id: 'pedestal', x: 0, z: 0, ancho: 5.4, largo: 5.4, forma: 'oval', alto: 0, estilo: 'torre', adorno: 'columna' }],
-    jugador_modelo: (m => m ? (m.includes('/') ? m : 'assets/nexotlan/personajes/' + m) : '')(String(CFG.tramo_modelo || '').trim()), jugador_escala: +(CFG.tramo_modelo_escala || 1.6),
+    jugador_modelo: modeloJugador(), jugador_escala: escalaJugador(),
     ropa: ropaJSON(MODV.prueba) });
   $('mdCarga').style.display = ''; $('mdFrame').style.transition = 'opacity .35s'; $('mdFrame').style.opacity = '0'; $('mdFrame').src = 'tramo/index.html?t=vestidor&v=' + (CFG.tramo_version || '1');
+  if (conservar) { pintarModista(); return; }
   irA('sModista'); pintarModista();
   try { if (window.GP && GP.activo()) setTimeout(() => GP.enfocar($('mdBody').querySelector('button') || $('mdSalir')), 60); } catch (e) {}
 }
@@ -5363,9 +5428,10 @@ async function items3D() {
   }
   ['simbolo_codex.png', 'libro_textura.jpg', 'lomo_libro_textura.jpg', 'roca_textura.jpg', 'tabiques_textura.jpg', 'piso_archivos_textura.jpg', 'nubes_textura.jpg'].forEach(f => add(T + f));
   ['tramos/modelos/casa_1.glb', 'tramos/modelos/casa_2.glb', 'personajes/nextor.glb', 'personajes/koatl_chibi.glb', 'personajes/sitho.glb', 'personajes/rayah.glb', 'personajes/anima_multiversal.glb'].forEach(f => add(DIR + f));
-  [CFG.tramo_modelo, CFG.tramo_koatl_modelo, CFG.tramo_sitho_modelo, CFG.tramo_guia_modelo].forEach(m => { m = String(m || '').trim(); if (m) add(m.includes('/') ? m : DIR + 'personajes/' + m); });
-  const mas = String((MOD.cfg && MOD.cfg.mascaras) || 'personajes/ropa/v2/').replace(/^assets\/nexotlan\//, '');
-  ['jugador_zonas_1.png', 'jugador_zonas_2.png', 'jugador_estampa_1.png', 'jugador_estampa_2.png', 'jugador_capa_uv.png', 'jugador_capucha_uv.png'].forEach(f => add(DIR + mas + f));
+  [CFG.tramo_modelo, CFG.tramo_modelo_heroina || 'jugadora.glb', CFG.tramo_koatl_modelo, CFG.tramo_sitho_modelo, CFG.tramo_guia_modelo].forEach(m => { m = String(m || '').trim(); if (m) add(m.includes('/') ? m : DIR + 'personajes/' + m); });
+  const masH = String((MOD.modeloH && MOD.modeloH.mascaras) || 'personajes/ropa/heroina/').replace(/^assets\/nexotlan\//, '');
+  [String((MOD.modelo && MOD.modelo.mascaras) || (MOD.cfg && MOD.cfg.mascaras) || 'personajes/ropa/v2/').replace(/^assets\/nexotlan\//, ''), masH].forEach(mas =>      // v430 · también las de la heroína
+    ['jugador_zonas_1.png', 'jugador_zonas_2.png', 'jugador_estampa_1.png', 'jugador_estampa_2.png', 'jugador_capa_uv.png', 'jugador_capucha_uv.png'].forEach(f => add(DIR + mas + f)));
   (MOD.items || []).forEach(x => { if (x.imagen) add(/\//.test(x.imagen) ? x.imagen : DIR + 'personajes/ropa/estampados/' + x.imagen); });
   return it;
 }

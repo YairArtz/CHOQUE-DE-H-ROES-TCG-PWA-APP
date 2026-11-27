@@ -3,7 +3,7 @@
 #  Edítalo con el Bloc de notas (UTF-8).  campo = valor
 #
 #  [modista]   punto = id del personaje en mapa.txt que atiende el vestidor · saludo = frases separadas con |
-#  [color:id]  zona = capa | pecho | pantalon | zapatos | ojos
+#  [color:id]  zona = capa | pecho | pantalon | zapatos | ojos | blanco   (ojos = iris · blanco = el blanco de los ojos)
 #              nombre, color (#rrggbb), precio (monedas; 0 = gratis)
 #  [estampado:id]  zona = pecho | espalda | capucha   (capucha = al frente de la capucha)
 #               zona = capa_completa → un dibujo que cubre toda la capa por fuera (PNG de 1200 x 800 hecho sobre plantilla_capa_completa.png)
@@ -26,8 +26,9 @@ saludo = ¡Pásale al vestidor! Pruébate lo que quieras, solo pagas lo que te l
 # Datos técnicos del modelo (no hace falta tocarlos; se recalculan si cambia la textura del personaje)
 [modelo]
 # (si se vuelven a generar las máscaras hay que cambiar el nombre de esta carpeta: el navegador guarda las imágenes y no vería las nuevas)
-mascaras = personajes/ropa/v2/
-tono = 0.0731, 0.0984, 0.1328, 0.0247, 0.0362, 0.0292
+mascaras = personajes/ropa/v3/
+# tono: capa, chamarra, pantalón, zapatos, iris, interior de la capa, blanco de los ojos
+tono = 0.0731, 0.0984, 0.1328, 0.0247, 0.0362, 0.0292, 0.789
 # qué tan oscuro se ve el interior de la capa respecto al exterior (0 a 1)
 interior = 0.45
 
@@ -35,8 +36,8 @@ interior = 0.45
 # mascara_alto / mascara_adelante / mascara_escala: se suman (o multiplican) al ajuste de CADA máscara de la tienda,
 # porque la cara de la heroína queda un poco más arriba y más al frente que la del héroe.
 [modelo_heroina]
-mascaras = personajes/ropa/heroina/
-tono = 0.0776, 0.0790, 0.1165, 0.0191, 0.0497, 0.0327
+mascaras = personajes/ropa/heroina_v2/
+tono = 0.0776, 0.0790, 0.1165, 0.0191, 0.0336, 0.0327, 0.917
 interior = 0.45
 mascara_alto = 0.03
 mascara_adelante = 0.03
@@ -543,6 +544,38 @@ zona = ojos
 nombre = Plateados
 color = #e0e4f0
 precio = 70
+
+
+# ───────── BLANCO DE LOS OJOS (aparte del iris) ─────────
+[color:blanco_negro]
+zona = blanco
+nombre = Abismo
+color = #101014
+precio = 60
+
+[color:blanco_dorado]
+zona = blanco
+nombre = Dorado
+color = #ffd23a
+precio = 80
+
+[color:blanco_rojo]
+zona = blanco
+nombre = Sangre
+color = #c8141e
+precio = 70
+
+[color:blanco_morado]
+zona = blanco
+nombre = Nexo
+color = #cc55ff
+precio = 70
+
+[color:blanco_cielo]
+zona = blanco
+nombre = Espectral
+color = #8fe8ff
+precio = 60
 
 
 # ───────── ESTAMPADOS · PECHO ─────────

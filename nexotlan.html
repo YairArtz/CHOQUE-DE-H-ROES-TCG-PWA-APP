@@ -3285,7 +3285,7 @@ async function cargarTramo(id) {
     escala: num(s.escala, 1.9), color: s.color || '#7fe0a8', saludo: pp(s.saludo), paginas: pp(s.paginas), tienda: String(s.tienda || '').trim().toLowerCase(), aura: s.aura || '', espiritu: /^(si|sí|1|true)$/i.test(String(s.espiritu || '').trim()),
     saludo_final: pp(s.saludo_final), paginas_final: pp(s.paginas_final), alto_rel: num(s.alto_rel, 0), humo: String(s.humo || '').trim(),
     aparece: String(s.aparece || '').trim().toLowerCase(), copia: /^(si|sí|1|true)$/i.test(String(s.copia || '').trim()),
-    ropa: { capa: s.capa, pecho: s.pecho, pant: s.pantalon || s.pant, zap: s.zapatos || s.zap, ojos: s.ojos, masc: s.mascara, e_capa: s.estampado_capa, e_pecho: s.estampado_pecho, e_espalda: s.estampado_espalda, e_hombro: s.estampado_capucha } }));
+    ropa: { capa: s.capa, pecho: s.pecho, pant: s.pantalon || s.pant, zap: s.zapatos || s.zap, ojos: s.ojos, blanco: s.blanco_ojos || s.blanco, masc: s.mascara, e_capa: s.estampado_capa, e_pecho: s.estampado_pecho, e_espalda: s.estampado_espalda, e_hombro: s.estampado_capucha } }));
   // v406 · aparece = final → solo cuando ya venciste a Vellond · aparece = antes → solo antes      // v405 · *_final = lo que dicen cuando ya venciste a Vellond
   // v307 · [coliseo] x, z (centro), radio_x, radio_z, niveles, alto (de cada piso), arcos (por piso), puerta (ángulo de la puerta grande), neon = #c1,#c2,#c3
   def.coliseo = (c => c ? { x: num(c.x, 0), z: num(c.z, 0), radio_x: num(c.radio_x, 40), radio_z: num(c.radio_z, 32), niveles: num(c.niveles, 3), alto: num(c.alto, 6.5),
@@ -5084,8 +5084,8 @@ $('tdSalir').onclick = salirTienda;
 // Partida: S.ropa = { tiene: { id: 1 }, puesto: { capa, pecho, pant, zap, ojos, e_capa, e_pecho, e_espalda, e_hombro } }  ('' = original)
 let MOD = { cfg: {}, modelo: {}, modeloH: {}, items: [] };
 const MODV = { abierto: false, listo: false, prueba: {}, tab: 'capa' };
-const MOD_ZONA = { capa: 'capa', pecho: 'pecho', chamarra: 'pecho', pantalon: 'pant', 'pantalón': 'pant', pant: 'pant', zapatos: 'zap', zap: 'zap', ojos: 'ojos' };
-const MOD_TABS = [['pj', '👤', 'PERSONAJE', 'Héroe o Heroína'], ['capa', '🧥', 'CAPA', 'Y capucha'], ['pecho', '👕', 'CHAMARRA', 'Color del pecho'], ['pant', '👖', 'PANTALÓN', 'Color'], ['zap', '👟', 'ZAPATOS', 'Color'], ['ojos', '👁', 'OJOS', 'Color'], ['est', '✨', 'ESTAMPADOS', 'Pecho, capa y capucha'], ['masc', '🎭', 'MÁSCARAS', 'Sobre la cara']];
+const MOD_ZONA = { capa: 'capa', pecho: 'pecho', chamarra: 'pecho', pantalon: 'pant', 'pantalón': 'pant', pant: 'pant', zapatos: 'zap', zap: 'zap', ojos: 'ojos', blanco: 'blanco', blanco_ojos: 'blanco', esclera: 'blanco' };      // v432 · blanco = blanco de los ojos
+const MOD_TABS = [['pj', '👤', 'PERSONAJE', 'Héroe o Heroína'], ['capa', '🧥', 'CAPA', 'Y capucha'], ['pecho', '👕', 'CHAMARRA', 'Color del pecho'], ['pant', '👖', 'PANTALÓN', 'Color'], ['zap', '👟', 'ZAPATOS', 'Color'], ['ojos', '👁', 'OJOS', 'Iris y blanco'], ['est', '✨', 'ESTAMPADOS', 'Pecho, capa y capucha'], ['masc', '🎭', 'MÁSCARAS', 'Sobre la cara']];
 const MOD_EST = [['e_capa', 'CAPA COMPLETA'], ['e_pecho', 'PECHO'], ['e_espalda', 'ESPALDA DE LA CAPA'], ['e_hombro', 'FRENTE DE LA CAPUCHA']];   // v318 · la ranura 'hombro' ahora es la capucha (se conserva la clave interna)
 function parseMod(txt) {
   const out = { cfg: {}, modelo: {}, modeloH: {}, items: [] }; let cur = null;
@@ -5131,13 +5131,13 @@ function ropaCopia(o) {
 }
 function ropaJSON(puesto, fem = esHeroina()) {
   if (!MOD.items.length) return null;
-  const pu = puesto || (S && S.ropa && S.ropa.puesto) || {}, m = fem ? Object.assign({}, MOD.modelo, { mascaras: 'personajes/ropa/heroina/' }, MOD.modeloH) : MOD.modelo;
+  const pu = puesto || (S && S.ropa && S.ropa.puesto) || {}, m = fem ? Object.assign({}, MOD.modelo, { mascaras: 'personajes/ropa/heroina_v2/' }, MOD.modeloH) : MOD.modelo;
   const ajM = aj => !fem ? aj : Object.assign({}, aj, { alto: num(aj.alto, 0) + num(m.mascara_alto, 0), adelante: num(aj.adelante, 0.12) + num(m.mascara_adelante, 0), escala: num(aj.escala, 0.42) * num(m.mascara_escala, 1) });
   const col = k => { const it = modItem(pu[k]); return it && it.tipo === 'color' ? it.color : ''; };
   const est = k => { const it = modItem(pu[k]); return it && it.tipo === 'estampado' ? it.url : ''; };
   const dirM = String(m.mascaras || 'personajes/ropa/').replace(/^\.?\//, '');
   return { mascaras: /^assets\//.test(dirM) ? dirM : DIR + dirM, lum: String(m.tono || '').split(',').map(x => +x.trim()).filter(x => isFinite(x) && x > 0),
-    interior: num(m.interior, 0.45), capa: col('capa'), pecho: col('pecho'), pant: col('pant'), zap: col('zap'), ojos: col('ojos'),
+    interior: num(m.interior, 0.45), capa: col('capa'), pecho: col('pecho'), pant: col('pant'), zap: col('zap'), ojos: col('ojos'), blanco: col('blanco'),
     est_pecho: est('e_pecho'), est_espalda: est('e_espalda'), est_hombro: est('e_hombro'),
     est_capa: est('e_capa'), capa_rep: (it => it ? it.repetir : 1)(modItem(pu.e_capa)),
     capa_capucha: (it => !it || !/^(no|0|false)$/i.test(String(it.capucha || 'si').trim()))(modItem(pu.e_capa)),
@@ -5145,7 +5145,7 @@ function ropaJSON(puesto, fem = esHeroina()) {
 }
 function modVista() { if (!MODV.listo) return; try { $('mdFrame').contentWindow.nxGodot(JSON.stringify({ tipo: 'ropa', ropa: ropaJSON(MODV.prueba) })); } catch (e) {} }
 function modPendientes() { const r = ropaEst(); return Object.keys(MODV.prueba).map(k => modItem(MODV.prueba[k])).filter(it => it && !r.tiene[it.id] && it.precio > 0); }
-function modCambio() { const pu = ropaEst().puesto; return ['capa', 'pecho', 'pant', 'zap', 'ojos', 'e_capa', 'e_pecho', 'e_espalda', 'e_hombro', 'masc'].some(k => (MODV.prueba[k] || '') !== (pu[k] || '')); }
+function modCambio() { const pu = ropaEst().puesto; return ['capa', 'pecho', 'pant', 'zap', 'ojos', 'blanco', 'e_capa', 'e_pecho', 'e_espalda', 'e_hombro', 'masc'].some(k => (MODV.prueba[k] || '') !== (pu[k] || '')); }
 function pintarModista() {
   const r = ropaEst(), t = MODV.tab;
   $('mdMon').innerHTML = '<i class="mn"></i> ' + (S.monedas || 0); $('mdMon2').textContent = S.monedas || 0;
@@ -5164,7 +5164,7 @@ function pintarModista() {
     $('mdBody').innerHTML = '<div class="mdx-ops mdx-pj">' + [['heroe', 'HÉROE'], ['heroina', 'HEROÍNA']].map(([k, n]) => `<button class="mdx-op ${k === g ? 'on' : ''}" data-g="${k}">${k === g ? '<u>ACTUAL</u>' : ''}<i class="est pj">${arteGenero(k)}</i><b>${n}</b><small class="tuyo">GRATIS</small></button>`).join('') + '</div><p class="mdx-nota">Tu ropa, colores y estampados se conservan: la Modista los ajusta a tu nuevo personaje.</p>';
     $('mdBody').querySelectorAll('[data-g]').forEach(b => b.onclick = () => { if (b.dataset.g === g) return; S.genero = b.dataset.g; guardar(); try { nxUiSon('aceptar'); } catch (e) {} abrirModista(null, true); toast(S.genero === 'heroina' ? '👤 Ahora viajas como Heroína' : '👤 Ahora viajas como Héroe'); });
   } else
-  $('mdBody').innerHTML = t === 'est' ? MOD_EST.map(e => grupo(e[0], e[1])).join('') : grupo(t, '');
+  $('mdBody').innerHTML = t === 'est' ? MOD_EST.map(e => grupo(e[0], e[1])).join('') : t === 'ojos' ? grupo('ojos', 'IRIS') + grupo('blanco', 'BLANCO DEL OJO') : grupo(t, '');
   $('mdBody').querySelectorAll('.mdx-op[data-s]').forEach(b => b.onclick = () => { MODV.prueba[b.dataset.s] = b.dataset.id; modVista(); pintarModista(); });
   const pend = modPendientes(), total = pend.reduce((a, x) => a + x.precio, 0), cambio = modCambio();
   $('mdRes').innerHTML = !cambio ? 'Toca una opción para probártela.' : pend.length ? `Por pagar: <b>🪙 ${total}</b> · ${pend.map(x => esc(x.nombre || x.id)).join(', ')}` : 'Ya es tuyo: póntelo sin pagar.';
@@ -5199,7 +5199,7 @@ $('mdOk').onclick = async () => {
   if (total > (S.monedas || 0)) return;
   if (pend.length && await mensaje('👗 ¿LLEVARLO?', `Vas a comprar <b>${pend.map(x => esc(x.nombre || x.id)).join(', ')}</b> por <b>🪙 ${total}</b>.<br>Queda en tu guardarropa para siempre.`, [['COMPRAR', 'gold'], ['CANCELAR', 'sec']]) !== 0) return;
   if (pend.length) { S.monedas -= total; try { sonMonedas(); } catch (e) {} pend.forEach(x => r.tiene[x.id] = 1); }
-  ['capa', 'pecho', 'pant', 'zap', 'ojos', 'e_capa', 'e_pecho', 'e_espalda', 'e_hombro', 'masc'].forEach(k => { if (MODV.prueba[k]) r.puesto[k] = MODV.prueba[k]; else delete r.puesto[k]; });
+  ['capa', 'pecho', 'pant', 'zap', 'ojos', 'blanco', 'e_capa', 'e_pecho', 'e_espalda', 'e_hombro', 'masc'].forEach(k => { if (MODV.prueba[k]) r.puesto[k] = MODV.prueba[k]; else delete r.puesto[k]; });
   guardar(); pintarModista(); toast(pend.length ? '👗 ¡Estrenas ropa!' : '👗 Listo, ya lo traes puesto');
 };
 
@@ -5429,8 +5429,8 @@ async function items3D() {
   ['simbolo_codex.png', 'libro_textura.jpg', 'lomo_libro_textura.jpg', 'roca_textura.jpg', 'tabiques_textura.jpg', 'piso_archivos_textura.jpg', 'nubes_textura.jpg'].forEach(f => add(T + f));
   ['tramos/modelos/casa_1.glb', 'tramos/modelos/casa_2.glb', 'personajes/nextor.glb', 'personajes/koatl_chibi.glb', 'personajes/sitho.glb', 'personajes/rayah.glb', 'personajes/anima_multiversal.glb'].forEach(f => add(DIR + f));
   [CFG.tramo_modelo, CFG.tramo_modelo_heroina || 'jugadora.glb', CFG.tramo_koatl_modelo, CFG.tramo_sitho_modelo, CFG.tramo_guia_modelo].forEach(m => { m = String(m || '').trim(); if (m) add(m.includes('/') ? m : DIR + 'personajes/' + m); });
-  const masH = String((MOD.modeloH && MOD.modeloH.mascaras) || 'personajes/ropa/heroina/').replace(/^assets\/nexotlan\//, '');
-  [String((MOD.modelo && MOD.modelo.mascaras) || (MOD.cfg && MOD.cfg.mascaras) || 'personajes/ropa/v2/').replace(/^assets\/nexotlan\//, ''), masH].forEach(mas =>      // v430 · también las de la heroína
+  const masH = String((MOD.modeloH && MOD.modeloH.mascaras) || 'personajes/ropa/heroina_v2/').replace(/^assets\/nexotlan\//, '');
+  [String((MOD.modelo && MOD.modelo.mascaras) || (MOD.cfg && MOD.cfg.mascaras) || 'personajes/ropa/v3/').replace(/^assets\/nexotlan\//, ''), masH].forEach(mas =>      // v430 · también las de la heroína
     ['jugador_zonas_1.png', 'jugador_zonas_2.png', 'jugador_estampa_1.png', 'jugador_estampa_2.png', 'jugador_capa_uv.png', 'jugador_capucha_uv.png'].forEach(f => add(DIR + mas + f)));
   (MOD.items || []).forEach(x => { if (x.imagen) add(/\//.test(x.imagen) ? x.imagen : DIR + 'personajes/ropa/estampados/' + x.imagen); });
   return it;

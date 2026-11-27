@@ -145,7 +145,13 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .row.ban:hover,.row.ban:focus-visible{transform:none;background:#0a0f33 url('assets/nexotlan/titulo/escena/fondo.webp') center 32%/cover no-repeat;border-color:#f5c842;box-shadow:0 0 0 2px rgba(245,200,66,.55),0 0 22px rgba(245,200,66,.35)}
 .row.ban:hover .bn-i,.row.ban:focus-visible .bn-i{transform:translateX(-5px) scale(1.03)}.row.ban:hover .bn-d,.row.ban:focus-visible .bn-d{transform:translateX(5px) scale(1.03)}
 .row.ban:hover b,.row.ban:focus-visible b{color:transparent}
-@media (max-width:560px){.row.ban.ban-digital .bn-i{right:57%;height:172%;top:10%}.row.ban.ban-digital .bn-d{left:55%;height:172%;top:8%}.row.ban.ban-online .bn-i{right:54%;height:170%}.row.ban.ban-online .bn-d{left:58%;height:150%}.row.ban .bn-t span{display:none}.row.ban .bn-t{width:50%}}
+.row.ban.ban-mercado{background:#120a20 url('assets/tienda/mercado/fondo.webp') center 40%/cover no-repeat}
+.row.ban.ban-mercado:hover,.row.ban.ban-mercado:focus-visible{background:#120a20 url('assets/tienda/mercado/fondo.webp') center 40%/cover no-repeat}
+.row.ban.ban-mercado .bn-f{position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(10,6,30,.35),rgba(10,6,30,.55));backdrop-filter:blur(1.5px)}
+.row.ban.ban-mercado img{z-index:2}.row.ban.ban-mercado .bn-t{z-index:3}
+.row.ban.ban-mercado .bn-i{right:63%;top:5%;height:136%;filter:drop-shadow(0 0 10px rgba(0,0,0,.6))}
+.row.ban.ban-mercado .bn-d{left:60%;top:7%;height:131%;filter:drop-shadow(0 0 10px rgba(0,0,0,.6))}
+@media (max-width:560px){.row.ban.ban-digital .bn-i{right:57%;height:172%;top:10%}.row.ban.ban-digital .bn-d{left:55%;height:172%;top:8%}.row.ban.ban-online .bn-i{right:54%;height:170%}.row.ban.ban-mercado .bn-i{right:55%;height:128%}.row.ban.ban-mercado .bn-d{left:52%;height:123.3%}.row.ban.ban-online .bn-d{left:58%;height:150%}.row.ban .bn-t span{display:none}.row.ban .bn-t{width:50%}}
 .row::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c,var(--gold))}
 .row .ic{width:42px;height:42px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px;background:rgba(255,255,255,.05);
   clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%)}
@@ -326,7 +332,7 @@ const SECCIONES = [
   { id:'tienda', txt:'TIENDA', c:'#f5c842', hint:'Tienda digital, Tienda Online y precios', items:[
     { href:'tienda.html', ic:'💎', t:'Tienda digital', d:'Sobres, cartas, micas, playmats y temas con Hero Pesos', ban:'digital' },
     { href:'tienda-fisica.html', ic:'📦', t:'Tienda Online', d:'Preventas y productos con envío o entrega personal', ban:'online' },
-    { href:'mercado/mercado.html', ic:'💰', t:'Mercado Heroico', d:'Precios sugeridos de cartas en MXN' } ] },
+    { href:'mercado/mercado.html', ic:'💰', t:'Mercado Heroico', d:'Precios sugeridos de cartas en MXN', ban:'mercado' } ] },
   { id:'extras', txt:'EXTRAS', c:'#00e0a4', hint:'Cómics, música, videos y noticias', items:[
     { href:'comics.html', ic:'📖', t:'Comicteca', d:'Lee los cómics de los héroes del TCG' },
     { href:'musica.html', ic:'🎵', t:'Soundtrack', d:'Música de batalla para tus partidas' },
@@ -336,6 +342,11 @@ const SECCIONES = [
 // v437 · TIENDA: las dos tiendas se eligen con su banda del splash (2 personajes cada una, simétricos)
 const BAN_E = 'assets/nexotlan/titulo/escena/';
 function banTienda(it) {
+  if (it.ban === 'mercado') {      // v438 · el Héroe y la Heroína intercambian cartas en el mercado (las cartas apuntan al título)
+    const M = 'assets/tienda/mercado/';
+    return '<i class="bn-f"></i><img class="bn-i" src="' + M + 'heroe.webp" alt="" onerror="this.remove()"><img class="bn-d" src="' + M + 'heroina.webp" alt="" onerror="this.remove()">' +
+      '<div class="bn-t"><small>' + it.t.toUpperCase() + '</small><b>PRECIOS DE CARTAS</b><span>' + it.d + '</span></div>';
+  }
   const P = it.ban === 'online' ? ['aguila', 'koatl'] : ['heroina', 'heroe'];
   return '<i class="bn-f"></i><img class="bn-v" src="' + BAN_E + 'vellond.webp" alt="" onerror="this.remove()">' +
     '<img class="bn-i" src="' + BAN_E + P[0] + '.webp" alt="" onerror="this.remove()"><img class="bn-d" src="' + BAN_E + P[1] + '.webp" alt="" onerror="this.remove()">' +

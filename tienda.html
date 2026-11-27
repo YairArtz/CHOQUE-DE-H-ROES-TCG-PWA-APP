@@ -631,6 +631,28 @@
       html:not(.hz-off) .esc-globo p.cambia{animation:vendTxt .35s ease-out;}
       @media (prefers-reduced-motion:reduce){html:not(.hz-off) .esc-doc{animation:none;}html:not(.hz-off) #td-main .section-panel.active{animation:none;}}
     }
+    /* ═══ v435 · BANDA DEL SPLASH (Nexotlan): fondo de islas, Vellond y los protagonistas mostrando sus cartas ═══ */
+    .spl-ban{--sep:min(210px,27%);position:relative;height:clamp(150px,24vh,220px);margin:0 0 16px;border-radius:12px;overflow:hidden;isolation:isolate;
+      background:#0a0f33 url('assets/nexotlan/titulo/escena/fondo.webp') center 30%/cover no-repeat;border:1px solid rgba(245,166,35,.3);
+      box-shadow:0 10px 30px rgba(0,0,0,.35),inset 0 0 0 1px rgba(255,255,255,.04)}
+    .spl-ban img{position:absolute;display:block;height:auto;pointer-events:none;user-select:none}
+    .spl-ban .sb-v{left:50%;top:-6%;width:min(560px,62%);translate:-50% 0;opacity:.5;filter:saturate(.9)}
+    .spl-ban .sb-a{left:18%;top:10%;height:150%;width:auto;opacity:.85;filter:brightness(.7) saturate(.9)}
+    .spl-ban .sb-k{right:17%;top:2%;height:155%;width:auto;opacity:.85;filter:brightness(.7) saturate(.9)}
+    .spl-ban .sb-hna{right:calc(50% + var(--sep) - 110px);top:7%;height:212%;width:auto;filter:drop-shadow(0 0 12px rgba(0,0,0,.55))}
+    .spl-ban .sb-hro{left:calc(50% + var(--sep) - 110px);top:4%;height:212%;width:auto;filter:drop-shadow(0 0 12px rgba(0,0,0,.55))}
+    .spl-ban::after{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;
+      background:radial-gradient(ellipse 34% 62% at 50% 55%,rgba(5,8,26,.78),rgba(5,8,26,.25) 70%,transparent),linear-gradient(180deg,transparent 55%,rgba(5,8,26,.6)),linear-gradient(90deg,rgba(5,8,26,.5),transparent 22%,transparent 78%,rgba(5,8,26,.5))}
+    .spl-ban .sb-t{position:absolute;left:50%;top:56%;z-index:2;translate:-50% -50%;width:min(40%,340px);text-align:center;color:#fff}
+    .spl-ban .sb-t small{white-space:nowrap;display:inline-block;padding:4px 14px 4px 16px;font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(10px,1.05vw,13px);letter-spacing:.28em;color:#04061a;background:linear-gradient(90deg,#36d6ff,#9ff0ff);clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);box-shadow:0 0 14px rgba(54,214,255,.6);text-shadow:none}
+    .spl-ban .sb-t b{display:block;margin:6px 0 4px;font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(.95rem,1.9vw,1.4rem);letter-spacing:.06em;line-height:1.05;
+      background:linear-gradient(180deg,#fff3c4,#f5a623 70%,#c7700f);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 0 #3a1d00) drop-shadow(0 0 12px rgba(245,166,35,.35))}
+    .spl-ban .sb-t span{display:block;font-size:.88rem;color:#d6def5;text-shadow:0 1px 4px #000}
+    .spl-ban img{animation:sbEntra .7s cubic-bezier(.2,.8,.25,1) both}
+    .spl-ban .sb-hna{animation-delay:.08s}.spl-ban .sb-hro{animation-delay:.16s}
+    @keyframes sbEntra{from{opacity:0;transform:translateY(8%)}}
+    @media (max-width:560px){.spl-ban{height:150px}.spl-ban .sb-a,.spl-ban .sb-k{display:none}.spl-ban .sb-hna{left:-8%}.spl-ban .sb-hro{right:-8%}.spl-ban .sb-hna{right:57%;height:172%;top:10%}.spl-ban .sb-hro{left:55%;height:172%;top:8%}.spl-ban .sb-t{width:50%}.spl-ban .sb-t span{display:none}}
+    @media (prefers-reduced-motion:reduce){.spl-ban img{animation:none}}
   </style>
 <script src="nexo-ui.js"></script>
 </head>
@@ -656,6 +678,14 @@
   </div>
 
   <div id="tienda-content" style="display:none">
+
+    <!-- v435 · Banda del splash de Nexotlan (en vista amplia se mueve arriba de la vitrina) -->
+    <div class="spl-ban" id="splBan" aria-hidden="true">
+      <img class="sb-v" src="assets/nexotlan/titulo/escena/vellond.webp" alt="" onerror="this.remove()">
+      <img class="sb-hna" src="assets/nexotlan/titulo/escena/heroina.webp" alt="" onerror="this.remove()">
+      <img class="sb-hro" src="assets/nexotlan/titulo/escena/heroe.webp" alt="" onerror="this.remove()">
+      <div class="sb-t"><small>TIENDA DIGITAL</small><b id="splTit">LO MEJOR DEL MULTIVERSO</b><span>Cartas, sobres y apariencia para tus Choques</span></div>
+    </div>
 
     <div id="jugador-header">
       <div class="jh-avatar" id="jh-avatar">🦸</div>
@@ -2819,6 +2849,21 @@ abrirSeccion = function(tab) {
     if (el) el.textContent = src?.textContent || totalPts || '—';
   }
 };
+</script>
+<script>
+// v435 · Banda del splash: en vista amplia va arriba de la vitrina y muestra el nombre de la sección abierta
+(function () {
+  const ban = document.getElementById('splBan'); if (!ban) return;
+  const colocar = () => { const main = document.getElementById('td-main'), hd = document.getElementById('jugador-header');
+    if (typeof tdHz === 'function' && tdHz() && main) { if (ban.parentElement !== main) main.insertBefore(ban, main.firstChild); }
+    else { const vd = document.getElementById('vend'), ref = vd || hd; if (ref && ban.previousElementSibling !== ref) ref.after(ban); } };      // v436 · en móvil: Dr. Sitho y su diálogo arriba de la banda
+  colocar(); try { TD_MQ.addEventListener('change', colocar); } catch (e) {}
+  const _a = abrirSeccion;
+  abrirSeccion = function (sec) { const r = _a.apply(this, arguments);
+    try { const b = document.querySelector('#td-rail [data-sec="' + (tdSec || sec) + '"]'), t = document.getElementById('splTit');
+      if (t && b) t.textContent = (b.childNodes[b.childNodes.length - (b.querySelector('em') ? 2 : 1)].textContent || '').trim() || t.textContent; } catch (e) {}
+    colocar(); return r; };
+})();
 </script>
 <script src="settings.js"></script>
 <script src="cosmeticos.js"></script>

@@ -140,6 +140,34 @@ button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:n
 @keyframes dfIn{from{opacity:0}to{opacity:1}}
 @keyframes dfLogo{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
 @keyframes dfItem{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:none}}
+/* ═══ v435 · PORTADA POR CAPAS (splash art) · solo en la pantalla de título ═══ */
+.t-escena{position:absolute;inset:0;z-index:1;container-type:size;overflow:hidden;opacity:0;transition:opacity .6s ease,visibility .6s;--mx:0;--my:0}
+.t-escena.lista{opacity:1}
+#sTitulo:not(.fase-portada) .t-escena{opacity:0;visibility:hidden}
+.t-escena .te-fondo{inset:-3%;background:#0a0f33 center/cover no-repeat;translate:calc(var(--mx) * -6px) calc(var(--my) * -4px);animation:teRespira 30s ease-in-out infinite alternate}
+@keyframes teRespira{from{transform:scale(1)}to{transform:scale(1.06)}}
+.t-escena .te-rayo{inset:0;background:radial-gradient(ellipse at 50% 18%,rgba(200,225,255,.55),rgba(150,120,255,.18) 40%,transparent 70%);mix-blend-mode:screen;opacity:0;animation:teRayo 11s linear infinite 3s}
+@keyframes teRayo{0%,86%,100%{opacity:0}87%{opacity:.9}88%{opacity:.15}89.5%{opacity:.7}92%{opacity:0}}
+.t-escena .te-esc{position:absolute;left:50%;bottom:0;width:min(100cqw,177.84cqh);aspect-ratio:6000/3363;translate:-50% 0}
+.t-escena .te-capa{position:absolute;height:auto;display:block;pointer-events:none;user-select:none;-webkit-user-drag:none;opacity:0;
+  translate:calc(var(--mx) * var(--d) * -16px) calc(var(--my) * var(--d) * -9px);will-change:transform}
+.t-escena.lista .te-capa{animation:teEntra 1.15s cubic-bezier(.2,.8,.25,1) var(--dl) both}
+.t-escena.lista .te-capa.flota{animation:teEntra 1.15s cubic-bezier(.2,.8,.25,1) var(--dl) both,teFlota var(--fl) ease-in-out calc(var(--dl) + 1.15s) infinite}
+.t-escena.lista .te-capa.brillo{animation:teEntra 1.15s cubic-bezier(.2,.8,.25,1) var(--dl) both,teBrillo 3.4s ease-in-out calc(var(--dl) + 1.15s) infinite}
+.te-capa.e-izq{--ex:-14%;--ey:0}.te-capa.e-der{--ex:14%;--ey:0}.te-capa.e-arr{--ex:0;--ey:-8%}.te-capa.e-aba{--ex:0;--ey:10%}
+@keyframes teEntra{from{opacity:0;transform:translate(var(--ex),var(--ey)) scale(.96)}to{opacity:1;transform:none}}
+@keyframes teFlota{0%,100%{opacity:1;transform:none}50%{opacity:1;transform:translateY(-1.4%)}}
+@keyframes teBrillo{0%,100%{opacity:1;filter:brightness(1)}50%{opacity:.55;filter:brightness(1.6) drop-shadow(0 0 6px #bfe8ff)}}
+.t-escena .te-velo{inset:0;pointer-events:none;background:radial-gradient(ellipse 34% 30% at 50% 62%,rgba(5,8,26,.55),transparent 75%),linear-gradient(180deg,transparent 60%,rgba(5,8,26,.55))}
+#sTitulo.fase-portada.vuelve .t-escena .te-capa{animation:none;opacity:1}
+/* con la escena: el logo y COMENZAR bajan al centro inferior (como en el splash) para no tapar a los personajes */
+#sTitulo.fase-portada:has(.t-escena.lista){justify-content:flex-end;gap:6px;padding-bottom:calc(10 * var(--uh) + 14px)}
+#sTitulo.fase-portada:has(.t-escena.lista) .t-kicker{display:none}
+#sTitulo.fase-portada:has(.t-escena.lista) .t-logo-anim{width:min(620px,calc(36 * var(--uw)),calc(19 * var(--uh) * 4.33))}
+#sTitulo.fase-portada:has(.t-escena.lista) .t-logo{max-width:min(620px,calc(36 * var(--uw)));max-height:calc(20 * var(--uh))}
+#sTitulo.fase-portada:has(.t-escena.lista) .t-title{font-size:clamp(30px,calc(5.5 * var(--uw)),64px)}
+#sTitulo.fase-portada:has(.t-escena.lista) .t-sub{font-size:14px;text-shadow:0 2px 6px #000,0 0 3px #000}
+@media (prefers-reduced-motion:reduce){.t-escena *{animation:none!important}.t-escena .te-capa{opacity:1}}
 /* ═══ v276 · Dos fases en la portada: TÍTULO (logo + COMENZAR + ©) → PARTIDAS ═══ */
 #sTitulo.fase-portada .t-btns,#sTitulo.fase-portada .t-cont,#sTitulo.fase-portada .t-est,#sTitulo.fase-portada .t-save,#sTitulo.fase-portada .t-ph,#sTitulo.fase-portada .t-atras{display:none!important}
 #sTitulo.fase-partidas .t-ini,#sTitulo.fase-partidas .t-copy,#sTitulo.fase-partidas .t-kicker,#sTitulo.fase-partidas .t-sub,
@@ -6255,12 +6283,55 @@ function portalPortada(fondo) {
   };
   requestAnimationFrame(paso);
 }
+// v435 · PORTADA POR CAPAS: el splash art de Nexotlan armado capa por capa (fondo + personajes) con llegada,
+//        balanceo suave, rayos y profundidad al mover el ratón. Solo se ve en la pantalla de título (COMENZAR);
+//        en ELIGE TU PARTIDA vuelve el portal de siempre. [config] portada_escena = no la quita · capas en titulo/escena.txt
+async function escenaPortada() {
+  const P = $('tPortal'); if (!P || $('tEscena')) return;
+  const v = String(CFG.portada_escena || '').trim(); if (/^(no|0|false)$/i.test(v)) return;
+  const url = v && !/^(si|sí)$/i.test(v) ? (v.includes('/') ? v.replace(/^\.?\//, '') : DIR + 'titulo/' + v) : DIR + 'titulo/escena.txt';
+  let txt = ''; try { const r = await fetch(url, { cache: 'no-cache' }); if (!r.ok) return; txt = await r.text(); } catch (e) { return; }
+  const base = url.replace(/[^/]*$/, '') + 'escena/', B = []; let cur = null, fondo = '';
+  txt.split(/\r?\n/).forEach(l => { l = l.replace(/^\s*#.*$/, '').trim(); if (!l) return;
+    const h = l.match(/^\[(\w+)(?::([^\]]+))?\]$/); if (h) { cur = { _t: h[1].toLowerCase(), id: h[2] || '' }; B.push(cur); return; }
+    const i = l.indexOf('='); if (i > 0 && cur) cur[l.slice(0, i).trim().toLowerCase()] = l.slice(i + 1).trim(); });
+  B.forEach(b => { if (b._t === 'fondo' && b.imagen) fondo = base + b.imagen; });
+  const capas = B.filter(b => b._t === 'capa' && b.imagen);
+  if (!capas.length && !fondo) return;
+  const n = x => +String(x || '0').replace(',', '.') || 0, siNo = (x, d) => x == null || x === '' ? d : /^(si|sí|1|true)$/i.test(x);
+  const E = document.createElement('div'); E.className = 't-escena'; E.id = 'tEscena'; E.setAttribute('aria-hidden', 'true');
+  let k = 0;
+  E.innerHTML = `<i class="te-fondo"${fondo ? ` style="background-image:url('${fondo}')"` : ''}></i><i class="te-rayo"></i><div class="te-esc">` + capas.map(c => {
+    const ent = ({ izquierda: 'izq', derecha: 'der', arriba: 'arr', abajo: 'aba' })[String(c.entra || '').toLowerCase()] || 'aba';
+    const cls = ['te-capa', 'e-' + ent, siNo(c.flota, true) ? 'flota' : '', siNo(c.brillo, false) ? 'brillo' : ''].filter(Boolean).join(' ');
+    return `<img class="${cls}" alt="" decoding="async" src="${base + c.imagen}" style="left:${n(c.x)}%;top:${n(c.y)}%;width:${n(c.ancho)}%;--d:${Math.max(0, Math.min(1.5, n(c.profundidad)))};--dl:${(0.15 + (k++) * 0.09).toFixed(2)}s;--fl:${(5.5 + (k % 4) * 0.9).toFixed(1)}s">`;
+  }).join('') + '</div><i class="te-velo"></i>';
+  P.insertBefore(E, P.querySelector('.tp-flash'));
+  const imgs = [...E.querySelectorAll('img')];
+  await Promise.race([Promise.all(imgs.map(i => (i.decode ? i.decode() : Promise.resolve()).catch(() => {}))), new Promise(r => setTimeout(r, 4000))]);
+  E.classList.add('lista');
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  // Profundidad con el ratón (suavizada); en celular un vaivén lento automático
+  let tx = 0, ty = 0, mx = 0, my = 0, ult = 0;
+  addEventListener('pointermove', e => { if (e.pointerType !== 'mouse') return; const r = E.getBoundingClientRect(); if (!r.width) return;
+    tx = ((e.clientX - r.left) / r.width - .5) * 2; ty = ((e.clientY - r.top) / r.height - .5) * 2; ult = performance.now(); }, { passive: true });
+  const yo = (window.__nxEscena = (window.__nxEscena || 0) + 1);
+  const paso = ts => {
+    if (window.__nxEscena !== yo || !E.isConnected) return; requestAnimationFrame(paso);
+    const t = $('sTitulo'); if (!t || !t.classList.contains('on') || !t.classList.contains('fase-portada') || document.hidden) return;
+    if (ts - ult > 4000) { tx = Math.sin(ts / 5200) * .45; ty = Math.cos(ts / 6900) * .25; }
+    mx += (tx - mx) * .06; my += (ty - my) * .06;
+    E.style.setProperty('--mx', mx.toFixed(3)); E.style.setProperty('--my', my.toFixed(3));
+  };
+  requestAnimationFrame(paso);
+}
 // Portada personalizable ([config] fondo_titulo / logo): si la imagen no existe se quedan los de siempre
 async function portadaPersonal() {
   const fondo = await primeraImg(candidatos(CFG.fondo_titulo, 'titulo')), logo = await primeraImg(candidatos(CFG.logo, 'titulo'));
   const t = $('sTitulo');
   if (fondo) { t.classList.add('con-fondo'); t.style.backgroundImage = `linear-gradient(rgba(5,10,28,.25),rgba(5,10,28,.78)),url("${fondo}")`; }
   if (!/^(no|0|false|estatica|estática)$/i.test(String(CFG.portada_animada || '').trim())) try { portalPortada(fondo); } catch (e) {}
+  try { escenaPortada(); } catch (e) {}      // v435 · escena por capas (splash art) solo en la pantalla de título
   // Logo animado (Choque de Héroes + NEXOTLAN). [config] logo_animado = no → usa la imagen de logo / el texto
   const logoAnim = !/^(no|0|false|estatica|estática)$/i.test(String(CFG.logo_animado || '').trim()) && !!window.customElements;
   $('tLogoAnim').hidden = !logoAnim;

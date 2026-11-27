@@ -659,18 +659,14 @@
 <body>
 
 <nav id="chh-nav">
-  <a class="nav-back" href="index.html">◀ INICIO</a>
+  <a class="nav-back" href="index.html#tienda">◀ INICIO</a>
   <div class="nav-title">💎 TIENDA DIGITAL</div>
   <div class="nav-pts" id="nav-pts"><span id="nav-pts-val">—</span>PTS</div>
 </nav>
 
 <div class="container">
 
-  <a href="tienda-fisica.html" style="display:flex;align-items:center;gap:12px;margin:0 0 14px;padding:12px 16px;text-decoration:none;color:inherit;border:1px solid var(--border);background:var(--card);clip-path:polygon(0 0,100% 0,calc(100% - 12px) 100%,0 100%)">
-    <span style="font-size:1.6rem" aria-hidden="true">📦</span>
-    <span style="flex:1;min-width:0"><b style="display:block;font-family:'Orbitron',sans-serif;font-size:.85rem;letter-spacing:.04em">TIENDA ONLINE</b><span style="font-size:.95rem;opacity:.75">Preventas y productos con envío o entrega personal</span></span>
-    <span aria-hidden="true" style="font-size:1.4rem">›</span>
-  </a>
+  <!-- v437 · el acceso a la Tienda online ahora está en el inicio (TIENDA → Tienda online) -->
   <div id="login-required">
     <div class="lock-icon">🔐</div>
     <p>Inicia sesión en tu perfil para acceder a la tienda y desbloquear recompensas con tus puntos de ranking.</p>
@@ -719,7 +715,6 @@
       <button data-sec="heroes"><span class="rl-i">🦸</span>HÉROES DEL MENÚ</button>
       <div class="rl-sep"></div>
       <button data-sec="canjear"><span class="rl-i">🔑</span>CANJEAR CÓDIGO</button>
-      <a href="tienda-fisica.html"><span class="rl-i">📦</span>TIENDA ONLINE</a>
     </nav>
 
     <!-- ═══ MENÚ CATEGORÍAS ═══ -->
@@ -1282,6 +1277,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     else if (tdHz()) abrirSeccion(TD_DEF);
   }
   TD_MQ.addEventListener && TD_MQ.addEventListener('change', () => { if (tdHz() && !tdSec) abrirSeccion(TD_DEF); });
+  if (!qSec) setTimeout(() => vendDecir('presentacion'), 0);      // v437 · el Doctor explica en qué consiste la tienda
   mpAlRegresar();
   // En paralelo: si el ranking tarda, ya no bloquea el saldo de HP
   await Promise.allSettled([calcularPuntos(), cargarSaldoHP()]);
@@ -1292,6 +1288,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 //  MOSTRADOR — Doctor Sitho Falabeuf (frases en assets/tienda/vendedor.txt)
 // ════════════════════════════════════════════
 const VEND_BASE = {
+  presentacion: ['Bienvenido a mi Tienda digital, {nombre}. Aquí cambias tus Hero Pesos por sobres, cartas, micas, playmats, avatares, fondos, temas y música para el Nexo. Todo llega al instante a tu cuenta.'],
   bienvenida: ['¡Pasa, pasa, {nombre}! Lo mejor del Multiverso, recién llegado de otras dimensiones.'],
   premium: ['Mi colección privada. Expansiones, micas y héroes que no salen en ningún sobre.'],
   canjear: ['¿Traes un código? Muéstramelo. Si es auténtico, lo que guarda será tuyo.'],

@@ -203,16 +203,32 @@ html.gp-on .gpHint{display:block}
 @keyframes sbEntra{from{opacity:0;transform:translateY(8%)}}
 @media (max-width:560px){.spl-ban{height:140px;--sep:20%}.spl-ban .sb-ix{height:150%;right:59%}.spl-ban .sb-ko{height:136%;left:62%}.spl-ban .sb-t{width:46%}.spl-ban .sb-t b{font-size:14px}.spl-ban .sb-t small{font-size:9px;letter-spacing:.2em;padding:3px 10px}.spl-ban .sb-t span{display:none}}
 @media (prefers-reduced-motion:reduce){.spl-ban img{animation:none}}
+/* ═══ v437 · Doctor Sitho arriba: explica en qué consiste la Tienda online (frases: assets/tienda/vendedor.txt → [online]) ═══ */
+.vend{position:relative;display:flex;align-items:flex-end;margin:8px 0 4px;min-height:140px}
+.vend-busto{position:relative;flex:0 0 120px;height:148px;overflow:hidden;z-index:2;-webkit-mask-image:linear-gradient(#000 78%,transparent);mask-image:linear-gradient(#000 78%,transparent)}
+.vend-busto img{position:absolute;left:50%;top:-6%;height:250%;width:auto;max-width:none;transform:translateX(-46%);filter:drop-shadow(0 4px 12px rgba(0,0,0,.75));pointer-events:none;user-select:none}
+.vend-hablar{position:relative;flex:1;min-width:0;max-width:760px;margin:0 0 12px -6px;padding:12px 16px 13px;border-radius:4px 14px 14px 14px;
+  background:linear-gradient(160deg,rgba(14,34,36,.94),rgba(8,14,20,.94));border:1px solid rgba(95,232,208,.38);box-shadow:0 0 0 1px rgba(0,0,0,.5),0 0 22px rgba(95,232,208,.12),inset 0 0 26px rgba(95,232,208,.05)}
+.vend-hablar::before{content:'';position:absolute;left:-9px;top:16px;width:16px;height:16px;transform:rotate(45deg);background:rgba(14,32,35,.96);border-left:1px solid rgba(95,232,208,.38);border-bottom:1px solid rgba(95,232,208,.38)}
+.vend-nom{font-family:'Orbitron',sans-serif;font-weight:900;font-size:11px;letter-spacing:1.5px;color:#5fe8d0;text-shadow:0 0 10px rgba(95,232,208,.4)}
+.vend-nom span{display:block;font-family:'Rajdhani',sans-serif;font-weight:600;font-size:12px;letter-spacing:.5px;color:var(--mut);margin-top:1px}
+.vend-txt{font-size:16.5px;line-height:1.32;color:#e7f4f1;margin-top:6px}
+@media (max-width:560px){.vend-busto{flex-basis:96px;height:124px}.vend-txt{font-size:15px}}
 </style>
 <script src="nexo-ui.js"></script>
 </head>
 <body>
 <header class="top-bar">
-  <a href="index.html" class="back-btn" aria-label="Regresar al menú">‹</a>
+  <a href="index.html#tienda" class="back-btn" aria-label="Regresar al menú">‹</a>
   <h1 class="top-title">TIENDA ONLINE<small id="sub">Preventas y productos con envío o entrega personal</small></h1>
   <button type="button" id="bCarro" aria-label="Carrito"><span aria-hidden="true">🛒</span><span class="t">Carrito</span><span class="n" id="nCarro">0</span></button>
 </header>
 <main>
+  <div class="vend" id="vend" aria-live="polite">
+    <div class="vend-busto"><img src="assets/nexotlan/personajes/doctor.png" alt="Doctor Sitho Falabeuf" onerror="this.parentElement.style.display='none'"></div>
+    <div class="vend-hablar"><div class="vend-nom">DOCTOR SITHO FALABEUF<span>Mercader de recuerdos</span></div>
+      <div class="vend-txt" id="vendTxt">Esta es mi Tienda online: preventas y productos físicos de Choque de Héroes. Pagas con Mercado Pago y te lo envío o te lo entrego en persona.</div></div>
+  </div>
   <div class="spl-ban" aria-hidden="true">
     <img class="sb-v" src="assets/nexotlan/titulo/escena/vellond.webp" alt="" onerror="this.remove()">
     <img class="sb-ix" src="assets/nexotlan/titulo/escena/aguila.webp" alt="" onerror="this.remove()">
@@ -223,7 +239,6 @@ html.gp-on .gpHint{display:block}
   <nav id="tabs" role="tablist">
     <button type="button" role="tab" class="on" data-tab="productos">Productos</button>
     <button type="button" role="tab" data-tab="pedidos">Mis pedidos<span class="b" id="bPend" hidden></span></button>
-    <a class="chip" id="aDig" href="tienda.html" style="margin:0 0 6px auto;align-self:center" aria-label="Tienda digital">💎<span> Tienda digital</span></a>
   </nav>
   <section id="vProd">
     <div id="filtros"></div>
@@ -594,5 +609,14 @@ cargarCatalogo().then(() => { cargarPedidos(); alRegresar();
 <script src="settings.js"></script>
 <script src="bgm.js"></script>
 <script src="gamepad.js"></script>
+<script>
+// v437 · frase del Doctor en la Tienda online (sección [online] de assets/tienda/vendedor.txt; si no existe, se queda la de arriba)
+fetch('assets/tienda/vendedor.txt', { cache: 'no-cache' }).then(r => r.ok ? r.text() : '').then(t => {
+  let sec = '', L = []; String(t || '').split(/\r?\n/).forEach(l => { l = l.trim(); if (!l || l[0] === '#') return;
+    const h = l.match(/^\[([a-z_]+)\]$/i); if (h) { sec = h[1].toLowerCase(); return; } if (sec === 'online') L.push(l); });
+  if (!L.length) return; let nom = 'viajero'; try { const ss = JSON.parse(localStorage.getItem('nhSesion') || 'null'); if (ss && ss.nombre) nom = String(ss.nombre).split(' ')[0]; } catch (e) {}
+  document.getElementById('vendTxt').textContent = L[Math.floor(Math.random() * L.length)].replace(/\{nombre\}/g, nom);
+}).catch(() => {});
+</script>
 </body>
 </html>

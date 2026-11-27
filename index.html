@@ -124,6 +124,28 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .row{position:relative;display:flex;align-items:center;gap:14px;padding:11px 26px 11px 12px;min-height:62px;
   background:linear-gradient(90deg,rgba(var(--nx-k5),.94),rgba(var(--nx-k5),.7));border:1px solid var(--line);
   clip-path:polygon(0 0,100% 0,calc(100% - 16px) 100%,0 100%);transition:background .15s,transform .15s}
+/* ═══ v437 · bandas de las tiendas (TIENDA → Tienda digital / Tienda online) ═══ */
+.row.ban{display:block;height:clamp(118px,17vh,150px);min-height:0;padding:0;overflow:hidden;isolation:isolate;border:1px solid rgba(245,200,66,.32);border-radius:10px;
+  background:#0a0f33 url('assets/nexotlan/titulo/escena/fondo.webp') center 32%/cover no-repeat;clip-path:none;--sep:min(150px,25%)}
+.row.ban::before{display:none}
+.row.ban::after{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(ellipse 34% 70% at 50% 55%,rgba(5,8,26,.82),rgba(5,8,26,.3) 70%,transparent),linear-gradient(180deg,transparent 50%,rgba(5,8,26,.6)),linear-gradient(90deg,rgba(5,8,26,.5),transparent 20%,transparent 80%,rgba(5,8,26,.5))}
+.row.ban img{position:absolute;display:block;width:auto;pointer-events:none;transition:transform .35s cubic-bezier(.2,.8,.25,1)}
+.row.ban .bn-v{left:50%;top:-14%;height:190%;translate:-50% 0;opacity:.4}
+.row.ban.ban-digital .bn-i{right:60%;top:8%;height:205%}
+.row.ban.ban-digital .bn-d{left:60%;top:5%;height:205%}
+.row.ban.ban-online .bn-i{right:62%;top:3%;height:186%}
+.row.ban.ban-online .bn-d{left:60%;top:-2%;height:164%}
+.row.ban .bn-t{position:absolute;left:50%;top:54%;z-index:2;translate:-50% -50%;width:54%;text-align:center}
+.row.ban .bn-t small{display:inline-block;white-space:nowrap;padding:3px 12px 3px 14px;font:900 11px 'Orbitron',sans-serif;letter-spacing:.24em;color:#04061a;background:linear-gradient(90deg,#36d6ff,#9ff0ff);
+  clip-path:polygon(7px 0,100% 0,calc(100% - 7px) 100%,0 100%);box-shadow:0 0 14px rgba(54,214,255,.6);margin:0}
+.row.ban .bn-t b{display:block;margin:7px 0 3px;font:900 clamp(13px,1.6vw,17px)/1.1 'Orbitron',sans-serif;letter-spacing:.04em;
+  background:linear-gradient(180deg,#fff3c4,#f5c842 70%,#c7700f);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 0 #3a1d00)}
+.row.ban .bn-t span{display:block;font-size:13px;color:#d6def5;text-shadow:0 1px 4px #000;margin:0;line-height:1.2}
+.row.ban:hover,.row.ban:focus-visible{transform:none;background:#0a0f33 url('assets/nexotlan/titulo/escena/fondo.webp') center 32%/cover no-repeat;border-color:#f5c842;box-shadow:0 0 0 2px rgba(245,200,66,.55),0 0 22px rgba(245,200,66,.35)}
+.row.ban:hover .bn-i,.row.ban:focus-visible .bn-i{transform:translateX(-5px) scale(1.03)}.row.ban:hover .bn-d,.row.ban:focus-visible .bn-d{transform:translateX(5px) scale(1.03)}
+.row.ban:hover b,.row.ban:focus-visible b{color:transparent}
+@media (max-width:560px){.row.ban.ban-digital .bn-i{right:57%;height:172%;top:10%}.row.ban.ban-digital .bn-d{left:55%;height:172%;top:8%}.row.ban.ban-online .bn-i{right:54%;height:170%}.row.ban.ban-online .bn-d{left:58%;height:150%}.row.ban .bn-t span{display:none}.row.ban .bn-t{width:50%}}
 .row::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c,var(--gold))}
 .row .ic{width:42px;height:42px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px;background:rgba(255,255,255,.05);
   clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%)}
@@ -302,8 +324,8 @@ const SECCIONES = [
     { href:'mapa-tiendas.html', ic:'📍', t:'Mapa de tiendas', d:'Encuentra tu tienda más cercana' },
     { href:'registro-tiendas.html', ic:'🏪', t:'Tiendas oficiales', d:'Registra una tienda nueva' } ] },
   { id:'tienda', txt:'TIENDA', c:'#f5c842', hint:'Tienda digital, Tienda Online y precios', items:[
-    { href:'tienda.html', ic:'💎', t:'Tienda digital', d:'Sobres, avatares, micas, playmats y temas con Hero Pesos' },
-    { href:'tienda-fisica.html', ic:'📦', t:'Tienda Online', d:'Preventas y productos con envío o entrega personal' },
+    { href:'tienda.html', ic:'💎', t:'Tienda digital', d:'Sobres, cartas, micas, playmats y temas con Hero Pesos', ban:'digital' },
+    { href:'tienda-fisica.html', ic:'📦', t:'Tienda Online', d:'Preventas y productos con envío o entrega personal', ban:'online' },
     { href:'mercado/mercado.html', ic:'💰', t:'Mercado Heroico', d:'Precios sugeridos de cartas en MXN' } ] },
   { id:'extras', txt:'EXTRAS', c:'#00e0a4', hint:'Cómics, música, videos y noticias', items:[
     { href:'comics.html', ic:'📖', t:'Comicteca', d:'Lee los cómics de los héroes del TCG' },
@@ -311,6 +333,14 @@ const SECCIONES = [
     { href:'videos.html', ic:'🎬', t:'Videos', d:'Tutoriales, torneos y más' },
     { href:'noticias.html', ic:'📰', t:'Noticias', d:'Las últimas novedades del juego' } ] }
 ];
+// v437 · TIENDA: las dos tiendas se eligen con su banda del splash (2 personajes cada una, simétricos)
+const BAN_E = 'assets/nexotlan/titulo/escena/';
+function banTienda(it) {
+  const P = it.ban === 'online' ? ['aguila', 'koatl'] : ['heroina', 'heroe'];
+  return '<i class="bn-f"></i><img class="bn-v" src="' + BAN_E + 'vellond.webp" alt="" onerror="this.remove()">' +
+    '<img class="bn-i" src="' + BAN_E + P[0] + '.webp" alt="" onerror="this.remove()"><img class="bn-d" src="' + BAN_E + P[1] + '.webp" alt="" onerror="this.remove()">' +
+    '<div class="bn-t"><small>' + it.t.toUpperCase() + '</small><b>' + (it.ban === 'online' ? 'PREVENTAS Y PRODUCTOS' : 'LO MEJOR DEL MULTIVERSO') + '</b><span>' + it.d + '</span></div>';
+}
 const $ = id => document.getElementById(id);
 let NX_OK = false;
 
@@ -329,7 +359,8 @@ function abrirSeccion(id, foco) {
   const L = $('subList'); L.innerHTML = '';
   s.items.filter(it => !it.gate || NX_OK).forEach(it => {
     const a = document.createElement('a'); a.className = 'row'; a.href = it.href; a.style.setProperty('--c', s.c); a.setAttribute('role', 'menuitem');
-    a.innerHTML = '<div class="ic">' + it.ic + '</div><div><b>' + it.t + '</b><span>' + it.d + '</span></div>';
+    a.innerHTML = it.ban ? banTienda(it) : '<div class="ic">' + it.ic + '</div><div><b>' + it.t + '</b><span>' + it.d + '</span></div>';
+    if (it.ban) a.classList.add('ban', 'ban-' + it.ban);
     L.appendChild(a);
   });
   $('hub').classList.add('subOn'); SEC = id;

@@ -111,6 +111,10 @@ body.intro #iz{display:block}
 .ix-titulo.on .ix-pulsa{animation:ixAparece .8s 2s both,ixLate 2.2s 2.8s ease-in-out infinite}
 .ix-titulo.on .ix-copy,.ix-titulo.on .ix-ver{animation:ixAparece 1s 2.2s both}
 @keyframes ixAparece{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.ix-titulo.con-escena{justify-content:flex-end;padding-bottom:13vh;background:none}
+.ix-titulo.con-escena #ixGal,.ix-titulo.con-escena #ixWarp{display:none}
+.ix-titulo.con-escena nexotlan-logo{width:min(600px,37vw);margin-top:0}
+.ix-titulo.con-escena .ix-pulsa{margin-top:2.5vh}
 .ix-rayo{position:absolute;left:-30%;top:48%;width:160%;height:2px;background:linear-gradient(90deg,transparent,rgba(120,220,255,.95),#fff,rgba(120,220,255,.95),transparent);box-shadow:0 0 18px 4px rgba(54,214,255,.6);opacity:0;pointer-events:none}
 .ix-titulo.on .ix-rayo{animation:ixRayo 1.4s .9s ease-out both}
 @keyframes ixRayo{0%{opacity:0;transform:scaleX(.1)}30%{opacity:1}100%{opacity:0;transform:scaleX(1.1)}}
@@ -201,6 +205,7 @@ body.intro #gpRing,body.intro #gpPtr{display:none!important}
   </div>
 </div>
 <div class="pie">© <span class="anio"></span> Codex Studio · Yair Artz · F11 pantalla completa<span class="ver" id="pieVer"></span></div>
+<script src="escena-portada.js"></script>   <!-- v437 · splash de Nexotlan por capas en la pantalla de título -->
 <script src="nexotlan-logo.js" defer></script>
 <script src="gamepad.js" defer></script>
 <script>
@@ -281,7 +286,7 @@ try {
     const st = Array.from({ length: 420 }, () => ({ x: (Math.random() - .5) * 2, y: (Math.random() - .5) * 2, z: Math.random() }));
     const tam = () => { W = cv.width = innerWidth * devicePixelRatio; H = cv.height = innerHeight * devicePixelRatio; }; tam(); addEventListener('resize', tam);
     (function f(t) {
-      if (!$('ixTitulo').classList.contains('on')) { on0 = false; requestAnimationFrame(f); return; }
+      if (!$('ixTitulo').classList.contains('on') || $('ixTitulo').classList.contains('con-escena')) { on0 = false; requestAnimationFrame(f); return; }
       if (!on0) { on0 = true; t0 = t; }
       const k = Math.min(1, (t - t0) / 2600), v = .045 * Math.pow(1 - k, 2.2) + .0012;   // velocidad: muy rápido → lento
       cx.clearRect(0, 0, W, H);
@@ -295,6 +300,8 @@ try {
     })(t0);
   }
   warp();
+  // v437 · el splash de Nexotlan (mismo de la portada del Modo Aventura) reemplaza a la galaxia como fondo del título
+  try { if (window.NXEscena) NXEscena.montar($('ixTitulo'), { activo: () => $('ixTitulo').classList.contains('on') }).then(ok => { if (ok) $('ixTitulo').classList.add('con-escena'); }); } catch (e) {}
 
   // ═ GALAXIA ANIMADA DEL TÍTULO (todo por código, sin imágenes ni video): nebulosas, brazos espirales que giran
   //   (rotación diferencial: el centro gira más rápido), anillos de luz, núcleo que late y destello horizontal ═
@@ -312,7 +319,7 @@ try {
     const NEB = [[.0, .0, .55, '255,120,200'], [.35, .1, .45, '120,80,255'], [-.4, -.15, .5, '40,200,255'], [.15, -.35, .38, '255,180,90'], [-.2, .35, .42, '150,60,220']];
     (function f(t) {
       requestAnimationFrame(f);
-      if (!$('ixTitulo').classList.contains('on')) { on0 = false; return; }
+      if (!$('ixTitulo').classList.contains('on') || $('ixTitulo').classList.contains('con-escena')) { on0 = false; return; }
       if (!on0) { on0 = true; t0 = t; }
       const e = (t - t0) / 1000, k = Math.min(1, e / 2.6), ent = 1 - Math.pow(1 - k, 3);   // entrada: la galaxia se abre
       const cxm = W * .5, cym = H * .52, esc = R0 * (.25 + .75 * ent), inc = .5, giro = -.26;

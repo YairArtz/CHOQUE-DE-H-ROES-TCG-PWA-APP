@@ -121,6 +121,7 @@ html,body{
 .sln b{font-family:'Orbitron',monospace;font-size:12px;font-weight:900;letter-spacing:.5px}
 .sln span:not(.sln-ic){font-size:12.5px;color:#c8d4ef}
 @media (max-height:500px){#slNoti{width:min(300px,44vw);gap:6px}.sln{padding:6px 10px 6px 8px;gap:8px}.sln-ic{width:30px;height:30px;font-size:19px}.sln-ic img{inset:-5px;width:40px;height:40px}.sln b{font-size:11px}.sln span:not(.sln-ic){font-size:11.5px}}
+:root.rot #slNoti{width:min(300px,44vh);gap:6px;right:14px;bottom:14px}:root.rot .sln{padding:6px 10px 6px 8px;gap:8px}:root.rot .sln-ic{width:30px;height:30px;font-size:19px}:root.rot .sln-ic img{inset:-5px;width:40px;height:40px}:root.rot .sln b{font-size:11px}:root.rot .sln span:not(.sln-ic){font-size:11.5px}
 .sln-ic{position:relative;flex-shrink:0;width:38px;height:38px;display:grid;place-items:center;font-size:24px;font-weight:900;color:#aab3cc}
 .sln-ic i{font-style:normal}
 .sln-ic img{position:absolute;inset:-6px;width:50px;height:50px;object-fit:contain;filter:drop-shadow(0 0 6px rgba(255,190,60,.7))}
@@ -10406,7 +10407,7 @@ function arcadeYaJugado(){
 // Desafío cumplido → "¡gana para obtener el sello!" · desafío perdido en este Choque → aviso gris · al ganar → 🏅 SELLO OBTENIDO
 const SELLO_SIM=(function(){
   let box=null,iv=null;const avis={};
-  function caja(){if(box&&box.isConnected)return box;box=document.createElement('div');box.id='slNoti';document.body.appendChild(box);return box;}
+  function caja(){if(box&&box.isConnected)return box;box=document.createElement('div');box.id='slNoti';(document.getElementById('stage')||document.body).appendChild(box);return box;}      // v439 · dentro del escenario: gira con él cuando el teléfono está en vertical
   function ico(sl){return '<span class="sln-ic"><i>🏅</i>'+(sl&&sl.img?'<img src="'+sl.img+'" alt="" onerror="this.remove()">':'')+'</span>';}
   function chime(oro){if(MUTED||!(AJ.sfx>0))return;try{const ac=getAC(),now=ac.currentTime,dest=sfxBus();
     (oro?[784,988,1175,1568]:[660,880]).forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.type='triangle';o.frequency.value=f;
